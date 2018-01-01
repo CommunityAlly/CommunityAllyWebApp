@@ -1,9 +1,9 @@
 # Community Ally
-**Online tools for offline groups to accomplish greater things.** Manage documents, payments, to-dos, calendars, committees, private communication, events, history, polls, maintenance, membership and more in a tool uniquely tailored for condos, HOAs, and neighborhoods. It's the perfect tool for these groups because it's built by board members that use it every day.
+**Online tools that let offline groups accomplish greater things.** Manage documents, payments, to-dos, calendars, committees, private communication, events, history, polls, maintenance, membership and more in a tool uniquely tailored for condos, HOAs, and neighborhoods. It's the perfect tool for these groups because it's built by board members that use it every day.
 
 [![N|Logo](https://communityally.org/images/community-ally-800.png)](https://communityally.org/)
 
-This is the code base for the front-end of the Community Ally web-based community management tool. [Condo Ally](https://condoally.com/), [HOA Ally](https://hoaally.org/), and Neighborhood Ally use this code base. The back-end server code base is not yet open source.
+This is the code base for the front-end of the Community Ally web-based community management tool. [Condo Ally](https://condoally.com/), [HOA Ally](https://hoaally.org/), [Neighborhood Ally](https://neighborhoodally.org/), and [Block Club Ally](https://chicagoblock.club/) use this code base. The back-end server code base is not yet open source.
 
 # Using Community Ally
 
