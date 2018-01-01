@@ -1,0 +1,8 @@
+﻿{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowJs": false,
+    "noImplicitAny": true
+  },
+  "exclude": [ "*.js", "**/*.js", "obj", "bin" ]  
+}

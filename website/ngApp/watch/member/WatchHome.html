@@ -1,0 +1,18 @@
+<section class="content">
+    <div>
+        <div id="welcome-message-label">{{ welcomeMessage }}</div>
+
+        <group-comments></group-comments>
+    </div>
+</section>
+
+<aside>
+    <h3>Local News</h3>
+    <article data-ng-repeat="news in vm.localNews">
+        <h4><a data-ng-href='{{ news.fullStoryUri }}' target="_blank">{{ news.title }}</a></h4>
+        <p class="date">{{ news.date | date:'short' }}</p>
+        <p><photo photo-src="news.bodySnippet" /> {{news.bodySnippetText}}</p>
+        <p><a data-ng-href='{{ news.fullStoryUri }}' target="_blank" class="more">Read more </a></p>
+    </article>
+
+</aside>

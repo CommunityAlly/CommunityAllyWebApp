@@ -1,0 +1,264 @@
+@import 'variables';
+/** h1--h6 */
+h1, h2, h3, h4, h5, h6 {
+    text-rendering: optimizeLegibility;
+    .toolbar {
+        display: inline-block;
+        font-size: small;
+    }
+}
+h1 {
+    font-size: 36px;
+    font-weight: 600;
+}
+h2 {
+    font-size: 30.5px;
+    font-weight: bold;
+}
+a {
+    color: #08c;
+}
+
+.bb {
+    border-bottom: 1px solid $border-color;
+}
+.white-bg {
+    background: white;
+}
+
+/** padding & margin settings **/
+.no-margin {
+    margin: 0px;
+}
+.margin {
+    margin: 30px;
+}
+.margin-vertical {
+    margin: 30px 0px;
+}
+.margin-top-30, .margin-top {
+    margin-top: 30px;
+}
+.margin-top-20 {
+    margin-top: 20px;
+}
+.margin-top-15 {
+    margin-top: 10px;
+}
+.margin-top-10 {
+    margin-top: 10px;
+}
+.margin-bottom-10 {
+    margin-bottom: 10px;
+}
+.margin-bottom-30 {
+    margin-bottom: 10px;
+}
+.margin-left, .margin-left-30 {
+    margin-left: 30px;
+}
+.margin-left-15 {
+    margin-left: 15px;
+}
+.margin-left-10 {
+    margin-left: 10px;
+}
+.margin-right, .margin-right-30 {
+    margin-right: 30px;
+}
+.margin-right-10 {
+    margin-right: 10px;
+}
+
+.padding {
+    padding: 21px 27px;
+}
+.no-padding {
+    padding: 0 !important;
+}
+.no-padding-left {
+    padding-left: 0px !important;
+}
+.no-padding-right {
+    padding-right: 0px !important;
+}
+.padding-vertical {
+    padding: 30px 0px;
+}
+.padding-top-10 {
+    padding-top: 10px;
+}
+.padding-right {
+    padding-right: 30px;
+}
+.box-shadow {
+    box-shadow: 0 10px 10px #eaeaeb;
+}
+
+.spinner-effect {
+    position: relative;
+}
+
+/** font **/
+.text-16 {
+    font-size: 16px;
+}
+.text-12 {
+    font-size: 12px;
+}
+.font-600 {
+    font-weight: 600;
+}
+.text-bold {
+    font-weight: 700;
+}
+.text-large {
+    font-size: large;
+}
+
+/** menus **/
+.nav-link {
+    font-weight: 600;
+}
+
+/** text & button settings **/
+.text-button, .text-link {
+    cursor: pointer;
+    color: #08c;
+    font-weight: 600;
+}
+.text-button:hover, .text-link:hover
+{
+    text-decoration:underline;
+}
+.note-text {
+    font-size: small;
+    font-style: italic;
+}
+.input_field {
+     background: #f4f4f4 !important;
+     border: 1px solid #ccc !important;
+     border-radius: 5px !important;
+     padding: 10px !important;
+     font-size: 16px !important;
+     color: #333 !important;
+     width: 100%;
+     outline: none !important;
+     box-shadow: none !important;
+     height: auto !important;
+ }
+.required {
+    font-size: small;
+    font-style: italic;
+}
+.validation-label {
+    color: #f00;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+.btn {
+    font-size: 15px;
+}
+
+/** radio buttons **/
+.custom-control-indicator {
+    background: url(/assets/images/radio.png) no-repeat 0 -20px;
+    top: -2px;
+    width: 20px;
+    height: 24px;
+}
+.custom-control-input:checked ~ .custom-control-indicator {
+    background-color: white;
+    box-shadow: none !important;
+}
+.custom-radio .custom-control-input:checked ~ .custom-control-indicator {
+    background: url(/assets/images/radio.png) no-repeat 1px 4px;
+}
+.custom-control-input:active ~ .custom-control-indicator {
+    background-color: transparent !important;
+}
+
+/** portlet boxes */
+.portlet-box {
+    padding: 21px 27px;
+    .portlet-header {
+        @extend .bb;
+        margin-bottom: 18px;
+        padding-bottom: 5px;
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+    }
+    .portlet-body {
+        &.min100vh {
+            min-height: 100px;
+        }
+    }
+
+    &.white {
+        background: white;
+    }
+}
+
+/** fieldset **/
+fieldset {
+    border: 1px solid #c0c0c0;
+    margin: 0 2px;
+    padding: .35em .625em .75em;
+    legend {
+        width: auto;
+    }
+}
+
+/** form controls */
+.form-group {
+    label {
+        font-size: 16px;
+        font-weight: 600;
+    }
+    @media screen and (min-width: 620px) {
+        label {
+            text-align: right;
+        }
+    }
+}
+.form-control.grey {
+    background: #eceeef;
+}
+input.form-control.search-box {
+    background:white url(/assets/images/search-small.png) no-repeat scroll 98% center;
+}
+
+/** media items **/
+.media-item {
+    display: flex;
+    width: 100%;
+    .media-thumbnail {
+        width: 57px;
+        margin-right: 10px;
+    }
+    .media-content {
+        flex: 1;
+    }
+}
+
+/** list styles **/
+ol, ul {
+    padding-left: 1rem;
+    li {
+        padding-left: 5px;
+    }
+}
+
+.fc-event
+{
+    color: #fff !important;
+}
+
+.text-error
+{
+    color: red;
+    font-weight: bold;
+}

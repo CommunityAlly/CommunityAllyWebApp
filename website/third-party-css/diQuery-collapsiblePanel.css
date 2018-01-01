@@ -1,0 +1,36 @@
+﻿.collapsibleContainer
+{
+    width:800px;
+}
+
+.collapsibleContainerTitle
+{
+    background-image: url(/assets/images/bg-menu-main.png);
+    background-repeat: repeat-x;
+    border:1px solid #000;
+    width:798px;
+    height:30px;
+    cursor:pointer;
+    vertical-align:middle;
+    color:#000;
+    position: relative;
+}
+
+.collapsibleContainerTitle div
+{
+    padding-top:5px;
+    padding-left:10px;
+}
+
+.collapsibleContainerContent
+{
+    padding: 0px;
+}
+
+.collapsibleContainerInnerContent
+{
+    padding:4px;
+    border:1px solid #000;
+    border-top:0px;
+    position:relative;
+}

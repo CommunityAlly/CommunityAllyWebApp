@@ -1,0 +1,41 @@
+﻿<section class="content-full-width" data-ng-if="welcomeMessage.length > 0">
+    <div>
+        <h3>Welcome!</h3>
+        <div id="welcome-message-label">{{ welcomeMessage }}</div>
+    </div>
+</section>
+
+<section class="content">
+    <todos></todos>
+    <div class="send_email" id="send-email-panel" data-ng-if="canSendEmail">
+        <h3>Send E-mail</h3>
+        <div class="loading-overlay" data-ng-show="isLoadingEmail"></div>
+        <div data-ng-show="showSendEmail">
+            <form id="message-form">
+                <p><label>Choose Recipient Group</label></p>
+                <p>
+                    <select data-ng-model="messageObject.recipientType" data-ng-change="onSelectEmailGroup()" data-ng-options="e.recipientType as e.displayName for e in availableEmailGroups"></select>
+                    <br />
+                    <a data-ng-href="mailto:{{ groupEmailAddress }}" class="note-text">{{ groupEmailAddress }}</a>
+                    <small>For individual resident messaging or group listings, visit the <a href="#!/BuildingResidents">Residents</a> page </small>
+                </p>
+                <p><label>E-mail Contents:</label></p>
+                <p><textarea class="input_field" data-ng-model="messageObject.message" data-rule-required="true" rows="10"></textarea></p>
+                <p class="text-right"><input class="btn btn-primary" value="Send E-mail" id="send-email-button" type="button" data-ng-click="onSendEmail();" /></p>
+            </form>
+        </div>
+        <div data-ng-show="showSendConfirmation">
+            Your message has been sent successfully.<br>
+            <span class="text-button" data-ng-click="showSendEmail = true; showSendConfirmation = false;">Send Another</span>
+        </div>
+        <div data-ng-show="showEmailForbidden">
+            You do not have permission to send e-mail.
+        </div>
+        <!--We recently disabled e-mail sending here on the home page now that group e-mails are working. In order to reach out to your association
+        please use the group e-mails found at the bottom of the <a href="#!/BuildingResidents">Fellow Residents</a> page.-->
+    </div>
+</section>
+
+<aside>
+    <group-comments></group-comments>
+</aside>

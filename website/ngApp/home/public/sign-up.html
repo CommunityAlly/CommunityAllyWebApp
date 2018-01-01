@@ -1,0 +1,210 @@
+﻿<section class="content-full-width" style="width:800px; margin-left: 150px;">
+    <div>
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+        <div data-ng-show="$ctrl.hideWizard">
+            {{ $ctrl.resultMessage }}
+        </div>
+        <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
+            <wz-step title="Address">
+
+                <h2 class="StepTitle"></h2>
+                <div>
+                    <label>Home Address:</label> <input type="text" id="home-address-text-box" style="width:100%;" data-ng-change="$ctrl.shouldCheckAddress = true" data-ng-model="$ctrl.signUpInfo.streetAddress" /> 
+                    <br />
+
+                    <div style="position: relative;">
+                        <div id="map-loading-overlay" class="loading-overlay" data-ng-show="$ctrl.isLoadingMap"></div>
+                        
+                        <div id="address-map" style="width:100%; height: 300px;">
+                        </div>
+                    </div>
+                </div>
+
+                <input id="next-button-0" type="submit" class="btn btn-primary" style="width:100%; float: none;" wz-next value="Next Step" />
+            </wz-step>
+
+            <wz-step title="Your Info">
+
+                <h2 class="StepTitle">Your Info</h2>
+                First Name:<br />
+                <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.firstName" /><br />
+                Last Name:<br />
+                <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.lastName" /><br />
+                E-mail Address:<br />
+                <input type="email" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.email" /><br />
+                <br />
+                Ownership Type:<br />
+                <select id="signer-up-board-select" data-ng-model="$ctrl.signUpInfo.signerUpInfo.ownType" style="width: 100%;">
+                    <option value="Owner">Owner</option>
+                    <option value="Renter">Renter</option>
+                    <option value="PropertyManager">Property Manager</option>
+                </select>
+                <br />
+
+                <input type="submit" class="btn btn-primary" style="width:47%; float: left;" wz-previous value="Back" />
+                <input id="next-button-1" type="submit" class="btn btn-primary" style="width:47%; float: right;" wz-next value="Next Step" />
+
+                <div class="clearfix"></div>
+            </wz-step>
+
+            <wz-step title="Home Info">
+
+                <h2 class="StepTitle">Home Info</h2>
+                <br />
+                <p>
+                    This information is entirely optional. The more you fill in, the more we can help you. Leave any answers blank that
+                    are not applicable.
+                </p>
+                <p data-ng-if="$ctrl.didLoadHomeInfo">
+                    We've prepopulated some of the fields with data we could pull from the Internet.
+                </p>
+                <br />
+                <table style="margin: 0 auto;">
+                    <tbody>
+                        <tr>
+                            <td class="AlignRightBold">Home Type:</td>
+                            <td>
+                                <select data-ng-model="$ctrl.signUpInfo.homeInfo.homeType">
+                                    <option value="SingleFamily">Single Family</option>
+                                    <option value="MultiFamily">Townhome</option>
+                                    <option value="Apartment">Apartment</option>
+                                    <option value="Condo">Condo</option>
+                                    <option value="Townhouse">Townhome</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Year Built:</td>
+                            <td><input type="number" min="1000" max="2050" data-ng-model="$ctrl.signUpInfo.homeInfo.yearBuilt" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Last Major Remodel Year:</td>
+                            <td><input type="number" min="1900" max="2050" data-ng-model="$ctrl.signUpInfo.homeInfo.lastRemodelYear" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Square Feet:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.homeSquareFeet" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Bedrooms:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.numBedrooms" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Full Bathrooms:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.numFullBathrooms" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Half Bathrooms:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.numHalfBathrooms" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">
+                                <label style="font-weight: bold;" for="hasBasementCheckBox">Has a Basement:</label>
+                            </td>
+                            <td>
+                                <input id="hasBasementCheckBox" type="checkbox" data-ng-model="$ctrl.signUpInfo.homeInfo.hasBasement" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Number of Stories:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.numStories" /></td>
+                        </tr>
+                        <tr data-ng-if="$ctrl.signUpInfo.signerUpInfo.ownType === 'Owner'">
+                            <td class="AlignRightBold">HOA Fee:</td>
+                            <td><input type="text" data-ng-model="$ctrl.signUpInfo.homeInfo.hoaFee" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Lot Size:</td>
+                            <td>
+                                <input type="number" data-ng-model="$ctrl.lotSquareUnits" /><br />
+                                <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.lotSizeUnit" name="lotSquareFeet" value="SquareFeet" />Square Feet</label>
+                                <label style="display: inline-block; margin-left: 2em;"><input type="radio" data-ng-model="$ctrl.lotSizeUnit" name="lotSquareFeet" value="Acres" />Acres</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Roof Type:</td>
+                            <td><input type="text" data-ng-model="$ctrl.signUpInfo.homeInfo.roofType" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Exterior Siding Type:</td>
+                            <td><input type="text" data-ng-model="$ctrl.signUpInfo.homeInfo.exteriorSidingType" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">
+                                <label style="font-weight: bold;" for="hasLaundryCheckBox">Has Laundry:</label>
+                            </td>
+                            <td><input id="hasLaundryCheckBox" type="checkbox" data-ng-model="$ctrl.signUpInfo.homeInfo.hasInUnitLaundry" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Heat Type:</td>
+                            <td>
+                                <select data-ng-model="$ctrl.signUpInfo.homeInfo.heatType">
+                                    <option value="Forced air">Forced air</option>
+                                    <option value="Radiator">Radiator</option>
+                                    <option value="Baseboard">Baseboard</option>
+                                    <option value="None">None</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Cooling Type:</td>
+                            <td>
+                                <select data-ng-model="$ctrl.signUpInfo.homeInfo.coolingType">
+                                    <option value="Central">Central</option>
+                                    <option value="Window">Window</option>
+                                    <option value="None">None</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Purchase Date:</td>
+                            <td><input type="text" data-ui-date data-ng-model="$ctrl.signUpInfo.homeInfo.lastPurchaseDate" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Purchase Price:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.lastPurchasePrice" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Monthly Rent:</td>
+                            <td><input type="number" data-ng-model="$ctrl.signUpInfo.homeInfo.monthlyRent" /><span data-ng-if="$ctrl.signUpInfo.signerUpInfo.ownType === 'Owner'">(If renting out)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">
+                                <label style="font-weight: bold;" for="hasFireplaceCheckBox">Has a Fireplace:</label>
+                            </td>
+                            <td><input id="hasFireplaceCheckBox" type="checkbox" data-ng-model="$ctrl.signUpInfo.homeInfo.hasFireplace" /></td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Water Type:</td>
+                            <td>
+                                <select data-ng-model="$ctrl.signUpInfo.homeInfo.waterType">
+                                    <option value="City/Public">City/Public</option>
+                                    <option value="Well">Well</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">Sewer Type:</td>
+                            <td>
+                                <select data-ng-model="$ctrl.signUpInfo.homeInfo.sewerType">
+                                    <option value="City/Public">City/Public</option>
+                                    <option value="Septic">Septic</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <input type="submit" class="btn btn-primary" style="width:47%; float: left;" wz-previous value="Back" />
+                <input id="finish-button" type="submit" class="btn btn-primary" style="width:47%; float: right;" wz-next value="Finish" />
+                <div class="clearfix"></div>
+            </wz-step>
+
+        </wizard>
+    </div>
+</section>

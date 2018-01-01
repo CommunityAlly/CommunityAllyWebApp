@@ -1,0 +1,166 @@
+<div class="page page-calendar">
+    <div>
+        <p>
+            The calendar provides a quick
+            view of your association's activity and the ability to add events with notification e-mails. This is also a good place to keep track of maintenance and improvements.
+        </p>
+        <br />
+        <div style="display:none;">
+            <fieldset>
+                <legend>Calendar Entries</legend>
+                News
+                Appointments
+                Polls
+                Payments (Self for residents, all for site manager)
+                Logbook Entries
+                Resident Additions?
+            </fieldset>
+        </div>
+        <div id="log-calendar" ui-calendar="uiConfig.calendar" ng-model="$ctrl.calendarEvents"></div>
+        <br />
+
+        <div id="calendar-event-panel" class="modal-container" data-ng-show="$ctrl.editEvent != null">
+            <div class="modal-overlay" data-ng-click="$ctrl.setEditEvent( null )"></div>
+            <form id="calendarEditEvent" data-ng-class="{expanded : $ctrl.showExpandedCalendarEventModel}"
+                  name="calendarEditEvent" novalidate class="ca-modal-dialog p-4" action="javascript:(void)"
+                  data-ng-escape="$ctrl.setEditEvent( null )">
+
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCalendarEvents"></div>
+
+                <h4>Add Event</h4>
+
+                <div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-xs-12">Date:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" readonly="readonly" data-ng-model="$ctrl.editEvent.dateOnly" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel">
+                        <label class="col-sm-4 col-xs-12">Time:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input id="calendar-event-time" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editEvent.timeOnly">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-xs-12">What:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()">
+                        </div>
+                    </div>
+
+                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel">
+                        <label class="col-sm-4 col-xs-12">Description:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <textarea class="form-control form-control-sm" data-ng--model="$ctrl.editEvent.description" rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <div data-ng-show="$ctrl.showExpandedCalendarEventModel">
+                        <div data-ng-show="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )" class="text-center text-warning">
+                            You cannot add remdinder e-mails because this event date is in the past.
+                        </div>
+
+                        <p class="text-center">
+                            <label>
+                                <input type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )" data-ng-change="$ctrl.onShouldSendChange()"
+                                       data-ng-disabled="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )"
+                                       data-ng-model="$ctrl.editEvent.shouldSendNotification" />Send a reminder e-mail
+                            </label>
+                        </p>
+
+                        <div data-ng-if="$ctrl.editEvent.shouldSendNotification">
+                            <div class="text-center" data-ng-show="!$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )">
+                                <p data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                                    <input class="form-control form-control-sm d-inline-block" style="width: 40px;" type="text" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
+                                           data-ng-disabled="!$ctrl.editEvent.shouldSendNotification" data-ng-change="$ctrl.onChangeEmailDaysBefore()"
+                                           data-ng-model="$ctrl.editEvent.notificationEmailDaysBefore"> {{ $ctrl.editEvent.notificationEmailDaysBefore == 1 ? 'day' : 'days' }} before event
+                                </p>
+                                <p data-ng-show="$ctrl.showBadNotificationDateWarning" class="text-warning">
+                                    You can only go back {{ $ctrl.maxDaysBack }} {{ $ctrl.maxDaysBack == 1 ? 'day' : 'days' }} for the reminder to be sent.
+                                </p>
+                            </div>
+
+                            <div class="form-group row" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                                <label class="col-sm-4 col-xs-12">Send To:</label>
+                                <div class="col-sm-8 col-xs-12">
+                                    <div class="resident-list">
+                                        <div data-ng-repeat="resident in $ctrl.residents">
+                                            <label data-ng-class="{'grayed':!resident.hasEmail}">
+                                                <input type="checkbox" data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
+                                                       data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onResidentClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No e-mail on file)" }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-xs-12">Additional E-mails:</label>
+                                <div class="col-sm-8 col-xs-12">
+                                    <input type="text" data-ng-model="$ctrl.editEvent.additionalEmailsString" class="form-control form-control-sm" />
+                                    <div class="note-text margin-top-10">
+                                        You can enter up to three e-mail addresses (Separated by comma or semicolon) that will also be sent the
+                                        reminder e-mail in addition to the residents selected above.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="padding-top-10 clearfix">
+                        <span class="text-button" data-ng-hide="$ctrl.showExpandedCalendarEventModel" data-ng-click="$ctrl.expandCalendarEventModel()">More Details</span>
+                        <span class="text-button" data-ng-show="$ctrl.editEvent.eventId" style="margin-right: 10px;" data-ng-click="$ctrl.deleteCalendarEvent($ctrl.editEvent.eventId)">Delete This Event</span>
+                        <span class="pull-right">
+                            <span class="text-button margin-right-10" data-ng-click="$ctrl.saveCalendarEvent()">{{$ctrl.editEvent.eventId | iif : "Save" : "Create"}}</span>
+                            <span class="text-button" data-ng-click="$ctrl.setEditEvent( null )">Cancel</span>
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+
+        <div id="calendar-readonly-event-panel" class="modal-container" data-ng-if="$ctrl.viewEvent != null">
+            <div class="modal-overlay" data-ng-click="$ctrl.clearViewEvent()"></div>
+            <div class="ca-modal-dialog modal-sm" style="height: 250px; margin-top: -125px;">
+                <h4>Event Details</h4>
+                <form>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-xs-12">Date:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <span>{{ $ctrl.viewEvent.dateOnly | date:'EEEE, MMMM d, yyyy' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-xs-12">Time:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            {{ $ctrl.viewEvent.timeOnly || "All Day" }}
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-xs-12">What:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            {{ $ctrl.viewEvent.title }}
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-xs-12">Description:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            {{ $ctrl.viewEvent.description }}
+                        </div>
+                    </div>
+                </form>
+
+                <span class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="position: absolute; bottom: 5px; right: 5px;">Close</span>
+            </div>
+        </div>
+
+    </div>
+</div>

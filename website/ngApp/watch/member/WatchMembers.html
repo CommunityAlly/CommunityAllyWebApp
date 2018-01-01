@@ -1,0 +1,23 @@
+<section class="content-full-width">
+    <div>
+        <div data-ng-show="isSiteManager">
+            <a href="/#!/ManageMembers">Manage Members</a>
+        </div>
+        <google-map-poly-editor map-center="vm.mapCenter" group-bounds-poly="vm.groupBounds" visible-polys="vm.housePolys"></google-map-poly-editor>
+        <br />
+        <div style="position:relative;">
+            <div class="loading-overlay" data-ng-show="vm.isLoading"></div>
+            <div data-ng-repeat="user in vm.memberList">
+                <div style="float:left; width: 80px; height: 80px; margin: 6px;">
+                    <img alt="Profile for {{ user.fullName }}" data-ng data-ng-src="{{ user.avatarUri }}" />
+                </div>
+                <span id="owner-name-{{ $index }}">{{ user.fullName }}</span>
+                <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
+                    (<a id="owner-email-{{ $index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<span id="owner-phone-{{ $index }}">{{ user.phoneNumber | tel }}</span>)<br>
+                </span>
+                <div class="clearfix"></div>
+                <hr />
+            </div>
+        </div>
+    </div>
+</section>

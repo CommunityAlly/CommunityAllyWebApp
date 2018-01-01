@@ -1,0 +1,96 @@
+<style>
+    #calendarEditEvent
+    {
+        width: 450px;
+        height: 120px;
+        margin-left: -225px;
+        margin-top: -60px;
+    }
+
+        #calendarEditEvent.expanded
+        {
+            width: 440px;
+            height: 390px;
+            margin-left: -220px;
+            margin-top: -190px;
+        }
+
+        #calendarEditEvent h1
+        {
+            margin-top: 0px;
+        }
+</style>
+<section class="content-full-width">
+    <div>
+        <p>
+            This calendar should be used to track suspicious behavior and plan positive loitering events.
+        </p>
+        <div id="log-calendar" ui-calendar="uiConfig.calendar" ng-model="calendarEvents"></div>
+        <br />
+
+        <div id="calendar-event-panel" class="modal-container" data-ng-show="editEvent != null">
+            <div class="modal-overlay" data-ng-click="setEditEvent( null )"></div>
+            <form id="calendarEditEvent" data-ng-class="{expanded : showExpandedCalendarEventModel}" name="calendarEditEvent" novalidate class="ca-modal-dialog-small" action="javascript:(void)" data-ng-escape="setEditEvent( null )">
+                <div class="loading-overlay" data-ng-show="isLoadingCalendarEvents"></div>
+                <h2>{{ editEvent.eventId ? "Edit Event" : "Add Event" }}</h2>
+                <table cellpadding="0" cellspacing="0" style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td class="AlignRightBold">When:</td>
+                            <td>
+                                <span id="calendar-event-when">{{ editEvent.dateOnly | date:'EEE MMMM d' }}</span>
+                            </td>
+                        </tr>
+                        <tr data-ng-show="showExpandedCalendarEventModel">
+                            <td class="AlignRightBold">Time:</td>
+                            <td>
+                                <input id="calendar-event-time" type="text" style="width: 6.5em;" data-ng-model="editEvent.timeOnly">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="AlignRightBold">What:</td>
+                            <td>
+                                <input id="calendar-event-title" type="text" data-ng-model="editEvent.title" style="width:100%;">
+                            </td>
+                        </tr>
+                        <tr data-ng-show="showExpandedCalendarEventModel">
+                            <td class="AlignRightBold">Description:</td>
+                            <td>
+                                <textarea data-ng--model="editEvent.description" style="width:100%; height: 164px;"></textarea>
+                            </td>
+                        </tr>
+                        <tr data-ng-show="showExpandedCalendarEventModel && residents">
+                            <td class="AlignRightBold">Residents:</td>
+                            <td>
+                                <div style="height:137px; overflow-y: auto;">
+                                    <div data-ng-repeat="resident in residents">
+                                        <label>
+                                            <input type="checkbox" data-ng-checked="isUserAssociated( resident.userId )" data-ng-click="onResidentClicked( resident.userId )"> {{resident.fullName}}
+                                        </label>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-ng-show="showExpandedCalendarEventModel">
+                            <td class="AlignRightBold">Notification:</td>
+                            <td>
+                                Send a notification e-mail <input type="text" data-ng-model="editEvent.notificationEmailDaysBefore" style="width: 25px;"> days before.<br />
+                                <span style="font-size: small;  ">(Empty to suppress a reminder e-mail from being sent)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <span class="text-button" data-ng-hide="showExpandedCalendarEventModel" data-ng-click="expandCalendarEventModel()">More Details</span>
+                                <span class="text-button" data-ng-show="editEvent.eventId" style="margin-right: 10px;" data-ng-click="deleteCalendarEvent(editEvent.eventId)">Delete</span>
+                                <span style="float:right;">
+                                    <span class="text-button" style="margin-right: 10px;" data-ng-click="saveCalendarEvent()">{{editEvent.eventId | iif : "Save" : "Create"}}</span>
+                                    <span class="text-button" data-ng-click="setEditEvent( null )">Cancel</span>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+</section>

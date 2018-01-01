@@ -1,0 +1,46 @@
+.page-manage-resident {
+    .gridStyle {
+        border: 1px solid rgb(212,212,212);
+    }
+
+    .ui-grid, .ui-grid-viewport, .ui-grid-canvas {
+        height: auto !important;
+    }
+
+    .ui-grid-cell-contents {
+        cursor: pointer;
+    }
+
+    .ui-grid {
+        -webkit-transform: none !important;
+        -moz-transform: none !important;
+        -o-transform: none !important;
+        -ms-transform: none !important;
+        transform: none !important;
+    }
+
+    .ui-grid-row:nth-child(odd):hover .ui-grid-cell,
+    .ui-grid-row:nth-child(even):hover .ui-grid-cell
+    {
+        background:#dbe5eb;
+    }
+
+    .ngRow.selected {
+        background-color: inherit !important;
+    }
+
+    .ngRow:hover {
+        background-color: #c4c4e4;
+    }
+
+    #editUserForm {
+        @media screen and (max-width: 600px) {
+            top: 10% !important;
+            margin-top: 0px !important;
+        }
+        .form-group label {
+            font-size: 14px;
+            font-weight: normal;
+        }
+    }
+}

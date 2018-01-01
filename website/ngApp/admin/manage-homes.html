@@ -1,0 +1,81 @@
+﻿<div class="page margin-vertical padding white-bg spinner-effect">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <span>Total Number of Units: {{ $ctrl.units.length }}</span><br />
+
+    <div style="position:relative;">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>% Interest</th>
+                    <th>Address ID</th>
+                    <th>Street Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-ng-repeat="unit in $ctrl.units">
+                    <td>
+                        <span class="text-button" data-ng-click="$ctrl.onEditUnitClick( unit );">Edit</span>
+                        <span class="text-button" data-ng-click="$ctrl.onDeleteUnitClick( unit );">Delete</span>
+                    </td>
+                    <td>{{unit.name}}</td>
+                    <td>{{unit.percentageInterest}}</td>
+                    <td>{{unit.addressId}}</td>
+                    <td>{{unit.fullAddress.oneLiner}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <fieldset>
+        <legend>{{$ctrl.isEdit == false | iif : "Add Unit" : "Edit Unit"}}</legend>
+        <form id="AddUnitForm">
+            <table>
+                <tr>
+                    <td class="AlignRight">Unit Name:</td>
+                    <td><input id="unit-name-text-box" type="text" data-ng-model="$ctrl.unitToEdit.name" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Percent Ownership:</td>
+                    <td><input id="unit-ownership-text-box" type="text" data-ng-model="$ctrl.unitToEdit.percentageInterest" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Street Address:</td>
+                    <td><input id="unit-address-text-box" type="text" data-ng-model="$ctrl.unitToEdit.streetAddress" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="text-right">
+                        <input id="add-update-unit-button" type="button" value="{{ $ctrl.isEdit == false | iif : 'Add New Unit' : 'Edit Unit'}}" data-ng-click="$ctrl.onCreateUnitClick()" />
+                        <input type="button" data-ng-show="$ctrl.isEdit" value="Cancel Edit" data-ng-click="$ctrl.isEdit = false; $ctrl.unitToEdit = {}; $ctrl.isLoading = false;" />
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </fieldset>
+    <br />
+    <br />
+    <span class="text-button" data-ng-click="$ctrl.onDeleteAllClick()">Delete All Units</span><br />
+    <br />
+
+    <div style="border: 1px solid #000;">
+        Quickly generate units:<br />
+        Last Letter or Number:
+        <input type="text" data-ng-model="$ctrl.lastFastAddName" maxlength="1" />
+        <input type="button" data-ng-click="$ctrl.onFastAddUnits()" value="Add Lettered" />
+    </div>
+
+    <div style="border: 1px solid #000;">
+        Generate condo units, one name per line:<br />
+        <textarea rows="15" data-ng-model="$ctrl.unitNamePerLine"></textarea>
+        <input type="button" data-ng-click="$ctrl.onAddUnitsPerLine()" value="Add Units" />
+    </div>
+
+    <div style="border: 1px solid #000;">
+        Generate homes, one street address per line:<br />
+        <textarea rows="15" style="width: 70%;" data-ng-model="$ctrl.unitAddressPerLine"></textarea>
+        <input type="button" data-ng-click="$ctrl.onAddUnitsByAddressPerLine()" value="Add Units" />
+    </div>
+
+</div>

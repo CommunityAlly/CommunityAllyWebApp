@@ -1,0 +1,6 @@
+*.suo
+Thumbs.db
+node_modules
+.tscache
+App_Data/
+*.publishproj

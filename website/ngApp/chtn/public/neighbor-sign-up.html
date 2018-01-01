@@ -1,0 +1,49 @@
+﻿<div class="page">
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+    <h2>Neighbor Sign Up</h2>
+
+    <div>
+        <p>
+            Please enter your information and we'll send it along to your site admin to get you added to the site.
+        </p>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-2"></div>
+                <div style="text-align: center;" class="col-lg-6 col-md-8">
+
+                    <form data-ng-if="!$ctrl.resultMessage" data-ng-submit="$ctrl.onSubmitInfo()">
+                        <div class="form-group row">
+                            <label>E-mail Address:</label>
+                            <input type="email" class="form-control" data-ng-model="$ctrl.signUpInfo.emailAddress" data-rule-required="true" />
+                        </div>
+
+                        <div class="form-group row">
+                            <label>First Name:</label>
+                            <input type="text" class="form-control" data-ng-model="$ctrl.signUpInfo.firstName" />
+                        </div>
+
+                        <div class="form-group row">
+                            <label>Last Name:</label>
+                            <input type="text" class="form-control" data-ng-model="$ctrl.signUpInfo.lastName" />
+                        </div>
+
+                        <div class="form-group row">
+                            <label>Street Address:</label>
+                            <input type="text" id="address-text-box" class="form-control" data-ng-model="$ctrl.signUpInfo.streetAddress" />
+                        </div>
+
+                        <input type="submit" value="Submit" id="submit-info-button" class="btn btn-primary"><br />
+                    </form>
+
+                    <div data-ng-if="$ctrl.resultMessage">
+                        <p data-ng-style="{'color':$ctrl.resultIsError ? 'red' : 'blue', 'font-size':'large'}">{{ $ctrl.resultMessage }}</p>
+                        <button data-ng-if="$ctrl.resultIsError" class="btn" data-ng-click="$ctrl.goBack()">Go Back</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

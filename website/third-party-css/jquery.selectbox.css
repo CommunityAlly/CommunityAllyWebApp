@@ -1,0 +1,107 @@
+@CHARSET "UTF-8";
+.sbHolder{
+	background-color: #f4f4f4;
+	color:#202020;
+	height:40px;
+	padding:9px 14px;
+	width:100%;
+	position:relative;
+	border:1px solid #cdcccb;
+	text-align:left;
+	font-size:16px;
+	border-radius:5px;
+	margin:5px 0;
+}
+
+.sbSelector{
+	display: block;
+	height: 40px;
+	left: 0;
+	line-height: 40px;
+	outline: none;
+	overflow: hidden;
+	position: absolute;
+	text-indent: 10px;
+	top: 0;
+	width: 100%;
+}
+
+.sbSelector:link, .sbSelector:visited, .sbSelector:hover{
+	color: #333;
+	outline: none;
+	text-decoration: none;
+}
+
+.sbToggle{
+	background: url(/assets/images/arrows.png) center center no-repeat;
+	display: block;
+	height: 40px;
+	outline: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 30px;
+}
+
+.sbToggleOpen{
+	
+}
+.sbHolderDisabled{
+	background-color: #222;
+	border: solid 1px #515151;
+}
+.sbOptions{
+	background-color: #f4f4f4;
+	list-style: none;
+	left: -1px;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	top: 40px;
+	width: 100%;
+	z-index: 1;
+	font-size:21px;
+	overflow-y: auto;
+	border:1px solid #cdcccb;
+}
+.sbOptions li{
+	padding: 0 7px;
+}
+.sbOptions a{
+	display: block;
+	outline: none;
+	padding: 0 0 0 3px;
+	font-size:16px;
+}
+.region .sbOptions a{
+	padding: 0;
+}
+.sbOptions a:link, .sbOptions a:visited{
+	color: #a3a2a2;
+	text-decoration: none;
+}
+
+.sbOptions a:hover,
+.sbOptions a:focus,
+.sbOptions a.sbFocus{
+	color: #f7941d;
+}
+.sbOptions li.last a{
+	border-bottom: none;
+}
+.sbOptions .sbDisabled{
+	border-bottom: dotted 1px #515151;
+	color: #999;
+	display: block;
+	padding: 7px 0 7px 3px;
+}
+.sbOptions .sbGroup{
+	border-bottom: dotted 1px #515151;
+	color: #EBB52D;
+	display: block;
+	font-weight: bold;
+	padding: 7px 0 7px 3px;
+}
+.sbOptions .sbSub{
+	padding-left: 17px;
+}

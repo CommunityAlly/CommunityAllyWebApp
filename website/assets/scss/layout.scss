@@ -1,0 +1,250 @@
+body {
+    font-family: "Open Sans",sans-serif;
+    font-size: 14px;
+    background: #f3f3f3;
+}
+header
+{
+    background: none !important;
+    box-shadow: 0 10px 10px #eaeaeb;
+    position: relative;
+    z-index: 620;
+
+    .logo-container
+    {
+        background: #60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center;
+        background-size: auto 100%;
+        border-bottom: 12px solid #83c476;
+        border-bottom: 12px solid #83c476;
+        min-height: 170px;
+        padding: 30px 0px 10px 0px;
+
+        h3, h4
+        {
+            width: 63%;
+            color: white;
+            font-weight: 400;
+        }
+
+        h3
+        {
+            font-size: 23px;
+        }
+
+        h4
+        {
+            font-size: 46px;
+        }
+    }
+    /*.navbar-brand
+    {
+        visibility: hidden;
+        padding: 0;
+        font-size: 14px;
+    }*/
+    nav
+    {
+        /*padding: 14px 0px !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;*/
+        .justify-content-between
+        {
+            flex: 1;
+        }
+        .navbar-toggler
+        {
+            /*padding: 0px;
+            border: 0px;
+            left: 6px;*/
+            /*&:hover, &:active, &:focus
+            {
+                border: 0px;
+                outline: none;
+            }*/
+            /*.navbar-toggler-icon
+            {
+                border-bottom: 8px double #000;
+                border-top: 3px solid #000;
+                background: none;
+                width: 18px;
+                height: 13px;
+            }*/
+        }
+        /*.navbar-collapse.collapse.show
+        {
+        }*/
+        .nav-item
+        {
+            &:not(:last-child)
+            {
+                margin-right: 20px;
+            }
+            /*&.dropdown:hover
+            {
+                .dropdown-menu
+                {
+                    display: block;
+                }
+            }*/
+            .nav-link
+            {
+                transition: all .3s ease-out;
+                font-size: 20px;
+                font-weight: 600;
+                padding: 0px !important;
+                /*&.selected, &:hover
+                {
+                    text-decoration: underline;
+                }*/
+                /*@media (max-width: 1200px)
+                {
+                    font-size: 14px;
+                }*/
+            }
+
+            .dropdown-menu
+            {
+                top: 90%;
+            }
+        }
+
+        @media (max-width: 991px)
+        {
+            .nav-link
+            {
+                font-size: 16px !important;
+                padding: 0px !important;
+            }
+
+            .navbar-collapse
+            {
+                position: absolute;
+                width: calc(100% + 60px);
+                padding: 10px 30px;
+                left: -30px;
+                background: #f8f8f8;
+                top: 100%;
+            }
+
+            /*.dropdown-menu
+            {
+                display: block !important;
+                border: 0px !important;
+                background: transparent;
+
+                .dropdown-item
+                {
+                    font-size: 14px;
+                    line-height: 1em;
+                }
+            }*/
+            }
+        }
+
+        .settings
+        {
+            min-width: 160px;
+
+            a, .text-button
+            {
+                color: #08c;
+                font-weight: 600;
+
+                @media (max-width: 1200px)
+                {
+                    font-size: 12px;
+                }
+            }
+        }
+
+        .can-edit-inline
+        {
+            &:before
+            {
+                content: "";
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                background-image: url(/assets/images/pencil-inactive.png);
+                background-repeat: no-repeat;
+                position: relative;
+                left: -4px;
+                background-position: left top;
+                top: -13px;
+            }
+
+            &:hover
+            {
+                &:before
+                {
+                    content: "";
+                    display: inline-block;
+                    width: 16px;
+                    height: 16px;
+                    background-image: url(/assets/images/pencil-inactive.png);
+                    background-repeat: no-repeat;
+                    position: relative;
+                    left: -4px;
+                    background-position: left top;
+                    top: -13px;
+                    background-image: url(/assets/images/pencil-active.png);
+                }
+
+                padding: 0px;
+                /*border: 1px dashed #000;*/
+                border-bottom: dashed 1px white !important;
+            }
+            /*padding: 1px;*/
+            border-bottom-style: none !important;
+            cursor: pointer;
+        }
+    }
+
+    .main-container
+    {
+        min-height: 70vh;
+    }
+
+    @media (max-width: 991px)
+    {
+        .container
+        {
+            width: 100%;
+        }
+
+        .container-fluid
+        {
+            padding: 0px;
+        }
+    }
+
+    .page
+    {
+        background: white;
+        position: relative;
+        @extend .padding;
+        @extend .box-shadow;
+        @extend .margin-vertical;
+    }
+
+    footer
+    {
+        background: #434343;
+        clear: both;
+        padding: 60px 0;
+        font-size: 16px;
+        color: white;
+
+        a
+        {
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+            color: #f7941d !important;
+
+            &:hover
+            {
+                color: #c9740f !important;
+                text-decoration: underline !important;
+            }
+        }
+    }

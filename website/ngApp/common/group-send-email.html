@@ -1,0 +1,55 @@
+﻿<div class="send_email portlet-box white margin-vertical" id="send-email-panel">
+    <div class="portlet-header">
+        <h3 class="title">Send E-mail</h3>
+    </div>
+
+    <div class="portlet-body">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoadingEmail"></div>
+
+        <div data-ng-show="$ctrl.showSendEmail">
+            <form id="message-form">
+                <div class="form-group">
+                    <label>Choose Recipient Group</label>
+                    <select class="form-control" data-ng-model="$ctrl.messageObject.recipientType" data-ng-change="$ctrl.onSelectEmailGroup()" data-ng-options="e.recipientType as e.displayName for e in $ctrl.availableEmailGroups"></select>
+
+                    <div data-ng-if="$ctrl.showDiscussionEveryoneWarning" style="color: red; font-weight: bold;">
+                        In general, sending an e-mail to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" e-mails should be
+                        sent to the "discussion" group. The discussion group allows residents to unsubscribe from
+                        individual threads, thus residents are more engaged in the threads in which they participate and complain less about e-mail.
+                    </div>
+
+                    <div data-ng-if="$ctrl.showDiscussionLargeWarning" style="color: red; font-weight: bold;">
+                        Sending an e-mail to this receipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
+                        individual threads. This way, residents are more engaged in the threads in which they participate and complain less about e-mail.
+                    </div>
+
+                    <div>
+                        <a data-ng-href="mailto:{{ $ctrl.groupEmailAddress }}" class="note-text">{{ $ctrl.groupEmailAddress }}</a><br />
+                        <small>For individual resident messaging or group listings, visit the <a href="#!/BuildingResidents">Residents</a> page </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject:</label>
+                    <input type="text" class="form-control" data-ng-model="$ctrl.messageObject.subject" />
+                </div>
+
+                <div class="form-group">
+                    <label>E-mail Contents:</label>
+                    <textarea class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
+                </div>
+
+                <p class="text-right">
+                    <input class="btn btn-primary" value="Send E-mail" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmail()" />
+                </p>
+            </form>
+        </div>
+        <div data-ng-show="$ctrl.showSendConfirmation">
+            Your message has been sent successfully.<br>
+            <span class="text-button" data-ng-click="$ctrl.showSendEmail = true; $ctrl.showSendConfirmation = false;">Send Another</span>
+        </div>
+        <div data-ng-show="$ctrl.showEmailForbidden">
+            You do not have permission to send e-mail.
+        </div>
+    </div>
+</div>

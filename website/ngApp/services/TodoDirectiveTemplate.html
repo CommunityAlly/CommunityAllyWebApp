@@ -1,0 +1,26 @@
+﻿<section class="info" data-ng-cloak>
+    <div>
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+        <div data-ng-repeat="curList in $ctrl.todoLists">
+            <h3>{{ curList.name }}</h3>
+            <div>
+                <div class="todo-item-box" data-ng-repeat="curItem in curList.todoItems">
+                    <div style="width: 80%; display: inline-block; line-height: 24px; vertical-align: top;">
+                        {{ curItem.description }}
+                    </div>
+                    <div style="width: 19%; display: inline-block;">
+                        <span data-ng-click="$ctrl.onToggleComplete( curList.todoListId, curItem.todoItemId )" class="todo-check"></span>
+                    </div>
+                </div>
+                <div class="can-edit-inline" data-onaftersave="$ctrl.onAddItem( curList.todoListId )" data-editable-text="$ctrl.newItemDescription">
+                    Add New To-Do Item
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="can-edit-inline" data-onaftersave="$ctrl.onAddList()" data-editable-text="$ctrl.newListName">
+                Add New To-Do List
+            </div>
+        </div>
+    </div>
+</section>

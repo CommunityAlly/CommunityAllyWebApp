@@ -1,0 +1,36 @@
+.page-manage-polls {
+    .poll-answer-remove {
+        position: relative;
+        top: -17px;
+        font-size: x-small;
+    }
+
+    .poll-answer-number {
+        font-size: x-large;
+        font-weight: bold;
+        position: relative;
+        display: inline-block;
+        width: 15px;
+    }
+    #edit-item-form {
+        max-width: 450px;
+    }
+    ol.question-list {
+        counter-reset: list;
+        padding-left: 0px;
+        > li {
+            list-style: none;
+            position: relative;
+            &:before {
+                content: counter(list) ") ";
+                counter-increment: list;
+                position: absolute;
+                font-weight: bold;
+                font-size: 1.2em;
+            }
+        }
+    }
+    .form-group label {
+        font-weight: normal;
+    }
+}

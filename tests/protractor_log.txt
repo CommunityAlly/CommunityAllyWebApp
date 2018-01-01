@@ -1,0 +1,144 @@
+Starting selenium standalone server...
+Selenium standalone server started at http://10.2.110.198:37737/wd/hub
+The assessment history
+[32m  can create a payment entry - pass[0m
+[32m  can edit a payment entry - pass[0m
+[32m  can remove a payment entry - pass[0m
+The association info page
+[32m  will clear existing info entries - pass[0m
+[32m  can create a new info entry - pass[0m
+[32m  can edit an info entry - pass[0m
+[32m  removes the test info entry - pass[0m
+The documents section
+[32m  can create two directories - pass[0m
+[32m  can upload a document - pass[0m
+[32m  can rename a document - pass[0m
+[32m  can move a document to another directory - pass[0m
+[32m  can delete a document - pass[0m
+[32m  can delete our test directories - pass[0m
+The logbook page
+[32m  will clear existing logbook entries - pass[0m
+[32m  can create a new logbook entry - pass[0m
+[32m  can edit a logbook entry's text - pass[0m
+[32m  can edit a logbook entry's post date - pass[0m
+[32m  removes the test logbook entry - pass[0m
+The login page
+[32m  fails to login when you don't provide any information - pass[0m
+[32m  fails to login when you don't provide a password - pass[0m
+[32m  fails to login when providing an incorrect password - pass[0m
+[32m  fails to reset the password for an unknown user - pass[0m
+[32m  can login with proper information - pass[0m
+[32m  can reset password - pass[0m
+[32m  fails to login with the pre-reset password - pass[0m
+[32m  can properly login with the new reset password - pass[0m
+[32m  can change the password back to the original known password - pass[0m
+[32m  can login after resetting the password to the original value - pass[0m
+The manage residents page
+[32m  tries to delete the test user before starting - pass[0m
+[32m  can create a resident for testing - pass[0m
+[32m  can edit a resident's first name without crazy promises - pass[0m
+[32m  cleans up the test user - pass[0m
+The news management page
+[32m  will clear existing news stories - pass[0m
+[32m  can create a news story - pass[0m
+[32m  can remove our test news item - pass[0m
+The poll management page
+[32m  will clear existing polls - pass[0m
+[32m  can create a new poll - pass[0m
+[32m  can edit a poll - pass[0m
+[32m  can vote on a poll and not yet view the results - pass[0m
+[32m  can change a poll vote - pass[0m
+[32m  can delete a poll - pass[0m
+The association sign-up page
+[32m  get to the sign-up page - pass[0m
+[32m  will enter the street address for the association - pass[0m
+[32m  set the number of units in the association - pass[0m
+[32m  can enter the user information - pass[0m
+[32m  can enter a fellow resident - pass[0m
+[32m  submits and gets redirected to the new site - pass[0m
+[32m  can login to the new site - pass[0m
+[32m  verifies the auto-created folders exist - pass[0m
+[32m  verifies our neighbor exists in thie building - pass[0m
+[32m  verifies the user is presented with the assessment questionnaire - pass[0m
+[31m  deletes the site - fail[0m
+
+
+Failures:
+
+  1) The association sign-up page deletes the site
+   Message:
+     [31mNoSuchElementError: No element found using locator: By.xpath("//div[contains(@class, 'loading-overlay')][@data-ng-show='isLoading']")[0m
+   Stacktrace:
+     NoSuchElementError: No element found using locator: By.xpath("//div[contains(@class, 'loading-overlay')][@data-ng-show='isLoading']")
+    at new bot.Error (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\atoms\error.js:113:18)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\protractor.js:707:17
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\goog\base.js:1582:15
+    at [object Object].webdriver.promise.ControlFlow.runInNewFrame_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1654:20)
+    at notify (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:465:12)
+    at notifyAll (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:442:7)
+    at resolve (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:420:7)
+    at fulfill (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:535:5)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\goog\base.js:1582:15
+    at [object Object].webdriver.promise.ControlFlow.runInNewFrame_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1654:20)
+    at notify (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:465:12)
+    at [object Object].then (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:522:7)
+    at Object.webdriver.promise.asap (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:767:11)
+    at newFrame.onComplete (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1670:25)
+    at [object Object].webdriver.promise.Frame_.notify_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1914:5)
+    at [object Object]._onTimeout (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1901:11)
+==== async task ====
+    at [object Object].webdriver.promise.ControlFlow.wait (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1410:15)
+    at [object Object].webdriver.WebDriver.wait (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\webdriver.js:646:21)
+    at [object Object].to.(anonymous function) [as wait] (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\protractor.js:58:25)
+    at Object.InputUtils.waitForElementToBeHidden (C:\Users\clarkt\Desktop\TestHTML\ProtractorCA\input-utils.js:33:11)
+    at [object Object].<anonymous> (C:\Users\clarkt\Desktop\TestHTML\ProtractorCA\tests\sign-up.js:154:14)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\jasminewd\index.js:94:14
+    at [object Object].webdriver.promise.ControlFlow.runInNewFrame_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1654:20)
+    at [object Object].webdriver.promise.ControlFlow.runEventLoop_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1518:8)
+==== async task ====
+Asynchronous test function: it()
+    at [object Object].<anonymous> (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\jasminewd\index.js:93:33)
+    at [object Object].<anonymous> (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\async-callback.js:45:37)
+    at [object Object].jasmine.Block.execute (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:1174:17)
+    at [object Object].jasmine.Queue.next_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2209:31)
+    at [object Object].jasmine.Queue.start (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2162:8)
+    at [object Object].jasmine.Spec.execute (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2503:14)
+    at [object Object].jasmine.Queue.next_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2209:31)
+    at onComplete (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2205:18)
+    at [object Object].jasmine.Spec.finish (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2477:5)
+    at [object Object].onComplete (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2504:10)
+    at [object Object].jasmine.Queue.next_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2219:14)
+    at [object Object]._onTimeout (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:2199:18)
+Error
+    at [object Object].ElementArrayFinder.applyAction_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\protractor.js:439:23)
+    at [object Object].self.(anonymous function) [as isDisplayed] (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\protractor.js:135:21)
+    at [object Object].self.(anonymous function) [as isDisplayed] (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\protractor.js:734:13)
+    at C:\Users\clarkt\Desktop\TestHTML\ProtractorCA\input-utils.js:35:32
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\webdriver.js:650:12
+    at [object Object].webdriver.promise.ControlFlow.runInNewFrame_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1654:20)
+    at pollCondition (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1419:12)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1415:5
+    at [object Object].webdriver.promise.ControlFlow.runInNewFrame_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1654:20)
+    at [object Object].webdriver.promise.ControlFlow.runEventLoop_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\selenium-webdriver\lib\webdriver\promise.js:1518:8)
+Error
+    at [object Object].<anonymous> (C:\Users\clarkt\Desktop\TestHTML\ProtractorCA\tests\sign-up.js:148:2)
+    at [object Object].jasmine.Env.describe_ (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:913:21)
+    at [object Object].jasmine.Env.describe (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:898:15)
+    at describe (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\jasmine-1.3.1.js:658:27)
+    at Object.<anonymous> (C:\Users\clarkt\Desktop\TestHTML\ProtractorCA\tests\sign-up.js:7:1)
+    at require (module.js:380:17)
+    at Object.exports.executeSpecs (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\minijasminenode\lib\index.js:130:7)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\frameworks\jasmine.js:57:14
+    at Function.promise (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\q\q.js:650:9)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\lib\frameworks\jasmine.js:41:14
+    at _fulfilled (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\q\q.js:797:54)
+    at self.promiseDispatch.done (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\q\q.js:826:30)
+    at Promise.promise.promiseDispatch (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\q\q.js:759:13)
+    at C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\q\q.js:820:14
+    at flush (C:\Users\clarkt\AppData\Roaming\npm\node_modules\protractor\node_modules\q\q.js:108:17)
+    at process._tickCallback (node.js:419:13)
+
+Finished in 268.222 seconds
+[31m52 tests, 101 assertions, 1 failure
+[0m
+Shutting down selenium standalone server.

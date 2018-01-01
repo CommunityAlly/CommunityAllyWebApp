@@ -1,0 +1,49 @@
+@import "../variables";
+.page-calendar {
+    h4 {
+        color: $primary-color;
+    }
+
+    #calendarEditEvent.expanded
+    {
+        top: 35%;
+    }
+
+    #calendarEditEvent td
+    {
+        padding: 3px 0 3px 0;
+    }
+
+    #calendarEditEvent .AlignRightBold
+    {
+        padding-right: 5px;
+        width: 100px;
+    }
+
+    #calendarEditEvent h1
+    {
+        margin-top: 0;
+    }
+
+    .resident-list
+    {
+        max-height: 137px;
+        overflow-y: auto;
+        border: 1px solid;
+        padding: 3px;
+    }
+
+    .grayed
+    {
+        color: #AAA;
+    }
+
+    .today-note
+    {
+        font-size: small;
+        position: relative;
+        top: 65px;
+        font-style: italic;
+        left: 3px;
+    }
+}

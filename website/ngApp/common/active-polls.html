@@ -1,0 +1,68 @@
+﻿<div style="position: relative;">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <!--Loop through all the polls-->
+    <article class="last" data-ng-repeat="poll in $ctrl.polls">
+        <div data-ng-if="$index > 0"><br /><br /></div>
+
+        <!--Show the question text-->
+        <div class="text-12 text-bold">POLL:</div>
+        <p id="poll-question-text-{{ $index }}" class="no-margin text-large">{{ poll.questionText }}</p>
+        <p class="no-margin"><small><u>Posted by {{ poll.authorName }}, {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</u></small></p>
+
+        <!--Show the poll responses-->
+        <div data-ng-hide="poll.hasUsersUnitVoted">
+            <div>
+                <div id="poll-detail-{{ $index }}" data-ng-show="poll.detailText.length > 0" style="font-size: small;">{{ poll.detailText }}</div>
+            </div>
+            <div class="polls">
+                <div class="poll-answer" data-ng-repeat="pollAnswer in poll.answers" id="poll-answer-{{ $parent.$index }}-{{ $index }}" data-ng-click="$ctrl.onPollAnswer( poll, pollAnswer, null )">
+                    <span id="poll-answer-text-{{ $parent.$index }}-{{ $index }}">{{ pollAnswer.answerText }}</span>
+                    <div id="poll-answer-detail-text-{{ $parent.$index }}-{{ $index }}" class="poll-answer-detail" data-ng-show="pollAnswer.detailText.length > 0">
+                        {{ pollAnswer.detailText }}
+                    </div>
+                </div>
+
+                <div class="row" data-ng-if="poll.allowOtherAnswer">
+                    <div class="col-sm-3 text-right" style="color: #4583b6;">Or write in your own response:</div>
+                    <div class="col-sm-6"><input type="text" style="width: 100%;" data-ng-model="poll.otherAnswer" /></div>
+                    <div class="col-sm-3 text-left"><button class="btn btn-primary" type="button" data-ng-click="$ctrl.onPollAnswer( poll, null, poll.otherAnswer )">Submit Write-in Response</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- The user has voted, show results or a wait message -->
+        <div data-ng-show="poll.hasUsersUnitVoted">
+
+            <!-- Show the results -->
+            <div data-ng-show="poll.canViewResults">
+                <div style="width:49%; float:left;">
+                    <canvas id="poll-result-chart-{{ $index }}"
+                            width="469"
+                            height="234"
+                            class="chart chart-doughnut"
+                            data-chart-data="poll.chartData"
+                            data-chart-labels="poll.chartLabels"></canvas>
+                </div>
+                <div style="width:50%; float:left;">
+                    Your unit voted:<br>
+                    <span style="font-weight:bold;">{{ poll.unitVoteText }}</span>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+
+            <!-- Make the user wait -->
+            <div data-ng-hide="poll.canViewResults">
+                <div>
+                    Your unit has voted:<br>
+                    <span id="selected-vote-text" style="font-weight:bold;">{{ poll.unitVoteText }}</span><br>
+                    You must wait until the poll closes 12pm CT on {{ poll.expirationDate | date:'fullDate' }} to view the results.<br>
+                    <span id="change-vote-button" class="text-link" ng-click="poll.hasUsersUnitVoted = false">Change vote.</span><br>
+                    <span style="font-size: small;">You can change your vote as much as you want until the poll closes.</span>
+                </div>
+            </div>
+
+        </div>
+
+    </article>
+</div>

@@ -1,0 +1,25 @@
+﻿<div class="page margin-vertical padding white-bg spinner-effect">
+    <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Post Date</th>
+                <th>Message</th>
+                <th>Data</th>
+                <th>Url</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody style="font-size:small;">
+            <tr data-ng-repeat="entry in $ctrl.logEntries">
+                <td>{{ entry.userName }}</td>
+                <td>{{ entry.postDate | date:'short' }}</td>
+                <td>{{ entry.activityMessage }}</td>
+                <td>{{ entry.activityData }}</td>
+                <td><a href="{{ entry.url }}">{{ entry.url }}</a></td>
+                <td>{{ entry.ip }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

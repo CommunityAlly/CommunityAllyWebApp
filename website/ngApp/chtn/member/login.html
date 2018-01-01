@@ -1,0 +1,66 @@
+﻿<div class="page page-login" data-ng-style="$ctrl.sectionStyle">
+    <div id="bad-browser-panel">
+        You are using an unsupported browser. Please switch to <a href="https://www.google.com/chrome/">Chrome</a>, <a href="https://www.microsoft.com/en-us/windows/microsoft-edge">Edge</a>, or <a href="https://www.mozilla.org/en-US/firefox/">Firefox</a>.
+    </div>
+    <div class="text-center">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+        <div data-ng-if="$ctrl.isDemoSite">
+            <h2>Welcome to the Condo Ally demo site!</h2>
+            <p style="width: 60%;margin: 0 auto; text-align: left;">
+                This is the log-in page where you and your fellow residents will be able to securely log-in to your
+                association's website. We use the same technology that banks use to secure their log-in information
+                This also means that search engines cannot reach your data and it will never show up in search results.
+                For the sake of the demonstration site, you can simply log-in by clicking the button below. Usually an
+                e-mail address and password is required.
+            </p>
+            <br />
+            <button data-ng-click="$ctrl.demoLogin()">Log In</button>
+        </div>
+
+        <!-- Needs to be ng-show rather than ng-if for the Protractor tests -->
+        <div data-ng-show="$ctrl.loginImageUrl" style="margin-bottom: 21px;">
+            <img class="login-image" alt="Welcome image" data-ng-src="{{$ctrl.loginImageUrl}}" />
+        </div>
+
+        <div data-ng-show="$ctrl.loginResult" style="font-weight: bold; color: #F00; font-size:1.25em;">
+            <span id="error-label" class="error-text">{{ $ctrl.loginResult }}</span><br />
+            <br />
+        </div>
+
+        <form data-ng-if="!$ctrl.isDemoSite" data-ng-submit="$ctrl.onLogin()">
+            <table style="border-collapse:collapse; margin: 0 auto; padding: 0; width: 100%; max-width: 400px;">
+                <tbody>
+                    <tr>
+                        <td class="text-right">
+                            <label for="login-email-textbox">E-mail Address:</label>
+                        </td>
+                        <td>
+                            <input type="email" class="input_field" id="login-email-textbox" data-ng-model="$ctrl.loginInfo.emailAddress" data-rule-required="true">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">
+                            <label for="login-password-textbox">Password:</label>
+                        </td>
+                        <td>
+                            <input type="password" class="input_field" id="login-password-textbox" data-ng-model="$ctrl.loginInfo.password" data-rule-required="true">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-center">
+                            <label><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-center">
+                            <input type="submit" value="Log In" id="login-button" class="btn btn-primary" style="float:none;"><br />
+                            <br />
+                            <span class="text-link" id="login-reset-password" data-ng-click="$ctrl.onForgotPassword()">Forgot Your Password?</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>

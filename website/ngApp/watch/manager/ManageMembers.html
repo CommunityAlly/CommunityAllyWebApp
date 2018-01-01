@@ -1,0 +1,155 @@
+<script type="text/javascript">
+    ManageNeighborsJS =
+    {
+        ShowFeedbackMessage: function ( msg )
+        {
+            $( "#FeedbackPanel" ).text( msg );
+            $( "#FeedbackPanel" ).show();
+
+            $( "#FeedbackPanel" ).fadeOut( 5000, function ()
+            {
+                $( "#FeedbackPanel" ).hide();
+            } );
+        }
+    };
+</script>
+<style>
+    .gridStyle
+    {
+        border: 1px solid rgb(212,212,212);
+    }
+
+    .highlightRowStyle:hover
+    {
+        background-color: #F00;
+    }
+
+    .ngRow.selected
+    {
+        background-color: inherit !important;
+    }
+
+    .ngRow:hover
+    {
+        background-color: #c4c4e4;
+    }
+</style>
+<section class="content-full-width">
+    <div>
+        <div class="loading-overlay" data-ng-show="isLoading"></div>
+
+        <div id="FeedbackPanel" style="text-align:center; margin:0 auto; display:none; font-size:large; color:#0B0;">
+        </div>
+
+        <span style="font-size:small;">Are your neighbors not receiving e-mails from this site? If so, make sure they add "sender@condoally.com" to their list of trusted e-mail senders.</span><br />
+        <br />
+
+        <span>Here you can manage the people that live in your association. Simply click on their name to edit their information. Only admins can upload documents, edit information, add to the logbook, edit the welcome page, and manage members.</span>
+        <br />
+
+        <div id="MissingEmailsLabel" data-ng-show="badEmailsExist">
+            <br />
+            <span class="error-text">Some neighbors are missing their e-mail address. In order for your neighbors to log-in, you must set their e-mail address then send them a welcome e-mail.</span>
+            <br />
+            <br />
+        </div>
+
+
+        <div ng-grid="memberGridOptions" class="gridStyle"></div>
+
+        <div id="EditUserContainer" class="modal-container" data-ng-show="editUser != null" data-ng-escape="setEdit( null )">
+            <div class="modal-overlay" data-ng-click="setEdit( null )"></div>
+            <form id="editUserForm" name="editUserForm" novalidate class="ca-modal-dialog">
+                <div class="loading-overlay" data-ng-show="isSavingUser"></div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="text-right">First Name:</td>
+                            <td>
+                                <input type="text" required name="editUserFirstTextBox" id="edit-user-first-text-box" data-ng-model="editUser.firstName" />
+                                <div class="validation-label" data-ng-show="editUserForm.editUserFirstTextBox.$error.required">Required</div>
+                            </td>
+                            <td class="text-right">Last Name:</td>
+                            <td><input type="text" data-ng-model="editUser.lastName" /></td>
+                        </tr>
+                        <tr>
+                            <td class="text-right">E-mail:</td>
+                            <td><input type="text" data-ng-model="editUser.email" /></td>
+                            <td class="text-right">
+                                <label for="is-site-manager-checkbox">Is Admin:</label>
+                            </td>
+                            <td>
+                                <input id="is-site-manager-checkbox" type="checkbox" data-ng-model="editUser.isSiteManager" /><br>
+                                <span style="font-size:small;">Admin can add, edit, and delete site information.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-right">
+                                Phone Number
+                            </td>
+                            <td>
+                                <input type="text" maxlength="30" data-ng-model="editUser.phoneNumber" />
+                            </td>
+                            <td class="text-right"></td>
+                            <td style="vertical-align: bottom;"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-right">
+                                Address
+                            </td>
+                            <td colspan="3">
+                                <input type="text" maxlength="256" style="width: 100%;" data-ng-model="editUser.addressOneLiner" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div data-ng-show="editUser.userId.length > 0">
+                                    <input data-ng-hide="sentWelcomeEmail" ng-disabled="editUserForm.$dirty" type="button" value="Send Welcome E-mail" data-ng-click="onSendWelcome()" />
+                                    <div data-ng-show="editUserForm.$dirty" style="font-size: small;">
+                                        (Please save your changes then come back to send the welcome e-mail.)
+                                    </div>
+                                    <div data-ng-show="sentWelcomeEmail" data-ng-click="setEdit( null )">
+                                        <div style="position: relative; top: 150px;">
+                                            Welcome e-mail has been sent!<br>
+                                            <span style="font-size: small;">(Click anywhere to close)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right" data-ng-show="!editUser.userId">
+                                    <input id="send-welcome-checkbox" type="checkbox" data-ng-model="editUser.shouldSendWelcomeEmail"><label for="send-welcome-checkbox">Send Welcome E-mail with Login Info</label>
+                                </div>
+                            </td>
+                            <td colspan="2" class="text-right">
+                                <input id="save-edit-button" ng-disabled="editUserForm.$invalid" type="button" value="Save" data-ng-click="onSaveMember()" />
+                                <input id="cancel-edit-button" type="button" value="Cancel" data-ng-click="setEdit( null )" />
+                                <input id="remove-resident-button" data-ng-show="editUser.userId.length > 0" type="button" value="Remove Member" data-ng-click="onDeleteMember()" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+
+        <input type="button" value="Add New Member" data-ng-click="setEdit( {boardPosition:0, shouldSendWelcomeEmail: false} );">
+        <br />
+        <br />
+        <div>
+            Is your site new and are you ready to share it with your fellow members?<br />
+            <input type="button" data-ng-click="onSendAllWelcome()" data-ng-hide="allEmailsSent" value="Launch Site" />
+            <span style="font-weight:bold; color:#22F;" data-ng-show="allEmailsSent">All e-mails sent!</span>
+            <br>
+            <span>This will send all of the members, except you, an e-mail with log-in instructions and basic site information.</span>
+        </div>
+
+        <div data-ng-show="isAdmin">
+            <br />
+            For Admins only.<br />
+            <div style="border:1px solid #000;">
+                E-mail: <input type="text" data-ng-model="adminSetPass_Username" /><br />
+                Password: <input type="text" data-ng-model="adminSetPass_Password" /><br />
+                <input type="button" value="Set Password" data-ng-click="OnAdminSetPassword()" />
+            </div>
+            <span style="color:#F00;">{{ adminSetPass_ResultMessage }}</span><br />
+        </div>
+    </div>
+</section>

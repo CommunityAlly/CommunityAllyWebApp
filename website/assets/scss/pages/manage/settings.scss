@@ -1,0 +1,14 @@
+.page-manage-settings {
+    .test-bg-image, .test-bg-image-selected
+    {
+        width: 150px;
+        height: 150px;
+        border: 3px solid #FFF;
+        margin: 14px;
+    }
+
+    .test-bg-image-selected
+    {
+        border: 3px solid #00F !important;
+    }
+}

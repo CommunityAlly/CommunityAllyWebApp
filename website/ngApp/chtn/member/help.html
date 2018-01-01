@@ -1,0 +1,29 @@
+﻿<style>
+    /* Prevent the error label from getting a pointer */
+    label
+    {
+        cursor: default;
+    }
+</style>
+<div class="page">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+    <div ng-style="$ctrl.resultStyle">{{ $ctrl.sendResult }}</div>
+    <div data-ng-hide="$ctrl.wasMessageSent">
+        Please contact us using the form below and we'll do our best to get back to you within 24 hours.
+        <br />
+        <br />
+        <form id="help-form">
+            <div data-ng-hide="$ctrl.isLoggedIn">
+                Your e-mail address: <input id="help-email-input" data-ng-model="$ctrl.sendInfo.emailAddress" data-rule-required="true" type="text" /><br />
+                <br />
+            </div>
+            Enter your message here:<br />
+            <textarea id="help-message-textarea" data-ng-model="$ctrl.sendInfo.message" maxlength="4096" data-rule-required="true" style="width: 100%;" rows="10"></textarea>
+            <br />
+            <br />
+            <div class="text-right">
+                <input type="button" value="Send" data-ng-click="$ctrl.onSendHelp();" />
+            </div>
+        </form>
+    </div>
+</div>

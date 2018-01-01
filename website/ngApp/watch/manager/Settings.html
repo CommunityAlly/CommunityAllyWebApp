@@ -1,0 +1,47 @@
+<style type="text/css">
+    .test-bg-image, .test-bg-image-selected
+    {
+        width:150px;
+        height:150px;
+        border: 3px solid #FFF;
+        margin:14px;
+    }
+
+    .test-bg-image-selected
+    {
+        border: 3px solid #00F !important;
+    }
+</style>
+<script type="text/javascript">
+    var SettingsJS =
+    {
+        _defaultBG: "",
+
+        Init: function ()
+        {
+            // Hook up the event handlers to toggle the image
+            //$( ".test-bg-image" ).click( SettingsJS.OnImageClick );
+
+            SettingsJS._defaultBG = $( ".test-bg-image-selected" ).attr( 'src' );
+        }
+    };
+</script>
+
+<div class="loading-overlay" data-ng-show="vm.isLoading"></div>
+
+<h1>Site Title</h1>
+<input type="text" id="site-title-textbox" data-ng-model="vm.settings.siteTitle" maxlength="128" style="width:60%;"><button id="site-title-update-button" data-ng-click="vm.onSiteTitleChange()">Update</button>
+
+<h1>Welcome Message</h1>
+This message will be displayed at the top of the home page.<br>
+<textarea type="text" id="welcome-message-textbox" data-ng-model="vm.settings.welcomeMessage" rows="3" maxlength="256" style="width:60%; float:left;"></textarea>
+<button style="float: left;" id="welcome-message-update-button" data-ng-click="vm.onWelcomeMessageUpdate()">Update</button>
+<div class="clearfix"></div>
+
+<h1>Background</h1>
+Customize your site's background.<br />
+<div>
+    <img data-ng-repeat="bgImage in vm.settings.backgroundImageFiles" id="bg-image-{{ $index }}" data-ng-mouseenter="vm.onImageHoverOver( bgImage )" data-ng-mouseleave="vm.onImageHoverOut();" data-ng-class="bgImage == vm.settings.bgImageFileName && 'test-bg-image-selected' || ''" data-ng-click="vm.onImageClick( bgImage );" class="test-bg-image" src="{{ bgImagePath + bgImage }}">
+</div>
+
+<button id="qa-delete-site-button" data-ng-if="vm.showQaButton" data-ng-click="vm.onQaDeleteSite()">d</button>

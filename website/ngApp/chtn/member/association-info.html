@@ -1,0 +1,44 @@
+<div class="page-documents">
+    <section class="info-welcome padding white-bg padding margin-vertical box-shadow">
+
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-docs"
+                   data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'selected':$ctrl.selectedView=='docs'}" data-ng-click="$ctrl.selectedView='docs'">
+                    Documents</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-info"
+                   data-ng-class="{'selected':$ctrl.selectedView=='info'}" data-ng-click="$ctrl.selectedView='info'">
+                    Info/FAQs</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-vendor"
+                   data-ng-show="!$ctrl.hideVendors" data-ng-class="{'selected':$ctrl.selectedView=='vendor'}" data-ng-click="$ctrl.selectedView='vendor'">
+                    Vendors</a>
+            </li>
+        </ul>
+        <!--<div class="sub-view-menu-container">-->
+            <!--<span id="info-sub-view-link-docs" data-ng-show="!hideDocuments" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='docs'}" data-ng-click="selectedView='docs'">Documents</span>-->
+            <!--<span id="info-sub-view-link-info" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='info'}" data-ng-click="selectedView='info'">Info/FAQs</span>-->
+            <!--<span id="info-sub-view-link-vendor" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='vendor'}" data-ng-click="selectedView='vendor'">Vendors</span>-->
+            <!--&lt;!&ndash;<span id="info-sub-view-link-todo" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='todo'}" data-ng-click="selectedView='todo'">To-Dos</span>&ndash;&gt;-->
+        <!--</div>-->
+    </section>
+
+    <div ng-switch on="$ctrl.selectedView" class="padding white-bg margin-vertical" ng-cloak>
+        <div ng-switch-when="docs">
+            <documents data-ng-if="!$ctrl.hideDocuments"></documents>
+        </div>
+        <div ng-switch-when="info">
+            <faqs ng-cloak></faqs>
+        </div>
+        <div ng-switch-when="vendor">
+            <preferred-vendors></preferred-vendors>
+        </div>
+        <!--<div ng-switch-when="todo">
+            <todos></todos>
+        </div>-->
+
+    </div>
+</div>

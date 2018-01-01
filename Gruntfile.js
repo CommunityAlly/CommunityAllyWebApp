@@ -1,0 +1,227 @@
+module.exports = function(grunt) {
+
+// Project configuration.
+grunt.initConfig({
+    pkg: grunt.file.readJSON('package.json'),
+
+    // Build the Angular templates file
+    ngtemplates: {
+        app: {
+            cwd:      'website',
+            src:      'ngApp/**/**.html',
+            dest:     'website/ngTemplates.js',
+            options: {
+                htmlmin: {
+                    collapseBooleanAttributes:      false,
+                    collapseWhitespace:             true,
+                    removeAttributeQuotes:          false,
+                    removeComments:                 true, // Only if you don't use comment directives! 
+                    removeEmptyAttributes:          false,
+                    removeRedundantAttributes:      false,
+                    removeScriptTypeAttributes:     true,
+                    removeStyleLinkTypeAttributes:  true,
+                    minifyCSS: true
+                },
+                module:"CondoAlly",
+                prefix:'/'
+            }
+        }
+    },
+
+    // Make the ally-app-bundle.js file which contains all of the AngularJS app code
+    concat: {
+
+        allyAppBundle: {
+            src : ['website/ngApp/**/*.js',
+                    '!website/ngApp/ally-app-bundle.js',
+                    '!website/ngApp/ally-app-bundle.min.js'],
+            dest : 'website/ngApp/ally-app-bundle.js'
+        }
+    },
+
+    // Minify the app, libraries, and Angular templates JS files
+    uglify: {
+        options: {
+            banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        },
+
+        allyAppBundleMin:{
+            files:{
+                'website/ngApp/ally-app-bundle.min.js': ['website/ngApp/ally-app-bundle.js']
+            }
+        },
+
+        allyLibTop:{
+            options:{
+                'preserveComments':'some'
+            },
+            files:{
+                'Website/js/AllyLibTop.min.js': [
+                    'Website/js/lib/jquery/jquery-1.12.4.js',
+                    'Website/js/lib/angular/angular.js',
+                    'Website/js/lib/angular/angular-resource.js',
+                    'Website/js/lib/angular/angular-route.js',
+                    'Website/js/lib/angular/angular-sanitize.js',
+                    'Website/js/lib/angular/ng-date.js',
+                    'Website/js/lib/angular/ng-grid-2.0.11.min.js',
+                    'Website/js/lib/angular/ng-grid-flexible-height.js',
+                    'Website/js/lib/angular/ng-tags-input.js',
+                    'Website/js/lib/angular/angular-wizard.min.js',
+                    'Website/js/lib/angular/isteven-multi-select.js',
+                    'Website/js/lib/angular/xd-utils.js',
+                    'Website/js/lib/angular/xdLocalStorage.js',
+                    'Website/js/lib/angular/ng-xdLocalStorage.js',
+                    'Website/js/lib/ui-grid/ui-grid.min.js',
+                    'Website/js/lib/angular/angular-google-maps.min.js',
+                    'Website/js/lib/charts/Chart.min.js',
+                    'Website/js/lib/charts/angular-chart.js',
+                    'Website/js/lib/calendar/moment.min.js',
+                    'Website/js/lib/other/jsnlog.min.js',
+                    'Website/js/lib/other/lodash.compat.min.js',
+                    'Website/js/HtmlUtil.js',
+                    'Website/js/design_v2/jquery.hotkeys.js',
+                    'Website/js/design_v2/jquery.selectbox-0.2.min.js',
+                    'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
+                    'Website/js/design_v2/bootstrap-wysiwyg.js',
+                    'Website/js/design_v2/main.js',
+                    'Website/js/lib/jquery/jquery-ui-1.11.2.min.js'
+                ]
+            }
+        },
+
+        allyLibBottom:{
+            options:{
+                'preserveComments':'some',
+                'mangle':false
+            },
+            files:{
+                'Website/js/AllyLibBottom.min.js': [
+                    'Website/js/lib/jquery/jquery.jeditable.mini.js',
+                    'Website/js/lib/jquery/jquery.maskedinput.min.js',
+                    'Website/js/lib/jquery/jquery.validate.min.js',
+                    'Website/js/lib/jquery/jquery.timepicker.min.js',
+                    'Website/js/lib/jquery/jquery.csv.min.js',
+                    'Website/js/lib/jquery/livestamp.min.js',
+                    'Website/js/lib/calendar/fullcalendar.js',
+                    'Website/js/lib/other/diQuery-collapsiblePanel.js',
+                    'Website/js/lib/other/jquery.qtip.min.js',
+                    'Website/js/lib/other/xeditable.min.js',
+                    'Website/js/lib/other/FileUpload/jquery.fileupload.js',
+                    'Website/js/lib/other/FileUpload/jquery.iframe-transport.js',
+                    'Website/js/lib/other/FileUpload/vendor/jquery.ui.widget.js',
+                    'Website/js/lib/other/clipboard.js',
+                    'Website/js/lib/other/popper.min.js',
+                    'Website/js/lib/other/tether.min.js',
+                    'Website/js/lib/other/bootstrap4.0beta.min.js'
+                ]
+            }
+        },
+
+        templates:{
+            
+            files:{
+                'Website/ngTemplates.min.js': ['Website/ngTemplates.js']
+            }
+        }
+    },
+
+    // Compile SASS files into CSS
+    sass: {
+        dist: {
+            files: {
+                'Website/assets/compiled-css/style.css': 'Website/assets/scss/style.scss'
+            }
+        }
+    },
+
+    // Minify the CSS
+    cssmin: {
+        dist: {
+            files: {
+                'Website/assets/compiled.min.css': [
+                    'Website/third-party-css/font-awesome.css',
+                    'Website/third-party-css/jquery.selectbox.css',
+                    'Website/third-party-css/jquery.mCustomScrollbar.css',
+                    'Website/third-party-css/jquery-ui-1.10.3.custom.css',
+                    'Website/third-party-css/ng-tags-input.css',
+                    'Website/third-party-css/editor.css',
+                    'Website/third-party-css/animate.css',
+                    'Website/third-party-css/diQuery-collapsiblePanel.css',
+                    'Website/third-party-css/xeditable.css',
+                    'Website/third-party-css/ng-grid.min.css',
+                    'Website/js/lib/ui-grid/ui-grid.min.css',
+                    'Website/third-party-css/angular-chart.css',
+                    'Website/third-party-css/jquery.qtip.min.css',
+                    'Website/third-party-css/jquery.timepicker.css',
+                    'Website/third-party-css/angular-wizard.min.css',
+                    'Website/third-party-css/isteven-multi-select.css',
+                    'Website/assets/lib/fullcalendar/dist/fullcalendar.min.css',
+                    'Website/assets/compiled-css/bootstrap.css',
+                    'Website/assets/compiled-css/style.css'
+                ]
+            }
+        }
+    },
+
+    // Rebuild on any templates, app code, and CSS when changes are detected
+    watch: {
+        ts:{
+            files: ['**/*.ts'],
+            tasks: ['ts','ally-app-bundle', 'uglify:allyAppBundleMin']
+        },
+        
+        templates:{
+            files: ['Website/ngApp/**/*.html'],
+            tasks: ['ngtemplates', 'uglify:templates']
+        },
+
+        allyAppBundle: {
+            files: ['Website/ngApp/**/*.js',
+                    '!Website/ngApp/ally-app-bundle.js',
+                    '!Website/ngApp/ally-app-bundle.min.js'],
+            tasks: ['ally-app-bundle', 'uglify:allyAppBundleMin']
+        },
+
+        css: {
+            files: ['Website/third-party-css/**/*.css',
+                'Website/assets/**/*.css',
+                'Website/assets/**/*.scss',
+                '!Website/assets/compiled-css/style.css',
+                '!Website/assets/compiled.min.css'],
+            tasks: ['css-only']
+        }
+    },
+
+    ts: {
+        default : {
+            options: {
+                compiler: './node_modules/typescript/bin/tsc',
+                comments: true,
+                sourceMap: false
+            },
+            src: ['Website/ngApp/**/*.ts']
+        }
+    }
+});
+
+    // Load the plugins
+    grunt.loadNpmTasks('grunt-angular-templates');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-sass');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-ts');
+
+    // Build the Angular templates, app code, and CSS
+    grunt.registerTask('default', ['ngtemplates','concat','uglify:allyAppBundleMin','uglify:templates','sass', 'cssmin']);
+
+    // Compile the SASS and minify the CSS
+    grunt.registerTask('css-only', ['sass', 'cssmin']);
+
+    // Only build the app code file
+    grunt.registerTask('ally-app-bundle', ['concat:allyAppBundle']);
+
+    // Build everything, including the full JS libraries
+    grunt.registerTask('full', ['ngtemplates','concat','uglify','sass', 'cssmin']);
+};

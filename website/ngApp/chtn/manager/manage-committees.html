@@ -1,0 +1,55 @@
+﻿<section class="content-full-width">
+    <div>
+        <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
+        <h1>Active Committees</h1>
+        <label><input type="checkbox" data-ng-model="$ctrl.includeInactive" />Include inactive committees</label>
+
+        <table border="1" cellpadding="2">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-ng-repeat="c in $ctrl.committees">
+                    <td><a data-ng-href="#!/Committee/{{ c.committeeId }}/home">{{ c.name }}</a></td>
+                    <td>{{ c.committeeType }}</td>
+                    <td>{{ c.creationDateUtc | date:'shortDate' }}</td>
+                    <td><span class="text-link" data-ng-click="$ctrl.toggleCommitteeActive( c )">{{ c.deactivationDateUtc ? 'Reactivate' : 'Deactivate' }}</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <br />
+        <br />
+
+        <h1>Create a New Committee</h1>        
+        <br />
+        <table>
+            <tr>
+                <td class="AlignRightBold">Name:</td>
+                <td><input type="text" data-ng-model="$ctrl.newCommittee.name" /><br /></td>
+            </tr>
+            <tr>
+                <td class="AlignRightBold">Type:</td>
+                <td>
+                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Ongoing" name="committee-type" />Ongoing</label>
+                    <span class="note-text" style="margin-left:0.5em;">E.g. neighbor engagement, purchasing, maintenance</span><br />
+
+                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Seasonal" name="committee-type" />Seasonal</label>
+                    <span class="note-text" style="margin-left:0.5em;">E.g. gardening, snow removal, winterization</span><br />
+
+                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Goal-based" name="committee-type" />Goal-based</label>
+                    <span class="note-text" style="margin-left:0.5em;">E.g. fix roof, plan parking, change trash collection</span>
+                </td>                
+            </tr>
+            <tr>
+                <td colspan="2" class="text-right">
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createCommittee()">Create</button>
+                </td>
+            </tr>            
+        </table>
+    </div>
+</section>

@@ -1,0 +1,36 @@
+﻿<section class="content-full-width">
+    <div>
+        <h3>Report E-mail Abuse</h3>
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+        <div data-ng-show="$ctrl.showButtons">
+            <h4>Why are you reporting this e-mail?</h4>
+
+            <div class="vertical-stack-button">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('too-many')">Resident Sends Too Many Messages</button>
+            </div>
+
+            <div class="vertical-stack-button">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('abusive')">Resident Sending Abusive Messages</button>
+            </div>
+
+            <div class="vertical-stack-button">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('dont-want-any')">I Don't Want to Receive Any Messages</button>
+            </div>
+
+            <div class="vertical-stack-button">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('not-member')">I'm Not a Resident of This Group</button>
+            </div>
+
+            <div class="vertical-stack-button">
+                Is there another reason you're reporting this e-mail? If so, let us know here:<br />
+                <textarea rows="2" style="width: 50%;" data-ng-model="$ctrl.otherReasonText"></textarea><br />
+                <button type="button" class="btn btn-primary">Other</button>
+            </div>
+        </div>
+
+        <div data-ng-hide="$ctrl.showButtons">
+            Thank you for reporting this. You may now <a href="#!/Login">log-in</a> or close this window.
+        </div>
+    </div>
+</section>

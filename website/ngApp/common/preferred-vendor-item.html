@@ -1,0 +1,184 @@
+﻿<div style="position: relative;">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <div data-ng-if="!$ctrl.isInEditMode">
+        <h4 class="d-inline-block text-bold">{{ $ctrl.vendorItem.companyName }}</h4>
+
+        <div data-ng-if="$ctrl.isSiteManager" class="d-inline-block margin-left-10">
+            <span class="text-link" data-ng-click="$ctrl.onEditItem()">Edit</span>
+            <span class="text-link margin-left-10" data-ng-click="$ctrl.deleteItem()">Delete</span>
+        </div>
+
+        <div class="margin-left">
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.companyPhone">
+                <label class="col-4">
+                    Phone:
+                </label>
+                <div class="col-8">
+                    {{ $ctrl.vendorItem.companyPhone }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.companyWeb">
+                <label class="col-4">
+                    Website:
+                </label>
+                <div class="col-8">
+                    <a data-ng-href="{{ $ctrl.vendorItem.companyWeb }}" target="_blank">{{ $ctrl.vendorItem.companyWeb }}</a>
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.oneLiner">
+                <label class="col-4">
+                    Address:
+                </label>
+                <div class="col-8">
+                    <a target="_blank" data-ng-href="https://maps.google.com/?q={{ $ctrl.vendorItem.fullAddress.oneLiner }}">{{ $ctrl.vendorItem.fullAddress.oneLiner }}</a>
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.contactName">
+                <label class="col-4">
+                    Contact Name:
+                </label>
+                <div class="col-8">
+                    {{ $ctrl.vendorItem.contactName }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.contactPhone">
+                <label class="col-4">
+                    Contact Phone:
+                </label>
+                <div class="col-8">
+                    {{ $ctrl.vendorItem.contactPhone }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.contactEmail">
+                <label class="col-4">
+                    Contact E-mail:
+                </label>
+                <div class="col-8">
+                    <a data-ng-href="mailto:{{ $ctrl.vendorItem.contactEmail }}">{{ $ctrl.vendorItem.contactEmail }}</a>
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.servicesProvidedFriendly">
+                <label class="col-4">
+                    Services:
+                </label>
+                <div class="col-8">
+                    {{ $ctrl.vendorItem.servicesProvidedFriendly }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.notes">
+                <label class="col-4">
+                    Notes:
+                </label>
+                <div class="col-8">
+                    {{ $ctrl.vendorItem.notes }}
+                </div>
+            </div>
+
+            <div class="note-text">
+                Added {{ $ctrl.vendorItem.addedDateUtc | date:'MMMM d, y' }} <span data-ng-show="$ctrl.vendorItem.addedByFullName">by {{ $ctrl.vendorItem.addedByFullName }}</span>
+            </div>
+        </div>
+
+    </div>
+
+    <form data-ng-if="$ctrl.isInEditMode">
+        <div class="form-group row">
+            <label class="col-4">
+                Company Name:
+            </label>
+            <div class="col-8">
+                <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editVendorItem.companyName" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Phone:
+            </label>
+            <div class="col-8">
+                <input type="text" class="form-control form-control-sm mask-phone" type="tel" data-ng-model="$ctrl.editVendorItem.companyPhone" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Website:
+            </label>
+            <div class="col-8">
+                <input type="text" class="form-control form-control-sm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-ng-model="$ctrl.editVendorItem.companyWeb" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Address:
+            </label>
+            <div class="col-8">
+                <input type="text" class="form-control form-control-sm" data-ng-attr-id="{{'vendor-' + $ctrl.vendorItem.preferredVendorId + '-address-text-box'}}" data-ng-model="$ctrl.editVendorItem.fullAddress.oneLiner" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Contact Name:
+            </label>
+            <div class="col-8">
+                <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editVendorItem.contactName" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Contact Phone:
+            </label>
+            <div class="col-8">
+                <input class="mask-phone form-control form-control-sm" type="tel" data-ng-model="$ctrl.editVendorItem.contactPhone" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Contact E-mail:
+            </label>
+            <div class="col-8">
+                <input type="email" class="form-control form-control-sm" data-ng-model="$ctrl.editVendorItem.contactEmail" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Services:
+            </label>
+            <div class="col-8">
+                <tags-input style="width: 90%;" ng-model="$ctrl.editVendorItem.servicesTagArray" data-replace-spaces-with-dashes="false">
+                    <auto-complete data-min-length="1" data-source="$ctrl.getServiceAutocomplete($query)"></auto-complete>
+                </tags-input>
+                <span class="note-text">Press the TAB or ENTER key to add multiple services. You can add anything, you are not required to choose from the suggested services.</span>
+                <br />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-4">
+                Notes:
+            </label>
+            <div class="col-8">
+                <textarea class="form-control form-control-sm" rows="5" data-ng-model="$ctrl.editVendorItem.notes"></textarea>
+            </div>
+        </div>
+
+        <div>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSaveVendor()">Save</button>
+            <button type="button" class="btn btn-primary" data-ng-if="!$ctrl.isAddForm" data-ng-click="$ctrl.onCancelEdit()">Cancel</button>
+        </div>
+
+    </form>
+</div>

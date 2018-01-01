@@ -1,0 +1,124 @@
+﻿<div class="page page-my-profile margin-vertical padding white-bg spinner-effect">
+    
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+    <div data-ng-show="$ctrl.needsToAcceptTerms" class="alert" style="margin-bottom:1em;">
+        <p>
+            Welcome! We're always ecstatic to see someone new join. Your information and privacy are important to
+            us. Please take a moment to review our policies. Also, we recommend
+            that you update your password to something different than what was e-mailed to you.
+        </p>
+        <p style="text-align:center; font-size: 1.25em;">
+            <br />
+            <a href="/TermsOfService.html" target="_blank" style="margin-left:12px;">Terms of Service</a>
+            <a href="/PrivacyPolicy.html" target="_blank" style="margin-left:12px;">Privacy Policy</a>
+            <br />
+            <label style="cursor: pointer;"><input type="checkbox" style="margin-right: 1em;" data-ng-model="$ctrl.hasAcceptedTerms" />I accept these policies</label><br />
+            <span style="font-size:small;">You must check the "I accept these policies" above then click "Save" below to continue.</span>
+        </p>
+    </div>
+    <div id="my-profile" style="position:relative;">
+        <div class="loading-overlay" style="background-image:none;" data-ng-show="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms"></div>
+
+        <form>
+            <div class="form-group row">
+                <label class="col-4">
+                    First Name:
+                </label>
+                <div class="col-8">
+                    <input id="firstNameTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.firstName" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-4">
+                    Last Name:
+                </label>
+                <div class="col-8">
+                    <input id="lastNameTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.lastName" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-4">
+                    E-mail:
+                </label>
+                <div class="col-8">
+                    <input id="emailTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.email" type="text" />
+                    <br />
+                    <span class="note-text">This is also used for login. Your e-mail address will never be used for anything other than communication with your condominium association and we will never give out your contact information.</span>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-4">
+                    Password:
+                </label>
+                <div class="col-8">
+                    <input id="passwordTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.password" type="password" />
+                    <br />
+                    <span class="note-text">Enter a value to change your password.</span>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-4">
+                    Phone Number:
+                </label>
+                <div class="col-8">
+                    <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
+                    <br />
+                    <span class="note-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association.</span>
+                    <div data-ng-if="$ctrl.canHideContactInfo">
+                        <br />
+                        <label><input type="checkbox" id="showMyPhoneNumber" data-ng-model="$ctrl.profileInfo.showPhoneInMeetNeighbors" /> Show my phone number and e-mail address on the <a href="#!/BuildingResidents">Residents</a> page.</label>
+                        <br />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-4" for="includeInDiscussionEmailTextBox">
+                    Discussion E-mail:
+                </label>
+                <div class="col-8">
+                    <input id="includeInDiscussionEmailTextBox" data-ng-model="$ctrl.profileInfo.includeInDiscussionEmail" type="checkbox" />
+                    <br />
+                    <span class="note-text">Indicates if you want to receive e-mails sent to the discussion group e-mail address.</span>
+                </div>
+            </div>
+
+            <div class="form-group row" style="display: none;">
+                <label class="col-4">
+                    Profile Image:
+                </label>
+                <div class="col-8">
+                    <div style="float: left; width: 80px;">
+                        <img src="" alt="Profile image" />
+                    </div>
+                    <div>
+                        We use <a href="https://gravatar.com/" target="_blank">Gravatar</a> to show your profile image. If you don't want to setup Gravatar
+                        or prefer use a different image for Community Ally, you can set your image here.<br />
+                        <span>Please use a square image as it will be cropped to 80x80.</span><br />
+                        <input type="file" />
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button id="save-profile-button" data-ng-disabled="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms" class="btn btn-primary" style="float:none;"
+                        data-ng-click="$ctrl.onSaveInfo();" type="button" value="Save" data-ng-style="$ctrl.saveButtonStyle">
+                    Save
+                </button>
+                <br />
+                <span id="profile-error-label" style="font-weight: bold; font-size: 1.25em" data-ng-style="{color:'#0C0'}">{{ $ctrl.resultMessage }}</span>
+            </div>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        $( document ).ready( function()
+        {
+            $( "[id$='phoneNumberTextBox']" ).mask( "(999) 999-9999" );
+        } );
+    </script>
+</div>

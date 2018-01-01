@@ -1,0 +1,37 @@
+﻿<div style="display: inline;">
+    <span data-ng-if="vm.recipientInfo.hasEmail" class="text-link" data-ng-click="vm.showSendModal()"> Send Message</span>
+    <span data-ng-if="!vm.recipientInfo.hasEmail">Cannot send message, missing e-mail</span>
+    <div class="modal-container" data-ng-if="vm.shouldShowSendModal" data-ng-escape="vm.hideModal()">
+        <div class="modal-overlay" data-ng-click="vm.shouldShowSendModal = false"></div>
+        <form class="ca-modal-dialog modal-sm" data-ng-style="{ 'height' : vm.sendResultMessage ? '477px' : '400px' }">
+            <h2>Send Message</h2>
+
+            <div class="form-group row">
+                <label class="col-sm-3 col-xs-12">To:</label>
+                <div class="col-sm-9 col-xs-12">
+                    {{ vm.recipientInfo.fullName }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-3 col-xs-12">Message:</label>
+                <div class="col-sm-9 col-xs-12">
+                    <textarea id="message-text-box" class="form-control" style="height: 170px" data-ng-model="vm.messageBody"></textarea>
+                </div>
+            </div>
+
+            <div class="note-text">This will send {{ vm.recipientInfo.firstName }} an e-mail to which they will be able to reply to to reach you.</div>
+            <div class="text-right">
+                <div data-ng-show="vm.shouldShowButtons">
+                    <button type="button" class="btn btn-primary" data-ng-click="vm.sendMessage()">Send</button>
+                    <button type="button" class="btn btn-primary" data-ng-click="vm.hideModal()">Cancel</button>
+                </div>
+                <img src="/assets/images/spinner-large.gif" data-ng-show="vm.isSending" />
+                <p data-ng-show="vm.sendResultMessage" class="error-text" data-ng-style="{ 'color' : vm.sendResultIsError ? 'red' : 'blue', 'text-align' : 'left' }">
+                    <br />
+                    {{ vm.sendResultMessage }}
+                </p>
+            </div>
+        </form>
+    </div>
+</div>

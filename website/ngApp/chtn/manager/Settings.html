@@ -1,0 +1,109 @@
+<script type="text/javascript">
+    var SettingsJS =
+    {
+        _defaultBG: "",
+
+        Init: function ()
+        {
+            // Hook up the event handlers to toggle the image
+            //$( ".test-bg-image" ).click( SettingsJS.OnImageClick );
+
+            SettingsJS._defaultBG = $( ".test-bg-image-selected" ).attr( 'src' );
+        }
+    };
+</script>
+
+<div class="page page-manage-settings">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <h2>Site Title</h2>
+    <!--<input type="text" id="site-title-textbox" data-ng-model="$ctrl.settings.siteTitle" maxlength="128" style="width:60%;"><button id="site-title-update-button" data-ng-click="$ctrl.onSiteTitleChange()">Update</button>-->
+    In order to change your site's title, simply click on the title text in the upper left.
+    <br />
+    <br />
+    <br />
+
+    <h2>Association's Full Name</h2>
+
+    <div class="row">
+        <div class="col-6">
+            <input type="text" id="full-name-textbox" class="form-control" data-ng-model="$ctrl.settings.fullName" data-ng-enter="$ctrl.saveSettings( true )" maxlength="128">
+        </div>
+        <div class="col-4">
+            <button id="full-name-update-button" class="btn btn-primary" data-ng-click="$ctrl.saveSettings( true )">Update</button>
+        </div>
+    </div>
+
+    <div class="note-text">
+        This is used in financial documents, e-mail correspondence, and the browser tab.
+    </div>
+
+    <h2 class="mt-5">
+        Home Page Right Column
+    </h2>
+
+    <div>
+        <label>
+            <input type="radio" data-ng-change="$ctrl.saveSettings()" data-ng-model="$ctrl.settings.homeRightColumnType" value="localnews">
+            Local News
+        </label>
+    </div>
+
+    <div class="note-text">Show various local news stories.</div>
+
+    <div>
+        <label>
+            <input type="radio" data-ng-change="$ctrl.saveSettings()" data-ng-model="$ctrl.settings.homeRightColumnType" value="chatwall">
+            Discussion
+        </label>
+    </div>
+
+    <div class="note-text">An open chat similar to Facebook's "wall".</div>
+
+    <h2 class="mt-5">
+        Login Image
+    </h2>
+
+    <div>
+        <input id="JQFileUploader" type="file" name="files[]" data-url="" multiple style="display:none;" />
+        <button type="button" class="btn btn-primary" onclick="$('#JQFileUploader').click();">Choose Image</button>
+        <button data-ng-show="$ctrl.loginImageUrl" style="margin-left: 1em;" data-ng-click="$ctrl.removeLoginImage()" type="button">Remove Image</button>
+    </div>
+
+    <div class="note-text">Image will be resized to 706x396</div>
+    <p>
+        <img alt="Login Image" data-ng-show="$ctrl.loginImageUrl" data-ng-src="{{ $ctrl.loginImageUrl }}" />
+    </p>
+
+    <h2 class="mt-5">
+        Welcome Message
+    </h2>
+    <p>
+        This message will be displayed at the top of the home page.
+    </p>
+    <div class="row">
+        <div class="col-6">
+            <textarea class="form-control" type="text" id="welcome-message-textbox" data-ng-model="$ctrl.settings.welcomeMessage" rows="3" maxlength="1024"></textarea>
+        </div>
+        <div class="col-4">
+            <button class="btn btn-primary" id="welcome-message-update-button" data-ng-click="$ctrl.onWelcomeMessageUpdate()">Update</button>
+        </div>
+    </div>
+
+    <br />
+    <h2>User Permissions</h2>
+
+    <div>
+        The user permission settings have been moved to the bottom of the <a href="#!/ManageResidents">Manage Residents</a> page.
+    </div>
+
+    <div style="display: none;">
+        <h2>Background</h2>
+        Customize your site's background.<br />
+        <div>
+            <img data-ng-repeat="bgImage in $ctrl.settings.backgroundImageFiles" id="bg-image-{{ $index }}" data-ng-mouseenter="$ctrl.onImageHoverOver( bgImage );" data-ng-mouseleave="$ctrl.onImageHoverOut();" data-ng-class="bgImage == $ctrl.settings.bgImageFileName && 'test-bg-image-selected' || ''" data-ng-click="$ctrl.onImageClick( bgImage );" class="test-bg-image" src="{{ bgImagePath + bgImage }}">
+        </div>
+    </div>
+
+    <button id="qa-delete-site-button" data-ng-if="$ctrl.showQaButton" data-ng-click="$ctrl.onQaDeleteSite()">d</button>
+</div>

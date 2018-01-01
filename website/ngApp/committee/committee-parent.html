@@ -1,0 +1,29 @@
+﻿<section class="info-welcome" class="text-center">
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+    <h1 data-ng-if="!$ctrl.canManage">{{ $ctrl.committee.name }}</h1>
+    <h1 data-ng-if="$ctrl.canManage" class="can-edit-inline" data-onaftersave="$ctrl.onUpdateCommitteeName();" data-editable-text="$ctrl.committee.name">{{ $ctrl.committee.name }}</h1>
+    <h3>Committee</h3><br />
+    <div class="sub-view-menu-container">
+        <a id="info-sub-view-link-home" data-ng-href="#!/Committee/{{ $ctrl.committeeId }}/home" class="sub-view-menu-link" data-ng-class="{'selected':$ctrl.selectedView=='home'}">Home</a>
+        <a id="info-sub-view-link-docs" data-ng-href="#!/Committee/{{ $ctrl.committeeId }}/docs" class="sub-view-menu-link" data-ng-class="{'selected':$ctrl.selectedView=='docs'}">Documents</a>
+        <a id="info-sub-view-link-info" data-ng-href="#!/Committee/{{ $ctrl.committeeId }}/info" class="sub-view-menu-link" data-ng-class="{'selected':$ctrl.selectedView=='info'}">Info/FAQs</a>
+    </div>
+</section>
+
+<div ng-switch on="$ctrl.selectedView" style="position: relative;" data-ng-if="$ctrl.committee">
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+
+    <div ng-switch-when="home">
+        <committee-home data-committee="$ctrl.committee"></committee-home>
+    </div>
+    <div ng-switch-when="docs">
+        <documents data-committee="$ctrl.committee"></documents>
+    </div>
+    <div ng-switch-when="info">
+        <faqs ng-cloak></faqs>
+    </div>
+    <!--<div ng-switch-when="todo">
+        <todos></todos>
+    </div>-->
+
+</div>

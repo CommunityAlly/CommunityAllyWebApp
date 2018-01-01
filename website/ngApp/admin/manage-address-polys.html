@@ -1,0 +1,28 @@
+﻿<div class="page margin-vertical padding white-bg">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+    <!--<ui-gmap-google-map center="$ctrl.mapInfo.center" draggable="true" options="$ctrl.mapInfo.options" events="$ctrl.mapInfo.events" zoom="$ctrl.mapInfo.zoom">
+    </ui-gmap-google-map>-->
+    <!--<div id="map-canvas" style="width:100%; height:400px;"></div>-->
+    <google-map-poly-editor visible-points="$ctrl.addressPoints" edit-poly-verts="$ctrl.selectedGpsPoly"></google-map-poly-editor>
+    <button data-ng-click="$ctrl.onSavePoly()">Save Polygon for Address</button>
+    <div>
+        <h2>Selected Address</h2>
+        <p>{{ $ctrl.selectedAddress.oneLiner }}</p>
+        <p>
+            Filter:
+            <select data-ng-model="$ctrl.filterAddresses" data-ng-change="$ctrl.refreshAddresses()">
+                <option value="unset">Unset Bounds</option>
+                <option value="watch">Watch Ally</option>
+                <option value="condo">Condo Ally</option>
+                <option value="currentSite">Current Site</option>
+                <option value="">All</option>
+            </select>
+        </p>
+        <h2>Addresses</h2>
+        <div>
+            <p class="text-link" data-ng-repeat="address in $ctrl.addresses" data-ng-click="$ctrl.onAddressSelected( address )">
+                ({{ address.polyType }}) {{ address.oneLiner }}
+            </p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Community Ally</title>
+    <script>
+        var gOldOnError = window.onerror;
+        // Override previous handler.
+        window.onerror = function( errorMsg, url, lineNumber )
+        {
+            if( typeof( analytics ) !== "undefined" )
+            {
+                analytics.track( "Javascript Error", {
+                    error: errorMsg
+                } );
+            }
+
+            if( gOldOnError )
+                // Call previous handler.
+                return gOldOnError( errorMsg, url, lineNumber );
+
+            // Just let default handler run.
+            return false;
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Css styles, compiled.min.css gets built via the Grunt script -->
+    <!--<link rel="stylesheet" href="/assets/compiled.min.css" />-->
+    <link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=31" />
+
+    <!-- AllyLibTop.min.js gets built via the Grunt script -->
+    <script type="text/javascript" src="/js/AllyLibTop.min.js"></script>
+    <!--<script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibTop.min.js?libVer=32xy"></script>-->
+    
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
+    <script>
+        var CA = CA || {};
+
+        // Create the module that contains our controllers
+        CA.condoAllyControllers = angular.module( "condoAllyControllers", [] );
+
+        // Create the main app object for the Ally site
+        CA.angularApp = angular.module( "CondoAlly", ["ngRoute", "ngResource", "condoAllyControllers", "ui.date", "ngSanitize", "xeditable", "ngGrid", "chart.js",
+                            "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "mgo-angular-wizard", "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
+
+        // Clear the template cache based on the JS file version
+        CA.clearTemplateCacheIfNeeded = function ( templateCacheService )
+        {
+            var Key_JSVersion = "AppJSVersion";
+
+            if( HtmlUtil.isLocalStorageAllowed() )
+            {
+                var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
+                if( cachedTemplateCacheVersion !== "appVer=267" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                {
+                    //templateCacheService.removeAll();
+                    localStorage.setItem( Key_JSVersion, "appVer=267" );
+                }
+            }
+        };
+    </script>
+
+    <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
+     <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>--> 
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=267"></script>
+    
+    <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
+     <!--<script type="text/javascript" src="/ngTemplates.min.js"></script>--> 
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=267"></script>
+
+    <!--Start of Zopim Live Chat Script-->
+    <script type="text/javascript">
+        ( function ()
+        {
+            var subdomain = HtmlUtil.getSubdomain( window.location.host );
+            var isTestSubdomain = subdomain === "qa" || subdomain === "localtest";
+            if ( isTestSubdomain )
+                return;
+            
+            // Zopim
+            window.$zopim || ( function ( d, s )
+            {
+                var z = $zopim = function ( c ) { z._.push( c ) }, $ = z.s =
+                d.createElement( s ), e = d.getElementsByTagName( s )[0];
+
+                z.set = function( o )
+                {
+                    z.set.
+                    _.push( o )
+                };
+
+                z._ = [];
+                z.set._ = [];
+                $.async = true;
+                $.setAttribute( 'charset', 'utf-8' );
+                $.src = '//v2.zopim.com/?1rQrXf7WIgJTm5PAoyYvliDGyGRsiZGX';
+                z.t = +new Date;
+                $.type = 'text/javascript';
+
+                // Delay loading 2sec
+                setTimeout( function()
+                {
+                    e.parentNode.insertBefore( $, e );
+                }, 2000 );
+                
+            } )( document, 'script' );
+
+        } )();
+    </script>
+    <script type="text/javascript">
+        !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.1.0";
+            if( AppConfig.segmentWriteKey )
+            {
+                analytics.load( AppConfig.segmentWriteKey );
+                analytics.page();
+            }
+        }}();
+    </script>
+    <script>
+        // In case we disable Segment analytics, define "analytics" so the code still runs fine
+        if( typeof ( analytics ) === "undefined" )
+        {
+            analytics = {
+                identify: function() { },
+                page: function() { },
+                track: function() { }
+            }
+        }
+    </script>
+    <!-- Fonts -->
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700' rel='stylesheet' type='text/css'>
+</head>
+
+<body data-ng-app="CondoAlly" ng-strict-di>
+    <header id="app-header">
+        <div class="container-fluid logo-container">
+            <div class="container">
+                <h3 data-ng-if="!siteTitle.logoHtml">Hello, Neighbor!</h3>
+                <div ng-cloak>
+                    <h1 data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
+                    <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText();" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
+                    <h1 data-ng-if="siteTitle.logoHtml" style="color:white !important;" data-ng-bind-html="siteTitle.logoHtml"></h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid white-bg" data-ng-show="isLoggedIn && !hideMenu">
+            <div class="container">
+                <nav class="navbar navbar-expand-md navbar-light">
+                    <div class="d-flex justify-content-between hidden-lg-up">
+                        <button class="navbar-toggler navbar-toggler-left" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                    </div>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item" data-ng-class="{'active':menu.path === curPath}" data-ng-repeat="menu in mainMenuItems">
+                                <a class="nav-link" href="{{ '#!' + menu.path }}">{{ menu.menuTitle }}</a>
+                            </li>
+
+                            <li class="nav-item dropdown" data-ng-show="isSiteManager">
+                                <a href="javascript:void(0)" class="nav-link dropdown-toggle" id="navbarManageDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage</a>
+
+                                <div class="dropdown-menu" aria-labelledby="navbarManageDropdownMenuLink">
+                                    <a data-ng-repeat="menu in manageMenuItems" class="dropdown-item" href="{{ '#!' + menu.path }}">{{ menu.menuTitle }}</a>
+
+                                    <a data-ng-show="isAdmin" data-ng-repeat="menu in adminMenuItems"
+                                       class="dropdown-item" href="{{ '#!' + menu.path }}">
+                                        {{ menu.menuTitle }}
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="settings pull-right text-right">
+                        Hi {{ userInfo.firstName }}<br />
+                        <a id="my-profile-link" href="#!/MyProfile">Profile</a> | <span id="log-out-button" class="text-button" data-ng-click="onLogOut();">Log Out</span>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid main-container">
+        <div class="container">
+            <div data-ng-view></div>
+            <div class="text-center" data-ng-hide="isSiteInfoLoaded">
+                <img src="/assets/images/spinner-large.gif" alt="Loading..." /><br />
+                Loading...
+            </div>
+        </div>
+    </div>
+
+    <footer class="clearfix">
+        <div class="container">
+            <div class="pull-left">
+                Part of the <a href="http://www.communityally.org/">Community Ally</a> suite of tools.
+            </div>
+
+            <ul class="nav pull-right">
+                <li class="nav-item">
+                    <a class="nav-link" data-ng-href="{{ appConfig.baseUrl }}">
+                        {{ appConfig.appName }} Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/TermsOfService.html">Terms of Service</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/PrivacyPolicy.html">Privacy Policy </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#!/Help">Help</a>
+                </li>
+            </ul>
+        </div>
+    </footer>
+
+    <!--<script type="text/javascript" src="/js/AllyLibBottom.min.js"></script>-->
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibBottom.min.js?libVer=32"></script>
+        
+    <script>
+        // Remove the need for iOS users to double-tap links
+        var shouldAvoidDoubleTap = navigator.platform.indexOf( "iPhone" ) != -1
+                                    || navigator.platform.indexOf( "iPad" ) != -1
+                                    || navigator.platform.indexOf( "iPod" ) != -1;
+
+        if( shouldAvoidDoubleTap )
+        {
+            var hookUpTaps = function()
+            {
+                $( 'a' ).on( 'touchend', function( e )
+                {
+                    var el = $( this );
+                    var link = el.attr( 'href' );
+
+                    if( typeof ( link ) === "string" )
+                        window.location = link;
+                } );
+            };
+
+            setTimeout( hookUpTaps, 1000 );
+        }
+
+        // Menu toggle functions
+        (function($) {
+            $(document).ready(function () {
+                setTimeout( function()
+                {
+                    // Hide the manage drop-down menu when an item is clicked
+                    $( 'nav .navbar-collapse' ).on( 'click', 'a', function( evt )
+                    {
+                        // Don't hide when "Manage" is clicked as it makes the mobile harder to use
+                        if( $( evt.target ).text() !== "Manage" )
+                            $('nav .navbar-collapse').removeClass('show');
+                    });
+                }, 10);
+            });
+        })(jQuery);
+
+    </script>
+</body>
+</html>

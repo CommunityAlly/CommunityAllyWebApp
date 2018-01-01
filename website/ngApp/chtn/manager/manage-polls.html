@@ -1,0 +1,143 @@
+<div class="page page-manage-polls">
+
+    <h1>Create a Poll</h1>
+
+    <p>
+        Here you can add and edit polls that can be used to gather votes for issues that come up in your association.
+    </p>
+
+    <ul>
+        <li>Poll votes are anonymous but completely audited and trackable should the need arise.</li>
+        <li>Each unit can only cast one vote, regardless of the number of residents living in the unit.</li>
+        <li>Users can vote and change their vote any number of times until the poll's expiration date at which point the results will be shown.</li>
+        <li>Users can actively choose to abstain from a poll and that will be recorded separately from a user simply not voting.</li>
+    </ul>
+
+    <form id="edit-item-form" name="editItemForm" class="spinner-effect margin-top" novalidate>
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+        <div class="form-group">
+            <label>Enter Question:<span class="validation-label" data-ng-show="$ctrl.editItemForm.PollQuestionTextBox.$error.required">Required</span></label>
+            <input id="poll-question-textbox" type="text" class="form-control form-control-sm" maxlength="80" name="PollQuestionTextBox" data-ng-model="$ctrl.editingItem.questionText" required />
+        </div>
+
+        <div class="form-group">
+            <label>Question Details: (optional)</label>
+            <textarea id="poll-details-textbox" data-ng-model="$ctrl.editingItem.detailText" maxlength="1000" rows="4" class="form-control"></textarea>
+        </div>
+
+        <h2>Answers</h2>
+
+        <ol class="mt-3 question-list">
+            <li ng-repeat="answer in $ctrl.editingItem.answers" class="margin-top-10">
+                <div class="mb-3 ml-4">
+                    <!--<label>{{ $index + 1 }}</label>-->
+                    <input id="poll-answer-textbox-{{ $index }}" type="text" class="form-control form-control-sm" data-ng-model="answer.answerText" maxlength="60" required />
+                </div>
+
+                <div class="form-group ml-4">
+                    <div>
+                        <label>
+                            <!--<span class="poll-answer-number"></span>-->
+                            Details: (optional)
+                        </label>
+                    </div>
+                    <textarea id="poll-answer-detail-textbox-{{ $index }}" class="form-control" data-ng-model="answer.detailText" rows="3" maxlength="1000"></textarea>
+                </div>
+
+                <div>
+                    <a href="javascript:void(0)" id="remove-answer-{{ $index }}" data-ng-show="$index > 1" class="text-button poll-answer-remove" data-ng-click="editingItem.answers.splice( $index, 1 )">Remove</a>
+                </div>
+            </li>
+        </ol>
+
+
+        <p class="text-center">
+            <button id="add-poll-answer-button" class="btn btn-primary" data-ng-click="$ctrl.addAnswer();">Add Another Possible Answer</button>
+        </p>
+
+        <p class="margin-top-20">
+            <label>Allow users to type in their own responses? <input type="checkbox" data-ng-model="$ctrl.editingItem.allowOtherAnswer"></label><br />
+        </p>
+        <p class="note-text">
+            If selected, users will be able to enter their own text as a reponse from the poll. If not selected, users
+            can only select from the list of answers specified here.
+        </p>
+        <p>
+            Enter the date at which this poll will close:<input class="form-control form-control-sm d-inline-block" style="width: 100px" id="poll-expiration-textbox" name="PollExpirationDateTextBox" type="text" data-ui-date data-ng-model="$ctrl.editingItem.expirationDate" required />
+            <span class="validation-label" data-ng-show="$ctrl.editItemForm.PollExpirationDateTextBox.$error.required">Required</span>
+        </p>
+
+        <p class="note-text">
+            On noon of this date the poll will close, regardless of the number of units that have voted.
+        </p>
+        <p class="text-right">
+            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDate != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSaveItem();" />
+            <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDate != null" data-ng-click="$ctrl.cancelEdit()" />
+        </p>
+    </form>
+
+
+    <h1 class="margin-top">Manage Polls</h1>
+
+    <div>
+        <table id="poll-table" class="table table-bordered table-responsive">
+            <thead>
+                <tr class="hidden-xs">
+                    <th style="width: 10%"></th>
+                    <th>Status</th>
+                    <th style="width:52%;">Question</th>
+                    <th>Post Date</th>
+                    <th>Expiration Date</th>
+                    <th style="width: 20%">Posted By</th>
+                    <th>Results</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-ng-repeat="pollItem in $ctrl.pollHistory">
+                    <td>
+                        <span id="edit-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onEditItem( pollItem );">Edit</span>
+                        <span id="delete-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onDeleteItem( pollItem );">Delete</span>
+                    </td>
+                    <td class="poll-entry-{{ $index }}-status"><h5 class="hidden-sm-up"><em><strong>Status:</strong></em></h5></td>
+                    <td class="poll-entry-{{ $index }}-question-text"><h5 class="hidden-sm-up"><em><strong>Question:</strong></em></h5>{{pollItem.questionText}}</td>
+                    <td class="poll-entry-{{ $index }}-post-date"><h5 class="hidden-sm-up"><em><strong>Post Date:</strong></em></h5>{{pollItem.postDate | date:'M/d/yyyy'}}</td>
+                    <td class="poll-entry-{{ $index }}-expiration-date"><h5 class="hidden-sm-up"><em><strong>Expiration Date:</strong></em></h5>{{pollItem.expirationDate | date:'M/d/yyyy'}}</td>
+                    <td class="poll-entry-{{ $index }}-author-name"><h5 class="hidden-sm-up"><em><strong>Posted By:</strong></em></h5>{{pollItem.authorName | date:'M/d/yyyy'}}</td>
+                    <td class="text-center">
+                        <span class="text-button" data-ng-click="$ctrl.onViewResults( pollItem )">View</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-container" data-ng-if="$ctrl.viewingPollResults">
+    <div class="modal-overlay" data-ng-click="$ctrl.onViewResults( null )"></div>
+    <div class="ca-modal-dialog" data-ng-click="$ctrl.onViewResults( null )">
+        <div>
+            <h2>Results for: {{ $ctrl.viewingPollResults.questionText }}</h2>
+        </div>
+        <br />
+        <br />
+        <div style="float: left; width:70%;">
+            <canvas id="poll-result-chart" width="469" height="234" class="chart chart-doughnut" data-chart-data="$ctrl.viewingPollResults.chartData" data-chart-labels="$ctrl.viewingPollResults.chartLabels" legend="true"></canvas>
+        </div>
+        <div style="float: left; width:29%;">
+            <div data-ng-if="$ctrl.viewingPollResults.unitVoteText">
+                Your unit voted:
+                <span style="font-weight:bold;">{{ $ctrl.viewingPollResults.unitVoteText }}</span>
+            </div>
+            <div data-ng-if="!$ctrl.viewingPollResults.unitVoteText">
+                Your unit did not vote in this poll.
+            </div>
+            <br />
+            <div data-ng-repeat="answerCount in $ctrl.viewingPollResults.answerCounts">
+                <span style="font-weight: bold;">{{ answerCount.label }}:</span> {{ answerCount.count }}
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <span style="position:absolute; right: 5px; bottom: 5px;" class="note-text">Click anywhere to close</span>
+    </div>
+</div>
