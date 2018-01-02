@@ -408,6 +408,10 @@ ol, ul {
   color: red;
   font-weight: bold; }
 
+img.file-thumbnail {
+  width: 57px;
+  height: auto; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;
