@@ -53,7 +53,9 @@ grunt.initConfig({
 
         allyLibTop:{
             options:{
-                'preserveComments':'some'
+                output:{
+                    comments:/^!/
+                }
             },
             files:{
                 'Website/js/AllyLibTop.min.js': [
@@ -91,8 +93,10 @@ grunt.initConfig({
 
         allyLibBottom:{
             options:{
-                'preserveComments':'some',
-                'mangle':false
+                output:{
+                    comments:/^!/
+                },
+                mangle:false
             },
             files:{
                 'Website/js/AllyLibBottom.min.js': [
@@ -118,7 +122,6 @@ grunt.initConfig({
         },
 
         templates:{
-            
             files:{
                 'Website/ngTemplates.min.js': ['Website/ngTemplates.js']
             }
