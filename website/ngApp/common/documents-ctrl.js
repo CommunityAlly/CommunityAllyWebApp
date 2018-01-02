@@ -529,6 +529,6 @@ CA.angularApp.component("documents", {
     bindings: {
         committee: "<"
     },
-    templateUrl: "/ngApp/common/Documents.html",
+    templateUrl: "/ngApp/common/documents.html",
     controller: Ally.DocumentsController
 });

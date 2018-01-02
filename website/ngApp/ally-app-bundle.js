@@ -6248,7 +6248,7 @@ CA.angularApp.component("documents", {
     bindings: {
         committee: "<"
     },
-    templateUrl: "/ngApp/common/Documents.html",
+    templateUrl: "/ngApp/common/documents.html",
     controller: Ally.DocumentsController
 });
 
@@ -7993,8 +7993,8 @@ CA.angularApp.directive( "sendMessage", ["$rootScope", "fellowResidents", functi
         },
         restrict: 'E',
         replace: 'true',
-        controllerAs: 'vm',
-        templateUrl: '/ngApp/Services/SendMessageTemplate.html',
+        controllerAs: 'vm',                      
+        templateUrl: '/ngApp/services/SendMessageTemplate.html',
         controller: SendMessageController,
         bindToController: true // Needed to hook up the isolate scope to our controller
     };

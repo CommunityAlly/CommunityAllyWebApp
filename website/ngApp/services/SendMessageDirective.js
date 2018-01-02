@@ -58,8 +58,8 @@
         },
         restrict: 'E',
         replace: 'true',
-        controllerAs: 'vm',
-        templateUrl: '/ngApp/Services/SendMessageTemplate.html',
+        controllerAs: 'vm',                      
+        templateUrl: '/ngApp/services/SendMessageTemplate.html',
         controller: SendMessageController,
         bindToController: true // Needed to hook up the isolate scope to our controller
     };
