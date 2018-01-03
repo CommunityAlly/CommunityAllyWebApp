@@ -1,5 +1,10 @@
 var Ally;
 (function (Ally) {
+    var ActivityLogEntry = /** @class */ (function () {
+        function ActivityLogEntry() {
+        }
+        return ActivityLogEntry;
+    }());
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -27,6 +32,8 @@ var Ally;
             this.$http.get("/api/ActivityLog").then(function (logResponse) {
                 innerThis.isLoading = false;
                 innerThis.logEntries = logResponse.data;
+                // The date comes down as a string so let's convert it to a Date object for the local time zone
+                _.each(innerThis.logEntries, function (e) { return e.postDate = moment(e.postDate).toDate(); });
             }, function (errorResponse) {
                 innerThis.isLoading = false;
                 alert("Failed to load activity log: " + errorResponse.data.exceptionMessage);

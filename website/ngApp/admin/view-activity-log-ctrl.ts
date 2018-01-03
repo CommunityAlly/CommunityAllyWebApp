@@ -1,5 +1,16 @@
 ﻿namespace Ally
 {
+    class ActivityLogEntry
+    {
+        userName: string;
+        postDate: Date;
+        activityMessage: string;
+        activityData: string;
+        url: string;
+        ip: string;
+    }
+
+
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -7,7 +18,7 @@
     {
         static $inject = ["$http"];
         isLoading: boolean = false;
-        logEntries: any[];
+        logEntries: ActivityLogEntry[];
 
 
         /**
@@ -36,11 +47,14 @@
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/ActivityLog" ).then(( logResponse: ng.IHttpPromiseCallbackArg<any[]> ) =>
+            this.$http.get( "/api/ActivityLog" ).then(( logResponse: ng.IHttpPromiseCallbackArg<ActivityLogEntry[]> ) =>
             {
                 innerThis.isLoading = false;
                 innerThis.logEntries = logResponse.data;
 
+                // The date comes down as a string so let's convert it to a Date object for the local time zone
+                _.each( innerThis.logEntries, ( e ) => e.postDate = moment(( e as any ).postDate ).toDate() );
+                
             }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 innerThis.isLoading = false;
