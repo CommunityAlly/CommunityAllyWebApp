@@ -11,14 +11,13 @@ var Ally;
             this.$http = $http;
             this.appCacheService = appCacheService;
             this.isLoading = false;
-            this.loginInfo = {};
+            this.loginInfo = new Ally.LoginInfo();
             this.shouldHideControls = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ForgotPasswordController.prototype.$onInit = function () {
-            this.loginInfo = {};
             this.loginInfo.emailAddress = this.appCacheService.getAndClear("forgotEmail");
         };
         /**

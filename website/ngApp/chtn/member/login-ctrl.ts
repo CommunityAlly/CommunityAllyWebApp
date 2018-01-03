@@ -1,5 +1,12 @@
 ﻿namespace Ally
 {
+    export class LoginInfo
+    {
+        emailAddress: string = "";
+        password: string = "";
+    }
+
+
     /**
      * The controller for the login page
      */
@@ -9,7 +16,7 @@
 
         isDemoSite: boolean = false;
         loginResult: string;
-        loginInfo: any = {};
+        loginInfo: LoginInfo = new LoginInfo();
         loginImageUrl: string;
         sectionStyle: any;
         isLoading: boolean;

@@ -8,7 +8,7 @@
         static $inject = ["$http", "appCacheService"];
 
         isLoading: boolean = false;
-        loginInfo: any = {};
+        loginInfo: LoginInfo = new LoginInfo();
         shouldHideControls: boolean = false;
         resultText: string;
         resultTextColor: string;
@@ -27,10 +27,6 @@
         */
         $onInit()
         {
-            this.loginInfo = {
-
-            };
-
             this.loginInfo.emailAddress = this.appCacheService.getAndClear( "forgotEmail" );
         }
 

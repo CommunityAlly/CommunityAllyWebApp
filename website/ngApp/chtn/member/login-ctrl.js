@@ -1,5 +1,13 @@
 var Ally;
 (function (Ally) {
+    var LoginInfo = /** @class */ (function () {
+        function LoginInfo() {
+            this.emailAddress = "";
+            this.password = "";
+        }
+        return LoginInfo;
+    }());
+    Ally.LoginInfo = LoginInfo;
     /**
      * The controller for the login page
      */
@@ -15,7 +23,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.xdLocalStorage = xdLocalStorage;
             this.isDemoSite = false;
-            this.loginInfo = {};
+            this.loginInfo = new LoginInfo();
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
