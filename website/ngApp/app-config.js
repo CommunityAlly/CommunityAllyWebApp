@@ -195,7 +195,7 @@ HOAAppConfig.menu.push( new RoutePath_v3( { path: "HoaSignUp", templateHtml: "<h
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Neighborhood Ally/Block Club Ally
+// Neighborhood Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 var NeighborhoodAppConfig = _.clone( CondoAllyAppConfig );
 NeighborhoodAppConfig.appShortName = "neighborhood";
@@ -214,6 +214,32 @@ NeighborhoodAppConfig.menu.splice( 0, 0, new RoutePath_v3( { path: "ManageReside
 // Remove assessment history and add dues history
 NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
 NeighborhoodAppConfig.menu.splice( 3, 0, new RoutePath_v3( { path: "DuesHistory", menuTitle:"Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
+
+NeighborhoodAppConfig.menu.push( new RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Block Club Ally
+///////////////////////////////////////////////////////////////////////////////////////////////////
+var BlockClubAppConfig = _.clone( CondoAllyAppConfig );
+BlockClubAppConfig.appShortName = "block-club";
+BlockClubAppConfig.appName = "Block Club Ally";
+BlockClubAppConfig.baseTld = "chicagoblock.club";
+BlockClubAppConfig.baseUrl = "https://chicagoblock.club/";
+BlockClubAppConfig.homeName = "Home";
+
+// Remove Residents and Manage Residents
+BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
+
+// Add them back under the name "Members"
+BlockClubAppConfig.menu.push( new RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
+BlockClubAppConfig.menu.splice( 0, 0, new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
+
+// Remove assessment history and add dues history
+BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
+BlockClubAppConfig.menu.splice( 3, 0, new RoutePath_v3( { path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
+
+BlockClubAppConfig.menu.push( new RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
 
 
 
@@ -237,10 +263,11 @@ else if( lowerDomain.indexOf( "hoaally" ) !== -1
     || lowerDomain.indexOf( "hellohoa" ) !== -1)
     AppConfig = HOAAppConfig;
 else if( lowerDomain.indexOf( "neighborhoodally" ) !== -1
-    || lowerDomain.indexOf( "chicagoblock" ) !== -1
-    || lowerDomain.indexOf( "blockclub" ) !== -1
     || lowerDomain.indexOf( "helloneighborhood" ) !== -1)
     AppConfig = NeighborhoodAppConfig;
+else if( lowerDomain.indexOf( "chicagoblock" ) !== -1
+    || lowerDomain.indexOf( "blockclub" ) !== -1 )
+    AppConfig = BlockClubAppConfig;
 else
 {
     console.log( "Unknown ally app" );

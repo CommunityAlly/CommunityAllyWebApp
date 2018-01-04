@@ -51,7 +51,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         AssessmentHistoryController.prototype.$onInit = function () {
-            if (AppConfig.appShortName === "neighborhood")
+            if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";

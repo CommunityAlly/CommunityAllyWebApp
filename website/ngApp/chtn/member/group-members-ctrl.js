@@ -13,7 +13,7 @@ var Ally;
             this.isLoading = true;
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
-            this.showMemberList = AppConfig.appShortName === "neighborhood";
+            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             this.showGroupEmailInfo = siteInfo.privateSiteInfo.canSendEmail;
         }
         /**
@@ -53,7 +53,7 @@ var Ally;
                     }
                 }
                 // Remove board members from the member list
-                if (AppConfig.appShortName === "neighborhood")
+                if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                     innerThis.allResidents = _.filter(innerThis.allResidents, function (r) { return r.boardPosition === 0; });
                 var boardPositionNames = [
                     { id: 0, name: "None" },
@@ -105,7 +105,7 @@ var Ally;
         GroupMembersController.prototype.setupGroupEmails = function () {
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             this.fellowResidents.setupGroupEmailObject(this.allResidents, this.unitList, this.emailLists);
-            if (AppConfig.appShortName === "neighborhood")
+            if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                 delete this.emailLists.owners;
             setTimeout(function () {
                 var clipboard = new Clipboard(".clipboard-button");

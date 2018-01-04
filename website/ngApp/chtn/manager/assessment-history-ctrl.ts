@@ -55,7 +55,7 @@
         */
         $onInit()
         {
-            if( AppConfig.appShortName === "neighborhood" )
+            if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";

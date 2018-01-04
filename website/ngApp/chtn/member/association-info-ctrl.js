@@ -17,7 +17,7 @@ var Ally;
         */
         AssociationInfoController.prototype.$onInit = function () {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
-            this.hideVendors = AppConfig.appShortName === "neighborhood";
+            this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             if (this.hideDocuments)
                 this.selectedView = "info";
             else
