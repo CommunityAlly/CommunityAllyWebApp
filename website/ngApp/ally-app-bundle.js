@@ -455,6 +455,11 @@ CA.angularApp.component("manageHomes", {
 
 var Ally;
 (function (Ally) {
+    var ActivityLogEntry = /** @class */ (function () {
+        function ActivityLogEntry() {
+        }
+        return ActivityLogEntry;
+    }());
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -482,6 +487,8 @@ var Ally;
             this.$http.get("/api/ActivityLog").then(function (logResponse) {
                 innerThis.isLoading = false;
                 innerThis.logEntries = logResponse.data;
+                // The date comes down as a string so let's convert it to a Date object for the local time zone
+                _.each(innerThis.logEntries, function (e) { return e.postDate = moment(e.postDate).toDate(); });
             }, function (errorResponse) {
                 innerThis.isLoading = false;
                 alert("Failed to load activity log: " + errorResponse.data.exceptionMessage);
@@ -1172,7 +1179,7 @@ HOAAppConfig.menu.push( new RoutePath_v3( { path: "HoaSignUp", templateHtml: "<h
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Neighborhood Ally/Block Club Ally
+// Neighborhood Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 var NeighborhoodAppConfig = _.clone( CondoAllyAppConfig );
 NeighborhoodAppConfig.appShortName = "neighborhood";
@@ -1191,6 +1198,32 @@ NeighborhoodAppConfig.menu.splice( 0, 0, new RoutePath_v3( { path: "ManageReside
 // Remove assessment history and add dues history
 NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
 NeighborhoodAppConfig.menu.splice( 3, 0, new RoutePath_v3( { path: "DuesHistory", menuTitle:"Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
+
+NeighborhoodAppConfig.menu.push( new RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Block Club Ally
+///////////////////////////////////////////////////////////////////////////////////////////////////
+var BlockClubAppConfig = _.clone( CondoAllyAppConfig );
+BlockClubAppConfig.appShortName = "block-club";
+BlockClubAppConfig.appName = "Block Club Ally";
+BlockClubAppConfig.baseTld = "chicagoblock.club";
+BlockClubAppConfig.baseUrl = "https://chicagoblock.club/";
+BlockClubAppConfig.homeName = "Home";
+
+// Remove Residents and Manage Residents
+BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
+
+// Add them back under the name "Members"
+BlockClubAppConfig.menu.push( new RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
+BlockClubAppConfig.menu.splice( 0, 0, new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
+
+// Remove assessment history and add dues history
+BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
+BlockClubAppConfig.menu.splice( 3, 0, new RoutePath_v3( { path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
+
+BlockClubAppConfig.menu.push( new RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
 
 
 
@@ -1214,10 +1247,11 @@ else if( lowerDomain.indexOf( "hoaally" ) !== -1
     || lowerDomain.indexOf( "hellohoa" ) !== -1)
     AppConfig = HOAAppConfig;
 else if( lowerDomain.indexOf( "neighborhoodally" ) !== -1
-    || lowerDomain.indexOf( "chicagoblock" ) !== -1
-    || lowerDomain.indexOf( "blockclub" ) !== -1
     || lowerDomain.indexOf( "helloneighborhood" ) !== -1)
     AppConfig = NeighborhoodAppConfig;
+else if( lowerDomain.indexOf( "chicagoblock" ) !== -1
+    || lowerDomain.indexOf( "blockclub" ) !== -1 )
+    AppConfig = BlockClubAppConfig;
 else
 {
     console.log( "Unknown ally app" );
@@ -1319,7 +1353,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         AssessmentHistoryController.prototype.$onInit = function () {
-            if (AppConfig.appShortName === "neighborhood")
+            if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
@@ -3067,7 +3101,7 @@ var Ally;
         */
         AssociationInfoController.prototype.$onInit = function () {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
-            this.hideVendors = AppConfig.appShortName === "neighborhood";
+            this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             if (this.hideDocuments)
                 this.selectedView = "info";
             else
@@ -3577,14 +3611,13 @@ var Ally;
             this.$http = $http;
             this.appCacheService = appCacheService;
             this.isLoading = false;
-            this.loginInfo = {};
+            this.loginInfo = new Ally.LoginInfo();
             this.shouldHideControls = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ForgotPasswordController.prototype.$onInit = function () {
-            this.loginInfo = {};
             this.loginInfo.emailAddress = this.appCacheService.getAndClear("forgotEmail");
         };
         /**
@@ -3630,7 +3663,7 @@ var Ally;
             this.isLoading = true;
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
-            this.showMemberList = AppConfig.appShortName === "neighborhood";
+            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             this.showGroupEmailInfo = siteInfo.privateSiteInfo.canSendEmail;
         }
         /**
@@ -3670,7 +3703,7 @@ var Ally;
                     }
                 }
                 // Remove board members from the member list
-                if (AppConfig.appShortName === "neighborhood")
+                if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                     innerThis.allResidents = _.filter(innerThis.allResidents, function (r) { return r.boardPosition === 0; });
                 var boardPositionNames = [
                     { id: 0, name: "None" },
@@ -3722,7 +3755,7 @@ var Ally;
         GroupMembersController.prototype.setupGroupEmails = function () {
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             this.fellowResidents.setupGroupEmailObject(this.allResidents, this.unitList, this.emailLists);
-            if (AppConfig.appShortName === "neighborhood")
+            if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                 delete this.emailLists.owners;
             setTimeout(function () {
                 var clipboard = new Clipboard(".clipboard-button");
@@ -4223,6 +4256,14 @@ CA.angularApp.component("logbookPage", {
 
 var Ally;
 (function (Ally) {
+    var LoginInfo = /** @class */ (function () {
+        function LoginInfo() {
+            this.emailAddress = "";
+            this.password = "";
+        }
+        return LoginInfo;
+    }());
+    Ally.LoginInfo = LoginInfo;
     /**
      * The controller for the login page
      */
@@ -4238,7 +4279,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.xdLocalStorage = xdLocalStorage;
             this.isDemoSite = false;
-            this.loginInfo = {};
+            this.loginInfo = new LoginInfo();
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -5123,6 +5164,241 @@ CA.angularApp.component("neighborSignUp", {
     controller: Ally.NeighborSignUpController
 });
 
+/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
+var Ally;
+(function (Ally) {
+    var TempNeighborhoodSignUpInfo = /** @class */ (function () {
+        function TempNeighborhoodSignUpInfo() {
+            this.fullName = "";
+            this.email = "";
+            this.address = "";
+            this.neighborhoodName = "";
+            this.notes = "";
+        }
+        return TempNeighborhoodSignUpInfo;
+    }());
+    /**
+     * The controller for the HOA Ally sign-up page
+     */
+    var NeighborhoodSignUpWizardController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function NeighborhoodSignUpWizardController($scope, $http, $timeout, WizardHandler) {
+            this.$scope = $scope;
+            this.$http = $http;
+            this.$timeout = $timeout;
+            this.WizardHandler = WizardHandler;
+            this.placeWasSelected = false;
+            this.shouldCheckAddress = false;
+            this.isLoading = false;
+            this.map = null;
+            this.isLoadingMap = false;
+            this.hideWizard = false;
+            this.hoaPoly = { vertices: [] };
+            this.showMap = false;
+            this.tempSignUpInfo = new TempNeighborhoodSignUpInfo();
+            // The default sign-up info object
+            this.signUpInfo = new Ally.HoaSignUpInfo();
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        NeighborhoodSignUpWizardController.prototype.$onInit = function () {
+            var innerThis = this;
+            var innerThis = this;
+            this.$scope.$on('wizard:stepChanged', function (event, args) {
+                if (args.index === 1)
+                    innerThis.$timeout(function () { return innerThis.showMap = true; }, 50);
+                else
+                    innerThis.showMap = false;
+            });
+            setTimeout(function () {
+                var addressInput = document.getElementById("signUpAddress");
+                if (addressInput)
+                    new google.maps.places.Autocomplete(addressInput);
+            }, 500);
+        };
+        /**
+         * Submit the
+         */
+        NeighborhoodSignUpWizardController.prototype.onSubmitTempInfo = function () {
+            this.isLoading = true;
+            var innerThis = this;
+            this.$http.post("/api/SignUpWizard/TempNeighborhood", this.tempSignUpInfo).then(function () {
+                innerThis.isLoading = false;
+                innerThis.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
+            }, function (response) {
+                innerThis.isLoading = false;
+                innerThis.submitTempResult = "Submission failed: " + response.data.exceptionMessage + ". Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.";
+            });
+        };
+        /**
+         * Center the Google map on a polygon
+         */
+        NeighborhoodSignUpWizardController.prototype.centerMap = function (geometry) {
+            // If the place has a geometry, then present it on a map.
+            if (geometry.viewport) {
+                this.map.fitBounds(geometry.viewport);
+            }
+            else {
+                this.map.setCenter(geometry.location);
+                this.map.setZoom(17); // Why 17? Because it looks good.
+            }
+            this.mapMarker.setPosition(geometry.location);
+            this.mapMarker.setVisible(true);
+        };
+        /**
+         * Perform initialization to create the map and hook up address autocomplete
+         */
+        NeighborhoodSignUpWizardController.prototype.initMapStep = function () {
+            if (typeof (window.analytics) !== "undefined")
+                window.analytics.track("condoSignUpStarted");
+            this.showMap = true;
+            var addressInput = document.getElementById("association-address-text-box");
+            if (addressInput) {
+                this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput);
+                this.addressAutocomplete.bindTo('bounds', this.map);
+            }
+            this.mapMarker = new google.maps.Marker({
+                map: this.map,
+                position: null,
+                anchorPoint: new google.maps.Point(41.969638, -87.657423),
+                icon: "/assets/images/MapMarkers/MapMarker_Home.png"
+            });
+            // Occurs when the user selects a Google suggested address
+            if (this.addressAutocomplete) {
+                var innerThis = this;
+                var onPlaceChanged = function () {
+                    innerThis.setPlaceWasSelected();
+                    //infowindow.close();
+                    innerThis.mapMarker.setVisible(false);
+                    var place = innerThis.addressAutocomplete.getPlace();
+                    var readableAddress = place.formatted_address;
+                    // Remove the trailing country if it's USA
+                    if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
+                        readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
+                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    if (!place.geometry)
+                        return;
+                    innerThis.setEditPolyForAddress(place.geometry.location);
+                    innerThis.centerMap(place.geometry);
+                };
+                this.addressAutocomplete.addListener('place_changed', function () {
+                    innerThis.$scope.$apply(onPlaceChanged);
+                });
+            }
+        };
+        NeighborhoodSignUpWizardController.prototype.onMapEditorReady = function (mapInstance) {
+            this.map = mapInstance;
+            this.initMapStep();
+        };
+        /**
+         * Refresh the map to center typed in address
+         */
+        NeighborhoodSignUpWizardController.prototype.checkAddress = function () {
+            if (this.placeWasSelected || !this.shouldCheckAddress)
+                return;
+            this.shouldCheckAddress = false;
+            this.refreshMapForAddress();
+        };
+        /**
+         * Occurs when the user selects an address from the Google suggestions
+         */
+        NeighborhoodSignUpWizardController.prototype.setPlaceWasSelected = function () {
+            this.placeWasSelected = true;
+            this.shouldCheckAddress = false;
+            // Clear the flag in case the user types in a new address
+            var innerThis = this;
+            setTimeout(function () {
+                innerThis.placeWasSelected = true;
+            }, 500);
+        };
+        /**
+         * Refresh the map edit box when a place is geocoded
+         */
+        NeighborhoodSignUpWizardController.prototype.setEditPolyForAddress = function (homePos) {
+            var OffsetLat = 0.001;
+            var OffsetLon = 0.0014;
+            this.hoaPoly = {
+                vertices: [
+                    { lat: homePos.lat() - OffsetLat, lon: homePos.lng() - OffsetLon },
+                    { lat: homePos.lat() + OffsetLat, lon: homePos.lng() - OffsetLon },
+                    { lat: homePos.lat() + OffsetLat, lon: homePos.lng() + OffsetLon },
+                    { lat: homePos.lat() - OffsetLat, lon: homePos.lng() + OffsetLon }
+                ]
+            };
+        };
+        /**
+         * Refresh the map to center typed in address
+         */
+        NeighborhoodSignUpWizardController.prototype.refreshMapForAddress = function () {
+            this.isLoadingMap = true;
+            var innerThis = this;
+            HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
+                innerThis.$scope.$apply(function () {
+                    innerThis.isLoadingMap = false;
+                    if (status != google.maps.GeocoderStatus.OK) {
+                        //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
+                        return;
+                    }
+                    var readableAddress = results[0].formatted_address;
+                    // Remove the trailing country if it's USA
+                    if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
+                        readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
+                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    if (!results[0].geometry)
+                        return;
+                    innerThis.setEditPolyForAddress(results[0].geometry.location);
+                    innerThis.centerMap(results[0].geometry);
+                });
+            });
+        };
+        /**
+         * Called when the user press the button to complete the sign-up process
+         */
+        NeighborhoodSignUpWizardController.prototype.onFinishedWizard = function () {
+            this.isLoading = true;
+            this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
+            var innerThis = this;
+            this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
+                innerThis.isLoading = false;
+                var signUpResult = httpResponse.data;
+                // If the was an error creating the site
+                if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
+                    alert("Failed to complete sign-up: " + signUpResult.errorMessage);
+                    innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                }
+                else {
+                    if (typeof (window.analytics) !== "undefined")
+                        window.analytics.track("condoSignUpComplete");
+                    // Log this as a conversion
+                    if (typeof (window.goog_report_conversion) !== "undefined")
+                        window.goog_report_conversion();
+                    // Or if the user created an active signUpResult
+                    if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
+                        window.location.href = signUpResult.createUrl;
+                    }
+                    else {
+                        innerThis.hideWizard = true;
+                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                    }
+                }
+            }, function (httpResponse) {
+                innerThis.isLoading = false;
+                alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        NeighborhoodSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];
+        return NeighborhoodSignUpWizardController;
+    }());
+    Ally.NeighborhoodSignUpWizardController = NeighborhoodSignUpWizardController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("neighborhoodSignUpWizard", {
+    templateUrl: "/ngApp/chtn/public/neighborhood-sign-up-wizard.html",
+    controller: Ally.NeighborhoodSignUpWizardController
+});
+
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../Services/html-util.ts" />
 var Ally;
@@ -5261,13 +5537,11 @@ var Ally;
             // Hook up the rich text editor
             window.setTimeout(function () {
                 var showErrorAlert = function (reason, detail) {
-                    var msg = '';
-                    if (reason === 'unsupported-file-type') {
+                    var msg = "";
+                    if (reason === "unsupported-file-type")
                         msg = "Unsupported format " + detail;
-                    }
-                    else {
+                    else
                         console.log("error uploading file", reason, detail);
-                    }
                     $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
                         '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
                 };
