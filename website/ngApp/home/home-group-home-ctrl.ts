@@ -5,7 +5,7 @@
      */
     export class HomeGroupHomeController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService", "fellowResidents"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
         welcomeMessage: string;
         isFirstVisit: boolean;
         isSiteManager: boolean;
@@ -23,13 +23,12 @@
         canSendEmail: boolean;
         isLoadingEmail: boolean;
         localNews: any;
-        availableEmailGroups: any[];
-
+        
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService, private appCacheService: AppCacheService, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService, private appCacheService: AppCacheService )
         {
         }
 
@@ -244,54 +243,6 @@
                     innerThis.localNews = httpResponse.data;
                     innerThis.isLoading_LocalNews = false;
                 } );
-            }
-
-            // If the user can send e-mail, populate the availble groups we can send to
-            if( this.canSendEmail )
-            {
-                this.isLoadingEmail = true;
-
-                var innerThis = this;
-                this.fellowResidents.getGroupEmailObject().then( function( emailList )
-                {
-                    innerThis.isLoadingEmail = false;
-
-                    // Find the non-empty groups
-                    var emailGroupKeys = _.keys( emailList );
-                    var nonEmptyRecipientTypes = [];
-                    for( var i = 0; i < emailGroupKeys.length; ++i )
-                    {
-                        var groupKey = emailGroupKeys[i];
-                        if( emailList[groupKey].length > 0 )
-                            nonEmptyRecipientTypes.push( groupKey );
-                    }
-
-                    var displayNames = {
-                        "everyone": "Everyone",
-                        "owners": "Owners",
-                        "renters": "Renters",
-                        "board": "Board Members",
-                        "residentOwners": "Resident Owners",
-                        "nonResidentOwners": "Non-Resident Owners",
-                        "residentOwnersAndRenters": "Resident Owners And Renters",
-                        "propertyManagers": "Property Managers"
-                    };
-
-                    // Create the list used by the UI
-                    innerThis.availableEmailGroups = [];
-                    for( var j = 0; j < nonEmptyRecipientTypes.length; ++j )
-                    {
-                        var newEntry = {
-                            recipientType: nonEmptyRecipientTypes[j],
-                            displayName: (displayNames as any)[nonEmptyRecipientTypes[j]]
-                        };
-
-                        this.availableEmailGroups.push( newEntry );
-                    }
-
-                    innerThis.messageObject.recipientType = innerThis.availableEmailGroups[0].recipientType;
-                } );
-
             }
         }
     }

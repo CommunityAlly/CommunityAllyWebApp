@@ -90,15 +90,15 @@
                 an e-mail to one of the addresses below how you would normally send any old e-mail, and it will be sent to the people listed.
             </p>
 
-            <div data-ng-repeat="(emailKey, people) in $ctrl.emailLists">
-                <div data-ng-if="people.length > 0">
-                    Send an e-mail to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ emailKey }}.{{ $ctrl.groupShortName }}@inmail.condoally.com</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+            <div data-ng-repeat="g in $ctrl.emailLists">
+                <div>
+                    Send an e-mail to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@inmail.condoally.com</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <p class="note-text">
-                    {{ people[0] }}
-                    <span data-ng-repeat="personName in people track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
+                    {{ g.usersFullNames[0] }}
+                    <span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
                 </p>
-                <div data-ng-if="emailKey ==='everyone'" style="color: red; font-weight: bold;">
+                <div data-ng-if="g.recipientType ==='everyone'" style="color: red; font-weight: bold;">
                     In general, sending an e-mail to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" e-mails should be
                     sent to the discussion group. The discussion group allows residents to unsubscribe from
                     individual threads, thus residents are more engaged in the threads in which they participate and complain less about e-mail.<br />

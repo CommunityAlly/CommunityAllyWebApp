@@ -23,7 +23,7 @@
         static $inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
 
         isLoadingEmail: boolean = false;
-        availableEmailGroups: SendEmailRecpientEntry[];
+        availableEmailGroups: GroupEmailInfo[];
         messageObject: HomeEmailMessage = new HomeEmailMessage();
         defaultMessageRecipient: string = "board";
         showDiscussionEveryoneWarning: boolean = false;
@@ -66,51 +66,13 @@
             this.isLoadingEmail = true;
 
             var innerThis = this;
-            this.fellowResidents.getGroupEmailObject().then( function( emailList: any )
+            this.fellowResidents.getGroupEmailObject().then( function( emailList: Ally.GroupEmailInfo[] )
             {
                 innerThis.isLoadingEmail = false;
-
-                // Find the non-empty groups
-                var emailGroupKeys = _.keys( emailList );
-                var nonEmptyRecipientTypes: string[] = [];
-                for( var i = 0; i < emailGroupKeys.length; ++i )
-                {
-                    var groupKey = emailGroupKeys[i];
-                    if( emailList[groupKey].length > 0 )
-                        nonEmptyRecipientTypes.push( groupKey );
-                }
-
-                var emailGroupDisplayInfo: any = {
-                    "propertyManagers": { displayName: "Property Managers", sortOrder: 10 },
-                    "board": { displayName: "Board Members", sortOrder: 20 },
-                    "discussion": { displayName: "Discussion", sortOrder: 30 },
-                    "owners": { displayName: "Owners", sortOrder: 40 },
-                    "renters": { displayName: "Renters", sortOrder: 50 },
-                    "residentOwners": { displayName: "Resident Owners", sortOrder: 60 },
-                    "nonResidentOwners": { displayName: "Non-Resident Owners", sortOrder: 70 },
-                    "residentOwnersAndRenters": { displayName: "Resident Owners And Renters", sortOrder: 80 },
-                    "everyone": { displayName: "Everyone", sortOrder: 90 }
-                };
-
-                // Create the list used by the UI
-                innerThis.availableEmailGroups = [];
-                for( var i = 0; i < nonEmptyRecipientTypes.length; ++i )
-                {
-                    var displayInfo = emailGroupDisplayInfo[nonEmptyRecipientTypes[i]];
-
-                    var newEntry = {
-                        recipientType: nonEmptyRecipientTypes[i],
-                        displayName: displayInfo.displayName,
-                        sortOrder: displayInfo.sortOrder
-                    };
-
-                    innerThis.availableEmailGroups.push( newEntry );
-                }
-
+                innerThis.availableEmailGroups = emailList;
+                
                 if( innerThis.availableEmailGroups.length > 0 )
                 {
-                    innerThis.availableEmailGroups = _.sortBy( innerThis.availableEmailGroups, function( g: any ) { return g.sortOrder; } );
-
                     innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
                     innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
                     innerThis.onSelectEmailGroup();

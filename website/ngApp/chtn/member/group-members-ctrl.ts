@@ -15,7 +15,7 @@ namespace Ally
         groupShortName: string;
         showMemberList: boolean;
         showGroupEmailInfo: boolean;
-        emailLists: any;
+        emailLists: GroupEmailInfo[] = [];
         allResidents: any[];
         unitList: any[];
         boardMembers: any[];
@@ -42,19 +42,6 @@ namespace Ally
         */
         $onInit()
         {
-            this.emailLists =
-                {
-                    board: [],
-                    discussion: [],
-                    owners: [],
-                    renters: [],
-                    residentOwners: [],
-                    nonResidentOwners: [],
-                    residentOwnersAndRenters: [],
-                    propertyManagers: [],
-                    everyone: []
-                };
-
             var innerThis = this;
             this.fellowResidents.getByUnitsAndResidents().then( function( data: any )
             {
@@ -151,51 +138,53 @@ namespace Ally
         {
             this.hasMissingEmails = _.some( this.allResidents, function( r ) { return !r.hasEmail; } );
 
-            this.fellowResidents.setupGroupEmailObject( this.allResidents, this.unitList, this.emailLists );
-
-            if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
-                delete this.emailLists.owners;
-
-            setTimeout( function()
+            var innerThis = this;
+            this.fellowResidents.getGroupEmailObject().then( (emailLists:GroupEmailInfo[]) =>
             {
-                var clipboard = new Clipboard( ".clipboard-button" );
+                this.emailLists = emailLists;
 
-                var showTooltip = function( element: any, text: string )
+                // Hook up the address copy link
+                setTimeout( function()
                 {
-                    $( element ).qtip( {
-                        style: {
-                            classes: 'qtip-light qtip-shadow'
-                        },
-                        position: {
-                            my: "leftMiddle",
-                            at: "rightMiddle"
-                        },
-                        content: { text: text },
-                        events: {
-                            hide: function( e: any )
-                            {
-                                $( e.originalEvent.currentTarget ).qtip( "destroy" );
+                    var clipboard = new Clipboard( ".clipboard-button" );
+
+                    var showTooltip = function( element: any, text: string )
+                    {
+                        $( element ).qtip( {
+                            style: {
+                                classes: 'qtip-light qtip-shadow'
+                            },
+                            position: {
+                                my: "leftMiddle",
+                                at: "rightMiddle"
+                            },
+                            content: { text: text },
+                            events: {
+                                hide: function( e: any )
+                                {
+                                    $( e.originalEvent.currentTarget ).qtip( "destroy" );
+                                }
                             }
-                        }
+                        } );
+
+                        $( element ).qtip( "show" );
+                    };
+
+
+                    clipboard.on( "success", function( e: any )
+                    {
+                        showTooltip( e.trigger, "Copied!" );
+
+                        e.clearSelection();
                     } );
 
-                    $( element ).qtip( "show" );
-                };
+                    clipboard.on( "error", function( e: any )
+                    {
+                        showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
+                    } );
 
-
-                clipboard.on( "success", function( e: any )
-                {
-                    showTooltip( e.trigger, "Copied!" );
-
-                    e.clearSelection();
-                } );
-
-                clipboard.on( "error", function( e: any )
-                {
-                    showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
-                } );
-
-            }, 750 );
+                }, 750 );
+            });
         }
     }
 }

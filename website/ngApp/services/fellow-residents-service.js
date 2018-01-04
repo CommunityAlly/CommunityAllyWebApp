@@ -1,15 +1,25 @@
 var Ally;
 (function (Ally) {
     /**
+     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     */
+    var GroupEmailInfo = /** @class */ (function () {
+        function GroupEmailInfo() {
+        }
+        return GroupEmailInfo;
+    }());
+    Ally.GroupEmailInfo = GroupEmailInfo;
+    /**
      * Provides methods to accessing group member and home information
      */
     var FellowResidentsService = /** @class */ (function () {
         /**
          * The constructor for the class
          */
-        function FellowResidentsService($http, $q) {
+        function FellowResidentsService($http, $q, $cacheFactory) {
             this.$http = $http;
             this.$q = $q;
+            this.$cacheFactory = $cacheFactory;
         }
         /**
          * Get the residents for the current group
@@ -37,11 +47,12 @@ var Ally;
          * Get a list of residents and homes
          */
         FellowResidentsService.prototype.getByUnitsAndResidents = function () {
+            var _this = this;
             var innerThis = this;
             return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
@@ -49,30 +60,35 @@ var Ally;
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
-            return this.getByUnitsAndResidents().then(function (unitsAndResidents) {
-                var unitList = unitsAndResidents.byUnit;
-                var allResidents = unitsAndResidents.residents;
-                return innerThis.setupGroupEmailObject(allResidents, unitList, null);
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
             });
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
         };
         /**
          * Populate the lists of group e-mails
          */
-        FellowResidentsService.prototype.setupGroupEmailObject = function (allResidents, unitList, emailLists) {
-            if (!emailLists || typeof (emailLists.everyone) !== "object") {
-                emailLists =
-                    {
-                        everyone: [],
-                        owners: [],
-                        renters: [],
-                        board: [],
-                        residentOwners: [],
-                        nonResidentOwners: [],
-                        residentOwnersAndRenters: [],
-                        propertyManagers: [],
-                        discussion: []
-                    };
-            }
+        FellowResidentsService.prototype._setupGroupEmailObject = function (allResidents, unitList) {
+            var emailLists = {};
+            emailLists = {
+                everyone: [],
+                owners: [],
+                renters: [],
+                board: [],
+                residentOwners: [],
+                nonResidentOwners: [],
+                residentOwnersAndRenters: [],
+                propertyManagers: [],
+                discussion: []
+            };
             // Go through each resident and add them to each e-mail group they belong to
             for (var i = 0; i < allResidents.length; ++i) {
                 var r = allResidents[i];
@@ -131,8 +147,15 @@ var Ally;
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         };
+        /**
+         * Clear cached values, such as when the user changes values in Manage -> Residents
+         */
+        FellowResidentsService.prototype.clearResidentCache = function () {
+            this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
+            this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
+        };
         return FellowResidentsService;
     }());
     Ally.FellowResidentsService = FellowResidentsService;
 })(Ally || (Ally = {}));
-angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", Ally.FellowResidentsService]);
+angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);

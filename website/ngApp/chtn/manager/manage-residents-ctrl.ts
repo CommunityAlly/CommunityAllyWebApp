@@ -76,7 +76,7 @@ namespace Ally
      */
     export class ManageResidentsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "$interval", "$cacheFactory", "uiGridConstants", "SiteInfo"];
+        static $inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
 
         isAdmin: boolean = false;
         siteLaunchedDateUtc: Date;
@@ -109,7 +109,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $interval: ng.IIntervalService, private $cacheFactory: ng.ICacheFactoryService, private uiGridConstants: uiGrid.IUiGridConstants, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $interval: ng.IIntervalService, private fellowResidents: Ally.FellowResidentsService, private uiGridConstants: uiGrid.IUiGridConstants, private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -487,7 +487,7 @@ namespace Ally
             }
 
             // Update the fellow residents page next time we're there
-            this.$cacheFactory.get( '$http' ).remove( "/api/BuildingResidents" );
+            this.fellowResidents.clearResidentCache();
         }
 
 
@@ -626,7 +626,8 @@ namespace Ally
                 innerThis.isLoadingSettings = false;
 
                 // Update the fellow residents page next time we're there
-                innerThis.$cacheFactory.get( '$http' ).remove( "/api/BuildingResidents" );
+                innerThis.fellowResidents.clearResidentCache();
+
                 innerThis.siteInfo.privateSiteInfo.canHideContactInfo = innerThis.residentSettings.canHideContactInfo;
             } ).error(() =>
             {
@@ -659,7 +660,7 @@ namespace Ally
                 innerThis.editUser = null;
 
                 // Update the fellow residents page next time we're there
-                innerThis.$cacheFactory.get( '$http' ).remove( "/api/BuildingResidents" );
+                innerThis.fellowResidents.clearResidentCache();
 
                 innerThis.refresh();
             } ).error(() =>

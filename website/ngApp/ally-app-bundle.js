@@ -2370,11 +2370,11 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageResidentsController($http, $rootScope, $interval, $cacheFactory, uiGridConstants, siteInfo) {
+        function ManageResidentsController($http, $rootScope, $interval, fellowResidents, uiGridConstants, siteInfo) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$interval = $interval;
-            this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
             this.uiGridConstants = uiGridConstants;
             this.siteInfo = siteInfo;
             this.isAdmin = false;
@@ -2647,7 +2647,7 @@ var Ally;
                 this.$http.put("/api/Residents", this.editUser).then(onSave, onError);
             }
             // Update the fellow residents page next time we're there
-            this.$cacheFactory.get('$http').remove("/api/BuildingResidents");
+            this.fellowResidents.clearResidentCache();
         };
         /**
          * Occurs when the user presses the button to set a user's password
@@ -2754,7 +2754,7 @@ var Ally;
             this.$http.put("/api/Settings", this.residentSettings).success(function () {
                 innerThis.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
-                innerThis.$cacheFactory.get('$http').remove("/api/BuildingResidents");
+                innerThis.fellowResidents.clearResidentCache();
                 innerThis.siteInfo.privateSiteInfo.canHideContactInfo = innerThis.residentSettings.canHideContactInfo;
             }).error(function () {
                 innerThis.isLoadingSettings = false;
@@ -2777,7 +2777,7 @@ var Ally;
                 innerThis.isSavingUser = false;
                 innerThis.editUser = null;
                 // Update the fellow residents page next time we're there
-                innerThis.$cacheFactory.get('$http').remove("/api/BuildingResidents");
+                innerThis.fellowResidents.clearResidentCache();
                 innerThis.refresh();
             }).error(function () {
                 alert("Failed to remove the resident. Please let support know if this continues to happen.");
@@ -2902,7 +2902,7 @@ var Ally;
             }
             this.bulkImportRows.push(newRow);
         };
-        ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "$cacheFactory", "uiGridConstants", "SiteInfo"];
+        ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
         return ManageResidentsController;
     }());
     Ally.ManageResidentsController = ManageResidentsController;
@@ -3661,6 +3661,7 @@ var Ally;
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
             this.isLoading = true;
+            this.emailLists = [];
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
@@ -3670,18 +3671,6 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupMembersController.prototype.$onInit = function () {
-            this.emailLists =
-                {
-                    board: [],
-                    discussion: [],
-                    owners: [],
-                    renters: [],
-                    residentOwners: [],
-                    nonResidentOwners: [],
-                    residentOwnersAndRenters: [],
-                    propertyManagers: [],
-                    everyone: []
-                };
             var innerThis = this;
             this.fellowResidents.getByUnitsAndResidents().then(function (data) {
                 innerThis.isLoading = false;
@@ -3753,38 +3742,41 @@ var Ally;
             });
         };
         GroupMembersController.prototype.setupGroupEmails = function () {
+            var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
-            this.fellowResidents.setupGroupEmailObject(this.allResidents, this.unitList, this.emailLists);
-            if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
-                delete this.emailLists.owners;
-            setTimeout(function () {
-                var clipboard = new Clipboard(".clipboard-button");
-                var showTooltip = function (element, text) {
-                    $(element).qtip({
-                        style: {
-                            classes: 'qtip-light qtip-shadow'
-                        },
-                        position: {
-                            my: "leftMiddle",
-                            at: "rightMiddle"
-                        },
-                        content: { text: text },
-                        events: {
-                            hide: function (e) {
-                                $(e.originalEvent.currentTarget).qtip("destroy");
+            var innerThis = this;
+            this.fellowResidents.getGroupEmailObject().then(function (emailLists) {
+                _this.emailLists = emailLists;
+                // Hook up the address copy link
+                setTimeout(function () {
+                    var clipboard = new Clipboard(".clipboard-button");
+                    var showTooltip = function (element, text) {
+                        $(element).qtip({
+                            style: {
+                                classes: 'qtip-light qtip-shadow'
+                            },
+                            position: {
+                                my: "leftMiddle",
+                                at: "rightMiddle"
+                            },
+                            content: { text: text },
+                            events: {
+                                hide: function (e) {
+                                    $(e.originalEvent.currentTarget).qtip("destroy");
+                                }
                             }
-                        }
+                        });
+                        $(element).qtip("show");
+                    };
+                    clipboard.on("success", function (e) {
+                        showTooltip(e.trigger, "Copied!");
+                        e.clearSelection();
                     });
-                    $(element).qtip("show");
-                };
-                clipboard.on("success", function (e) {
-                    showTooltip(e.trigger, "Copied!");
-                    e.clearSelection();
-                });
-                clipboard.on("error", function (e) {
-                    showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
-                });
-            }, 750);
+                    clipboard.on("error", function (e) {
+                        showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
+                    });
+                }, 750);
+            });
         };
         GroupMembersController.$inject = ["fellowResidents", "SiteInfo"];
         return GroupMembersController;
@@ -6580,38 +6572,8 @@ var Ally;
             var innerThis = this;
             this.fellowResidents.getGroupEmailObject().then(function (emailList) {
                 innerThis.isLoadingEmail = false;
-                // Find the non-empty groups
-                var emailGroupKeys = _.keys(emailList);
-                var nonEmptyRecipientTypes = [];
-                for (var i = 0; i < emailGroupKeys.length; ++i) {
-                    var groupKey = emailGroupKeys[i];
-                    if (emailList[groupKey].length > 0)
-                        nonEmptyRecipientTypes.push(groupKey);
-                }
-                var emailGroupDisplayInfo = {
-                    "propertyManagers": { displayName: "Property Managers", sortOrder: 10 },
-                    "board": { displayName: "Board Members", sortOrder: 20 },
-                    "discussion": { displayName: "Discussion", sortOrder: 30 },
-                    "owners": { displayName: "Owners", sortOrder: 40 },
-                    "renters": { displayName: "Renters", sortOrder: 50 },
-                    "residentOwners": { displayName: "Resident Owners", sortOrder: 60 },
-                    "nonResidentOwners": { displayName: "Non-Resident Owners", sortOrder: 70 },
-                    "residentOwnersAndRenters": { displayName: "Resident Owners And Renters", sortOrder: 80 },
-                    "everyone": { displayName: "Everyone", sortOrder: 90 }
-                };
-                // Create the list used by the UI
-                innerThis.availableEmailGroups = [];
-                for (var i = 0; i < nonEmptyRecipientTypes.length; ++i) {
-                    var displayInfo = emailGroupDisplayInfo[nonEmptyRecipientTypes[i]];
-                    var newEntry = {
-                        recipientType: nonEmptyRecipientTypes[i],
-                        displayName: displayInfo.displayName,
-                        sortOrder: displayInfo.sortOrder
-                    };
-                    innerThis.availableEmailGroups.push(newEntry);
-                }
+                innerThis.availableEmailGroups = emailList;
                 if (innerThis.availableEmailGroups.length > 0) {
-                    innerThis.availableEmailGroups = _.sortBy(innerThis.availableEmailGroups, function (g) { return g.sortOrder; });
                     innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
                     innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
                     innerThis.onSelectEmailGroup();
@@ -7206,13 +7168,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function HomeGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService, fellowResidents) {
+        function HomeGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.appCacheService = appCacheService;
-            this.fellowResidents = fellowResidents;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -7354,44 +7315,8 @@ var Ally;
                     innerThis.isLoading_LocalNews = false;
                 });
             }
-            // If the user can send e-mail, populate the availble groups we can send to
-            if (this.canSendEmail) {
-                this.isLoadingEmail = true;
-                var innerThis = this;
-                this.fellowResidents.getGroupEmailObject().then(function (emailList) {
-                    innerThis.isLoadingEmail = false;
-                    // Find the non-empty groups
-                    var emailGroupKeys = _.keys(emailList);
-                    var nonEmptyRecipientTypes = [];
-                    for (var i = 0; i < emailGroupKeys.length; ++i) {
-                        var groupKey = emailGroupKeys[i];
-                        if (emailList[groupKey].length > 0)
-                            nonEmptyRecipientTypes.push(groupKey);
-                    }
-                    var displayNames = {
-                        "everyone": "Everyone",
-                        "owners": "Owners",
-                        "renters": "Renters",
-                        "board": "Board Members",
-                        "residentOwners": "Resident Owners",
-                        "nonResidentOwners": "Non-Resident Owners",
-                        "residentOwnersAndRenters": "Resident Owners And Renters",
-                        "propertyManagers": "Property Managers"
-                    };
-                    // Create the list used by the UI
-                    innerThis.availableEmailGroups = [];
-                    for (var j = 0; j < nonEmptyRecipientTypes.length; ++j) {
-                        var newEntry = {
-                            recipientType: nonEmptyRecipientTypes[j],
-                            displayName: displayNames[nonEmptyRecipientTypes[j]]
-                        };
-                        this.availableEmailGroups.push(newEntry);
-                    }
-                    innerThis.messageObject.recipientType = innerThis.availableEmailGroups[0].recipientType;
-                });
-            }
         };
-        HomeGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService", "fellowResidents"];
+        HomeGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
         return HomeGroupHomeController;
     }());
     Ally.HomeGroupHomeController = HomeGroupHomeController;
@@ -8550,15 +8475,25 @@ var Ally;
 var Ally;
 (function (Ally) {
     /**
+     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     */
+    var GroupEmailInfo = /** @class */ (function () {
+        function GroupEmailInfo() {
+        }
+        return GroupEmailInfo;
+    }());
+    Ally.GroupEmailInfo = GroupEmailInfo;
+    /**
      * Provides methods to accessing group member and home information
      */
     var FellowResidentsService = /** @class */ (function () {
         /**
          * The constructor for the class
          */
-        function FellowResidentsService($http, $q) {
+        function FellowResidentsService($http, $q, $cacheFactory) {
             this.$http = $http;
             this.$q = $q;
+            this.$cacheFactory = $cacheFactory;
         }
         /**
          * Get the residents for the current group
@@ -8586,11 +8521,12 @@ var Ally;
          * Get a list of residents and homes
          */
         FellowResidentsService.prototype.getByUnitsAndResidents = function () {
+            var _this = this;
             var innerThis = this;
             return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
@@ -8598,30 +8534,35 @@ var Ally;
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
-            return this.getByUnitsAndResidents().then(function (unitsAndResidents) {
-                var unitList = unitsAndResidents.byUnit;
-                var allResidents = unitsAndResidents.residents;
-                return innerThis.setupGroupEmailObject(allResidents, unitList, null);
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
             });
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
         };
         /**
          * Populate the lists of group e-mails
          */
-        FellowResidentsService.prototype.setupGroupEmailObject = function (allResidents, unitList, emailLists) {
-            if (!emailLists || typeof (emailLists.everyone) !== "object") {
-                emailLists =
-                    {
-                        everyone: [],
-                        owners: [],
-                        renters: [],
-                        board: [],
-                        residentOwners: [],
-                        nonResidentOwners: [],
-                        residentOwnersAndRenters: [],
-                        propertyManagers: [],
-                        discussion: []
-                    };
-            }
+        FellowResidentsService.prototype._setupGroupEmailObject = function (allResidents, unitList) {
+            var emailLists = {};
+            emailLists = {
+                everyone: [],
+                owners: [],
+                renters: [],
+                board: [],
+                residentOwners: [],
+                nonResidentOwners: [],
+                residentOwnersAndRenters: [],
+                propertyManagers: [],
+                discussion: []
+            };
             // Go through each resident and add them to each e-mail group they belong to
             for (var i = 0; i < allResidents.length; ++i) {
                 var r = allResidents[i];
@@ -8680,11 +8621,18 @@ var Ally;
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         };
+        /**
+         * Clear cached values, such as when the user changes values in Manage -> Residents
+         */
+        FellowResidentsService.prototype.clearResidentCache = function () {
+            this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
+            this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
+        };
         return FellowResidentsService;
     }());
     Ally.FellowResidentsService = FellowResidentsService;
 })(Ally || (Ally = {}));
-angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", Ally.FellowResidentsService]);
+angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);
 
 /// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;

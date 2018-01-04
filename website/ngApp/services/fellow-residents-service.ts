@@ -1,6 +1,18 @@
 ﻿namespace Ally
 {
     /**
+     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     */
+    export class GroupEmailInfo
+    {
+        recipientType: string;
+        displayName: string;
+        usersFullNames: any[];
+        sortOrder: number;
+    }
+
+
+    /**
      * Provides methods to accessing group member and home information
      */
     export class FellowResidentsService
@@ -8,7 +20,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $q: ng.IQService )
+        constructor( private $http: ng.IHttpService, private $q: ng.IQService, private $cacheFactory: ng.ICacheFactoryService )
         { }
 
 
@@ -22,7 +34,7 @@
             {
                 return httpResponse.data.residents;
 
-            }, function( httpResponse )
+            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
             {
                 return innerThis.$q.reject( httpResponse );
             } );
@@ -35,11 +47,11 @@
         getByUnits()
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( function( httpResponse: any )
+            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 return httpResponse.data.byUnit;
 
-            }, function( httpResponse )
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 return innerThis.$q.reject( httpResponse );
             } );
@@ -52,11 +64,11 @@
         getByUnitsAndResidents()
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( function( httpResponse: any )
+            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse : ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 return httpResponse.data;
 
-            }, function( httpResponse )
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 return this.$q.reject( httpResponse );
             } );
@@ -66,40 +78,48 @@
         /**
          * Get the object describing the available group e-mail addresses
          */
-        getGroupEmailObject()
+        getGroupEmailObject(): ng.IPromise<GroupEmailInfo[]>
         {
             var innerThis = this;
-            return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            return this.$http.get( "/api/BuildingResidents/EmailGroups", { cache: true } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailInfo[]> )
             {
-                var unitList = unitsAndResidents.byUnit;
-                var allResidents = unitsAndResidents.residents;
+                return httpResponse.data;
 
-                return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            {
+                return this.$q.reject( httpResponse );
             } );
+
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
         }
 
 
         /**
          * Populate the lists of group e-mails
          */
-        setupGroupEmailObject( allResidents: any[], unitList: any[], emailLists: any )
+        _setupGroupEmailObject( allResidents: any[], unitList: any[] )
         {
-            if( !emailLists || typeof ( emailLists.everyone ) !== "object" )
-            {
-                emailLists =
-                    {
-                        everyone: [],
-                        owners: [],
-                        renters: [],
-                        board: [],
-                        residentOwners: [],
-                        nonResidentOwners: [],
-                        residentOwnersAndRenters: [],
-                        propertyManagers: [],
-                        discussion: []
-                    };
-            }
+            var emailLists: any = {};
 
+            emailLists = {
+                    everyone: [],
+                    owners: [],
+                    renters: [],
+                    board: [],
+                    residentOwners: [],
+                    nonResidentOwners: [],
+                    residentOwnersAndRenters: [],
+                    propertyManagers: [],
+                    discussion: []
+                };
+            
             // Go through each resident and add them to each e-mail group they belong to
             for( var i = 0; i < allResidents.length; ++i )
             {
@@ -185,8 +205,18 @@
 
             return this.$http.post( "/api/BuildingResidents/SendMessage", postData );
         }
+
+
+        /**
+         * Clear cached values, such as when the user changes values in Manage -> Residents
+         */
+        clearResidentCache()
+        {
+            this.$cacheFactory.get( "$http" ).remove( "/api/BuildingResidents" );
+            this.$cacheFactory.get( "$http" ).remove( "/api/BuildingResidents/EmailGroups" );
+        }
     }
 }
 
 
-angular.module( "CondoAlly" ).service( "fellowResidents", ["$http", "$q", Ally.FellowResidentsService] );
+angular.module( "CondoAlly" ).service( "fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService] );

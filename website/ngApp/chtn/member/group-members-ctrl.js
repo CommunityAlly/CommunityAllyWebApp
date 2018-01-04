@@ -11,6 +11,7 @@ var Ally;
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
             this.isLoading = true;
+            this.emailLists = [];
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
@@ -20,18 +21,6 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupMembersController.prototype.$onInit = function () {
-            this.emailLists =
-                {
-                    board: [],
-                    discussion: [],
-                    owners: [],
-                    renters: [],
-                    residentOwners: [],
-                    nonResidentOwners: [],
-                    residentOwnersAndRenters: [],
-                    propertyManagers: [],
-                    everyone: []
-                };
             var innerThis = this;
             this.fellowResidents.getByUnitsAndResidents().then(function (data) {
                 innerThis.isLoading = false;
@@ -103,38 +92,41 @@ var Ally;
             });
         };
         GroupMembersController.prototype.setupGroupEmails = function () {
+            var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
-            this.fellowResidents.setupGroupEmailObject(this.allResidents, this.unitList, this.emailLists);
-            if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
-                delete this.emailLists.owners;
-            setTimeout(function () {
-                var clipboard = new Clipboard(".clipboard-button");
-                var showTooltip = function (element, text) {
-                    $(element).qtip({
-                        style: {
-                            classes: 'qtip-light qtip-shadow'
-                        },
-                        position: {
-                            my: "leftMiddle",
-                            at: "rightMiddle"
-                        },
-                        content: { text: text },
-                        events: {
-                            hide: function (e) {
-                                $(e.originalEvent.currentTarget).qtip("destroy");
+            var innerThis = this;
+            this.fellowResidents.getGroupEmailObject().then(function (emailLists) {
+                _this.emailLists = emailLists;
+                // Hook up the address copy link
+                setTimeout(function () {
+                    var clipboard = new Clipboard(".clipboard-button");
+                    var showTooltip = function (element, text) {
+                        $(element).qtip({
+                            style: {
+                                classes: 'qtip-light qtip-shadow'
+                            },
+                            position: {
+                                my: "leftMiddle",
+                                at: "rightMiddle"
+                            },
+                            content: { text: text },
+                            events: {
+                                hide: function (e) {
+                                    $(e.originalEvent.currentTarget).qtip("destroy");
+                                }
                             }
-                        }
+                        });
+                        $(element).qtip("show");
+                    };
+                    clipboard.on("success", function (e) {
+                        showTooltip(e.trigger, "Copied!");
+                        e.clearSelection();
                     });
-                    $(element).qtip("show");
-                };
-                clipboard.on("success", function (e) {
-                    showTooltip(e.trigger, "Copied!");
-                    e.clearSelection();
-                });
-                clipboard.on("error", function (e) {
-                    showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
-                });
-            }, 750);
+                    clipboard.on("error", function (e) {
+                        showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
+                    });
+                }, 750);
+            });
         };
         GroupMembersController.$inject = ["fellowResidents", "SiteInfo"];
         return GroupMembersController;

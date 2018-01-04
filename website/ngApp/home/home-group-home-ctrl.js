@@ -7,13 +7,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function HomeGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService, fellowResidents) {
+        function HomeGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.appCacheService = appCacheService;
-            this.fellowResidents = fellowResidents;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -155,44 +154,8 @@ var Ally;
                     innerThis.isLoading_LocalNews = false;
                 });
             }
-            // If the user can send e-mail, populate the availble groups we can send to
-            if (this.canSendEmail) {
-                this.isLoadingEmail = true;
-                var innerThis = this;
-                this.fellowResidents.getGroupEmailObject().then(function (emailList) {
-                    innerThis.isLoadingEmail = false;
-                    // Find the non-empty groups
-                    var emailGroupKeys = _.keys(emailList);
-                    var nonEmptyRecipientTypes = [];
-                    for (var i = 0; i < emailGroupKeys.length; ++i) {
-                        var groupKey = emailGroupKeys[i];
-                        if (emailList[groupKey].length > 0)
-                            nonEmptyRecipientTypes.push(groupKey);
-                    }
-                    var displayNames = {
-                        "everyone": "Everyone",
-                        "owners": "Owners",
-                        "renters": "Renters",
-                        "board": "Board Members",
-                        "residentOwners": "Resident Owners",
-                        "nonResidentOwners": "Non-Resident Owners",
-                        "residentOwnersAndRenters": "Resident Owners And Renters",
-                        "propertyManagers": "Property Managers"
-                    };
-                    // Create the list used by the UI
-                    innerThis.availableEmailGroups = [];
-                    for (var j = 0; j < nonEmptyRecipientTypes.length; ++j) {
-                        var newEntry = {
-                            recipientType: nonEmptyRecipientTypes[j],
-                            displayName: displayNames[nonEmptyRecipientTypes[j]]
-                        };
-                        this.availableEmailGroups.push(newEntry);
-                    }
-                    innerThis.messageObject.recipientType = innerThis.availableEmailGroups[0].recipientType;
-                });
-            }
         };
-        HomeGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService", "fellowResidents"];
+        HomeGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
         return HomeGroupHomeController;
     }());
     Ally.HomeGroupHomeController = HomeGroupHomeController;

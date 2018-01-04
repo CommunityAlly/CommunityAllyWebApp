@@ -60,11 +60,11 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageResidentsController($http, $rootScope, $interval, $cacheFactory, uiGridConstants, siteInfo) {
+        function ManageResidentsController($http, $rootScope, $interval, fellowResidents, uiGridConstants, siteInfo) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$interval = $interval;
-            this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
             this.uiGridConstants = uiGridConstants;
             this.siteInfo = siteInfo;
             this.isAdmin = false;
@@ -337,7 +337,7 @@ var Ally;
                 this.$http.put("/api/Residents", this.editUser).then(onSave, onError);
             }
             // Update the fellow residents page next time we're there
-            this.$cacheFactory.get('$http').remove("/api/BuildingResidents");
+            this.fellowResidents.clearResidentCache();
         };
         /**
          * Occurs when the user presses the button to set a user's password
@@ -444,7 +444,7 @@ var Ally;
             this.$http.put("/api/Settings", this.residentSettings).success(function () {
                 innerThis.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
-                innerThis.$cacheFactory.get('$http').remove("/api/BuildingResidents");
+                innerThis.fellowResidents.clearResidentCache();
                 innerThis.siteInfo.privateSiteInfo.canHideContactInfo = innerThis.residentSettings.canHideContactInfo;
             }).error(function () {
                 innerThis.isLoadingSettings = false;
@@ -467,7 +467,7 @@ var Ally;
                 innerThis.isSavingUser = false;
                 innerThis.editUser = null;
                 // Update the fellow residents page next time we're there
-                innerThis.$cacheFactory.get('$http').remove("/api/BuildingResidents");
+                innerThis.fellowResidents.clearResidentCache();
                 innerThis.refresh();
             }).error(function () {
                 alert("Failed to remove the resident. Please let support know if this continues to happen.");
@@ -592,7 +592,7 @@ var Ally;
             }
             this.bulkImportRows.push(newRow);
         };
-        ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "$cacheFactory", "uiGridConstants", "SiteInfo"];
+        ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
         return ManageResidentsController;
     }());
     Ally.ManageResidentsController = ManageResidentsController;
