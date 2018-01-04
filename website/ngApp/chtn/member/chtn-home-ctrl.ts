@@ -12,7 +12,7 @@ namespace Ally
 
         welcomeMessage: string;
         canMakePayment: boolean;
-        canSendEmail: string;
+        canSendEmail: boolean;
         cantDoAnything: boolean;
         isFirstVisit: boolean;
         isSiteManager: boolean;

@@ -1,3 +1,13 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Ally;
 (function (Ally) {
     /**
@@ -10,12 +20,33 @@ var Ally;
     }());
     Ally.UserInfo = UserInfo;
     /**
+     * Represents the group descriptive information that can only be accessed by a member of the
+     * group
+     */
+    var PrivateSiteInfo = /** @class */ (function () {
+        function PrivateSiteInfo() {
+        }
+        return PrivateSiteInfo;
+    }());
+    Ally.PrivateSiteInfo = PrivateSiteInfo;
+    /**
+     * Represents the descriptive information for a CHTN group (condo, HOA, townhome, neighborhood)
+     */
+    var ChtnPrivateSiteInfo = /** @class */ (function (_super) {
+        __extends(ChtnPrivateSiteInfo, _super);
+        function ChtnPrivateSiteInfo() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return ChtnPrivateSiteInfo;
+    }(PrivateSiteInfo));
+    Ally.ChtnPrivateSiteInfo = ChtnPrivateSiteInfo;
+    /**
      * The current group's site information
      */
     var SiteInfoService = /** @class */ (function () {
         function SiteInfoService() {
             this.publicSiteInfo = {};
-            this.privateSiteInfo = {};
+            this.privateSiteInfo = new ChtnPrivateSiteInfo();
             this.userInfo = new Ally.UserInfo();
             this.isLoggedIn = false;
         }

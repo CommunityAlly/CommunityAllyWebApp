@@ -35,12 +35,51 @@ namespace Ally
 
 
     /**
+     * Represents the group descriptive information that can only be accessed by a member of the
+     * group
+     */
+    export class PrivateSiteInfo
+    {
+        /** The "ISO Alpha-2" 2 character country code */
+        country: string;
+        groupAddress: any;
+        welcomeMessage: string;
+        gpsPosition: any;
+    }
+
+
+    /**
+     * Represents the descriptive information for a CHTN group (condo, HOA, townhome, neighborhood)
+     */
+    export class ChtnPrivateSiteInfo extends PrivateSiteInfo
+    {
+        isPaymentEnabled: boolean;
+        payerPaysAchFee: boolean;
+        payerPaysCCFee: string;
+        numUnits: number;
+        isLargeGroup: boolean;
+        hasAssessments: boolean;
+        assessmentFrequency: any;
+        isPeriodicPaymentTrackingEnabled: boolean;
+        canSendEmail: boolean;
+        homeRightColumnType: string;
+        siteLaunchedDateUtc: Date;
+        rentersCanViewDocs: boolean;
+        canHideContactInfo: boolean;
+
+
+        // Not from the server
+        googleGpsPosition: google.maps.LatLng;
+    }
+
+
+    /**
      * The current group's site information
      */
     export class SiteInfoService
     {
         publicSiteInfo: any = {};
-        privateSiteInfo: any = {};
+        privateSiteInfo: ChtnPrivateSiteInfo = new ChtnPrivateSiteInfo();
         userInfo: UserInfo = new Ally.UserInfo();
         isLoggedIn: boolean = false;
         xdLocalStorage: any;
