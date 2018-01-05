@@ -52,22 +52,22 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appver=272" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=273" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appver=272" );
+                    localStorage.setItem( Key_JSVersion, "appVer=273" );
                 }
             }
         };
     </script>
 
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
-    <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>--> 
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appver=272"></script>
+    <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>-->
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=273"></script>
     
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngTemplates.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appver=272"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=273"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
