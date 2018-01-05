@@ -66,7 +66,7 @@
             }
 
             // The object that contains a message if the user wants to send one out
-            this.messageObject = { recipientType: "everyone" };
+            this.messageObject = {};
 
 
             // If the user lives in a unit and assessments are enabled

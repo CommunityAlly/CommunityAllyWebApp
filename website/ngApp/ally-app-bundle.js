@@ -2378,6 +2378,7 @@ var Ally;
             this.uiGridConstants = uiGridConstants;
             this.siteInfo = siteInfo;
             this.isAdmin = false;
+            this.showEmailSettings = true;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
             this.isLoading = false;
@@ -2393,7 +2394,8 @@ var Ally;
             this.multiselectOptions = "";
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
-            this.showIsRenter = AppConfig.appShortName === "condo";
+            this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.showEmailSettings = !this.siteInfo.privateSiteInfo.isLargeGroup;
             this.boardPositions = [
                 { id: 0, name: "None" },
                 { id: 1, name: "President" },
@@ -3177,8 +3179,6 @@ var Ally;
         ChtnHomeController.prototype.$onInit = function () {
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
-            this.canSendEmail = this.siteInfo.privateSiteInfo.canSendEmail;
-            this.cantDoAnything = !(this.canMakePayment || this.canSendEmail);
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
@@ -3665,7 +3665,6 @@ var Ally;
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
-            this.showGroupEmailInfo = siteInfo.privateSiteInfo.canSendEmail;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -6633,7 +6632,7 @@ var Ally;
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
             var shortName = HtmlUtil.getSubdomain(window.location.host).toLowerCase();
             this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
-            this.showDiscussionEveryoneWarning = this.messageObject.recipientType === "everyone";
+            this.showDiscussionEveryoneWarning = this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
             if (!this.showDiscussionEveryoneWarning
                 && isSendingToOwners
@@ -7199,7 +7198,7 @@ var Ally;
                     this.recentPayments.push({});
             }
             // The object that contains a message if the user wants to send one out
-            this.messageObject = { recipientType: "everyone" };
+            this.messageObject = {};
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency !== null
                 && this.siteInfo.userInfo.usersUnits !== null

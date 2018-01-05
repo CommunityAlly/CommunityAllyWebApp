@@ -15,7 +15,6 @@ var Ally;
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
-            this.showGroupEmailInfo = siteInfo.privateSiteInfo.canSendEmail;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed

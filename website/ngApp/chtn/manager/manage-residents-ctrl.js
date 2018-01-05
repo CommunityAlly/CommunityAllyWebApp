@@ -68,6 +68,7 @@ var Ally;
             this.uiGridConstants = uiGridConstants;
             this.siteInfo = siteInfo;
             this.isAdmin = false;
+            this.showEmailSettings = true;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
             this.isLoading = false;
@@ -83,7 +84,8 @@ var Ally;
             this.multiselectOptions = "";
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
-            this.showIsRenter = AppConfig.appShortName === "condo";
+            this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.showEmailSettings = !this.siteInfo.privateSiteInfo.isLargeGroup;
             this.boardPositions = [
                 { id: 0, name: "None" },
                 { id: 1, name: "President" },

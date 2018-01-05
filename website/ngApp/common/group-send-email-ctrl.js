@@ -113,7 +113,7 @@ var Ally;
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
             var shortName = HtmlUtil.getSubdomain(window.location.host).toLowerCase();
             this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
-            this.showDiscussionEveryoneWarning = this.messageObject.recipientType === "everyone";
+            this.showDiscussionEveryoneWarning = this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
             if (!this.showDiscussionEveryoneWarning
                 && isSendingToOwners

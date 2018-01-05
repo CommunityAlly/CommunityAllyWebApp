@@ -61,7 +61,6 @@ namespace Ally
         hasAssessments: boolean;
         assessmentFrequency: any;
         isPeriodicPaymentTrackingEnabled: boolean;
-        canSendEmail: boolean;
         homeRightColumnType: string;
         siteLaunchedDateUtc: Date;
         rentersCanViewDocs: boolean;

@@ -20,8 +20,6 @@ var Ally;
         ChtnHomeController.prototype.$onInit = function () {
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
-            this.canSendEmail = this.siteInfo.privateSiteInfo.canSendEmail;
-            this.cantDoAnything = !(this.canMakePayment || this.canSendEmail);
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;

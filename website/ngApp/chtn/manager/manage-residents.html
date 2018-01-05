@@ -201,15 +201,18 @@
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingSettings"></div>
 
         <h4>Resident Permissions</h4>
-        <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow owners to send e-mails from the home page</label><br />
-        <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowRentersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow renters to send e-mails from the home page</label><br />
-        <span class="note-text">
-            Admin always have the ability to send e-mails via the form on the home page. With these two check boxes
-            you can control who else can use that form to send e-mails.
-        </span>
-        <br />
-        <br />
+
+        <div data-ng-if="$ctrl.showEmailSettings">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow owners to send group e-mails</label><br />
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowRentersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow renters to send group e-mails</label><br />
+            <span class="note-text">
+                When disabled, residents, who are neither board-members nor admin, can only send to the "Board", "Discussion", and "Property Managers" group e-mail addresses. Only board members can send to the entire association.
+                When enabled, all residents can send e-mails to all groups. If you find too many e-mails being sent around, uncheck this box. You can find more about group e-mails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page.
+            </span><br />
+            <br />
+        </div>
         <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.rentersCanViewDocs" data-ng-change="$ctrl.saveResidentSettings()" />Renters can view documents</label>
+        <br />
         <br />
         <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.canHideContactInfo" data-ng-change="$ctrl.saveResidentSettings()" />Residents can hide their contact info on the <a href="#!/BuildingResidents">Residents</a> page.</label><br />
         <span class="note-text">

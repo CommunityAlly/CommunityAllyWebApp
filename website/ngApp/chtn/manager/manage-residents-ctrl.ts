@@ -85,6 +85,7 @@ namespace Ally
         allUnits: Ally.Unit[];
         homeName: string;
         showIsRenter: boolean;
+        showEmailSettings: boolean = true;
         boardPositions: any[];
         newResident: any;
         editUser: any;
@@ -124,10 +125,9 @@ namespace Ally
             this.bulkImportRows = [{}];
             this.multiselectOptions = "";
             this.allUnits = null;
-
             this.homeName = AppConfig.homeName || "Unit";
-
-            this.showIsRenter = AppConfig.appShortName === "condo";
+            this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.showEmailSettings = !this.siteInfo.privateSiteInfo.isLargeGroup;
 
             this.boardPositions = [
                 { id: 0, name: "None" },

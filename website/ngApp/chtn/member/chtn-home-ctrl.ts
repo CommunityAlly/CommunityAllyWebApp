@@ -12,8 +12,6 @@ namespace Ally
 
         welcomeMessage: string;
         canMakePayment: boolean;
-        canSendEmail: boolean;
-        cantDoAnything: boolean;
         isFirstVisit: boolean;
         isSiteManager: boolean;
         showFirstVisitModal: boolean;
@@ -38,8 +36,6 @@ namespace Ally
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
-            this.canSendEmail = this.siteInfo.privateSiteInfo.canSendEmail;
-            this.cantDoAnything = !( this.canMakePayment || this.canSendEmail );
             
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;

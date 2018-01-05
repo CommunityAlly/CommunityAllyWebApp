@@ -14,7 +14,6 @@ namespace Ally
         allyAppName: string;
         groupShortName: string;
         showMemberList: boolean;
-        showGroupEmailInfo: boolean;
         emailLists: GroupEmailInfo[] = [];
         allResidents: any[];
         unitList: any[];
@@ -33,7 +32,6 @@ namespace Ally
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
-            this.showGroupEmailInfo = siteInfo.privateSiteInfo.canSendEmail;
         }
 
 

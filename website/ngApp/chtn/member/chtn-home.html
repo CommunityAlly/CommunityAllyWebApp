@@ -30,11 +30,7 @@
             <!--<div class="white-bg spinner-effect margin-vertical">-->
             <assessment-payment-form data-ng-if="$ctrl.canMakePayment"></assessment-payment-form>
 
-            <group-send-email data-ng-if="$ctrl.canSendEmail"></group-send-email>
-
-            <div data-ng-if="$ctrl.cantDoAnything">
-                When enabled by the admin, on this side you can make payments and send e-mails.
-            </div>
+            <group-send-email></group-send-email>
         </div><!--end/left side bar-->
 
         <!-- right sidebar -->
