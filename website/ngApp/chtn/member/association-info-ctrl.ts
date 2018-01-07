@@ -77,7 +77,8 @@ CA.condoAllyControllers.
     }] );
 
 
-CA.angularApp.filter( 'highlight', function( $sce: ng.ISCEService )
+// Highlight text that matches a string
+CA.angularApp.filter( "highlight", ["$sce", function( $sce: ng.ISCEService )
 {
     return function( text: string, phrase: string )
     {
@@ -88,7 +89,7 @@ CA.angularApp.filter( 'highlight', function( $sce: ng.ISCEService )
 
         return $sce.trustAsHtml( text )
     }
-} );
+}] );
 
 
 CA.angularApp.component( "associationInfo", {

@@ -86,7 +86,7 @@
 
                 <div class="file-list-panel" data-ng-show="$ctrl.fileSearch.all">
                     <h2>
-                        File Search Results<small class="margin-left-15"><i>{{ searchFileList.length }} {{ searchFileList.length == 1 ? 'file' : 'files' }} found</i></small>
+                        File Search Results<small class="margin-left-15"><i>{{ $ctrl.searchFileList.length }} {{ $ctrl.searchFileList.length == 1 ? 'file' : 'files' }} found</i></small>
                     </h2>
                     <div class="file_item search" data-ng-repeat="curFile in $ctrl.searchFileList">
 

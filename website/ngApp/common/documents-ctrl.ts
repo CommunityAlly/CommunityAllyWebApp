@@ -66,7 +66,7 @@ namespace Ally
         private fileSortType: string;
         private filesSortDescend = false;
         private fileSearch: any;
-        private searchFileList: any;
+        private searchFileList: DocumentTreeFile[];
         private shouldShowCreateFolderModal: boolean;
         private fullSearchFileList: DocumentTreeFile[];
         private createUnderParentDirName: string;

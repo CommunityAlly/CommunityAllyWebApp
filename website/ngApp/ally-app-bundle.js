@@ -3144,14 +3144,15 @@ CA.condoAllyControllers.
             }
         };
     }]);
-CA.angularApp.filter('highlight', function ($sce) {
-    return function (text, phrase) {
-        text = text || "";
-        if (phrase)
-            text = text.replace(new RegExp('(' + phrase + ')', 'gi'), '<span class="fileSearchHighlight">$1</span>');
-        return $sce.trustAsHtml(text);
-    };
-});
+// Highlight text that matches a string
+CA.angularApp.filter("highlight", ["$sce", function ($sce) {
+        return function (text, phrase) {
+            text = text || "";
+            if (phrase)
+                text = text.replace(new RegExp('(' + phrase + ')', 'gi'), '<span class="fileSearchHighlight">$1</span>');
+            return $sce.trustAsHtml(text);
+        };
+    }]);
 CA.angularApp.component("associationInfo", {
     templateUrl: "/ngApp/chtn/member/association-info.html",
     controller: Ally.AssociationInfoController
