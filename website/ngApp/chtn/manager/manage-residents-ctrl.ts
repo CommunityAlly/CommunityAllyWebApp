@@ -127,7 +127,7 @@ namespace Ally
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            this.showEmailSettings = !this.siteInfo.privateSiteInfo.isLargeGroup;
+            this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
 
             this.boardPositions = [
                 { id: 0, name: "None" },

@@ -30,6 +30,7 @@
         showDiscussionLargeWarning: boolean = false;
         showSendConfirmation: boolean = false;
         showEmailForbidden: boolean = false;
+        showRestrictedGroupWarning: boolean = false;
         showSendEmail: boolean;
         groupEmailAddress: string;
 
@@ -154,7 +155,8 @@
             var shortName = HtmlUtil.getSubdomain( window.location.host ).toLowerCase();
             this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
 
-            this.showDiscussionEveryoneWarning = this.messageObject.recipientType === "Everyone";
+            // No need to show this right now as the showRestrictedGroupWarning is more clear
+            this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
 
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf( "owners" ) !== -1;
 
@@ -164,6 +166,9 @@
                 this.showDiscussionLargeWarning = true;
             else
                 this.showDiscussionLargeWarning = false;
+
+            var groupInfo = _.find( this.availableEmailGroups, ( g: GroupEmailInfo ) => g.recipientType === this.messageObject.recipientType );
+            this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
         }
     }
 }

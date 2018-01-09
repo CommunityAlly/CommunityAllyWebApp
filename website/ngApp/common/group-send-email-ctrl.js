@@ -32,6 +32,7 @@ var Ally;
             this.showDiscussionLargeWarning = false;
             this.showSendConfirmation = false;
             this.showEmailForbidden = false;
+            this.showRestrictedGroupWarning = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -111,9 +112,11 @@ var Ally;
          * Occurs when the user selects an e-mail group from the drop-down
          */
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
+            var _this = this;
             var shortName = HtmlUtil.getSubdomain(window.location.host).toLowerCase();
             this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
-            this.showDiscussionEveryoneWarning = this.messageObject.recipientType === "Everyone";
+            // No need to show this right now as the showRestrictedGroupWarning is more clear
+            this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
             if (!this.showDiscussionEveryoneWarning
                 && isSendingToOwners
@@ -121,6 +124,8 @@ var Ally;
                 this.showDiscussionLargeWarning = true;
             else
                 this.showDiscussionLargeWarning = false;
+            var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
+            this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
         };
         GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
         return GroupSendEmailController;

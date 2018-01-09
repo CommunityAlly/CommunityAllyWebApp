@@ -57,7 +57,7 @@ namespace Ally
         payerPaysAchFee: boolean;
         payerPaysCCFee: string;
         numUnits: number;
-        isLargeGroup: boolean;
+        isEmailSendingRestricted: boolean;
         hasAssessments: boolean;
         assessmentFrequency: any;
         isPeriodicPaymentTrackingEnabled: boolean;

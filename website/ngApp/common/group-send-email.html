@@ -12,9 +12,14 @@
                     <label>Choose Recipient Group</label>
                     <select class="form-control" data-ng-model="$ctrl.messageObject.recipientType" data-ng-change="$ctrl.onSelectEmailGroup()" data-ng-options="e.recipientType as e.displayName for e in $ctrl.availableEmailGroups"></select>
 
+                    <div data-ng-if="$ctrl.showRestrictedGroupWarning" style="color: blue; font-weight: bold;">
+                        This e-mail group is a restricted group meaning replies will be sent only to you and not the entire
+                        group.
+                    </div>
+
                     <div data-ng-if="$ctrl.showDiscussionEveryoneWarning" style="color: red; font-weight: bold;">
-                        In general, sending an e-mail to the "Everyone" group should be reserved for urgent notices. Replies to this e-mail will only 
-                        be sent to you and not the whole group. Instead, most "everyone" e-mails should be
+                        <br />
+                        In general, sending an e-mail to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" e-mails should be
                         sent to the "discussion" group. The discussion group allows residents to unsubscribe from
                         individual threads, thus residents are more engaged in the threads in which they participate and complain less about e-mail.
                     </div>

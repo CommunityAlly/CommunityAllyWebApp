@@ -9,6 +9,7 @@
         displayName: string;
         usersFullNames: any[];
         sortOrder: number;
+        isRestrictedGroup: boolean;
     }
 
 
