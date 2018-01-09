@@ -6,7 +6,7 @@
         <div data-ng-if="$index > 0"><br /><br /></div>
 
         <!--Show the question text-->
-        <div class="text-12 text-bold">POLL:</div>
+        <div class="text-12 text-bold">POLL<span data-ng-if="poll.hasUsersUnitVoted && poll.canViewResults"> RESULTS</span>:</div>
         <p id="poll-question-text-{{ $index }}" class="no-margin text-large">{{ poll.questionText }}</p>
         <p class="no-margin"><small><u>Posted by {{ poll.authorName }}, {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</u></small></p>
 
