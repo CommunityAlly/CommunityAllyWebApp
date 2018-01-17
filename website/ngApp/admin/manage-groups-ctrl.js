@@ -12,9 +12,10 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManageGroupsController($timeout, $http) {
+        function ManageGroupsController($timeout, $http, siteInfo) {
             this.$timeout = $timeout;
             this.$http = $http;
+            this.siteInfo = siteInfo;
             this.newAssociation = new GroupEntry();
             this.changeShortNameData = {};
             /**
@@ -188,7 +189,18 @@ var Ally;
             };
             this.makeHelperRequest("/api/AdminHelper/SendInactiveGroupsMail", postData);
         };
-        ManageGroupsController.$inject = ["$timeout", "$http"];
+        ManageGroupsController.prototype.logInAs = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/AdminHelper/LogInAs?email=" + this.logInAsEmail).then(function (response) {
+                _this.siteInfo.setAuthToken(response.data);
+                window.location.href = "/#!Home";
+                window.location.reload(false);
+            }, function (response) {
+                alert("Failed to perform login: " + response.data.exceptionMessage);
+            }).finally(function () { return _this.isLoading = false; });
+        };
+        ManageGroupsController.$inject = ["$timeout", "$http", "SiteInfo"];
         return ManageGroupsController;
     }());
     Ally.ManageGroupsController = ManageGroupsController;

@@ -15,7 +15,7 @@
      */
     export class ManageGroupsController implements ng.IController
     {
-        static $inject = ["$timeout", "$http"];
+        static $inject = ["$timeout", "$http", "SiteInfo"];
         groups: GroupEntry[];
         newAssociation: GroupEntry = new GroupEntry();
         changeShortNameData: any = {};
@@ -29,12 +29,13 @@
         testTaylorEmailRecipient: string;
         testPostmarkEmail: string;
         inactiveShortNames: string;
+        logInAsEmail: string;
 
 
         /**
         * The constructor for the class
         */
-        constructor( private $timeout: ng.ITimeoutService, private $http: ng.IHttpService )
+        constructor( private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -289,6 +290,23 @@
             };
 
             this.makeHelperRequest( "/api/AdminHelper/SendInactiveGroupsMail", postData );
+        }
+
+        logInAs()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/AdminHelper/LogInAs?email=" + this.logInAsEmail ).then((response: ng.IHttpPromiseCallbackArg<string>) =>
+            {
+                this.siteInfo.setAuthToken( response.data );
+                window.location.href = "/#!Home";
+                window.location.reload( false );
+                
+            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult>) =>
+            {
+                alert( "Failed to perform login: " + response.data.exceptionMessage );
+
+            } ).finally(() => this.isLoading = false );
         }
     }
 }

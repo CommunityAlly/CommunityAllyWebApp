@@ -169,6 +169,7 @@
         <input type="button" value="Test Exception" data-ng-click="$ctrl.onTestException()"><br />
         <input type="button" value="Clear ELMAH Logs" data-ng-click="$ctrl.onClearElmahLogs()"><br />
         <input type="button" value="Clear App Group Cache" data-ng-click="$ctrl.onClearAppGroupCache()"><br />
+        <input type="text" data-ng-model="$ctrl.logInAsEmail" /><button value="Clear App Group Cache" data-ng-click="$ctrl.logInAs()">Log-in As</button><br />
         <br />
         <textarea data-ng-model="$ctrl.inactiveShortNames" rows="10"></textarea><br />
         <input type="button" value="Send Inactive Mail" data-ng-click="$ctrl.onSendInactiveGroupsMail()"><br />
