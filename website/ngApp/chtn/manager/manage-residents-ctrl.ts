@@ -542,6 +542,8 @@ namespace Ally
             if( typeof ( analytics ) !== "undefined" )
                 analytics.track( 'exportResidentCsv' );
 
+            var innerThis = this;
+
             var csvColumns = [
                 {
                     headerText: "First Name",
@@ -576,7 +578,7 @@ namespace Ally
                     fieldName: "boardPosition",
                     dataMapper: function( value: number )
                     {
-                        return this.getBoardPositionName( value );
+                        return innerThis.getBoardPositionName( value );
                     }
                 },
                 {

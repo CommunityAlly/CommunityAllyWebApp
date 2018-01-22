@@ -378,6 +378,7 @@ var Ally;
         ManageResidentsController.prototype.exportResidentCsv = function () {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
+            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "First Name",
@@ -411,7 +412,7 @@ var Ally;
                     headerText: "Board Position",
                     fieldName: "boardPosition",
                     dataMapper: function (value) {
-                        return this.getBoardPositionName(value);
+                        return innerThis.getBoardPositionName(value);
                     }
                 },
                 {
