@@ -56,8 +56,11 @@ var Ally;
             this.getAddressPolys().then(function () { return innerThis.getGroupBoundPolys(); }).then(function (addresses) {
                 innerThis.addressPoints = [];
                 _.each(addresses, function (a) {
-                    if (a.gpsPos)
+                    if (a.gpsPos) {
+                        // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
+                        a.gpsPos.fullAddress = a.oneLiner;
                         innerThis.addressPoints.push(a.gpsPos);
+                    }
                 });
             });
         };
