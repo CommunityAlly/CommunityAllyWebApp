@@ -136,7 +136,10 @@ var Ally;
          */
         CondoSignUpWizardController.prototype.init = function () {
             if (typeof (window.analytics) !== "undefined")
-                window.analytics.track("condoSignUpStarted");
+                window.analytics.track("condoSignUpStarted", {
+                    category: "SignUp",
+                    label: "Started"
+                });
             var mapDiv = document.getElementById("address-map");
             this.map = new google.maps.Map(mapDiv, {
                 center: { lat: 41.869638, lng: -87.657423 },
@@ -244,10 +247,13 @@ var Ally;
                 }
                 else {
                     if (typeof (window.analytics) !== "undefined")
-                        window.analytics.track("condoSignUpComplete");
+                        window.analytics.track("condoSignUpComplete", {
+                            category: "SignUp",
+                            label: "Success"
+                        });
                     // Log this as a conversion
-                    if (typeof (window.goog_report_conversion) !== "undefined")
-                        window.goog_report_conversion();
+                    //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
+                    //    ( <any>window ).goog_report_conversion();
                     // Or if the user created an active signUpResult
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;

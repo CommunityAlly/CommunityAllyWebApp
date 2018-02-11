@@ -183,7 +183,10 @@ namespace Ally
         init()
         {
             if( typeof ( ( <any>window ).analytics ) !== "undefined" )
-                ( <any>window ).analytics.track( "condoSignUpStarted" );
+                ( <any>window ).analytics.track( "condoSignUpStarted", {
+                    category: "SignUp",
+                    label: "Started"
+                } );
 
             var mapDiv = document.getElementById( "address-map" );
 
@@ -344,11 +347,14 @@ namespace Ally
                 else
                 {
                     if( typeof ( ( <any>window ).analytics ) !== "undefined" )
-                        ( <any>window ).analytics.track( "condoSignUpComplete" );
+                        ( <any>window ).analytics.track( "condoSignUpComplete", {
+                            category: "SignUp",
+                            label: "Success"
+                        } );
 
                     // Log this as a conversion
-                    if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
-                        ( <any>window ).goog_report_conversion();
+                    //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
+                    //    ( <any>window ).goog_report_conversion();
 
                     // Or if the user created an active signUpResult
                     if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
