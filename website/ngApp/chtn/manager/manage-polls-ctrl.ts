@@ -227,21 +227,21 @@
             poll.chartLabels = [];
 
             // Go through each answer and store the name and count for that answer
-            for( var answerId in responsesGroupedByAnswer )
+            for( var answerIdStr in responsesGroupedByAnswer )
             {
-                // Convert the string to int
-                //let answerId = parseInt( (answerId as string) );
-
                 // Ignore inherited properties
-                if( !responsesGroupedByAnswer.hasOwnProperty( answerId ) )
+                if( !responsesGroupedByAnswer.hasOwnProperty( answerIdStr ) )
                     continue;
+
+                // for..in provides the keys as strings
+                let answerId: number = parseInt( answerIdStr );
 
                 var answer = _.find( poll.fullResultAnswers, function( a ) { return a.pollAnswerId === answerId; } );
 
                 if( answer )
                 {
                     poll.chartLabels.push( answer.answerText );
-                    poll.chartData.push( responsesGroupedByAnswer[answerId].length );
+                    poll.chartData.push( responsesGroupedByAnswer[answerIdStr].length );
                 }
             }
 

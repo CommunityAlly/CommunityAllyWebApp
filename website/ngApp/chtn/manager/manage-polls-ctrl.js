@@ -140,18 +140,22 @@ var Ally;
             var responsesGroupedByAnswer = _.groupBy(poll.responses, "answerId");
             poll.chartData = [];
             poll.chartLabels = [];
-            // Go through each answer and store the name and count for that answer
-            for (var answerId in responsesGroupedByAnswer) {
-                // Convert the string to int
-                //let answerId = parseInt( (answerId as string) );
+            var _loop_1 = function () {
                 // Ignore inherited properties
-                if (!responsesGroupedByAnswer.hasOwnProperty(answerId))
-                    continue;
-                var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === answerId; });
+                if (!responsesGroupedByAnswer.hasOwnProperty(answerIdStr))
+                    return "continue";
+                // for..in provides the keys as strings
+                var answerId = parseInt(answerIdStr);
+                answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === answerId; });
                 if (answer) {
                     poll.chartLabels.push(answer.answerText);
-                    poll.chartData.push(responsesGroupedByAnswer[answerId].length);
+                    poll.chartData.push(responsesGroupedByAnswer[answerIdStr].length);
                 }
+            };
+            var answer;
+            // Go through each answer and store the name and count for that answer
+            for (var answerIdStr in responsesGroupedByAnswer) {
+                _loop_1();
             }
             if (poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits) {
                 poll.chartLabels.push("No Response");
