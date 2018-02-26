@@ -526,11 +526,28 @@ header {
       @media (max-width: 1200px) {
         header .settings a, header .settings .text-button {
           font-size: 12px; } }
-  header .can-edit-inline {
-    /*padding: 1px;*/
-    border-bottom-style: none !important;
-    cursor: pointer; }
-    header .can-edit-inline:before {
+
+.can-edit-inline {
+  /*padding: 1px;*/
+  border-bottom-style: none !important;
+  cursor: pointer;
+  display: inline; }
+  .can-edit-inline:before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url(/assets/images/pencil-inactive.png);
+    background-repeat: no-repeat;
+    position: relative;
+    left: -4px;
+    background-position: left top;
+    top: -13px; }
+  .can-edit-inline:hover {
+    padding: 0px;
+    /*border: 1px dashed #000;*/
+    border-bottom: dashed 1px white !important; }
+    .can-edit-inline:hover:before {
       content: "";
       display: inline-block;
       width: 16px;
@@ -540,23 +557,8 @@ header {
       position: relative;
       left: -4px;
       background-position: left top;
-      top: -13px; }
-    header .can-edit-inline:hover {
-      padding: 0px;
-      /*border: 1px dashed #000;*/
-      border-bottom: dashed 1px white !important; }
-      header .can-edit-inline:hover:before {
-        content: "";
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        background-image: url(/assets/images/pencil-inactive.png);
-        background-repeat: no-repeat;
-        position: relative;
-        left: -4px;
-        background-position: left top;
-        top: -13px;
-        background-image: url(/assets/images/pencil-active.png); }
+      top: -13px;
+      background-image: url(/assets/images/pencil-active.png); }
 
 .main-container {
   min-height: 70vh; }

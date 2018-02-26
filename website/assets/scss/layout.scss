@@ -3,6 +3,7 @@ body {
     font-size: 14px;
     background: #f3f3f3;
 }
+
 header
 {
     background: none !important;
@@ -157,48 +158,47 @@ header
             }
         }
 
-        .can-edit-inline
-        {
-            &:before
-            {
-                content: "";
-                display: inline-block;
-                width: 16px;
-                height: 16px;
-                background-image: url(/assets/images/pencil-inactive.png);
-                background-repeat: no-repeat;
-                position: relative;
-                left: -4px;
-                background-position: left top;
-                top: -13px;
-            }
-
-            &:hover
-            {
-                &:before
-                {
-                    content: "";
-                    display: inline-block;
-                    width: 16px;
-                    height: 16px;
-                    background-image: url(/assets/images/pencil-inactive.png);
-                    background-repeat: no-repeat;
-                    position: relative;
-                    left: -4px;
-                    background-position: left top;
-                    top: -13px;
-                    background-image: url(/assets/images/pencil-active.png);
-                }
-
-                padding: 0px;
-                /*border: 1px dashed #000;*/
-                border-bottom: dashed 1px white !important;
-            }
-            /*padding: 1px;*/
-            border-bottom-style: none !important;
-            cursor: pointer;
-        }
     }
+
+
+.can-edit-inline {
+    &:before {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background-image: url(/assets/images/pencil-inactive.png);
+        background-repeat: no-repeat;
+        position: relative;
+        left: -4px;
+        background-position: left top;
+        top: -13px;
+    }
+
+    &:hover {
+        &:before {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-image: url(/assets/images/pencil-inactive.png);
+            background-repeat: no-repeat;
+            position: relative;
+            left: -4px;
+            background-position: left top;
+            top: -13px;
+            background-image: url(/assets/images/pencil-active.png);
+        }
+
+        padding: 0px;
+        /*border: 1px dashed #000;*/
+        border-bottom: dashed 1px white !important;
+    }
+    /*padding: 1px;*/
+    border-bottom-style: none !important;
+    cursor: pointer;
+    display: inline;
+}
 
     .main-container
     {
