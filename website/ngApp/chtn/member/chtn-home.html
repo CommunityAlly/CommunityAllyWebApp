@@ -36,7 +36,7 @@
         <!-- right sidebar -->
         <div class="col-md-6">            
             <local-news-feed data-ng-if="$ctrl.homeRightColumnType === 'localnews'"></local-news-feed>
-            <group-comments class="padding white-bg margin-vertical" data-ng-if="$ctrl.homeRightColumnType === 'chatwall'"></group-comments>
+            <group-comments data-ng-if="$ctrl.homeRightColumnType === 'chatwall'"></group-comments>
         </div>
     </div>
 
