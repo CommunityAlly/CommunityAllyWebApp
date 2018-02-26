@@ -9,7 +9,7 @@
 
     <div id="info-item-{{ $index }}" class="association-info-item" data-ng-repeat="info in $ctrl.infoItems">
         <a name="info-item-nav-{{ $index }}"><h4 style="display: inline-block;" id="info-item-title-{{ $index }}">{{ info.title }}</h4></a>
-        <div data-ng-show="$ctrl.isSiteManager" style="display: inline-block; font-size: small;">
+        <div data-ng-show="$ctrl.isSiteManager" style="display: inline-block; font-size: small; margin-left: 9px;">
             <a href="javascript:void(0)" id="info-item-edit-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.onStartEditInfoItem( info );">Edit</a>
             <a href="javascript:void(0)" id="info-item-delete-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.onDeleteInfoItem( info );">Delete</a>
         </div>
