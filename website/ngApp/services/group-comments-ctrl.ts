@@ -8,7 +8,7 @@
         static $inject = ["$http", "$rootScope"];
 
         isLoading: boolean = false;
-        threadId: string = "Home";
+        threadId: string;
         isQaSite: boolean;
         editComment: any;
         showDiscussModal: boolean = false;
@@ -30,6 +30,9 @@
         $onInit()
         {
             this.isQaSite = false;//HtmlUtil.getSubdomain() === "qa" || HtmlUtil.getSubdomain() === "localtest";
+
+            if( !this.threadId )
+                this.threadId = "Home";
 
             this.editComment = {
                 threadId: this.threadId,
@@ -210,6 +213,9 @@
     
 
 CA.angularApp.component( "groupComments", {
+    bindings: {
+        threadId: "@?"
+    },
     templateUrl: "/ngApp/services/group-comments.html",
     controller: Ally.GroupCommentsController
 } );

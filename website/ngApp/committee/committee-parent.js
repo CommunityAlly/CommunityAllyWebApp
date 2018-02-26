@@ -10,15 +10,17 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function CommitteeParentController($http, siteInfo, $routeParams) {
+        function CommitteeParentController($http, siteInfo, $routeParams, $cacheFactory) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$routeParams = $routeParams;
+            this.$cacheFactory = $cacheFactory;
             this.canManage = false;
-            this.selectedView = "home";
+            this.initialView = "Home";
+            this.selectedView = null;
             this.isLoading = false;
             this.committeeId = this.$routeParams.committeeId;
-            this.selectedView = this.$routeParams.viewName || "home";
+            this.initialView = this.$routeParams.viewName || "Home";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -31,31 +33,33 @@ var Ally;
          * Retreive the committee data
          */
         CommitteeParentController.prototype.retrieveCommittee = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Committee/" + this.committeeId).success(function (committee) {
-                innerThis.isLoading = false;
-                innerThis.committee = committee;
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to load committee: " + exc.exceptionMessage);
+            this.$http.get("/api/Committee/" + this.committeeId, { cache: true }).then(function (response) {
+                _this.isLoading = false;
+                _this.committee = response.data;
+                _this.selectedView = _this.initialView;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to load committee: " + response.data.exceptionMessage);
             });
         };
         /*
          * Called after the user edits the committee name
          */
         CommitteeParentController.prototype.onUpdateCommitteeName = function () {
+            var _this = this;
             this.isLoading = true;
             var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
-            var innerThis = this;
-            this.$http.put(putUri, null).success(function () {
-                innerThis.isLoading = false;
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to update the committee name: " + exc.exceptionMessage);
+            this.$http.put(putUri, null).then(function () {
+                _this.isLoading = false;
+                _this.$cacheFactory.get('$http').remove("/api/Committee/" + _this.committeeId);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to update the committee name: " + response.data.exceptionMessage);
             });
         };
-        CommitteeParentController.$inject = ["$http", "SiteInfo", "$routeParams"];
+        CommitteeParentController.$inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory"];
         return CommitteeParentController;
     }());
     Ally.CommitteeParentController = CommitteeParentController;

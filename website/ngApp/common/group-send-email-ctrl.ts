@@ -12,6 +12,7 @@
         subject: string = "A message from your neighbor";
         message: string;
         recipientType: string = "board";
+        committeeId: number;
     }
 
 
@@ -24,7 +25,7 @@
 
         isLoadingEmail: boolean = false;
         availableEmailGroups: GroupEmailInfo[];
-        messageObject: HomeEmailMessage = new HomeEmailMessage();
+        messageObject: HomeEmailMessage;
         defaultMessageRecipient: string = "board";
         showDiscussionEveryoneWarning: boolean = false;
         showDiscussionLargeWarning: boolean = false;
@@ -33,6 +34,7 @@
         showRestrictedGroupWarning: boolean = false;
         showSendEmail: boolean;
         groupEmailAddress: string;
+        committee: Ally.Committee;
 
 
         /**
@@ -48,14 +50,19 @@
          */
         $onInit()
         {
-            // The object that contains a message if the user wants to send one out
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
 
-            this.loadGroupEmails();
+            if( !this.committee )
+            {
+                this.loadGroupEmails();
 
-            var innerThis = this;
-            this.$scope.$on( "prepAssessmentEmailToBoard", ( event: ng.IAngularEvent, data: string ) => innerThis.prepBadAssessmentEmailForBoard( data ) );
+                // Handle the global message that tells this component to prepare a draft of a message
+                // to inquire about assessment inaccuracies
+                this.$scope.$on( "prepAssessmentEmailToBoard", ( event: ng.IAngularEvent, data: string ) => this.prepBadAssessmentEmailForBoard( data ) );
+            }
+            else
+                this.messageObject.committeeId = this.committee.committeeId;
         }
 
 
@@ -116,30 +123,36 @@
                 return;
 
             this.isLoadingEmail = true;
+
+            // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
 
             analytics.track( "sendEmail", {
                 recipientId: this.messageObject.recipientType
             } );
 
-            var innerThis = this;
-            this.$http.post( "/api/Email/v2", this.messageObject ).then( function()
+            this.$http.post( "/api/Email/v2", this.messageObject ).then( () =>
             {
-                innerThis.$rootScope.dontHandle403 = false;
-                innerThis.isLoadingEmail = false;
-                innerThis.messageObject = new HomeEmailMessage();
-                innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
-                innerThis.showSendConfirmation = true;
-                innerThis.showSendEmail = false;
+                this.$rootScope.dontHandle403 = false;
+                this.isLoadingEmail = false;
 
-            }, function( httpResponse )
+                this.messageObject = new HomeEmailMessage();
+                this.messageObject.recipientType = this.defaultMessageRecipient;
+
+                if( this.committee )
+                    this.messageObject.committeeId = this.committee.committeeId;
+
+                this.showSendConfirmation = true;
+                this.showSendEmail = false;
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
-                innerThis.isLoadingEmail = false;
-                innerThis.$rootScope.dontHandle403 = false;
+                this.isLoadingEmail = false;
+                this.$rootScope.dontHandle403 = false;
 
                 if( httpResponse.status === 403 )
                 {
-                    innerThis.showEmailForbidden = true;
+                    this.showEmailForbidden = true;
                 }
                 else
                     alert( "Unable to send e-mail, please contact technical support." );
@@ -175,6 +188,9 @@
 
 
 CA.angularApp.component( "groupSendEmail", {
+    bindings: {
+        committee: "<?"  
+    },
     templateUrl: "/ngApp/common/group-send-email.html",
     controller: Ally.GroupSendEmailController
 } );

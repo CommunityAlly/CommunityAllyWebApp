@@ -8,7 +8,7 @@
 
         <div data-ng-show="$ctrl.showSendEmail">
             <form id="message-form">
-                <div class="form-group">
+                <div class="form-group" data-ng-if="!$ctrl.committee">
                     <label>Choose Recipient Group</label>
                     <select class="form-control" data-ng-model="$ctrl.messageObject.recipientType" data-ng-change="$ctrl.onSelectEmailGroup()" data-ng-options="e.recipientType as e.displayName for e in $ctrl.availableEmailGroups"></select>
 
@@ -33,6 +33,12 @@
                         <a data-ng-href="mailto:{{ $ctrl.groupEmailAddress }}" class="note-text">{{ $ctrl.groupEmailAddress }}</a><br />
                         <small>For individual resident messaging or group listings, visit the <a href="#!/BuildingResidents">Residents</a> page </small>
                     </div>
+                </div>
+
+                <div class="form-group" data-ng-if="$ctrl.committee">
+                    This will send an e-mail to the members of this committee. If you'd prefer to send a message from your own e-mail client, send
+                    to this address:<br />
+                    <a href="mailto:committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@inmail.condoally.com">committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@inmail.condoally.com</a>
                 </div>
 
                 <div class="form-group">

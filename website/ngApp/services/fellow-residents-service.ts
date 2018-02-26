@@ -14,6 +14,36 @@
 
 
     /**
+     * Represents a member of a CHTN group
+     */
+    export class FellowChtnResident
+    {
+        firstName: string;
+        lastName: string;
+        fullName: string;
+        email: string;
+        userId: string;
+        phoneNumber: string;
+        avatarUrl: string;
+        hasEmail: boolean;
+        homes: any[];
+        boardPosition: number;
+        wePayAutoPayIsActive: boolean;
+        showPhoneInMeetNeighbors: boolean;
+        postmarkReportedBadEmailUtc: Date;
+        includeInDiscussionEmail: boolean;
+        isSiteManager: boolean;
+    }
+
+
+    export class FellowResidents
+    {
+        byUnit: any[];
+        residents: FellowChtnResident[];
+    }
+
+
+    /**
      * Provides methods to accessing group member and home information
      */
     export class FellowResidentsService
@@ -31,7 +61,7 @@
         getResidents()
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> )
             {
                 return httpResponse.data.residents;
 
@@ -45,10 +75,10 @@
         /**
          * Get the residents for an association, broken down by unit for easy display
          */
-        getByUnits()
+        getByUnits(): ng.IPromise<FellowChtnResident[]>
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
             {
                 return httpResponse.data.byUnit;
 
@@ -62,10 +92,10 @@
         /**
          * Get a list of residents and homes
          */
-        getByUnitsAndResidents()
+        getByUnitsAndResidents(): ng.IPromise<FellowResidents>
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse : ng.IHttpPromiseCallbackArg<any> ) =>
+            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
             {
                 return httpResponse.data;
 

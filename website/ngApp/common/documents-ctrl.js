@@ -90,7 +90,7 @@ var Ally;
             };
             setTimeout(hookUpFileUpload, 100);
             if (this.committee)
-                this.title = this.committee.name + " Documents";
+                this.title = "Committee Documents";
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Get the name of the selected directory. If it is a sub-directory then include the parent

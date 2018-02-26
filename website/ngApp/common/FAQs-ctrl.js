@@ -30,7 +30,7 @@ var Ally;
         FAQsController.prototype.$onInit = function () {
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.isSiteManager = this.$rootScope["isSiteManager"];
-            this.retrievePageInfo();
+            this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
                 var showErrorAlert = function (reason, detail) {
@@ -80,19 +80,17 @@ var Ally;
         // Populate the info section
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.retrieveInfo = function () {
+            var _this = this;
             this.isLoadingInfo = true;
-            var innerThis = this;
-            this.$http.get("/api/InfoItem", { cache: true }).then(function (httpResponse) {
-                innerThis.isLoadingInfo = false;
-                innerThis.infoItems = httpResponse.data;
+            if (!this.getUri) {
+                this.getUri = "/api/InfoItem";
+                if (this.committee)
+                    this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
+            }
+            this.$http.get(this.getUri, { cache: true }).then(function (httpResponse) {
+                _this.isLoadingInfo = false;
+                _this.infoItems = httpResponse.data;
             });
-        };
-        ;
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the page
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.retrievePageInfo = function () {
-            this.retrieveInfo();
         };
         ;
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,13 +121,15 @@ var Ally;
             validateable.validate();
             if (!validateable.valid() || this.isBodyMissing)
                 return;
+            if (this.committee)
+                this.editingInfoItem.committeeId = this.committee.committeeId;
             this.isLoadingInfo = true;
             var innerThis = this;
             var onSave = function () {
                 innerThis.isLoadingInfo = false;
                 $("#editor").html("");
                 innerThis.editingInfoItem = new InfoItem();
-                innerThis.$cacheFactory.get('$http').remove("/api/InfoItem");
+                innerThis.$cacheFactory.get('$http').remove(innerThis.getUri);
                 innerThis.retrieveInfo();
             };
             var onError = function () {
@@ -146,14 +146,14 @@ var Ally;
         // Occurs when the user wants to delete an info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.onDeleteInfoItem = function (infoItem) {
+            var _this = this;
             if (!confirm('Are you sure you want to delete this information?'))
                 return;
             this.isLoadingInfo = true;
-            var innerThis = this;
             this.$http.delete("/api/InfoItem/" + infoItem.infoItemId).then(function () {
-                innerThis.isLoadingInfo = false;
-                innerThis.$cacheFactory.get('$http').remove("/api/InfoItem");
-                innerThis.retrievePageInfo();
+                _this.isLoadingInfo = false;
+                _this.$cacheFactory.get('$http').remove(_this.getUri);
+                _this.retrieveInfo();
             });
         };
         FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
@@ -162,6 +162,9 @@ var Ally;
     Ally.FAQsController = FAQsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("faqs", {
+    bindings: {
+        committee: "<?"
+    },
     templateUrl: "/ngApp/common/FAQs.html",
     controller: Ally.FAQsController
 });

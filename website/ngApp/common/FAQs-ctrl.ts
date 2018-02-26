@@ -11,6 +11,7 @@ namespace Ally
         groupId: number;
         title: string;
         body: string;
+        committeeId: number;
     }
 
 
@@ -27,6 +28,8 @@ namespace Ally
         infoItems: InfoItem[];
         isBodyMissing = false;
         isSiteManager = false;
+        getUri: string;
+        committee: Ally.Committee;
 
         
         /**
@@ -45,8 +48,8 @@ namespace Ally
         {
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.isSiteManager = this.$rootScope["isSiteManager"];
-
-            this.retrievePageInfo();
+            
+            this.retrieveInfo();
 
             // Hook up the rich text editor
             window.setTimeout( function()
@@ -115,21 +118,18 @@ namespace Ally
         {
             this.isLoadingInfo = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/InfoItem", { cache: true }).then( function( httpResponse: ng.IHttpPromiseCallbackArg<InfoItem[]> )
+            if( !this.getUri )
+            {
+                this.getUri = "/api/InfoItem";
+                if( this.committee )
+                    this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
+            }
+            
+            this.$http.get( this.getUri, { cache: true }).then( ( httpResponse: ng.IHttpPromiseCallbackArg<InfoItem[]> ) =>
             {            
-                innerThis.isLoadingInfo = false;
-                innerThis.infoItems = httpResponse.data;
+                this.isLoadingInfo = false;
+                this.infoItems = httpResponse.data;
             });
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the page
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        retrievePageInfo()
-        {
-            this.retrieveInfo();
         };
 
 
@@ -169,6 +169,9 @@ namespace Ally
             if( !validateable.valid() || this.isBodyMissing )
                 return;
 
+            if( this.committee )
+                this.editingInfoItem.committeeId = this.committee.committeeId;
+
             this.isLoadingInfo = true;
 
             var innerThis = this;
@@ -177,7 +180,7 @@ namespace Ally
                 innerThis.isLoadingInfo = false;
                 $( "#editor" ).html( "" );
                 innerThis.editingInfoItem = new InfoItem();
-                innerThis.$cacheFactory.get( '$http' ).remove( "/api/InfoItem" );
+                innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getUri );
                 innerThis.retrieveInfo();
             };
 
@@ -206,18 +209,20 @@ namespace Ally
 
             this.isLoadingInfo = true;
 
-            var innerThis = this;
-            this.$http.delete( "/api/InfoItem/" + infoItem.infoItemId ).then( function()
+            this.$http.delete( "/api/InfoItem/" + infoItem.infoItemId ).then( () =>
             {
-                innerThis.isLoadingInfo = false;
-                innerThis.$cacheFactory.get( '$http' ).remove( "/api/InfoItem" );
-                innerThis.retrievePageInfo();
+                this.isLoadingInfo = false;
+                this.$cacheFactory.get( '$http' ).remove( this.getUri );
+                this.retrieveInfo();
             });
         }
     }
 }
 
 CA.angularApp.component( "faqs", {
+    bindings: {
+        committee: "<?"
+    },
     templateUrl: "/ngApp/common/FAQs.html",
     controller: Ally.FAQsController
 });

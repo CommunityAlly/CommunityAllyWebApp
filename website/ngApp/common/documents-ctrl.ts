@@ -151,7 +151,7 @@ namespace Ally
             setTimeout( hookUpFileUpload, 100 );
 
             if( this.committee )
-                this.title = this.committee.name + " Documents";
+                this.title = "Committee Documents";
         }
 
 

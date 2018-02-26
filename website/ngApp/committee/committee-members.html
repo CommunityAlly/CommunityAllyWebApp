@@ -1,0 +1,22 @@
+﻿<div>
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+
+    <h2>Members</h2>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-4 text-large" data-ng-repeat="member in $ctrl.members">
+                <span style="font-weight: bold;">{{ $index + 1 }}.</span> <span>{{ member.fullName }}</span> <span class="note-text text-link" data-ng-click="$ctrl.removeMember( member )">Remove</span>
+            </div>
+        </div>
+    </div>
+    
+    <br />
+    <br />
+
+    <h2>Add Member</h2>
+    <div>
+        <select data-ng-model="$ctrl.userForAdd" data-ng-options="user as user.fullName for user in $ctrl.filteredGroupMembers"></select>
+        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.addSelectedMember()">Add Member</button>
+    </div>
+</div>

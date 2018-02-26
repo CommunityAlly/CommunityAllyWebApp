@@ -11,7 +11,6 @@ var Ally;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.isLoading = false;
-            this.threadId = "Home";
             this.showDiscussModal = false;
         }
         /**
@@ -19,6 +18,8 @@ var Ally;
         */
         GroupCommentsController.prototype.$onInit = function () {
             this.isQaSite = false; //HtmlUtil.getSubdomain() === "qa" || HtmlUtil.getSubdomain() === "localtest";
+            if (!this.threadId)
+                this.threadId = "Home";
             this.editComment = {
                 threadId: this.threadId,
                 commentText: "",
@@ -146,6 +147,9 @@ var Ally;
     Ally.GroupCommentsController = GroupCommentsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupComments", {
+    bindings: {
+        threadId: "@?"
+    },
     templateUrl: "/ngApp/services/group-comments.html",
     controller: Ally.GroupCommentsController
 });

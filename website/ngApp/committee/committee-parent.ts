@@ -17,22 +17,23 @@ namespace Ally
      */
     export class CommitteeParentController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$routeParams"];
+        static $inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory"];
 
-        canManage = false;
-        selectedView = "home";
+        canManage: boolean = false;
+        initialView: string = "Home";
+        selectedView: string = null;
         committeeId: number;
         committee: Ally.Committee;
-        isLoading = false;
+        isLoading: boolean = false;
 
 
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $routeParams: ICommitteeParentRouteParams )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $routeParams: ICommitteeParentRouteParams, private $cacheFactory: ng.ICacheFactoryService )
         {
             this.committeeId = this.$routeParams.committeeId;
-            this.selectedView = this.$routeParams.viewName || "home";
+            this.initialView = this.$routeParams.viewName || "Home";
         }
 
 
@@ -54,15 +55,16 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/Committee/" + this.committeeId ).success(( committee: Ally.Committee ) =>
+            this.$http.get( "/api/Committee/" + this.committeeId, { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Ally.Committee> ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.committee = committee;
-            } ).error(( exc: Ally.ExceptionResult ) =>
+                this.isLoading = false;
+                this.committee = response.data;
+                this.selectedView = this.initialView;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
-                alert( "Failed to load committee: " + exc.exceptionMessage );
+                this.isLoading = false;
+                alert( "Failed to load committee: " + response.data.exceptionMessage );
             } );
         }
 
@@ -75,14 +77,16 @@ namespace Ally
             this.isLoading = true;
 
             var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
-            var innerThis = this;
-            this.$http.put( putUri, null ).success(() =>
+
+            this.$http.put( putUri, null ).then(() =>
             {
-                innerThis.isLoading = false;
-            } ).error(( exc: Ally.ExceptionResult ) =>
+                this.isLoading = false;
+                this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committeeId );
+
+            },( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
-                alert( "Failed to update the committee name: " + exc.exceptionMessage );
+                this.isLoading = false;
+                alert( "Failed to update the committee name: " + response.data.exceptionMessage );
             } );
         }
     }

@@ -10,6 +10,21 @@ var Ally;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
     /**
+     * Represents a member of a CHTN group
+     */
+    var FellowChtnResident = /** @class */ (function () {
+        function FellowChtnResident() {
+        }
+        return FellowChtnResident;
+    }());
+    Ally.FellowChtnResident = FellowChtnResident;
+    var FellowResidents = /** @class */ (function () {
+        function FellowResidents() {
+        }
+        return FellowResidents;
+    }());
+    Ally.FellowResidents = FellowResidents;
+    /**
      * Provides methods to accessing group member and home information
      */
     var FellowResidentsService = /** @class */ (function () {
