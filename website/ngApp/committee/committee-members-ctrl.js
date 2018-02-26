@@ -36,6 +36,7 @@ var Ally;
                 _this.members = response.data;
                 var isMember = function (u) { return _.some(_this.members, function (m) { return m.userId === u.userId; }); };
                 _this.filteredGroupMembers = _.filter(_this.allGroupMembers, function (m) { return !isMember(m); });
+                _this.filteredGroupMembers = _.sortBy(_this.filteredGroupMembers, function (m) { return m.fullName; });
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve committee members, please refresh the page to try again");

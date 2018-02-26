@@ -61,7 +61,8 @@ namespace Ally
 
                 var isMember = ( u: FellowChtnResident ) => _.some( this.members, ( m: FellowChtnResident ) => m.userId === u.userId );
 
-                this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember(m) );
+                this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember( m ) );
+                this.filteredGroupMembers = _.sortBy( this.filteredGroupMembers, m => m.fullName );
 
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
