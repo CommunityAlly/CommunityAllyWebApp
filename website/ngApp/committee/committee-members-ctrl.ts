@@ -71,6 +71,9 @@ namespace Ally
                 // Since we changed the committee data, clear the cache so we show the up-to-date info
                 this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committee.committeeId );
 
+                // Update the fellow residents page next time we're there
+                this.fellowResidents.clearResidentCache();
+
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoading = false;

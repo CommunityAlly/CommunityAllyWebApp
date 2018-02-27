@@ -43,6 +43,8 @@ var Ally;
                 _this.committee.contactMemberUserId = _this.contactUser.userId;
                 // Since we changed the committee data, clear the cache so we show the up-to-date info
                 _this.$cacheFactory.get('$http').remove("/api/Committee/" + _this.committee.committeeId);
+                // Update the fellow residents page next time we're there
+                _this.fellowResidents.clearResidentCache();
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to set contact member: " + response.data.exceptionMessage);
