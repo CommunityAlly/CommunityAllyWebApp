@@ -152,7 +152,7 @@ grunt.initConfig({
                     'Website/third-party-css/diQuery-collapsiblePanel.css',
                     'Website/third-party-css/xeditable.css',
                     'Website/third-party-css/ng-grid.min.css',
-                    'Website/js/lib/ui-grid/ui-grid.min.css',
+                    'Website/js/lib/ui-grid/ui-grid.css',
                     'Website/third-party-css/angular-chart.css',
                     'Website/third-party-css/jquery.qtip.min.css',
                     'Website/third-party-css/jquery.timepicker.css',

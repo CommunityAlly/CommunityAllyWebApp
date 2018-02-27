@@ -27,11 +27,11 @@
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
     <!--<link rel="stylesheet" href="/assets/compiled.min.css" />-->
-    <link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=33" />
+    <link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=35" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <!--<script type="text/javascript" src="/js/AllyLibTop.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibTop.min.js?libVer=34"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibTop.min.js?libVer=36"></script>
     
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
     <script>
@@ -42,7 +42,8 @@
 
         // Create the main app object for the Ally site
         CA.angularApp = angular.module( "CondoAlly", ["ngRoute", "ngResource", "condoAllyControllers", "ui.date", "ngSanitize", "xeditable", "ngGrid", "chart.js",
-                            "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "mgo-angular-wizard", "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
+                                                    "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "ui.grid.resizeColumns", "mgo-angular-wizard", "isteven-multi-select",
+                                                    "ngTagsInput", "xdLocalStorage"] );
 
         // Clear the template cache based on the JS file version
         CA.clearTemplateCacheIfNeeded = function ( templateCacheService )
@@ -52,10 +53,10 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=277" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=290" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=277" );
+                    localStorage.setItem( Key_JSVersion, "appVer=290" );
                 }
             }
         };
@@ -63,11 +64,11 @@
 
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=277"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=290"></script>
     
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngTemplates.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=277"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=290"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -219,7 +220,7 @@
     </footer>
 
     <!--<script type="text/javascript" src="/js/AllyLibBottom.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibBottom.min.js?libVer=34"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibBottom.min.js?libVer=36"></script>
         
     <script>
         // Remove the need for iOS users to double-tap links
