@@ -33,6 +33,16 @@
         postmarkReportedBadEmailUtc: Date;
         includeInDiscussionEmail: boolean;
         isSiteManager: boolean;
+
+        // Not from the server
+        boardPositionName: string;
+    }
+
+
+    export class CommitteeListingInfo
+    {
+        committeeName: string;
+        contactUser: FellowChtnResident;
     }
 
 
@@ -40,6 +50,7 @@
     {
         byUnit: any[];
         residents: FellowChtnResident[];
+        committees: CommitteeListingInfo[];
     }
 
 

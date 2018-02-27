@@ -18,6 +18,12 @@ var Ally;
         return FellowChtnResident;
     }());
     Ally.FellowChtnResident = FellowChtnResident;
+    var CommitteeListingInfo = /** @class */ (function () {
+        function CommitteeListingInfo() {
+        }
+        return CommitteeListingInfo;
+    }());
+    Ally.CommitteeListingInfo = CommitteeListingInfo;
     var FellowResidents = /** @class */ (function () {
         function FellowResidents() {
         }

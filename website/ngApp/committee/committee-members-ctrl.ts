@@ -9,13 +9,15 @@ namespace Ally
      */
     export class CommitteeMembersController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents"];
+        static $inject = ["$http", "fellowResidents", "$cacheFactory"];
 
         isLoading: boolean = false;
         committee: Ally.Committee;
         members: FellowChtnResident[];
         userForAdd: FellowChtnResident;
         allGroupMembers: FellowChtnResident[];
+        contactUser: FellowChtnResident;
+
 
         // The list of all group members that are not already members of this committee
         filteredGroupMembers: FellowChtnResident[];
@@ -24,7 +26,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private $http: ng.IHttpService, private fellowResidents: Ally.FellowResidentsService, private $cacheFactory: ng.ICacheFactoryService )
         {
         }
 
@@ -38,6 +40,9 @@ namespace Ally
         }
 
 
+        /**
+         * Populate the full list of committee members
+         */
         populateAllMembers()
         {
             this.isLoading = true;
@@ -50,6 +55,33 @@ namespace Ally
         }
 
 
+        /**
+         * Set the contact user for this committee
+         */
+        setContactMember()
+        {
+            this.isLoading = true;
+
+            this.$http.put( `/api/Committee/${this.committee.committeeId}/SetContactMember?userId=` + this.contactUser.userId, null ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoading = false;
+
+                this.committee.contactMemberUserId = this.contactUser.userId;
+
+                // Since we changed the committee data, clear the cache so we show the up-to-date info
+                this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committee.committeeId );
+
+            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to set contact member: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Retrieve the full list of committee members from the server
+         */
         getMembers()
         {
             this.isLoading = true;
@@ -63,6 +95,8 @@ namespace Ally
 
                 this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember( m ) );
                 this.filteredGroupMembers = _.sortBy( this.filteredGroupMembers, m => m.fullName );
+
+                this.contactUser = _.find( this.members, m => m.userId == this.committee.contactMemberUserId );
 
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {

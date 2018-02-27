@@ -3,6 +3,13 @@ declare var Clipboard: any;
 
 namespace Ally
 {
+    class CommitteeListingInfo
+    {
+        committeeName: string;
+        contactUser: FellowChtnResident;
+    }
+
+
     /**
      * The controller for the page that lists group members
      */
@@ -15,9 +22,10 @@ namespace Ally
         groupShortName: string;
         showMemberList: boolean;
         emailLists: GroupEmailInfo[] = [];
-        allResidents: any[];
+        allResidents: FellowChtnResident[];
         unitList: any[];
-        boardMembers: any[];
+        boardMembers: FellowChtnResident[];
+        committees: CommitteeListingInfo[];
         boardMessageRecipient: any;
         allOwners: any[];
         allOwnerEmails: any[];
@@ -40,25 +48,25 @@ namespace Ally
         */
         $onInit()
         {
-            var innerThis = this;
-            this.fellowResidents.getByUnitsAndResidents().then( function( data: any )
+            this.fellowResidents.getByUnitsAndResidents().then( ( data: FellowResidents ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.unitList = data.byUnit;
-                innerThis.allResidents = data.residents;
+                this.isLoading = false;
+                this.unitList = data.byUnit;
+                this.allResidents = data.residents;
+                this.committees = data.committees;
 
                 // Sort by last name
-                innerThis.allResidents = _.sortBy( innerThis.allResidents, function( r ) { return r.lastName; } );
+                this.allResidents = _.sortBy( this.allResidents, function( r ) { return r.lastName; } );
 
-                innerThis.boardMembers = _.filter( data.residents, function( r: any ) { return r.boardPosition !== 0; } );
-                innerThis.boardMessageRecipient = null;
-                if( innerThis.boardMembers.length > 0 )
+                this.boardMembers = _.filter( data.residents, function( r: any ) { return r.boardPosition !== 0; } );
+                this.boardMessageRecipient = null;
+                if( this.boardMembers.length > 0 )
                 {
-                    var hasBoardEmail = _.some( innerThis.boardMembers, function( m ) { return m.hasEmail; } );
+                    var hasBoardEmail = _.some( this.boardMembers, function( m ) { return m.hasEmail; } );
 
                     if( hasBoardEmail )
                     {
-                        innerThis.boardMessageRecipient = {
+                        this.boardMessageRecipient = {
                             fullName: "Entire Board",
                             firstName: "everyone on the board",
                             hasEmail: true,
@@ -68,7 +76,7 @@ namespace Ally
                 }
                 // Remove board members from the member list
                 if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
-                    innerThis.allResidents = _.filter( innerThis.allResidents, function( r ) { return r.boardPosition === 0; } );
+                    this.allResidents = _.filter( this.allResidents, function( r ) { return r.boardPosition === 0; } );
 
                 var boardPositionNames = [
                     { id: 0, name: "None" },
@@ -80,9 +88,9 @@ namespace Ally
                     { id: 32, name: "Property Manager" }
                 ];
 
-                for( var i = 0; i < innerThis.boardMembers.length; ++i )
+                for( var i = 0; i < this.boardMembers.length; ++i )
                 {
-                    innerThis.boardMembers[i].boardPositionName = _.find( boardPositionNames, function( bm ) { return bm.id === innerThis.boardMembers[i].boardPosition; } ).name;
+                    this.boardMembers[i].boardPositionName = _.find( boardPositionNames, ( bm ) => { return bm.id === this.boardMembers[i].boardPosition; } ).name;
                 }
 
                 var boardSortOrder = [
@@ -94,7 +102,7 @@ namespace Ally
                     32
                 ];
 
-                innerThis.boardMembers = _.sortBy( innerThis.boardMembers, function( bm )
+                this.boardMembers = _.sortBy( this.boardMembers, function( bm )
                 {
                     var sortIndex = _.indexOf( boardSortOrder, bm.boardPosition );
                     if( sortIndex === -1 )
@@ -109,9 +117,9 @@ namespace Ally
                     return memo;
                 };
 
-                innerThis.allOwners = _.reduce( innerThis.unitList, getEmails, [] );
+                this.allOwners = _.reduce( this.unitList, getEmails, [] );
 
-                innerThis.allOwners = _.map( _.groupBy( innerThis.allOwners, function( resident )
+                this.allOwners = _.map( _.groupBy( this.allOwners, function( resident )
                 {
                     return resident.email;
                 } ), function( grouped )
@@ -120,14 +128,14 @@ namespace Ally
                     } );
 
                 // Remove duplicates
-                innerThis.allOwnerEmails = _.reduce( innerThis.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
+                this.allOwnerEmails = _.reduce( this.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
 
-                var useNumericNames = _.every( innerThis.unitList, function( u ) { return HtmlUtil.isNumericString( u.name ); } );
+                var useNumericNames = _.every( this.unitList, function( u ) { return HtmlUtil.isNumericString( u.name ); } );
                 if( useNumericNames )
-                    innerThis.unitList = _.sortBy( innerThis.unitList, function( u ) { return +u.name; } );
+                    this.unitList = _.sortBy( this.unitList, function( u ) { return +u.name; } );
 
                 // Populate the e-mail name lists
-                innerThis.setupGroupEmails();
+                this.setupGroupEmails();
             } );
         }
 

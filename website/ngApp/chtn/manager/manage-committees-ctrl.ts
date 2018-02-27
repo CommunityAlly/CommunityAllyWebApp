@@ -12,6 +12,7 @@ namespace Ally
         committeeType: string;
         creationDateUtc: Date;
         deactivationDateUtc: Date;
+        contactMemberUserId: string;
     }
 
 

@@ -4,16 +4,33 @@
         <br />
     </div>
 
-    <div class="portlet-box white no-padding" data-ng-if="$ctrl.boardMembers.length > 0">
-        <div class="portlet-header">
-            <div style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient" style="display: inline-block;">&nbsp;-&nbsp;<send-message data-recipient-info="$ctrl.boardMessageRecipient"></send-message></div>
-        </div>
+    <div class="container">
+        <div class="row">
+            <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.boardMembers.length > 0">
+                <div class="portlet-header">
+                    <div style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient" style="display: inline-block;">&nbsp;-&nbsp;<send-message data-recipient-info="$ctrl.boardMessageRecipient"></send-message></div>
+                </div>
 
-        <div class="portlet-body">
-            <div data-ng-repeat="member in $ctrl.boardMembers">
-                <span style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;{{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
+                <div class="portlet-body">
+                    <div data-ng-repeat="member in $ctrl.boardMembers">
+                        <span style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;{{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
+                    </div>
+                    <br />
+                </div>
             </div>
-            <br />
+
+            <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.committees.length > 0">
+                <div class="portlet-header">
+                    <div style="display: inline-block;" class="title">Committees</div>
+                </div>
+
+                <div class="portlet-body">
+                    <div data-ng-repeat="committee in $ctrl.committees">
+                        <span style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;-&nbsp;{{ committee.contactUser.fullName }}<span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="committee.contactUser"></send-message></span><br />
+                    </div>
+                    <br />
+                </div>
+            </div>
         </div>
     </div>
     <br />
