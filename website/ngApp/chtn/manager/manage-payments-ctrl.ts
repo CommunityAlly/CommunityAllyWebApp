@@ -326,7 +326,7 @@ namespace Ally
             if( this.signUpInfo.hasAssessments )
             {
                 this.signUpInfo.units = [];
-                _.each( this.units, function( u )
+                _.each( this.units, ( u ) =>
                 {
                     this.signUpInfo.units.push( { unitId: u.unitId, name: u.name, assessment: 0 } );
                 } );
@@ -429,25 +429,24 @@ namespace Ally
         signUp_Commit()
         {
             this.isLoading = true;
-
-            var innerThis = this;
-            this.$http.post( "/api/OnlinePayment/BasicInfo", this.signUpInfo ).then( function()
+            
+            this.$http.post( "/api/OnlinePayment/BasicInfo", this.signUpInfo ).then( () =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
                 // Update the unit assessments
-                innerThis.refreshUnits();
+                this.refreshUnits();
 
                 // Update the assesment flag
-                innerThis.hasAssessments = this.signUpInfo.hasAssessments;
-                innerThis.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
+                this.hasAssessments = this.signUpInfo.hasAssessments;
+                this.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
 
-            }, function( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
                 if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    innerThis.message = httpResponse.data.exceptionMessage;
+                    this.message = httpResponse.data.exceptionMessage;
             } );
         }
 

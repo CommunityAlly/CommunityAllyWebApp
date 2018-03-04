@@ -222,11 +222,12 @@ var Ally;
          * Occurs when the user changes where the WePay fee payment comes from
          */
         ManagePaymentsController.prototype.signUp_HasAssessments = function (hasAssessments) {
+            var _this = this;
             this.signUpInfo.hasAssessments = hasAssessments;
             if (this.signUpInfo.hasAssessments) {
                 this.signUpInfo.units = [];
                 _.each(this.units, function (u) {
-                    this.signUpInfo.units.push({ unitId: u.unitId, name: u.name, assessment: 0 });
+                    _this.signUpInfo.units.push({ unitId: u.unitId, name: u.name, assessment: 0 });
                 });
                 this.signUpStep = 1;
             }
@@ -294,19 +295,19 @@ var Ally;
          * Save the sign-up answers
          */
         ManagePaymentsController.prototype.signUp_Commit = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/OnlinePayment/BasicInfo", this.signUpInfo).then(function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 // Update the unit assessments
-                innerThis.refreshUnits();
+                _this.refreshUnits();
                 // Update the assesment flag
-                innerThis.hasAssessments = this.signUpInfo.hasAssessments;
-                innerThis.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
+                _this.hasAssessments = _this.signUpInfo.hasAssessments;
+                _this.siteInfo.privateSiteInfo.hasAssessments = _this.hasAssessments;
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    innerThis.message = httpResponse.data.exceptionMessage;
+                    _this.message = httpResponse.data.exceptionMessage;
             });
         };
         /**
