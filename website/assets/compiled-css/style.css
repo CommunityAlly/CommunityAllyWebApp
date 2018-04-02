@@ -412,6 +412,10 @@ img.file-thumbnail {
   width: 57px;
   height: auto; }
 
+.AlignRightBold {
+  text-align: right;
+  font-weight: bold; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;

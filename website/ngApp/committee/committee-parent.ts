@@ -17,7 +17,7 @@ namespace Ally
      */
     export class CommitteeParentController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory"];
+        static $inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
 
         canManage: boolean = false;
         initialView: string = "Home";
@@ -30,7 +30,7 @@ namespace Ally
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $routeParams: ICommitteeParentRouteParams, private $cacheFactory: ng.ICacheFactoryService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $routeParams: ICommitteeParentRouteParams, private $cacheFactory: ng.ICacheFactoryService, private $rootScope: ng.IRootScopeService )
         {
             this.committeeId = this.$routeParams.committeeId;
             this.initialView = this.$routeParams.viewName || "Home";
@@ -55,16 +55,28 @@ namespace Ally
         {
             this.isLoading = true;
 
+            // Set this flag so we don't redirect if sending results in a 403
+            this.$rootScope.dontHandle403 = true;
+
             this.$http.get( "/api/Committee/" + this.committeeId, { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Ally.Committee> ) =>
             {
+                this.$rootScope.dontHandle403 = false;
                 this.isLoading = false;
                 this.committee = response.data;
                 this.selectedView = this.initialView;
 
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
+                this.$rootScope.dontHandle403 = false;
                 this.isLoading = false;
-                alert( "Failed to load committee: " + response.data.exceptionMessage );
+
+                if( response.status === 403 )
+                {
+                    alert( "You are not authorized to view this private committee. You must be a member of the committee to view its contents. Reach out to a board member to inquire about joining the committiee." );
+                    window.location.href = "/#!/Home";
+                }
+                else
+                    alert( "Failed to load committee: " + response.data.exceptionMessage );
             } );
         }
 

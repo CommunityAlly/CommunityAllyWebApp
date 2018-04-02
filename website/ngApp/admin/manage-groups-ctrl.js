@@ -194,7 +194,7 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/AdminHelper/LogInAs?email=" + this.logInAsEmail).then(function (response) {
                 _this.siteInfo.setAuthToken(response.data);
-                window.location.href = "/#!Home";
+                window.location.href = "/#!/Home";
                 window.location.reload(false);
             }, function (response) {
                 alert("Failed to perform login: " + response.data.exceptionMessage);

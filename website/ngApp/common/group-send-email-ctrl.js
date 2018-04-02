@@ -7,7 +7,6 @@ var Ally;
     }());
     var HomeEmailMessage = /** @class */ (function () {
         function HomeEmailMessage() {
-            this.subject = "A message from your neighbor";
             this.recipientType = "board";
         }
         return HomeEmailMessage;
@@ -32,6 +31,7 @@ var Ally;
             this.showSendConfirmation = false;
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
+            this.defaultSubject = "A message from your neighbor";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -45,9 +45,13 @@ var Ally;
                 // Handle the global message that tells this component to prepare a draft of a message
                 // to inquire about assessment inaccuracies
                 this.$scope.$on("prepAssessmentEmailToBoard", function (event, data) { return _this.prepBadAssessmentEmailForBoard(data); });
+                this.defaultSubject = "A message from your neighbor";
             }
-            else
+            else {
                 this.messageObject.committeeId = this.committee.committeeId;
+                this.defaultSubject = "A message from a committee member";
+            }
+            this.messageObject.subject = this.defaultSubject;
         };
         /**
          * Populate the group e-mail options
@@ -76,6 +80,7 @@ var Ally;
                 nextPaymentText = emitDataParts[1];
             // Create a message to the board
             this.messageObject.recipientType = "board";
+            this.messageObject.subject = "Question About Assessment Amount";
             if (nextPaymentText)
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my next payment of $" + assessmentAmount + " will cover " + nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             else
@@ -101,6 +106,7 @@ var Ally;
                 _this.isLoadingEmail = false;
                 _this.messageObject = new HomeEmailMessage();
                 _this.messageObject.recipientType = _this.defaultMessageRecipient;
+                _this.messageObject.subject = _this.defaultSubject;
                 if (_this.committee)
                     _this.messageObject.committeeId = _this.committee.committeeId;
                 _this.showSendConfirmation = true;

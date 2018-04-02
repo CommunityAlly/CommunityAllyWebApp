@@ -299,7 +299,7 @@
             this.$http.get( "/api/AdminHelper/LogInAs?email=" + this.logInAsEmail ).then((response: ng.IHttpPromiseCallbackArg<string>) =>
             {
                 this.siteInfo.setAuthToken( response.data );
-                window.location.href = "/#!Home";
+                window.location.href = "/#!/Home";
                 window.location.reload( false );
                 
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult>) =>

@@ -9,7 +9,7 @@
 
     class HomeEmailMessage
     {
-        subject: string = "A message from your neighbor";
+        subject: string;
         message: string;
         recipientType: string = "board";
         committeeId: number;
@@ -35,6 +35,7 @@
         showSendEmail: boolean;
         groupEmailAddress: string;
         committee: Ally.Committee;
+        defaultSubject: string = "A message from your neighbor";
 
 
         /**
@@ -51,6 +52,7 @@
         $onInit()
         {
             this.messageObject = new HomeEmailMessage();
+            
             this.showSendEmail = true;
 
             if( !this.committee )
@@ -60,9 +62,16 @@
                 // Handle the global message that tells this component to prepare a draft of a message
                 // to inquire about assessment inaccuracies
                 this.$scope.$on( "prepAssessmentEmailToBoard", ( event: ng.IAngularEvent, data: string ) => this.prepBadAssessmentEmailForBoard( data ) );
+
+                this.defaultSubject = "A message from your neighbor";
             }
             else
+            {
                 this.messageObject.committeeId = this.committee.committeeId;
+                this.defaultSubject = "A message from a committee member";
+            }
+
+            this.messageObject.subject = this.defaultSubject;
         }
 
 
@@ -104,6 +113,8 @@
             // Create a message to the board
             this.messageObject.recipientType = "board";
 
+            this.messageObject.subject = "Question About Assessment Amount";
+
             if( nextPaymentText )
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my next payment of $" + assessmentAmount + " will cover " + nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             else
@@ -138,6 +149,7 @@
 
                 this.messageObject = new HomeEmailMessage();
                 this.messageObject.recipientType = this.defaultMessageRecipient;
+                this.messageObject.subject = this.defaultSubject;
 
                 if( this.committee )
                     this.messageObject.committeeId = this.committee.committeeId;

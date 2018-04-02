@@ -15,6 +15,7 @@
                         <th>Name</th>
                         <th>Type</th>
                         <th>Created</th>
+                        <th>Privacy</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -23,6 +24,7 @@
                         <td><a data-ng-href="#!/Committee/{{ c.committeeId }}/Home">{{ c.name }}</a></td>
                         <td>{{ c.committeeType }}</td>
                         <td>{{ c.creationDateUtc | date:'shortDate' }}</td>
+                        <td>{{ c.isPrivate ? "Private" : "Open" }}</td>
                         <td><span class="text-link" data-ng-click="$ctrl.toggleCommitteeActive( c )">{{ c.deactivationDateUtc ? 'Reactivate' : 'Deactivate' }}</span></td>
                     </tr>
                 </tbody>
@@ -36,7 +38,13 @@
         <table>
             <tr>
                 <td class="AlignRightBold">Name:</td>
-                <td><input type="text" data-ng-model="$ctrl.newCommittee.name" /><br /></td>
+                <td>
+                    <input type="text" data-ng-model="$ctrl.newCommittee.name" /><br />
+                    <span class="note-text" style="margin-left:0em;">The word "Committee" will be apppended to the end of the name if you don't add it</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><br /></td>
             </tr>
             <tr>
                 <td class="AlignRightBold">Type:</td>
@@ -49,6 +57,19 @@
 
                     <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Goal-based" name="committee-type" />Goal-based</label>
                     <span class="note-text" style="margin-left:0.5em;">E.g. fix roof, plan parking, change trash collection</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><br /></td>
+            </tr>
+            <tr>
+                <td class="AlignRightBold">Privacy:</td>
+                <td>
+                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.isPrivate" ng-value="false" name="is-private" />Open</label>
+                    <span class="note-text" style="margin-left:0.5em;">Any user can view the contents of the committee, but only members can modify and get notifications.</span><br />
+
+                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.isPrivate" ng-value="true" name="is-private" />Private</label>
+                    <span class="note-text" style="margin-left:0.5em;">Only members can view the committiee's information</span>
                 </td>
             </tr>
             <tr>

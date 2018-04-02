@@ -13,6 +13,7 @@ namespace Ally
         creationDateUtc: Date;
         deactivationDateUtc: Date;
         contactMemberUserId: string;
+        isPrivate: boolean = false;
     }
 
 
@@ -107,17 +108,17 @@ namespace Ally
 
             this.isLoading = true;
 
-            var postUri = "/api/Committee?name=" + encodeURIComponent( this.newCommittee.name ) + "&type=" + encodeURIComponent( this.newCommittee.committeeType );
+            var postUri = "/api/Committee?name=" + encodeURIComponent( this.newCommittee.name ) + "&type=" + encodeURIComponent( this.newCommittee.committeeType ) + "&isPrivate=" + this.newCommittee.isPrivate.toString();
 
-            var innerThis = this;
             this.$http.post( postUri, null ).success(() =>
             {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
+                this.isLoading = false;
+                this.newCommittee = new Committee();
+                this.retrieveCommittees();
 
             } ).error(( error: ExceptionResult ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
                 alert( "Failed to create the committee: " + error.exceptionMessage );
             } );
         }

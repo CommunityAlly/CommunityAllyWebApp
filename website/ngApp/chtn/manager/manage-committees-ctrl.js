@@ -5,6 +5,7 @@ var Ally;
 (function (Ally) {
     var Committee = /** @class */ (function () {
         function Committee() {
+            this.isPrivate = false;
         }
         return Committee;
     }());
@@ -67,18 +68,19 @@ var Ally;
         * Create a new committee
         */
         ManageCommitteesController.prototype.createCommittee = function () {
+            var _this = this;
             if (HtmlUtil.isNullOrWhitespace(this.newCommittee.name)) {
                 alert("Please enter a name.");
                 return;
             }
             this.isLoading = true;
-            var postUri = "/api/Committee?name=" + encodeURIComponent(this.newCommittee.name) + "&type=" + encodeURIComponent(this.newCommittee.committeeType);
-            var innerThis = this;
+            var postUri = "/api/Committee?name=" + encodeURIComponent(this.newCommittee.name) + "&type=" + encodeURIComponent(this.newCommittee.committeeType) + "&isPrivate=" + this.newCommittee.isPrivate.toString();
             this.$http.post(postUri, null).success(function () {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
+                _this.isLoading = false;
+                _this.newCommittee = new Committee();
+                _this.retrieveCommittees();
             }).error(function (error) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to create the committee: " + error.exceptionMessage);
             });
         };

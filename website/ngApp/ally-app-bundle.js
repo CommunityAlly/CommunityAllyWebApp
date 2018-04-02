@@ -56,8 +56,11 @@ var Ally;
             this.getAddressPolys().then(function () { return innerThis.getGroupBoundPolys(); }).then(function (addresses) {
                 innerThis.addressPoints = [];
                 _.each(addresses, function (a) {
-                    if (a.gpsPos)
+                    if (a.gpsPos) {
+                        // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
+                        a.gpsPos.fullAddress = a.oneLiner;
                         innerThis.addressPoints.push(a.gpsPos);
+                    }
                 });
             });
         };
@@ -302,7 +305,7 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/AdminHelper/LogInAs?email=" + this.logInAsEmail).then(function (response) {
                 _this.siteInfo.setAuthToken(response.data);
-                window.location.href = "/#!Home";
+                window.location.href = "/#!/Home";
                 window.location.reload(false);
             }, function (response) {
                 alert("Failed to perform login: " + response.data.exceptionMessage);
@@ -1085,7 +1088,7 @@ var CondoAllyAppConfig =
         
         new RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
         new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ),
-        //new RoutePath_v3( { path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager } ),
+        new RoutePath_v3( { path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager } ),
         new RoutePath_v3( { path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager } ),
         new RoutePath_v3( { path: "ManagePayments", templateHtml: "<manage-payments></manage-payments>", menuTitle: "Online Payments", role: Role_Manager } ),
         new RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager } ),
@@ -1702,6 +1705,7 @@ var Ally;
 (function (Ally) {
     var Committee = /** @class */ (function () {
         function Committee() {
+            this.isPrivate = false;
         }
         return Committee;
     }());
@@ -1764,18 +1768,19 @@ var Ally;
         * Create a new committee
         */
         ManageCommitteesController.prototype.createCommittee = function () {
+            var _this = this;
             if (HtmlUtil.isNullOrWhitespace(this.newCommittee.name)) {
                 alert("Please enter a name.");
                 return;
             }
             this.isLoading = true;
-            var postUri = "/api/Committee?name=" + encodeURIComponent(this.newCommittee.name) + "&type=" + encodeURIComponent(this.newCommittee.committeeType);
-            var innerThis = this;
+            var postUri = "/api/Committee?name=" + encodeURIComponent(this.newCommittee.name) + "&type=" + encodeURIComponent(this.newCommittee.committeeType) + "&isPrivate=" + this.newCommittee.isPrivate.toString();
             this.$http.post(postUri, null).success(function () {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
+                _this.isLoading = false;
+                _this.newCommittee = new Committee();
+                _this.retrieveCommittees();
             }).error(function (error) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to create the committee: " + error.exceptionMessage);
             });
         };
@@ -2013,11 +2018,12 @@ var Ally;
          * Occurs when the user changes where the WePay fee payment comes from
          */
         ManagePaymentsController.prototype.signUp_HasAssessments = function (hasAssessments) {
+            var _this = this;
             this.signUpInfo.hasAssessments = hasAssessments;
             if (this.signUpInfo.hasAssessments) {
                 this.signUpInfo.units = [];
                 _.each(this.units, function (u) {
-                    this.signUpInfo.units.push({ unitId: u.unitId, name: u.name, assessment: 0 });
+                    _this.signUpInfo.units.push({ unitId: u.unitId, name: u.name, assessment: 0 });
                 });
                 this.signUpStep = 1;
             }
@@ -2085,19 +2091,19 @@ var Ally;
          * Save the sign-up answers
          */
         ManagePaymentsController.prototype.signUp_Commit = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/OnlinePayment/BasicInfo", this.signUpInfo).then(function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 // Update the unit assessments
-                innerThis.refreshUnits();
+                _this.refreshUnits();
                 // Update the assesment flag
-                innerThis.hasAssessments = this.signUpInfo.hasAssessments;
-                innerThis.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
+                _this.hasAssessments = _this.signUpInfo.hasAssessments;
+                _this.siteInfo.privateSiteInfo.hasAssessments = _this.hasAssessments;
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    innerThis.message = httpResponse.data.exceptionMessage;
+                    _this.message = httpResponse.data.exceptionMessage;
             });
         };
         /**
@@ -2143,6 +2149,7 @@ var Ally;
 (function (Ally) {
     var Poll = /** @class */ (function () {
         function Poll() {
+            this.isAnonymous = true;
         }
         return Poll;
     }());
@@ -2156,6 +2163,7 @@ var Ally;
         function ManagePollsController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.editingItem = new Poll();
             this.pollHistory = [];
             this.isLoading = false;
         }
@@ -2281,18 +2289,22 @@ var Ally;
             var responsesGroupedByAnswer = _.groupBy(poll.responses, "answerId");
             poll.chartData = [];
             poll.chartLabels = [];
-            // Go through each answer and store the name and count for that answer
-            for (var answerId in responsesGroupedByAnswer) {
-                // Convert the string to int
-                //let answerId = parseInt( (answerId as string) );
+            var _loop_1 = function () {
                 // Ignore inherited properties
-                if (!responsesGroupedByAnswer.hasOwnProperty(answerId))
-                    continue;
-                var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === answerId; });
+                if (!responsesGroupedByAnswer.hasOwnProperty(answerIdStr))
+                    return "continue";
+                // for..in provides the keys as strings
+                var answerId = parseInt(answerIdStr);
+                answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === answerId; });
                 if (answer) {
                     poll.chartLabels.push(answer.answerText);
-                    poll.chartData.push(responsesGroupedByAnswer[answerId].length);
+                    poll.chartData.push(responsesGroupedByAnswer[answerIdStr].length);
                 }
+            };
+            var answer;
+            // Go through each answer and store the name and count for that answer
+            for (var answerIdStr in responsesGroupedByAnswer) {
+                _loop_1();
             }
             if (poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits) {
                 poll.chartLabels.push("No Response");
@@ -2700,6 +2712,7 @@ var Ally;
         ManageResidentsController.prototype.exportResidentCsv = function () {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
+            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "First Name",
@@ -2733,7 +2746,7 @@ var Ally;
                     headerText: "Board Position",
                     fieldName: "boardPosition",
                     dataMapper: function (value) {
-                        return this.getBoardPositionName(value);
+                        return innerThis.getBoardPositionName(value);
                     }
                 },
                 {
@@ -3663,6 +3676,11 @@ CA.angularApp.component("forgotPassword", {
 
 var Ally;
 (function (Ally) {
+    var CommitteeListingInfo = /** @class */ (function () {
+        function CommitteeListingInfo() {
+        }
+        return CommitteeListingInfo;
+    }());
     /**
      * The controller for the page that lists group members
      */
@@ -3683,19 +3701,20 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupMembersController.prototype.$onInit = function () {
-            var innerThis = this;
+            var _this = this;
             this.fellowResidents.getByUnitsAndResidents().then(function (data) {
-                innerThis.isLoading = false;
-                innerThis.unitList = data.byUnit;
-                innerThis.allResidents = data.residents;
+                _this.isLoading = false;
+                _this.unitList = data.byUnit;
+                _this.allResidents = data.residents;
+                _this.committees = data.committees;
                 // Sort by last name
-                innerThis.allResidents = _.sortBy(innerThis.allResidents, function (r) { return r.lastName; });
-                innerThis.boardMembers = _.filter(data.residents, function (r) { return r.boardPosition !== 0; });
-                innerThis.boardMessageRecipient = null;
-                if (innerThis.boardMembers.length > 0) {
-                    var hasBoardEmail = _.some(innerThis.boardMembers, function (m) { return m.hasEmail; });
+                _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
+                _this.boardMembers = _.filter(data.residents, function (r) { return r.boardPosition !== 0; });
+                _this.boardMessageRecipient = null;
+                if (_this.boardMembers.length > 0) {
+                    var hasBoardEmail = _.some(_this.boardMembers, function (m) { return m.hasEmail; });
                     if (hasBoardEmail) {
-                        innerThis.boardMessageRecipient = {
+                        _this.boardMessageRecipient = {
                             fullName: "Entire Board",
                             firstName: "everyone on the board",
                             hasEmail: true,
@@ -3705,7 +3724,7 @@ var Ally;
                 }
                 // Remove board members from the member list
                 if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
-                    innerThis.allResidents = _.filter(innerThis.allResidents, function (r) { return r.boardPosition === 0; });
+                    _this.allResidents = _.filter(_this.allResidents, function (r) { return r.boardPosition === 0; });
                 var boardPositionNames = [
                     { id: 0, name: "None" },
                     { id: 1, name: "President" },
@@ -3715,8 +3734,8 @@ var Ally;
                     { id: 16, name: "Vice President" },
                     { id: 32, name: "Property Manager" }
                 ];
-                for (var i = 0; i < innerThis.boardMembers.length; ++i) {
-                    innerThis.boardMembers[i].boardPositionName = _.find(boardPositionNames, function (bm) { return bm.id === innerThis.boardMembers[i].boardPosition; }).name;
+                for (var i = 0; i < _this.boardMembers.length; ++i) {
+                    _this.boardMembers[i].boardPositionName = _.find(boardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
                 }
                 var boardSortOrder = [
                     1,
@@ -3726,7 +3745,7 @@ var Ally;
                     8,
                     32
                 ];
-                innerThis.boardMembers = _.sortBy(innerThis.boardMembers, function (bm) {
+                _this.boardMembers = _.sortBy(_this.boardMembers, function (bm) {
                     var sortIndex = _.indexOf(boardSortOrder, bm.boardPosition);
                     if (sortIndex === -1)
                         sortIndex = 100;
@@ -3736,21 +3755,21 @@ var Ally;
                     Array.prototype.push.apply(memo, unit.owners);
                     return memo;
                 };
-                innerThis.allOwners = _.reduce(innerThis.unitList, getEmails, []);
-                innerThis.allOwners = _.map(_.groupBy(innerThis.allOwners, function (resident) {
+                _this.allOwners = _.reduce(_this.unitList, getEmails, []);
+                _this.allOwners = _.map(_.groupBy(_this.allOwners, function (resident) {
                     return resident.email;
                 }), function (grouped) {
                     return grouped[0];
                 });
                 // Remove duplicates
-                innerThis.allOwnerEmails = _.reduce(innerThis.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
+                _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                var useNumericNames = _.every(innerThis.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
+                var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
                 if (useNumericNames)
-                    innerThis.unitList = _.sortBy(innerThis.unitList, function (u) { return +u.name; });
+                    _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
                 // Populate the e-mail name lists
-                innerThis.setupGroupEmails();
+                _this.setupGroupEmails();
             });
         };
         GroupMembersController.prototype.setupGroupEmails = function () {
@@ -4414,25 +4433,30 @@ var Ally;
             this.isDemoSite = HtmlUtil.getSubdomain() === "demosite";
             if (this.siteInfo.privateSiteInfo)
                 this.canHideContactInfo = this.siteInfo.privateSiteInfo.canHideContactInfo;
-            this.retrieveItems();
+            this.retrieveProfileData();
         };
         /**
          * Populate the page
          */
-        MyProfileController.prototype.retrieveItems = function () {
+        MyProfileController.prototype.retrieveProfileData = function () {
+            var _this = this;
             this.isLoading = true;
             var innerThis = this;
             this.$http.get("/api/MyProfile").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.profileInfo = httpResponse.data;
+                _this.isLoading = false;
+                _this.profileInfo = httpResponse.data;
+                _this.profileImageType = "blank";
+                if (_this.profileInfo.avatarUrl && _this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
+                    _this.profileImageType = "gravatar";
+                _this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((_this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
                 // Don't show empty e-mail address
-                if (HtmlUtil.endsWith(innerThis.profileInfo.email, "@condoally.com"))
-                    innerThis.profileInfo.email = "";
-                innerThis.needsToAcceptTerms = innerThis.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
-                innerThis.hasAcceptedTerms = !innerThis.needsToAcceptTerms; // Gets set by the checkbox
-                innerThis.$rootScope.hideMenu = innerThis.needsToAcceptTerms;
+                if (HtmlUtil.endsWith(_this.profileInfo.email, "@condoally.com"))
+                    _this.profileInfo.email = "";
+                _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
+                _this.hasAcceptedTerms = !_this.needsToAcceptTerms; // Gets set by the checkbox
+                _this.$rootScope.hideMenu = _this.needsToAcceptTerms;
                 // Was used before, here for covenience
-                innerThis.saveButtonStyle = {
+                _this.saveButtonStyle = {
                     width: "100px",
                     "font-size": "1em"
                 };
@@ -4605,7 +4629,10 @@ var Ally;
          */
         CondoSignUpWizardController.prototype.init = function () {
             if (typeof (window.analytics) !== "undefined")
-                window.analytics.track("condoSignUpStarted");
+                window.analytics.track("condoSignUpStarted", {
+                    category: "SignUp",
+                    label: "Started"
+                });
             var mapDiv = document.getElementById("address-map");
             this.map = new google.maps.Map(mapDiv, {
                 center: { lat: 41.869638, lng: -87.657423 },
@@ -4713,10 +4740,13 @@ var Ally;
                 }
                 else {
                     if (typeof (window.analytics) !== "undefined")
-                        window.analytics.track("condoSignUpComplete");
+                        window.analytics.track("condoSignUpComplete", {
+                            category: "SignUp",
+                            label: "Success"
+                        });
                     // Log this as a conversion
-                    if (typeof (window.goog_report_conversion) !== "undefined")
-                        window.goog_report_conversion();
+                    //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
+                    //    ( <any>window ).goog_report_conversion();
                     // Or if the user created an active signUpResult
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
@@ -5440,6 +5470,122 @@ CA.angularApp.component("committeeHome", {
 
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../Services/html-util.ts" />
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the committee home page
+     */
+    var CommitteeMembersController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function CommitteeMembersController($http, fellowResidents, $cacheFactory) {
+            this.$http = $http;
+            this.fellowResidents = fellowResidents;
+            this.$cacheFactory = $cacheFactory;
+            this.isLoading = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        CommitteeMembersController.prototype.$onInit = function () {
+            this.populateAllMembers();
+        };
+        /**
+         * Populate the full list of committee members
+         */
+        CommitteeMembersController.prototype.populateAllMembers = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.fellowResidents.getResidents().then(function (residents) {
+                _this.allGroupMembers = residents;
+                _this.getMembers();
+            });
+        };
+        /**
+         * Set the contact user for this committee
+         */
+        CommitteeMembersController.prototype.setContactMember = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/Committee/" + this.committee.committeeId + "/SetContactMember?userId=" + this.contactUser.userId, null).then(function (response) {
+                _this.isLoading = false;
+                _this.committee.contactMemberUserId = _this.contactUser.userId;
+                // Since we changed the committee data, clear the cache so we show the up-to-date info
+                _this.$cacheFactory.get('$http').remove("/api/Committee/" + _this.committee.committeeId);
+                // Update the fellow residents page next time we're there
+                _this.fellowResidents.clearResidentCache();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to set contact member: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Retrieve the full list of committee members from the server
+         */
+        CommitteeMembersController.prototype.getMembers = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Committee/" + this.committee.committeeId + "/Members").then(function (response) {
+                _this.isLoading = false;
+                _this.members = response.data;
+                var isMember = function (u) { return _.some(_this.members, function (m) { return m.userId === u.userId; }); };
+                _this.filteredGroupMembers = _.filter(_this.allGroupMembers, function (m) { return !isMember(m); });
+                _this.filteredGroupMembers = _.sortBy(_this.filteredGroupMembers, function (m) { return m.fullName; });
+                _this.contactUser = _.find(_this.members, function (m) { return m.userId == _this.committee.contactMemberUserId; });
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve committee members, please refresh the page to try again");
+            });
+        };
+        /**
+         * Add a member to this committee
+         */
+        CommitteeMembersController.prototype.addSelectedMember = function () {
+            var _this = this;
+            if (!this.userForAdd)
+                return;
+            this.isLoading = true;
+            this.$http.put("/api/Committee/" + this.committee.committeeId + "/AddMember?userId=" + this.userForAdd.userId, null).then(function (response) {
+                _this.isLoading = false;
+                _this.getMembers();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to add member, please refresh the page to try again: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Remove a member from this committee
+         */
+        CommitteeMembersController.prototype.removeMember = function (member) {
+            var _this = this;
+            if (!confirm("Are you sure you want to remove this person from this committee?"))
+                return;
+            this.isLoading = true;
+            this.$http.put("/api/Committee/" + this.committee.committeeId + "/RemoveMember?userId=" + member.userId, null).then(function (response) {
+                _this.isLoading = false;
+                _this.getMembers();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to remove member, please refresh the page to try again: " + response.data.exceptionMessage);
+            });
+        };
+        CommitteeMembersController.$inject = ["$http", "fellowResidents", "$cacheFactory"];
+        return CommitteeMembersController;
+    }());
+    Ally.CommitteeMembersController = CommitteeMembersController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("committeeMembers", {
+    bindings: {
+        committee: "<"
+    },
+    templateUrl: "/ngApp/committee/committee-members.html",
+    controller: Ally.CommitteeMembersController
+});
+
+
+/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
+/// <reference path="../Services/html-util.ts" />
 /// <reference path="../chtn/manager/manage-committees-ctrl.ts" />
 var Ally;
 (function (Ally) {
@@ -5450,15 +5596,18 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function CommitteeParentController($http, siteInfo, $routeParams) {
+        function CommitteeParentController($http, siteInfo, $routeParams, $cacheFactory, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$routeParams = $routeParams;
+            this.$cacheFactory = $cacheFactory;
+            this.$rootScope = $rootScope;
             this.canManage = false;
-            this.selectedView = "home";
+            this.initialView = "Home";
+            this.selectedView = null;
             this.isLoading = false;
             this.committeeId = this.$routeParams.committeeId;
-            this.selectedView = this.$routeParams.viewName || "home";
+            this.initialView = this.$routeParams.viewName || "Home";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -5471,31 +5620,42 @@ var Ally;
          * Retreive the committee data
          */
         CommitteeParentController.prototype.retrieveCommittee = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Committee/" + this.committeeId).success(function (committee) {
-                innerThis.isLoading = false;
-                innerThis.committee = committee;
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to load committee: " + exc.exceptionMessage);
+            // Set this flag so we don't redirect if sending results in a 403
+            this.$rootScope.dontHandle403 = true;
+            this.$http.get("/api/Committee/" + this.committeeId, { cache: true }).then(function (response) {
+                _this.$rootScope.dontHandle403 = false;
+                _this.isLoading = false;
+                _this.committee = response.data;
+                _this.selectedView = _this.initialView;
+            }, function (response) {
+                _this.$rootScope.dontHandle403 = false;
+                _this.isLoading = false;
+                if (response.status === 403) {
+                    alert("You are not authorized to view this private committee. You must be a member of the committee to view its contents. Reach out to a board member to inquire about joining the committiee.");
+                    window.location.href = "/#!/Home";
+                }
+                else
+                    alert("Failed to load committee: " + response.data.exceptionMessage);
             });
         };
         /*
          * Called after the user edits the committee name
          */
         CommitteeParentController.prototype.onUpdateCommitteeName = function () {
+            var _this = this;
             this.isLoading = true;
             var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
-            var innerThis = this;
-            this.$http.put(putUri, null).success(function () {
-                innerThis.isLoading = false;
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to update the committee name: " + exc.exceptionMessage);
+            this.$http.put(putUri, null).then(function () {
+                _this.isLoading = false;
+                _this.$cacheFactory.get('$http').remove("/api/Committee/" + _this.committeeId);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to update the committee name: " + response.data.exceptionMessage);
             });
         };
-        CommitteeParentController.$inject = ["$http", "SiteInfo", "$routeParams"];
+        CommitteeParentController.$inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
         return CommitteeParentController;
     }());
     Ally.CommitteeParentController = CommitteeParentController;
@@ -5537,7 +5697,7 @@ var Ally;
         FAQsController.prototype.$onInit = function () {
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.isSiteManager = this.$rootScope["isSiteManager"];
-            this.retrievePageInfo();
+            this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
                 var showErrorAlert = function (reason, detail) {
@@ -5587,19 +5747,17 @@ var Ally;
         // Populate the info section
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.retrieveInfo = function () {
+            var _this = this;
             this.isLoadingInfo = true;
-            var innerThis = this;
-            this.$http.get("/api/InfoItem", { cache: true }).then(function (httpResponse) {
-                innerThis.isLoadingInfo = false;
-                innerThis.infoItems = httpResponse.data;
+            if (!this.getUri) {
+                this.getUri = "/api/InfoItem";
+                if (this.committee)
+                    this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
+            }
+            this.$http.get(this.getUri, { cache: true }).then(function (httpResponse) {
+                _this.isLoadingInfo = false;
+                _this.infoItems = httpResponse.data;
             });
-        };
-        ;
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the page
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.retrievePageInfo = function () {
-            this.retrieveInfo();
         };
         ;
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -5630,13 +5788,15 @@ var Ally;
             validateable.validate();
             if (!validateable.valid() || this.isBodyMissing)
                 return;
+            if (this.committee)
+                this.editingInfoItem.committeeId = this.committee.committeeId;
             this.isLoadingInfo = true;
             var innerThis = this;
             var onSave = function () {
                 innerThis.isLoadingInfo = false;
                 $("#editor").html("");
                 innerThis.editingInfoItem = new InfoItem();
-                innerThis.$cacheFactory.get('$http').remove("/api/InfoItem");
+                innerThis.$cacheFactory.get('$http').remove(innerThis.getUri);
                 innerThis.retrieveInfo();
             };
             var onError = function () {
@@ -5653,14 +5813,14 @@ var Ally;
         // Occurs when the user wants to delete an info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.onDeleteInfoItem = function (infoItem) {
+            var _this = this;
             if (!confirm('Are you sure you want to delete this information?'))
                 return;
             this.isLoadingInfo = true;
-            var innerThis = this;
             this.$http.delete("/api/InfoItem/" + infoItem.infoItemId).then(function () {
-                innerThis.isLoadingInfo = false;
-                innerThis.$cacheFactory.get('$http').remove("/api/InfoItem");
-                innerThis.retrievePageInfo();
+                _this.isLoadingInfo = false;
+                _this.$cacheFactory.get('$http').remove(_this.getUri);
+                _this.retrieveInfo();
             });
         };
         FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
@@ -5669,6 +5829,9 @@ var Ally;
     Ally.FAQsController = FAQsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("faqs", {
+    bindings: {
+        committee: "<?"
+    },
     templateUrl: "/ngApp/common/FAQs.html",
     controller: Ally.FAQsController
 });
@@ -6087,7 +6250,7 @@ var Ally;
             };
             setTimeout(hookUpFileUpload, 100);
             if (this.committee)
-                this.title = this.committee.name + " Documents";
+                this.title = "Committee Documents";
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Get the name of the selected directory. If it is a sub-directory then include the parent
@@ -6539,7 +6702,6 @@ var Ally;
     }());
     var HomeEmailMessage = /** @class */ (function () {
         function HomeEmailMessage() {
-            this.subject = "A message from your neighbor";
             this.recipientType = "board";
         }
         return HomeEmailMessage;
@@ -6558,24 +6720,33 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.isLoadingEmail = false;
-            this.messageObject = new HomeEmailMessage();
             this.defaultMessageRecipient = "board";
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
             this.showSendConfirmation = false;
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
+            this.defaultSubject = "A message from your neighbor";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         GroupSendEmailController.prototype.$onInit = function () {
-            // The object that contains a message if the user wants to send one out
+            var _this = this;
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
-            this.loadGroupEmails();
-            var innerThis = this;
-            this.$scope.$on("prepAssessmentEmailToBoard", function (event, data) { return innerThis.prepBadAssessmentEmailForBoard(data); });
+            if (!this.committee) {
+                this.loadGroupEmails();
+                // Handle the global message that tells this component to prepare a draft of a message
+                // to inquire about assessment inaccuracies
+                this.$scope.$on("prepAssessmentEmailToBoard", function (event, data) { return _this.prepBadAssessmentEmailForBoard(data); });
+                this.defaultSubject = "A message from your neighbor";
+            }
+            else {
+                this.messageObject.committeeId = this.committee.committeeId;
+                this.defaultSubject = "A message from a committee member";
+            }
+            this.messageObject.subject = this.defaultSubject;
         };
         /**
          * Populate the group e-mail options
@@ -6604,6 +6775,7 @@ var Ally;
                 nextPaymentText = emitDataParts[1];
             // Create a message to the board
             this.messageObject.recipientType = "board";
+            this.messageObject.subject = "Question About Assessment Amount";
             if (nextPaymentText)
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my next payment of $" + assessmentAmount + " will cover " + nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             else
@@ -6614,27 +6786,31 @@ var Ally;
          * Occurs when the user presses the button to send an e-mail to members of the building
          */
         GroupSendEmailController.prototype.onSendEmail = function () {
+            var _this = this;
             $("#message-form").validate();
             if (!$("#message-form").valid())
                 return;
             this.isLoadingEmail = true;
+            // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
             analytics.track("sendEmail", {
                 recipientId: this.messageObject.recipientType
             });
-            var innerThis = this;
             this.$http.post("/api/Email/v2", this.messageObject).then(function () {
-                innerThis.$rootScope.dontHandle403 = false;
-                innerThis.isLoadingEmail = false;
-                innerThis.messageObject = new HomeEmailMessage();
-                innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
-                innerThis.showSendConfirmation = true;
-                innerThis.showSendEmail = false;
+                _this.$rootScope.dontHandle403 = false;
+                _this.isLoadingEmail = false;
+                _this.messageObject = new HomeEmailMessage();
+                _this.messageObject.recipientType = _this.defaultMessageRecipient;
+                _this.messageObject.subject = _this.defaultSubject;
+                if (_this.committee)
+                    _this.messageObject.committeeId = _this.committee.committeeId;
+                _this.showSendConfirmation = true;
+                _this.showSendEmail = false;
             }, function (httpResponse) {
-                innerThis.isLoadingEmail = false;
-                innerThis.$rootScope.dontHandle403 = false;
+                _this.isLoadingEmail = false;
+                _this.$rootScope.dontHandle403 = false;
                 if (httpResponse.status === 403) {
-                    innerThis.showEmailForbidden = true;
+                    _this.showEmailForbidden = true;
                 }
                 else
                     alert("Unable to send e-mail, please contact technical support.");
@@ -6665,6 +6841,9 @@ var Ally;
     Ally.GroupSendEmailController = GroupSendEmailController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupSendEmail", {
+    bindings: {
+        committee: "<?"
+    },
     templateUrl: "/ngApp/common/group-send-email.html",
     controller: Ally.GroupSendEmailController
 });
@@ -7559,200 +7738,6 @@ function ServiceJobsCtrl( $http )
 }
 ServiceJobsCtrl.$inject = ["$http"];
 
-CA.angularApp.directive( "groupComments", ["$http", "$rootScope", function( $http, $rootScope )
-{
-    function CommentController()
-    {
-        var ctrlVM = this;
-
-        ctrlVM.threadId = "Home";
-
-        ctrlVM.isQaSite = HtmlUtil.getSubdomain() === "qa" || HtmlUtil.getSubdomain() === "localtest";
-
-
-        ctrlVM.editComment = {
-            threadId: ctrlVM.threadId,
-            commentText: "",
-            replyToCommentId: null
-        };
-
-
-        ctrlVM.displayDiscussModal = function()
-        {
-            ctrlVM.showDiscussModal = true;
-        };
-
-        ctrlVM.hideDiscussModal = function()
-        {
-            //TODO put in a delay before we allow close to avoid the mobile tap-open-close issue
-            ctrlVM.showDiscussModal = false;
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Retrieve the comments from the server for the current thread
-        ctrlVM.refreshComments = function()
-        {
-            ctrlVM.isLoading = true;
-
-            $http.get( "/api/Comment?threadId=" + ctrlVM.threadId ).then( function( httpResponse )
-            {
-                ctrlVM.isLoading = false;
-                ctrlVM.commentList = httpResponse.data;
-
-                var markDates = function( c )
-                {
-                    c.postDateUtc = moment.utc( c.postDateUtc ).toDate();
-
-                    if( c.lastEditDateUtc )
-                        c.lastEditDateUtc = moment.utc( c.lastEditDateUtc ).toDate();
-
-                    if( c.deletedDateUtc )
-                        c.deletedDateUtc = moment.utc( c.deletedDateUtc ).toDate();
-
-                    c.isMyComment = c.authorUserId === $rootScope.userInfo.userId;
-
-                    if( c.replies )
-                        _.each( c.replies, markDates );
-                };
-
-                // Convert the UTC dates to local dates and mark the user's comments
-                _.each( ctrlVM.commentList, markDates );
-
-            }, function()
-            {
-                ctrlVM.isLoading = false;
-            } );
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Add a comment
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ctrlVM.postComment = function( commentData )
-        {
-            ctrlVM.isLoading = true;
-
-            var httpFunc = $http.post;
-            if( typeof ( commentData.existingCommentId ) === "number" )
-                httpFunc = $http.put;
-
-            httpFunc( "/api/Comment", commentData ).then( function()
-            {
-                ctrlVM.isLoading = false;
-                ctrlVM.editComment = {};
-                ctrlVM.showReplyBoxId = -1;
-                ctrlVM.refreshComments();
-
-            }, function( data )
-            {
-                ctrlVM.isLoading = false;
-
-                var errorMessage = !!data.exceptionMessage ? data.exceptionMessage : data;
-                alert( "Failed to post comment: " + errorMessage );
-            } );
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Add a comment to the current thread
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ctrlVM.onPostCommentClicked = function()
-        {
-            if( ctrlVM.editComment.commentText.length === 0 )
-                return;
-
-            // Copy the object to avoid updating the UI
-            var commentData = {
-                threadId: ctrlVM.threadId,
-                commentText: ctrlVM.editComment.commentText,
-                replyToCommentId: null,
-                existingCommentId: ctrlVM.editComment.existingCommentId
-            };
-
-            ctrlVM.postComment( commentData );
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Edit an existing comment
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ctrlVM.editMyComment = function( comment )
-        {
-            ctrlVM.editComment = {
-                commentText: comment.commentText,
-                existingCommentId: comment.commentId
-            };
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Delete a comment
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ctrlVM.deleteMyComment = function( comment )
-        {
-            ctrlVM.isLoading = true;
-
-            $http.delete( "/api/Comment?commentId=" + comment.commentId ).then( function()
-            {
-                ctrlVM.isLoading = false;
-                ctrlVM.refreshComments();
-
-            }, function( httpResponse )
-            {
-                ctrlVM.isLoading = false;
-
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to post comment: " + errorMessage );
-            } );
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Add a comment in response to a comment in the current thread
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ctrlVM.onPostReplyCommentClicked = function()
-        {
-            if( ctrlVM.editComment.replyText.length === 0 )
-                return;
-
-            // Copy the object to avoid updating the UI
-            var commentData = {
-                threadId: ctrlVM.threadId,
-                commentText: ctrlVM.editComment.replyText,
-                replyToCommentId: ctrlVM.editComment.replyToCommentId
-            };
-
-            ctrlVM.postComment( commentData );
-        };
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user clicks the button to reply
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ctrlVM.clickReplyToComment = function( commentId )
-        {
-            ctrlVM.showReplyBoxId = commentId;
-
-            ctrlVM.editComment = {
-                commentText: "",
-                replyToCommentId: commentId
-            };
-        };
-
-        ctrlVM.refreshComments();
-    };
-
-    return {
-        scope: {},
-        restrict: 'E',
-        replace: 'true',
-        controllerAs: 'ctrlVM',
-        templateUrl: '/ngApp/Services/CommentDirectiveTemplate.html',
-        controller: CommentController
-    };
-}] );
 CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
 {
     var linkFunction = function ( scope, elem, attrs )
@@ -8501,6 +8486,27 @@ var Ally;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
     /**
+     * Represents a member of a CHTN group
+     */
+    var FellowChtnResident = /** @class */ (function () {
+        function FellowChtnResident() {
+        }
+        return FellowChtnResident;
+    }());
+    Ally.FellowChtnResident = FellowChtnResident;
+    var CommitteeListingInfo = /** @class */ (function () {
+        function CommitteeListingInfo() {
+        }
+        return CommitteeListingInfo;
+    }());
+    Ally.CommitteeListingInfo = CommitteeListingInfo;
+    var FellowResidents = /** @class */ (function () {
+        function FellowResidents() {
+        }
+        return FellowResidents;
+    }());
+    Ally.FellowResidents = FellowResidents;
+    /**
      * Provides methods to accessing group member and home information
      */
     var FellowResidentsService = /** @class */ (function () {
@@ -8650,6 +8656,162 @@ var Ally;
     Ally.FellowResidentsService = FellowResidentsService;
 })(Ally || (Ally = {}));
 angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the committee home page
+     */
+    var GroupCommentsController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function GroupCommentsController($http, $rootScope) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.isLoading = false;
+            this.showDiscussModal = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        GroupCommentsController.prototype.$onInit = function () {
+            this.isQaSite = false; //HtmlUtil.getSubdomain() === "qa" || HtmlUtil.getSubdomain() === "localtest";
+            if (!this.threadId)
+                this.threadId = "Home";
+            this.editComment = {
+                threadId: this.threadId,
+                commentText: "",
+                replyToCommentId: null
+            };
+            this.refreshComments();
+        };
+        GroupCommentsController.prototype.displayDiscussModal = function () {
+            this.showDiscussModal = true;
+        };
+        GroupCommentsController.prototype.hideDiscussModal = function () {
+            //TODO put in a delay before we allow close to avoid the mobile tap-open-close issue
+            this.showDiscussModal = false;
+        };
+        /**
+         * Retrieve the comments from the server for the current thread
+         */
+        GroupCommentsController.prototype.refreshComments = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Comment?threadId=" + this.threadId).then(function (response) {
+                _this.isLoading = false;
+                _this.commentList = response.data;
+                var markDates = function (c) {
+                    c.postDateUtc = moment.utc(c.postDateUtc).toDate();
+                    if (c.lastEditDateUtc)
+                        c.lastEditDateUtc = moment.utc(c.lastEditDateUtc).toDate();
+                    if (c.deletedDateUtc)
+                        c.deletedDateUtc = moment.utc(c.deletedDateUtc).toDate();
+                    c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
+                    if (c.replies)
+                        _.each(c.replies, markDates);
+                };
+                // Convert the UTC dates to local dates and mark the user's comments
+                _.each(_this.commentList, markDates);
+            }, function (response) {
+                _this.isLoading = false;
+            });
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Add a comment
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        GroupCommentsController.prototype.postComment = function (commentData) {
+            var _this = this;
+            this.isLoading = true;
+            var httpFunc = this.$http.post;
+            if (typeof (commentData.existingCommentId) === "number")
+                httpFunc = this.$http.put;
+            httpFunc("/api/Comment", commentData).then(function () {
+                _this.isLoading = false;
+                _this.editComment = {};
+                _this.showReplyBoxId = -1;
+                _this.refreshComments();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to post comment: " + response.data.exceptionMessage);
+            });
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Add a comment to the current thread
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        GroupCommentsController.prototype.onPostCommentClicked = function () {
+            if (this.editComment.commentText.length === 0)
+                return;
+            // Copy the object to avoid updating the UI
+            var commentData = {
+                threadId: this.threadId,
+                commentText: this.editComment.commentText,
+                replyToCommentId: null,
+                existingCommentId: this.editComment.existingCommentId
+            };
+            this.postComment(commentData);
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Edit an existing comment
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        GroupCommentsController.prototype.editMyComment = function (comment) {
+            this.editComment = {
+                commentText: comment.commentText,
+                existingCommentId: comment.commentId
+            };
+        };
+        ;
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Delete a comment
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        GroupCommentsController.prototype.deleteMyComment = function (comment) {
+            this.isLoading = true;
+            this.$http.delete("/api/Comment?commentId=" + comment.commentId).then(function () {
+                this.isLoading = false;
+                this.refreshComments();
+            }, function (httpResponse) {
+                this.isLoading = false;
+                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                alert("Failed to post comment: " + errorMessage);
+            });
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Add a comment in response to a comment in the current thread
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        GroupCommentsController.prototype.onPostReplyCommentClicked = function () {
+            if (this.editComment.replyText.length === 0)
+                return;
+            // Copy the object to avoid updating the UI
+            var commentData = {
+                threadId: this.threadId,
+                commentText: this.editComment.replyText,
+                replyToCommentId: this.editComment.replyToCommentId
+            };
+            this.postComment(commentData);
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks the button to reply
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        GroupCommentsController.prototype.clickReplyToComment = function (commentId) {
+            this.showReplyBoxId = commentId;
+            this.editComment = {
+                commentText: "",
+                replyToCommentId: commentId
+            };
+        };
+        GroupCommentsController.$inject = ["$http", "$rootScope"];
+        return GroupCommentsController;
+    }());
+    Ally.GroupCommentsController = GroupCommentsController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("groupComments", {
+    bindings: {
+        threadId: "@?"
+    },
+    templateUrl: "/ngApp/services/group-comments.html",
+    controller: Ally.GroupCommentsController
+});
 
 /// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;

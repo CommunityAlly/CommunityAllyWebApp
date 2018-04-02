@@ -116,7 +116,8 @@ grunt.initConfig({
                     'Website/js/lib/other/clipboard.js',
                     'Website/js/lib/other/popper.min.js',
                     'Website/js/lib/other/tether.min.js',
-                    'Website/js/lib/other/bootstrap4.0beta.min.js'
+                    'Website/js/lib/other/bootstrap4.0beta.min.js',
+                    'Website/js/lib/other/md5.js'
                 ]
             }
         },
