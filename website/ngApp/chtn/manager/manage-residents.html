@@ -32,7 +32,7 @@
         <button class="btn btn-primary pull-right" data-ng-click="$ctrl.setEdit( {boardPosition:0, shouldSendWelcomeEmail: false} );">Add New {{ $ctrl.showIsRenter ? 'Resident' : 'Member' }}</button>
     </div>
 
-    <div data-ui-grid="$ctrl.residentGridOptions" data-ui-grid-selection class="gridStyle margin-top-20"></div>
+    <div data-ui-grid="$ctrl.residentGridOptions" data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
     
     <div class="clearfix"> 
         <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} residents</span>
