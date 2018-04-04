@@ -5,8 +5,10 @@ namespace Ally
 {
     class CommitteeListingInfo
     {
+        committeeId: number;
         committeeName: string;
         contactUser: FellowChtnResident;
+        isPrivate: boolean;
     }
 
 
