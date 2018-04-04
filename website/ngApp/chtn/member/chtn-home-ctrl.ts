@@ -18,6 +18,7 @@ namespace Ally
         allyAppName: string;
         homeRightColumnType: string;                
         shouldShowAlertSection: boolean;
+        usersCommittees: Committee[];
 
 
         /**
@@ -51,6 +52,11 @@ namespace Ally
 
             var innerThis = this;
             this.$scope.$on( "homeHasActivePolls", () => innerThis.shouldShowAlertSection = true );
+
+            this.$http.get( "/api/Committee/MyCommittees", { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Committee[]> ) =>
+            {
+                this.usersCommittees = response.data;
+            } );
         }
 
 

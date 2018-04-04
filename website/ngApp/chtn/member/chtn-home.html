@@ -27,7 +27,18 @@
 
     <div class="row">
         <div class="col-md-6">
-            <!--<div class="white-bg spinner-effect margin-vertical">-->
+            <div data-ng-if="$ctrl.usersCommittees.length > 0" class="portlet-box white margin-vertical">
+                <div class="portlet-header">
+                    <h3 class="title">Your Committees</h3>
+                </div>
+
+                <div class="portlet-body">
+                    <p data-ng-repeat="c in $ctrl.usersCommittees">
+                        <a data-ng-href="#!/Committee/{{ c.committeeId }}/Home">{{ c.name }}</a>
+                    </p>
+                </div>
+            </div>
+
             <assessment-payment-form data-ng-if="$ctrl.canMakePayment"></assessment-payment-form>
 
             <group-send-email></group-send-email>

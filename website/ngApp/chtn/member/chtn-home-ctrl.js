@@ -18,6 +18,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ChtnHomeController.prototype.$onInit = function () {
+            var _this = this;
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
@@ -30,6 +31,9 @@ var Ally;
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
+            this.$http.get("/api/Committee/MyCommittees", { cache: true }).then(function (response) {
+                _this.usersCommittees = response.data;
+            });
         };
         ChtnHomeController.prototype.hideFirstVisit = function () {
             this.$rootScope.hasClosedFirstVisitModal = true;
