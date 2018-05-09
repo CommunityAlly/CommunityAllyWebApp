@@ -22,7 +22,6 @@
                             </div>
 
                             <div data-ng-if="curDirectory === $ctrl.selectedDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory" data-ng-repeat="subDirectory in curDirectory.subdirectories">
-                                <div style="display: inline-block; width: 30px;"></div>
                                 <div id="sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
                                      data-ng-click="$ctrl.onDirectoryClicked(subDirectory)" data-folder-path="{{ subDirectory.fullDirectoryPath }}">
                                     <span class="folder-icon"></span>
