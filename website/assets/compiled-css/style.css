@@ -745,18 +745,20 @@ footer {
     cursor: pointer; }
   .page-documents div.sub-directory {
     margin: 4px 0; }
-  .page-documents .directory > span.folder-icon {
+  .page-documents .directory > span.folder-icon, .page-documents .directory-private > span.folder-icon,
+  .page-documents .directory > span.folder-multi-icon, .page-documents .directory-private > span.folder-multi-icon {
     height: 100%;
     background: url(/assets/images/folders.png) no-repeat 0 0;
     width: 41px;
     display: inline-block; }
+  .page-documents .directory > span.folder-multi-icon {
+    background-position: 0 -92px; }
   .page-documents .directory-private > span.folder-icon {
-    height: 100%;
-    background: url(/assets/images/folders.png) no-repeat 0 0;
-    width: 41px;
-    display: inline-block;
     background: url(/assets/images/folders-private.png) no-repeat 0 0; }
-  .page-documents .directory-selected > span.folder-icon {
+  .page-documents .directory-private > span.folder-multi-icon {
+    background: url(/assets/images/folders-private.png) no-repeat 0 0;
+    background-position: 0 -92px; }
+  .page-documents .directory-selected > span.folder-icon, .page-documents .directory-selected > span.folder-multi-icon {
     background-position: 0 -54px !important; }
   .page-documents .directory > span.directory-name, .page-documents .directory-private > span.directory-name {
     position: relative;

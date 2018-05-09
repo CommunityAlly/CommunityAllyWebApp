@@ -2,12 +2,16 @@
     .info-welcome {
         display: flex;
         justify-content: center;
+
         .nav-pills {
             flex-wrap: wrap;
+
             li {
                 padding: 0px 40px;
+
                 a {
                     padding: 4px;
+
                     &.selected {
                         border: 1px solid #08c;
                         border-radius: 10px;
@@ -16,10 +20,7 @@
             }
         }
     }
-
-
     /* Docs page start */
-
     .info li {
         list-style-position: inside;
     }
@@ -28,6 +29,7 @@
         font-size: 14px;
         padding: 4px 12px;
     }
+
     h2 small {
         font-size: 13px;
         font-weight: normal;
@@ -78,11 +80,13 @@
         border: 5px solid #39A2C0;
         padding: 1em;
         text-align: center;
+
         input.form-control {
             display: inline-block;
             width: 200px;
             padding: 3px 6px;
         }
+
         button {
             width: 75px;
         }
@@ -127,11 +131,14 @@
 
     #documents-area {
         border: 1px solid #ddd;
+
         > .row > div {
             min-height: 300px;
+
             &:first-child {
                 padding-right: 15px !important;
                 min-height: 600px;
+
                 @media (min-width: 620px) {
                     padding-right: 0px !important;
                 }
@@ -180,27 +187,34 @@
             margin: 12px 0 4px 0;
             cursor: pointer;
         }
+
         &.sub-directory {
             margin: 4px 0;
         }
     }
 
-    .directory > span.folder-icon {
+    .directory > span.folder-icon, .directory-private > span.folder-icon,
+    .directory > span.folder-multi-icon, .directory-private > span.folder-multi-icon {
         height: 100%;
         background: url(/assets/images/folders.png) no-repeat 0 0;
         width: 41px;
         display: inline-block;
+    }
+
+    .directory > span.folder-multi-icon {
+        background-position: 0 -92px;
     }
 
     .directory-private > span.folder-icon {
-        height: 100%;
-        background: url(/assets/images/folders.png) no-repeat 0 0;
-        width: 41px;
-        display: inline-block;
         background: url(/assets/images/folders-private.png) no-repeat 0 0;
     }
 
-    .directory-selected > span.folder-icon {
+    .directory-private > span.folder-multi-icon {
+        background: url(/assets/images/folders-private.png) no-repeat 0 0;
+        background-position: 0 -92px;
+    }
+
+    .directory-selected > span.folder-icon, .directory-selected > span.folder-multi-icon {
         background-position: 0 -54px !important;
     }
 
@@ -224,9 +238,11 @@
             color: #a3a2a2;
             font-size: 12px;
         }
+
         .file_settings {
             text-align: right;
             padding-right: 40px;
+
             a {
                 color: #4583b6;
                 margin: 0px 4px;
@@ -255,6 +271,5 @@
         border-radius: 5px;
         display: inline-block;
     }
-
     /* Docs page end */
 }

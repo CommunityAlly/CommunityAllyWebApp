@@ -17,7 +17,7 @@
                         <div data-ng-repeat="curDirectory in $ctrl.documentTree.subdirectories">
                             <div id="directory-name-{{ $index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
                                  data-ng-click="$ctrl.onDirectoryClicked(curDirectory);" data-folder-path="{{ curDirectory.fullDirectoryPath }}">
-                                <span class="folder-icon"></span>
+                                <span data-ng-class="{ 'folder-icon': curDirectory.subdirectories.length === 0, 'folder-multi-icon': curDirectory.subdirectories.length > 0 }"></span>
                                 <span class="directory-name">{{curDirectory.name}}</span>
                             </div>
 
