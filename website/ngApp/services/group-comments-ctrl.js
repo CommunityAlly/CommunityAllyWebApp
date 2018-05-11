@@ -1,5 +1,11 @@
 var Ally;
 (function (Ally) {
+    var Comment = /** @class */ (function () {
+        function Comment() {
+        }
+        return Comment;
+    }());
+    Ally.Comment = Comment;
     /**
      * The controller for the committee home page
      */
@@ -43,18 +49,13 @@ var Ally;
             this.$http.get("/api/Comment?threadId=" + this.threadId).then(function (response) {
                 _this.isLoading = false;
                 _this.commentList = response.data;
-                var markDates = function (c) {
-                    c.postDateUtc = moment.utc(c.postDateUtc).toDate();
-                    if (c.lastEditDateUtc)
-                        c.lastEditDateUtc = moment.utc(c.lastEditDateUtc).toDate();
-                    if (c.deletedDateUtc)
-                        c.deletedDateUtc = moment.utc(c.deletedDateUtc).toDate();
+                var processComments = function (c) {
                     c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
                     if (c.replies)
-                        _.each(c.replies, markDates);
+                        _.each(c.replies, processComments);
                 };
                 // Convert the UTC dates to local dates and mark the user's comments
-                _.each(_this.commentList, markDates);
+                _.each(_this.commentList, processComments);
             }, function (response) {
                 _this.isLoading = false;
             });

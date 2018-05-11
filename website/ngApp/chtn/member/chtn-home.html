@@ -45,9 +45,9 @@
         </div><!--end/left side bar-->
 
         <!-- right sidebar -->
-        <div class="col-md-6">            
+        <div class="col-md-6">
             <local-news-feed data-ng-if="$ctrl.homeRightColumnType === 'localnews'"></local-news-feed>
-            <group-comments data-ng-if="$ctrl.homeRightColumnType === 'chatwall'"></group-comments>
+            <group-comment-threads data-ng-if="$ctrl.homeRightColumnType === 'chatwall'"></group-comment-threads>
         </div>
     </div>
 

@@ -1,0 +1,54 @@
+﻿<div class="group-comment-container portlet-box white spinner-effect margin-vertical" data-ng-cloak>
+    <div class="portlet-header">
+        <button class="btn btn-primary" data-ng-click="$ctrl.setDisplayCreateModal(true)" style="float: right;">Start New Thread</button>
+        <h2 class="title">Discussion</h2>
+    </div>
+
+    <!--portlet body-->
+    <div class="portlet-body">
+        <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
+        
+        <div>
+            <div data-ng-repeat="thread in $ctrl.commentThreads" class="mt-2 mb-2">
+                <h5 class="text-link" data-ng-click="$ctrl.displayDiscussModal( thread )">{{ thread.title }}</h5>
+                <span style="font-weight:bold;">{{ thread.authorFullName }}</span>
+                - <span data-livestamp="{{ thread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.createDateUtc | date:'medium' }}"></span>
+                <hr data-ng-if="$index < $ctrl.commentThreads.length - 1" />
+            </div>
+        </div>
+
+        <div data-ng-if="$ctrl.showCreateNewModal" class="modal-container">
+            <div class="modal-overlay" data-ng-click="$ctrl.setDisplayCreateModal(false)"></div>
+            <div class="ca-modal-dialog">
+                <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.setDisplayCreateModal(false)">&times;</span>
+
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" data-ng-model="$ctrl.newThreadTitle" class="form-control form-control-sm" maxlength="256" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Body:</label>
+                    <textarea type="text" data-ng-model="$ctrl.newThreadBody" rows="4" class="form-control" maxlength="1024"></textarea>
+                </div>
+
+                <div class="form-group" data-ng-if="$ctrl.showBoardOnly">
+                    <label for="is-board-only-thread-check-box">Is Board Only:</label>
+                    <input id="is-board-only-thread-check-box" type="checkbox" data-ng-model="$ctrl.newThreadIsBoardOnly" />
+                    <br />
+                    <span class="note-text">Indicates this discussion thread will only be visible to board members and site admin.</span>
+                </div>
+
+                <div style="text-align: center;">
+                    <div class="text-error" data-ng-if="$ctrl.newThreadErrorMessage">{{$ctrl.newThreadErrorMessage}}</div>
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createNewThread()">Create Thread</button>
+                    <!--&nbsp;<button type="button" class="btn btn-primary" data-ng-click="$ctrl.setDisplayCreateModal(false)">Cancel</button>-->
+                </div>
+            </div>
+        </div>
+
+        <group-comment-thread-view data-ng-if="$ctrl.viewingThread" data-thread="$ctrl.viewingThread" data-on-closed="$ctrl.viewingThread = null"></group-comment-thread-view>
+    </div><!--end/portlet body-->
+
+</div>

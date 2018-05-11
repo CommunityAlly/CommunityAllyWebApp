@@ -1,5 +1,26 @@
 ﻿namespace Ally
 {
+    export class Comment
+    {
+        commentId: number;
+        groupId: number;
+        threadId: string;
+        commentText: string;
+        replyToCommentId: number;
+        authorUserId: string;
+        postDateUtc: Date;
+        lastEditDateUtc: Date;
+        deletedDateUtc: Date;
+        authorFullName: string;
+        authorEmailAddress: string;
+        authorAvatarUrl: string;
+        replies: Comment[];
+
+        // Not from server
+        isMyComment: boolean;
+    }
+
+
     /**
      * The controller for the committee home page
      */
@@ -12,7 +33,7 @@
         isQaSite: boolean;
         editComment: any;
         showDiscussModal: boolean = false;
-        commentList: any[];
+        commentList: Comment[];
         showReplyBoxId: number;
 
 
@@ -70,24 +91,16 @@
                 this.isLoading = false;
                 this.commentList = response.data;
 
-                var markDates = ( c: any ) =>
+                let processComments = ( c: Comment ) =>
                 {
-                    c.postDateUtc = moment.utc( c.postDateUtc ).toDate();
-
-                    if( c.lastEditDateUtc )
-                        c.lastEditDateUtc = moment.utc( c.lastEditDateUtc ).toDate();
-
-                    if( c.deletedDateUtc )
-                        c.deletedDateUtc = moment.utc( c.deletedDateUtc ).toDate();
-
                     c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
 
                     if( c.replies )
-                        _.each( c.replies, markDates );
+                        _.each( c.replies, processComments );
                 };
 
                 // Convert the UTC dates to local dates and mark the user's comments
-                _.each( this.commentList, markDates );
+                _.each( this.commentList, processComments );
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {

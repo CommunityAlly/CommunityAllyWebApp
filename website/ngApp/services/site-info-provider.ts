@@ -23,7 +23,7 @@ namespace Ally
         lastLoginDateUtc: Date;
         postmarkReportedBadEmailUtc: Date;
 
-        boardPosition: string;
+        boardPosition: number;
         assessmentPaymentHistory: string[];
         assessmentAmount: number;
         isRenter: boolean;

@@ -9,7 +9,7 @@
   height: auto !important;
   padding-top: 30px;
   padding-bottom: 30px;
-  max-width: 90%;
+  max-width: 94%;
   background-color: #FFF;
   border: 2px solid #000;
   border-radius: 10px;
@@ -20,7 +20,7 @@
     padding-bottom: 0.3em; }
   @media screen and (max-width: 620px) {
     .ca-modal-dialog {
-      left: 5% !important;
+      left: 3% !important;
       margin-left: 0px !important; } }
   .ca-modal-dialog.modal-lg {
     width: 900px;
@@ -415,6 +415,16 @@ img.file-thumbnail {
 .AlignRightBold {
   text-align: right;
   font-weight: bold; }
+
+.close-x {
+  cursor: pointer;
+  color: #034af3;
+  font-weight: bold;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 16px;
+  margin-left: 3em;
+  font-family: verdana,tahoma,helvetica; }
 
 body {
   font-family: "Open Sans",sans-serif;
