@@ -6,12 +6,12 @@
 </section>
 
 
-    <div class="row">
-        <div class="col-md-6">
-            <group-send-email committee="$ctrl.committee"></group-send-email>
-        </div>
-
-        <div class="col-md-6">
-            <group-comments thread-id="committee-home-{{ $ctrl.committee.committeeId }}"></group-comments>
-        </div>
+<div class="row">
+    <div class="col-md-6">
+        <group-send-email committee="$ctrl.committee"></group-send-email>
     </div>
+
+    <div class="col-md-6">
+        <group-comments thread-id="committee-home-{{ $ctrl.committee.committeeId }}"></group-comments>
+    </div>
+</div>

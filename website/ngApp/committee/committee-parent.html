@@ -1,29 +1,32 @@
 ﻿<div class="page-documents">
     <section class="padding white-bg padding margin-vertical box-shadow">
         <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+        <span data-ng-if="$ctrl.committee.isPrivate" class="note-text" style="float: right; max-width: 320px;">This is a private committee, only members can view the contents.</span>
+        <span data-ng-if="!$ctrl.committee.isPrivate" class="note-text" style="float: right; max-width: 320px;">This is an open committee, all association residents can view the contents, but only members can modify data.</span>
         <h1 data-ng-if="!$ctrl.canManage">{{ $ctrl.committee.name }}</h1>
-        <h1 data-ng-if="$ctrl.canManage" class="can-edit-inline" data-onaftersave="$ctrl.onUpdateCommitteeName();" data-editable-text="$ctrl.committee.name">{{ $ctrl.committee.name }}</h1><br />
+        <h1 data-ng-if="$ctrl.canManage" class="can-edit-inline" data-onaftersave="$ctrl.onUpdateCommitteeName();" data-editable-text="$ctrl.committee.name">{{ $ctrl.committee.name }}</h1>
+        <br />
         <br />
 
         <nav class="nav nav-pills justify-content-center">
-                
+
             <a class="nav-item nav-link" data-ng-href="#!/Committee/{{$ctrl.committeeId}}/Home" id="info-sub-view-link-docs"
-                data-ng-class="{'active':$ctrl.selectedView==='Home'}" data-ng-click="$ctrl.selectedView='Home'">
+               data-ng-class="{'active':$ctrl.selectedView==='Home'}" data-ng-click="$ctrl.selectedView='Home'">
                 Home
             </a>
-                
+
             <a class="nav-item nav-link" href="#!/Committee/{{$ctrl.committeeId}}/Docs" id="info-sub-view-link-docs"
-                data-ng-class="{'active':$ctrl.selectedView==='Docs'}" data-ng-click="$ctrl.selectedView='Docs'">
+               data-ng-class="{'active':$ctrl.selectedView==='Docs'}" data-ng-click="$ctrl.selectedView='Docs'">
                 Documents
             </a>
-                
+
             <a class="nav-item nav-link" href="#!/Committee/{{$ctrl.committeeId}}/Info" id="info-sub-view-link-info"
-                data-ng-class="{'active':$ctrl.selectedView==='Info'}" data-ng-click="$ctrl.selectedView='Info'">
+               data-ng-class="{'active':$ctrl.selectedView==='Info'}" data-ng-click="$ctrl.selectedView='Info'">
                 Info/FAQs
             </a>
-                
+
             <a class="nav-item nav-link" href="#!/Committee/{{$ctrl.committeeId}}/Members" id="info-sub-view-link-members"
-                data-ng-class="{'active':$ctrl.selectedView==='Members'}" data-ng-click="$ctrl.selectedView='Members'">
+               data-ng-class="{'active':$ctrl.selectedView==='Members'}" data-ng-click="$ctrl.selectedView='Members'">
                 Members
             </a>
 
