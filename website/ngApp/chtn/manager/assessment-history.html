@@ -65,6 +65,8 @@
         <div class="modal-overlay" data-ng-click="$ctrl.editPayment = null"></div>
         <div class="ca-modal-dialog modal-sm">
             <div class="loading-overlay" data-ng-show="$ctrl.isSavingPayment"></div>
+
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.editPayment = null">&times;</span>
             <h3>Payment for {{$ctrl.editPayment.periodName}} {{$ctrl.editPayment.payment.year}}</h3>
             <form>
                 <div class="form-group row">
@@ -120,7 +122,7 @@
 
                 <div class="text-right mt-3">
                     <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSavePayment();" />
-                    <input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editPayment = null" />
+                    <!--<input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editPayment = null" />-->
                 </div>
             </form>
         </div>

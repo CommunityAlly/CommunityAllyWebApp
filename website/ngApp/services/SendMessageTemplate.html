@@ -4,6 +4,7 @@
     <div class="modal-container" data-ng-if="vm.shouldShowSendModal" data-ng-escape="vm.hideModal()">
         <div class="modal-overlay" data-ng-click="vm.shouldShowSendModal = false"></div>
         <form class="ca-modal-dialog modal-sm" data-ng-style="{ 'height' : vm.sendResultMessage ? '477px' : '400px' }">
+            <span style="float: right;" class="close-x" data-ng-click="vm.hideModal()">&times;</span>
             <h2>Send Message</h2>
 
             <div class="form-group row">
@@ -24,7 +25,7 @@
             <div class="text-right">
                 <div data-ng-show="vm.shouldShowButtons">
                     <button type="button" class="btn btn-primary" data-ng-click="vm.sendMessage()">Send</button>
-                    <button type="button" class="btn btn-primary" data-ng-click="vm.hideModal()">Cancel</button>
+                    <!--<button type="button" class="btn btn-primary" data-ng-click="vm.hideModal()">Cancel</button>-->
                 </div>
                 <img src="/assets/images/spinner-large.gif" data-ng-show="vm.isSending" />
                 <p data-ng-show="vm.sendResultMessage" class="error-text" data-ng-style="{ 'color' : vm.sendResultIsError ? 'red' : 'blue', 'text-align' : 'left' }">
