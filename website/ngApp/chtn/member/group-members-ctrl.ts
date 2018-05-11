@@ -3,15 +3,6 @@ declare var Clipboard: any;
 
 namespace Ally
 {
-    class CommitteeListingInfo
-    {
-        committeeId: number;
-        committeeName: string;
-        contactUser: FellowChtnResident;
-        isPrivate: boolean;
-    }
-
-
     /**
      * The controller for the page that lists group members
      */
@@ -135,6 +126,9 @@ namespace Ally
                 var useNumericNames = _.every( this.unitList, function( u ) { return HtmlUtil.isNumericString( u.name ); } );
                 if( useNumericNames )
                     this.unitList = _.sortBy( this.unitList, function( u ) { return +u.name; } );
+
+                // Only show commitees with a contact person
+                this.committees = _.reject( this.committees, c => !c.contactUser );
 
                 // Populate the e-mail name lists
                 this.setupGroupEmails();

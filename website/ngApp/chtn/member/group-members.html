@@ -25,6 +25,7 @@
                 </div>
 
                 <div class="portlet-body">
+                    <p style="margin-bottom: 7px;" class="note-text">Contact the residents below if you'd like to learn more about a certain committee</p>
                     <div data-ng-repeat="committee in $ctrl.committees">
                         <span style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;(<a data-ng-if="!committee.isPrivate" data-ng-href="#!/Committee/{{ committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)&nbsp;-&nbsp;{{ committee.contactUser.fullName }}<span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="committee.contactUser"></send-message></span><br />
                     </div>

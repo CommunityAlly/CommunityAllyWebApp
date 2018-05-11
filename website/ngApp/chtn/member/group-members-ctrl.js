@@ -1,10 +1,5 @@
 var Ally;
 (function (Ally) {
-    var CommitteeListingInfo = /** @class */ (function () {
-        function CommitteeListingInfo() {
-        }
-        return CommitteeListingInfo;
-    }());
     /**
      * The controller for the page that lists group members
      */
@@ -92,6 +87,8 @@ var Ally;
                 var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
                 if (useNumericNames)
                     _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
+                // Only show commitees with a contact person
+                _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
                 // Populate the e-mail name lists
                 _this.setupGroupEmails();
             });
