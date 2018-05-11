@@ -222,7 +222,14 @@ CA.angularApp.config(
 
     $httpProvider.interceptors.push( 'http403Interceptor' );
 
-    
+    // Make date strings convert to date objects
+    ( <any>$httpProvider.defaults.transformResponse ).push( function( responseData: any )
+    {
+        Ally.HtmlUtil2.convertStringsToDates( responseData );
+        return responseData;
+    } );
+
+
     // Create an interceptor so we can add our auth token header. Also, this allows us to set our
     // own base URL for API calls so local testing can use the live API.
     $provide.factory( "apiUriInterceptor", ["$rootScope", function( $rootScope: ng.IRootScopeService )
