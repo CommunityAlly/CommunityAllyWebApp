@@ -163,7 +163,7 @@
 
                 <div class="col-sm-6 text-sm-right">
                     <input id="save-edit-button" class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$invalid" type="button" value="Save" data-ng-click="$ctrl.onSaveResident();" />
-                    <input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.setEdit( null )" />
+                    <input id="cancel-edit-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.setEdit( null )" />
                     <input id="remove-resident-button" class="btn btn-primary" data-ng-show="$ctrl.editUser.userId.length > 0" type="button" value="Remove Resident" data-ng-click="$ctrl.onDeleteResident();" />
                     <input type="hidden" value="{{$ctrl.editUser.userId}}" />
                     <div class="text-sm-right" data-ng-if="$ctrl.editUser.userId.length > 0">
