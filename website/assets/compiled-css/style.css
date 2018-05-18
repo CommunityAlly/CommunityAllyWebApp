@@ -406,7 +406,8 @@ ol, ul {
 
 .text-error {
   color: red;
-  font-weight: bold; }
+  font-weight: bold;
+  font-size: large; }
 
 img.file-thumbnail {
   width: 57px;
