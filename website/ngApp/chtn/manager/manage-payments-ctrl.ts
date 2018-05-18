@@ -1,5 +1,22 @@
 namespace Ally
 {
+    class PaymentPageInfo
+    {
+        isWePaySetup: boolean;
+        areOnlinePaymentsAllowed: boolean;
+        wePayLoginUri: string;
+        payerPaysCCFee: boolean;
+        payerPaysAchFee: boolean;
+        balanceDetail: any;
+        needsReLogin: boolean;
+        lateFeeDayOfMonth: number;
+        lateFeeAmount: string;
+        electronicPayments: any[];
+        unitAssessments: any[];
+        usersWithAutoPay: any[];
+    }
+
+
     /**
      * The controller for the page to view online payment information
      */
@@ -18,9 +35,10 @@ namespace Ally
         isAssessmentTrackingEnabled: boolean;
         payments: any[];
         testFee: any;
+        hasLoadedPage: boolean = false;
         isLoading: boolean = false;
         hasAssessments: boolean;
-        paymentInfo: any;
+        paymentInfo: PaymentPageInfo;
         isLoadingUnits: boolean = false;
         isLoadingPayment: boolean = false;
         isLoadingLateFee: boolean = false;
@@ -30,8 +48,13 @@ namespace Ally
         adjustedAssessmentSum: number;
         signUpStep: number;
         signUpInfo: any;
-        viewingCheckoutId: number;
+        viewingWePayCheckoutId: number;
+        viewingPayPalCheckoutId: string;
         checkoutInfo: any;
+        payPalSignUpClientId: string;
+        payPalSignUpClientSecret: string;
+        payPalSignUpErrorMessage: string;
+        isUpdatingPayPalCredentials: boolean;
 
 
         /**
@@ -86,17 +109,17 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.get( "/api/OnlinePayment" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
+                this.hasLoadedPage = true;
 
-                innerThis.hasAssessments = innerThis.siteInfo.privateSiteInfo.hasAssessments;
+                this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
 
                 var data = httpResponse.data;
-                innerThis.paymentInfo = data;
+                this.paymentInfo = data;
 
-                innerThis.lateFeeInfo =
+                this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
                         lateFeeAmount: data.lateFeeAmount
@@ -107,8 +130,8 @@ namespace Ally
                     && !HtmlUtil.endsWith( this.lateFeeInfo.lateFeeAmount, "%" ) )
                     this.lateFeeInfo.lateFeeAmount = "$" + this.lateFeeInfo.lateFeeAmount;
 
-                innerThis.refreshUnits();
-                innerThis.updateTestFee();
+                this.refreshUnits();
+                this.updateTestFee();
             } );
         }
 
@@ -178,6 +201,64 @@ namespace Ally
         }
 
 
+        /**
+         * Allow the user to update their PayPal client ID and client secret
+         */
+        updatePayPalCredentials()
+        {
+            this.isUpdatingPayPalCredentials = true;
+            //this.payPalSignUpClientId = this.paymentInfo.payPalClientId;
+            this.payPalSignUpClientSecret = "";
+            this.payPalSignUpErrorMessage = "";
+        }
+
+
+        /**
+         * Save the allow setting
+         */
+        saveAllowSetting()
+        {
+            this.isLoading = true;
+            
+            this.$http.put( "/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                window.location.reload();
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + httpResponse.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Occurs when the user clicks the button to save the PayPal client ID and secret
+         */
+        enablePayPal()
+        {
+            this.isLoading = true;
+            this.payPalSignUpErrorMessage = null;
+
+            let enableInfo = {
+                clientId: this.payPalSignUpClientId,
+                clientSecret: this.payPalSignUpClientSecret
+            };
+
+            this.$http.put( "/api/OnlinePayment/EnablePayPal", enableInfo ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.payPalSignUpClientId = "";
+                this.payPalSignUpClientSecret = "";
+                window.location.reload();
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                this.payPalSignUpErrorMessage = httpResponse.data.exceptionMessage;
+            } );
+        }
+
+
         selectText()
         {
             // HACK: Timeout needed to fire after x-editable's activation
@@ -196,8 +277,7 @@ namespace Ally
         {
             this.message = "";
 
-
-            this.$http.get( "/api/OnlinePayment?action=withdrawal" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            this.$http.get( "/api/OnlinePayment?action=withdrawal" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 var withdrawalInfo = httpResponse.data;
 
@@ -206,7 +286,7 @@ namespace Ally
                 else
                     this.message = withdrawalInfo.message;
 
-            }, function( httpResponse )
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 if( httpResponse.data && httpResponse.data.exceptionMessage )
                     this.message = httpResponse.data.exceptionMessage;
@@ -229,7 +309,7 @@ namespace Ally
                 unit.adjustedAssessment = parseFloat( unit.adjustedAssessment );
 
             var innerThis = this;
-            this.$http.put( "/api/Unit", unit ).then( function()
+            this.$http.put( "/api/Unit", unit ).then( () =>
             {
                 innerThis.isLoadingUnits = false;
 
@@ -254,22 +334,22 @@ namespace Ally
 
                 var usersAffected:any[] = [];
                 if( payTypeUpdated === "ach" )
-                    usersAffected = _.where( this.paymentInfo.usersWithAutoPay, function( u:any ) { return u.wePayAutoPayFundingSource === AchDBString; } );
+                    usersAffected = _.where( this.paymentInfo.usersWithAutoPay, ( u: any ) => u.wePayAutoPayFundingSource === AchDBString );
                 else if( payTypeUpdated === "cc" )
-                    usersAffected = _.where( this.paymentInfo.usersWithAutoPay, function( u:any ) { return u.wePayAutoPayFundingSource === CreditDBString; } );
+                    usersAffected = _.where( this.paymentInfo.usersWithAutoPay, ( u:any ) => u.wePayAutoPayFundingSource === CreditDBString );
 
                 // If users will be affected then display an error message to the user
                 if( usersAffected.length > 0 )
                 {
                     // We need to reload the site if the user is affected so the home page updates that
                     // the user does not have auto-pay enabled
-                    needsReloadOfPage = _.find( usersAffected, function( u ) { return u.userId === this.$parent.userInfo.userId; } ) !== undefined;
-
+                    needsReloadOfPage = _.find( usersAffected, ( u: any ) => u.userId === this.siteInfo.userInfo.userId ) !== undefined;
+                    
                     needsFullRefresh = true;
 
                     var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay cancelled and they will be informed by e-mail:\n";
 
-                    _.each( usersAffected, function( u:any ) { message += u.ownerName + "\n"; } );
+                    _.each( usersAffected, ( u:any ) => message += u.ownerName + "\n" );
 
                     message += "\nDo you want to continue?";
 
@@ -289,7 +369,7 @@ namespace Ally
             this.isLoadingPayment = true;
 
             var innerThis = this;
-            this.$http.put( "/api/OnlinePayment", this.paymentInfo ).then( function()
+            this.$http.put( "/api/OnlinePayment", this.paymentInfo ).then( () =>
             {
                 if( needsReloadOfPage )
                     window.location.reload();
@@ -306,7 +386,7 @@ namespace Ally
             this.updateTestFee();
         }
 
-        
+
         /**
          * Used to show the sum of all assessments
          */
@@ -357,38 +437,64 @@ namespace Ally
         {
             this.isLoadingLateFee = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null ).then( function( httpResponse:ng.IHttpPromiseCallbackArg<any> )
+            this.$http.put( "/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isLoadingLateFee = false;
+                this.isLoadingLateFee = false;
 
                 var lateFeeResult = httpResponse.data;
 
                 if( !lateFeeResult || !lateFeeResult.feeAmount || lateFeeResult.feeType === 0 )
                 {
-                    if( innerThis.lateFeeInfo.lateFeeDayOfMonth !== "" )
+                    if( this.lateFeeInfo.lateFeeDayOfMonth !== "" )
                         alert( "Failed to save the late fee. Please enter only a number for the date (ex. 5) and an amount (ex. 12.34) or percent (ex. 5%) for the fee. To disable late fees, clear the date field and hit save." );
 
-                    innerThis.lateFeeInfo.lateFeeDayOfMonth = "";
-                    innerThis.lateFeeInfo.lateFeeAmount = null;
+                    this.lateFeeInfo.lateFeeDayOfMonth = "";
+                    this.lateFeeInfo.lateFeeAmount = null;
                 }
                 else
                 {
-                    innerThis.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
+                    this.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
 
                     // feeType of 2 is percent, 1 is flat, and 0 is invalid
                     if( lateFeeResult.feeType === 1 )
-                        innerThis.lateFeeInfo.lateFeeAmount = "$" + innerThis.lateFeeInfo.lateFeeAmount;
+                        this.lateFeeInfo.lateFeeAmount = "$" + this.lateFeeInfo.lateFeeAmount;
                     else if( lateFeeResult.feeType === 2 )
-                        innerThis.lateFeeInfo.lateFeeAmount = "" + innerThis.lateFeeInfo.lateFeeAmount + "%";
+                        this.lateFeeInfo.lateFeeAmount = "" + this.lateFeeInfo.lateFeeAmount + "%";
                 }
 
-            }, function( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoadingLateFee = false;
+                this.isLoadingLateFee = false;
 
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert( "Failed to update late fee: " + errorMessage );
+            } );
+        }
+
+        /**
+         * Show the PayPal info for a specific transaction
+         */
+        showPayPalCheckoutInfo( payPalCheckoutId: string )
+        {
+            this.viewingPayPalCheckoutId = payPalCheckoutId;
+
+            if( !this.viewingPayPalCheckoutId )
+                return;
+
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+
+            this.$http.get( "/api/OnlinePayment/PayPalCheckoutInfo?checkoutId=" + payPalCheckoutId, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                this.checkoutInfo = httpResponse.data;
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
             } );
         }
 
@@ -398,27 +504,25 @@ namespace Ally
          */
         showWePayCheckoutInfo( wePayCheckoutId:number )
         {
-            this.viewingCheckoutId = wePayCheckoutId;
+            this.viewingWePayCheckoutId = wePayCheckoutId;
 
-            if( !this.viewingCheckoutId )
+            if( !this.viewingWePayCheckoutId )
                 return;
 
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            var innerThis = this;
-            this.$http.get( "/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( function( httpResponse:ng.IHttpPromiseCallbackArg<any> )
+            this.$http.get( "/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isLoadingCheckoutDetails = false;
+                this.isLoadingCheckoutDetails = false;
 
-                innerThis.checkoutInfo = httpResponse.data;
+                this.checkoutInfo = httpResponse.data;
 
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoadingCheckoutDetails = false;
+                this.isLoadingCheckoutDetails = false;
 
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to retrieve checkout details: " + errorMessage );
+                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
             } );
         }
 

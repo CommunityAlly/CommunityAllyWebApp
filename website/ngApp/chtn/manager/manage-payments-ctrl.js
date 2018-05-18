@@ -1,5 +1,10 @@
 var Ally;
 (function (Ally) {
+    var PaymentPageInfo = /** @class */ (function () {
+        function PaymentPageInfo() {
+        }
+        return PaymentPageInfo;
+    }());
     /**
      * The controller for the page to view online payment information
      */
@@ -18,6 +23,7 @@ var Ally;
             this.AssociationPaysAch = true;
             this.AssociationPaysCC = false; // Payer pays credit card fees
             this.lateFeeInfo = {};
+            this.hasLoadedPage = false;
             this.isLoading = false;
             this.isLoadingUnits = false;
             this.isLoadingPayment = false;
@@ -60,13 +66,13 @@ var Ally;
         ManagePaymentsController.prototype.refresh = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/OnlinePayment").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.hasAssessments = innerThis.siteInfo.privateSiteInfo.hasAssessments;
+                _this.isLoading = false;
+                _this.hasLoadedPage = true;
+                _this.hasAssessments = _this.siteInfo.privateSiteInfo.hasAssessments;
                 var data = httpResponse.data;
-                innerThis.paymentInfo = data;
-                innerThis.lateFeeInfo =
+                _this.paymentInfo = data;
+                _this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
                         lateFeeAmount: data.lateFeeAmount
@@ -75,8 +81,8 @@ var Ally;
                 if (!HtmlUtil.isNullOrWhitespace(_this.lateFeeInfo.lateFeeAmount)
                     && !HtmlUtil.endsWith(_this.lateFeeInfo.lateFeeAmount, "%"))
                     _this.lateFeeInfo.lateFeeAmount = "$" + _this.lateFeeInfo.lateFeeAmount;
-                innerThis.refreshUnits();
-                innerThis.updateTestFee();
+                _this.refreshUnits();
+                _this.updateTestFee();
             });
         };
         /**
@@ -124,6 +130,48 @@ var Ally;
                 return "rd";
             return "th";
         };
+        /**
+         * Allow the user to update their PayPal client ID and client secret
+         */
+        ManagePaymentsController.prototype.updatePayPalCredentials = function () {
+            this.isUpdatingPayPalCredentials = true;
+            //this.payPalSignUpClientId = this.paymentInfo.payPalClientId;
+            this.payPalSignUpClientSecret = "";
+            this.payPalSignUpErrorMessage = "";
+        };
+        /**
+         * Save the allow setting
+         */
+        ManagePaymentsController.prototype.saveAllowSetting = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to save the PayPal client ID and secret
+         */
+        ManagePaymentsController.prototype.enablePayPal = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.payPalSignUpErrorMessage = null;
+            var enableInfo = {
+                clientId: this.payPalSignUpClientId,
+                clientSecret: this.payPalSignUpClientSecret
+            };
+            this.$http.put("/api/OnlinePayment/EnablePayPal", enableInfo).then(function (httpResponse) {
+                _this.payPalSignUpClientId = "";
+                _this.payPalSignUpClientSecret = "";
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                _this.payPalSignUpErrorMessage = httpResponse.data.exceptionMessage;
+            });
+        };
         ManagePaymentsController.prototype.selectText = function () {
             // HACK: Timeout needed to fire after x-editable's activation
             setTimeout(function () {
@@ -135,16 +183,17 @@ var Ally;
         // association's account
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ManagePaymentsController.prototype.onWithdrawalClick = function () {
+            var _this = this;
             this.message = "";
             this.$http.get("/api/OnlinePayment?action=withdrawal").then(function (httpResponse) {
                 var withdrawalInfo = httpResponse.data;
                 if (withdrawalInfo.redirectUri)
                     window.location.href = withdrawalInfo.redirectUri;
                 else
-                    this.message = withdrawalInfo.message;
+                    _this.message = withdrawalInfo.message;
             }, function (httpResponse) {
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    this.message = httpResponse.data.exceptionMessage;
+                    _this.message = httpResponse.data.exceptionMessage;
             });
         };
         /**
@@ -168,6 +217,7 @@ var Ally;
          * Occurs when the user changes who covers the WePay transaction fee
          */
         ManagePaymentsController.prototype.onChangeFeePayerInfo = function (payTypeUpdated) {
+            var _this = this;
             // See if any users have auto-pay setup for this payment type
             var needsFullRefresh = false;
             var needsReloadOfPage = false;
@@ -183,10 +233,10 @@ var Ally;
                 if (usersAffected.length > 0) {
                     // We need to reload the site if the user is affected so the home page updates that
                     // the user does not have auto-pay enabled
-                    needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === this.$parent.userInfo.userId; }) !== undefined;
+                    needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
                     var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay cancelled and they will be informed by e-mail:\n";
-                    _.each(usersAffected, function (u) { message += u.ownerName + "\n"; });
+                    _.each(usersAffected, function (u) { return message += u.ownerName + "\n"; });
                     message += "\nDo you want to continue?";
                     if (!confirm(message)) {
                         // Reset the setting
@@ -247,48 +297,65 @@ var Ally;
          * Save the late fee info
          */
         ManagePaymentsController.prototype.saveLateFee = function () {
+            var _this = this;
             this.isLoadingLateFee = true;
-            var innerThis = this;
             this.$http.put("/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null).then(function (httpResponse) {
-                innerThis.isLoadingLateFee = false;
+                _this.isLoadingLateFee = false;
                 var lateFeeResult = httpResponse.data;
                 if (!lateFeeResult || !lateFeeResult.feeAmount || lateFeeResult.feeType === 0) {
-                    if (innerThis.lateFeeInfo.lateFeeDayOfMonth !== "")
+                    if (_this.lateFeeInfo.lateFeeDayOfMonth !== "")
                         alert("Failed to save the late fee. Please enter only a number for the date (ex. 5) and an amount (ex. 12.34) or percent (ex. 5%) for the fee. To disable late fees, clear the date field and hit save.");
-                    innerThis.lateFeeInfo.lateFeeDayOfMonth = "";
-                    innerThis.lateFeeInfo.lateFeeAmount = null;
+                    _this.lateFeeInfo.lateFeeDayOfMonth = "";
+                    _this.lateFeeInfo.lateFeeAmount = null;
                 }
                 else {
-                    innerThis.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
+                    _this.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
                     // feeType of 2 is percent, 1 is flat, and 0 is invalid
                     if (lateFeeResult.feeType === 1)
-                        innerThis.lateFeeInfo.lateFeeAmount = "$" + innerThis.lateFeeInfo.lateFeeAmount;
+                        _this.lateFeeInfo.lateFeeAmount = "$" + _this.lateFeeInfo.lateFeeAmount;
                     else if (lateFeeResult.feeType === 2)
-                        innerThis.lateFeeInfo.lateFeeAmount = "" + innerThis.lateFeeInfo.lateFeeAmount + "%";
+                        _this.lateFeeInfo.lateFeeAmount = "" + _this.lateFeeInfo.lateFeeAmount + "%";
                 }
             }, function (httpResponse) {
-                innerThis.isLoadingLateFee = false;
+                _this.isLoadingLateFee = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to update late fee: " + errorMessage);
+            });
+        };
+        /**
+         * Show the PayPal info for a specific transaction
+         */
+        ManagePaymentsController.prototype.showPayPalCheckoutInfo = function (payPalCheckoutId) {
+            var _this = this;
+            this.viewingPayPalCheckoutId = payPalCheckoutId;
+            if (!this.viewingPayPalCheckoutId)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/OnlinePayment/PayPalCheckoutInfo?checkoutId=" + payPalCheckoutId, { cache: true }).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
          * Show the WePay info for a specific transaction
          */
         ManagePaymentsController.prototype.showWePayCheckoutInfo = function (wePayCheckoutId) {
-            this.viewingCheckoutId = wePayCheckoutId;
-            if (!this.viewingCheckoutId)
+            var _this = this;
+            this.viewingWePayCheckoutId = wePayCheckoutId;
+            if (!this.viewingWePayCheckoutId)
                 return;
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
-            var innerThis = this;
             this.$http.get("/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true }).then(function (httpResponse) {
-                innerThis.isLoadingCheckoutDetails = false;
-                innerThis.checkoutInfo = httpResponse.data;
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
             }, function (httpResponse) {
-                innerThis.isLoadingCheckoutDetails = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert("Failed to retrieve checkout details: " + errorMessage);
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
