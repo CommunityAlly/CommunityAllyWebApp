@@ -49,7 +49,6 @@ var Ally;
             if (this.recentPayments && this.recentPayments.length > 0) {
                 if (this.recentPayments.length > MaxNumRecentPayments)
                     this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
-                this.numRecentPayments = this.recentPayments.length;
                 // Fill up the list so there's always MaxNumRecentPayments
                 while (this.recentPayments.length < MaxNumRecentPayments)
                     this.recentPayments.push({});
@@ -120,7 +119,7 @@ var Ally;
             this.$rootScope.$broadcast("prepAssessmentEmailToBoard", prepEventData);
         };
         /**
-         * Refresh the not text for the payment field
+         * Refresh the note text for the payment field
          */
         AssessmentPaymentFormController.prototype.updatePaymentText = function () {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
@@ -137,6 +136,9 @@ var Ally;
                 this.paymentInfo.note = "";
             }
         };
+        /**
+         * Occurs when the user selects a payment type radio button
+         */
         AssessmentPaymentFormController.prototype.onSelectPaymentType = function (paymentType) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;

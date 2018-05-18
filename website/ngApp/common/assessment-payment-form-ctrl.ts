@@ -20,7 +20,6 @@
         nextAutoPayText: string;
         paymentInfo: any;
         recentPayments: any[];
-        numRecentPayments: number;
         assessmentAmount: number;
         nextPaymentText: string;
         knowsNextPayment: boolean;
@@ -44,7 +43,7 @@
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
             this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "Service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
-            this.errorPayInfoText = "Is the amount incorrect?";            
+            this.errorPayInfoText = "Is the amount incorrect?";
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
             this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
@@ -79,8 +78,7 @@
             {
                 if( this.recentPayments.length > MaxNumRecentPayments )
                     this.recentPayments = this.recentPayments.slice( 0, MaxNumRecentPayments );
-                this.numRecentPayments = this.recentPayments.length;
-
+                
                 // Fill up the list so there's always MaxNumRecentPayments
                 while( this.recentPayments.length < MaxNumRecentPayments )
                     this.recentPayments.push( {} );
@@ -182,7 +180,7 @@
         
 
         /**
-         * Refresh the not text for the payment field
+         * Refresh the note text for the payment field
          */
         updatePaymentText()
         {
@@ -206,6 +204,9 @@
         }
 
 
+        /**
+         * Occurs when the user selects a payment type radio button
+         */
         onSelectPaymentType( paymentType: string )
         {
             this.paymentInfo.paymentType = paymentType;
