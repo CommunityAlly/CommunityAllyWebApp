@@ -427,6 +427,25 @@ img.file-thumbnail {
   margin-left: 3em;
   font-family: verdana,tahoma,helvetica; }
 
+/* Fix the pager footer overlapping the grid */
+.ui-grid-pager-panel {
+  position: relative !important;
+  top: 6px; }
+
+/* Hide the UI-Grid pager footer number arrows */
+input[type='number'].ui-grid-pager-control-input {
+  -moz-appearance: textfield; }
+
+input[type=number].ui-grid-pager-control-input::-webkit-inner-spin-button,
+input[type=number].ui-grid-pager-control-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0; }
+
+.ui-grid-pager-max-pages-number {
+  width: 20px;
+  display: inline-block;
+  vertical-align: middle !important; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;

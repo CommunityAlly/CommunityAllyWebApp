@@ -42,8 +42,8 @@
 
         // Create the main app object for the Ally site
         CA.angularApp = angular.module( "CondoAlly", ["ngRoute", "ngResource", "condoAllyControllers", "ui.date", "ngSanitize", "xeditable", "ngGrid", "chart.js",
-                                                    "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "ui.grid.resizeColumns", "mgo-angular-wizard", "isteven-multi-select",
-                                                    "ngTagsInput", "xdLocalStorage"] );
+                                                        "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "ui.grid.resizeColumns", "ui.grid.pagination", "mgo-angular-wizard",
+                                                        "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
 
         // Clear the template cache based on the JS file version
         CA.clearTemplateCacheIfNeeded = function ( templateCacheService )

@@ -71,6 +71,18 @@ namespace Ally
     }
 
 
+    class RecentEmail
+    {
+        senderName: string;
+        recipientGroup: string;
+        messageSource: string;
+        subject: string;
+        sendDateUtc: Date;
+        numRecipients: string;
+        numAttachments: string;
+    }
+
+
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -95,6 +107,7 @@ namespace Ally
         gridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
         isSavingUser: boolean = false;
         residentGridOptions: uiGrid.IGridOptionsOf<Ally.UpdateResident>;
+        emailHistoryGridOptions: uiGrid.IGridOptionsOf<RecentEmail>;
         editUserForm: ng.IFormController;
         isLoading: boolean = false;
         adminSetPass_Username: string;
@@ -105,7 +118,8 @@ namespace Ally
         residentSortInfo: any;
         bulkImportCsv: string;
         hasOneAdmin: boolean;
-
+        showEmailHistory: boolean = false;
+        
 
         /**
          * The constructor for the class
@@ -211,6 +225,33 @@ namespace Ally
                 for( var i = 2; i < this.residentGridOptions.columnDefs.length; ++i )
                     this.residentGridOptions.columnDefs[i].visible = false;
             }
+
+            this.emailHistoryGridOptions =
+                {
+                    columnDefs:
+                        [
+                            { field: 'senderName', displayName: 'Sender', width: 150 },
+                            { field: 'recipientGroup', displayName: 'Sent To', width: 100},
+                            { field: 'messageSource', displayName: 'Source', width: 100 },
+                            { field: 'subject', displayName: 'Subject' },
+                            { field: 'sendDateUtc', displayName: 'Send Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                            { field: 'numRecipients', displayName: '#Recip.', width: 70 },
+                            { field: 'numAttachments', displayName: '#Attach.', width: 80 }
+                        ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: 20,
+                    paginationPageSizes: [20],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function( gridApi )
+                    {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
 
             this.refresh();
             this.loadSettings();
@@ -833,6 +874,31 @@ namespace Ally
             }
 
             this.bulkImportRows.push( newRow );
+        }
+
+
+        /**
+         * Display the list of recent e-mails
+         */
+        toggleEmailHistoryVisible()
+        {
+            this.showEmailHistory = !this.showEmailHistory;
+
+            if( this.showEmailHistory && !this.emailHistoryGridOptions.data )
+            {
+                this.isLoadingSettings = true;
+
+                this.$http.get( "/api/Email/RecentGroupEmails" ).then( ( response: ng.IHttpPromiseCallbackArg<RecentEmail[]> ) =>
+                {
+                    this.isLoadingSettings = false;
+                    this.emailHistoryGridOptions.data = response.data;
+
+                }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingSettings = false;
+                    alert( "Failed to load e-mails: " + response.data.exceptionMessage );
+                } );
+            }
         }
     }
 }

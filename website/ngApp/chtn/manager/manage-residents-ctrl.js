@@ -53,6 +53,11 @@ var Ally;
         return UpdateResident;
     }(Resident));
     Ally.UpdateResident = UpdateResident;
+    var RecentEmail = /** @class */ (function () {
+        function RecentEmail() {
+        }
+        return RecentEmail;
+    }());
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -73,6 +78,7 @@ var Ally;
             this.isSavingUser = false;
             this.isLoading = false;
             this.isLoadingSettings = false;
+            this.showEmailHistory = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -152,6 +158,30 @@ var Ally;
                 for (var i = 2; i < this.residentGridOptions.columnDefs.length; ++i)
                     this.residentGridOptions.columnDefs[i].visible = false;
             }
+            this.emailHistoryGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'senderName', displayName: 'Sender', width: 150 },
+                        { field: 'recipientGroup', displayName: 'Sent To', width: 100 },
+                        { field: 'messageSource', displayName: 'Source', width: 100 },
+                        { field: 'subject', displayName: 'Subject' },
+                        { field: 'sendDateUtc', displayName: 'Send Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'numRecipients', displayName: '#Recip.', width: 70 },
+                        { field: 'numAttachments', displayName: '#Attach.', width: 80 }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: 20,
+                    paginationPageSizes: [20],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             this.refresh();
             this.loadSettings();
         };
@@ -594,6 +624,23 @@ var Ally;
                 }
             }
             this.bulkImportRows.push(newRow);
+        };
+        /**
+         * Display the list of recent e-mails
+         */
+        ManageResidentsController.prototype.toggleEmailHistoryVisible = function () {
+            var _this = this;
+            this.showEmailHistory = !this.showEmailHistory;
+            if (this.showEmailHistory && !this.emailHistoryGridOptions.data) {
+                this.isLoadingSettings = true;
+                this.$http.get("/api/Email/RecentGroupEmails").then(function (response) {
+                    _this.isLoadingSettings = false;
+                    _this.emailHistoryGridOptions.data = response.data;
+                }, function (response) {
+                    _this.isLoadingSettings = false;
+                    alert("Failed to load e-mails: " + response.data.exceptionMessage);
+                });
+            }
         };
         ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
         return ManageResidentsController;

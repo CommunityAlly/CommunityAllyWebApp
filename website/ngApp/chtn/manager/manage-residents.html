@@ -211,6 +211,15 @@
             </span><br />
             <br />
         </div>
+        <span class="text-link" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} E-mail History</span>
+        <div data-ng-if="$ctrl.showEmailHistory">
+            <h4>Group E-mail History</h4>
+            <span class="note-text">Here you can view group e-mails sent in the last 6 months.</span>
+            <div data-ui-grid="$ctrl.emailHistoryGridOptions" ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
+            <br />
+        </div>
+        <br />
+        <br />
         <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.rentersCanViewDocs" data-ng-change="$ctrl.saveResidentSettings()" />Renters can view documents</label>
         <br />
         <br />
