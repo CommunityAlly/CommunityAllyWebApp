@@ -95,10 +95,10 @@ var CondoAllyAppConfig =
         new RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager } ),
         new RoutePath_v3( { path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager } ),
 
-        new RoutePath_v3( { path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "Manage Associations", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Manage Homes", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "Edit Addresses", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin } ),
         new RoutePath_v3( { path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin } ),
         new RoutePath_v3( { path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin } ),
     ]
