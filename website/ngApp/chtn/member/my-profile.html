@@ -19,6 +19,7 @@
     <div id="my-profile" style="position:relative;">
         <div class="loading-overlay" style="background-image:none;" data-ng-show="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms"></div>
 
+        <h2>Basic Information</h2>
         <form>
             <div class="form-group row">
                 <label for="firstNameTextBox" class="col-4">
@@ -87,23 +88,6 @@
                 </div>
             </div>
 
-            <div class="form-group row" style="display: none;">
-                <label class="col-4">
-                    Profile Image:
-                </label>
-                <div class="col-8">
-                    <div style="float: left; width: 80px;">
-                        <img src="" alt="Profile image" />
-                    </div>
-                    <div>
-                        We use <a href="https://gravatar.com/" target="_blank">Gravatar</a> to show your profile image. If you don't want to setup Gravatar
-                        or prefer use a different image for Community Ally, you can set your image here.<br />
-                        <span>Please use a square image as it will be cropped to 80x80.</span><br />
-                        <input type="file" />
-                    </div>
-                </div>
-            </div>
-
             <div style="text-align: center;">
                 <button id="save-profile-button" data-ng-disabled="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms" class="btn btn-primary" style="float:none;"
                         data-ng-click="$ctrl.onSaveInfo();" type="button" value="Save" data-ng-style="$ctrl.saveButtonStyle">
@@ -121,4 +105,29 @@
             $( "[id$='phoneNumberTextBox']" ).mask( "(999) 999-9999" );
         } );
     </script>
+</div>
+
+<div class="page page-my-profile margin-vertical padding white-bg spinner-effect">
+    <div id="my-profile" style="position:relative;">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+        <h2>Profile Photo</h2>
+
+        <div class="form-group row">
+            <div class="col-3"></div>
+            <div class="col-9">
+                <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('blank')" value="blank" /><img src="/assets/images/blank-headshot.png" style="width: 80px; height: 80px;" /> Blank Image</label><br />
+                <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('gravatar')" value="gravatar" /><img data-ng-src="{{ $ctrl.gravatarUrl }}" style="width: 80px; height: 80px;" /> Gravatar (<a href="https://en.gravatar.com/" target="_blank">Learn more</a>)</label><br />
+                <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" value="upload" />Uploaded Photo</label>
+                <div data-ng-show="$ctrl.profileImageType === 'upload'">
+                    <div style="float: left; width: 82px; height: 82px; border: 1px solid black;">
+                        <img data-ng-if="$ctrl.profileImageType === 'upload' && $ctrl.profileInfo.avatarUrl" style="width: 80px; height: 80px;" data-ng-src="{{$ctrl.profileInfo.avatarUrl}}" alt="Profile image" />
+                    </div>
+                    <div style="margin-left: 90px;">
+                        <span>The image will be cropped to a square.</span><br />
+                        <input id="JQFileUploader" type="file" name="files[]" data-url="" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

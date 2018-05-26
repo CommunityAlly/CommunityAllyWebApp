@@ -866,6 +866,11 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                 };
             }]);
         $httpProvider.interceptors.push('http403Interceptor');
+        // Make date strings convert to date objects
+        $httpProvider.defaults.transformResponse.push(function (responseData) {
+            Ally.HtmlUtil2.convertStringsToDates(responseData);
+            return responseData;
+        });
         // Create an interceptor so we can add our auth token header. Also, this allows us to set our
         // own base URL for API calls so local testing can use the live API.
         $provide.factory("apiUriInterceptor", ["$rootScope", function ($rootScope) {
@@ -1094,10 +1099,10 @@ var CondoAllyAppConfig =
         new RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager } ),
         new RoutePath_v3( { path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager } ),
 
-        new RoutePath_v3( { path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "Manage Associations", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Manage Homes", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "Edit Addresses", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin } ),
+        new RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin } ),
         new RoutePath_v3( { path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin } ),
         new RoutePath_v3( { path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin } ),
     ]
@@ -1796,6 +1801,11 @@ CA.angularApp.component("manageCommittees", {
 
 var Ally;
 (function (Ally) {
+    var PaymentPageInfo = /** @class */ (function () {
+        function PaymentPageInfo() {
+        }
+        return PaymentPageInfo;
+    }());
     /**
      * The controller for the page to view online payment information
      */
@@ -1814,6 +1824,7 @@ var Ally;
             this.AssociationPaysAch = true;
             this.AssociationPaysCC = false; // Payer pays credit card fees
             this.lateFeeInfo = {};
+            this.hasLoadedPage = false;
             this.isLoading = false;
             this.isLoadingUnits = false;
             this.isLoadingPayment = false;
@@ -1856,13 +1867,13 @@ var Ally;
         ManagePaymentsController.prototype.refresh = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/OnlinePayment").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.hasAssessments = innerThis.siteInfo.privateSiteInfo.hasAssessments;
+                _this.isLoading = false;
+                _this.hasLoadedPage = true;
+                _this.hasAssessments = _this.siteInfo.privateSiteInfo.hasAssessments;
                 var data = httpResponse.data;
-                innerThis.paymentInfo = data;
-                innerThis.lateFeeInfo =
+                _this.paymentInfo = data;
+                _this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
                         lateFeeAmount: data.lateFeeAmount
@@ -1871,8 +1882,8 @@ var Ally;
                 if (!HtmlUtil.isNullOrWhitespace(_this.lateFeeInfo.lateFeeAmount)
                     && !HtmlUtil.endsWith(_this.lateFeeInfo.lateFeeAmount, "%"))
                     _this.lateFeeInfo.lateFeeAmount = "$" + _this.lateFeeInfo.lateFeeAmount;
-                innerThis.refreshUnits();
-                innerThis.updateTestFee();
+                _this.refreshUnits();
+                _this.updateTestFee();
             });
         };
         /**
@@ -1920,6 +1931,48 @@ var Ally;
                 return "rd";
             return "th";
         };
+        /**
+         * Allow the user to update their PayPal client ID and client secret
+         */
+        ManagePaymentsController.prototype.updatePayPalCredentials = function () {
+            this.isUpdatingPayPalCredentials = true;
+            //this.payPalSignUpClientId = this.paymentInfo.payPalClientId;
+            this.payPalSignUpClientSecret = "";
+            this.payPalSignUpErrorMessage = "";
+        };
+        /**
+         * Save the allow setting
+         */
+        ManagePaymentsController.prototype.saveAllowSetting = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to save the PayPal client ID and secret
+         */
+        ManagePaymentsController.prototype.enablePayPal = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.payPalSignUpErrorMessage = null;
+            var enableInfo = {
+                clientId: this.payPalSignUpClientId,
+                clientSecret: this.payPalSignUpClientSecret
+            };
+            this.$http.put("/api/OnlinePayment/EnablePayPal", enableInfo).then(function (httpResponse) {
+                _this.payPalSignUpClientId = "";
+                _this.payPalSignUpClientSecret = "";
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                _this.payPalSignUpErrorMessage = httpResponse.data.exceptionMessage;
+            });
+        };
         ManagePaymentsController.prototype.selectText = function () {
             // HACK: Timeout needed to fire after x-editable's activation
             setTimeout(function () {
@@ -1931,16 +1984,17 @@ var Ally;
         // association's account
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ManagePaymentsController.prototype.onWithdrawalClick = function () {
+            var _this = this;
             this.message = "";
             this.$http.get("/api/OnlinePayment?action=withdrawal").then(function (httpResponse) {
                 var withdrawalInfo = httpResponse.data;
                 if (withdrawalInfo.redirectUri)
                     window.location.href = withdrawalInfo.redirectUri;
                 else
-                    this.message = withdrawalInfo.message;
+                    _this.message = withdrawalInfo.message;
             }, function (httpResponse) {
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    this.message = httpResponse.data.exceptionMessage;
+                    _this.message = httpResponse.data.exceptionMessage;
             });
         };
         /**
@@ -1964,6 +2018,7 @@ var Ally;
          * Occurs when the user changes who covers the WePay transaction fee
          */
         ManagePaymentsController.prototype.onChangeFeePayerInfo = function (payTypeUpdated) {
+            var _this = this;
             // See if any users have auto-pay setup for this payment type
             var needsFullRefresh = false;
             var needsReloadOfPage = false;
@@ -1979,10 +2034,10 @@ var Ally;
                 if (usersAffected.length > 0) {
                     // We need to reload the site if the user is affected so the home page updates that
                     // the user does not have auto-pay enabled
-                    needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === this.$parent.userInfo.userId; }) !== undefined;
+                    needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
                     var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay cancelled and they will be informed by e-mail:\n";
-                    _.each(usersAffected, function (u) { message += u.ownerName + "\n"; });
+                    _.each(usersAffected, function (u) { return message += u.ownerName + "\n"; });
                     message += "\nDo you want to continue?";
                     if (!confirm(message)) {
                         // Reset the setting
@@ -2043,48 +2098,65 @@ var Ally;
          * Save the late fee info
          */
         ManagePaymentsController.prototype.saveLateFee = function () {
+            var _this = this;
             this.isLoadingLateFee = true;
-            var innerThis = this;
             this.$http.put("/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null).then(function (httpResponse) {
-                innerThis.isLoadingLateFee = false;
+                _this.isLoadingLateFee = false;
                 var lateFeeResult = httpResponse.data;
                 if (!lateFeeResult || !lateFeeResult.feeAmount || lateFeeResult.feeType === 0) {
-                    if (innerThis.lateFeeInfo.lateFeeDayOfMonth !== "")
+                    if (_this.lateFeeInfo.lateFeeDayOfMonth !== "")
                         alert("Failed to save the late fee. Please enter only a number for the date (ex. 5) and an amount (ex. 12.34) or percent (ex. 5%) for the fee. To disable late fees, clear the date field and hit save.");
-                    innerThis.lateFeeInfo.lateFeeDayOfMonth = "";
-                    innerThis.lateFeeInfo.lateFeeAmount = null;
+                    _this.lateFeeInfo.lateFeeDayOfMonth = "";
+                    _this.lateFeeInfo.lateFeeAmount = null;
                 }
                 else {
-                    innerThis.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
+                    _this.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
                     // feeType of 2 is percent, 1 is flat, and 0 is invalid
                     if (lateFeeResult.feeType === 1)
-                        innerThis.lateFeeInfo.lateFeeAmount = "$" + innerThis.lateFeeInfo.lateFeeAmount;
+                        _this.lateFeeInfo.lateFeeAmount = "$" + _this.lateFeeInfo.lateFeeAmount;
                     else if (lateFeeResult.feeType === 2)
-                        innerThis.lateFeeInfo.lateFeeAmount = "" + innerThis.lateFeeInfo.lateFeeAmount + "%";
+                        _this.lateFeeInfo.lateFeeAmount = "" + _this.lateFeeInfo.lateFeeAmount + "%";
                 }
             }, function (httpResponse) {
-                innerThis.isLoadingLateFee = false;
+                _this.isLoadingLateFee = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to update late fee: " + errorMessage);
+            });
+        };
+        /**
+         * Show the PayPal info for a specific transaction
+         */
+        ManagePaymentsController.prototype.showPayPalCheckoutInfo = function (payPalCheckoutId) {
+            var _this = this;
+            this.viewingPayPalCheckoutId = payPalCheckoutId;
+            if (!this.viewingPayPalCheckoutId)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/OnlinePayment/PayPalCheckoutInfo?checkoutId=" + payPalCheckoutId, { cache: true }).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
          * Show the WePay info for a specific transaction
          */
         ManagePaymentsController.prototype.showWePayCheckoutInfo = function (wePayCheckoutId) {
-            this.viewingCheckoutId = wePayCheckoutId;
-            if (!this.viewingCheckoutId)
+            var _this = this;
+            this.viewingWePayCheckoutId = wePayCheckoutId;
+            if (!this.viewingWePayCheckoutId)
                 return;
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
-            var innerThis = this;
             this.$http.get("/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true }).then(function (httpResponse) {
-                innerThis.isLoadingCheckoutDetails = false;
-                innerThis.checkoutInfo = httpResponse.data;
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
             }, function (httpResponse) {
-                innerThis.isLoadingCheckoutDetails = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert("Failed to retrieve checkout details: " + errorMessage);
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -2387,6 +2459,11 @@ var Ally;
         return UpdateResident;
     }(Resident));
     Ally.UpdateResident = UpdateResident;
+    var RecentEmail = /** @class */ (function () {
+        function RecentEmail() {
+        }
+        return RecentEmail;
+    }());
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -2407,6 +2484,7 @@ var Ally;
             this.isSavingUser = false;
             this.isLoading = false;
             this.isLoadingSettings = false;
+            this.showEmailHistory = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2486,6 +2564,30 @@ var Ally;
                 for (var i = 2; i < this.residentGridOptions.columnDefs.length; ++i)
                     this.residentGridOptions.columnDefs[i].visible = false;
             }
+            this.emailHistoryGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'senderName', displayName: 'Sender', width: 150 },
+                        { field: 'recipientGroup', displayName: 'Sent To', width: 100 },
+                        { field: 'messageSource', displayName: 'Source', width: 100 },
+                        { field: 'subject', displayName: 'Subject' },
+                        { field: 'sendDateUtc', displayName: 'Send Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'numRecipients', displayName: '#Recip.', width: 70 },
+                        { field: 'numAttachments', displayName: '#Attach.', width: 80 }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: 20,
+                    paginationPageSizes: [20],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             this.refresh();
             this.loadSettings();
         };
@@ -2928,6 +3030,23 @@ var Ally;
                 }
             }
             this.bulkImportRows.push(newRow);
+        };
+        /**
+         * Display the list of recent e-mails
+         */
+        ManageResidentsController.prototype.toggleEmailHistoryVisible = function () {
+            var _this = this;
+            this.showEmailHistory = !this.showEmailHistory;
+            if (this.showEmailHistory && !this.emailHistoryGridOptions.data) {
+                this.isLoadingSettings = true;
+                this.$http.get("/api/Email/RecentGroupEmails").then(function (response) {
+                    _this.isLoadingSettings = false;
+                    _this.emailHistoryGridOptions.data = response.data;
+                }, function (response) {
+                    _this.isLoadingSettings = false;
+                    alert("Failed to load e-mails: " + response.data.exceptionMessage);
+                });
+            }
         };
         ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
         return ManageResidentsController;
@@ -3680,11 +3799,6 @@ CA.angularApp.component("forgotPassword", {
 
 var Ally;
 (function (Ally) {
-    var CommitteeListingInfo = /** @class */ (function () {
-        function CommitteeListingInfo() {
-        }
-        return CommitteeListingInfo;
-    }());
     /**
      * The controller for the page that lists group members
      */
@@ -3772,6 +3886,8 @@ var Ally;
                 var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
                 if (useNumericNames)
                     _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
+                // Only show commitees with a contact person
+                _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
                 // Populate the e-mail name lists
                 _this.setupGroupEmails();
             });
@@ -4414,8 +4530,39 @@ CA.angularApp.component("loginPage", {
     controller: Ally.LoginController
 });
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Ally;
 (function (Ally) {
+    var SimpleUserEntry = /** @class */ (function () {
+        function SimpleUserEntry() {
+        }
+        return SimpleUserEntry;
+    }());
+    Ally.SimpleUserEntry = SimpleUserEntry;
+    var SimpleUserEntryWithTerms = /** @class */ (function (_super) {
+        __extends(SimpleUserEntryWithTerms, _super);
+        function SimpleUserEntryWithTerms() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return SimpleUserEntryWithTerms;
+    }(SimpleUserEntry));
+    Ally.SimpleUserEntryWithTerms = SimpleUserEntryWithTerms;
+    var ProfileUserInfo = /** @class */ (function (_super) {
+        __extends(ProfileUserInfo, _super);
+        function ProfileUserInfo() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return ProfileUserInfo;
+    }(SimpleUserEntryWithTerms));
     /**
      * The controller for the profile page
      */
@@ -4423,21 +4570,69 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function MyProfileController($rootScope, $http, $location, appCacheService, siteInfo) {
+        function MyProfileController($rootScope, $http, $location, appCacheService, siteInfo, $scope) {
             this.$rootScope = $rootScope;
             this.$http = $http;
             this.$location = $location;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
+            this.$scope = $scope;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         MyProfileController.prototype.$onInit = function () {
+            var _this = this;
             this.isDemoSite = HtmlUtil.getSubdomain() === "demosite";
             if (this.siteInfo.privateSiteInfo)
                 this.canHideContactInfo = this.siteInfo.privateSiteInfo.canHideContactInfo;
             this.retrieveProfileData();
+            var hookUpFileUpload = function () {
+                var uploader = $('#JQFileUploader');
+                uploader.fileupload({
+                    beforeSend: function (xhr, data) {
+                        xhr.setRequestHeader("Authorization", "Bearer " + _this.siteInfo.authToken);
+                    },
+                    add: function (e, data) {
+                        data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + _this.siteInfo.authToken;
+                        _this.$scope.$apply(function () { return _this.isLoading = true; });
+                        var xhr = data.submit();
+                        xhr.done(function (result) {
+                            _this.$scope.$apply(function () {
+                                // Reload the page to see the changes
+                                window.location.reload();
+                            });
+                        });
+                    },
+                    fail: function (e, data) {
+                        _this.$scope.$apply(function () {
+                            _this.isLoading = false;
+                            alert("Upload Failed: " + data.jqXHR.responseJSON.exceptionMessage);
+                        });
+                    }
+                });
+            };
+            setTimeout(hookUpFileUpload, 500);
+        };
+        /**
+         * Save the user's profile photo setting
+         */
+        MyProfileController.prototype.saveProfilePhoto = function (type) {
+            var _this = this;
+            if (this.initialProfileImageType === "upload") {
+                if (!confirm("Are you sure you want to change your profile image away from your uploaded photo? Your uploaded photo will be deleted.")) {
+                    this.profileImageType = this.initialProfileImageType;
+                    return;
+                }
+            }
+            this.isLoading = true;
+            this.$http.put("/api/MyProfile/ProfileImage?type=" + type, null).then(function () {
+                _this.isLoading = false;
+                _this.initialProfileImageType = _this.profileImageType;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+            });
         };
         /**
          * Populate the page
@@ -4445,13 +4640,19 @@ var Ally;
         MyProfileController.prototype.retrieveProfileData = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/MyProfile").then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.profileInfo = httpResponse.data;
-                _this.profileImageType = "blank";
-                if (_this.profileInfo.avatarUrl && _this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
-                    _this.profileImageType = "gravatar";
+                _this.initialProfileImageType = "blank";
+                if (!_this.profileInfo.avatarUrl || _this.profileInfo.avatarUrl.indexOf("blank-headshot") !== -1)
+                    _this.initialProfileImageType = "blank";
+                else if (_this.profileInfo.avatarUrl && _this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
+                    _this.initialProfileImageType = "gravatar";
+                else if (_this.profileInfo.avatarUrl && _this.profileInfo.avatarUrl.length > 0)
+                    _this.initialProfileImageType = "upload";
+                if (_this.initialProfileImageType !== "upload")
+                    _this.profileInfo.avatarUrl = null;
+                _this.profileImageType = _this.initialProfileImageType;
                 _this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((_this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
                 // Don't show empty e-mail address
                 if (HtmlUtil.endsWith(_this.profileInfo.email, "@condoally.com"))
@@ -4470,22 +4671,22 @@ var Ally;
          * Occurs when the user hits the save button
          */
         MyProfileController.prototype.onSaveInfo = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
-                innerThis.resultMessage = "Your changes have been saved.";
+                _this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login
-                if (innerThis.$rootScope.hideMenu) {
-                    innerThis.$rootScope.hideMenu = false;
-                    innerThis.$location.path("/Home");
+                if (_this.$rootScope.hideMenu) {
+                    _this.$rootScope.hideMenu = false;
+                    _this.$location.path("/Home");
                 }
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
         };
-        MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo"];
+        MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
         return MyProfileController;
     }());
     Ally.MyProfileController = MyProfileController;
@@ -5991,7 +6192,6 @@ var Ally;
             if (this.recentPayments && this.recentPayments.length > 0) {
                 if (this.recentPayments.length > MaxNumRecentPayments)
                     this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
-                this.numRecentPayments = this.recentPayments.length;
                 // Fill up the list so there's always MaxNumRecentPayments
                 while (this.recentPayments.length < MaxNumRecentPayments)
                     this.recentPayments.push({});
@@ -6062,7 +6262,7 @@ var Ally;
             this.$rootScope.$broadcast("prepAssessmentEmailToBoard", prepEventData);
         };
         /**
-         * Refresh the not text for the payment field
+         * Refresh the note text for the payment field
          */
         AssessmentPaymentFormController.prototype.updatePaymentText = function () {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
@@ -6079,6 +6279,9 @@ var Ally;
                 this.paymentInfo.note = "";
             }
         };
+        /**
+         * Occurs when the user selects a payment type radio button
+         */
         AssessmentPaymentFormController.prototype.onSelectPaymentType = function (paymentType) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
@@ -7013,6 +7216,223 @@ var Ally;
     }());
     Ally.MapUtil = MapUtil;
 })(Ally || (Ally = {}));
+
+var Ally;
+(function (Ally) {
+    var PaymentInfo = /** @class */ (function () {
+        function PaymentInfo() {
+        }
+        return PaymentInfo;
+    }());
+    /**
+     * The controller for the widget that lets residents pay their assessments
+     */
+    var PayPalPaymentFormController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function PayPalPaymentFormController($http, siteInfo, $rootScope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$rootScope = $rootScope;
+            this.isLoading = false;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        PayPalPaymentFormController.prototype.$onInit = function () {
+            var _this = this;
+            // Grab the assessment from the user's unit (TODO handle multiple units)
+            if (this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0)
+                this.assessmentAmount = this.siteInfo.userInfo.usersUnits[0].assessment;
+            else
+                this.assessmentAmount = 0;
+            this.errorPayInfoText = "Is the amount incorrect?";
+            this.paymentInfo =
+                {
+                    paymentType: "other",
+                    amount: this.assessmentAmount,
+                    note: "",
+                    fundingType: null,
+                    paysFor: null
+                };
+            var MaxNumRecentPayments = 6;
+            this.recentPayments = this.siteInfo.userInfo.recentPayments;
+            if (this.recentPayments && this.recentPayments.length > 0) {
+                if (this.recentPayments.length > MaxNumRecentPayments)
+                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
+                // Fill up the list so there's always MaxNumRecentPayments
+                while (this.recentPayments.length < MaxNumRecentPayments)
+                    this.recentPayments.push({});
+            }
+            // If the user lives in a unit and assessments are enabled
+            if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
+                && this.siteInfo.userInfo.usersUnits != null
+                && this.siteInfo.userInfo.usersUnits.length > 0) {
+                this.paymentInfo.paymentType = "periodic";
+                if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
+                    this.knowsNextPayment = true;
+                    this.errorPayInfoText = "Is the amount or date incorrect?";
+                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.updatePaymentText();
+                }
+            }
+            setTimeout(function () {
+                $('#btn_view_pay_history').click(function () {
+                    $('#pm_info').collapse('hide');
+                    $('#payment_history').collapse('show');
+                });
+                $('#btn_view_pay_info').click(function () {
+                    $('#payment_history').collapse('hide');
+                    $('#pm_info').collapse('show');
+                });
+                $('.hide').click(function () {
+                    $(this).parent().hide('');
+                });
+            }, 400);
+            paypal.Button.render({
+                //env: "production",
+                env: "sandbox",
+                commit: true,
+                style: {
+                    color: 'gold',
+                    size: 'medium'
+                },
+                client: {
+                    sandbox: this.siteInfo.privateSiteInfo.payPalClientId,
+                    production: "AW51-dH9dRrczrhVVf1kZyavtifN8z23Q0BTJwpWcTJQL6YoqGCTwOb0JfbCHTJIA_usIXAgrxwQ7osQ"
+                },
+                payment: function (data, actions) {
+                    _this.isLoading = true;
+                    /*
+                     * Set up the payment here
+                     */
+                    return actions.payment.create({
+                        payment: {
+                            transactions: [
+                                {
+                                    amount: { total: _this.paymentInfo.amount.toString(), currency: 'USD' }
+                                }
+                            ]
+                        }
+                    });
+                },
+                onAuthorize: function (data, actions) {
+                    /*
+                     * Execute the payment here
+                     */
+                    return actions.payment.execute().then(function (payment) {
+                        // The payment is complete!
+                        // Tell the server about payment.id with memo
+                        var memoInfo = {
+                            PayPalCheckoutId: payment.id,
+                            Memo: _this.paymentInfo.note
+                        };
+                        _this.isLoading = true;
+                        _this.$http.put("/api/OnlinePayment/SetMemo", memoInfo).then(function (httpResponse) {
+                            _this.isLoading = false;
+                        }, function (httpResponse) {
+                            _this.isLoading = false;
+                            alert("Failed to save: " + httpResponse.data.exceptionMessage);
+                        });
+                        // You can now show a confirmation message to the customer
+                    });
+                },
+                onCancel: function (data, actions) {
+                    _this.isLoading = false;
+                    /*
+                     * Buyer cancelled the payment
+                     */
+                },
+                onError: function (err) {
+                    _this.isLoading = false;
+                    /*
+                     * An error occurred during the transaction
+                     */
+                }
+            }, "#paypal-button");
+        };
+        /**
+         * Occurs when the user clicks the helper link to prep an e-mail to inquire the board as to
+         * why their records don't line up.
+         */
+        PayPalPaymentFormController.prototype.onIncorrectPayDetails = function () {
+            // Get the friendly looking assessment value (ex: 100, 101, 102.50)
+            var amountString = this.assessmentAmount.toString();
+            if (Math.round(this.assessmentAmount) != this.assessmentAmount)
+                amountString = this.assessmentAmount.toFixed(2);
+            // Tell the groupSendEmail component to prep an e-mail for the board
+            var prepEventData = amountString;
+            if (this.knowsNextPayment && HtmlUtil.isValidString(this.nextPaymentText))
+                prepEventData += "|" + this.nextPaymentText;
+            this.$rootScope.$broadcast("prepAssessmentEmailToBoard", prepEventData);
+        };
+        /**
+         * Generate the friendly string describing to what the member's next payment applies
+         */
+        PayPalPaymentFormController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
+            if (payPeriods == null)
+                return "";
+            // Ensure the periods is an array
+            if (payPeriods.constructor !== Array)
+                payPeriods = [payPeriods];
+            var paymentText = "";
+            var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
+            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
+                var curPeriod = payPeriods[periodIndex];
+                if (frequencyInfo.intervalName === "month") {
+                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+                    paymentText = monthNames[curPeriod.period - 1];
+                }
+                else if (frequencyInfo.intervalName === "quarter") {
+                    var periodNames = ["Q1", "Q2", "Q3", "Q4"];
+                    paymentText = periodNames[curPeriod.period - 1];
+                }
+                else if (frequencyInfo.intervalName === "half-year") {
+                    var periodNames = ["First Half", "Second Half"];
+                    paymentText = periodNames[curPeriod.period - 1];
+                }
+                paymentText += " " + curPeriod.year;
+                this.paymentInfo.paysFor = [curPeriod];
+            }
+            return paymentText;
+        };
+        /**
+         * Occurs when the user selects a payment type radio button
+         */
+        PayPalPaymentFormController.prototype.onSelectPaymentType = function (paymentType) {
+            this.paymentInfo.paymentType = paymentType;
+            this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
+            this.updatePaymentText();
+        };
+        /**
+         * Refresh the note text for the payment field
+         */
+        PayPalPaymentFormController.prototype.updatePaymentText = function () {
+            if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
+                // If we have a next payment string
+                if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
+                    if (this.siteInfo.userInfo.usersUnits[0].includesLateFee)
+                        this.paymentInfo.note = "Assessment payment with late fee for ";
+                    else
+                        this.paymentInfo.note = "Assessment payment for ";
+                    this.paymentInfo.note += this.nextPaymentText;
+                }
+            }
+            else {
+                this.paymentInfo.note = "";
+            }
+        };
+        PayPalPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope"];
+        return PayPalPaymentFormController;
+    }());
+    Ally.PayPalPaymentFormController = PayPalPaymentFormController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("paypalPaymentForm", {
+    templateUrl: "/ngApp/common/paypal-payment-form.html",
+    controller: Ally.PayPalPaymentFormController
+});
 
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../Services/html-util.ts" />
@@ -8663,6 +9083,275 @@ angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFa
 
 var Ally;
 (function (Ally) {
+    var ReplyComment = /** @class */ (function () {
+        function ReplyComment() {
+        }
+        return ReplyComment;
+    }());
+    /**
+     * The controller for the committee home page
+     */
+    var GroupCommentThreadViewController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function GroupCommentThreadViewController($http, $rootScope) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.isLoading = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        GroupCommentThreadViewController.prototype.$onInit = function () {
+            this.retrieveComments();
+        };
+        GroupCommentThreadViewController.prototype.onTextAreaKeyDown = function (e, messageType) {
+            var keyCode = (e.keyCode ? e.keyCode : e.which);
+            var KeyCode_Enter = 13;
+            if (e.keyCode == KeyCode_Enter) {
+                e.preventDefault();
+                if (messageType === "new")
+                    this.submitNewComment();
+                else if (messageType === "edit")
+                    this.submitCommentEdit();
+                else if (messageType === "reply")
+                    this.submitReplyComment();
+            }
+        };
+        /**
+         * Retrieve the comments from the server
+         */
+        GroupCommentThreadViewController.prototype.retrieveComments = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/CommentThread/" + this.thread.commentThreadId + "/Comments").then(function (response) {
+                _this.isLoading = false;
+                _this.comments = response.data;
+                var processComments = function (c) {
+                    c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
+                    if (c.replies)
+                        _.each(c.replies, processComments);
+                };
+                _.forEach(_this.comments, processComments);
+                _this.comments = _.sortBy(_this.comments, function (ct) { return ct.postDateUtc; }).reverse();
+            }, function (response) {
+                _this.isLoading = false;
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to reply to a comment
+         */
+        GroupCommentThreadViewController.prototype.startReplyToComment = function (comment) {
+            this.replyToCommentId = comment.commentId;
+            this.replyCommentText = "";
+            setTimeout(function () { return $(".reply-to-textarea").focus(); }, 150);
+        };
+        /**
+         * Edit an existing comment
+         * @param comment
+         */
+        GroupCommentThreadViewController.prototype.startEditComment = function (comment) {
+            this.editCommentId = comment.commentId;
+            this.editCommentText = comment.commentText;
+        };
+        ;
+        /**
+         * Delete a comment
+         */
+        GroupCommentThreadViewController.prototype.deleteComment = function (comment) {
+            var _this = this;
+            if (!confirm("Are you sure you want to delete this comment?"))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/CommentThread/" + this.thread.commentThreadId + "/" + comment.commentId).then(function () {
+                _this.isLoading = false;
+                _this.retrieveComments();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to post comment: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Modify an existing comment
+         */
+        GroupCommentThreadViewController.prototype.submitCommentEdit = function () {
+            var _this = this;
+            var editInfo = {
+                commentId: this.editCommentId,
+                newCommentText: this.editCommentText
+            };
+            this.isLoading = true;
+            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/EditComment", editInfo).then(function () {
+                _this.isLoading = false;
+                _this.editCommentId = -1;
+                _this.editCommentText = "";
+                _this.retrieveComments();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to edit comment: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Add a comment in reply to another
+         */
+        GroupCommentThreadViewController.prototype.submitReplyComment = function () {
+            var _this = this;
+            var newComment = {
+                replyToCommentId: this.replyToCommentId,
+                commentText: this.replyCommentText
+            };
+            this.isLoading = true;
+            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/AddComment", newComment).then(function (response) {
+                _this.isLoading = false;
+                _this.replyToCommentId = -1;
+                _this.replyCommentText = "";
+                _this.retrieveComments();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to add comment: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Add a new comment to this thread
+         */
+        GroupCommentThreadViewController.prototype.submitNewComment = function () {
+            var _this = this;
+            var newComment = {
+                commentText: this.newCommentText
+            };
+            this.isLoading = true;
+            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/AddComment", newComment).then(function (response) {
+                _this.isLoading = false;
+                _this.newCommentText = "";
+                _this.retrieveComments();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to add comment: " + response.data.exceptionMessage);
+            });
+        };
+        GroupCommentThreadViewController.prototype.closeModal = function (isFromOverlayClick) {
+            if (this.onClosed)
+                this.onClosed();
+        };
+        GroupCommentThreadViewController.$inject = ["$http", "$rootScope"];
+        return GroupCommentThreadViewController;
+    }());
+    Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("groupCommentThreadView", {
+    bindings: {
+        thread: "<",
+        onClosed: "&"
+    },
+    templateUrl: "/ngApp/services/group-comment-thread-view.html",
+    controller: Ally.GroupCommentThreadViewController
+});
+
+var Ally;
+(function (Ally) {
+    var CommentThread = /** @class */ (function () {
+        function CommentThread() {
+        }
+        return CommentThread;
+    }());
+    Ally.CommentThread = CommentThread;
+    /**
+     * The controller for the committee home page
+     */
+    var GroupCommentThreadsController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function GroupCommentThreadsController($http, $rootScope, siteInfo) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.isLoading = false;
+            this.viewingThread = null;
+            this.showCreateNewModal = false;
+            this.showBoardOnly = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        GroupCommentThreadsController.prototype.$onInit = function () {
+            this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.editComment = {
+                commentText: "",
+                replyToCommentId: null
+            };
+            this.refreshCommentThreads();
+        };
+        GroupCommentThreadsController.prototype.setDisplayCreateModal = function (shouldShow) {
+            this.showCreateNewModal = shouldShow;
+            this.newThreadTitle = "";
+            this.newThreadBody = "";
+            this.newThreadIsBoardOnly = false;
+            this.newThreadErrorMessage = "";
+        };
+        GroupCommentThreadsController.prototype.displayDiscussModal = function (thread) {
+            this.viewingThread = thread;
+        };
+        GroupCommentThreadsController.prototype.hideDiscussModal = function () {
+            this.viewingThread = null;
+        };
+        GroupCommentThreadsController.prototype.createNewThread = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.newThreadErrorMessage = null;
+            var createInfo = {
+                title: this.newThreadTitle,
+                body: this.newThreadBody,
+                isBoardOnly: this.newThreadIsBoardOnly
+            };
+            this.$http.post("/api/CommentThread", createInfo).then(function (response) {
+                _this.isLoading = false;
+                _this.showCreateNewModal = false;
+                _this.refreshCommentThreads();
+            }, function (response) {
+                _this.isLoading = false;
+                _this.newThreadErrorMessage = response.data.exceptionMessage;
+            });
+        };
+        /**
+         * Retrieve the comments from the server for the current thread
+         */
+        GroupCommentThreadsController.prototype.refreshCommentThreads = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/CommentThread").then(function (response) {
+                _this.isLoading = false;
+                _this.commentThreads = response.data;
+                var markDates = function (c) {
+                    c.createDateUtc = moment.utc(c.createDateUtc).toDate();
+                    //c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
+                };
+                // Convert the UTC dates to local dates and mark the user's comments
+                _.each(_this.commentThreads, markDates);
+                _this.commentThreads = _.sortBy(_this.commentThreads, function (ct) { return ct.createDateUtc; }).reverse();
+            }, function (response) {
+                _this.isLoading = false;
+            });
+        };
+        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo"];
+        return GroupCommentThreadsController;
+    }());
+    Ally.GroupCommentThreadsController = GroupCommentThreadsController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("groupCommentThreads", {
+    templateUrl: "/ngApp/services/group-comment-threads.html",
+    controller: Ally.GroupCommentThreadsController
+});
+
+var Ally;
+(function (Ally) {
+    var Comment = /** @class */ (function () {
+        function Comment() {
+        }
+        return Comment;
+    }());
+    Ally.Comment = Comment;
     /**
      * The controller for the committee home page
      */
@@ -8706,18 +9395,13 @@ var Ally;
             this.$http.get("/api/Comment?threadId=" + this.threadId).then(function (response) {
                 _this.isLoading = false;
                 _this.commentList = response.data;
-                var markDates = function (c) {
-                    c.postDateUtc = moment.utc(c.postDateUtc).toDate();
-                    if (c.lastEditDateUtc)
-                        c.lastEditDateUtc = moment.utc(c.lastEditDateUtc).toDate();
-                    if (c.deletedDateUtc)
-                        c.deletedDateUtc = moment.utc(c.deletedDateUtc).toDate();
+                var processComments = function (c) {
                     c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
                     if (c.replies)
-                        _.each(c.replies, markDates);
+                        _.each(c.replies, processComments);
                 };
                 // Convert the UTC dates to local dates and mark the user's comments
-                _.each(_this.commentList, markDates);
+                _.each(_this.commentList, processComments);
             }, function (response) {
                 _this.isLoading = false;
             });
@@ -8820,6 +9504,72 @@ CA.angularApp.component("groupComments", {
 /// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;
 (function (Ally) {
+    var HtmlUtil2 = /** @class */ (function () {
+        function HtmlUtil2() {
+        }
+        HtmlUtil2.convertStringsToDates = function (obj) {
+            if ($.isArray(obj)) {
+                HtmlUtil2.convertDatesFromArray(obj);
+            }
+            if (HtmlUtil2.isObject(obj)) {
+                // Recursively evaluate nested objects
+                for (var curPropName in obj) {
+                    var value = obj[curPropName];
+                    if (HtmlUtil2.isObject(value)) {
+                        HtmlUtil2.convertStringsToDates(value);
+                    }
+                    else if ($.isArray(value)) {
+                        HtmlUtil2.convertDatesFromArray(value);
+                    }
+                    else if (HtmlUtil2.isString(value) && value.length > 10 && HtmlUtil2.dotNetTimeRegEx2.test(value)) {
+                        //If it is a string of the expected form convert to date
+                        var parsedDate;
+                        if (HtmlUtil.endsWith(curPropName, "_UTC")
+                            || HtmlUtil.endsWith(curPropName, "Utc")) {
+                            parsedDate = HtmlUtil2.serverUtcDateToLocal(value);
+                        }
+                        else
+                            parsedDate = new Date(value);
+                        obj[curPropName] = parsedDate;
+                    }
+                }
+            }
+        };
+        HtmlUtil2.convertDatesFromArray = function (array) {
+            for (var i = 0; i < array.length; i++) {
+                var value = array[i];
+                if (HtmlUtil2.isObject(value)) {
+                    HtmlUtil2.convertStringsToDates(value);
+                }
+                else if (HtmlUtil2.isString(value) && HtmlUtil2.iso8601RegEx.test(value)) {
+                    array[i] = new Date(value);
+                }
+            }
+        };
+        HtmlUtil2.isObject = function (value) {
+            return Object.prototype.toString.call(value) === "[object Object]";
+        };
+        HtmlUtil2.isString = function (value) {
+            return Object.prototype.toString.call(value) === "[object String]";
+        };
+        // Convert a UTC date string from the server to a local date object
+        HtmlUtil2.serverUtcDateToLocal = function (dbString) {
+            if (typeof dbString !== "string")
+                return dbString;
+            if (HtmlUtil.isNullOrWhitespace(dbString))
+                return null;
+            return moment.utc(dbString).toDate();
+        };
+        // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
+        //"2018-03-12T22:00:33"
+        HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+        //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
+        // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
+        // regex is needed for the dates that come down
+        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*)$/;
+        return HtmlUtil2;
+    }());
+    Ally.HtmlUtil2 = HtmlUtil2;
     /**
      * Represents an exception returned from an API endpoint
      */

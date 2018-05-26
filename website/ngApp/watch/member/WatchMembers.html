@@ -9,7 +9,7 @@
             <div class="loading-overlay" data-ng-show="vm.isLoading"></div>
             <div data-ng-repeat="user in vm.memberList">
                 <div style="float:left; width: 80px; height: 80px; margin: 6px;">
-                    <img alt="Profile for {{ user.fullName }}" data-ng data-ng-src="{{ user.avatarUri }}" />
+                    <img alt="Profile for {{ user.fullName }}" data-ng data-ng-src="{{ user.avatarUrl }}" />
                 </div>
                 <span id="owner-name-{{ $index }}">{{ user.fullName }}</span>
                 <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">

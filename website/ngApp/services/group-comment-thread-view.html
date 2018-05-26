@@ -19,7 +19,7 @@
 
         <div data-ng-repeat="comment in $ctrl.comments" class="mt-2 mb-2">
             <div class="media">
-                <img class="d-flex mr-3" alt="Profile for {{ comment.authorFullName }}" data-ng-src="{{ comment.authorAvatarUrl }}" />
+                <img class="d-flex mr-3" style="width: 80px; height: 80px;" alt="Profile for {{ comment.authorFullName }}" data-ng-src="{{ comment.authorAvatarUrl }}" />
 
                 <div class="media-body">
                     <p>
@@ -50,7 +50,7 @@
             </div>
 
             <div class="media mt-3 ml-5" data-ng-repeat="replyComment in comment.replies">
-                <img class="d-flex mr-3" alt="Profile for {{ replyComment.authorFullName }}" data-ng-src="{{ replyComment.authorAvatarUrl }}" />
+                <img class="d-flex mr-3" style="width: 80px; height: 80px;" alt="Profile for {{ replyComment.authorFullName }}" data-ng-src="{{ replyComment.authorAvatarUrl }}" />
 
                 <div class="media-body">
                     <p>
