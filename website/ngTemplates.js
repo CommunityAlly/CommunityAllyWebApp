@@ -307,6 +307,24 @@ angular.module('CondoAlly').run(['$templateCache', function($templateCache) {
     "\n" +
     "        }\r" +
     "\n" +
+    "    }</script><script>var capterra_vkey = 'd0f2e6030433d41b304f0962f72723f9',\r" +
+    "\n" +
+    "        capterra_vid = '2122598',\r" +
+    "\n" +
+    "        capterra_prefix = ( ( 'https:' == document.location.protocol ) ? 'https://ct.capterra.com' : 'http://ct.capterra.com' );\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "    function capterra_report_conversion()\r" +
+    "\n" +
+    "    {\r" +
+    "\n" +
+    "        var ct = document.createElement( 'script' ); ct.type = 'text/javascript'; ct.async = true;\r" +
+    "\n" +
+    "        ct.src = capterra_prefix + '/capterra_tracker.js?vid=' + capterra_vid + '&vkey=' + capterra_vkey;\r" +
+    "\n" +
+    "        var s = document.getElementsByTagName( 'script' )[0]; s.parentNode.insertBefore( ct, s );\r" +
+    "\n" +
     "    }</script><script src=\"//www.googleadservices.com/pagead/conversion_async.js\"></script>"
   );
 
@@ -380,7 +398,7 @@ angular.module('CondoAlly').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('/ngApp/committee/committee-home.html',
-    "<section class=\"content-full-width\" data-ng-if=\"welcomeMessage.length > 0\"><div><h3>Welcome!</h3><div id=\"welcome-message-label\">{{ welcomeMessage }}</div></div></section><div class=\"row\"><div class=\"col-md-6\"><group-send-email committee=\"$ctrl.committee\"></group-send-email></div><div class=\"col-md-6\"><group-comments thread-id=\"committee-home-{{ $ctrl.committee.committeeId }}\"></group-comments></div></div>"
+    "<section class=\"content-full-width\" data-ng-if=\"welcomeMessage.length > 0\"><div><h3>Welcome!</h3><div id=\"welcome-message-label\">{{ welcomeMessage }}</div></div></section><div class=\"row\"><div class=\"col-md-6\"><group-send-email committee=\"$ctrl.committee\"></group-send-email></div><div class=\"col-md-6\"><group-comment-threads committee-id=\"$ctrl.committee.committeeId\"></group-comment-threads></div></div>"
   );
 
 
@@ -545,7 +563,7 @@ angular.module('CondoAlly').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('/ngApp/services/group-comment-threads.html',
-    "<div class=\"group-comment-container portlet-box white spinner-effect margin-vertical\" data-ng-cloak><div class=\"portlet-header\"><button class=\"btn btn-primary\" data-ng-click=\"$ctrl.setDisplayCreateModal(true)\" style=\"float:right\">Start New Thread</button><h2 class=\"title\">Discussion</h2></div><div class=\"portlet-body\"><div data-ng-show=\"$ctrl.isLoading\" class=\"loading-overlay\"></div><div><div data-ng-repeat=\"thread in $ctrl.commentThreads\" class=\"mt-2 mb-2\"><h5 class=\"text-link\" data-ng-click=\"$ctrl.displayDiscussModal( thread )\">{{ thread.title }}</h5><span style=\"font-weight:700\">{{ thread.authorFullName }}</span> - <span data-livestamp=\"{{ thread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}\" title=\"{{ thread.createDateUtc | date:'medium' }}\"></span><hr data-ng-if=\"$index < $ctrl.commentThreads.length - 1\"></div></div><div data-ng-if=\"$ctrl.showCreateNewModal\" class=\"modal-container\"><div class=\"modal-overlay\" data-ng-click=\"$ctrl.setDisplayCreateModal(false)\"></div><div class=\"ca-modal-dialog\"><div data-ng-show=\"$ctrl.isLoading\" class=\"loading-overlay\"></div><span style=\"float:right\" class=\"close-x\" data-ng-click=\"$ctrl.setDisplayCreateModal(false)\">&times;</span><div class=\"form-group\"><label>Title:</label><input type=\"text\" data-ng-model=\"$ctrl.newThreadTitle\" class=\"form-control form-control-sm\" maxlength=\"256\" required></div><div class=\"form-group\"><label>Body:</label><textarea type=\"text\" data-ng-model=\"$ctrl.newThreadBody\" rows=\"4\" class=\"form-control\" maxlength=\"1024\"></textarea></div><div class=\"form-group\" data-ng-if=\"$ctrl.showBoardOnly\"><label for=\"is-board-only-thread-check-box\">Is Board Only:</label><input id=\"is-board-only-thread-check-box\" type=\"checkbox\" data-ng-model=\"$ctrl.newThreadIsBoardOnly\"><br><span class=\"note-text\">Indicates this discussion thread will only be visible to board members and site admin.</span></div><div style=\"text-align:center\"><div class=\"text-error\" data-ng-if=\"$ctrl.newThreadErrorMessage\">{{$ctrl.newThreadErrorMessage}}</div><button type=\"button\" class=\"btn btn-primary\" data-ng-click=\"$ctrl.createNewThread()\">Create Thread</button></div></div></div><group-comment-thread-view data-ng-if=\"$ctrl.viewingThread\" data-thread=\"$ctrl.viewingThread\" data-on-closed=\"$ctrl.viewingThread = null\"></group-comment-thread-view></div></div>"
+    "<div class=\"group-comment-container portlet-box white spinner-effect margin-vertical\" data-ng-cloak><div class=\"portlet-header\"><button class=\"btn btn-primary\" data-ng-click=\"$ctrl.setDisplayCreateModal(true)\" style=\"float:right\">Start New Thread</button><h2 class=\"title\">Discussion</h2></div><div class=\"portlet-body\"><div data-ng-show=\"$ctrl.isLoading\" class=\"loading-overlay\"></div><div><div data-ng-repeat=\"thread in $ctrl.commentThreads\" class=\"mt-2 mb-2\"><h5 class=\"text-link\" data-ng-click=\"$ctrl.displayDiscussModal( thread )\">{{ thread.title }}</h5><span style=\"font-weight:700\">{{ thread.authorFullName }}</span> - <span data-livestamp=\"{{ thread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}\" title=\"{{ thread.createDateUtc | date:'medium' }}\"></span><hr data-ng-if=\"$index < $ctrl.commentThreads.length - 1\"></div></div><div data-ng-if=\"$ctrl.showCreateNewModal\" class=\"modal-container\"><div class=\"modal-overlay\" data-ng-click=\"$ctrl.setDisplayCreateModal(false)\"></div><div class=\"ca-modal-dialog\"><div data-ng-show=\"$ctrl.isLoading\" class=\"loading-overlay\"></div><span style=\"float:right\" class=\"close-x\" data-ng-click=\"$ctrl.setDisplayCreateModal(false)\">&times;</span><div class=\"form-group\"><label>Title:</label><input id=\"new-thread-title-text-box\" type=\"text\" data-ng-model=\"$ctrl.newThreadTitle\" data-ng-escape=\"$ctrl.setDisplayCreateModal(false)\" class=\"form-control form-control-sm\" maxlength=\"256\" required></div><div class=\"form-group\"><label>Body:</label><textarea type=\"text\" data-ng-model=\"$ctrl.newThreadBody\" rows=\"4\" class=\"form-control\" maxlength=\"1024\"></textarea></div><div class=\"form-group\" data-ng-if=\"$ctrl.showBoardOnly\"><label for=\"is-board-only-thread-check-box\">Is Board Only:</label><input id=\"is-board-only-thread-check-box\" type=\"checkbox\" data-ng-model=\"$ctrl.newThreadIsBoardOnly\"><br><span class=\"note-text\">Indicates this discussion thread will only be visible to board members and site admin.</span></div><div class=\"form-group\"><label for=\"send-notice-check-box\">Send Out E-mail Notice:</label><input id=\"send-notice-check-box\" type=\"checkbox\" data-ng-model=\"$ctrl.shouldSendNoticeForNewThread\"><br><span class=\"note-text\">An e-mail will be send out to the discussion group telling them about your new thread.</span></div><div style=\"text-align:center\"><div class=\"text-error\" data-ng-if=\"$ctrl.newThreadErrorMessage\">{{$ctrl.newThreadErrorMessage}}</div><button type=\"button\" class=\"btn btn-primary\" data-ng-click=\"$ctrl.createNewThread()\">Create Thread</button></div></div></div><group-comment-thread-view data-ng-if=\"$ctrl.viewingThread\" data-thread=\"$ctrl.viewingThread\" data-on-closed=\"$ctrl.viewingThread = null\"></group-comment-thread-view></div></div>"
   );
 
 
