@@ -27,8 +27,10 @@
         newThreadTitle: string;
         newThreadBody: string;
         newThreadIsBoardOnly: boolean;
+        shouldSendNoticeForNewThread: boolean;
         newThreadErrorMessage: string;
         showBoardOnly: boolean = false;
+        committeeId: number;
 
 
         /**
@@ -63,7 +65,9 @@
             this.newThreadTitle = "";
             this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
+            this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
+
             // If we're displaying the modal, focus on the title text box
             if( shouldShow )
                 setTimeout( () => $( "#new-thread-title-text-box" ).focus(), 100 );
@@ -90,7 +94,9 @@
             var createInfo = {
                 title: this.newThreadTitle,
                 body: this.newThreadBody,
-                isBoardOnly: this.newThreadIsBoardOnly
+                isBoardOnly: this.newThreadIsBoardOnly,
+                shouldSendNotice: this.shouldSendNoticeForNewThread,
+                committeeId: this.committeeId
             };
 
             this.$http.post( "/api/CommentThread", createInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
@@ -114,7 +120,11 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/CommentThread" ).then( ( response: ng.IHttpPromiseCallbackArg<CommentThread[]> ) =>
+            var getUri = "/api/CommentThread";
+            if( this.committeeId )
+                getUri += "?committeeId=" + this.committeeId;
+
+            this.$http.get( getUri ).then( ( response: ng.IHttpPromiseCallbackArg<CommentThread[]> ) =>
             {
                 this.isLoading = false;
                 this.commentThreads = response.data;
@@ -141,6 +151,9 @@
     
 
 CA.angularApp.component( "groupCommentThreads", {
+    bindings: {
+        committeeId: "<?"
+    },
     templateUrl: "/ngApp/services/group-comment-threads.html",
     controller: Ally.GroupCommentThreadsController
 } );

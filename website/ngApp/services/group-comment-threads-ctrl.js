@@ -13,10 +13,11 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadsController($http, $rootScope, siteInfo) {
+        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
+            this.$scope = $scope;
             this.isLoading = false;
             this.viewingThread = null;
             this.showCreateNewModal = false;
@@ -26,11 +27,13 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadsController.prototype.$onInit = function () {
+            var _this = this;
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.editComment = {
                 commentText: "",
                 replyToCommentId: null
             };
+            this.$scope.$on("refreshCommentThreadList", function (event, data) { return _this.refreshCommentThreads(); });
             this.refreshCommentThreads();
         };
         GroupCommentThreadsController.prototype.setDisplayCreateModal = function (shouldShow) {
@@ -38,7 +41,11 @@ var Ally;
             this.newThreadTitle = "";
             this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
+            this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
+            // If we're displaying the modal, focus on the title text box
+            if (shouldShow)
+                setTimeout(function () { return $("#new-thread-title-text-box").focus(); }, 100);
         };
         GroupCommentThreadsController.prototype.displayDiscussModal = function (thread) {
             this.viewingThread = thread;
@@ -53,7 +60,9 @@ var Ally;
             var createInfo = {
                 title: this.newThreadTitle,
                 body: this.newThreadBody,
-                isBoardOnly: this.newThreadIsBoardOnly
+                isBoardOnly: this.newThreadIsBoardOnly,
+                shouldSendNotice: this.shouldSendNoticeForNewThread,
+                committeeId: this.committeeId
             };
             this.$http.post("/api/CommentThread", createInfo).then(function (response) {
                 _this.isLoading = false;
@@ -70,7 +79,10 @@ var Ally;
         GroupCommentThreadsController.prototype.refreshCommentThreads = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/CommentThread").then(function (response) {
+            var getUri = "/api/CommentThread";
+            if (this.committeeId)
+                getUri += "?committeeId=" + this.committeeId;
+            this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 _this.commentThreads = response.data;
                 var markDates = function (c) {
@@ -84,12 +96,15 @@ var Ally;
                 _this.isLoading = false;
             });
         };
-        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo"];
+        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope"];
         return GroupCommentThreadsController;
     }());
     Ally.GroupCommentThreadsController = GroupCommentThreadsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupCommentThreads", {
+    bindings: {
+        committeeId: "<?"
+    },
     templateUrl: "/ngApp/services/group-comment-threads.html",
     controller: Ally.GroupCommentThreadsController
 });

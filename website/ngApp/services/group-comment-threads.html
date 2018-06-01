@@ -40,6 +40,13 @@
                     <span class="note-text">Indicates this discussion thread will only be visible to board members and site admin.</span>
                 </div>
 
+                <div class="form-group">
+                    <label for="send-notice-check-box">Send Out E-mail Notice:</label>
+                    <input id="send-notice-check-box" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
+                    <br />
+                    <span class="note-text">An e-mail will be send out to the discussion group telling them about your new thread.</span>
+                </div>
+
                 <div style="text-align: center;">
                     <div class="text-error" data-ng-if="$ctrl.newThreadErrorMessage">{{$ctrl.newThreadErrorMessage}}</div>
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createNewThread()">Create Thread</button>
