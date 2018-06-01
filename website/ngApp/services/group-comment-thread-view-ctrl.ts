@@ -119,7 +119,11 @@
          */
         deleteComment( comment: Comment )
         {
-            if( !confirm("Are you sure you want to delete this comment?") )
+            var deleteMessage = "Are you sure you want to delete this comment?";
+            if( this.comments.length === 1 )
+                deleteMessage = "Since there is only one comment, if you delete this comment you'll delete the thread. Are you sure you want to delete this comment?";
+
+            if( !confirm( deleteMessage ) )
                 return;
 
             this.isLoading = true;
@@ -127,7 +131,14 @@
             this.$http.delete( `/api/CommentThread/${this.thread.commentThreadId}/${comment.commentId}` ).then( () =>
             {
                 this.isLoading = false;
-                this.retrieveComments();
+
+                if( this.comments.length === 1 )
+                {
+                    this.$rootScope.$broadcast( "refreshCommentThreadList" );
+                    this.closeModal( false );
+                }
+                else
+                    this.retrieveComments();
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {

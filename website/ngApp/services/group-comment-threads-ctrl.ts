@@ -17,7 +17,7 @@
      */
     export class GroupCommentThreadsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$scope"];
 
         isLoading: boolean = false;
         editComment: any;
@@ -34,7 +34,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $scope: ng.IScope )
         {
         }
 
@@ -50,6 +50,8 @@
                 commentText: "",
                 replyToCommentId: null
             };
+
+            this.$scope.$on( "refreshCommentThreadList", ( event, data ) => this.refreshCommentThreads() );
 
             this.refreshCommentThreads();
         }

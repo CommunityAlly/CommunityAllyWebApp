@@ -78,12 +78,20 @@ var Ally;
          */
         GroupCommentThreadViewController.prototype.deleteComment = function (comment) {
             var _this = this;
-            if (!confirm("Are you sure you want to delete this comment?"))
+            var deleteMessage = "Are you sure you want to delete this comment?";
+            if (this.comments.length === 1)
+                deleteMessage = "Since there is only one comment, if you delete this comment you'll delete the thread. Are you sure you want to delete this comment?";
+            if (!confirm(deleteMessage))
                 return;
             this.isLoading = true;
             this.$http.delete("/api/CommentThread/" + this.thread.commentThreadId + "/" + comment.commentId).then(function () {
                 _this.isLoading = false;
-                _this.retrieveComments();
+                if (_this.comments.length === 1) {
+                    _this.$rootScope.$broadcast("refreshCommentThreadList");
+                    _this.closeModal(false);
+                }
+                else
+                    _this.retrieveComments();
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to post comment: " + response.data.exceptionMessage);
