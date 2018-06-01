@@ -1,12 +1,12 @@
 ﻿<link href='https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,800%7COpen+Sans:300,400,500,600,700,800' rel='stylesheet' type='text/css'>
 
 <div class="page margin-vertical padding white-bg" style="font-family: Raleway,sans-serif;">
-    
+
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <div data-ng-show="$ctrl.hideWizard">
         {{ $ctrl.resultMessage }}
     </div>
-        
+
     <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
         <wz-step title="Name">
 
@@ -19,7 +19,7 @@
             </div>
             <br />
             <input id="next-button-0" type="submit" class="btn btn-sign-up-wiz" style="width:95%; float: none; margin: 0 auto;" wz-next value="Next Step" />
-            
+
         </wz-step>
 
         <wz-step title="Location">
@@ -123,6 +123,21 @@
             conv_handler( opt );
         }
     }
-    
+
 </script>
+
+<!-- Capterra conversion tracking -->
+<script type="text/javascript">
+    var capterra_vkey = 'd0f2e6030433d41b304f0962f72723f9',
+        capterra_vid = '2122598',
+        capterra_prefix = ( ( 'https:' == document.location.protocol ) ? 'https://ct.capterra.com' : 'http://ct.capterra.com' );
+
+    function capterra_report_conversion()
+    {
+        var ct = document.createElement( 'script' ); ct.type = 'text/javascript'; ct.async = true;
+        ct.src = capterra_prefix + '/capterra_tracker.js?vid=' + capterra_vid + '&vkey=' + capterra_vkey;
+        var s = document.getElementsByTagName( 'script' )[0]; s.parentNode.insertBefore( ct, s );
+    }
+</script>
+
 <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion_async.js"></script>

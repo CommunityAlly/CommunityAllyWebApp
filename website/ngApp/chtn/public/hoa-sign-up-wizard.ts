@@ -280,6 +280,9 @@ namespace Ally
                     if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
                         ( <any>window ).goog_report_conversion();
 
+                    if( typeof ( ( <any>window ).capterra_report_conversion ) !== "undefined" )
+                        ( <any>window ).capterra_report_conversion();
+
                     // Or if the user created an active signUpResult
                     if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
                     {

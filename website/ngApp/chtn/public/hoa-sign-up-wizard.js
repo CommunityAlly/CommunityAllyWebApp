@@ -196,6 +196,8 @@ var Ally;
                     // Log this as a conversion
                     if (typeof (window.goog_report_conversion) !== "undefined")
                         window.goog_report_conversion();
+                    if (typeof (window.capterra_report_conversion) !== "undefined")
+                        window.capterra_report_conversion();
                     // Or if the user created an active signUpResult
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
