@@ -25,7 +25,7 @@
 
                 <div class="form-group">
                     <label>Title:</label>
-                    <input type="text" data-ng-model="$ctrl.newThreadTitle" class="form-control form-control-sm" maxlength="256" required />
+                    <input id="new-thread-title-text-box" type="text" data-ng-model="$ctrl.newThreadTitle" data-ng-escape="$ctrl.setDisplayCreateModal(false)" class="form-control form-control-sm" maxlength="256" required />
                 </div>
 
                 <div class="form-group">

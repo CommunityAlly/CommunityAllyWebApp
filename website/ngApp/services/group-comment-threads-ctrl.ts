@@ -64,6 +64,9 @@
             this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
             this.newThreadErrorMessage = "";
+            // If we're displaying the modal, focus on the title text box
+            if( shouldShow )
+                setTimeout( () => $( "#new-thread-title-text-box" ).focus(), 100 );
         }
 
 
