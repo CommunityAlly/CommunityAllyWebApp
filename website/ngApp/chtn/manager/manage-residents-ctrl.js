@@ -116,6 +116,7 @@ var Ally;
                 if (!this.residentSortInfo.field)
                     this.residentSortInfo = defaultSort;
             }
+            var homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
             var innerThis = this;
             this.residentGridOptions =
                 {
@@ -124,7 +125,7 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: this.showIsRenter ? 62 : 175, sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); } },
+                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: homeColumnWidth, sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); } },
                         { field: 'isRenter', displayName: 'Is Renter', width: 80, cellClass: "resident-cell-is-renter", visible: this.showIsRenter, cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>' },
                         { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
                         { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
