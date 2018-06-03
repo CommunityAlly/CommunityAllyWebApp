@@ -33,7 +33,7 @@
                     <textarea type="text" data-ng-model="$ctrl.newThreadBody" rows="4" class="form-control" maxlength="1024"></textarea>
                 </div>
 
-                <div class="form-group" data-ng-if="$ctrl.showBoardOnly">
+                <div class="form-group" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
                     <label for="is-board-only-thread-check-box">Is Board Only:</label>
                     <input id="is-board-only-thread-check-box" type="checkbox" data-ng-model="$ctrl.newThreadIsBoardOnly" />
                     <br />
