@@ -658,6 +658,7 @@ namespace Ally
                 case "jpe":
                 case "jpg":
                 case "png":
+                case "bmp":
                     imagePath = "ImageIcon.png";
                     break;
 
