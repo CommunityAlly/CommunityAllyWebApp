@@ -14,6 +14,12 @@
     <fieldset>
         <legend>Change Short Name</legend>
 
+        App Type:
+        <select data-ng-model="$ctrl.changeShortNameData.appName">
+            <option value="Condo">Condo</option>
+            <option value="Hoa">Hoa</option>
+            <option value="Neighborhood">Neighborhood</option>
+        </select><br />
         Old Short Name: <input data-ng-model="$ctrl.changeShortNameData.old" type="text" /><br />
         New Short Name: <input data-ng-model="$ctrl.changeShortNameData.newShortName" type="text" /><br />
 

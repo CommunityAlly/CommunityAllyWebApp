@@ -17,7 +17,7 @@ var Ally;
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.newAssociation = new GroupEntry();
-            this.changeShortNameData = {};
+            this.changeShortNameData = { appName: "Condo" };
             /**
              * Retrieve the active group list
              */
@@ -80,7 +80,7 @@ var Ally;
             }
             this.isLoading = true;
             var innerThis = this;
-            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName, null).success(function (data) {
+            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).success(function (data) {
                 innerThis.isLoading = false;
                 innerThis.retrieveGroups();
             }).error(function () {

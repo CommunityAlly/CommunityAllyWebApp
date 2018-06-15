@@ -18,7 +18,7 @@
         static $inject = ["$timeout", "$http", "SiteInfo"];
         groups: GroupEntry[];
         newAssociation: GroupEntry = new GroupEntry();
-        changeShortNameData: any = {};
+        changeShortNameData: any = { appName: "Condo" };
         isLoading: boolean;
         isLoadingHelper: boolean;
         findUserAssociationsEmail: string;
@@ -125,7 +125,7 @@
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.put( "/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName, null ).success( function( data )
+            this.$http.put( "/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null ).success( function( data )
             {
                 innerThis.isLoading = false;
                 innerThis.retrieveGroups();
