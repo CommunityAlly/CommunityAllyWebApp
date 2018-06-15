@@ -26,7 +26,7 @@ namespace Ally
         
         PaymentHistory: any[] = [];
         message = "";
-        showPaymentPage: boolean = AppConfig.appShortName === "condo";
+        showPaymentPage: boolean = true; //AppConfig.appShortName === "condo";
         highlightWePayCheckoutId: string;
         PeriodicPaymentFrequencies:any[] = PeriodicPaymentFrequencies;
         AssociationPaysAch:boolean = true;

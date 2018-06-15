@@ -18,7 +18,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.PaymentHistory = [];
             this.message = "";
-            this.showPaymentPage = AppConfig.appShortName === "condo";
+            this.showPaymentPage = true; //AppConfig.appShortName === "condo";
             this.PeriodicPaymentFrequencies = PeriodicPaymentFrequencies;
             this.AssociationPaysAch = true;
             this.AssociationPaysCC = false; // Payer pays credit card fees
