@@ -29,6 +29,7 @@
         defaultMessageRecipient: string = "board";
         showDiscussionEveryoneWarning: boolean = false;
         showDiscussionLargeWarning: boolean = false;
+        showUseDiscussSuggestion: boolean = false;
         showSendConfirmation: boolean = false;
         showEmailForbidden: boolean = false;
         showRestrictedGroupWarning: boolean = false;
@@ -184,13 +185,20 @@
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
 
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf( "owners" ) !== -1;
-
+            
             if( !this.showDiscussionEveryoneWarning
                 && isSendingToOwners
                 && this.siteInfo.privateSiteInfo.numUnits > 30 )
                 this.showDiscussionLargeWarning = true;
             else
                 this.showDiscussionLargeWarning = false;
+
+            var isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf( "discussion" ) !== -1;
+            var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf( "board" ) !== -1;
+
+            this.showDiscussionEveryoneWarning = false;
+            this.showDiscussionLargeWarning = false;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard;
 
             var groupInfo = _.find( this.availableEmailGroups, ( g: GroupEmailInfo ) => g.recipientType === this.messageObject.recipientType );
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
