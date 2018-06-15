@@ -128,7 +128,7 @@ var Ally;
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.newAssociation = new GroupEntry();
-            this.changeShortNameData = {};
+            this.changeShortNameData = { appName: "Condo" };
             /**
              * Retrieve the active group list
              */
@@ -191,7 +191,7 @@ var Ally;
             }
             this.isLoading = true;
             var innerThis = this;
-            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName, null).success(function (data) {
+            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).success(function (data) {
                 innerThis.isLoading = false;
                 innerThis.retrieveGroups();
             }).error(function () {
@@ -1090,6 +1090,7 @@ var CondoAllyAppConfig =
         new RoutePath_v3( { path: "EmailAbuse/:idValue", templateHtml: "<email-abuse></email-abuse>", role: Role_All } ),
         new RoutePath_v3( { path: "DiscussionManage/:idValue", templateHtml: "<discussion-manage></discussion-manage>" } ),
         new RoutePath_v3( { path: "NeighborSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All } ),
+        new RoutePath_v3( { path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All } ),
         
         new RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
         new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ),
@@ -1819,7 +1820,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.PaymentHistory = [];
             this.message = "";
-            this.showPaymentPage = AppConfig.appShortName === "condo";
+            this.showPaymentPage = true; //AppConfig.appShortName === "condo";
             this.PeriodicPaymentFrequencies = PeriodicPaymentFrequencies;
             this.AssociationPaysAch = true;
             this.AssociationPaysCC = false; // Payer pays credit card fees
@@ -2522,6 +2523,7 @@ var Ally;
                 if (!this.residentSortInfo.field)
                     this.residentSortInfo = defaultSort;
             }
+            var homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
             var innerThis = this;
             this.residentGridOptions =
                 {
@@ -2530,7 +2532,7 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: this.showIsRenter ? 62 : 175, sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); } },
+                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: homeColumnWidth, sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); } },
                         { field: 'isRenter', displayName: 'Is Renter', width: 80, cellClass: "resident-cell-is-renter", visible: this.showIsRenter, cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>' },
                         { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
                         { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
@@ -6815,6 +6817,7 @@ var Ally;
                 case "jpe":
                 case "jpg":
                 case "png":
+                case "bmp":
                     imagePath = "ImageIcon.png";
                     break;
                 case "zip":
@@ -6904,6 +6907,47 @@ CA.angularApp.component("documents", {
 
 var Ally;
 (function (Ally) {
+    /**
+     * The controller for the page that redirects to another group from Condo Ally
+     */
+    var GroupRedirectController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function GroupRedirectController($routeParams) {
+            this.$routeParams = $routeParams;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        GroupRedirectController.prototype.$onInit = function () {
+            var lowerAppName = (this.$routeParams.appName || "").toLowerCase();
+            var appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
+            var domainName = null;
+            for (var i = 0; i < appConfigs.length; ++i) {
+                if (appConfigs[i].appShortName.toLowerCase() === lowerAppName) {
+                    domainName = appConfigs[i].baseTld;
+                    break;
+                }
+            }
+            if (!domainName)
+                domainName = "condoally.com";
+            domainName = "myhoaally.org";
+            var redirectUrl = "https://" + this.$routeParams.shortName + "." + domainName + "/";
+            window.location.href = redirectUrl;
+        };
+        GroupRedirectController.$inject = ["$routeParams"];
+        return GroupRedirectController;
+    }());
+    Ally.GroupRedirectController = GroupRedirectController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("groupRedirect", {
+    templateUrl: "/ngApp/common/group-redirect.html",
+    controller: Ally.GroupRedirectController
+});
+
+var Ally;
+(function (Ally) {
     var SendEmailRecpientEntry = /** @class */ (function () {
         function SendEmailRecpientEntry() {
         }
@@ -6932,6 +6976,7 @@ var Ally;
             this.defaultMessageRecipient = "board";
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
+            this.showUseDiscussSuggestion = false;
             this.showSendConfirmation = false;
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
@@ -7041,6 +7086,11 @@ var Ally;
                 this.showDiscussionLargeWarning = true;
             else
                 this.showDiscussionLargeWarning = false;
+            var isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf("discussion") !== -1;
+            var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
+            this.showDiscussionEveryoneWarning = false;
+            this.showDiscussionLargeWarning = false;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard;
             var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
         };
@@ -7301,7 +7351,7 @@ var Ally;
                     size: 'medium'
                 },
                 client: {
-                    sandbox: this.siteInfo.privateSiteInfo.payPalClientId,
+                    sandbox: null,
                     production: "AW51-dH9dRrczrhVVf1kZyavtifN8z23Q0BTJwpWcTJQL6YoqGCTwOb0JfbCHTJIA_usIXAgrxwQ7osQ"
                 },
                 payment: function (data, actions) {
