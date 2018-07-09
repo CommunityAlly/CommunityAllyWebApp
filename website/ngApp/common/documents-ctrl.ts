@@ -372,7 +372,7 @@ namespace Ally
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId;
 
             this.shouldShowCreateFolderModal = true;
-            setTimeout( function() { $( '#CreateDirectoryNameTextBox' ).focus(); }, 50 );
+            setTimeout( () => $( '#CreateDirectoryNameTextBox' ).focus(), 50 );
         }
 
 
@@ -387,7 +387,7 @@ namespace Ally
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
 
             this.shouldShowCreateFolderModal = true;
-            setTimeout( function() { $( '#CreateDirectoryNameTextBox' ).focus(); }, 50 );
+            setTimeout( () => $( '#CreateDirectoryNameTextBox' ).focus(), 50 );
         }
 
 
@@ -444,23 +444,21 @@ namespace Ally
             if( this.createUnderParentDirName )
                 putUri += encodeURIComponent( this.createUnderParentDirName );
 
-            var innerThis = this;
-            this.$http.put( putUri, null ).then( function()
+            this.$http.put( putUri, null ).then( () =>
             {
                 // Clear the document cache
-                innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                innerThis.newDirectoryName = "";
-                innerThis.Refresh();
+                this.newDirectoryName = "";
+                this.Refresh();
 
-                innerThis.shouldShowCreateFolderModal = false;
+                this.shouldShowCreateFolderModal = false;
                 $( "#CreateDirectoryButtonsPanel" ).show();
 
-            }, function( httpResult: ng.IHttpPromiseCallbackArg<any> )
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
-                var message = httpResult.data.exceptionMessage || httpResult.data.message || httpResult.data;
-                alert( "Failed to create the folder: " + message );
-                innerThis.isLoading = false;
+                alert( "Failed to create the folder: " + response.data.exceptionMessage );
+                this.isLoading = false;
                 $( "#CreateDirectoryButtonsPanel" ).show();
             } );
         }
@@ -512,16 +510,19 @@ namespace Ally
                 destinationFolderPath: ""
             };
 
-            var innerThis = this;
-            this.$http.put( "/api/ManageDocuments/RenameFile", fileAction ).then( function()
+            this.$http.put( "/api/ManageDocuments/RenameFile", fileAction ).then( () =>
             {
                 // Clear the document cache
-                innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                innerThis.Refresh();
-            }, function()
+                this.Refresh();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
-                innerThis.Refresh();
+                this.isLoading = false;
+                alert( "Failed to rename: " + response.data.exceptionMessage );
+
+                this.Refresh();
             } );
         }
 
@@ -536,16 +537,19 @@ namespace Ally
                 // Display the loading image
                 this.isLoading = true;
 
-                var innerThis = this;
-                this.$http.delete( "/api/ManageDocuments?docPath=" + document.relativeS3Path ).then( function()
+                this.$http.delete( "/api/ManageDocuments?docPath=" + document.relativeS3Path ).then( () =>
                 {
                     // Clear the document cache
-                    innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                    innerThis.Refresh();
-                }, function()
+                    this.Refresh();
+
+                }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    innerThis.Refresh();
+                    this.isLoading = false;
+                    alert( "Failed to delete file: " + response.data.exceptionMessage );
+
+                    this.Refresh();
                 } );
             }
         }
@@ -573,19 +577,20 @@ namespace Ally
             var oldDirectoryPath = encodeURIComponent( this.getSelectedDirectoryPath() );
             var newDirectoryNameQS = encodeURIComponent( newDirectoryName );
 
-            var innerThis = this;
-            this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then( function()
+            this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then( () =>
             {
                 // Clear the document cache
-                innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
                 // Update the selected directory name so we can reselect it
-                innerThis.selectedDirectory.name = newDirectoryName;
+                this.selectedDirectory.name = newDirectoryName;
 
-                innerThis.Refresh();
-            }, function()
+                this.Refresh();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
-                innerThis.Refresh();
+                this.isLoading = false;
+                alert( "Failed to rename directory: " + response.data.exceptionMessage );
             } );
         }
 
@@ -609,17 +614,17 @@ namespace Ally
                 // Display the loading image
                 this.isLoading = true;
 
-                var innerThis = this;
                 var dirPath = this.getSelectedDirectoryPath();
-                this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then( function()
+                this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then( () =>
                 {
                     // Clear the document cache
-                    innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                    innerThis.Refresh();
-                }, function( httpResult: ng.IHttpPromiseCallbackArg<ExceptionResult> )
+                    this.Refresh();
+
+                }, ( httpResult: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
 
                     alert( "Failed to delete the folder: " + httpResult.data.exceptionMessage );
                 } );
@@ -713,7 +718,7 @@ namespace Ally
                 this.getDocsUri += "/Committee/" + this.committee.committeeId;
 
             var innerThis = this;
-            this.$http.get( this.getDocsUri, { cache: true } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<DocumentDirectory> )
+            this.$http.get( this.getDocsUri, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<DocumentDirectory> ) =>
             {
                 innerThis.isLoading = false;
                 innerThis.documentTree = httpResponse.data;
@@ -729,7 +734,7 @@ namespace Ally
                 let allFiles: DocumentTreeFile[] = [];
                 let processDir = ( subdir: DocumentDirectory ) =>
                 {
-                    _.each( subdir.files, function( f: DocumentTreeFile )
+                    _.each( subdir.files, ( f: DocumentTreeFile ) =>
                     {
                         f.localFilePath = subdir.name + "/" + f.title;
                         f.uploadDateString = moment( f.uploadDate ).format( "MMMM D, YYYY" );
@@ -752,7 +757,7 @@ namespace Ally
 
                 innerThis.hookUpFileDragging();
 
-            }, function( httpResponse: any )
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 innerThis.isLoading = false;
                 //$( "#FileTreePanel" ).hide();
