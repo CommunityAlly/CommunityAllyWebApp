@@ -86,9 +86,18 @@ var Ally;
                 _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
-                if (useNumericNames)
-                    _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
+                if (_this.unitList.length > 0) {
+                    var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
+                    if (useNumericNames)
+                        _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
+                    else {
+                        var firstSuffix = _this.unitList[0].name.substr(_this.unitList[0].name.indexOf(" "));
+                        var allHaveSameSuffix = _.every(_this.unitList, function (u) { return HtmlUtil.endsWith(u.name, firstSuffix); });
+                        if (allHaveSameSuffix) {
+                            _this.unitList = _.sortBy(_this.unitList, function (u) { return parseInt(u.name.substr(0, u.name.indexOf(" "))); });
+                        }
+                    }
+                }
                 // Only show commitees with a contact person
                 _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
                 // Populate the e-mail name lists

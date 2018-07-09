@@ -126,9 +126,21 @@ namespace Ally
                 // Remove duplicates
                 this.allOwnerEmails = _.reduce( this.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
 
-                var useNumericNames = _.every( this.unitList, function( u ) { return HtmlUtil.isNumericString( u.name ); } );
-                if( useNumericNames )
-                    this.unitList = _.sortBy( this.unitList, function( u ) { return +u.name; } );
+                if( this.unitList.length > 0 )
+                {
+                    var useNumericNames = _.every( this.unitList, u => HtmlUtil.isNumericString( u.name ) );
+                    if( useNumericNames )
+                        this.unitList = _.sortBy( this.unitList, u => +u.name );
+                    else
+                    {
+                        var firstSuffix = this.unitList[0].name.substr( this.unitList[0].name.indexOf( " " ) );
+                        let allHaveSameSuffix = _.every( this.unitList, u => HtmlUtil.endsWith( u.name, firstSuffix ) );
+                        if( allHaveSameSuffix )
+                        {
+                            this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.indexOf( " " ) ) ) );
+                        }
+                    }
+                }
 
                 // Only show commitees with a contact person
                 this.committees = _.reject( this.committees, c => !c.contactUser );
