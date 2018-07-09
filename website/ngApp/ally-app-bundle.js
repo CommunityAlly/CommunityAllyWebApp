@@ -3813,9 +3813,11 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isLoading = true;
             this.emailLists = [];
+            this.unitPrefix = "Unit ";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -3885,9 +3887,18 @@ var Ally;
                 _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
-                if (useNumericNames)
-                    _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
+                if (_this.unitList.length > 0) {
+                    var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
+                    if (useNumericNames)
+                        _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
+                    else {
+                        var firstSuffix = _this.unitList[0].name.substr(_this.unitList[0].name.indexOf(" "));
+                        var allHaveSameSuffix = _.every(_this.unitList, function (u) { return HtmlUtil.endsWith(u.name, firstSuffix); });
+                        if (allHaveSameSuffix) {
+                            _this.unitList = _.sortBy(_this.unitList, function (u) { return parseInt(u.name.substr(0, u.name.indexOf(" "))); });
+                        }
+                    }
+                }
                 // Only show commitees with a contact person
                 _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
                 // Populate the e-mail name lists
@@ -6618,7 +6629,7 @@ var Ally;
             if (this.committee)
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId;
             this.shouldShowCreateFolderModal = true;
-            setTimeout(function () { $('#CreateDirectoryNameTextBox').focus(); }, 50);
+            setTimeout(function () { return $('#CreateDirectoryNameTextBox').focus(); }, 50);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
@@ -6628,7 +6639,7 @@ var Ally;
             if (this.committee)
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
             this.shouldShowCreateFolderModal = true;
-            setTimeout(function () { $('#CreateDirectoryNameTextBox').focus(); }, 50);
+            setTimeout(function () { return $('#CreateDirectoryNameTextBox').focus(); }, 50);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to sort the files
@@ -6659,6 +6670,7 @@ var Ally;
         // Occurs when the user clicks the button to create a new directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.onCreateDirectoryClicked = function () {
+            var _this = this;
             // Display the loading image
             this.isLoading = true;
             $("#CreateDirectoryButtonsPanel").hide();
@@ -6668,18 +6680,16 @@ var Ally;
             putUri += "&parentFolderPath=";
             if (this.createUnderParentDirName)
                 putUri += encodeURIComponent(this.createUnderParentDirName);
-            var innerThis = this;
             this.$http.put(putUri, null).then(function () {
                 // Clear the document cache
-                innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
-                innerThis.newDirectoryName = "";
-                innerThis.Refresh();
-                innerThis.shouldShowCreateFolderModal = false;
+                _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                _this.newDirectoryName = "";
+                _this.Refresh();
+                _this.shouldShowCreateFolderModal = false;
                 $("#CreateDirectoryButtonsPanel").show();
-            }, function (httpResult) {
-                var message = httpResult.data.exceptionMessage || httpResult.data.message || httpResult.data;
-                alert("Failed to create the folder: " + message);
-                innerThis.isLoading = false;
+            }, function (response) {
+                alert("Failed to create the folder: " + response.data.exceptionMessage);
+                _this.isLoading = false;
                 $("#CreateDirectoryButtonsPanel").show();
             });
         };
@@ -6700,6 +6710,7 @@ var Ally;
         // Occurs when the user wants to rename a document
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.RenameDocument = function (document) {
+            var _this = this;
             if (!document)
                 return;
             var newTitle = prompt("Enter the new name for the file", document.title);
@@ -6716,29 +6727,32 @@ var Ally;
                 sourceFolderPath: this.getSelectedDirectoryPath(),
                 destinationFolderPath: ""
             };
-            var innerThis = this;
             this.$http.put("/api/ManageDocuments/RenameFile", fileAction).then(function () {
                 // Clear the document cache
-                innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
-                innerThis.Refresh();
-            }, function () {
-                innerThis.Refresh();
+                _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                _this.Refresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to rename: " + response.data.exceptionMessage);
+                _this.Refresh();
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to delete a document
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.DeleteDocument = function (document) {
+            var _this = this;
             if (confirm("Are you sure you want to delete this file?")) {
                 // Display the loading image
                 this.isLoading = true;
-                var innerThis = this;
                 this.$http.delete("/api/ManageDocuments?docPath=" + document.relativeS3Path).then(function () {
                     // Clear the document cache
-                    innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
-                    innerThis.Refresh();
-                }, function () {
-                    innerThis.Refresh();
+                    _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                    _this.Refresh();
+                }, function (response) {
+                    _this.isLoading = false;
+                    alert("Failed to delete file: " + response.data.exceptionMessage);
+                    _this.Refresh();
                 });
             }
         };
@@ -6746,6 +6760,7 @@ var Ally;
         // Occurs when the user wants to edit a directory name
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.RenameSelectedDirectory = function () {
+            var _this = this;
             if (!this.selectedDirectory)
                 return;
             var newDirectoryName = prompt("Enter the new name for the directory", this.selectedDirectory.name);
@@ -6757,21 +6772,22 @@ var Ally;
             this.isLoading = true;
             var oldDirectoryPath = encodeURIComponent(this.getSelectedDirectoryPath());
             var newDirectoryNameQS = encodeURIComponent(newDirectoryName);
-            var innerThis = this;
             this.$http.put("/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null).then(function () {
                 // Clear the document cache
-                innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
+                _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
                 // Update the selected directory name so we can reselect it
-                innerThis.selectedDirectory.name = newDirectoryName;
-                innerThis.Refresh();
-            }, function () {
-                innerThis.Refresh();
+                _this.selectedDirectory.name = newDirectoryName;
+                _this.Refresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to rename directory: " + response.data.exceptionMessage);
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to delete a document
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.DeleteSelectedDirectory = function () {
+            var _this = this;
             if (!this.selectedDirectory)
                 return;
             if (this.selectedDirectory.files.length > 0) {
@@ -6781,14 +6797,13 @@ var Ally;
             if (confirm("Are you sure you want to delete this folder?")) {
                 // Display the loading image
                 this.isLoading = true;
-                var innerThis = this;
                 var dirPath = this.getSelectedDirectoryPath();
                 this.$http.delete("/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent(dirPath)).then(function () {
                     // Clear the document cache
-                    innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
-                    innerThis.Refresh();
+                    _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                    _this.Refresh();
                 }, function (httpResult) {
-                    innerThis.isLoading = false;
+                    _this.isLoading = false;
                     alert("Failed to delete the folder: " + httpResult.data.exceptionMessage);
                 });
             }
@@ -6883,7 +6898,7 @@ var Ally;
                     innerThis.SortFiles();
                 }
                 innerThis.hookUpFileDragging();
-            }, function (httpResponse) {
+            }, function (response) {
                 innerThis.isLoading = false;
                 //$( "#FileTreePanel" ).hide();
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
