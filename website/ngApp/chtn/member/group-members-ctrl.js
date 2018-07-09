@@ -12,9 +12,11 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isLoading = true;
             this.emailLists = [];
+            this.unitPrefix = "Unit ";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed

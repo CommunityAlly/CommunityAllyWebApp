@@ -23,6 +23,7 @@ namespace Ally
         allOwners: any[];
         allOwnerEmails: any[];
         hasMissingEmails: boolean;
+        unitPrefix: string = "Unit ";
 
 
         /**
@@ -33,6 +34,8 @@ namespace Ally
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+
+            this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
 
 
