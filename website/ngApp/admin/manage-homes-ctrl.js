@@ -24,13 +24,13 @@ var Ally;
          * Populate the page
          */
         ManageHomesController.prototype.refresh = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Unit?includeAddressData=true").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.units = httpResponse.data;
-            }, function () {
-                innerThis.isLoading = false;
+            this.$http.get("/api/Unit?includeAddressData=true").then(function (response) {
+                _this.isLoading = false;
+                _this.units = response.data;
+            }, function (response) {
+                _this.isLoading = false;
                 alert("Failed to load homes");
             });
         };
@@ -38,16 +38,16 @@ var Ally;
          * Occurs when the user presses the button to create a new unit
          */
         ManageHomesController.prototype.onCreateUnitClick = function () {
+            var _this = this;
             $("#AddUnitForm").validate();
             if (!$("#AddUnitForm").valid())
                 return;
             this.isLoading = true;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoading = false;
-                innerThis.isEdit = false;
-                innerThis.unitToEdit = new Ally.Unit();
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.isEdit = false;
+                _this.unitToEdit = new Ally.Unit();
+                _this.refresh();
             };
             if (this.isEdit)
                 this.$http.put("/api/Unit", this.unitToEdit).then(onSave);
@@ -67,9 +67,9 @@ var Ally;
          * Occurs when the user presses the button to delete a unit
          */
         ManageHomesController.prototype.onDeleteUnitClick = function (unit) {
-            var innerThis = this;
+            var _this = this;
             this.$http.delete("/api/Unit/" + unit.unitId).then(function () {
-                innerThis.refresh();
+                _this.refresh();
             });
         };
         /**
@@ -78,10 +78,9 @@ var Ally;
         ManageHomesController.prototype.onFastAddUnits = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Unit?fastAdd=" + this.lastFastAddName, null).then(function () {
                 _this.isLoading = false;
-                innerThis.refresh();
+                _this.refresh();
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed fast add:" + response.data.exceptionMessage);
@@ -91,17 +90,17 @@ var Ally;
          * Occurs when the user presses the button to add units from the multi-line text box
          */
         ManageHomesController.prototype.onAddUnitsPerLine = function () {
+            var _this = this;
             var postData = {
                 action: "onePerLine",
                 lines: this.unitNamePerLine
             };
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Unit?onePerLine=1", postData).then(function () {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.refresh();
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed");
             });
         };
@@ -109,17 +108,17 @@ var Ally;
          * Occurs when the user presses the button to add homes from the address multi-line text box
          */
         ManageHomesController.prototype.onAddUnitsByAddressPerLine = function () {
+            var _this = this;
             var postData = {
                 action: "onePerLine",
                 lines: this.unitAddressPerLine
             };
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Unit/FromAddresses", postData).then(function () {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.refresh();
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed");
             });
         };
@@ -127,11 +126,11 @@ var Ally;
         // Occurs when the user presses the button to delete all units
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ManageHomesController.prototype.onDeleteAllClick = function () {
+            var _this = this;
             if (!confirm("This will delete every unit! This should only be used for new sites!"))
                 return;
-            var innerThis = this;
             this.$http.get("/api/Unit?deleteAction=all").then(function () {
-                innerThis.refresh();
+                _this.refresh();
             }, function () {
             });
         };

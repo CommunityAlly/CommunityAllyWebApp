@@ -39,17 +39,16 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/Unit?includeAddressData=true" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> )
+            this.$http.get( "/api/Unit?includeAddressData=true" ).then( ( response: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.units = httpResponse.data;
-            },
-                function()
-                {
-                    innerThis.isLoading = false;
-                    alert( "Failed to load homes" );
-                } );
+                this.isLoading = false;
+                this.units = response.data;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to load homes" );
+            } );
         }
 
 
@@ -64,15 +63,14 @@
 
             this.isLoading = true;
 
-            var innerThis = this;
             var onSave = () =>
             {
-                innerThis.isLoading = false;
-                innerThis.isEdit = false;
+                this.isLoading = false;
+                this.isEdit = false;
 
-                innerThis.unitToEdit = new Unit();
+                this.unitToEdit = new Unit();
 
-                innerThis.refresh();
+                this.refresh();
             };
 
             if( this.isEdit )
@@ -100,10 +98,9 @@
          */
         onDeleteUnitClick( unit: Unit )
         {
-            var innerThis = this;
             this.$http.delete( "/api/Unit/" + unit.unitId ).then( () =>
             {
-                innerThis.refresh();
+                this.refresh();
             } );
         }
 
@@ -115,16 +112,16 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.post( "/api/Unit?fastAdd=" + this.lastFastAddName, null ).then(() =>
             {
                 this.isLoading = false;
-                innerThis.refresh();
+                this.refresh();
+
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
-                    alert( "Failed fast add:" + response.data.exceptionMessage );
-                } );
+            {
+                this.isLoading = false;
+                alert( "Failed fast add:" + response.data.exceptionMessage );
+            } );
         }
 
 
@@ -141,16 +138,15 @@
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/Unit?onePerLine=1", postData ).then( function()
+            this.$http.post( "/api/Unit?onePerLine=1", postData ).then( () =>
             {
-                innerThis.isLoading = false;
-                innerThis.refresh();
-            }, function()
-                {
-                    innerThis.isLoading = false;
-                    alert( "Failed" );
-                } );
+                this.isLoading = false;
+                this.refresh();
+            }, () =>
+            {
+                this.isLoading = false;
+                alert( "Failed" );
+            } );
         }
 
 
@@ -167,17 +163,16 @@
 
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.post( "/api/Unit/FromAddresses", postData ).then(() =>
             {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                this.isLoading = false;
+                this.refresh();
 
             }, () =>
-                {
-                    innerThis.isLoading = false;
-                    alert( "Failed" );
-                } );
+            {
+                this.isLoading = false;
+                alert( "Failed" );
+            } );
         }
 
 
@@ -189,14 +184,13 @@
             if( !confirm( "This will delete every unit! This should only be used for new sites!" ) )
                 return;
 
-            var innerThis = this;
-            this.$http.get( "/api/Unit?deleteAction=all" ).then( function()
+            this.$http.get( "/api/Unit?deleteAction=all" ).then( () =>
             {
-                innerThis.refresh();
+                this.refresh();
 
-            }, function()
-                {
-                } );
+            }, () =>
+            {
+            } );
         }
     }
 }
