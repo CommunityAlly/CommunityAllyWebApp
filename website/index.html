@@ -131,6 +131,22 @@
     </script>
     <!-- Fonts -->
     <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700' rel='stylesheet' type='text/css'>
+
+    <meta name="application-name" content="Condo Ally">
+    <meta name="apple-mobile-web-app-title" content="Condo Ally">
+
+    <link rel="icon" sizes="192x192" href="/assets/images/icons/Icon-192.png">
+    <link rel="icon" sizes="196x196" href="/assets/images/icons/Icon-196.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/icons/Icon-57.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/icons/Icon-72.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/icons/Icon-114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/icons/Icon-120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/icons/Icon-144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/icons/Icon-152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/assets/images/icons/Icon-167.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/icons/Icon-180.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/images/icons/Icon-192.png" />
+    <link rel="apple-touch-icon" sizes="196x196" href="/assets/images/icons/Icon-196.png" />
 </head>
 
 <body data-ng-app="CondoAlly" ng-strict-di>
@@ -260,7 +276,9 @@
                 }, 10);
             });
         })(jQuery);
-
+        
+        $( 'meta[name=application-name]' ).attr( "content", AppConfig.appName );
+        $( 'meta[name=apple-mobile-web-app-title]' ).attr( "content", AppConfig.appName );
     </script>
 </body>
 </html>
