@@ -220,9 +220,10 @@ var Ally;
             // Add an empty unit option for the advanced picker in single-select mode
             if (this.allUnits.length > 20 && this.multiselectMulti === "single") {
                 // Add an empty entry since the multi-select control doesn't allow deselection
-                if (this.allUnits[0].unitId !== null) {
+                if (this.allUnits[0].unitId !== -5) {
                     var emptyUnit = new Ally.Unit();
                     emptyUnit.name = "None Selected";
+                    emptyUnit.unitId = -5;
                     this.allUnits.unshift(emptyUnit);
                 }
             }
