@@ -114,7 +114,7 @@ namespace Ally
         adminSetPass_Password: string;
         adminSetPass_ResultMessage: string;
         isLoadingSettings: boolean = false;
-        residentSettings: any;
+        residentSettings: CondoSiteSettings;
         residentSortInfo: any;
         bulkImportCsv: string;
         hasOneAdmin: boolean;
@@ -566,7 +566,7 @@ namespace Ally
             this.isLoadingSettings = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Settings" ).success(( data: any ) =>
+            this.$http.get( "/api/Settings" ).success( ( data: CondoSiteSettings ) =>
             {
                 innerThis.isLoadingSettings = false;
                 this.residentSettings = data;

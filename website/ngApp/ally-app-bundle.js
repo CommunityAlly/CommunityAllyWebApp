@@ -347,13 +347,13 @@ var Ally;
          * Populate the page
          */
         ManageHomesController.prototype.refresh = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Unit?includeAddressData=true").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.units = httpResponse.data;
-            }, function () {
-                innerThis.isLoading = false;
+            this.$http.get("/api/Unit?includeAddressData=true").then(function (response) {
+                _this.isLoading = false;
+                _this.units = response.data;
+            }, function (response) {
+                _this.isLoading = false;
                 alert("Failed to load homes");
             });
         };
@@ -361,16 +361,16 @@ var Ally;
          * Occurs when the user presses the button to create a new unit
          */
         ManageHomesController.prototype.onCreateUnitClick = function () {
+            var _this = this;
             $("#AddUnitForm").validate();
             if (!$("#AddUnitForm").valid())
                 return;
             this.isLoading = true;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoading = false;
-                innerThis.isEdit = false;
-                innerThis.unitToEdit = new Ally.Unit();
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.isEdit = false;
+                _this.unitToEdit = new Ally.Unit();
+                _this.refresh();
             };
             if (this.isEdit)
                 this.$http.put("/api/Unit", this.unitToEdit).then(onSave);
@@ -390,9 +390,9 @@ var Ally;
          * Occurs when the user presses the button to delete a unit
          */
         ManageHomesController.prototype.onDeleteUnitClick = function (unit) {
-            var innerThis = this;
+            var _this = this;
             this.$http.delete("/api/Unit/" + unit.unitId).then(function () {
-                innerThis.refresh();
+                _this.refresh();
             });
         };
         /**
@@ -401,10 +401,9 @@ var Ally;
         ManageHomesController.prototype.onFastAddUnits = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Unit?fastAdd=" + this.lastFastAddName, null).then(function () {
                 _this.isLoading = false;
-                innerThis.refresh();
+                _this.refresh();
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed fast add:" + response.data.exceptionMessage);
@@ -414,17 +413,17 @@ var Ally;
          * Occurs when the user presses the button to add units from the multi-line text box
          */
         ManageHomesController.prototype.onAddUnitsPerLine = function () {
+            var _this = this;
             var postData = {
                 action: "onePerLine",
                 lines: this.unitNamePerLine
             };
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Unit?onePerLine=1", postData).then(function () {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.refresh();
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed");
             });
         };
@@ -432,17 +431,17 @@ var Ally;
          * Occurs when the user presses the button to add homes from the address multi-line text box
          */
         ManageHomesController.prototype.onAddUnitsByAddressPerLine = function () {
+            var _this = this;
             var postData = {
                 action: "onePerLine",
                 lines: this.unitAddressPerLine
             };
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Unit/FromAddresses", postData).then(function () {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.refresh();
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed");
             });
         };
@@ -450,11 +449,11 @@ var Ally;
         // Occurs when the user presses the button to delete all units
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ManageHomesController.prototype.onDeleteAllClick = function () {
+            var _this = this;
             if (!confirm("This will delete every unit! This should only be used for new sites!"))
                 return;
-            var innerThis = this;
             this.$http.get("/api/Unit?deleteAction=all").then(function () {
-                innerThis.refresh();
+                _this.refresh();
             }, function () {
             });
         };
@@ -2627,9 +2626,10 @@ var Ally;
             // Add an empty unit option for the advanced picker in single-select mode
             if (this.allUnits.length > 20 && this.multiselectMulti === "single") {
                 // Add an empty entry since the multi-select control doesn't allow deselection
-                if (this.allUnits[0].unitId !== null) {
+                if (this.allUnits[0].unitId !== -5) {
                     var emptyUnit = new Ally.Unit();
                     emptyUnit.name = "None Selected";
+                    emptyUnit.unitId = -5;
                     this.allUnits.unshift(emptyUnit);
                 }
             }
@@ -3060,8 +3060,35 @@ CA.angularApp.component("manageResidents", {
     controller: Ally.ManageResidentsController
 });
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Ally;
 (function (Ally) {
+    var BaseSiteSettings = /** @class */ (function () {
+        function BaseSiteSettings() {
+        }
+        return BaseSiteSettings;
+    }());
+    Ally.BaseSiteSettings = BaseSiteSettings;
+    /**
+     * Represents settings for a Condo, HOA, or Neighborhood Ally site
+     */
+    var CondoSiteSettings = /** @class */ (function (_super) {
+        __extends(CondoSiteSettings, _super);
+        function CondoSiteSettings() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return CondoSiteSettings;
+    }(BaseSiteSettings));
+    Ally.CondoSiteSettings = CondoSiteSettings;
     /**
      * The controller for the page to view group site settings
      */
@@ -3074,12 +3101,12 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.settings = new CondoSiteSettings();
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         ChtnSettingsController.prototype.$onInit = function () {
-            this.settings = {};
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
@@ -3119,13 +3146,13 @@ var Ally;
          * Save all of the settings
          */
         ChtnSettingsController.prototype.saveSettings = function (shouldReload) {
+            var _this = this;
             if (shouldReload === void 0) { shouldReload = false; }
             analytics.track("editSettings");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", this.settings).then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.privateSiteInfo.homeRightColumnType = innerThis.settings.homeRightColumnType;
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 // Reload the page to show the page title has changed
                 if (shouldReload)
                     location.reload();

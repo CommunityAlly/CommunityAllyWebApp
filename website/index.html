@@ -8,7 +8,7 @@
         // Override previous handler.
         window.onerror = function( errorMsg, url, lineNumber )
         {
-            if( typeof( analytics ) !== "undefined" )
+            if( typeof ( analytics ) !== "undefined" )
             {
                 analytics.track( "Javascript Error", {
                     error: errorMsg
@@ -32,7 +32,7 @@
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <!--<script type="text/javascript" src="/js/AllyLibTop.min.js"></script>-->
     <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibTop.min.js?libVer=36"></script>
-    
+
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
     <script>
         var CA = CA || {};
@@ -42,21 +42,21 @@
 
         // Create the main app object for the Ally site
         CA.angularApp = angular.module( "CondoAlly", ["ngRoute", "ngResource", "condoAllyControllers", "ui.date", "ngSanitize", "xeditable", "ngGrid", "chart.js",
-                                                        "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "ui.grid.resizeColumns", "ui.grid.pagination", "mgo-angular-wizard",
-                                                        "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
+            "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "ui.grid.resizeColumns", "ui.grid.pagination", "mgo-angular-wizard",
+            "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
 
         // Clear the template cache based on the JS file version
-        CA.clearTemplateCacheIfNeeded = function ( templateCacheService )
+        CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
 
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=309" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=316" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=309" );
+                    localStorage.setItem( Key_JSVersion, "appVer=316" );
                 }
             }
         };
@@ -64,31 +64,29 @@
 
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=309"></script>
-    
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=316"></script>
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngTemplates.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=309"></script>
-
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=316"></script>
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
-        ( function ()
+        ( function()
         {
             var subdomain = HtmlUtil.getSubdomain( window.location.host );
             var isTestSubdomain = subdomain === "qa" || subdomain === "localtest";
-            if ( isTestSubdomain )
+            if( isTestSubdomain )
                 return;
-            
+
             // Zopim
-            window.$zopim || ( function ( d, s )
+            window.$zopim || ( function( d, s )
             {
-                var z = $zopim = function ( c ) { z._.push( c ) }, $ = z.s =
-                d.createElement( s ), e = d.getElementsByTagName( s )[0];
+                var z = $zopim = function( c ) { z._.push( c ) }, $ = z.s =
+                    d.createElement( s ), e = d.getElementsByTagName( s )[0];
 
                 z.set = function( o )
                 {
                     z.set.
-                    _.push( o )
+                        _.push( o )
                 };
 
                 z._ = [];
@@ -104,19 +102,24 @@
                 {
                     e.parentNode.insertBefore( $, e );
                 }, 2000 );
-                
+
             } )( document, 'script' );
 
         } )();
     </script>
     <script type="text/javascript">
-        !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.1.0";
-            if( AppConfig.segmentWriteKey )
+        !function()
+        {
+            var analytics = window.analytics = window.analytics || []; if( !analytics.initialize ) if( analytics.invoked ) window.console && console.error && console.error( "Segment snippet included twice." ); else
             {
-                analytics.load( AppConfig.segmentWriteKey );
-                analytics.page();
+                analytics.invoked = !0; analytics.methods = ["trackSubmit", "trackClick", "trackLink", "trackForm", "pageview", "identify", "reset", "group", "track", "ready", "alias", "page", "once", "off", "on"]; analytics.factory = function( t ) { return function() { var e = Array.prototype.slice.call( arguments ); e.unshift( t ); analytics.push( e ); return analytics } }; for( var t = 0; t < analytics.methods.length; t++ ) { var e = analytics.methods[t]; analytics[e] = analytics.factory( e ) } analytics.load = function( t ) { var e = document.createElement( "script" ); e.type = "text/javascript"; e.async = !0; e.src = ( "https:" === document.location.protocol ? "https://" : "http://" ) + "cdn.segment.com/analytics.js/v1/" + t + "/analytics.min.js"; var n = document.getElementsByTagName( "script" )[0]; n.parentNode.insertBefore( e, n ) }; analytics.SNIPPET_VERSION = "3.1.0";
+                if( AppConfig.segmentWriteKey )
+                {
+                    analytics.load( AppConfig.segmentWriteKey );
+                    analytics.page();
+                }
             }
-        }}();
+        }();
     </script>
     <script>
         // In case we disable Segment analytics, define "analytics" so the code still runs fine
@@ -135,6 +138,7 @@
     <meta name="application-name" content="Condo Ally">
     <meta name="apple-mobile-web-app-title" content="Condo Ally">
 
+    <link rel="shortcut icon" href="favicon.ico" />
     <link rel="icon" sizes="192x192" href="/assets/images/icons/Icon-192.png">
     <link rel="icon" sizes="196x196" href="/assets/images/icons/Icon-196.png">
     <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/icons/Icon-57.png" />

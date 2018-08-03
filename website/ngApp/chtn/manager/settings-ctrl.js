@@ -1,5 +1,32 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Ally;
 (function (Ally) {
+    var BaseSiteSettings = /** @class */ (function () {
+        function BaseSiteSettings() {
+        }
+        return BaseSiteSettings;
+    }());
+    Ally.BaseSiteSettings = BaseSiteSettings;
+    /**
+     * Represents settings for a Condo, HOA, or Neighborhood Ally site
+     */
+    var CondoSiteSettings = /** @class */ (function (_super) {
+        __extends(CondoSiteSettings, _super);
+        function CondoSiteSettings() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return CondoSiteSettings;
+    }(BaseSiteSettings));
+    Ally.CondoSiteSettings = CondoSiteSettings;
     /**
      * The controller for the page to view group site settings
      */
@@ -12,12 +39,12 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.settings = new CondoSiteSettings();
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         ChtnSettingsController.prototype.$onInit = function () {
-            this.settings = {};
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
@@ -57,13 +84,13 @@ var Ally;
          * Save all of the settings
          */
         ChtnSettingsController.prototype.saveSettings = function (shouldReload) {
+            var _this = this;
             if (shouldReload === void 0) { shouldReload = false; }
             analytics.track("editSettings");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", this.settings).then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.privateSiteInfo.homeRightColumnType = innerThis.settings.homeRightColumnType;
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 // Reload the page to show the page title has changed
                 if (shouldReload)
                     location.reload();

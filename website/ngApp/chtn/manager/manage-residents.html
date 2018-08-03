@@ -229,6 +229,14 @@
             their contact info from other non-admin users. We believe in sharing contact info to promote collaboration and transparency, but we understand
             the world is not perfect and sometimes privacy is more important.
         </span>
+        <br />
+        <br />
+        <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.isDiscussionEmailGroupEnabled" data-ng-change="$ctrl.saveResidentSettings()" />Enable the discussion group e-mail</label><br />
+        <span class="note-text">
+            The discussion group e-mails works like the other group e-mails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page, except users can unsubscribe from specific
+            discussions. We've since decided that the home page discussion threads are a better option for discussions and the discussion group e-mail should not be used, but leave it here for
+            groups that prefer e-mail.
+        </span>
     </div>
 
     <div data-ng-show="$ctrl.isAdmin">

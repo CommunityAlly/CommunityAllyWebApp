@@ -1,5 +1,29 @@
 namespace Ally
 {
+    export class BaseSiteSettings
+    {
+        backgroundImageFiles: string[];
+        bgImageFileName: string;
+        siteTitle: string;
+        fullName: string;
+        welcomeMessage: string;
+    }
+
+
+    /**
+     * Represents settings for a Condo, HOA, or Neighborhood Ally site
+     */
+    export class CondoSiteSettings extends BaseSiteSettings
+    {
+        allowOwnersToSendEmail: boolean;
+        allowRentersToSendEmail: boolean;
+        homeRightColumnType: string;
+        rentersCanViewDocs: boolean;
+        canHideContactInfo: boolean;
+        isDiscussionEmailGroupEnabled: boolean;
+    }
+
+
     /**
      * The controller for the page to view group site settings
      */
@@ -7,7 +31,7 @@ namespace Ally
     {
         static $inject = ["$http", "SiteInfo", "$timeout", "$scope"];
 
-        settings: any;
+        settings: CondoSiteSettings = new CondoSiteSettings();
         defaultBGImage: string;
         showQaButton: boolean;
         loginImageUrl: string;
@@ -27,8 +51,6 @@ namespace Ally
          */
         $onInit()
         {
-            this.settings = {};
-
             this.defaultBGImage = $( document.documentElement ).css( "background-image" );
 
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
@@ -51,7 +73,7 @@ namespace Ally
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Settings" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            this.$http.get( "/api/Settings" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<CondoSiteSettings> )
             {
                 innerThis.isLoading = false;
                 innerThis.settings = httpResponse.data;
@@ -92,11 +114,10 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/Settings", this.settings ).then( function()
+            this.$http.put( "/api/Settings", this.settings ).then( () =>
             {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.privateSiteInfo.homeRightColumnType = innerThis.settings.homeRightColumnType;
+                this.isLoading = false;
+                this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
 
                 // Reload the page to show the page title has changed
                 if( shouldReload )
