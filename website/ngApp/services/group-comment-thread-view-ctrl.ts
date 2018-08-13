@@ -12,7 +12,7 @@
      */
     export class GroupCommentThreadViewController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope"];
+        static $inject = ["$http", "$rootScope", "SiteInfo"];
 
         isLoading: boolean = false;
         thread: CommentThread;
@@ -23,12 +23,13 @@
         replyCommentText: string;
         editCommentId: number;
         editCommentText: string;
+        shouldShowAdminControls: boolean = false;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -38,6 +39,8 @@
         */
         $onInit()
         {
+            this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
+
             this.retrieveComments();
         }
 
@@ -59,6 +62,7 @@
                     this.submitReplyComment();
             }
         }
+
 
         /**
          * Retrieve the comments from the server
@@ -134,7 +138,9 @@
 
                 if( this.comments.length === 1 )
                 {
+                    // Tell the parent thread list to refresh
                     this.$rootScope.$broadcast( "refreshCommentThreadList" );
+
                     this.closeModal( false );
                 }
                 else
@@ -144,6 +150,31 @@
             {
                 this.isLoading = false;
                 alert( "Failed to post comment: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Archive this thread
+         */
+        archiveThread()
+        {
+            this.isLoading = true;
+
+            this.$http.put( `/api/CommentThread/Archive/${this.thread.commentThreadId}`, null ).then( () =>
+            {
+                this.isLoading = false;
+
+                // Tell the parent thread list to refresh
+                this.$rootScope.$broadcast( "refreshCommentThreadList" );
+
+                this.closeModal( false );
+                
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+
+                alert( "Failed to archive: " + response.data.exceptionMessage );
             } );
         }
 

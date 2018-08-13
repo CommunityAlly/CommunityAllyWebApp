@@ -17,6 +17,8 @@ namespace Ally
         firstName: string;
         lastName: string;
         isSiteManager: boolean;
+
+        /** Indicates if this user is a system super-admin, not a single group admin */
         isAdmin: boolean;
         acceptedTermsDate: Date;
         fullName: string;

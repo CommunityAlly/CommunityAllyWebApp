@@ -9204,15 +9204,18 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadViewController($http, $rootScope) {
+        function GroupCommentThreadViewController($http, $rootScope, siteInfo) {
             this.$http = $http;
             this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
+            this.shouldShowAdminControls = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadViewController.prototype.$onInit = function () {
+            this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.retrieveComments();
         };
         GroupCommentThreadViewController.prototype.onTextAreaKeyDown = function (e, messageType) {
@@ -9279,6 +9282,7 @@ var Ally;
             this.$http.delete("/api/CommentThread/" + this.thread.commentThreadId + "/" + comment.commentId).then(function () {
                 _this.isLoading = false;
                 if (_this.comments.length === 1) {
+                    // Tell the parent thread list to refresh
                     _this.$rootScope.$broadcast("refreshCommentThreadList");
                     _this.closeModal(false);
                 }
@@ -9287,6 +9291,22 @@ var Ally;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to post comment: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Archive this thread
+         */
+        GroupCommentThreadViewController.prototype.archiveThread = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/CommentThread/Archive/" + this.thread.commentThreadId, null).then(function () {
+                _this.isLoading = false;
+                // Tell the parent thread list to refresh
+                _this.$rootScope.$broadcast("refreshCommentThreadList");
+                _this.closeModal(false);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to archive: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -9351,7 +9371,7 @@ var Ally;
             if (this.onClosed)
                 this.onClosed();
         };
-        GroupCommentThreadViewController.$inject = ["$http", "$rootScope"];
+        GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return GroupCommentThreadViewController;
     }());
     Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;

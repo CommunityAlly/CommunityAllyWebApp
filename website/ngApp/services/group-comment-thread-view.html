@@ -6,7 +6,10 @@
 
         <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeModal(false)">&times;</span>
 
-        <h2>{{ $ctrl.thread.title }}</h2>
+        <h2 style="margin-bottom: 0;">{{ $ctrl.thread.title }}</h2>
+        <div data-ng-if="$ctrl.shouldShowAdminControls">
+            <span class="note-text text-link" data-ng-click="$ctrl.archiveThread()">Archive Thread</span>
+        </div>
 
         <div class="mt-3">
             Add New Comment:<br />
