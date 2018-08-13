@@ -11,9 +11,22 @@
         <div>
             <div data-ng-repeat="thread in $ctrl.commentThreads" class="mt-2 mb-2">
                 <h5 class="text-link" data-ng-click="$ctrl.displayDiscussModal( thread )">{{ thread.title }}</h5>
-                <span style="font-weight:bold;">{{ thread.authorFullName }}</span>
-                - <span data-livestamp="{{ thread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.createDateUtc | date:'medium' }}"></span>
+
+                <span class="note-text" style="display: block;" data-ng-if="thread.lastCommentDateUtc.getTime() !== thread.createDateUtc.getTime()">
+                    Updated by <span style="font-weight:bold;">{{ thread.lastCommentAuthorName }}</span>
+                    <span data-livestamp="{{ thread.lastCommentDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.lastCommentDateUtc | date:'medium' }}"></span>
+                </span>
+
+                <span class="note-text">
+                    Created by <span style="font-weight:bold;">{{ thread.authorFullName }}</span>
+                    <span data-livestamp="{{ thread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.createDateUtc | date:'medium' }}"></span>
+                </span>
+
                 <hr data-ng-if="$index < $ctrl.commentThreads.length - 1" />
+            </div>
+
+            <div class="note-text" data-ng-if="$ctrl.commentThreads.length === 0">
+                There are no active discussion threads.
             </div>
         </div>
 
