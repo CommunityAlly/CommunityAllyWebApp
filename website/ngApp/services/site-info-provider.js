@@ -206,6 +206,7 @@ var Ally;
             this.authToken = authToken;
             //appCacheService.clear( appCacheService.Key_AfterLoginRedirect );
         };
+        SiteInfoService.AlwaysDiscussDate = new Date(2018, 7, 1); // Groups created after August 1, 2018 always have discussion enabled
         return SiteInfoService;
     }());
     Ally.SiteInfoService = SiteInfoService;

@@ -36,6 +36,7 @@ namespace Ally
         showQaButton: boolean;
         loginImageUrl: string;
         isLoading: boolean;
+        showRightColumnSetting: boolean = true;
 
 
         /**
@@ -56,6 +57,8 @@ namespace Ally
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
 
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
+
+            this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
 
             // Hook up the file upload control after everything is loaded and setup
             var innerThis = this;

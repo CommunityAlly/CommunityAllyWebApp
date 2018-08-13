@@ -29,7 +29,7 @@ namespace Ally
 
         // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
         // regex is needed for the dates that come down
-        static dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*)$/;
+        static dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
 
         static convertStringsToDates( obj: any )
         {

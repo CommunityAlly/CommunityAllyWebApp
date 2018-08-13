@@ -225,7 +225,12 @@ CA.angularApp.config(
     // Make date strings convert to date objects
     ( <any>$httpProvider.defaults.transformResponse ).push( function( responseData: any )
     {
+        // Fast skip HTML templates
+        if( Ally.HtmlUtil2.isString( responseData ) && responseData.length > 30 )
+            return responseData;
+
         Ally.HtmlUtil2.convertStringsToDates( responseData );
+
         return responseData;
     } );
 

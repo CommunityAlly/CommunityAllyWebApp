@@ -13,6 +13,8 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.showDiscussionThreads = false;
+            this.showLocalNews = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -28,6 +30,14 @@ var Ally;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
             if (!this.homeRightColumnType)
                 this.homeRightColumnType = "localnews";
+            if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
+                this.showDiscussionThreads = true;
+                this.showLocalNews = true;
+            }
+            else {
+                this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
+                this.showLocalNews = this.homeRightColumnType === "localnews";
+            }
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });

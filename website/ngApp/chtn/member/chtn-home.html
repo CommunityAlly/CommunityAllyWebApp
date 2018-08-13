@@ -46,8 +46,8 @@
 
         <!-- right sidebar -->
         <div class="col-md-6">
-            <local-news-feed data-ng-if="$ctrl.homeRightColumnType === 'localnews'"></local-news-feed>
-            <group-comment-threads data-ng-if="$ctrl.homeRightColumnType === 'chatwall'"></group-comment-threads>
+            <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads"></group-comment-threads>
+            <local-news-feed data-ng-if="$ctrl.showLocalNews"></local-news-feed>
         </div>
     </div>
 

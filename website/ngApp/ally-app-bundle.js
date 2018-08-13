@@ -867,6 +867,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
         $httpProvider.interceptors.push('http403Interceptor');
         // Make date strings convert to date objects
         $httpProvider.defaults.transformResponse.push(function (responseData) {
+            // Fast skip HTML templates
+            if (Ally.HtmlUtil2.isString(responseData) && responseData.length > 30)
+                return responseData;
             Ally.HtmlUtil2.convertStringsToDates(responseData);
             return responseData;
         });
@@ -3102,6 +3105,7 @@ var Ally;
             this.$timeout = $timeout;
             this.$scope = $scope;
             this.settings = new CondoSiteSettings();
+            this.showRightColumnSetting = true;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -3110,6 +3114,7 @@ var Ally;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
+            this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             // Hook up the file upload control after everything is loaded and setup
             var innerThis = this;
             this.$timeout(function () { return innerThis.hookUpFileUpload(); }, 200);
@@ -3346,6 +3351,8 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.showDiscussionThreads = false;
+            this.showLocalNews = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -3361,6 +3368,14 @@ var Ally;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
             if (!this.homeRightColumnType)
                 this.homeRightColumnType = "localnews";
+            if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
+                this.showDiscussionThreads = true;
+                this.showLocalNews = true;
+            }
+            else {
+                this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
+                this.showLocalNews = this.homeRightColumnType === "localnews";
+            }
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
@@ -9683,7 +9698,7 @@ var Ally;
         //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
         // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
         // regex is needed for the dates that come down
-        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*)$/;
+        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
         return HtmlUtil2;
     }());
     Ally.HtmlUtil2 = HtmlUtil2;
@@ -9906,6 +9921,7 @@ var Ally;
             this.authToken = authToken;
             //appCacheService.clear( appCacheService.Key_AfterLoginRedirect );
         };
+        SiteInfoService.AlwaysDiscussDate = new Date(2018, 7, 1); // Groups created after August 1, 2018 always have discussion enabled
         return SiteInfoService;
     }());
     Ally.SiteInfoService = SiteInfoService;

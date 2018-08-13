@@ -16,7 +16,9 @@ namespace Ally
         isSiteManager: boolean;
         showFirstVisitModal: boolean;
         allyAppName: string;
-        homeRightColumnType: string;                
+        homeRightColumnType: string;
+        showDiscussionThreads: boolean = false;
+        showLocalNews: boolean = false;
         shouldShowAlertSection: boolean;
         usersCommittees: Committee[];
 
@@ -47,7 +49,18 @@ namespace Ally
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
             if( !this.homeRightColumnType )
                 this.homeRightColumnType = "localnews";
-            
+
+            if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate )
+            {
+                this.showDiscussionThreads = true;
+                this.showLocalNews = true;
+            }
+            else
+            {
+                this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
+                this.showLocalNews = this.homeRightColumnType === "localnews";
+            }
+
             var subDomain = HtmlUtil.getSubdomain( window.location.host );
 
             var innerThis = this;

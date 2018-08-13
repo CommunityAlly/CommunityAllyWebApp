@@ -43,6 +43,7 @@ namespace Ally
         /** The "ISO Alpha-2" 2 character country code */
         country: string;
         groupAddress: any;
+        creationDate: Date;
         welcomeMessage: string;
         gpsPosition: any;
     }
@@ -65,7 +66,7 @@ namespace Ally
         siteLaunchedDateUtc: Date;
         rentersCanViewDocs: boolean;
         canHideContactInfo: boolean;
-
+        //payPalClientId: string;
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;
@@ -84,7 +85,7 @@ namespace Ally
         xdLocalStorage: any;
         _rootScope: ng.IRootScopeService;
         authToken: string;
-
+        static AlwaysDiscussDate = new Date( 2018, 7, 1 ); // Groups created after August 1, 2018 always have discussion enabled
 
         // Retrieve the basic information for the current site
         refreshSiteInfo( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $q: ng.IQService )

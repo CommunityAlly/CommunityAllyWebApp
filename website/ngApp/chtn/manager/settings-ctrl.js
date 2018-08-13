@@ -40,6 +40,7 @@ var Ally;
             this.$timeout = $timeout;
             this.$scope = $scope;
             this.settings = new CondoSiteSettings();
+            this.showRightColumnSetting = true;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -48,6 +49,7 @@ var Ally;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
+            this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             // Hook up the file upload control after everything is loaded and setup
             var innerThis = this;
             this.$timeout(function () { return innerThis.hookUpFileUpload(); }, 200);

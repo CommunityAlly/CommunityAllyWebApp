@@ -147,6 +147,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
         $httpProvider.interceptors.push('http403Interceptor');
         // Make date strings convert to date objects
         $httpProvider.defaults.transformResponse.push(function (responseData) {
+            // Fast skip HTML templates
+            if (Ally.HtmlUtil2.isString(responseData) && responseData.length > 30)
+                return responseData;
             Ally.HtmlUtil2.convertStringsToDates(responseData);
             return responseData;
         });
