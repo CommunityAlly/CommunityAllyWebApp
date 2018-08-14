@@ -85,13 +85,7 @@ var Ally;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 _this.commentThreads = response.data;
-                var markDates = function (c) {
-                    c.createDateUtc = moment.utc(c.createDateUtc).toDate();
-                    //c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
-                };
-                // Convert the UTC dates to local dates and mark the user's comments
-                _.each(_this.commentThreads, markDates);
-                _this.commentThreads = _.sortBy(_this.commentThreads, function (ct) { return ct.createDateUtc; }).reverse();
+                _this.commentThreads = _.sortBy(_this.commentThreads, function (ct) { return ct.lastCommentDateUtc; }).reverse();
             }, function (response) {
                 _this.isLoading = false;
             });

@@ -128,18 +128,8 @@
             {
                 this.isLoading = false;
                 this.commentThreads = response.data;
-
-                var markDates = ( c: CommentThread ) =>
-                {
-                    c.createDateUtc = moment.utc( c.createDateUtc ).toDate();
-                    
-                    //c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
-                };
-
-                // Convert the UTC dates to local dates and mark the user's comments
-                _.each( this.commentThreads, markDates );
-
-                this.commentThreads = _.sortBy( this.commentThreads, ct => ct.createDateUtc ).reverse();
+                
+                this.commentThreads = _.sortBy( this.commentThreads, ct => ct.lastCommentDateUtc ).reverse();
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {

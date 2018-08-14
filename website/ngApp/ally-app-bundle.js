@@ -116,6 +116,11 @@ var Ally;
         }
         return GroupEntry;
     }());
+    var FoundGroup = /** @class */ (function () {
+        function FoundGroup() {
+        }
+        return FoundGroup;
+    }());
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -3856,9 +3861,11 @@ var Ally;
             this.isLoading = true;
             this.emailLists = [];
             this.unitPrefix = "Unit ";
+            this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
         /**
@@ -7044,6 +7051,7 @@ var Ally;
          */
         GroupSendEmailController.prototype.$onInit = function () {
             var _this = this;
+            this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
             if (!this.committee) {
@@ -7133,7 +7141,7 @@ var Ally;
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
             var _this = this;
             var shortName = HtmlUtil.getSubdomain(window.location.host).toLowerCase();
-            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
+            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail." + AppConfig.baseTld;
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
@@ -9472,13 +9480,7 @@ var Ally;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 _this.commentThreads = response.data;
-                var markDates = function (c) {
-                    c.createDateUtc = moment.utc(c.createDateUtc).toDate();
-                    //c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
-                };
-                // Convert the UTC dates to local dates and mark the user's comments
-                _.each(_this.commentThreads, markDates);
-                _this.commentThreads = _.sortBy(_this.commentThreads, function (ct) { return ct.createDateUtc; }).reverse();
+                _this.commentThreads = _.sortBy(_this.commentThreads, function (ct) { return ct.lastCommentDateUtc; }).reverse();
             }, function (response) {
                 _this.isLoading = false;
             });
