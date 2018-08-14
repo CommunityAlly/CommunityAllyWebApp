@@ -39,6 +39,7 @@ var Ally;
          */
         GroupSendEmailController.prototype.$onInit = function () {
             var _this = this;
+            this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
             if (!this.committee) {
@@ -128,7 +129,7 @@ var Ally;
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
             var _this = this;
             var shortName = HtmlUtil.getSubdomain(window.location.host).toLowerCase();
-            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
+            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail." + AppConfig.baseTld;
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;

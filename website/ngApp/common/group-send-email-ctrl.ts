@@ -37,6 +37,7 @@
         groupEmailAddress: string;
         committee: Ally.Committee;
         defaultSubject: string = "A message from your neighbor";
+        groupEmailDomain: string;
 
 
         /**
@@ -52,6 +53,7 @@
          */
         $onInit()
         {
+            this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
             
             this.showSendEmail = true;
@@ -179,7 +181,7 @@
         onSelectEmailGroup()
         {
             var shortName = HtmlUtil.getSubdomain( window.location.host ).toLowerCase();
-            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail.condoally.com";
+            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail." + AppConfig.baseTld;
 
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";

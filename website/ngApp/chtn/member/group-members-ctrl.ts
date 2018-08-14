@@ -24,6 +24,7 @@ namespace Ally
         allOwnerEmails: any[];
         hasMissingEmails: boolean;
         unitPrefix: string = "Unit ";
+        groupEmailDomain: string = "";
 
 
         /**
@@ -34,6 +35,7 @@ namespace Ally
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.groupEmailDomain = "inmail." + AppConfig.baseTld;
 
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }

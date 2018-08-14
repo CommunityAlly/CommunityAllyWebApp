@@ -110,7 +110,7 @@
 
             <div data-ng-repeat="g in $ctrl.emailLists">
                 <div>
-                    Send an e-mail to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@inmail.condoally.com</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    Send an e-mail to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
                     {{ g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>

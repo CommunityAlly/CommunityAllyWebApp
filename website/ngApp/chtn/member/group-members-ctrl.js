@@ -13,9 +13,11 @@ var Ally;
             this.isLoading = true;
             this.emailLists = [];
             this.unitPrefix = "Unit ";
+            this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
         /**
