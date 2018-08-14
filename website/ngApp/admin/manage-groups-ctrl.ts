@@ -10,6 +10,13 @@
     }
 
 
+    class FoundGroup
+    {
+        AppName: string;
+        ShortName: string;
+    }
+
+
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -22,7 +29,7 @@
         isLoading: boolean;
         isLoadingHelper: boolean;
         findUserAssociationsEmail: string;
-        foundUserAssociations: any[];
+        foundUserAssociations: FoundGroup[];
         newAddressId: number;
         newAddress: string;
         testEmailRecipient: string;
@@ -146,7 +153,7 @@
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
             {
                 innerThis.isLoading = false;
                 innerThis.foundUserAssociations = response.data;

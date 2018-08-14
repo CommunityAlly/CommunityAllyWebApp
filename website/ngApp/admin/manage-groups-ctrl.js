@@ -5,6 +5,11 @@ var Ally;
         }
         return GroupEntry;
     }());
+    var FoundGroup = /** @class */ (function () {
+        function FoundGroup() {
+        }
+        return FoundGroup;
+    }());
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
