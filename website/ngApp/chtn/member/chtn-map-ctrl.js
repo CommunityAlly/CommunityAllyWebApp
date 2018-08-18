@@ -115,23 +115,27 @@ var Ally;
         // Occurs when the user clicks the button to add a new tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ChtnMapController.prototype.onSaveTip = function () {
+            var _this = this;
             if (this.editingTip === null)
                 return;
             //$( "#new-item-form" ).validate();
             //if ( !$( "#new-item-form" ).valid() )
             //    return;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoading = false;
-                innerThis.editingTip = new WelcomeTip();
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.editingTip = new WelcomeTip();
+                _this.refresh();
+            };
+            var onFailure = function (response) {
+                _this.isLoading = false;
+                alert("Failed to save item: " + response.data.exceptionMessage);
             };
             this.isLoading = true;
             // If we're editing an existing item
             if (this.editingTip.itemId)
-                this.$http.put("/api/WelcomeTip", this.editingTip).then(onSave);
+                this.$http.put("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
             else
-                this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave);
+                this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Used by the ng-repeats to filter locations vs tips

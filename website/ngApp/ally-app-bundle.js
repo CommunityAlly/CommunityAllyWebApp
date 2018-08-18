@@ -1009,11 +1009,10 @@ var Ally;
     Ally.MenuItem_v3 = MenuItem_v3;
 })(Ally || (Ally = {}));
 
-function RoutePath( path, templateUrl, controller, menuTitle, role )
-{
-    if( path[0] !== '/' )
+function RoutePath(path, templateUrl, controller, menuTitle, role) {
+    if (role === void 0) { role = null; }
+    if (path[0] !== '/')
         path = "/" + path;
-
     this.path = path;
     this.templateUrl = templateUrl;
     this.controller = controller;
@@ -1022,12 +1021,9 @@ function RoutePath( path, templateUrl, controller, menuTitle, role )
     // authorized, all, manager, admin
     this.controllerAs = typeof controller === "function" ? "vm" : null;
 }
-
-function RoutePath_v2( routeOptions )
-{
-    if( routeOptions.path[0] !== '/' )
+function RoutePath_v2(routeOptions) {
+    if (routeOptions.path[0] !== '/')
         routeOptions.path = "/" + routeOptions.path;
-
     this.path = routeOptions.path;
     this.templateUrl = routeOptions.templateUrl;
     this.templateHtml = routeOptions.templateHtml;
@@ -1037,26 +1033,38 @@ function RoutePath_v2( routeOptions )
     // authorized, all, manager, admin
     this.controllerAs = typeof routeOptions.controller === "function" ? "vm" : null;
 }
-
-
-// For use with the newer Angular component objects
-function RoutePath_v3( routeOptions )
-{
-    if( routeOptions.path[0] !== '/' )
-        routeOptions.path = "/" + routeOptions.path;
-
-    this.path = routeOptions.path;
-    this.templateHtml = routeOptions.templateHtml;
-    this.menuTitle = routeOptions.menuTitle;
-    this.role = routeOptions.role || Role_Authorized;
-}
-
+var Ally;
+(function (Ally) {
+    var RouteOptions_v3 = /** @class */ (function () {
+        function RouteOptions_v3() {
+        }
+        return RouteOptions_v3;
+    }());
+    Ally.RouteOptions_v3 = RouteOptions_v3;
+    // For use with the newer Angular component objects
+    var RoutePath_v3 = /** @class */ (function () {
+        function RoutePath_v3(routeOptions) {
+            if (routeOptions.path[0] !== '/')
+                routeOptions.path = "/" + routeOptions.path;
+            this.path = routeOptions.path;
+            this.templateHtml = routeOptions.templateHtml;
+            this.menuTitle = routeOptions.menuTitle;
+            this.role = routeOptions.role || Role_Authorized;
+        }
+        return RoutePath_v3;
+    }());
+    Ally.RoutePath_v3 = RoutePath_v3;
+    var AppConfigInfo = /** @class */ (function () {
+        function AppConfigInfo() {
+        }
+        return AppConfigInfo;
+    }());
+    Ally.AppConfigInfo = AppConfigInfo;
+})(Ally || (Ally = {}));
 var Role_Authorized = "authorized";
 var Role_All = "all";
 var Role_Manager = "manager";
 var Role_Admin = "admin";
-
-
 // The names need to match the PeriodicPaymentFrequency enum
 var PeriodicPaymentFrequencies = [
     { name: "Monthly", intervalName: "month", id: 50 },
@@ -1064,270 +1072,215 @@ var PeriodicPaymentFrequencies = [
     { name: "Semiannually", intervalName: "half-year", id: 52 },
     { name: "Annually", intervalName: "year", id: 53 }
 ];
-
-function FrequencyIdToInfo( frequencyId )
-{
+function FrequencyIdToInfo(frequencyId) {
     return PeriodicPaymentFrequencies[frequencyId - 50];
 }
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Condo Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var CondoAllyAppConfig =
-{
+var CondoAllyAppConfig = {
     appShortName: "condo",
     appName: "Condo Ally",
     baseTld: "condoally.com",
     baseUrl: "https://condoally.com/",
+    isChtnSite: true,
     segmentWriteKey: "GnlZNd8jKCpDgFqRKbA4nftkuFIaqKPQ",
     homeName: "Unit",
     menu: [
-        new RoutePath_v3( { path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" } ),
-        new RoutePath_v3( { path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" } ),
-        new RoutePath_v3( { path: "Logbook", templateHtml: "<logbook-page></logbook-page>", controller: "LogbookController", menuTitle: "Calendar" } ),
-        new RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
-        new RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" } ),
-        new RoutePath_v3( { path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>" } ),
-
-        new RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "SignUp", templateHtml: "<condo-sign-up-wizard></condo-sign-up-wizard>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "EmailAbuse/:idValue", templateHtml: "<email-abuse></email-abuse>", role: Role_All } ),
-        new RoutePath_v3( { path: "DiscussionManage/:idValue", templateHtml: "<discussion-manage></discussion-manage>" } ),
-        new RoutePath_v3( { path: "NeighborSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All } ),
-        new RoutePath_v3( { path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All } ),
-        
-        new RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
-        new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ),
-        new RoutePath_v3( { path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager } ),
-        new RoutePath_v3( { path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager } ),
-        new RoutePath_v3( { path: "ManagePayments", templateHtml: "<manage-payments></manage-payments>", menuTitle: "Online Payments", role: Role_Manager } ),
-        new RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager } ),
-        new RoutePath_v3( { path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager } ),
-
-        new RoutePath_v3( { path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin } ),
+        new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
+        new Ally.RoutePath_v3({ path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
+        new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),
+        new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" }),
+        new Ally.RoutePath_v3({ path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>" }),
+        new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "SignUp", templateHtml: "<condo-sign-up-wizard></condo-sign-up-wizard>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "EmailAbuse/:idValue", templateHtml: "<email-abuse></email-abuse>", role: Role_All }),
+        new Ally.RoutePath_v3({ path: "DiscussionManage/:idValue", templateHtml: "<discussion-manage></discussion-manage>" }),
+        new Ally.RoutePath_v3({ path: "NeighborSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All }),
+        new Ally.RoutePath_v3({ path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All }),
+        new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
+        new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManagePayments", templateHtml: "<manage-payments></manage-payments>", menuTitle: "Online Payments", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
     ]
 };
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Neighborhood Watch Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var WatchAppConfig =
-{
-    appShortName: "watch",
-    appName: "Neighborhood Watch Ally",
-    baseTld: "watchally.org",
-    baseUrl: "https://watchally.org/",
-    menu: [
-        new RoutePath( "Home", "/ngApp/watch/member/WatchHome.html", WatchHomeCtrl, "Home" ),
-        new RoutePath( "Members", "/ngApp/watch/member/WatchMembers.html", WatchMembersCtrl, "Members" ),
-        new RoutePath( "Calendar", "/ngApp/watch/member/WatchCalendar.html", WatchCalendarCtrl, "Calendar" ),
-
-        new RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
-
-        new RoutePath( "ManageMembers", "/ngApp/watch/manager/ManageMembers.html", ManageMembersCtrl, "Members", Role_Manager ),
-        new RoutePath( "Settings", "/ngApp/watch/manager/Settings.html", WatchSettingsCtrl, "Settings", Role_Manager ),
-
-        new RoutePath( "/Admin/ManageWatchGroups", "/ngApp/Admin/ManageAssociations.html", "ManageAssociationsController", "Manage Groups", Role_Admin ),
-        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
-        new RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "Edit Addresses", role: Role_Admin } ),
-    ]
-};
-
-
+//var WatchAppConfig: Ally.AppConfigInfo =
+//{
+//    appShortName: "watch",
+//    appName: "Neighborhood Watch Ally",
+//    baseTld: "watchally.org",
+//    baseUrl: "https://watchally.org/",
+//    menu: [
+//        new RoutePath( "Home", "/ngApp/watch/member/WatchHome.html", WatchHomeCtrl, "Home" ),
+//        new RoutePath( "Members", "/ngApp/watch/member/WatchMembers.html", WatchMembersCtrl, "Members" ),
+//        new RoutePath( "Calendar", "/ngApp/watch/member/WatchCalendar.html", WatchCalendarCtrl, "Calendar" ),
+//        new Ally.RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
+//        new Ally.RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
+//        new Ally.RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
+//        new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
+//        new RoutePath( "ManageMembers", "/ngApp/watch/manager/ManageMembers.html", ManageMembersCtrl, "Members", Role_Manager ),
+//        new RoutePath( "Settings", "/ngApp/watch/manager/Settings.html", WatchSettingsCtrl, "Settings", Role_Manager ),
+//        new RoutePath( "/Admin/ManageWatchGroups", "/ngApp/Admin/ManageAssociations.html", "ManageAssociationsController", "Manage Groups", Role_Admin ),
+//        new Ally.RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
+//        new Ally.RoutePath_v3( { path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "Edit Addresses", role: Role_Admin } ),
+//    ]
+//};
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Service Professional Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var ServiceAppConfig =
-{
-    appShortName: "service",
-    appName: "Service Professional Ally",
-    baseTld: "serviceally.org",
-    baseUrl: "https://serviceally.org/",
-    menu: [
-        new RoutePath( "Jobs", "/ngApp/service/Jobs.html", ServiceJobsCtrl, "Jobs" ),
-        new RoutePath( "BusinessInfo", "/ngApp/service/BusinessInfo.html", ServiceBusinessInfoCtrl, "Business Info" ),
-        new RoutePath( "Banking", "/ngApp/service/BankInfo.html", ServiceBankInfoCtrl, "Banking" ),
-
-        new RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
-        
-        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
-    ]
-};
-
-
+//var ServiceAppConfig: Ally.AppConfigInfo =
+//{
+//    appShortName: "service",
+//    appName: "Service Professional Ally",
+//    baseTld: "serviceally.org",
+//    baseUrl: "https://serviceally.org/",
+//    menu: [
+//        new RoutePath( "Jobs", "/ngApp/service/Jobs.html", ServiceJobsCtrl, "Jobs" ),
+//        new RoutePath( "BusinessInfo", "/ngApp/service/BusinessInfo.html", ServiceBusinessInfoCtrl, "Business Info" ),
+//        new RoutePath( "Banking", "/ngApp/service/BankInfo.html", ServiceBankInfoCtrl, "Banking" ),
+//        new Ally.RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
+//        new Ally.RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
+//        new Ally.RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
+//        new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
+//        new Ally.RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
+//    ]
+//};
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Home Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var HomeAppConfig =
-{
+var HomeAppConfig = {
     appShortName: "home",
     appName: "Home Ally",
     baseTld: "homeally.org",
     baseUrl: "https://homeally.org/",
+    isChtnSite: false,
     menu: [
-        new RoutePath_v3( { path: "Home", templateHtml: "<home-group-home></home-group-home>", menuTitle: "Home" } ),
-        new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
-        new RoutePath_v3( { path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All } ),
-        new RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
-        new RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
-
-        new RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
+        //new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
+        new Ally.RoutePath_v3({ path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All }),
+        new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
+        new Ally.RoutePath_v3({ path: "Home", templateHtml: "<home-group-home></home-group-home>", menuTitle: "Home" }),
+        new Ally.RoutePath_v3({ path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
+        new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),
+        new Ally.RoutePath_v3({ path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin }),
     ]
 };
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // HOA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var HOAAppConfig = _.clone( CondoAllyAppConfig );
+var HOAAppConfig = _.clone(CondoAllyAppConfig);
 HOAAppConfig.appShortName = "hoa";
 HOAAppConfig.appName = "HOA Ally";
 HOAAppConfig.baseTld = "hoaally.org";
 HOAAppConfig.baseUrl = "https://hoaally.org/";
 HOAAppConfig.homeName = "Home";
-
-HOAAppConfig.menu.push( new RoutePath_v3( { path: "HoaSignUp", templateHtml: "<hoa-sign-up-wizard></hoa-sign-up-wizard>", role: Role_All } ) );
-
-
+HOAAppConfig.menu.push(new Ally.RoutePath_v3({ path: "HoaSignUp", templateHtml: "<hoa-sign-up-wizard></hoa-sign-up-wizard>", role: Role_All }));
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Neighborhood Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var NeighborhoodAppConfig = _.clone( CondoAllyAppConfig );
+var NeighborhoodAppConfig = _.clone(CondoAllyAppConfig);
 NeighborhoodAppConfig.appShortName = "neighborhood";
 NeighborhoodAppConfig.appName = "Neighborhood Ally";
 NeighborhoodAppConfig.baseTld = "neighborhoodally.org";
 NeighborhoodAppConfig.baseUrl = "https://neighborhoodally.org/";
 NeighborhoodAppConfig.homeName = "Home";
-
 // Remove Residents and Manage Residents
-NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
-
+NeighborhoodAppConfig.menu = _.reject(NeighborhoodAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
 // Add them back under the name "Members"
-NeighborhoodAppConfig.menu.push( new RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
-NeighborhoodAppConfig.menu.splice( 0, 0, new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
-
+NeighborhoodAppConfig.menu.push(new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" }));
+NeighborhoodAppConfig.menu.splice(0, 0, new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }));
 // Remove assessment history and add dues history
-NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
-NeighborhoodAppConfig.menu.splice( 3, 0, new RoutePath_v3( { path: "DuesHistory", menuTitle:"Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
-
-NeighborhoodAppConfig.menu.push( new RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
-
-
+NeighborhoodAppConfig.menu = _.reject(NeighborhoodAppConfig.menu, function (mi) { return mi.menuTitle === "Assessment History"; });
+NeighborhoodAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager }));
+NeighborhoodAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All }));
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Block Club Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var BlockClubAppConfig = _.clone( CondoAllyAppConfig );
+var BlockClubAppConfig = _.clone(CondoAllyAppConfig);
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
 BlockClubAppConfig.baseTld = "chicagoblock.club";
 BlockClubAppConfig.baseUrl = "https://chicagoblock.club/";
 BlockClubAppConfig.homeName = "Home";
-
 // Remove Residents and Manage Residents
-BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
-
+BlockClubAppConfig.menu = _.reject(BlockClubAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
 // Add them back under the name "Members"
-BlockClubAppConfig.menu.push( new RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
-BlockClubAppConfig.menu.splice( 0, 0, new RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
-
+BlockClubAppConfig.menu.push(new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" }));
+BlockClubAppConfig.menu.splice(0, 0, new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }));
 // Remove assessment history and add dues history
-BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
-BlockClubAppConfig.menu.splice( 3, 0, new RoutePath_v3( { path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
-
-BlockClubAppConfig.menu.push( new RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
-
-
-
+BlockClubAppConfig.menu = _.reject(BlockClubAppConfig.menu, function (mi) { return mi.menuTitle === "Assessment History"; });
+BlockClubAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager }));
+BlockClubAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All }));
 var AppConfig = null;
-
 var lowerDomain = document.domain.toLowerCase();
-if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
+if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
     lowerDomain = OverrideBaseApiPath.toLowerCase();
-
-if( lowerDomain.indexOf( "condoally" ) !== -1
-    || lowerDomain.indexOf( "hellocondo" ) !== -1)
+if (lowerDomain.indexOf("condoally") !== -1
+    || lowerDomain.indexOf("hellocondo") !== -1)
     AppConfig = CondoAllyAppConfig;
-else if( lowerDomain.indexOf( "watchally" ) !== -1 )
-    AppConfig = WatchAppConfig;
-else if( lowerDomain.indexOf( "serviceally" ) !== -1 )
-    AppConfig = ServiceAppConfig;
-else if( lowerDomain.indexOf( "homeally" ) !== -1
-    || lowerDomain.indexOf( "helloathome" ) !== -1)
+else if (lowerDomain.indexOf("homeally") !== -1
+    || lowerDomain.indexOf("helloathome") !== -1)
     AppConfig = HomeAppConfig;
-else if( lowerDomain.indexOf( "hoaally" ) !== -1
-    || lowerDomain.indexOf( "hellohoa" ) !== -1)
+else if (lowerDomain.indexOf("hoaally") !== -1
+    || lowerDomain.indexOf("hellohoa") !== -1)
     AppConfig = HOAAppConfig;
-else if( lowerDomain.indexOf( "neighborhoodally" ) !== -1
-    || lowerDomain.indexOf( "helloneighborhood" ) !== -1)
+else if (lowerDomain.indexOf("neighborhoodally") !== -1
+    || lowerDomain.indexOf("helloneighborhood") !== -1)
     AppConfig = NeighborhoodAppConfig;
-else if( lowerDomain.indexOf( "chicagoblock" ) !== -1
-    || lowerDomain.indexOf( "blockclub" ) !== -1 )
+else if (lowerDomain.indexOf("chicagoblock") !== -1
+    || lowerDomain.indexOf("blockclub") !== -1)
     AppConfig = BlockClubAppConfig;
-else
-{
-    console.log( "Unknown ally app" );
+else {
+    console.log("Unknown ally app");
     AppConfig = CondoAllyAppConfig;
 }
-
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 window.AppConfig = AppConfig;
-
-
-AppConfig.isPublicRoute = function( path )
-{
-    if( !path )
+AppConfig.isPublicRoute = function (path) {
+    if (!path)
         path = window.location.hash;
-
-    if( HtmlUtil.startsWith( path, "#!" ) )
-        path = path.substr( 2 );
-
+    if (HtmlUtil.startsWith(path, "#!"))
+        path = path.substr(2);
     // If the path has a parameter, only test the first word
-    var hasParameter = path.indexOf( "/", 1 ) !== -1;
-    if( hasParameter )
-        path = path.substr( 0, path.indexOf( "/", 1 ) );
-
-    var route = _.find( AppConfig.menu, function( m )
-    {
+    var hasParameter = path.indexOf("/", 1) !== -1;
+    if (hasParameter)
+        path = path.substr(0, path.indexOf("/", 1));
+    var route = _.find(AppConfig.menu, function (m) {
         var testPath = m.path;
-        if( !testPath )
+        if (!testPath)
             return false;
-
         // Only test the first part of paths with parameters
-        if( hasParameter && testPath.indexOf( "/", 1 ) !== -1 )
-            testPath = testPath.substr( 0, testPath.indexOf( "/", 1 ) );
-
+        if (hasParameter && testPath.indexOf("/", 1) !== -1)
+            testPath = testPath.substr(0, testPath.indexOf("/", 1));
         return testPath === path;
-    } );
-
-    if( !route )
+    });
+    if (!route)
         return false;
-
     return route.role === Role_All;
 };
-
-
 document.title = AppConfig.appName;
-$( document ).ready( function()
-{
-    $( "header" ).css( "background-image", "url(/assets/images/header-img-" + AppConfig.appShortName + ".jpg)" );
-} );
+$(document).ready(function () {
+    $("header").css("background-image", "url(/assets/images/header-img-" + AppConfig.appShortName + ".jpg)");
+});
+
 var Ally;
 (function (Ally) {
     var PeriodicPaymentFrequency;
@@ -3519,23 +3472,27 @@ var Ally;
         // Occurs when the user clicks the button to add a new tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ChtnMapController.prototype.onSaveTip = function () {
+            var _this = this;
             if (this.editingTip === null)
                 return;
             //$( "#new-item-form" ).validate();
             //if ( !$( "#new-item-form" ).valid() )
             //    return;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoading = false;
-                innerThis.editingTip = new WelcomeTip();
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.editingTip = new WelcomeTip();
+                _this.refresh();
+            };
+            var onFailure = function (response) {
+                _this.isLoading = false;
+                alert("Failed to save item: " + response.data.exceptionMessage);
             };
             this.isLoading = true;
             // If we're editing an existing item
             if (this.editingTip.itemId)
-                this.$http.put("/api/WelcomeTip", this.editingTip).then(onSave);
+                this.$http.put("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
             else
-                this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave);
+                this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Used by the ng-repeats to filter locations vs tips
@@ -4115,11 +4072,14 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         LogbookController.prototype.$onInit = function () {
+            var _this = this;
+            if (AppConfig.isChtnSite) {
+                this.fellowResidents.getResidents().then(function (residents) {
+                    _this.residents = residents;
+                    _this.residents = _.sortBy(_this.residents, function (r) { return r.lastName; });
+                });
+            }
             var innerThis = this;
-            this.fellowResidents.getResidents().then(function (residents) {
-                innerThis.residents = residents;
-                innerThis.residents = _.sortBy(innerThis.residents, function (r) { return r.lastName; });
-            });
             /* config object */
             var uiConfig = {
                 height: 600,
@@ -4197,9 +4157,10 @@ var Ally;
             });
         };
         LogbookController.prototype.getAllEvents = function (startDate, endDate) {
+            var _this = this;
             var loadNewsToCalendar = false;
             var loadLogbookToCalendar = true;
-            var loadPollsToCalendar = true;
+            var loadPollsToCalendar = AppConfig.isChtnSite;
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
             var firstDay = startDate.format(LogbookController.DateFormat);
@@ -4259,16 +4220,15 @@ var Ally;
             }
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
-                var innerThis = this;
                 this.$http.get("/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
-                    innerThis.isLoadingPolls = false;
+                    _this.isLoadingPolls = false;
                     _.each(data, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        innerThis.calendarEvents.push({
+                        this.calendarEvents.push({
                             title: "Poll: " + shortText,
                             start: entry.postDate.substring(0, 10),
                             toolTipTitle: "Poll Added",
@@ -4277,7 +4237,7 @@ var Ally;
                     });
                     pollDeferred.resolve();
                 }, function () {
-                    innerThis.isLoadingPolls = false;
+                    _this.isLoadingPolls = false;
                     pollDeferred.resolve();
                 });
             }
@@ -4375,14 +4335,15 @@ var Ally;
         // Set the calendar event for us to edit
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.setEditEvent = function (eventObject, showDetails) {
+            var _this = this;
             this.showExpandedCalendarEventModel = showDetails || false;
             this.editEvent = eventObject;
             // Clear this warning in case the user is clicking around quickly
             this.showBadNotificationDateWarning = false;
             if (this.editEvent) {
                 // Simplify the UI logic by transforming this input
-                var innerThis = this;
-                _.each(this.residents, function (r) { r.isAssociated = innerThis.isUserAssociated(r.userId); });
+                if (this.residents)
+                    _.each(this.residents, function (r) { return r.isAssociated = _this.isUserAssociated(r.userId); });
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
@@ -4393,28 +4354,29 @@ var Ally;
         // Delete the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.deleteCalendarEvent = function (eventId) {
+            var _this = this;
             if (!confirm("Are you sure you want to remove this event?"))
                 return;
             this.isLoadingCalendarEvents = true;
-            var innerThis = this;
             this.$http.delete("/api/CalendarEvent?eventId=" + eventId).then(function () {
-                innerThis.isLoadingCalendarEvents = false;
-                innerThis.editEvent = null;
-                innerThis.onlyRefreshCalendarEvents = true;
+                _this.isLoadingCalendarEvents = false;
+                _this.editEvent = null;
+                _this.onlyRefreshCalendarEvents = true;
                 $('#log-calendar').fullCalendar('refetchEvents');
             }, function () {
-                innerThis.isLoadingCalendarEvents = false;
+                _this.isLoadingCalendarEvents = false;
                 alert("Failed to delete the calendar event.");
             });
-            ;
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Save the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.saveCalendarEvent = function () {
             // Build the list of the associated users
-            var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
-            this.editEvent.associatedUserIds = _.map(associatedUsers, function (r) { return r.userId; });
+            if (this.residents) {
+                var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
+                this.editEvent.associatedUserIds = _.map(associatedUsers, function (r) { return r.userId; });
+            }
             var dateTimeString = "";
             if (typeof (this.editEvent.timeOnly) === "string" && this.editEvent.timeOnly.length > 1) {
                 dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;

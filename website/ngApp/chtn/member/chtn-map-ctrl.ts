@@ -179,24 +179,28 @@ namespace Ally
             //$( "#new-item-form" ).validate();
             //if ( !$( "#new-item-form" ).valid() )
             //    return;
-
-            var innerThis = this;
-
-            var onSave = function()
+            
+            var onSave = () =>
             {
-                innerThis.isLoading = false;
-                innerThis.editingTip = new WelcomeTip();
-                innerThis.refresh();
+                this.isLoading = false;
+                this.editingTip = new WelcomeTip();
+                this.refresh();
+            };
+
+            var onFailure = ( response:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save item: " + response.data.exceptionMessage );
             };
 
             this.isLoading = true;
 
             // If we're editing an existing item
             if( this.editingTip.itemId )
-                this.$http.put( "/api/WelcomeTip", this.editingTip ).then( onSave );
+                this.$http.put( "/api/WelcomeTip", this.editingTip ).then( onSave, onFailure );
             // Otherwise create a new one
             else
-                this.$http.post( "/api/WelcomeTip", this.editingTip ).then( onSave );
+                this.$http.post( "/api/WelcomeTip", this.editingTip ).then( onSave, onFailure );
         }
 
 

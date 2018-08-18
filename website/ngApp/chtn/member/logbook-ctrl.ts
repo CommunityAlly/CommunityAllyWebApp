@@ -38,12 +38,16 @@ namespace Ally
         */
         $onInit()
         {
-            var innerThis = this;
-            this.fellowResidents.getResidents().then( function( residents: any[] )
+            if( AppConfig.isChtnSite )
             {
-                innerThis.residents = residents;
-                innerThis.residents = _.sortBy( innerThis.residents, function( r: any ) { return r.lastName; } )
-            } );
+                this.fellowResidents.getResidents().then( ( residents: any[] ) =>
+                {
+                    this.residents = residents;
+                    this.residents = _.sortBy( this.residents, ( r: any ) => r.lastName )
+                } );
+            }
+
+            var innerThis = this;
 
             /* config object */
             var uiConfig = {
@@ -149,7 +153,7 @@ namespace Ally
         {
             var loadNewsToCalendar = false;
             var loadLogbookToCalendar = true;
-            var loadPollsToCalendar = true;
+            var loadPollsToCalendar = AppConfig.isChtnSite;
 
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
@@ -239,13 +243,12 @@ namespace Ally
             if( loadPollsToCalendar )
             {
                 this.isLoadingPolls = true;
-
-                var innerThis = this;
-                this.$http.get( "/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+                
+                this.$http.get( "/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     var data = httpResponse.data;
 
-                    innerThis.isLoadingPolls = false;
+                    this.isLoadingPolls = false;
 
                     _.each( data, function( entry: any )
                     {
@@ -255,7 +258,7 @@ namespace Ally
 
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
 
-                        innerThis.calendarEvents.push( {
+                        this.calendarEvents.push( {
                             title: "Poll: " + shortText,
                             start: entry.postDate.substring( 0, 10 ), // 10 = length of YYYY-MM-DD, cut off the time
                             toolTipTitle: "Poll Added",
@@ -265,11 +268,11 @@ namespace Ally
 
                     pollDeferred.resolve();
 
-                }, function()
-                    {
-                        innerThis.isLoadingPolls = false;
-                        pollDeferred.resolve();
-                    } );
+                }, () =>
+                {
+                    this.isLoadingPolls = false;
+                    pollDeferred.resolve();
+                } );
             }
 
             return this.$q.all( [newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise] );
@@ -453,8 +456,9 @@ namespace Ally
             if( this.editEvent )
             {
                 // Simplify the UI logic by transforming this input
-                var innerThis = this;
-                _.each( this.residents, function( r ) { r.isAssociated = innerThis.isUserAssociated( r.userId ); } );
+                if( this.residents )
+                    _.each( this.residents, ( r ) => r.isAssociated = this.isUserAssociated( r.userId ) );
+
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
 
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
@@ -474,20 +478,20 @@ namespace Ally
 
             this.isLoadingCalendarEvents = true;
 
-            var innerThis = this;
-            this.$http.delete( "/api/CalendarEvent?eventId=" + eventId ).then( function()
+            this.$http.delete( "/api/CalendarEvent?eventId=" + eventId ).then( () =>
             {
-                innerThis.isLoadingCalendarEvents = false;
+                this.isLoadingCalendarEvents = false;
 
-                innerThis.editEvent = null;
+                this.editEvent = null;
 
-                innerThis.onlyRefreshCalendarEvents = true;
+                this.onlyRefreshCalendarEvents = true;
                 $( '#log-calendar' ).fullCalendar( 'refetchEvents' );
-            }, function()
-                {
-                    innerThis.isLoadingCalendarEvents = false;
-                    alert( "Failed to delete the calendar event." );
-                } );;
+
+            }, () =>
+            {
+                this.isLoadingCalendarEvents = false;
+                alert( "Failed to delete the calendar event." );
+            } );
         }
 
 
@@ -497,8 +501,11 @@ namespace Ally
         saveCalendarEvent()
         {
             // Build the list of the associated users
-            var associatedUsers = _.filter( this.residents, function( r ) { return r.isAssociated; } );
-            this.editEvent.associatedUserIds = _.map( associatedUsers, function( r ) { return r.userId; } );
+            if( this.residents )
+            {
+                var associatedUsers = _.filter( this.residents, function( r ) { return r.isAssociated; } );
+                this.editEvent.associatedUserIds = _.map( associatedUsers, function( r ) { return r.userId; } );
+            }
 
             var dateTimeString = "";
             if( typeof ( this.editEvent.timeOnly ) === "string" && this.editEvent.timeOnly.length > 1 )

@@ -1,5 +1,4 @@
-﻿declare var AppConfig: any;
-declare var PeriodicPaymentFrequencies: any[];
+﻿declare var PeriodicPaymentFrequencies: any[];
 declare var $zopim: any;
 declare var analytics: any;
 declare var OverrideBaseApiPath: string;

@@ -1,18 +1,5 @@
-﻿declare var CondoAllyAppConfig: Ally.IAllyAppConfig;
-declare var HomeAppConfig: Ally.IAllyAppConfig;
-declare var HOAAppConfig: Ally.IAllyAppConfig;
-declare var NeighborhoodAppConfig: Ally.IAllyAppConfig;
-declare var BlockClubAppConfig: Ally.IAllyAppConfig;
-
-namespace Ally
+﻿namespace Ally
 {
-    export interface IAllyAppConfig
-    {
-        appShortName: string;
-        appName: string;
-        baseTld: string;
-    }
-
     interface IGroupRedirectRouteParams extends ng.route.IRouteParamsService
     {
         appName: string;

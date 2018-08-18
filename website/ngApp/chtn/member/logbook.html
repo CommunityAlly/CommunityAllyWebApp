@@ -84,7 +84,7 @@
                                 </p>
                             </div>
 
-                            <div class="form-group row" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                            <div class="form-group row" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
                                 <label class="col-sm-4 col-xs-12">Send To:</label>
                                 <div class="col-sm-8 col-xs-12">
                                     <div class="resident-list">

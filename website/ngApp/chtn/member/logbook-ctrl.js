@@ -47,11 +47,14 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         LogbookController.prototype.$onInit = function () {
+            var _this = this;
+            if (AppConfig.isChtnSite) {
+                this.fellowResidents.getResidents().then(function (residents) {
+                    _this.residents = residents;
+                    _this.residents = _.sortBy(_this.residents, function (r) { return r.lastName; });
+                });
+            }
             var innerThis = this;
-            this.fellowResidents.getResidents().then(function (residents) {
-                innerThis.residents = residents;
-                innerThis.residents = _.sortBy(innerThis.residents, function (r) { return r.lastName; });
-            });
             /* config object */
             var uiConfig = {
                 height: 600,
@@ -129,9 +132,10 @@ var Ally;
             });
         };
         LogbookController.prototype.getAllEvents = function (startDate, endDate) {
+            var _this = this;
             var loadNewsToCalendar = false;
             var loadLogbookToCalendar = true;
-            var loadPollsToCalendar = true;
+            var loadPollsToCalendar = AppConfig.isChtnSite;
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
             var firstDay = startDate.format(LogbookController.DateFormat);
@@ -191,16 +195,15 @@ var Ally;
             }
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
-                var innerThis = this;
                 this.$http.get("/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
-                    innerThis.isLoadingPolls = false;
+                    _this.isLoadingPolls = false;
                     _.each(data, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        innerThis.calendarEvents.push({
+                        this.calendarEvents.push({
                             title: "Poll: " + shortText,
                             start: entry.postDate.substring(0, 10),
                             toolTipTitle: "Poll Added",
@@ -209,7 +212,7 @@ var Ally;
                     });
                     pollDeferred.resolve();
                 }, function () {
-                    innerThis.isLoadingPolls = false;
+                    _this.isLoadingPolls = false;
                     pollDeferred.resolve();
                 });
             }
@@ -307,14 +310,15 @@ var Ally;
         // Set the calendar event for us to edit
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.setEditEvent = function (eventObject, showDetails) {
+            var _this = this;
             this.showExpandedCalendarEventModel = showDetails || false;
             this.editEvent = eventObject;
             // Clear this warning in case the user is clicking around quickly
             this.showBadNotificationDateWarning = false;
             if (this.editEvent) {
                 // Simplify the UI logic by transforming this input
-                var innerThis = this;
-                _.each(this.residents, function (r) { r.isAssociated = innerThis.isUserAssociated(r.userId); });
+                if (this.residents)
+                    _.each(this.residents, function (r) { return r.isAssociated = _this.isUserAssociated(r.userId); });
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
@@ -325,28 +329,29 @@ var Ally;
         // Delete the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.deleteCalendarEvent = function (eventId) {
+            var _this = this;
             if (!confirm("Are you sure you want to remove this event?"))
                 return;
             this.isLoadingCalendarEvents = true;
-            var innerThis = this;
             this.$http.delete("/api/CalendarEvent?eventId=" + eventId).then(function () {
-                innerThis.isLoadingCalendarEvents = false;
-                innerThis.editEvent = null;
-                innerThis.onlyRefreshCalendarEvents = true;
+                _this.isLoadingCalendarEvents = false;
+                _this.editEvent = null;
+                _this.onlyRefreshCalendarEvents = true;
                 $('#log-calendar').fullCalendar('refetchEvents');
             }, function () {
-                innerThis.isLoadingCalendarEvents = false;
+                _this.isLoadingCalendarEvents = false;
                 alert("Failed to delete the calendar event.");
             });
-            ;
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Save the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.saveCalendarEvent = function () {
             // Build the list of the associated users
-            var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
-            this.editEvent.associatedUserIds = _.map(associatedUsers, function (r) { return r.userId; });
+            if (this.residents) {
+                var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
+                this.editEvent.associatedUserIds = _.map(associatedUsers, function (r) { return r.userId; });
+            }
             var dateTimeString = "";
             if (typeof (this.editEvent.timeOnly) === "string" && this.editEvent.timeOnly.length > 1) {
                 dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;
