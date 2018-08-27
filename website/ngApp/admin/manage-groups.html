@@ -171,7 +171,7 @@
     <div style="position: relative;">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingHelper"></div>
 
-        <input type="text" data-ng-model="$ctrl.testEmailRecipient"><input type="button" value="Send Test E-mail" data-ng-click="$ctrl.onSendTestEmail()"><br />
+        <input type="text" data-ng-model="$ctrl.testEmailRecipient"><input type="button" value="Send Test E-mail" data-ng-click="$ctrl.onSendTestEmail()"><label><input type="checkbox" data-ng-model="$ctrl.sendTestFromInmail" />Send from inmail.</label><br />
         <input type="text" data-ng-model="$ctrl.testTaylorEmailRecipient"><input type="button" value="Send Test E-mail from Taylor at CA" data-ng-click="$ctrl.onSendTaylorTestEmail()"><br />
         <input type="text" data-ng-model="$ctrl.testPostmarkEmail"><input type="button" value="Send Test Postmark E-mail" data-ng-click="$ctrl.onSendTestPostmarkEmail()"><br />
         <input type="button" value="Test Exception" data-ng-click="$ctrl.onTestException()"><br />

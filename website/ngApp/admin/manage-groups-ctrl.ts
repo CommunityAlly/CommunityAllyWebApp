@@ -37,6 +37,7 @@
         testPostmarkEmail: string;
         inactiveShortNames: string;
         logInAsEmail: string;
+        sendTestFromInmail: boolean = false;
 
 
         /**
@@ -234,7 +235,7 @@
 
         onSendTestEmail()
         {
-            this.makeHelperRequest( "/api/AdminHelper/SendTestEmail?testEmailRecipient=" + encodeURIComponent( this.testEmailRecipient ) );
+            this.makeHelperRequest( `/api/AdminHelper/SendTestEmail?testEmailRecipient=${encodeURIComponent( this.testEmailRecipient )}&sendFromInmail=${this.sendTestFromInmail ? 'true' : 'false'}` );
         }
 
 

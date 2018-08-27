@@ -23,6 +23,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.newAssociation = new GroupEntry();
             this.changeShortNameData = { appName: "Condo" };
+            this.sendTestFromInmail = false;
             /**
              * Retrieve the active group list
              */
@@ -152,7 +153,7 @@ var Ally;
             });
         };
         ManageGroupsController.prototype.onSendTestEmail = function () {
-            this.makeHelperRequest("/api/AdminHelper/SendTestEmail?testEmailRecipient=" + encodeURIComponent(this.testEmailRecipient));
+            this.makeHelperRequest("/api/AdminHelper/SendTestEmail?testEmailRecipient=" + encodeURIComponent(this.testEmailRecipient) + "&sendFromInmail=" + (this.sendTestFromInmail ? 'true' : 'false'));
         };
         ManageGroupsController.prototype.onSendTaylorTestEmail = function () {
             this.makeHelperRequest("/api/AdminHelper/SendFromTaylorEmail?testEmailRecipient=" + encodeURIComponent(this.testTaylorEmailRecipient));
