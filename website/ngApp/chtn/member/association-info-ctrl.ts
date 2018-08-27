@@ -10,6 +10,7 @@
         hideDocuments: boolean = false;
         hideVendors: boolean = false;
         selectedView: string;
+        faqMenuText: string = "Info/FAQs";
 
 
         /**
@@ -17,6 +18,8 @@
          */
         constructor( private siteInfo: Ally.SiteInfoService )
         {
+            if( AppConfig.appShortName === "home" )
+                this.faqMenuText = "Notes";
         }
 
 

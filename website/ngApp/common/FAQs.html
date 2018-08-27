@@ -1,5 +1,5 @@
 ﻿<div class="page-subpage page-document-info info spinner-effect" data-ng-cloak>
-    <h1>Information and Frequently Asked Questions (FAQs)</h1>
+    <h1>{{ $ctrl.headerText }}</h1>
 
     <div data-ng-if="$ctrl.infoItems.length > 5">
         <span data-ng-repeat="info in $ctrl.infoItems"><span class="text-link" id="info-item-link-{{ $index }}" data-ng-click="$ctrl.scrollToInfo( $index )">{{ info.title }}</span><br /></span>

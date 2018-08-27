@@ -30,6 +30,7 @@ namespace Ally
         isSiteManager = false;
         getUri: string;
         committee: Ally.Committee;
+        headerText: string = "Information and Frequently Asked Questions (FAQs)";
 
         
         /**
@@ -38,6 +39,8 @@ namespace Ally
         constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $cacheFactory: ng.ICacheFactoryService )
         {
             this.editingInfoItem = new InfoItem();
+            if( AppConfig.appShortName === "home" )
+                this.headerText = "Home Notes";
         }
 
         

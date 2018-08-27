@@ -22,7 +22,10 @@ var Ally;
             this.$cacheFactory = $cacheFactory;
             this.isBodyMissing = false;
             this.isSiteManager = false;
+            this.headerText = "Information and Frequently Asked Questions (FAQs)";
             this.editingInfoItem = new InfoItem();
+            if (AppConfig.appShortName === "home")
+                this.headerText = "Home Notes";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
