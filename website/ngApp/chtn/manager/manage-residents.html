@@ -40,10 +40,12 @@
     </div>
 
     <div id="EditUserContainer" class="modal-container" data-ng-show="$ctrl.editUser != null" data-ng-escape="$ctrl.setEdit( null )">
-        <div class="modal-overlay" data-ng-click="$ctrl.setEdit( null )"></div>
+        <div class="modal-overlay"></div>
         <form id="editUserForm" name="$ctrl.editUserForm" novalidate class="ca-modal-dialog modal-lg">
             <div class="loading-overlay" data-ng-show="$ctrl.isSavingUser"></div>
-
+            
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.setEdit( null )">&times;</span>
+            <h2>Resident Details</h2>
             <div class="row">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
