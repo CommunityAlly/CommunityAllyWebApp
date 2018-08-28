@@ -11,6 +11,10 @@ var Ally;
             this.siteInfo = siteInfo;
             this.hideDocuments = false;
             this.hideVendors = false;
+            this.showMaintenance = false;
+            this.faqMenuText = "Info/FAQs";
+            if (AppConfig.appShortName === "home")
+                this.faqMenuText = "Notes";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -18,6 +22,7 @@ var Ally;
         AssociationInfoController.prototype.$onInit = function () {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.showMaintenance = AppConfig.appShortName === "home";
             if (this.hideDocuments)
                 this.selectedView = "info";
             else

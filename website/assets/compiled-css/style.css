@@ -1,6 +1,6 @@
 .ca-modal-dialog {
   position: absolute;
-  z-index: 620;
+  z-index: 623;
   left: 50%;
   top: 50%;
   margin-left: -310px;
@@ -29,6 +29,13 @@
       .ca-modal-dialog.modal-lg {
         left: 5% !important;
         margin-left: 0px !important; } }
+  .ca-modal-dialog.modal-md {
+    width: 670px;
+    margin-left: -335px; }
+    @media screen and (max-width: 670px) {
+      .ca-modal-dialog.modal-md {
+        left: 5% !important;
+        margin-left: 0px !important; } }
   .ca-modal-dialog.modal-sm {
     width: 440px;
     margin-left: -220px; }
@@ -39,7 +46,7 @@
 
 .ca-modal-dialog-small {
   position: fixed;
-  z-index: 620;
+  z-index: 623;
   left: 50%;
   top: 50%;
   background-color: #FFF;
@@ -59,7 +66,7 @@
 
 .modal-container {
   position: fixed;
-  z-index: 650;
+  z-index: 621;
   left: 0;
   top: 0;
   right: 0;
@@ -118,7 +125,7 @@
 
 .loading-overlay, .modal-overlay {
   position: fixed;
-  z-index: 610;
+  z-index: 622;
   left: 0px;
   top: 0px;
   width: 100%;

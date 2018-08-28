@@ -27,7 +27,7 @@
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
     <!--<link rel="stylesheet" href="/assets/compiled.min.css" />-->
-    <link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=38" />
+    <link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=40" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <!--<script type="text/javascript" src="/js/AllyLibTop.min.js"></script>-->
@@ -53,10 +53,10 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=319" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=322" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=319" );
+                    localStorage.setItem( Key_JSVersion, "appVer=322" );
                 }
             }
         };
@@ -64,10 +64,10 @@
 
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=319"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=322"></script>
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
     <!--<script type="text/javascript" src="/ngTemplates.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=319"></script>
+    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=322"></script>
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
         ( function()

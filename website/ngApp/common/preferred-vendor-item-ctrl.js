@@ -112,7 +112,7 @@ var Ally;
             this.isInEditMode = false;
         };
         PreferredVendorItemController.prototype.onEditItem = function () {
-            // Copy the vendor item
+            // Deep clone the vendor item
             this.editVendorItem = JSON.parse(JSON.stringify(this.vendorItem));
             this.isInEditMode = true;
             var innerThis = this;

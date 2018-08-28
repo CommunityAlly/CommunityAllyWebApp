@@ -7,6 +7,11 @@
                    data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'selected':$ctrl.selectedView=='docs'}" data-ng-click="$ctrl.selectedView='docs'">
                     Documents</a>
             </li>
+            <li class="nav-item" data-ng-if="$ctrl.showMaintenance">
+                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-maintenance"
+                   data-ng-class="{'selected':$ctrl.selectedView=='maintenance'}" data-ng-click="$ctrl.selectedView='maintenance'">
+                    Maintenance</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-info"
                    data-ng-class="{'selected':$ctrl.selectedView=='info'}" data-ng-click="$ctrl.selectedView='info'">
@@ -36,9 +41,12 @@
         <div ng-switch-when="vendor">
             <preferred-vendors></preferred-vendors>
         </div>
+        <div ng-switch-when="maintenance">
+            <maintenance></maintenance>
+        </div>
         <!--<div ng-switch-when="todo">
-            <todos></todos>
-        </div>-->
+        <todos></todos>
+    </div>-->
 
     </div>
 </div>

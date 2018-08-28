@@ -10,6 +10,7 @@
         hideDocuments: boolean = false;
         hideVendors: boolean = false;
         selectedView: string;
+        showMaintenance: boolean = false;
         faqMenuText: string = "Info/FAQs";
 
 
@@ -30,7 +31,8 @@
         {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
-
+            this.showMaintenance = AppConfig.appShortName === "home";
+            
             if( this.hideDocuments )
                 this.selectedView = "info";
             else

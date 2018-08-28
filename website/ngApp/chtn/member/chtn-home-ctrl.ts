@@ -1,7 +1,4 @@
-﻿declare function FrequencyIdToInfo( frequencyId: number ):any;
-
-
-namespace Ally
+﻿namespace Ally
 {
     /**
      * The controller for the group site home page
@@ -43,7 +40,7 @@ namespace Ally
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
-
+            
             this.allyAppName = AppConfig.appName;
 
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;

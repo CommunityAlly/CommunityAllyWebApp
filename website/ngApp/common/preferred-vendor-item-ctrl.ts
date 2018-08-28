@@ -197,7 +197,7 @@ namespace Ally
 
         onEditItem()
         {
-            // Copy the vendor item
+            // Deep clone the vendor item
             this.editVendorItem = JSON.parse( JSON.stringify( this.vendorItem ) );
             this.isInEditMode = true;
 
