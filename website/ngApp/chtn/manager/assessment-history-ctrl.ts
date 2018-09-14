@@ -404,7 +404,8 @@
                 // Add the payment information to the units
                 _.each( paymentInfo.payments, function( payment:any )
                 {
-                    innerThis.unitPayments[payment.unitId].payments.push( payment );
+                    if( innerThis.unitPayments[payment.unitId] )
+                        innerThis.unitPayments[payment.unitId].payments.push( payment );
                 } );
 
                 // Store all of the payments rather than just what is visible
