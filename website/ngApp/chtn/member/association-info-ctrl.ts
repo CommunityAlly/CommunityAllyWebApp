@@ -1,11 +1,17 @@
 ﻿namespace Ally
 {
+    interface IGroupInfoRouteParams extends ng.route.IRouteParamsService
+    {
+        viewName: string;
+    }
+
+
     /**
      * The controller for the page used to navigate to other group info pages
      */
     export class AssociationInfoController implements ng.IController
     {
-        static $inject = ["SiteInfo"];
+        static $inject = ["SiteInfo", "$routeParams"];
 
         hideDocuments: boolean = false;
         hideVendors: boolean = false;
@@ -17,7 +23,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private siteInfo: Ally.SiteInfoService )
+        constructor( private siteInfo: Ally.SiteInfoService, private $routeParams: IGroupInfoRouteParams )
         {
             if( AppConfig.appShortName === "home" )
                 this.faqMenuText = "Notes";
@@ -34,9 +40,12 @@
             this.showMaintenance = AppConfig.appShortName === "home";
             
             if( this.hideDocuments )
-                this.selectedView = "info";
+                this.selectedView = "Info";
             else
-                this.selectedView = "docs";
+                this.selectedView = "Docs";
+
+            if( HtmlUtil.isValidString( this.$routeParams.viewName ) )
+                this.selectedView = this.$routeParams.viewName;
         }
     }
 }

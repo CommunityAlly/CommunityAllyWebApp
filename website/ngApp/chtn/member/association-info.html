@@ -3,24 +3,28 @@
 
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-docs"
-                   data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'selected':$ctrl.selectedView=='docs'}" data-ng-click="$ctrl.selectedView='docs'">
-                    Documents</a>
+                <a class="nav-link" data-ng-href="#!/Info/Docs" id="info-sub-view-link-docs"
+                   data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'selected':$ctrl.selectedView=='Docs'}" data-ng-click="$ctrl.selectedView='Docs'">
+                    Documents
+                </a>
             </li>
             <li class="nav-item" data-ng-if="$ctrl.showMaintenance">
-                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-maintenance"
-                   data-ng-class="{'selected':$ctrl.selectedView=='maintenance'}" data-ng-click="$ctrl.selectedView='maintenance'">
-                    Maintenance</a>
+                <a class="nav-link" data-ng-href="#!/Info/Maintenance" id="info-sub-view-link-maintenance"
+                   data-ng-class="{'selected':$ctrl.selectedView=='Maintenance'}" data-ng-click="$ctrl.selectedView='Maintenance'">
+                    Maintenance
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-info"
-                   data-ng-class="{'selected':$ctrl.selectedView=='info'}" data-ng-click="$ctrl.selectedView='info'">
-                    {{ $ctrl.faqMenuText }}</a>
+                <a class="nav-link" data-ng-href="#!/Info/Info" id="info-sub-view-link-info"
+                   data-ng-class="{'selected':$ctrl.selectedView=='Info'}" data-ng-click="$ctrl.selectedView='Info'">
+                    {{ $ctrl.faqMenuText }}
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="javascript:void(0)" id="info-sub-view-link-vendor"
-                   data-ng-show="!$ctrl.hideVendors" data-ng-class="{'selected':$ctrl.selectedView=='vendor'}" data-ng-click="$ctrl.selectedView='vendor'">
-                    Vendors</a>
+                <a class="nav-link" data-ng-href="#!/Info/Vendor" id="info-sub-view-link-vendor"
+                   data-ng-show="!$ctrl.hideVendors" data-ng-class="{'selected':$ctrl.selectedView=='Vendor'}" data-ng-click="$ctrl.selectedView='Vendor'">
+                    Vendors
+                </a>
             </li>
         </ul>
         <!--<div class="sub-view-menu-container">-->
@@ -32,16 +36,16 @@
     </section>
 
     <div ng-switch on="$ctrl.selectedView" class="padding white-bg margin-vertical" ng-cloak>
-        <div ng-switch-when="docs">
+        <div ng-switch-when="Docs">
             <documents data-ng-if="!$ctrl.hideDocuments"></documents>
         </div>
-        <div ng-switch-when="info">
+        <div ng-switch-when="Info">
             <faqs ng-cloak></faqs>
         </div>
-        <div ng-switch-when="vendor">
+        <div ng-switch-when="Vendor">
             <preferred-vendors></preferred-vendors>
         </div>
-        <div ng-switch-when="maintenance">
+        <div ng-switch-when="Maintenance">
             <maintenance></maintenance>
         </div>
         <!--<div ng-switch-when="todo">

@@ -7,8 +7,9 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function AssociationInfoController(siteInfo) {
+        function AssociationInfoController(siteInfo, $routeParams) {
             this.siteInfo = siteInfo;
+            this.$routeParams = $routeParams;
             this.hideDocuments = false;
             this.hideVendors = false;
             this.showMaintenance = false;
@@ -24,11 +25,13 @@ var Ally;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             this.showMaintenance = AppConfig.appShortName === "home";
             if (this.hideDocuments)
-                this.selectedView = "info";
+                this.selectedView = "Info";
             else
-                this.selectedView = "docs";
+                this.selectedView = "Docs";
+            if (HtmlUtil.isValidString(this.$routeParams.viewName))
+                this.selectedView = this.$routeParams.viewName;
         };
-        AssociationInfoController.$inject = ["SiteInfo"];
+        AssociationInfoController.$inject = ["SiteInfo", "$routeParams"];
         return AssociationInfoController;
     }());
     Ally.AssociationInfoController = AssociationInfoController;
