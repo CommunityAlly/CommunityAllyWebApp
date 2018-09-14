@@ -6,16 +6,17 @@ namespace Ally
     {
         static $inject = ["$scope", "$http", "$timeout", "WizardHandler"];
 
-        unitNumberingType = "Numbered";
-        numUnits = 3;
-        placeWasSelected = false;
-        shouldCheckAddress = false;
-        isLoading = false;
+        unitNumberingType: string = "Numbered";
+        numUnits: number = 3;
+        placeWasSelected: boolean = false;
+        shouldCheckAddress: boolean = false;
+        shouldShowHoaMessage: boolean = false;
+        isLoading: boolean = false;
         addressAutocomplete: google.maps.places.Autocomplete;
         map: any = null;
         mapMarker: google.maps.Marker;
-        isLoadingMap = false;
-        hideWizard = false;
+        isLoadingMap: boolean = false;
+        hideWizard: boolean = false;
         resultMessage: string;
         
         // The default sign-up info object
@@ -81,7 +82,24 @@ namespace Ally
                     };
                 }
             }
-        };
+        }
+
+
+        /**
+         * Occurs as the user presses keys in the association name field
+         */
+        onAssociationNameChanged()
+        {
+            if( !this.signUpInfo || !this.signUpInfo.name )
+            {
+                this.shouldShowHoaMessage = false;
+                return;
+            }
+
+            this.shouldShowHoaMessage = this.signUpInfo.name.toLowerCase().indexOf( "hoa" ) !== -1
+                                    || this.signUpInfo.name.toLowerCase().indexOf( "home" ) !== -1;
+        }
+
 
         addResident( unit: any )
         {

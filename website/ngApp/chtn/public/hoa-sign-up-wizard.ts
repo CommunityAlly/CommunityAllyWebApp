@@ -28,14 +28,15 @@ namespace Ally
     {
         static $inject = ["$scope", "$http", "$timeout", "WizardHandler"];
 
-        placeWasSelected = false;
-        shouldCheckAddress = false;
-        isLoading = false;
+        placeWasSelected: boolean = false;
+        shouldCheckAddress: boolean = false;
+        isLoading: boolean = false;
+        shouldShowCondoMessage: boolean = false;
         addressAutocomplete: google.maps.places.Autocomplete;
         map: google.maps.Map = null;
         mapMarker: google.maps.Marker;
-        isLoadingMap = false;
-        hideWizard = false;
+        isLoadingMap: boolean = false;
+        hideWizard: boolean  = false;
         resultMessage: string;
         hoaPoly: any = { vertices: [] };
         showMap = false;
@@ -57,16 +58,28 @@ namespace Ally
         */
         $onInit()
         {
-            var innerThis = this;
-
-            var innerThis = this;
-            this.$scope.$on( 'wizard:stepChanged', function( event, args )
+            this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
                 if( args.index === 1 )
-                    innerThis.$timeout(() => innerThis.showMap = true, 50 );
+                    this.$timeout( () => this.showMap = true, 50 );
                 else
-                    innerThis.showMap = false;
+                    this.showMap = false;
             } );
+        }
+
+
+        /**
+         * Occurs as the user presses keys in the HOA name field
+         */
+        onHoaNameChanged()
+        {
+            if( !this.signUpInfo || !this.signUpInfo.name )
+            {
+                this.shouldShowCondoMessage = false;
+                return;
+            }
+
+            this.shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf( "condo" ) !== -1;
         }
 
 

@@ -33,6 +33,7 @@ var Ally;
             this.placeWasSelected = false;
             this.shouldCheckAddress = false;
             this.isLoading = false;
+            this.shouldShowCondoMessage = false;
             this.map = null;
             this.isLoadingMap = false;
             this.hideWizard = false;
@@ -45,14 +46,23 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         HoaSignUpWizardController.prototype.$onInit = function () {
-            var innerThis = this;
-            var innerThis = this;
+            var _this = this;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
-                    innerThis.$timeout(function () { return innerThis.showMap = true; }, 50);
+                    _this.$timeout(function () { return _this.showMap = true; }, 50);
                 else
-                    innerThis.showMap = false;
+                    _this.showMap = false;
             });
+        };
+        /**
+         * Occurs as the user presses keys in the HOA name field
+         */
+        HoaSignUpWizardController.prototype.onHoaNameChanged = function () {
+            if (!this.signUpInfo || !this.signUpInfo.name) {
+                this.shouldShowCondoMessage = false;
+                return;
+            }
+            this.shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf("condo") !== -1;
         };
         /**
          * Center the Google map on a polygon

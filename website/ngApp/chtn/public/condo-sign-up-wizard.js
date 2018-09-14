@@ -14,6 +14,7 @@ var Ally;
             this.numUnits = 3;
             this.placeWasSelected = false;
             this.shouldCheckAddress = false;
+            this.shouldShowHoaMessage = false;
             this.isLoading = false;
             this.map = null;
             this.isLoadingMap = false;
@@ -60,7 +61,17 @@ var Ally;
                 }
             }
         };
-        ;
+        /**
+         * Occurs as the user presses keys in the association name field
+         */
+        CondoSignUpWizardController.prototype.onAssociationNameChanged = function () {
+            if (!this.signUpInfo || !this.signUpInfo.name) {
+                this.shouldShowHoaMessage = false;
+                return;
+            }
+            this.shouldShowHoaMessage = this.signUpInfo.name.toLowerCase().indexOf("hoa") !== -1
+                || this.signUpInfo.name.toLowerCase().indexOf("home") !== -1;
+        };
         CondoSignUpWizardController.prototype.addResident = function (unit) {
             if (!unit.residents)
                 unit.residents = [];

@@ -14,8 +14,10 @@
             <div>
                 <span style="font-weight: bold; font-size: large; color: #0188f3;">As promised, signing-up for a new site is fast and easy. We said no credit card required and we meant it! Just start with the address of your association and you're almost done.</span><br />
                 <br />
-                <label style="font-weight: bold;">HOA Name:</label> <input id="association-name-text-box" type="text" style="width:100%;" data-ng-model="$ctrl.signUpInfo.name" /><br />
-
+                <label style="font-weight: bold;">HOA Name:</label> <input id="association-name-text-box" type="text" style="width:100%;" data-ng-keyup="$ctrl.onHoaNameChanged()" data-ng-model="$ctrl.signUpInfo.name" /><br />
+                <div data-ng-if="$ctrl.shouldShowCondoMessage" style="font-weight: bold; font-size: 1.2em;">
+                    Are you a condo association rather than an HOA? If so, you'd probably prefer to <a href="https://login.condoally.com/#!/SignUp">sign-up for Condo Ally</a> instead.
+                </div>
             </div>
             <br />
             <input id="next-button-0" type="submit" class="btn btn-sign-up-wiz" style="width:95%; float: none; margin: 0 auto;" wz-next value="Next Step" />
