@@ -7,9 +7,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupMembersController(fellowResidents, siteInfo) {
+        function GroupMembersController(fellowResidents, siteInfo, appCacheService) {
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isLoading = true;
             this.emailLists = [];
             this.unitPrefix = "Unit ";
@@ -102,6 +103,12 @@ var Ally;
                 }
                 // Only show commitees with a contact person
                 _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
+                // If we should scroll to a specific home
+                var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
+                if (scrollToUnitId) {
+                    var scrollToElemId = "unit-id-" + scrollToUnitId;
+                    setTimeout(function () { return document.getElementById(scrollToElemId).scrollIntoView(); }, 300);
+                }
                 // Populate the e-mail name lists
                 _this.setupGroupEmails();
             });
@@ -143,7 +150,7 @@ var Ally;
                 }, 750);
             });
         };
-        GroupMembersController.$inject = ["fellowResidents", "SiteInfo"];
+        GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService"];
         return GroupMembersController;
     }());
     Ally.GroupMembersController = GroupMembersController;

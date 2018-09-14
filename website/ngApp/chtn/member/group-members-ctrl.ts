@@ -8,7 +8,7 @@ namespace Ally
      */
     export class GroupMembersController implements ng.IController
     {
-        static $inject = ["fellowResidents", "SiteInfo"];
+        static $inject = ["fellowResidents", "SiteInfo", "appCacheService"];
 
         isLoading: boolean = true;
         allyAppName: string;
@@ -30,7 +30,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private fellowResidents: Ally.FellowResidentsService, private siteInfo: Ally.SiteInfoService )
+        constructor( private fellowResidents: Ally.FellowResidentsService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
         {
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
@@ -146,6 +146,14 @@ namespace Ally
 
                 // Only show commitees with a contact person
                 this.committees = _.reject( this.committees, c => !c.contactUser );
+
+                // If we should scroll to a specific home
+                let scrollToUnitId = this.appCacheService.getAndClear("scrollToUnitId");
+                if( scrollToUnitId )
+                {
+                    var scrollToElemId = "unit-id-" + scrollToUnitId;
+                    setTimeout( () => document.getElementById(scrollToElemId).scrollIntoView(), 300 );
+                }
 
                 // Populate the e-mail name lists
                 this.setupGroupEmails();

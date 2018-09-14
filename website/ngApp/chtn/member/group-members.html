@@ -44,7 +44,7 @@
         </div>
 
         <div class="portlet-body" data-ng-if="!$ctrl.showMemberList">
-            <div data-ng-repeat="curUnit in $ctrl.unitList">
+            <div data-ng-repeat="curUnit in $ctrl.unitList" id="unit-id-{{curUnit.unitId}}">
                 <h4 id="unit-name-{{ $index }}">{{ $ctrl.unitPrefix }}{{ curUnit.name }}</h4>
                 <div>
                     <span data-ng-if="curUnit.renters.length > 0" style="font-weight:bold;">Owned by:<br></span>

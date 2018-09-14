@@ -20,7 +20,7 @@ namespace Ally
      */
     export class ChtnMapController implements ng.IController
     {
-        static $inject = ["$scope", "$timeout", "$http", "SiteInfo"];
+        static $inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
 
         editingTip: WelcomeTip = new WelcomeTip();
         hoaHomes: any[] = [];
@@ -33,7 +33,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, public appCacheService : AppCacheService )
         {
         }
 
@@ -102,7 +102,7 @@ namespace Ally
                 MapCtrlMapMgr.ClearAllMarkers();
 
                 if( AppConfig.appShortName === "condo" )
-                    MapCtrlMapMgr.AddMarker( MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home );
+                    MapCtrlMapMgr.AddMarker( MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null );
 
                 for( var locationIndex = 0; locationIndex < innerThis.tips.length; ++locationIndex )
                 {
@@ -111,7 +111,7 @@ namespace Ally
                     if( curLocation.gpsPos === null )
                         continue;
 
-                    curLocation.markerIndex = MapCtrlMapMgr.AddMarker( curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber );
+                    curLocation.markerIndex = MapCtrlMapMgr.AddMarker( curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null );
                 }
 
                 // Add HOA homes
@@ -119,7 +119,7 @@ namespace Ally
                 {
                     if( home.fullAddress && home.fullAddress.gpsPos )
                     {
-                        MapCtrlMapMgr.AddMarker( home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home );
+                        MapCtrlMapMgr.AddMarker( home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home, home.unitId );
                     }
                 } );
 
@@ -373,7 +373,7 @@ class MapCtrlMapMgr
     /**
     * Called when the DOM structure is ready
     */
-    static Init( siteInfo: Ally.SiteInfoService, scope: ng.IScope, mapCtrl:Ally.ChtnMapController )
+    static Init( siteInfo: Ally.SiteInfoService, scope: ng.IScope, mapCtrl: Ally.ChtnMapController )
     {
         MapCtrlMapMgr.ngScope = scope;
         MapCtrlMapMgr.mapCtrl = mapCtrl;
@@ -396,7 +396,7 @@ class MapCtrlMapMgr
 
         // Add our home marker
         if( AppConfig.appShortName === "condo" )
-            MapCtrlMapMgr.AddMarker( MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home );
+            MapCtrlMapMgr.AddMarker( MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null );
 
         MapCtrlMapMgr.OnMapReady();
         
@@ -465,6 +465,20 @@ class MapCtrlMapMgr
                 
             } );
 
+            if( AppConfig.appShortName === "hoa" && tempMarker.unitId )
+            {
+                (marker as any).unitId = tempMarker.unitId;
+
+                marker.addListener( 'click', function( innerMarker )
+                {
+                    return function()
+                    {
+                        MapCtrlMapMgr.mapCtrl.appCacheService.set( "scrollToUnitId", (innerMarker as any).unitId.toString() );
+                        window.location.hash = "#!/BuildingResidents";
+                    }
+                }( marker ) );
+            }
+
             MapCtrlMapMgr._markers.push( marker );
         }
 
@@ -517,14 +531,15 @@ class MapCtrlMapMgr
     /**
     * Add a marker to the map and return the index of that new marker
     */
-    static AddMarker( lat: number, lon: number, name: string, markerNumber: number )
+    static AddMarker( lat: number, lon: number, name: string, markerNumber: number, unitId: number )
     {
         MapCtrlMapMgr._tempMarkers.push(
             {
                 lat: lat,
                 lon: lon,
                 name: name,
-                markerNumber: markerNumber
+                markerNumber: markerNumber,
+                unitId: unitId
             } );
 
         return MapCtrlMapMgr._tempMarkers.length - 1;

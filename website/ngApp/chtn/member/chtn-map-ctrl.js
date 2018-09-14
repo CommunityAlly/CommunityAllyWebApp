@@ -12,11 +12,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnMapController($scope, $timeout, $http, siteInfo) {
+        function ChtnMapController($scope, $timeout, $http, siteInfo, appCacheService) {
             this.$scope = $scope;
             this.$timeout = $timeout;
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.editingTip = new WelcomeTip();
             this.hoaHomes = [];
             this.tips = [];
@@ -68,17 +69,17 @@ var Ally;
                 innerThis.tips = httpResponse.data;
                 MapCtrlMapMgr.ClearAllMarkers();
                 if (AppConfig.appShortName === "condo")
-                    MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home);
+                    MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
                 for (var locationIndex = 0; locationIndex < innerThis.tips.length; ++locationIndex) {
                     var curLocation = innerThis.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
-                    curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber);
+                    curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
                 // Add HOA homes
                 _.each(innerThis.hoaHomes, function (home) {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
-                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home);
+                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home, home.unitId);
                     }
                 });
                 MapCtrlMapMgr.OnMarkersReady();
@@ -207,7 +208,7 @@ var Ally;
                 innerThis.refresh();
             });
         };
-        ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo"];
+        ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
         return ChtnMapController;
     }());
     Ally.ChtnMapController = ChtnMapController;
@@ -239,7 +240,7 @@ var MapCtrlMapMgr = /** @class */ (function () {
         MapCtrlMapMgr._mainMap = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
         // Add our home marker
         if (AppConfig.appShortName === "condo")
-            MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home);
+            MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
         MapCtrlMapMgr.OnMapReady();
         // Add any markers that already exist to this map
         //for( var markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex )
@@ -285,6 +286,15 @@ var MapCtrlMapMgr = /** @class */ (function () {
                     MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker.markerIndex, gpsPos.lat(), gpsPos.lng());
                 });
             });
+            if (AppConfig.appShortName === "hoa" && tempMarker.unitId) {
+                marker.unitId = tempMarker.unitId;
+                marker.addListener('click', function (innerMarker) {
+                    return function () {
+                        MapCtrlMapMgr.mapCtrl.appCacheService.set("scrollToUnitId", innerMarker.unitId.toString());
+                        window.location.hash = "#!/BuildingResidents";
+                    };
+                }(marker));
+            }
             MapCtrlMapMgr._markers.push(marker);
         }
         // We've processed all of the temp markes so clear the array
@@ -322,12 +332,13 @@ var MapCtrlMapMgr = /** @class */ (function () {
     /**
     * Add a marker to the map and return the index of that new marker
     */
-    MapCtrlMapMgr.AddMarker = function (lat, lon, name, markerNumber) {
+    MapCtrlMapMgr.AddMarker = function (lat, lon, name, markerNumber, unitId) {
         MapCtrlMapMgr._tempMarkers.push({
             lat: lat,
             lon: lon,
             name: name,
-            markerNumber: markerNumber
+            markerNumber: markerNumber,
+            unitId: unitId
         });
         return MapCtrlMapMgr._tempMarkers.length - 1;
     };
