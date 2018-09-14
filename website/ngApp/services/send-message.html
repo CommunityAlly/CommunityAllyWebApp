@@ -3,7 +3,7 @@
     <span data-ng-if="!$ctrl.recipientInfo.hasEmail">Cannot send message, missing e-mail</span>
     <div class="modal-container" data-ng-if="$ctrl.shouldShowSendModal" data-ng-escape="$ctrl.hideModal()">
         <div class="modal-overlay" data-ng-click="$ctrl.shouldShowSendModal = false"></div>
-        <form class="ca-modal-dialog modal-md" data-ng-style="{ 'height' : $ctrl.sendResultMessage ? '477px' : '400px' }">
+        <form class="ca-modal-dialog modal-md">
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.hideModal()">&times;</span>
             <h2>Send Message</h2>
 
