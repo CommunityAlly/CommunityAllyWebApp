@@ -234,11 +234,13 @@ namespace Ally
                     logbookDeferred.resolve();
 
                 }, function()
-                    {
-                        innerThis.isLoadingLogbookForCalendar = false;
-                        logbookDeferred.resolve();
-                    } );
+                {
+                    innerThis.isLoadingLogbookForCalendar = false;
+                    logbookDeferred.resolve();
+                } );
             }
+            else
+                logbookDeferred.resolve();
 
             if( loadPollsToCalendar )
             {
@@ -274,6 +276,8 @@ namespace Ally
                     pollDeferred.resolve();
                 } );
             }
+            else
+                pollDeferred.resolve();
 
             return this.$q.all( [newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise] );
         }
@@ -532,21 +536,21 @@ namespace Ally
 
             this.isLoadingCalendarEvents = true;
 
-            var innerThis = this;
-            httpFunc( "/api/CalendarEvent", this.editEvent ).then( function()
+            httpFunc( "/api/CalendarEvent", this.editEvent ).then( () =>
             {
-                innerThis.isLoadingCalendarEvents = false;
-                innerThis.editEvent = null;
+                this.isLoadingCalendarEvents = false;
+                this.editEvent = null;
 
-                innerThis.onlyRefreshCalendarEvents = true;
+                this.onlyRefreshCalendarEvents = true;
                 $( '#log-calendar' ).fullCalendar( 'refetchEvents' );
-            }, function( httpResponse )
-                {
-                    innerThis.isLoadingCalendarEvents = false;
 
-                    var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                    alert( "Failed to save the calendar event: " + errorMessage );
-                } );
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoadingCalendarEvents = false;
+
+                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                alert( "Failed to save the calendar event: " + errorMessage );
+            } );
         };
     }
 }

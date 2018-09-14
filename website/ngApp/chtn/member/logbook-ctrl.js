@@ -193,6 +193,8 @@ var Ally;
                     logbookDeferred.resolve();
                 });
             }
+            else
+                logbookDeferred.resolve();
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
                 this.$http.get("/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
@@ -216,6 +218,8 @@ var Ally;
                     pollDeferred.resolve();
                 });
             }
+            else
+                pollDeferred.resolve();
             return this.$q.all([newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise]);
         };
         LogbookController.prototype.getAssociationEvents = function (start, end, timezone, callback) {
@@ -347,6 +351,7 @@ var Ally;
         // Save the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.saveCalendarEvent = function () {
+            var _this = this;
             // Build the list of the associated users
             if (this.residents) {
                 var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
@@ -370,14 +375,13 @@ var Ally;
                 httpFunc = this.$http.post;
             analytics.track("addCalendarEvent");
             this.isLoadingCalendarEvents = true;
-            var innerThis = this;
             httpFunc("/api/CalendarEvent", this.editEvent).then(function () {
-                innerThis.isLoadingCalendarEvents = false;
-                innerThis.editEvent = null;
-                innerThis.onlyRefreshCalendarEvents = true;
+                _this.isLoadingCalendarEvents = false;
+                _this.editEvent = null;
+                _this.onlyRefreshCalendarEvents = true;
                 $('#log-calendar').fullCalendar('refetchEvents');
             }, function (httpResponse) {
-                innerThis.isLoadingCalendarEvents = false;
+                _this.isLoadingCalendarEvents = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to save the calendar event: " + errorMessage);
             });
