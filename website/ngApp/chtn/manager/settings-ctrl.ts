@@ -125,6 +125,11 @@ namespace Ally
                 // Reload the page to show the page title has changed
                 if( shouldReload )
                     location.reload();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + response.data );
             } );
         }
 
@@ -138,11 +143,15 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/Settings", { siteTitle: this.settings.siteTitle } ).then( function()
+            this.$http.put( "/api/Settings", { siteTitle: this.settings.siteTitle } ).then( () =>
             {
                 // Reload the page to show the page title has changed
                 location.reload();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + response.data );
             } );
         }
 
@@ -155,12 +164,16 @@ namespace Ally
             analytics.track( "editWelcomeMessage" );
 
             this.isLoading = true;
-
-            var innerThis = this;
-            this.$http.put( "/api/Settings", { welcomeMessage: this.settings.welcomeMessage } ).then( function()
+            
+            this.$http.put( "/api/Settings", { welcomeMessage: this.settings.welcomeMessage } ).then( () =>
             {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.privateSiteInfo.welcomeMessage = innerThis.settings.welcomeMessage;
+                this.isLoading = false;
+                this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + response.data );
             } );
         }
 
@@ -181,6 +194,11 @@ namespace Ally
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
 
                 innerThis.isLoading = false;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + response.data );
             } );
         }
 

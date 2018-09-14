@@ -96,36 +96,46 @@ var Ally;
                 // Reload the page to show the page title has changed
                 if (shouldReload)
                     location.reload();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         /**
          * Occurs when the user wants to save a new site title
          */
         ChtnSettingsController.prototype.onSiteTitleChange = function () {
+            var _this = this;
             analytics.track("editSiteTitle");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", { siteTitle: this.settings.siteTitle }).then(function () {
                 // Reload the page to show the page title has changed
                 location.reload();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         /**
          * Occurs when the user wants to save a new welcome message
          */
         ChtnSettingsController.prototype.onWelcomeMessageUpdate = function () {
+            var _this = this;
             analytics.track("editWelcomeMessage");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", { welcomeMessage: this.settings.welcomeMessage }).then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.privateSiteInfo.welcomeMessage = innerThis.settings.welcomeMessage;
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         /**
          * Occurs when the user clicks a new background image
          */
         ChtnSettingsController.prototype.onImageClick = function (bgImage) {
+            var _this = this;
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
             var innerThis = this;
@@ -133,6 +143,9 @@ var Ally;
                 $(".test-bg-image").removeClass("test-bg-image-selected");
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
                 innerThis.isLoading = false;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         ChtnSettingsController.prototype.onImageHoverOver = function (bgImage) {
