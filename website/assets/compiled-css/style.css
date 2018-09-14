@@ -2,9 +2,12 @@
   position: absolute;
   z-index: 623;
   left: 50%;
+  max-height: 95%;
   top: 50%;
+  transform: translateY(-50%);
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-left: -310px;
-  margin-top: -200px;
   width: 646px;
   height: auto !important;
   padding-top: 30px;
@@ -644,6 +647,8 @@ footer {
     background: url(/assets/images/icons.png) no-repeat right -221px; }
   .page-home .send_email .portlet-header {
     background: url(/assets/images/icons.png) no-repeat 106% -76px; }
+  .page-home .generic .portlet-header {
+    background: url(/assets/images/icons.png) no-repeat 106% -147px; }
   .page-home .manage_pannel a {
     color: #f7941d;
     font-weight: 600;
@@ -841,9 +846,6 @@ footer {
 .page-calendar h4 {
   color: #4583b6; }
 
-.page-calendar #calendarEditEvent.expanded {
-  top: 35%; }
-
 .page-calendar #calendarEditEvent td {
   padding: 3px 0 3px 0; }
 
@@ -909,11 +911,6 @@ footer {
 
 .page-manage-resident .ngRow:hover {
   background-color: #c4c4e4; }
-
-@media screen and (max-width: 600px) {
-  .page-manage-resident #editUserForm {
-    top: 10% !important;
-    margin-top: 0px !important; } }
 
 .page-manage-resident #editUserForm .form-group label {
   font-size: 14px;

@@ -2,9 +2,13 @@
     position: absolute;
     z-index: 623;
     left: 50%;
+    
+    max-height: 95%;
     top: 50%;
+    transform: translateY(-50%);
+    overflow-y: auto;
+    overflow-x: hidden;
     margin-left: -310px;
-    margin-top: -200px;
     width: 646px;
     height: auto !important;
     padding-top: 30px;

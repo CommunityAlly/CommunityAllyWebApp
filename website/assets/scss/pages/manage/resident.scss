@@ -34,10 +34,6 @@
     }
 
     #editUserForm {
-        @media screen and (max-width: 600px) {
-            top: 10% !important;
-            margin-top: 0px !important;
-        }
         .form-group label {
             font-size: 14px;
             font-weight: normal;
