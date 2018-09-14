@@ -83,6 +83,20 @@ namespace Ally
     }
 
 
+    class ResidentCsvRow
+    {
+        unitName: string;
+        unitId: number;
+        email: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber: string;
+        isRenter: boolean;
+        isAdmin: boolean;
+        csvTestName: string;
+    }
+
+
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -119,6 +133,7 @@ namespace Ally
         bulkImportCsv: string;
         hasOneAdmin: boolean;
         showEmailHistory: boolean = false;
+        bulkParseNormalizeNameCase: boolean = false;
         
 
         /**
@@ -778,13 +793,17 @@ namespace Ally
 
             for( var i = 0; i < bulkRows.length; ++i )
             {
-                var curRow = bulkRows[i];
+                let curRow = <string[]>bulkRows[i];
 
                 while( curRow.length < 7 )
                     curRow.push( "" );
 
+                // Skip the header row, if there is one
+                if( curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name" )
+                    continue;
+
                 // Clean up the data
-                for( var j = 0; j < curRow.length; ++j )
+                for( let j = 0; j < curRow.length; ++j )
                 {
                     if( HtmlUtil.isNullOrWhitespace( curRow[j] ) )
                         curRow[j] = null;
@@ -792,7 +811,7 @@ namespace Ally
                         curRow[j] = curRow[j].trim();
                 }
 
-                var newRow = {
+                let newRow: ResidentCsvRow = {
                     unitName: curRow[0] || null,
                     unitId: <number>undefined,
                     email: curRow[1],
@@ -817,7 +836,57 @@ namespace Ally
                         newRow.unitId = undefined;
                 }
 
+                // If this row contains two people
+                let spouseRow = null;
+                if( newRow.firstName && newRow.firstName.toLowerCase().indexOf( " and " ) !== -1 )
+                {
+                    spouseRow = _.clone( newRow );
+
+                    var splitFirst = newRow.firstName.split( " and " );
+
+                    newRow.firstName = splitFirst[0];
+                    spouseRow.firstName = splitFirst[1];
+
+                    if( newRow.email && newRow.email.indexOf( " / " ) !== -1 )
+                    {
+                        let splitEmail = newRow.email.split( " / " );
+                        newRow.email = splitEmail[0];
+                        spouseRow.email = splitEmail[1];
+                    }
+                    else
+                        spouseRow.email = "";
+
+                    spouseRow.phoneNumber = "";
+                }
+                
+                if( this.bulkParseNormalizeNameCase )
+                {
+                    let capitalizeFirst = ( str: string ) =>
+                    {
+                        if( !str )
+                            return str;
+
+                        if( str.length === 1 )
+                            return str.toUpperCase();
+
+                        return str.charAt( 0 ).toUpperCase() + str.substr( 1 ).toLowerCase();
+                    };
+
+                    newRow.firstName = capitalizeFirst( newRow.firstName );
+                    newRow.lastName = capitalizeFirst( newRow.lastName );
+
+                    if( spouseRow )
+                    {
+                        spouseRow.firstName = capitalizeFirst( spouseRow.firstName );
+                        spouseRow.lastName = capitalizeFirst( spouseRow.lastName );
+                    }
+                }
+
+
                 this.bulkImportRows.push( newRow );
+
+                if( spouseRow )
+                    this.bulkImportRows.push( spouseRow );
             }
         }
 
@@ -850,7 +919,7 @@ namespace Ally
          */
         addBulkRow()
         {
-            var newRow = {
+            var newRow: ResidentCsvRow = {
                 unitName: "",
                 unitId: <number>null,
                 email: "",
@@ -858,7 +927,8 @@ namespace Ally
                 lastName: "",
                 phoneNumber: "",
                 isRenter: false,
-                isAdmin: false
+                isAdmin: false,
+                csvTestName: undefined
             };
 
             // Try to step to the next unit

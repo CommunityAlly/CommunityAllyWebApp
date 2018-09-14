@@ -1,7 +1,7 @@
 <div class="page page-manage-resident spinner-effect">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-    <p class="margin-bottom-10 text-12">
+    <p class="margin-bottom-10 text-12" style="display: none;">
         Are your neighbors not receiving e-mails from this site? If so, make sure they add "sender@condoally.com" to their list of trusted e-mail senders.
     </p>
 
@@ -277,7 +277,7 @@
                         </div>
                     </td>
                     <td><input style="width:97%;" type="text" data-ng-model="row.email" /></td>
-                    <td><input style="width:97%;" type="text" data-ng-model="row.firstName" /></td>
+                    <td><input style="width:97%;" data-ng-style="{'background-color':row.firstName?'white':'red'}" type="text" data-ng-model="row.firstName" /></td>
                     <td><input style="width:97%;" type="text" data-ng-model="row.lastName" /></td>
                     <td><input style="width:97%;" type="text" data-ng-model="row.phoneNumber" /></td>
                     <td class="text-center"><input type="checkbox" data-ng-model="row.isRenter" /></td>
@@ -296,6 +296,7 @@
                 Specify any text for is renter/admin, an empty value means false.
             </p>
             <textarea style="width: 90%;" data-ng-model="$ctrl.bulkImportCsv" rows="10"></textarea>
+            <label><input type="checkbox" data-ng-model="$ctrl.bulkParseNormalizeNameCase" />Normalize Name Casing</label>
             <button type="button" data-ng-click="$ctrl.parseBulkCsv()">Parse</button>
         </fieldset>
 

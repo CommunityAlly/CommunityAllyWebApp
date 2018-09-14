@@ -58,6 +58,11 @@ var Ally;
         }
         return RecentEmail;
     }());
+    var ResidentCsvRow = /** @class */ (function () {
+        function ResidentCsvRow() {
+        }
+        return ResidentCsvRow;
+    }());
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -79,6 +84,7 @@ var Ally;
             this.isLoading = false;
             this.isLoadingSettings = false;
             this.showEmailHistory = false;
+            this.bulkParseNormalizeNameCase = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -550,10 +556,13 @@ var Ally;
             };
             for (var i = 0; i < this.allUnits.length; ++i)
                 this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
-            for (var i = 0; i < bulkRows.length; ++i) {
+            var _loop_1 = function () {
                 var curRow = bulkRows[i];
                 while (curRow.length < 7)
                     curRow.push("");
+                // Skip the header row, if there is one
+                if (curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name")
+                    return "continue";
                 // Clean up the data
                 for (var j = 0; j < curRow.length; ++j) {
                     if (HtmlUtil.isNullOrWhitespace(curRow[j]))
@@ -576,13 +585,50 @@ var Ally;
                     newRow.unitId = null;
                 else {
                     newRow.csvTestName = simplifyStreetName(newRow.unitName);
-                    var unit = _.find(this.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
+                    unit = _.find(this_1.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
                     if (unit)
                         newRow.unitId = unit.unitId;
                     else
                         newRow.unitId = undefined;
                 }
-                this.bulkImportRows.push(newRow);
+                // If this row contains two people
+                var spouseRow = null;
+                if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
+                    spouseRow = _.clone(newRow);
+                    splitFirst = newRow.firstName.split(" and ");
+                    newRow.firstName = splitFirst[0];
+                    spouseRow.firstName = splitFirst[1];
+                    if (newRow.email && newRow.email.indexOf(" / ") !== -1) {
+                        var splitEmail = newRow.email.split(" / ");
+                        newRow.email = splitEmail[0];
+                        spouseRow.email = splitEmail[1];
+                    }
+                    else
+                        spouseRow.email = "";
+                    spouseRow.phoneNumber = "";
+                }
+                if (this_1.bulkParseNormalizeNameCase) {
+                    var capitalizeFirst = function (str) {
+                        if (!str)
+                            return str;
+                        if (str.length === 1)
+                            return str.toUpperCase();
+                        return str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
+                    };
+                    newRow.firstName = capitalizeFirst(newRow.firstName);
+                    newRow.lastName = capitalizeFirst(newRow.lastName);
+                    if (spouseRow) {
+                        spouseRow.firstName = capitalizeFirst(spouseRow.firstName);
+                        spouseRow.lastName = capitalizeFirst(spouseRow.lastName);
+                    }
+                }
+                this_1.bulkImportRows.push(newRow);
+                if (spouseRow)
+                    this_1.bulkImportRows.push(spouseRow);
+            };
+            var this_1 = this, unit, splitFirst;
+            for (var i = 0; i < bulkRows.length; ++i) {
+                _loop_1();
             }
         };
         /**
@@ -613,7 +659,8 @@ var Ally;
                 lastName: "",
                 phoneNumber: "",
                 isRenter: false,
-                isAdmin: false
+                isAdmin: false,
+                csvTestName: undefined
             };
             // Try to step to the next unit
             if (this.bulkImportRows.length > 0) {
