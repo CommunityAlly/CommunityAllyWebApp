@@ -1089,7 +1089,8 @@ var CondoAllyAppConfig = {
     homeName: "Unit",
     menu: [
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
-        new Ally.RoutePath_v3({ path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Info/:viewName", templateHtml: "<association-info></association-info>" }),
         new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
         new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),
         new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" }),
@@ -1178,9 +1179,11 @@ var HomeAppConfig = {
         new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<home-group-home></home-group-home>", menuTitle: "Home" }),
-        new Ally.RoutePath_v3({ path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Info/:viewName", templateHtml: "<association-info></association-info>" }),
         new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
-        new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),
+        new Ally.RoutePath_v3({ path: "Users", templateHtml: "<home-users></home-users>", menuTitle: "Users", role: Role_Manager }),
+        //new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
         new Ally.RoutePath_v3({ path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin }),
     ]
 };
@@ -1585,7 +1588,8 @@ var Ally;
                 });
                 // Add the payment information to the units
                 _.each(paymentInfo.payments, function (payment) {
-                    innerThis.unitPayments[payment.unitId].payments.push(payment);
+                    if (innerThis.unitPayments[payment.unitId])
+                        innerThis.unitPayments[payment.unitId].payments.push(payment);
                 });
                 // Store all of the payments rather than just what is visible
                 _.each(paymentInfo.units, function (unit) {
@@ -2426,6 +2430,11 @@ var Ally;
         }
         return RecentEmail;
     }());
+    var ResidentCsvRow = /** @class */ (function () {
+        function ResidentCsvRow() {
+        }
+        return ResidentCsvRow;
+    }());
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -2447,6 +2456,7 @@ var Ally;
             this.isLoading = false;
             this.isLoadingSettings = false;
             this.showEmailHistory = false;
+            this.bulkParseNormalizeNameCase = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2918,10 +2928,13 @@ var Ally;
             };
             for (var i = 0; i < this.allUnits.length; ++i)
                 this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
-            for (var i = 0; i < bulkRows.length; ++i) {
+            var _loop_1 = function () {
                 var curRow = bulkRows[i];
                 while (curRow.length < 7)
                     curRow.push("");
+                // Skip the header row, if there is one
+                if (curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name")
+                    return "continue";
                 // Clean up the data
                 for (var j = 0; j < curRow.length; ++j) {
                     if (HtmlUtil.isNullOrWhitespace(curRow[j]))
@@ -2944,13 +2957,50 @@ var Ally;
                     newRow.unitId = null;
                 else {
                     newRow.csvTestName = simplifyStreetName(newRow.unitName);
-                    var unit = _.find(this.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
+                    unit = _.find(this_1.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
                     if (unit)
                         newRow.unitId = unit.unitId;
                     else
                         newRow.unitId = undefined;
                 }
-                this.bulkImportRows.push(newRow);
+                // If this row contains two people
+                var spouseRow = null;
+                if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
+                    spouseRow = _.clone(newRow);
+                    splitFirst = newRow.firstName.split(" and ");
+                    newRow.firstName = splitFirst[0];
+                    spouseRow.firstName = splitFirst[1];
+                    if (newRow.email && newRow.email.indexOf(" / ") !== -1) {
+                        var splitEmail = newRow.email.split(" / ");
+                        newRow.email = splitEmail[0];
+                        spouseRow.email = splitEmail[1];
+                    }
+                    else
+                        spouseRow.email = "";
+                    spouseRow.phoneNumber = "";
+                }
+                if (this_1.bulkParseNormalizeNameCase) {
+                    var capitalizeFirst = function (str) {
+                        if (!str)
+                            return str;
+                        if (str.length === 1)
+                            return str.toUpperCase();
+                        return str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
+                    };
+                    newRow.firstName = capitalizeFirst(newRow.firstName);
+                    newRow.lastName = capitalizeFirst(newRow.lastName);
+                    if (spouseRow) {
+                        spouseRow.firstName = capitalizeFirst(spouseRow.firstName);
+                        spouseRow.lastName = capitalizeFirst(spouseRow.lastName);
+                    }
+                }
+                this_1.bulkImportRows.push(newRow);
+                if (spouseRow)
+                    this_1.bulkImportRows.push(spouseRow);
+            };
+            var this_1 = this, unit, splitFirst;
+            for (var i = 0; i < bulkRows.length; ++i) {
+                _loop_1();
             }
         };
         /**
@@ -2981,7 +3031,8 @@ var Ally;
                 lastName: "",
                 phoneNumber: "",
                 isRenter: false,
-                isAdmin: false
+                isAdmin: false,
+                csvTestName: undefined
             };
             // Try to step to the next unit
             if (this.bulkImportRows.length > 0) {
@@ -3020,6 +3071,57 @@ var Ally;
 CA.angularApp.component("manageResidents", {
     templateUrl: "/ngApp/chtn/manager/manage-residents.html",
     controller: Ally.ManageResidentsController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to send invoices to residents
+     */
+    var SendInvoicesController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function SendInvoicesController($http, siteInfo, appCacheService) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
+            var innerThis = this;
+            this.residentGridOptions =
+                {
+                    data: [],
+                    columnDefs: [
+                        { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
+                        { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
+                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
+                        { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
+                        { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                    ],
+                    multiSelect: false,
+                    enableSorting: true,
+                    enableHorizontalScrollbar: 0,
+                    enableVerticalScrollbar: 0,
+                    enableFullRowSelection: true,
+                    enableColumnMenus: false,
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                    }
+                };
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        SendInvoicesController.prototype.$onInit = function () {
+        };
+        SendInvoicesController.$inject = ["$http", "SiteInfo", "appCacheService"];
+        return SendInvoicesController;
+    }());
+    Ally.SendInvoicesController = SendInvoicesController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("sendInvoices", {
+    templateUrl: "/ngApp/chtn/manager/send-invoices.html",
+    controller: Ally.SendInvoicesController
 });
 
 var __extends = (this && this.__extends) || (function () {
@@ -3120,36 +3222,46 @@ var Ally;
                 // Reload the page to show the page title has changed
                 if (shouldReload)
                     location.reload();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         /**
          * Occurs when the user wants to save a new site title
          */
         ChtnSettingsController.prototype.onSiteTitleChange = function () {
+            var _this = this;
             analytics.track("editSiteTitle");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", { siteTitle: this.settings.siteTitle }).then(function () {
                 // Reload the page to show the page title has changed
                 location.reload();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         /**
          * Occurs when the user wants to save a new welcome message
          */
         ChtnSettingsController.prototype.onWelcomeMessageUpdate = function () {
+            var _this = this;
             analytics.track("editWelcomeMessage");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", { welcomeMessage: this.settings.welcomeMessage }).then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.privateSiteInfo.welcomeMessage = innerThis.settings.welcomeMessage;
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         /**
          * Occurs when the user clicks a new background image
          */
         ChtnSettingsController.prototype.onImageClick = function (bgImage) {
+            var _this = this;
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
             var innerThis = this;
@@ -3157,6 +3269,9 @@ var Ally;
                 $(".test-bg-image").removeClass("test-bg-image-selected");
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
                 innerThis.isLoading = false;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
             });
         };
         ChtnSettingsController.prototype.onImageHoverOver = function (bgImage) {
@@ -3230,8 +3345,9 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function AssociationInfoController(siteInfo) {
+        function AssociationInfoController(siteInfo, $routeParams) {
             this.siteInfo = siteInfo;
+            this.$routeParams = $routeParams;
             this.hideDocuments = false;
             this.hideVendors = false;
             this.showMaintenance = false;
@@ -3247,11 +3363,13 @@ var Ally;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             this.showMaintenance = AppConfig.appShortName === "home";
             if (this.hideDocuments)
-                this.selectedView = "info";
+                this.selectedView = "Info";
             else
-                this.selectedView = "docs";
+                this.selectedView = "Docs";
+            if (HtmlUtil.isValidString(this.$routeParams.viewName))
+                this.selectedView = this.$routeParams.viewName;
         };
-        AssociationInfoController.$inject = ["SiteInfo"];
+        AssociationInfoController.$inject = ["SiteInfo", "$routeParams"];
         return AssociationInfoController;
     }());
     Ally.AssociationInfoController = AssociationInfoController;
@@ -3375,11 +3493,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnMapController($scope, $timeout, $http, siteInfo) {
+        function ChtnMapController($scope, $timeout, $http, siteInfo, appCacheService) {
             this.$scope = $scope;
             this.$timeout = $timeout;
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.editingTip = new WelcomeTip();
             this.hoaHomes = [];
             this.tips = [];
@@ -3431,17 +3550,17 @@ var Ally;
                 innerThis.tips = httpResponse.data;
                 MapCtrlMapMgr.ClearAllMarkers();
                 if (AppConfig.appShortName === "condo")
-                    MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home);
+                    MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
                 for (var locationIndex = 0; locationIndex < innerThis.tips.length; ++locationIndex) {
                     var curLocation = innerThis.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
-                    curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber);
+                    curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
                 // Add HOA homes
                 _.each(innerThis.hoaHomes, function (home) {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
-                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home);
+                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home, home.unitId);
                     }
                 });
                 MapCtrlMapMgr.OnMarkersReady();
@@ -3570,7 +3689,7 @@ var Ally;
                 innerThis.refresh();
             });
         };
-        ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo"];
+        ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
         return ChtnMapController;
     }());
     Ally.ChtnMapController = ChtnMapController;
@@ -3602,7 +3721,7 @@ var MapCtrlMapMgr = /** @class */ (function () {
         MapCtrlMapMgr._mainMap = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
         // Add our home marker
         if (AppConfig.appShortName === "condo")
-            MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home);
+            MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
         MapCtrlMapMgr.OnMapReady();
         // Add any markers that already exist to this map
         //for( var markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex )
@@ -3648,6 +3767,15 @@ var MapCtrlMapMgr = /** @class */ (function () {
                     MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker.markerIndex, gpsPos.lat(), gpsPos.lng());
                 });
             });
+            if (AppConfig.appShortName === "hoa" && tempMarker.unitId) {
+                marker.unitId = tempMarker.unitId;
+                marker.addListener('click', function (innerMarker) {
+                    return function () {
+                        MapCtrlMapMgr.mapCtrl.appCacheService.set("scrollToUnitId", innerMarker.unitId.toString());
+                        window.location.hash = "#!/BuildingResidents";
+                    };
+                }(marker));
+            }
             MapCtrlMapMgr._markers.push(marker);
         }
         // We've processed all of the temp markes so clear the array
@@ -3685,12 +3813,13 @@ var MapCtrlMapMgr = /** @class */ (function () {
     /**
     * Add a marker to the map and return the index of that new marker
     */
-    MapCtrlMapMgr.AddMarker = function (lat, lon, name, markerNumber) {
+    MapCtrlMapMgr.AddMarker = function (lat, lon, name, markerNumber, unitId) {
         MapCtrlMapMgr._tempMarkers.push({
             lat: lat,
             lon: lon,
             name: name,
-            markerNumber: markerNumber
+            markerNumber: markerNumber,
+            unitId: unitId
         });
         return MapCtrlMapMgr._tempMarkers.length - 1;
     };
@@ -3818,9 +3947,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupMembersController(fellowResidents, siteInfo) {
+        function GroupMembersController(fellowResidents, siteInfo, appCacheService) {
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isLoading = true;
             this.emailLists = [];
             this.unitPrefix = "Unit ";
@@ -3913,6 +4043,12 @@ var Ally;
                 }
                 // Only show commitees with a contact person
                 _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
+                // If we should scroll to a specific home
+                var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
+                if (scrollToUnitId) {
+                    var scrollToElemId = "unit-id-" + scrollToUnitId;
+                    setTimeout(function () { return document.getElementById(scrollToElemId).scrollIntoView(); }, 300);
+                }
                 // Populate the e-mail name lists
                 _this.setupGroupEmails();
             });
@@ -3954,7 +4090,7 @@ var Ally;
                 }, 750);
             });
         };
-        GroupMembersController.$inject = ["fellowResidents", "SiteInfo"];
+        GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService"];
         return GroupMembersController;
     }());
     Ally.GroupMembersController = GroupMembersController;
@@ -4224,6 +4360,8 @@ var Ally;
                     logbookDeferred.resolve();
                 });
             }
+            else
+                logbookDeferred.resolve();
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
                 this.$http.get("/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
@@ -4247,6 +4385,8 @@ var Ally;
                     pollDeferred.resolve();
                 });
             }
+            else
+                pollDeferred.resolve();
             return this.$q.all([newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise]);
         };
         LogbookController.prototype.getAssociationEvents = function (start, end, timezone, callback) {
@@ -4378,6 +4518,7 @@ var Ally;
         // Save the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.saveCalendarEvent = function () {
+            var _this = this;
             // Build the list of the associated users
             if (this.residents) {
                 var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
@@ -4401,14 +4542,13 @@ var Ally;
                 httpFunc = this.$http.post;
             analytics.track("addCalendarEvent");
             this.isLoadingCalendarEvents = true;
-            var innerThis = this;
             httpFunc("/api/CalendarEvent", this.editEvent).then(function () {
-                innerThis.isLoadingCalendarEvents = false;
-                innerThis.editEvent = null;
-                innerThis.onlyRefreshCalendarEvents = true;
+                _this.isLoadingCalendarEvents = false;
+                _this.editEvent = null;
+                _this.onlyRefreshCalendarEvents = true;
                 $('#log-calendar').fullCalendar('refetchEvents');
             }, function (httpResponse) {
-                innerThis.isLoadingCalendarEvents = false;
+                _this.isLoadingCalendarEvents = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to save the calendar event: " + errorMessage);
             });
@@ -4742,6 +4882,7 @@ var Ally;
             this.numUnits = 3;
             this.placeWasSelected = false;
             this.shouldCheckAddress = false;
+            this.shouldShowHoaMessage = false;
             this.isLoading = false;
             this.map = null;
             this.isLoadingMap = false;
@@ -4788,7 +4929,17 @@ var Ally;
                 }
             }
         };
-        ;
+        /**
+         * Occurs as the user presses keys in the association name field
+         */
+        CondoSignUpWizardController.prototype.onAssociationNameChanged = function () {
+            if (!this.signUpInfo || !this.signUpInfo.name) {
+                this.shouldShowHoaMessage = false;
+                return;
+            }
+            this.shouldShowHoaMessage = this.signUpInfo.name.toLowerCase().indexOf("hoa") !== -1
+                || this.signUpInfo.name.toLowerCase().indexOf("home") !== -1;
+        };
         CondoSignUpWizardController.prototype.addResident = function (unit) {
             if (!unit.residents)
                 unit.residents = [];
@@ -5180,6 +5331,7 @@ var Ally;
             this.placeWasSelected = false;
             this.shouldCheckAddress = false;
             this.isLoading = false;
+            this.shouldShowCondoMessage = false;
             this.map = null;
             this.isLoadingMap = false;
             this.hideWizard = false;
@@ -5192,14 +5344,23 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         HoaSignUpWizardController.prototype.$onInit = function () {
-            var innerThis = this;
-            var innerThis = this;
+            var _this = this;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
-                    innerThis.$timeout(function () { return innerThis.showMap = true; }, 50);
+                    _this.$timeout(function () { return _this.showMap = true; }, 50);
                 else
-                    innerThis.showMap = false;
+                    _this.showMap = false;
             });
+        };
+        /**
+         * Occurs as the user presses keys in the HOA name field
+         */
+        HoaSignUpWizardController.prototype.onHoaNameChanged = function () {
+            if (!this.signUpInfo || !this.signUpInfo.name) {
+                this.shouldShowCondoMessage = false;
+                return;
+            }
+            this.shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf("condo") !== -1;
         };
         /**
          * Center the Google map on a polygon
@@ -7224,6 +7385,7 @@ var Ally;
         }
         return MaintenanceProject;
     }());
+    Ally.MaintenanceProject = MaintenanceProject;
     var TagPickerItem = /** @class */ (function () {
         function TagPickerItem() {
         }
@@ -7517,11 +7679,28 @@ var Ally;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.isLoading = false;
+            this.upcomingWork = [];
+            this.recentProjects = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         MaintenanceWidgetController.prototype.$onInit = function () {
+            this.loadProjects();
+        };
+        /**
+        * Retrieve the maintenance projects from the server
+        */
+        MaintenanceWidgetController.prototype.loadProjects = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Maintenance/Projects").then(function (response) {
+                _this.isLoading = false;
+                _this.recentProjects = _.take(response.data, 3);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve projects: " + response.data.exceptionMessage);
+            });
         };
         MaintenanceWidgetController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return MaintenanceWidgetController;
@@ -8350,6 +8529,90 @@ CA.angularApp.component("homeGroupHome", {
     controller: Ally.HomeGroupHomeController
 });
 
+var Ally;
+(function (Ally) {
+    var HomeValueResponse = /** @class */ (function () {
+        function HomeValueResponse() {
+        }
+        return HomeValueResponse;
+    }());
+    /**
+     * The controller for the widget that lets members send e-mails to the group
+     */
+    var HomeValueWidgetController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function HomeValueWidgetController($http, $rootScope, siteInfo) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.isLoading = false;
+            this.shouldShowWidget = false;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        HomeValueWidgetController.prototype.$onInit = function () {
+            this.retrieveInfo();
+        };
+        /**
+         * Retrieve the home value information from the server
+         */
+        HomeValueWidgetController.prototype.retrieveInfo = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/HomeValue/ZillowInfo").then(function (response) {
+                _this.isLoading = false;
+                _this.shouldShowWidget = !!response.data && !!response.data.chartImageUri;
+                if (_this.shouldShowWidget)
+                    _this.valueInfo = response.data;
+            }, function (response) {
+                _this.isLoading = false;
+                _this.shouldShowWidget = false;
+            });
+        };
+        HomeValueWidgetController.$inject = ["$http", "$rootScope", "SiteInfo"];
+        return HomeValueWidgetController;
+    }());
+    Ally.HomeValueWidgetController = HomeValueWidgetController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("homeValueWidget", {
+    templateUrl: "/ngApp/home/home-value-widget.html",
+    controller: Ally.HomeValueWidgetController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the widget that lets members send e-mails to the group
+     */
+    var HomeUsersController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function HomeUsersController($http, $rootScope, siteInfo) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.isLoading = false;
+            this.isAdmin = false;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        HomeUsersController.prototype.$onInit = function () {
+        };
+        HomeUsersController.$inject = ["$http", "$rootScope", "SiteInfo"];
+        return HomeUsersController;
+    }());
+    Ally.HomeUsersController = HomeUsersController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("homeUsers", {
+    templateUrl: "/ngApp/home/manager/home-users.html",
+    controller: Ally.HomeUsersController
+});
+
 /// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;
@@ -8359,11 +8622,17 @@ var Ally;
         }
         return SignerUpInfo;
     }());
+    var HomeInfo = /** @class */ (function () {
+        function HomeInfo() {
+        }
+        return HomeInfo;
+    }());
+    Ally.HomeInfo = HomeInfo;
     var SignUpInfo = /** @class */ (function () {
         function SignUpInfo() {
-            this.streetAddress = "";
             this.signerUpInfo = new SignerUpInfo();
-            this.homeInfo = {};
+            this.streetAddress = "";
+            this.homeInfo = new HomeInfo();
         }
         return SignUpInfo;
     }());
@@ -8390,15 +8659,58 @@ var Ally;
             this.didLoadHomeInfo = false;
             this.isLoading = false;
             this.hideWizard = false;
+            this.hasAlreadyCheckedForHomeInfo = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         HomeSignUpController.prototype.$onInit = function () {
             var _this = this;
+            // Listen for step changes
+            this.$scope.$on('wizard:stepChanged', function (event, args) {
+                // If we're now on the second step
+                if (args.index === 1)
+                    _this.retrieveHomeInfoForAddress();
+            });
             // The controller is ready, but let's wait a bit for the page to be ready
             var innerThis = this;
             setTimeout(function () { _this.initMap(); }, 300);
+        };
+        /**
+         * Retrieve information about the address provided from Zillow
+         */
+        HomeSignUpController.prototype.retrieveHomeInfoForAddress = function () {
+            var _this = this;
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.streetAddress) || this.hasAlreadyCheckedForHomeInfo)
+                return;
+            this.hasAlreadyCheckedForHomeInfo = true;
+            var getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent(this.signUpInfo.streetAddress);
+            this.$http.get(getUri, { cache: true }).then(function (response) {
+                if (!response.data)
+                    return;
+                _this.signUpInfo.homeInfo = response.data;
+                _this.didLoadHomeInfo = true;
+                _this.processLotSizeHint(_this.signUpInfo.homeInfo.lotSquareFeet);
+            });
+        };
+        /**
+         * Convert a lot size hint from Zillow into a UI friendly value
+         * @param lotSquareFeet
+         */
+        HomeSignUpController.prototype.processLotSizeHint = function (lotSquareFeet) {
+            if (!lotSquareFeet)
+                return;
+            // Choose a square feet that makes sense
+            if (lotSquareFeet > SquareFeetPerAcre) {
+                this.lotSizeUnit = LotSizeType_Acres;
+                this.lotSquareUnits = lotSquareFeet / SquareFeetPerAcre;
+                // Round to nearest .25
+                this.lotSquareUnits = parseFloat((Math.round(this.lotSquareUnits * 4) / 4).toFixed(2));
+            }
+            else {
+                this.lotSizeUnit = LotSizeType_SquareFeet;
+                this.lotSquareUnits = lotSquareFeet;
+            }
         };
         /**
          * Initialize the Google map on the page
@@ -8431,20 +8743,26 @@ var Ally;
                     readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
                 innerThis.signUpInfo.streetAddress = readableAddress;
                 innerThis.selectedSplitAddress = Ally.MapUtil.parseAddressComponents(place.address_components);
-                innerThis.prepopulateHomeInfo();
+                //innerThis.prepopulateHomeInfo();
                 if (place.geometry)
                     innerThis.centerMap(place.geometry);
                 $("#association-name-text-box").focus();
             });
         };
         /**
+         * Occurs when the user hits enter in the address box
+         */
+        HomeSignUpController.prototype.goNextStep = function () {
+            this.WizardHandler.wizard().next();
+        };
+        /**
          * Called when the user completes the wizard
          */
         HomeSignUpController.prototype.onFinishedWizard = function () {
-            if (this.lotSizeUnit === LotSizeType_Acres)
-                this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits * SquareFeetPerAcre;
-            else
-                this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits;
+            //if( this.lotSizeUnit === LotSizeType_Acres )
+            //    this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits * SquareFeetPerAcre;
+            //else
+            //    this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits;
             this.isLoading = true;
             var innerThis = this;
             this.$http.post("/api/HomeSignUp", this.signUpInfo).then(function (httpResponse) {
@@ -8520,19 +8838,7 @@ var Ally;
                 if (homeInfo) {
                     innerThis.didLoadHomeInfo = true;
                     innerThis.signUpInfo.homeInfo = homeInfo;
-                    if (homeInfo.lotSquareFeet) {
-                        // Choose a square feet that makes sense
-                        if (homeInfo.lotSquareFeet > SquareFeetPerAcre) {
-                            innerThis.lotSizeUnit = LotSizeType_Acres;
-                            innerThis.lotSquareUnits = homeInfo.lotSquareFeet / SquareFeetPerAcre;
-                            // Round to nearest .25
-                            innerThis.lotSquareUnits = parseFloat((Math.round(innerThis.lotSquareUnits * 4) / 4).toFixed(2));
-                        }
-                        else {
-                            innerThis.lotSizeUnit = LotSizeType_SquareFeet;
-                            innerThis.lotSquareUnits = homeInfo.lotSquareFeet;
-                        }
-                    }
+                    innerThis.processLotSizeHint(homeInfo.lotSquareFeet);
                 }
             }, function () {
                 innerThis.isLoadingHomeInfo = false;
@@ -8544,7 +8850,7 @@ var Ally;
     Ally.HomeSignUpController = HomeSignUpController;
 })(Ally || (Ally = {}));
 CA.angularApp.component('homeSignUp', {
-    templateUrl: "/ngApp/home/public/SignUp.html",
+    templateUrl: "/ngApp/home/public/home-sign-up.html",
     controller: Ally.HomeSignUpController
 });
 
@@ -8960,72 +9266,6 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
         replace: 'true',
         templateUrl: '/ngApp/Services/GoogleMapPolyEditorTemplate.html',
         link: linkFunction
-    };
-}] );
-CA.angularApp.directive( "sendMessage", ["$rootScope", "fellowResidents", function ($rootScope, fellowResidents )
-{
-    function SendMessageController()
-    {
-        var vm = this;
-        vm.shouldShowSendModal = false;
-        vm.shouldShowButtons = true;
-
-        // Display the send modal
-        vm.showSendModal = function ()
-        {
-            vm.shouldShowSendModal = true;
-            vm.sendResultMessage = "";
-            vm.shouldShowButtons = true;
-
-            setTimeout( function ()
-            {
-                document.getElementById( "message-text-box" ).focus();
-            }, 50 );
-        }
-
-        // Hide the send modal
-        vm.hideModal = function ()
-        {
-            vm.shouldShowSendModal = false;
-            vm.messageBody = "";
-        }
-
-        // Send the user's message
-        vm.sendMessage = function ()
-        {
-            vm.shouldShowButtons = false;
-            vm.isSending = true;
-            vm.sendResultMessage = "";
-
-            fellowResidents.sendMessage( vm.recipientInfo.userId, vm.messageBody ).then( function ( httpResponse )
-            {
-                vm.isSending = false;
-                vm.sendResultIsError = false;
-                vm.messageBody = "";
-                vm.sendResultMessage = "Message sent successfully!";
-
-            }, function( httpResponse )
-            {
-                vm.shouldShowButtons = true;
-                vm.isSending = false;
-                vm.sendResultIsError = true;
-
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                vm.sendResultMessage = "Failed to send: " + errorMessage;
-            } );
-        };
-    }
-
-    return {
-        scope: {
-            recipientInfo: "="
-        },
-        restrict: 'E',
-        replace: 'true',
-        controllerAs: 'vm',                      
-        templateUrl: '/ngApp/services/SendMessageTemplate.html',
-        controller: SendMessageController,
-        bindToController: true // Needed to hook up the isolate scope to our controller
     };
 }] );
 // Allow enter key event
@@ -9465,10 +9705,11 @@ var Ally;
         /**
          * Send an e-mail message to another user
          */
-        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody) {
+        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject) {
             var postData = {
                 recipientUserId: recipientUserId,
-                messageBody: messageBody
+                messageBody: messageBody,
+                messageSubject: messageSubject
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         };
@@ -10021,6 +10262,76 @@ var Ally;
     }());
     Ally.ExceptionResult = ExceptionResult;
 })(Ally || (Ally = {}));
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the committee home page
+     */
+    var SendMessageController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function SendMessageController($rootScope, fellowResidents, siteInfo) {
+            this.$rootScope = $rootScope;
+            this.fellowResidents = fellowResidents;
+            this.shouldShowSendModal = false;
+            this.shouldShowButtons = false;
+            this.isSending = false;
+            this.messageBody = "";
+            this.messageSubject = "";
+            this.sendResultIsError = false;
+            this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        SendMessageController.prototype.$onInit = function () {
+        };
+        // Display the send modal
+        SendMessageController.prototype.showSendModal = function () {
+            this.shouldShowSendModal = true;
+            this.sendResultMessage = "";
+            this.shouldShowButtons = true;
+            // Focus on the message box once displayed
+            setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 50);
+        };
+        // Hide the send modal
+        SendMessageController.prototype.hideModal = function () {
+            this.shouldShowSendModal = false;
+            this.messageBody = "";
+        };
+        // Send the user's message
+        SendMessageController.prototype.sendMessage = function () {
+            var _this = this;
+            this.shouldShowButtons = false;
+            this.isSending = true;
+            this.sendResultMessage = "";
+            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject).then(function (response) {
+                _this.isSending = false;
+                _this.sendResultIsError = false;
+                _this.messageBody = "";
+                _this.sendResultMessage = "Message sent successfully!";
+            }, function (response) {
+                _this.shouldShowButtons = true;
+                _this.isSending = false;
+                _this.sendResultIsError = true;
+                _this.sendResultMessage = "Failed to send: " + response.data.exceptionMessage;
+            });
+        };
+        ;
+        SendMessageController.$inject = ["$rootScope", "fellowResidents", "SiteInfo"];
+        return SendMessageController;
+    }());
+    Ally.SendMessageController = SendMessageController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("sendMessage", {
+    bindings: {
+        recipientInfo: "="
+    },
+    templateUrl: "/ngApp/services/send-message.html",
+    controller: Ally.SendMessageController
+});
 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||

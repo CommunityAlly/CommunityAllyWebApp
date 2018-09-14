@@ -240,11 +240,12 @@
         /**
          * Send an e-mail message to another user
          */
-        sendMessage( recipientUserId: string, messageBody: string )
+        sendMessage( recipientUserId: string, messageBody: string, messageSubject: string )
         {
             var postData = {
                 recipientUserId: recipientUserId,
-                messageBody: messageBody
+                messageBody: messageBody,
+                messageSubject: messageSubject
             };
 
             return this.$http.post( "/api/BuildingResidents/SendMessage", postData );

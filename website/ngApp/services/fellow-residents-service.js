@@ -161,10 +161,11 @@ var Ally;
         /**
          * Send an e-mail message to another user
          */
-        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody) {
+        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject) {
             var postData = {
                 recipientUserId: recipientUserId,
-                messageBody: messageBody
+                messageBody: messageBody,
+                messageSubject: messageSubject
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         };
