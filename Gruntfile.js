@@ -179,12 +179,12 @@ grunt.initConfig({
             tasks: ['ngtemplates', 'uglify:templates']
         },
 
-        allyAppBundle: {
-            files: ['Website/ngApp/**/*.js',
-                    '!Website/ngApp/ally-app-bundle.js',
-                    '!Website/ngApp/ally-app-bundle.min.js'],
-            tasks: ['ally-app-bundle', 'uglify:allyAppBundleMin']
-        },
+        // allyAppBundle: {
+        //     files: ['Website/ngApp/**/*.js',
+        //             '!Website/ngApp/ally-app-bundle.js',
+        //             '!Website/ngApp/ally-app-bundle.min.js'],
+        //     tasks: ['ally-app-bundle', 'uglify:allyAppBundleMin']
+        // },
 
         css: {
             files: ['Website/third-party-css/**/*.css',
