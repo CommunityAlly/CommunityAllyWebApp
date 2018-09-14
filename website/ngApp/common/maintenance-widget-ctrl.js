@@ -12,11 +12,28 @@ var Ally;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.isLoading = false;
+            this.upcomingWork = [];
+            this.recentProjects = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         MaintenanceWidgetController.prototype.$onInit = function () {
+            this.loadProjects();
+        };
+        /**
+        * Retrieve the maintenance projects from the server
+        */
+        MaintenanceWidgetController.prototype.loadProjects = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Maintenance/Projects").then(function (response) {
+                _this.isLoading = false;
+                _this.recentProjects = _.take(response.data, 3);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve projects: " + response.data.exceptionMessage);
+            });
         };
         MaintenanceWidgetController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return MaintenanceWidgetController;

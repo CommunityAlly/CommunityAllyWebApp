@@ -13,6 +13,9 @@ declare class HtmlUtil
     static endsWith( testString: string, testSuffix: string ): boolean;
     static isLocalStorageAllowed(): boolean;
     static isNumericString( testString: string ): boolean;
+    /**
+     * Test if an object is a string, if it is not empty, and if it's not "null"
+     */
     static isValidString( str: string ): boolean;
     static uiGridFixScroll(): void;
 }

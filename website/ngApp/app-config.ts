@@ -113,7 +113,8 @@ var CondoAllyAppConfig: Ally.AppConfigInfo =
     homeName: "Unit",
     menu: [
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" } ),
-        new Ally.RoutePath_v3( { path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" } ),
+        new Ally.RoutePath_v3( { path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" } ),
+        new Ally.RoutePath_v3( { path: "Info/:viewName", templateHtml: "<association-info></association-info>" } ),
         new Ally.RoutePath_v3( { path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" } ),
         new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
         new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" } ),
@@ -218,9 +219,12 @@ var HomeAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
 
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<home-group-home></home-group-home>", menuTitle: "Home" } ),
-        new Ally.RoutePath_v3( { path: "BuildingInfo", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" } ),
+        new Ally.RoutePath_v3( { path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" } ),
+        new Ally.RoutePath_v3( { path: "Info/:viewName", templateHtml: "<association-info></association-info>" } ),
         new Ally.RoutePath_v3( { path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" } ),
-        new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
+        new Ally.RoutePath_v3( { path: "Users", templateHtml: "<home-users></home-users>", menuTitle: "Users", role: Role_Manager } ),
+
+        //new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
 
         new Ally.RoutePath_v3( { path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "View Activity Log", role: Role_Admin } ),
     ]

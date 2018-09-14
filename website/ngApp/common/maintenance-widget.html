@@ -1,10 +1,26 @@
-﻿<div class="send_email portlet-box white margin-vertical" id="send-email-panel">
+﻿<div class="generic portlet-box white margin-vertical" id="send-email-panel">
     <div class="portlet-header">
         <h3 class="title">Maintenance</h3>
     </div>
 
     <div class="portlet-body">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
-        Nasdkjf asfdlkja sdfklj
+        <h5>Upcoming Work</h5>
+        <div data-ng-repeat="proj in $ctrl.upcomingWork">
+
+        </div>
+        <span data-ng-if="!$ctrl.upcomingWork || $ctrl.upcomingWork.length === 0" class="note-text">There is no scheduled upcoming work.</span>
+        
+        <h5 style="margin-top: 20px;">Recent Entries</h5>
+        <div data-ng-repeat="project in $ctrl.recentProjects">
+            <a href="#!/Info/Maintenance" style="font-weight: bold;">{{ project.title }}</a><br />
+            <div class="note-text" data-ng-if="project.startDate">{{ project.startDate | date:'shortDate' }}<span data-ng-if="project.endDate && project.endDate.getTime() !== project.startDate.getTime()">&nbsp;- {{ project.endDate | date:'shortDate' }}</span></div>
+            <br />
+        </div>
+        <span data-ng-if="!$ctrl.recentProjects || $ctrl.recentProjects.length === 0" class="note-text">There are no recent entries to show.</span>
+
+        <div style="text-align: right;">
+            <a href="#!/Info/Maintenance" class="note-text">View your home maintenance log</a>
+        </div>
     </div>
 </div>

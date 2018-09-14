@@ -1,0 +1,26 @@
+﻿<div data-ng-if="$ctrl.shouldShowWidget" class="generic portlet-box white margin-vertical" id="home-value-panel">
+    <div class="portlet-header">
+        <h3 class="title">Home Value Zestimate<sup>&reg;</sup></h3>
+    </div>
+
+    <div class="portlet-body">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+        <img data-ng-src="{{ $ctrl.valueInfo.chartImageUri }}" style="width: 90%; margin-left: 5%;" /><br />
+        <br />
+        <div data-ng-if="$ctrl.valueInfo.currentZestimate">
+            Zillow estimates your home's value at:<br />
+            <div style="text-align: center;">
+                <h1>{{ $ctrl.valueInfo.currentZestimate | currency:undefined:0 }}</h1>
+            </div>
+        </div>
+
+        <a data-ng-if="$ctrl.valueInfo.zillowDetailsUrl" target="_blank" data-ng-href="{{ $ctrl.valueInfo.zillowDetailsUrl }}">View your home on Zillow</a><br />
+        <br />
+        <div style="text-align: right;">
+            Data retrieved from<br />
+                               <a href="https://www.zillow.com/" target="_blank"><img src="/assets/images/zillow_256.png" style="width: 20%;" /></a>
+        </div>
+
+    </div>
+</div>

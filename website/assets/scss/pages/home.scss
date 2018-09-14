@@ -1,5 +1,6 @@
 .page-home {
     min-height: 70px;
+
     .alert-box {
         background: #fff url(/assets/images/alert-icon.png) no-repeat 10px 10px;
         border: 3px solid #f7941e;
@@ -9,6 +10,7 @@
         padding: 19px 6% 16px 72px;
         color: #c09853;
     }
+
     .news_polls article p {
         color: #333;
     }
@@ -18,9 +20,16 @@
             background: url(/assets/images/icons.png) no-repeat right -221px;
         }
     }
+
     .send_email {
         .portlet-header {
             background: url(/assets/images/icons.png) no-repeat 106% -76px;
+        }
+    }
+
+    .generic {
+        .portlet-header {
+            background: url(/assets/images/icons.png) no-repeat 106% -147px;
         }
     }
 

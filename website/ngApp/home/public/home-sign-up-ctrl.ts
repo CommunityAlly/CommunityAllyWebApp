@@ -15,14 +15,46 @@ namespace Ally
         firstName: string;
         lastName: string;
         email: string;
-        ownType: string;
     }
+
+
+    export class HomeInfo
+    {
+        homeType: string;
+        zillowPropertyId: string;
+        zillowHomeDetailsUri: string;
+        fipsCounty: string;
+        yearBuilt: number;
+        homeSquareFeet: number;
+        numBedrooms: number;
+        numFullBathrooms: number;
+        numHalfBathrooms: number;
+        hasBasement: boolean;
+        numStories: number;
+        unitCount: number;
+        hoaFee: number;
+        lotSquareFeet: number;
+        roofType: string;
+        exteriorSidingType: string;
+        hasInUnitLaundry: boolean;
+        heatType: string;
+        coolingType: string;
+        lastPurchaseDate: Date;
+        lastPurchasePrice: number;
+        monthlyRent: number;
+        lastRemodelYear: number;
+        hasFireplace: boolean;
+        parcelNumber: string;
+        sewerType: string;
+        waterType: string;
+    }
+
 
     class SignUpInfo
     {
-        streetAddress: string = "";
         signerUpInfo = new SignerUpInfo();
-        homeInfo: any = {};
+        streetAddress: string = "";
+        homeInfo: HomeInfo = new HomeInfo();
     }
 
     const LotSizeType_Acres = "Acres";
@@ -49,6 +81,7 @@ namespace Ally
         isLoading = false;
         hideWizard = false;
         resultMessage: string;
+        hasAlreadyCheckedForHomeInfo: boolean = false;
 
 
         /**
@@ -66,9 +99,68 @@ namespace Ally
          */
         $onInit()
         {
+            // Listen for step changes
+            this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
+            {
+                // If we're now on the second step
+                if( args.index === 1 )
+                    this.retrieveHomeInfoForAddress();
+            } );
+            
             // The controller is ready, but let's wait a bit for the page to be ready
             var innerThis = this;
             setTimeout(() => { this.initMap(); }, 300 );            
+        }
+
+
+        /**
+         * Retrieve information about the address provided from Zillow
+         */
+        retrieveHomeInfoForAddress()
+        {
+            if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.streetAddress ) || this.hasAlreadyCheckedForHomeInfo )
+                return;
+
+            this.hasAlreadyCheckedForHomeInfo = true;
+
+            var getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent( this.signUpInfo.streetAddress );
+
+            this.$http.get( getUri, { cache: true } ).then( (response:ng.IHttpPromiseCallbackArg<HomeInfo>) =>
+            {
+                if( !response.data )
+                    return;
+
+                this.signUpInfo.homeInfo = response.data;
+                this.didLoadHomeInfo = true;
+
+                this.processLotSizeHint( this.signUpInfo.homeInfo.lotSquareFeet );
+            } );
+        }
+
+
+        /**
+         * Convert a lot size hint from Zillow into a UI friendly value
+         * @param lotSquareFeet
+         */
+        processLotSizeHint( lotSquareFeet: number )
+        {
+            if( !lotSquareFeet )
+                return;
+
+            // Choose a square feet that makes sense
+            if( lotSquareFeet > SquareFeetPerAcre )
+            {
+                this.lotSizeUnit = LotSizeType_Acres;
+                this.lotSquareUnits = lotSquareFeet / SquareFeetPerAcre;
+
+                // Round to nearest .25
+                this.lotSquareUnits = parseFloat( ( Math.round( this.lotSquareUnits * 4 ) / 4 ).toFixed( 2 ) );
+            }
+            else
+            {
+                this.lotSizeUnit = LotSizeType_SquareFeet;
+                this.lotSquareUnits = lotSquareFeet;
+            }
         }
 
 
@@ -114,7 +206,7 @@ namespace Ally
                 innerThis.signUpInfo.streetAddress = readableAddress;
                 innerThis.selectedSplitAddress = Ally.MapUtil.parseAddressComponents( place.address_components );
 
-                innerThis.prepopulateHomeInfo();
+                //innerThis.prepopulateHomeInfo();
 
                 if( place.geometry )
                     innerThis.centerMap( place.geometry as google.maps.GeocoderGeometry );
@@ -125,14 +217,23 @@ namespace Ally
 
 
         /**
+         * Occurs when the user hits enter in the address box
+         */
+        goNextStep()
+        {
+            this.WizardHandler.wizard().next();
+        }
+
+
+        /**
          * Called when the user completes the wizard
          */
         onFinishedWizard()
         {
-            if( this.lotSizeUnit === LotSizeType_Acres )
-                this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits * SquareFeetPerAcre;
-            else
-                this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits;
+            //if( this.lotSizeUnit === LotSizeType_Acres )
+            //    this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits * SquareFeetPerAcre;
+            //else
+            //    this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits;
 
             this.isLoading = true;
 
@@ -248,23 +349,7 @@ namespace Ally
                     innerThis.didLoadHomeInfo = true;
                     innerThis.signUpInfo.homeInfo = homeInfo;
 
-                    if( homeInfo.lotSquareFeet )
-                    {
-                        // Choose a square feet that makes sense
-                        if( homeInfo.lotSquareFeet > SquareFeetPerAcre )
-                        {
-                            innerThis.lotSizeUnit = LotSizeType_Acres;
-                            innerThis.lotSquareUnits = homeInfo.lotSquareFeet / SquareFeetPerAcre;
-
-                            // Round to nearest .25
-                            innerThis.lotSquareUnits = parseFloat( ( Math.round( innerThis.lotSquareUnits * 4 ) / 4 ).toFixed( 2 ) );
-                        }
-                        else
-                        {
-                            innerThis.lotSizeUnit = LotSizeType_SquareFeet;
-                            innerThis.lotSquareUnits = homeInfo.lotSquareFeet;
-                        }
-                    }
+                    innerThis.processLotSizeHint( homeInfo.lotSquareFeet );
                 }
             }, () =>
             {
@@ -276,7 +361,7 @@ namespace Ally
 
 
 CA.angularApp.component( 'homeSignUp', {
-    templateUrl: "/ngApp/home/public/SignUp.html",
+    templateUrl: "/ngApp/home/public/home-sign-up.html",
     controller: Ally.HomeSignUpController
 });
 
