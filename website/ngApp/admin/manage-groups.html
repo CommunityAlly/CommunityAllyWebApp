@@ -174,6 +174,26 @@
         <input type="text" data-ng-model="$ctrl.testEmailRecipient"><input type="button" value="Send Test E-mail" data-ng-click="$ctrl.onSendTestEmail()"><label><input type="checkbox" data-ng-model="$ctrl.sendTestFromInmail" />Send from inmail.</label><br />
         <input type="text" data-ng-model="$ctrl.testTaylorEmailRecipient"><input type="button" value="Send Test E-mail from Taylor at CA" data-ng-click="$ctrl.onSendTaylorTestEmail()"><br />
         <input type="text" data-ng-model="$ctrl.testPostmarkEmail"><input type="button" value="Send Test Postmark E-mail" data-ng-click="$ctrl.onSendTestPostmarkEmail()"><br />
+        <fieldset>
+            <legend>No Reply Email</legend>
+            <table style="width: 75%;">
+                <tbody>
+                    <tr>
+                        <td class="AlignRightBold">To:</td>
+                        <td><input type="text" style="width: 100%;" data-ng-model="$ctrl.noReplyEmailInfo.to" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRightBold">Subject:</td>
+                        <td><input type="text" style="width: 100%;" data-ng-model="$ctrl.noReplyEmailInfo.subject" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRightBold">Body:</td>
+                        <td><textarea data-ng-model="$ctrl.noReplyEmailInfo.body" style="width: 100%;" rows="5"></textarea></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" data-ng-click="$ctrl.onSendNoReplyEmail()">Send No Reply E-mail</button>
+        </fieldset>
         <input type="button" value="Test Exception" data-ng-click="$ctrl.onTestException()"><br />
         <input type="button" value="Clear ELMAH Logs" data-ng-click="$ctrl.onClearElmahLogs()"><br />
         <input type="button" value="Clear App Group Cache" data-ng-click="$ctrl.onClearAppGroupCache()"><br />

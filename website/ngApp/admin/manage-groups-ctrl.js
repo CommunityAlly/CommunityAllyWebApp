@@ -24,6 +24,11 @@ var Ally;
             this.newAssociation = new GroupEntry();
             this.changeShortNameData = { appName: "Condo" };
             this.sendTestFromInmail = false;
+            this.noReplyEmailInfo = {
+                to: "",
+                subject: "",
+                body: ""
+            };
             /**
              * Retrieve the active group list
              */
@@ -167,6 +172,17 @@ var Ally;
             }).error(function () {
                 innerThis.isLoading = false;
                 alert("Failed to send email");
+            });
+        };
+        ManageGroupsController.prototype.onSendNoReplyEmail = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/AdminHelper/SendNoReplyPostmarkEmail", this.noReplyEmailInfo).then(function () {
+                _this.isLoading = false;
+                alert("Successfully sent email");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to send email: " + response.data.exceptionMessage);
             });
         };
         ManageGroupsController.prototype.makeHelperRequest = function (apiPath, postData) {

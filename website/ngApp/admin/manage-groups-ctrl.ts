@@ -38,6 +38,11 @@
         inactiveShortNames: string;
         logInAsEmail: string;
         sendTestFromInmail: boolean = false;
+        noReplyEmailInfo = {
+            to: "",
+            subject: "",
+            body: ""
+        };
 
 
         /**
@@ -260,6 +265,24 @@
                 alert( "Failed to send email" );
             } );
         }
+
+
+        onSendNoReplyEmail()
+        {
+            this.isLoading = true;
+            
+            this.$http.post( "/api/AdminHelper/SendNoReplyPostmarkEmail", this.noReplyEmailInfo ).then( () =>
+            {
+                this.isLoading = false;
+                alert( "Successfully sent email" );
+
+            }, (response: ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to send email: " + response.data.exceptionMessage );
+            } );
+        }
+
 
         makeHelperRequest( apiPath: string, postData: any = null )
         {
