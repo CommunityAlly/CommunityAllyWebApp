@@ -7,7 +7,7 @@ InputUtils = require( "../input-utils.js" );
 describe('The association sign-up page', function()
 {
 	var LoadingOverlaySelector = by.xpath("//div[contains(@class, 'loading-overlay')][@data-ng-show='isLoading']");
-	var SettingsLoadingOverlaySelector = by.xpath("//div[contains(@class, 'loading-overlay')][@data-ng-show='vm.isLoading']");
+	var SettingsLoadingOverlaySelector = by.xpath("//div[contains(@class, 'loading-overlay')][@data-ng-show='$ctrl.isLoading']");
 	
 	var User_FirstName = "PrezFirst";
 	var User_LastName = "PrezLast";
@@ -63,7 +63,7 @@ describe('The association sign-up page', function()
 
 	it("set the number of units in the association", function()
 	{
-		InputUtils.waitForElementToBePresent( by.model("vm.numUnits") );
+		InputUtils.waitForElementToBePresent( by.model("$ctrl.numUnits") );
 
 		// Sleeps are needed to allow the control JS to run
 		// element(by.id("NumUnitsTextBox")).click();
@@ -72,7 +72,7 @@ describe('The association sign-up page', function()
 		// browser.sleep( 150 );
 		// element(by.id("NumUnitsTextBox")).sendKeys("3");
 
-		element(by.model("vm.numUnits")).clear().sendKeys("4");
+		element(by.model("$ctrl.numUnits")).clear().sendKeys("4");
 		InputUtils.waitForElementToBePresent( by.id("unit-name-textbox-3") );
 
 		element(by.id("unit-name-type-EW")).click();
@@ -89,9 +89,9 @@ describe('The association sign-up page', function()
 	
 	it("can enter the user information", function()
 	{
-		InputUtils.clearAndSendKeys( by.model("vm.signUpInfo.signerUpInfo.firstName"), User_FirstName );
-		InputUtils.clearAndSendKeys( by.model("vm.signUpInfo.signerUpInfo.lastName"), User_LastName );
-		InputUtils.clearAndSendKeys( by.model("vm.signUpInfo.signerUpInfo.email"), User_Email );
+		InputUtils.clearAndSendKeys( by.model("$ctrl.signUpInfo.signerUpInfo.firstName"), User_FirstName );
+		InputUtils.clearAndSendKeys( by.model("$ctrl.signUpInfo.signerUpInfo.lastName"), User_LastName );
+		InputUtils.clearAndSendKeys( by.model("$ctrl.signUpInfo.signerUpInfo.email"), User_Email );
 		element(by.css("#signer-up-unit-select option[value='string:1']")).click();
 		element(by.css("#signer-up-board-select option[value='8']")).click();
 		

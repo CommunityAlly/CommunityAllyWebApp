@@ -5,15 +5,15 @@ exports.config = {
     specs: [
     	//"tests/*.js"
         //'read-only-tests.js'
-        "tests/manage-residents.js"
-        ,"tests/assessment-history.js"
+        //"tests/manage-residents.js"
+        //,"tests/assessment-history.js"
         //"tests/documents.js"
         //"tests/polls.js"
-        ,"tests/login.js"
+        //,"tests/login.js"
         // "tests/news.js"
          //"tests/logbook.js"
         // "tests/association-info.js"
-        // "tests/sign-up.js"
+        "tests/sign-up.js"
     ],
 
     exclude: [
@@ -25,7 +25,7 @@ exports.config = {
     ],
     
     allScriptsTimeout: 15000,
-    baseUrl: "https://qa.mycondoally.com/",
+    baseUrl: "https://qa.condoally.com/",
     //baseUrl: "https://localtest.mycondoally.com/",
     
     jasmineNodeOpts:
