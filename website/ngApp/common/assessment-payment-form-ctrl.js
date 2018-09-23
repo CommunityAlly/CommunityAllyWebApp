@@ -85,6 +85,9 @@ var Ally;
         AssessmentPaymentFormController.prototype.makePayment = function (fundingTypeName) {
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
+            // Remove leading dollar signs
+            if (HtmlUtil.isValidString(this.paymentInfo.amount) && this.paymentInfo.amount[0] === '$')
+                this.paymentInfo.amount = this.paymentInfo.amount.substr(1);
             analytics.track("makePayment", {
                 fundingType: fundingTypeName
             });
