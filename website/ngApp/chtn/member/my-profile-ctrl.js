@@ -55,7 +55,7 @@ var Ally;
             if (this.siteInfo.privateSiteInfo)
                 this.canHideContactInfo = this.siteInfo.privateSiteInfo.canHideContactInfo;
             this.retrieveProfileData();
-            var hookUpFileUpload = function () {
+            var hookUpPhotoFileUpload = function () {
                 var uploader = $('#JQFileUploader');
                 uploader.fileupload({
                     beforeSend: function (xhr, data) {
@@ -80,7 +80,7 @@ var Ally;
                     }
                 });
             };
-            setTimeout(hookUpFileUpload, 500);
+            setTimeout(hookUpPhotoFileUpload, 500);
         };
         /**
          * Save the user's profile photo setting

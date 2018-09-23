@@ -70,7 +70,7 @@ namespace Ally
             this.retrieveProfileData();
 
 
-            let hookUpFileUpload = () =>
+            let hookUpPhotoFileUpload = () =>
             {
                 var uploader: any = $( '#JQFileUploader' );
                 uploader.fileupload( {
@@ -105,7 +105,7 @@ namespace Ally
                 } );
             };
 
-            setTimeout( hookUpFileUpload, 500 );
+            setTimeout( hookUpPhotoFileUpload, 500 );
         }
 
 
