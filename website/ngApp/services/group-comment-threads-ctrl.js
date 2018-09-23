@@ -7,7 +7,7 @@ var Ally;
     }());
     Ally.CommentThread = CommentThread;
     /**
-     * The controller for the committee home page
+     * The controller for the discussion threads directive
      */
     var GroupCommentThreadsController = /** @class */ (function () {
         /**

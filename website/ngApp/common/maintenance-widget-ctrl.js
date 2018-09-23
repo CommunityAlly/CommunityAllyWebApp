@@ -27,7 +27,7 @@ var Ally;
         MaintenanceWidgetController.prototype.loadProjects = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Maintenance/Projects").then(function (response) {
+            return this.$http.get("/api/Maintenance/Projects").then(function (response) {
                 _this.isLoading = false;
                 _this.recentProjects = _.take(response.data, 3);
             }, function (response) {

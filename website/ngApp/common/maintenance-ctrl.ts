@@ -1,6 +1,6 @@
 ﻿namespace Ally
 {
-    class MaintenanceProject
+    export class MaintenanceProject
     {
         maintenanceProjectId: number;
         equipmentId: number;
@@ -17,6 +17,7 @@
 
         vendorCompanyName: string;
         equipmentName: string;
+        creatorFullName: string;
     }
 
 
@@ -59,20 +60,25 @@
 
     export class MaintenanceController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
         isLoading: boolean;
         equipmentOptions: Equipment[];
         vendorOptions: VendorListItem[];
         projects: MaintenanceProject[];
+        maintenanceTodos: TodoList;
         isSiteManager: boolean = false;
-        shouldShowEditProjectModal: boolean = false;
         shouldShowEditEquipmentModal: boolean = false;
         shouldShowManageEquipmentModal: boolean = false;
         editingProject: MaintenanceProject;
         editingEquipment: Equipment;
+        editingTodo: TodoItem;
         equipmentGridOptions: uiGrid.IGridOptionsOf<Equipment>;
         equipmentTypeOptions: string[];
         equipmentLocationOptions: string[];
+        maintenanceTodoListId: number;
+        maintenanceEntries: MaintenanceEntry[] = [];
+        assigneeOptions: FellowChtnResident[] = [];
+        selectedAssignee: FellowChtnResident[];
 
         static EquipmentId_AddNew: number = -5;
 
@@ -99,10 +105,11 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private maintenanceService: MaintenanceService, private fellowResidents: FellowResidentsService )
         {
             this.equipmentTypeOptions = _.map( MaintenanceController.AutocompleteEquipmentTypeOptions, o => o.text );
             this.equipmentLocationOptions = _.map( MaintenanceController.AutocompleteLocationOptions, o => o.text );
+            this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
         }
 
 
@@ -142,7 +149,38 @@
 
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
 
-            this.loadEquipment().then( () => this.loadVendors() ).then( () => this.loadProjects() );
+            this.fellowResidents.getResidents().then( residents => this.assigneeOptions = _.clone( residents ) ); // Cloned so we can edit locally
+
+            this.loadEquipment()
+                .then( () => this.loadVendors() )
+                .then( () => this.loadProjects() )
+                .then( () => this.loadMaintenanceTodos() )
+                .then( () => this.rebuildMaintenanceEntries() );
+        }
+
+
+        /**
+        * Rebuild the arrow of projects and to-do's
+        */
+        rebuildMaintenanceEntries()
+        {
+            this.maintenanceEntries = [];
+
+            _.forEach( this.projects, p =>
+            {
+                var newEntry = new MaintenanceEntry();
+                newEntry.project = p;
+                this.maintenanceEntries.push( newEntry );
+            } );
+
+            _.forEach( this.maintenanceTodos.todoItems, t =>
+            {
+                var newEntry = new MaintenanceEntry();
+                newEntry.todo = t;
+                this.maintenanceEntries.push( newEntry );
+            } );
+
+            this.maintenanceEntries = _.sortBy( this.maintenanceEntries, e => e.getCreatedDate() ).reverse();
         }
 
 
@@ -225,15 +263,30 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/Maintenance/Projects" ).then( ( response: ng.IHttpPromiseCallbackArg<MaintenanceProject[]> ) =>
+            return this.maintenanceService.loadProjects().then( ( projects: MaintenanceProject[] ) =>
             {
                 this.isLoading = false;
-                this.projects = response.data;
+                this.projects = projects;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            }, ( error: ExceptionResult ) =>
             {
                 this.isLoading = false;
-                alert( "Failed to retrieve projects: " + response.data.exceptionMessage );
+                alert( "Failed to retrieve projects: " + error.exceptionMessage );
+            } );
+        }
+
+
+        /**
+        * Retrieve the maintenance to-do's from the server
+        */
+        loadMaintenanceTodos()
+        {
+            this.isLoading = true;
+
+            return this.$http.get( "/api/Todo/MaintenanceList" ).then( ( response: ng.IHttpPromiseCallbackArg<TodoList> ) =>
+            {
+                this.isLoading = false;
+                this.maintenanceTodos = response.data;
             } );
         }
 
@@ -253,7 +306,6 @@
          */
         openAddNewProject()
         {
-            this.shouldShowEditProjectModal = true;
             this.editingProject = new MaintenanceProject();
             setTimeout( () => $( "#project-title-text-box" ).focus(), 100 );
         }
@@ -286,8 +338,63 @@
             httpFunc( "/api/Maintenance/Project", this.editingProject ).then( () =>
             {
                 this.isLoading = false;
-                this.shouldShowEditProjectModal = false;
-                this.loadProjects();
+                this.editingProject = null;
+                this.loadProjects().then( () => this.rebuildMaintenanceEntries() );
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Occurs when the user changes the new entry type
+         */
+        onEntryTypeChange( type: string )
+        {
+            if( type === "todo" )
+            {
+                this.editingTodo = new TodoItem();
+                this.editingTodo.owningTodoListId = this.maintenanceTodoListId;
+                this.selectedAssignee = [];
+                this.editingProject = null;
+
+                setTimeout( () => $( "#edit-todo-name-text-box" ).focus(), 50 );
+            }
+            else
+            {
+                this.editingTodo = null;
+                this.editingProject = new MaintenanceProject();
+
+                setTimeout( () => $( "#project-title-text-box" ).focus(), 50 );
+            }
+        }
+
+
+        /**
+         * Save a todo
+         */
+        saveTodo()
+        {
+            this.isLoading = true;
+
+            if( this.selectedAssignee && this.selectedAssignee.length > 0 )
+                this.editingTodo.assignedToUserId = this.selectedAssignee[0].userId;
+
+            let httpFunc: any;
+            if( this.editingTodo.todoItemId )
+                httpFunc = this.$http.put;
+            else
+                httpFunc = this.$http.post;
+
+            httpFunc( "/api/Todo/Item", this.editingTodo ).then( () =>
+            {
+                this.isLoading = false;
+                this.editingTodo = null;
+                this.selectedAssignee = [];
+                this.loadMaintenanceTodos().then( () => this.rebuildMaintenanceEntries() );
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
@@ -371,11 +478,69 @@
 
 
         /**
+         * Occurs when the user clicks the button to edit a selected entry
+         */
+        onEditEntry( entry: MaintenanceEntry )
+        {
+            if( entry.project )
+                this.editProject( entry.project );
+            else
+            {
+                this.editingTodo = _.clone( entry.todo );
+
+                // Needed for the searchable drop-down
+                for( let i = 0; i < this.assigneeOptions.length; ++i )
+                    (<any>(this.assigneeOptions[i])).isSelectedAssignee = false;
+                //_.forEach( this.assigneeOptions, u => ( <any>u ).isSelectedAssignee = false );
+                var foundAssignee = _.find( this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId );
+                if( foundAssignee )
+                {
+                    // Set isSelectedAssignee on a cloned object so we don't change the base list
+                    ( <any>foundAssignee ).isSelectedAssignee = true;
+
+                    this.selectedAssignee = [foundAssignee];
+                }
+                else
+                    this.selectedAssignee = [];
+
+                setTimeout( () => $( "#edit-todo-name-text-box" ).focus(), 100 );
+            }
+        }
+
+
+        /**
+         * Occurs when the user clicks the button to edit a selected entry
+         */
+        onDeleteEntry( entry: MaintenanceEntry )
+        {
+            if( !confirm( "Are you sure you want to delete this entry? This action cannot be undone." ) )
+                return;
+
+            if( entry.project )
+                this.onDeleteProject( entry.project );
+            else
+            {
+                this.isLoading = true;
+
+                this.$http.delete( "/api/Todo/Item/" + entry.todo.todoItemId ).then( () =>
+                {
+                    this.isLoading = false;
+                    this.loadMaintenanceTodos().then( () => this.rebuildMaintenanceEntries() );
+
+                }, (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete to-do: " + response.data.exceptionMessage );
+                } );
+            }
+        }
+
+
+        /**
          * Open the project edit modal for the selected project
          */
         editProject( project: MaintenanceProject )
         {
-            this.shouldShowEditProjectModal = true;
             this.editingProject = _.clone( project );
             setTimeout( () => $( "#project-title-text-box" ).focus(), 100 );
         }
@@ -386,15 +551,12 @@
          */
         onDeleteProject( project: MaintenanceProject )
         {
-            if( !confirm( "Are you sure you want to delete this project? This action cannot be undone." ) )
-                return;
-
             this.isLoading = true;
 
             this.$http.delete( "/api/Maintenance/Project/" + project.maintenanceProjectId ).then( () =>
             {
                 this.isLoading = false;
-                this.loadProjects();
+                this.loadProjects().then( () => this.rebuildMaintenanceEntries() );
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {

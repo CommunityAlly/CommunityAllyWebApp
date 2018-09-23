@@ -13,7 +13,7 @@
     }
 
     /**
-     * The controller for the committee home page
+     * The controller for the discussion threads directive
      */
     export class GroupCommentThreadsController implements ng.IController
     {

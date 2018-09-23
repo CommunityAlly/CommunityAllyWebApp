@@ -571,6 +571,15 @@ header {
         header .settings a, header .settings .text-button {
           font-size: 12px; } }
 
+.can-edit-inline-no-pencil {
+  border-bottom-style: none !important;
+  cursor: pointer;
+  display: inline; }
+  .can-edit-inline-no-pencil :hover {
+    padding: 0px;
+    /*border: 1px dashed #000;*/
+    border-bottom: dashed 1px white !important; }
+
 .can-edit-inline {
   /*padding: 1px;*/
   border-bottom-style: none !important;

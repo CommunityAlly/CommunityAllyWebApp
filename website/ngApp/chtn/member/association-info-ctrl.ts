@@ -37,7 +37,9 @@
         {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
-            this.showMaintenance = AppConfig.appShortName === "home";
+            this.showMaintenance = AppConfig.appShortName === "home"
+                                    || ( AppConfig.appShortName === "condo" )
+                                    || ( AppConfig.appShortName === "hoa" );
             
             if( this.hideDocuments )
                 this.selectedView = "Info";

@@ -161,6 +161,18 @@ header
     }
 
 
+.can-edit-inline-no-pencil {
+    :hover {
+        padding: 0px;
+        /*border: 1px dashed #000;*/
+        border-bottom: dashed 1px white !important;
+    }
+
+    border-bottom-style: none !important;
+    cursor: pointer;
+    display: inline;
+}
+
 .can-edit-inline {
     &:before {
         content: "";

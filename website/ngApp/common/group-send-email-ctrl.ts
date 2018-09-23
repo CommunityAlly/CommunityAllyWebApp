@@ -211,7 +211,7 @@
 
 CA.angularApp.component( "groupSendEmail", {
     bindings: {
-        committee: "<?"  
+        committee: "<?"
     },
     templateUrl: "/ngApp/common/group-send-email.html",
     controller: Ally.GroupSendEmailController

@@ -36,16 +36,16 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/Maintenance/Projects" ).then( ( response: ng.IHttpPromiseCallbackArg<MaintenanceProject[]> ) =>
+            return this.$http.get( "/api/Maintenance/Projects" ).then( ( response: ng.IHttpPromiseCallbackArg<MaintenanceProject[]> ) =>
             {
                 this.isLoading = false;
                 this.recentProjects = _.take( response.data, 3 );
-
+                
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
-                    alert( "Failed to retrieve projects: " + response.data.exceptionMessage );
-                } );
+            {
+                this.isLoading = false;
+                alert( "Failed to retrieve projects: " + response.data.exceptionMessage );
+            } );
         }
     }
 }

@@ -68,6 +68,7 @@ namespace Ally
         rentersCanViewDocs: boolean;
         canHideContactInfo: boolean;
         //payPalClientId: string;
+        maintenanceTodoListId: number;
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;

@@ -135,6 +135,11 @@ var Ally;
             this.newAssociation = new GroupEntry();
             this.changeShortNameData = { appName: "Condo" };
             this.sendTestFromInmail = false;
+            this.noReplyEmailInfo = {
+                to: "",
+                subject: "",
+                body: ""
+            };
             /**
              * Retrieve the active group list
              */
@@ -278,6 +283,17 @@ var Ally;
             }).error(function () {
                 innerThis.isLoading = false;
                 alert("Failed to send email");
+            });
+        };
+        ManageGroupsController.prototype.onSendNoReplyEmail = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/AdminHelper/SendNoReplyPostmarkEmail", this.noReplyEmailInfo).then(function () {
+                _this.isLoading = false;
+                alert("Successfully sent email");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to send email: " + response.data.exceptionMessage);
             });
         };
         ManageGroupsController.prototype.makeHelperRequest = function (apiPath, postData) {
@@ -3361,7 +3377,9 @@ var Ally;
         AssociationInfoController.prototype.$onInit = function () {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
-            this.showMaintenance = AppConfig.appShortName === "home";
+            this.showMaintenance = AppConfig.appShortName === "home"
+                || (AppConfig.appShortName === "condo")
+                || (AppConfig.appShortName === "hoa");
             if (this.hideDocuments)
                 this.selectedView = "Info";
             else
@@ -4757,7 +4775,7 @@ var Ally;
             if (this.siteInfo.privateSiteInfo)
                 this.canHideContactInfo = this.siteInfo.privateSiteInfo.canHideContactInfo;
             this.retrieveProfileData();
-            var hookUpFileUpload = function () {
+            var hookUpPhotoFileUpload = function () {
                 var uploader = $('#JQFileUploader');
                 uploader.fileupload({
                     beforeSend: function (xhr, data) {
@@ -4782,7 +4800,7 @@ var Ally;
                     }
                 });
             };
-            setTimeout(hookUpFileUpload, 500);
+            setTimeout(hookUpPhotoFileUpload, 500);
         };
         /**
          * Save the user's profile photo setting
@@ -6424,6 +6442,9 @@ var Ally;
         AssessmentPaymentFormController.prototype.makePayment = function (fundingTypeName) {
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
+            // Remove leading dollar signs
+            if (HtmlUtil.isValidString(this.paymentInfo.amount) && this.paymentInfo.amount[0] === '$')
+                this.paymentInfo.amount = this.paymentInfo.amount.substr(1);
             analytics.track("makePayment", {
                 fundingType: fundingTypeName
             });
@@ -7406,16 +7427,20 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function MaintenanceController($http, $rootScope, siteInfo) {
+        function MaintenanceController($http, $rootScope, siteInfo, maintenanceService, fellowResidents) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
+            this.maintenanceService = maintenanceService;
+            this.fellowResidents = fellowResidents;
             this.isSiteManager = false;
-            this.shouldShowEditProjectModal = false;
             this.shouldShowEditEquipmentModal = false;
             this.shouldShowManageEquipmentModal = false;
+            this.maintenanceEntries = [];
+            this.assigneeOptions = [];
             this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, function (o) { return o.text; });
             this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, function (o) { return o.text; });
+            this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -7449,7 +7474,30 @@ var Ally;
                     }
                 };
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.loadEquipment().then(function () { return _this.loadVendors(); }).then(function () { return _this.loadProjects(); });
+            this.fellowResidents.getResidents().then(function (residents) { return _this.assigneeOptions = _.clone(residents); }); // Cloned so we can edit locally
+            this.loadEquipment()
+                .then(function () { return _this.loadVendors(); })
+                .then(function () { return _this.loadProjects(); })
+                .then(function () { return _this.loadMaintenanceTodos(); })
+                .then(function () { return _this.rebuildMaintenanceEntries(); });
+        };
+        /**
+        * Rebuild the arrow of projects and to-do's
+        */
+        MaintenanceController.prototype.rebuildMaintenanceEntries = function () {
+            var _this = this;
+            this.maintenanceEntries = [];
+            _.forEach(this.projects, function (p) {
+                var newEntry = new Ally.MaintenanceEntry();
+                newEntry.project = p;
+                _this.maintenanceEntries.push(newEntry);
+            });
+            _.forEach(this.maintenanceTodos.todoItems, function (t) {
+                var newEntry = new Ally.MaintenanceEntry();
+                newEntry.todo = t;
+                _this.maintenanceEntries.push(newEntry);
+            });
+            this.maintenanceEntries = _.sortBy(this.maintenanceEntries, function (e) { return e.getCreatedDate(); }).reverse();
         };
         /**
         * Retrieve the equipment available for this group
@@ -7508,12 +7556,23 @@ var Ally;
         MaintenanceController.prototype.loadProjects = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Maintenance/Projects").then(function (response) {
+            return this.maintenanceService.loadProjects().then(function (projects) {
                 _this.isLoading = false;
-                _this.projects = response.data;
-            }, function (response) {
+                _this.projects = projects;
+            }, function (error) {
                 _this.isLoading = false;
-                alert("Failed to retrieve projects: " + response.data.exceptionMessage);
+                alert("Failed to retrieve projects: " + error.exceptionMessage);
+            });
+        };
+        /**
+        * Retrieve the maintenance to-do's from the server
+        */
+        MaintenanceController.prototype.loadMaintenanceTodos = function () {
+            var _this = this;
+            this.isLoading = true;
+            return this.$http.get("/api/Todo/MaintenanceList").then(function (response) {
+                _this.isLoading = false;
+                _this.maintenanceTodos = response.data;
             });
         };
         /**
@@ -7527,7 +7586,6 @@ var Ally;
          * Display the modal to create a new project
          */
         MaintenanceController.prototype.openAddNewProject = function () {
-            this.shouldShowEditProjectModal = true;
             this.editingProject = new MaintenanceProject();
             setTimeout(function () { return $("#project-title-text-box").focus(); }, 100);
         };
@@ -7552,8 +7610,48 @@ var Ally;
                 httpFunc = this.$http.post;
             httpFunc("/api/Maintenance/Project", this.editingProject).then(function () {
                 _this.isLoading = false;
-                _this.shouldShowEditProjectModal = false;
-                _this.loadProjects();
+                _this.editingProject = null;
+                _this.loadProjects().then(function () { return _this.rebuildMaintenanceEntries(); });
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user changes the new entry type
+         */
+        MaintenanceController.prototype.onEntryTypeChange = function (type) {
+            if (type === "todo") {
+                this.editingTodo = new Ally.TodoItem();
+                this.editingTodo.owningTodoListId = this.maintenanceTodoListId;
+                this.selectedAssignee = [];
+                this.editingProject = null;
+                setTimeout(function () { return $("#edit-todo-name-text-box").focus(); }, 50);
+            }
+            else {
+                this.editingTodo = null;
+                this.editingProject = new MaintenanceProject();
+                setTimeout(function () { return $("#project-title-text-box").focus(); }, 50);
+            }
+        };
+        /**
+         * Save a todo
+         */
+        MaintenanceController.prototype.saveTodo = function () {
+            var _this = this;
+            this.isLoading = true;
+            if (this.selectedAssignee && this.selectedAssignee.length > 0)
+                this.editingTodo.assignedToUserId = this.selectedAssignee[0].userId;
+            var httpFunc;
+            if (this.editingTodo.todoItemId)
+                httpFunc = this.$http.put;
+            else
+                httpFunc = this.$http.post;
+            httpFunc("/api/Todo/Item", this.editingTodo).then(function () {
+                _this.isLoading = false;
+                _this.editingTodo = null;
+                _this.selectedAssignee = [];
+                _this.loadMaintenanceTodos().then(function () { return _this.rebuildMaintenanceEntries(); });
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
@@ -7612,10 +7710,53 @@ var Ally;
             setTimeout(function () { return $("#equipment-name-text-box").focus(); }, 100);
         };
         /**
+         * Occurs when the user clicks the button to edit a selected entry
+         */
+        MaintenanceController.prototype.onEditEntry = function (entry) {
+            var _this = this;
+            if (entry.project)
+                this.editProject(entry.project);
+            else {
+                this.editingTodo = _.clone(entry.todo);
+                // Needed for the searchable drop-down
+                for (var i = 0; i < this.assigneeOptions.length; ++i)
+                    (this.assigneeOptions[i]).isSelectedAssignee = false;
+                //_.forEach( this.assigneeOptions, u => ( <any>u ).isSelectedAssignee = false );
+                var foundAssignee = _.find(this.assigneeOptions, function (u) { return u.userId === _this.editingTodo.assignedToUserId; });
+                if (foundAssignee) {
+                    // Set isSelectedAssignee on a cloned object so we don't change the base list
+                    foundAssignee.isSelectedAssignee = true;
+                    this.selectedAssignee = [foundAssignee];
+                }
+                else
+                    this.selectedAssignee = [];
+                setTimeout(function () { return $("#edit-todo-name-text-box").focus(); }, 100);
+            }
+        };
+        /**
+         * Occurs when the user clicks the button to edit a selected entry
+         */
+        MaintenanceController.prototype.onDeleteEntry = function (entry) {
+            var _this = this;
+            if (!confirm("Are you sure you want to delete this entry? This action cannot be undone."))
+                return;
+            if (entry.project)
+                this.onDeleteProject(entry.project);
+            else {
+                this.isLoading = true;
+                this.$http.delete("/api/Todo/Item/" + entry.todo.todoItemId).then(function () {
+                    _this.isLoading = false;
+                    _this.loadMaintenanceTodos().then(function () { return _this.rebuildMaintenanceEntries(); });
+                }, function (response) {
+                    _this.isLoading = false;
+                    alert("Failed to delete to-do: " + response.data.exceptionMessage);
+                });
+            }
+        };
+        /**
          * Open the project edit modal for the selected project
          */
         MaintenanceController.prototype.editProject = function (project) {
-            this.shouldShowEditProjectModal = true;
             this.editingProject = _.clone(project);
             setTimeout(function () { return $("#project-title-text-box").focus(); }, 100);
         };
@@ -7624,18 +7765,16 @@ var Ally;
          */
         MaintenanceController.prototype.onDeleteProject = function (project) {
             var _this = this;
-            if (!confirm("Are you sure you want to delete this project? This action cannot be undone."))
-                return;
             this.isLoading = true;
             this.$http.delete("/api/Maintenance/Project/" + project.maintenanceProjectId).then(function () {
                 _this.isLoading = false;
-                _this.loadProjects();
+                _this.loadProjects().then(function () { return _this.rebuildMaintenanceEntries(); });
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
-        MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo"];
+        MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
         MaintenanceController.EquipmentId_AddNew = -5;
         MaintenanceController.AutocompleteLocationOptions = [{ text: "Attic" },
             { text: "Back Yard" },
@@ -7694,7 +7833,7 @@ var Ally;
         MaintenanceWidgetController.prototype.loadProjects = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Maintenance/Projects").then(function (response) {
+            return this.$http.get("/api/Maintenance/Projects").then(function (response) {
                 _this.isLoading = false;
                 _this.recentProjects = _.take(response.data, 3);
             }, function (response) {
@@ -9379,71 +9518,6 @@ CA.angularApp.filter( 'tel', function()
     };
 } );
 
-function TodoCtrl( $http )
-{
-    var ctrl = this;
-
-    ctrl.todoLists = [];
-
-    ctrl.loadTodos = function()
-    {
-        ctrl.isLoading = true;
-
-        $http.get( "/api/Todo" ).then( function( httpResponse )
-        {
-            ctrl.isLoading = false;
-            ctrl.todoLists = httpResponse.data;
-        } );
-    };
-
-    // Create a new to-do list
-    ctrl.onAddList = function()
-    {
-        ctrl.isLoading = true;
-
-        $http.post( "/api/Todo/newList?listName=" + encodeURIComponent( ctrl.newListName ) ).then( function()
-        {
-            ctrl.isLoading = false;
-            ctrl.loadTodos();
-        } );
-    };
-
-    // Create a new to-do item
-    ctrl.onAddItem = function( todoListId )
-    {
-        ctrl.isLoading = true;
-
-        $http.post( "/api/Todo/newItem/" + todoListId + "?description=" + encodeURIComponent( ctrl.newItemDescription ) ).then( function()
-        {
-            ctrl.isLoading = false;
-            ctrl.newItemDescription = "";
-            ctrl.loadTodos();
-        } );
-    };
-
-    // Mark an item complete
-    ctrl.onToggleComplete = function( todoListId, todoItemId )
-    {
-        ctrl.isLoading = true;
-
-        $http.put( "/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId ).then( function()
-        {
-            ctrl.isLoading = false;
-            ctrl.loadTodos();
-        } );
-    };
-
-    ctrl.loadTodos();
-}
-
-TodoCtrl.$inject = ["$http"];
-
-CA.angularApp.component( "todos", {
-
-    bindings: {},
-    templateUrl: "/ngApp/Services/TodoDirectiveTemplate.html",
-    controller: TodoCtrl
-} );
 /// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;
 (function (Ally) {
@@ -9930,7 +10004,7 @@ var Ally;
     }());
     Ally.CommentThread = CommentThread;
     /**
-     * The controller for the committee home page
+     * The controller for the discussion threads directive
      */
     var GroupCommentThreadsController = /** @class */ (function () {
         /**
@@ -10262,6 +10336,67 @@ var Ally;
     }());
     Ally.ExceptionResult = ExceptionResult;
 })(Ally || (Ally = {}));
+
+var Ally;
+(function (Ally) {
+    var MaintenanceEntry = /** @class */ (function () {
+        function MaintenanceEntry() {
+        }
+        MaintenanceEntry.prototype.getTitle = function () {
+            if (this.project)
+                return this.project.title;
+            else
+                return this.todo.description;
+        };
+        MaintenanceEntry.prototype.getTypeName = function () {
+            if (this.project)
+                return "Maintenance Record";
+            else
+                return "To-Do";
+        };
+        MaintenanceEntry.prototype.getAuthorName = function () {
+            if (this.project)
+                return this.project.creatorFullName;
+            else
+                return this.todo.addedByFullName;
+        };
+        MaintenanceEntry.prototype.getCreatedDate = function () {
+            if (this.project)
+                return this.project.createDateUtc;
+            else
+                return this.todo.addedDateUtc;
+        };
+        return MaintenanceEntry;
+    }());
+    Ally.MaintenanceEntry = MaintenanceEntry;
+    /**
+     * Provides methods to accessing maintenance information
+     */
+    var MaintenanceService = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function MaintenanceService($http, $q, $cacheFactory) {
+            this.$http = $http;
+            this.$q = $q;
+            this.$cacheFactory = $cacheFactory;
+        }
+        /**
+        * Retrieve the maintenance projects from the server
+        */
+        MaintenanceService.prototype.loadProjects = function () {
+            var _this = this;
+            return this.$http.get("/api/Maintenance/Projects").then(function (response) {
+                return response.data;
+            }, function (response) {
+                return _this.$q.reject(response.data);
+            });
+        };
+        return MaintenanceService;
+    }());
+    Ally.MaintenanceService = MaintenanceService;
+})(Ally || (Ally = {}));
+angular.module("CondoAlly").service("maintenance", ["$http", "$q", "$cacheFactory", Ally.MaintenanceService]);
 
 var Ally;
 (function (Ally) {
@@ -10597,6 +10732,143 @@ var Ally;
     Ally.SiteInfoProvider = SiteInfoProvider;
 })(Ally || (Ally = {}));
 angular.module('CondoAlly').provider("SiteInfo", Ally.SiteInfoProvider);
+
+var Ally;
+(function (Ally) {
+    var TodoItem = /** @class */ (function () {
+        function TodoItem() {
+        }
+        return TodoItem;
+    }());
+    Ally.TodoItem = TodoItem;
+    var TodoList = /** @class */ (function () {
+        function TodoList() {
+        }
+        return TodoList;
+    }());
+    Ally.TodoList = TodoList;
+    var TodoListCtrl = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function TodoListCtrl($http) {
+            this.$http = $http;
+            this.todoLists = [];
+            this.isLoading = false;
+            this.isFixedList = false;
+            this.shouldExpandTodoItemModal = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        TodoListCtrl.prototype.$onInit = function () {
+            this.isFixedList = !!this.fixedTodoListId;
+            if (this.isFixedList)
+                this.loadFixedTodoList();
+            else
+                this.loadAllTodoLists();
+        };
+        /**
+         * Retrieve a todo list
+         */
+        TodoListCtrl.prototype.loadFixedTodoList = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Todo/List/" + this.fixedTodoListId).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.todoLists = [httpResponse.data];
+            });
+        };
+        /**
+         * Retrieve the todo lists
+         */
+        TodoListCtrl.prototype.loadAllTodoLists = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/Todo";
+            if (this.committee)
+                getUri = "/api/Todo/ListsForCommittee/" + this.committee.committeeId;
+            this.$http.get(getUri).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.todoLists = httpResponse.data;
+            });
+        };
+        /**
+         * Create a new to-do list
+         */
+        TodoListCtrl.prototype.onAddList = function () {
+            var _this = this;
+            this.isLoading = true;
+            var postUri = "/api/Todo/newList?listName=" + encodeURIComponent(this.newListName);
+            if (this.committee)
+                postUri += "&committeeId=" + this.committee.committeeId;
+            this.$http.post(postUri, null).then(function () {
+                _this.isLoading = false;
+                _this.loadAllTodoLists();
+            });
+        };
+        /**
+         * Create a new to-do item
+         */
+        TodoListCtrl.prototype.onAddItem = function (todoListId) {
+            var _this = this;
+            this.isLoading = true;
+            var postUri = "/api/Todo/newItem/" + todoListId + "?description=" + encodeURIComponent(this.newItemDescription);
+            this.$http.post(postUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.newItemDescription = "";
+                _this.loadAllTodoLists();
+            });
+        };
+        /**
+         * Create a new to-do
+         */
+        TodoListCtrl.prototype.addNewItem = function (todoListId) {
+            this.editTodoItem = new TodoItem();
+            this.editTodoItem.owningTodoListId = todoListId;
+            if (this.committee)
+                this.editTodoItem.owningTodoListId = todoListId;
+            this.shouldExpandTodoItemModal = false;
+            window.setTimeout(function () { return $("#edit-todo-name-text-box").focus(); }, 100);
+        };
+        /**
+         * Save changes to a to-do item
+         */
+        TodoListCtrl.prototype.saveTodoItem = function () {
+            var _this = this;
+            this.isLoading = true;
+            var postUri = "/api/Todo/Item";
+            this.$http.post(postUri, this.editTodoItem).then(function (response) {
+                _this.isLoading = false;
+                _this.newItemDescription = "";
+                _this.editTodoItem = null;
+                _this.loadAllTodoLists();
+            });
+        };
+        /**
+         * Toggle an item's completed state
+         */
+        TodoListCtrl.prototype.onToggleComplete = function (todoListId, todoItemId) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null).then(function (response) {
+                _this.isLoading = false;
+                _this.loadAllTodoLists();
+            });
+        };
+        TodoListCtrl.$inject = ["$http"];
+        return TodoListCtrl;
+    }());
+    Ally.TodoListCtrl = TodoListCtrl;
+})(Ally || (Ally = {}));
+CA.angularApp.component("todoList", {
+    bindings: {
+        fixedTodoListId: "<?",
+        committee: "<?"
+    },
+    templateUrl: "/ngApp/services/todo-list.html",
+    controller: Ally.TodoListCtrl
+});
 
 function ManageMembersCtrl( $scope, $http, $rootScope, $interval, $http )
 {
