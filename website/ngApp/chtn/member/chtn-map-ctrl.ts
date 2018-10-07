@@ -23,7 +23,7 @@ namespace Ally
         static $inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
 
         editingTip: WelcomeTip = new WelcomeTip();
-        hoaHomes: any[] = [];
+        hoaHomes: Unit[] = [];
         tips: WelcomeTip[] = [];
         isLoading: boolean = false;
         addressAutocomplete: google.maps.places.Autocomplete;
@@ -94,19 +94,18 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/WelcomeTip" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            this.$http.get( "/api/WelcomeTip" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.tips = httpResponse.data;
+                this.tips = httpResponse.data;
 
                 MapCtrlMapMgr.ClearAllMarkers();
 
                 if( AppConfig.appShortName === "condo" )
                     MapCtrlMapMgr.AddMarker( MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null );
-
-                for( var locationIndex = 0; locationIndex < innerThis.tips.length; ++locationIndex )
+                
+                for( var locationIndex = 0; locationIndex < this.tips.length; ++locationIndex )
                 {
-                    var curLocation = innerThis.tips[locationIndex];
+                    var curLocation = this.tips[locationIndex];
 
                     if( curLocation.gpsPos === null )
                         continue;
@@ -115,17 +114,26 @@ namespace Ally
                 }
 
                 // Add HOA homes
-                _.each( innerThis.hoaHomes, function( home )
+                _.each( this.hoaHomes, ( home ) =>
                 {
                     if( home.fullAddress && home.fullAddress.gpsPos )
                     {
-                        MapCtrlMapMgr.AddMarker( home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home, home.unitId );
+                        var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
+                        var markerText = home.name;
+
+                        if( _.any( this.siteInfo.userInfo.usersUnits, u => u.unitId === home.unitId ) )
+                        {
+                            markerIcon = MapCtrlMapMgr.MarkerNumber_MyHome;
+                            markerText = "Your home: " + markerText;
+                        }
+
+                        MapCtrlMapMgr.AddMarker( home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, markerText, markerIcon, home.unitId );
                     }
                 } );
 
                 MapCtrlMapMgr.OnMarkersReady();
 
-                innerThis.isLoading = false;
+                this.isLoading = false;
             } );
         }
 
@@ -158,12 +166,11 @@ namespace Ally
                 return;
 
             this.isLoading = true;
-
-            var innerThis = this;
-            this.$http.delete( "/api/WelcomeTip/" + tip.itemId ).then( function()
+            
+            this.$http.delete( "/api/WelcomeTip/" + tip.itemId ).then( () =>
             {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                this.isLoading = false;
+                this.refresh();
             } );
         }
 
@@ -292,16 +299,15 @@ namespace Ally
         */
         retrieveHoaHomes()
         {
-            var innerThis = this;
-            this.$http.get( "/api/BuildingResidents/FullUnits" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            this.$http.get( "/api/BuildingResidents/FullUnits" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
             {
-                innerThis.hoaHomes = httpResponse.data;
+                this.hoaHomes = httpResponse.data;
 
-                innerThis.refresh();
+                this.refresh();
 
-            }, function()
+            }, () =>
             {
-                innerThis.refresh();
+                this.refresh();
             } );
         }
     }
@@ -349,6 +355,13 @@ class MapCtrlMapMgr
     * @const
     */
     static MarkerNumber_Home = -2;
+
+    /**
+    * The marker number that indicates the home marker icon for the user's home
+    * @type {Number}
+    * @const
+    */
+    static MarkerNumber_MyHome = -5;
 
     /**
     * The marker number that indicates the hospital marker icon
@@ -441,6 +454,8 @@ class MapCtrlMapMgr
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_Hospital.png";
             else if( tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_PostOffice )
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_PostOffice.png";
+            else if( tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_MyHome )
+                markerImageUrl = "/assets/images/MapMarkers/MapMarker_MyHome.png";
 
             var marker = new google.maps.Marker(
                 {

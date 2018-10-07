@@ -63,27 +63,33 @@ var Ally;
         // Populate the page
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ChtnMapController.prototype.refresh = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/WelcomeTip").then(function (httpResponse) {
-                innerThis.tips = httpResponse.data;
+                _this.tips = httpResponse.data;
                 MapCtrlMapMgr.ClearAllMarkers();
                 if (AppConfig.appShortName === "condo")
                     MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
-                for (var locationIndex = 0; locationIndex < innerThis.tips.length; ++locationIndex) {
-                    var curLocation = innerThis.tips[locationIndex];
+                for (var locationIndex = 0; locationIndex < _this.tips.length; ++locationIndex) {
+                    var curLocation = _this.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
                     curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
                 // Add HOA homes
-                _.each(innerThis.hoaHomes, function (home) {
+                _.each(_this.hoaHomes, function (home) {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
-                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home, home.unitId);
+                        var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
+                        var markerText = home.name;
+                        if (_.any(_this.siteInfo.userInfo.usersUnits, function (u) { return u.unitId === home.unitId; })) {
+                            markerIcon = MapCtrlMapMgr.MarkerNumber_MyHome;
+                            markerText = "Your home: " + markerText;
+                        }
+                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, markerText, markerIcon, home.unitId);
                     }
                 });
                 MapCtrlMapMgr.OnMarkersReady();
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,13 +109,13 @@ var Ally;
         // Occurs when the user clicks the button to delete a tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ChtnMapController.prototype.onDeleteTip = function (tip) {
+            var _this = this;
             if (!confirm('Are you sure you want to delete this item?'))
                 return;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.delete("/api/WelcomeTip/" + tip.itemId).then(function () {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.refresh();
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,12 +206,12 @@ var Ally;
         * Load the houses onto the map
         */
         ChtnMapController.prototype.retrieveHoaHomes = function () {
-            var innerThis = this;
+            var _this = this;
             this.$http.get("/api/BuildingResidents/FullUnits").then(function (httpResponse) {
-                innerThis.hoaHomes = httpResponse.data;
-                innerThis.refresh();
+                _this.hoaHomes = httpResponse.data;
+                _this.refresh();
             }, function () {
-                innerThis.refresh();
+                _this.refresh();
             });
         };
         ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
@@ -271,6 +277,8 @@ var MapCtrlMapMgr = /** @class */ (function () {
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_Hospital.png";
             else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_PostOffice)
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_PostOffice.png";
+            else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_MyHome)
+                markerImageUrl = "/assets/images/MapMarkers/MapMarker_MyHome.png";
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(tempMarker.lat, tempMarker.lon),
                 map: MapCtrlMapMgr._mainMap,
@@ -387,6 +395,12 @@ var MapCtrlMapMgr = /** @class */ (function () {
     * @const
     */
     MapCtrlMapMgr.MarkerNumber_Home = -2;
+    /**
+    * The marker number that indicates the home marker icon for the user's home
+    * @type {Number}
+    * @const
+    */
+    MapCtrlMapMgr.MarkerNumber_MyHome = -5;
     /**
     * The marker number that indicates the hospital marker icon
     * @type {Number}
