@@ -11,6 +11,15 @@ var __extends = (this && this.__extends) || (function () {
 var Ally;
 (function (Ally) {
     /**
+     * Represents a home owned or rented by a user
+     */
+    var UsersHome = /** @class */ (function () {
+        function UsersHome() {
+        }
+        return UsersHome;
+    }());
+    Ally.UsersHome = UsersHome;
+    /**
      * The logged-in user's info
      */
     var UserInfo = /** @class */ (function () {

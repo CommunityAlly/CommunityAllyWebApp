@@ -292,6 +292,29 @@ BlockClubAppConfig.menu.splice( 3, 0, new Ally.RoutePath_v3( { path: "DuesHistor
 BlockClubAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// PTA Ally
+///////////////////////////////////////////////////////////////////////////////////////////////////
+var PtaAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
+PtaAppConfig.appShortName = "pta";
+PtaAppConfig.appName = "PTA Ally";
+PtaAppConfig.baseTld = "ptaally.org";
+PtaAppConfig.baseUrl = "https://ptaally.org/";
+PtaAppConfig.homeName = "Home";
+
+// Remove Residents and Manage Residents
+PtaAppConfig.menu = _.reject( PtaAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
+
+// Add them back under the name "Members"
+PtaAppConfig.menu.push( new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
+PtaAppConfig.menu.splice( 0, 0, new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
+
+// Remove assessment history and add dues history
+PtaAppConfig.menu = _.reject( PtaAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
+PtaAppConfig.menu.splice( 3, 0, new Ally.RoutePath_v3( { path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
+
+//PtaAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
+
 
 var AppConfig:Ally.AppConfigInfo = null;
 
@@ -318,6 +341,8 @@ else if( lowerDomain.indexOf( "neighborhoodally" ) !== -1
 else if( lowerDomain.indexOf( "chicagoblock" ) !== -1
     || lowerDomain.indexOf( "blockclub" ) !== -1 )
     AppConfig = BlockClubAppConfig;
+else if( lowerDomain.indexOf( "ptaally" ) !== -1 )
+    AppConfig = PtaAppConfig;
 else
 {
     console.log( "Unknown ally app" );

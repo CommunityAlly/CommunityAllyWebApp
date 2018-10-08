@@ -7,6 +7,20 @@ declare function GlobalRedirect( path: string ): void;
 namespace Ally
 {
     /**
+     * Represents a home owned or rented by a user
+     */
+    export class UsersHome
+    {
+        unitId: number;
+        name: string;
+        isRenter: boolean;
+        assessment: number;
+        nextAssessmentDue: any;
+        includesLateFee: boolean;
+    }
+
+
+    /**
      * The logged-in user's info
      */
     export class UserInfo
@@ -28,7 +42,7 @@ namespace Ally
         assessmentPaymentHistory: string[];
         assessmentAmount: number;
         isRenter: boolean;
-        usersUnits: any[];
+        usersUnits: UsersHome[];
         recentPayments: any[];
         isAutoPayActive: boolean;
         nextAutoPayText: string;

@@ -1249,6 +1249,24 @@ BlockClubAppConfig.menu.splice(0, 0, new Ally.RoutePath_v3({ path: "ManageReside
 BlockClubAppConfig.menu = _.reject(BlockClubAppConfig.menu, function (mi) { return mi.menuTitle === "Assessment History"; });
 BlockClubAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager }));
 BlockClubAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All }));
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// PTA Ally
+///////////////////////////////////////////////////////////////////////////////////////////////////
+var PtaAppConfig = _.clone(CondoAllyAppConfig);
+PtaAppConfig.appShortName = "pta";
+PtaAppConfig.appName = "PTA Ally";
+PtaAppConfig.baseTld = "ptaally.org";
+PtaAppConfig.baseUrl = "https://ptaally.org/";
+PtaAppConfig.homeName = "Home";
+// Remove Residents and Manage Residents
+PtaAppConfig.menu = _.reject(PtaAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
+// Add them back under the name "Members"
+PtaAppConfig.menu.push(new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" }));
+PtaAppConfig.menu.splice(0, 0, new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }));
+// Remove assessment history and add dues history
+PtaAppConfig.menu = _.reject(PtaAppConfig.menu, function (mi) { return mi.menuTitle === "Assessment History"; });
+PtaAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager }));
+//PtaAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
 var AppConfig = null;
 var lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
@@ -1268,6 +1286,8 @@ else if (lowerDomain.indexOf("neighborhoodally") !== -1
 else if (lowerDomain.indexOf("chicagoblock") !== -1
     || lowerDomain.indexOf("blockclub") !== -1)
     AppConfig = BlockClubAppConfig;
+else if (lowerDomain.indexOf("ptaally") !== -1)
+    AppConfig = PtaAppConfig;
 else {
     console.log("Unknown ally app");
     AppConfig = CondoAllyAppConfig;
@@ -3562,27 +3582,33 @@ var Ally;
         // Populate the page
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ChtnMapController.prototype.refresh = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/WelcomeTip").then(function (httpResponse) {
-                innerThis.tips = httpResponse.data;
+                _this.tips = httpResponse.data;
                 MapCtrlMapMgr.ClearAllMarkers();
                 if (AppConfig.appShortName === "condo")
                     MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
-                for (var locationIndex = 0; locationIndex < innerThis.tips.length; ++locationIndex) {
-                    var curLocation = innerThis.tips[locationIndex];
+                for (var locationIndex = 0; locationIndex < _this.tips.length; ++locationIndex) {
+                    var curLocation = _this.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
                     curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
                 // Add HOA homes
-                _.each(innerThis.hoaHomes, function (home) {
+                _.each(_this.hoaHomes, function (home) {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
-                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, home.name, MapCtrlMapMgr.MarkerNumber_Home, home.unitId);
+                        var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
+                        var markerText = home.name;
+                        if (_.any(_this.siteInfo.userInfo.usersUnits, function (u) { return u.unitId === home.unitId; })) {
+                            markerIcon = MapCtrlMapMgr.MarkerNumber_MyHome;
+                            markerText = "Your home: " + markerText;
+                        }
+                        MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, markerText, markerIcon, home.unitId);
                     }
                 });
                 MapCtrlMapMgr.OnMarkersReady();
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -3602,13 +3628,13 @@ var Ally;
         // Occurs when the user clicks the button to delete a tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ChtnMapController.prototype.onDeleteTip = function (tip) {
+            var _this = this;
             if (!confirm('Are you sure you want to delete this item?'))
                 return;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.delete("/api/WelcomeTip/" + tip.itemId).then(function () {
-                innerThis.isLoading = false;
-                innerThis.refresh();
+                _this.isLoading = false;
+                _this.refresh();
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -3699,12 +3725,12 @@ var Ally;
         * Load the houses onto the map
         */
         ChtnMapController.prototype.retrieveHoaHomes = function () {
-            var innerThis = this;
+            var _this = this;
             this.$http.get("/api/BuildingResidents/FullUnits").then(function (httpResponse) {
-                innerThis.hoaHomes = httpResponse.data;
-                innerThis.refresh();
+                _this.hoaHomes = httpResponse.data;
+                _this.refresh();
             }, function () {
-                innerThis.refresh();
+                _this.refresh();
             });
         };
         ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
@@ -3770,6 +3796,8 @@ var MapCtrlMapMgr = /** @class */ (function () {
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_Hospital.png";
             else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_PostOffice)
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_PostOffice.png";
+            else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_MyHome)
+                markerImageUrl = "/assets/images/MapMarkers/MapMarker_MyHome.png";
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(tempMarker.lat, tempMarker.lon),
                 map: MapCtrlMapMgr._mainMap,
@@ -3886,6 +3914,12 @@ var MapCtrlMapMgr = /** @class */ (function () {
     * @const
     */
     MapCtrlMapMgr.MarkerNumber_Home = -2;
+    /**
+    * The marker number that indicates the home marker icon for the user's home
+    * @type {Number}
+    * @const
+    */
+    MapCtrlMapMgr.MarkerNumber_MyHome = -5;
     /**
     * The marker number that indicates the hospital marker icon
     * @type {Number}
@@ -4245,9 +4279,10 @@ var Ally;
                 height: 600,
                 editable: false,
                 header: {
-                    left: 'month agendaWeek',
+                    //left: 'month agendaWeek',
+                    left: 'prevYear prev next nextYear today',
                     center: 'title',
-                    right: 'today prev,next'
+                    right: 'month listYear'
                 },
                 viewRender: function (view, element) {
                     $(element).css("cursor", "pointer");
@@ -4341,7 +4376,7 @@ var Ally;
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         innerThis.calendarEvents.push({
                             title: "Notice: " + shortText,
-                            start: entry.postDate.substring(0, 10),
+                            start: moment(entry.postDate).format("YYYY-MM-DD"),
                             toolTipTitle: "Notice Added",
                             fullDescription: fullDescription
                         });
@@ -4367,7 +4402,7 @@ var Ally;
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         innerThis.calendarEvents.push({
                             title: "Logbook: " + shortText,
-                            start: entry.postDate.substring(0, 10),
+                            start: moment(entry.postDate).format("YYYY-MM-DD"),
                             toolTipTitle: "Logbook Entry Added",
                             fullDescription: fullDescription
                         });
@@ -4390,9 +4425,9 @@ var Ally;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        this.calendarEvents.push({
+                        _this.calendarEvents.push({
                             title: "Poll: " + shortText,
-                            start: entry.postDate.substring(0, 10),
+                            start: moment(entry.postDate).format("YYYY-MM-DD"),
                             toolTipTitle: "Poll Added",
                             fullDescription: fullDescription
                         });
@@ -9807,6 +9842,11 @@ var Ally;
         }
         return ReplyComment;
     }());
+    var CommentsState = /** @class */ (function () {
+        function CommentsState() {
+        }
+        return CommentsState;
+    }());
     /**
      * The controller for the committee home page
      */
@@ -9820,6 +9860,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isLoading = false;
             this.shouldShowAdminControls = false;
+            this.digestFrequency = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -9842,6 +9883,20 @@ var Ally;
             }
         };
         /**
+         * Occurs when the user elects to set the thread digest frequency
+         */
+        GroupCommentThreadViewController.prototype.onChangeDigestFrequency = function () {
+            var _this = this;
+            this.isLoading = true;
+            var putUri = "/api/CommentThread/" + this.thread.commentThreadId + "/DigestFrequency/" + this.commentsState.digestFrequency;
+            this.$http.put(putUri, null).then(function () {
+                _this.isLoading = false;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to change: " + response.data.exceptionMessage);
+            });
+        };
+        /**
          * Retrieve the comments from the server
          */
         GroupCommentThreadViewController.prototype.retrieveComments = function () {
@@ -9849,14 +9904,14 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/CommentThread/" + this.thread.commentThreadId + "/Comments").then(function (response) {
                 _this.isLoading = false;
-                _this.comments = response.data;
+                _this.commentsState = response.data;
                 var processComments = function (c) {
                     c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
                     if (c.replies)
                         _.each(c.replies, processComments);
                 };
-                _.forEach(_this.comments, processComments);
-                _this.comments = _.sortBy(_this.comments, function (ct) { return ct.postDateUtc; }).reverse();
+                _.forEach(_this.commentsState.comments, processComments);
+                _this.commentsState.comments = _.sortBy(_this.commentsState.comments, function (ct) { return ct.postDateUtc; }).reverse();
             }, function (response) {
                 _this.isLoading = false;
             });
@@ -9884,14 +9939,14 @@ var Ally;
         GroupCommentThreadViewController.prototype.deleteComment = function (comment) {
             var _this = this;
             var deleteMessage = "Are you sure you want to delete this comment?";
-            if (this.comments.length === 1)
+            if (this.commentsState.comments.length === 1)
                 deleteMessage = "Since there is only one comment, if you delete this comment you'll delete the thread. Are you sure you want to delete this comment?";
             if (!confirm(deleteMessage))
                 return;
             this.isLoading = true;
             this.$http.delete("/api/CommentThread/" + this.thread.commentThreadId + "/" + comment.commentId).then(function () {
                 _this.isLoading = false;
-                if (_this.comments.length === 1) {
+                if (_this.commentsState.comments.length === 1) {
                     // Tell the parent thread list to refresh
                     _this.$rootScope.$broadcast("refreshCommentThreadList");
                     _this.closeModal(false);
@@ -10480,6 +10535,15 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Ally;
 (function (Ally) {
+    /**
+     * Represents a home owned or rented by a user
+     */
+    var UsersHome = /** @class */ (function () {
+        function UsersHome() {
+        }
+        return UsersHome;
+    }());
+    Ally.UsersHome = UsersHome;
     /**
      * The logged-in user's info
      */
