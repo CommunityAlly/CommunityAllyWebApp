@@ -56,6 +56,7 @@ namespace Ally
     {
         units: Ally.HomeEntryWithName[];
         boardPosition: number;
+        shouldShowAvatarInListing: boolean;
     }
 
 

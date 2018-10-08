@@ -48,26 +48,28 @@
                 <h4 id="unit-name-{{ $index }}">{{ $ctrl.unitPrefix }}{{ curUnit.name }}</h4>
                 <div>
                     <span data-ng-if="curUnit.renters.length > 0" style="font-weight:bold;">Owned by:<br></span>
-                    <span data-ng-repeat="user in curUnit.owners">
+                    <div data-ng-repeat="user in curUnit.owners" class="mb-2">
+                        <img style="width: 80px; height: 80px;" data-ng-if="user.shouldShowAvatarInListing && user.avatarUrl" alt="Profile for {{ user.fullName }}" data-ng-src="{{user.avatarUrl}}" />
+                        
                         <span id="owner-name-{{ $parent.$index }}-{{ $index }}">{{ user.fullName }}</span><span data-ng-if="!user.hasEmail">*</span>
                         <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
                             (<a id="owner-email-{{ $parent.$parent.$index }}-{{ $parent.$index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ user.phoneNumber }}" id="owner-phone-{{ $parent.$parent.$index }}-{{ $parent.$index }}">{{ user.phoneNumber | tel }}</a>)
-                        </span>                        
+                        </span>
                         <span data-ng-if="user.hasEmail">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
                         <br />
-                    </span>
+                    </div>
                 </div>
                 <div data-ng-show="curUnit.renters.length > 0">
                     <br>
                     <span style="font-weight:bold;">Currently rented by:</span><br>
-                    <span data-ng-repeat="user in curUnit.renters">
+                    <div data-ng-repeat="user in curUnit.renters" class="mb-2">
                         <span id="renter-name-{{ $parent.$index }}-{{ $index }}">{{ user.fullName }}</span><span data-ng-if="!user.hasEmail">*</span>
                         <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
                             (<a id="renter-email-{{ $parent.$parent.$index }}-{{ $parent.$index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ user.phoneNumber }}" id="renter-phone-{{ $parent.$parent.$index }}-{{ $parent.$index }}">{{ user.phoneNumber | tel }}</a>)
                         </span>                        
                         <span data-ng-if="user.hasEmail">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
                         <br />
-                    </span>
+                    </div>
                 </div>
                 <hr />
             </div>
