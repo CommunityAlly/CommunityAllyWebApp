@@ -12,6 +12,7 @@
         lastCommentAuthorName: string;
     }
 
+
     /**
      * The controller for the discussion threads directive
      */

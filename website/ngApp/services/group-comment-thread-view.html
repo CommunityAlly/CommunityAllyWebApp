@@ -11,7 +11,15 @@
             <span class="note-text text-link" data-ng-click="$ctrl.archiveThread()">Archive Thread</span>
         </div>
 
-        <div class="mt-3">
+        <div class="mt-2">
+            Get notified of new comments:
+            <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" data-ng-value="null" ng-checked="$ctrl.digestFrequency === null" name="digest-frequency" />Never</label>
+            <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="instant" name="digest-frequency" />Immediately</label>
+            <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="nightly" name="digest-frequency" />Nightly</label>
+            <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="weekly" name="digest-frequency" />Weekly on Sunday</label>
+        </div>
+
+        <div class="mt-2">
             Add New Comment:<br />
             <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'new')" data-ng-model="$ctrl.newCommentText" maxlength="1000" placeholder="Enter your comment here" class="form-control"></textarea>
 
@@ -20,7 +28,7 @@
             </p>
         </div>
 
-        <div data-ng-repeat="comment in $ctrl.comments" class="mt-2 mb-2">
+        <div data-ng-repeat="comment in $ctrl.commentsState.comments" class="mt-2 mb-2">
             <div class="media">
                 <img class="d-flex mr-3" style="width: 80px; height: 80px;" alt="Profile for {{ comment.authorFullName }}" data-ng-src="{{ comment.authorAvatarUrl }}" />
 
@@ -95,7 +103,7 @@
                 </div>
             </div>
 
-            <hr data-ng-if="$index < $ctrl.comments.length - 1" />
+            <hr data-ng-if="$index < $ctrl.commentsState.comments.length - 1" />
         </div>
     </div>
 </div>

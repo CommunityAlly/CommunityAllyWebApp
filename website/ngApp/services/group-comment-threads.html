@@ -12,6 +12,14 @@
             <div data-ng-repeat="thread in $ctrl.commentThreads" class="mt-2 mb-2">
                 <h5 class="text-link" data-ng-click="$ctrl.displayDiscussModal( thread )">{{ thread.title }}</h5>
 
+                <span class="note-text" style="display: block;" data-ng-if="thread.numCommentsSinceLastRead === 0">
+                    There are no new comments since you last checked
+                </span>
+
+                <span class="note-text" style="display: block;" data-ng-if="thread.numCommentsSinceLastRead > 0">
+                    There {{thread.numCommentsSinceLastRead === 1 ? 'is' : 'are'}} {numCommentsSinceLastRead} new comment{{thread.numCommentsSinceLastRead === 1 ? '' : 's'}} since you last checked
+                </span>
+
                 <span class="note-text" style="display: block;" data-ng-if="thread.lastCommentDateUtc.getTime() !== thread.createDateUtc.getTime()">
                     Updated by <span style="font-weight:bold;">{{ thread.lastCommentAuthorName }}</span>
                     <span data-livestamp="{{ thread.lastCommentDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.lastCommentDateUtc | date:'medium' }}"></span>

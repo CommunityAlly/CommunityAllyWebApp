@@ -7,6 +7,14 @@
     }
 
 
+    class CommentsState
+    {
+        comments: Comment[];
+        lastReadDateUtc: Date;
+        digestFrequency: string;
+    }
+
+
     /**
      * The controller for the committee home page
      */
@@ -16,7 +24,7 @@
 
         isLoading: boolean = false;
         thread: CommentThread;
-        comments: Comment[];
+        commentsState: CommentsState;
         onClosed: () => void;
         newCommentText: string;
         replyToCommentId: number;
@@ -24,6 +32,7 @@
         editCommentId: number;
         editCommentText: string;
         shouldShowAdminControls: boolean = false;
+        digestFrequency: string = null;
 
 
         /**
@@ -65,16 +74,36 @@
 
 
         /**
+         * Occurs when the user elects to set the thread digest frequency
+         */
+        onChangeDigestFrequency()
+        {
+            this.isLoading = true;
+
+            var putUri = `/api/CommentThread/${this.thread.commentThreadId}/DigestFrequency/${this.commentsState.digestFrequency}`;
+            this.$http.put( putUri, null ).then( () =>
+            {
+                this.isLoading = false;
+
+            }, (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to change: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
          * Retrieve the comments from the server
          */
         retrieveComments()
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/CommentThread/${this.thread.commentThreadId}/Comments` ).then( ( response: ng.IHttpPromiseCallbackArg<Comment[]>) =>
+            this.$http.get( `/api/CommentThread/${this.thread.commentThreadId}/Comments` ).then( ( response: ng.IHttpPromiseCallbackArg<CommentsState>) =>
             {
                 this.isLoading = false;
-                this.comments = response.data;
+                this.commentsState = response.data;
 
                 let processComments = ( c: Comment ) =>
                 {
@@ -84,9 +113,9 @@
                         _.each( c.replies, processComments );
                 };
 
-                _.forEach( this.comments, processComments );
+                _.forEach( this.commentsState.comments, processComments );
 
-                this.comments = _.sortBy( this.comments, ct => ct.postDateUtc ).reverse();
+                this.commentsState.comments = _.sortBy( this.commentsState.comments, ct => ct.postDateUtc ).reverse();
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
@@ -124,7 +153,7 @@
         deleteComment( comment: Comment )
         {
             var deleteMessage = "Are you sure you want to delete this comment?";
-            if( this.comments.length === 1 )
+            if( this.commentsState.comments.length === 1 )
                 deleteMessage = "Since there is only one comment, if you delete this comment you'll delete the thread. Are you sure you want to delete this comment?";
 
             if( !confirm( deleteMessage ) )
@@ -136,7 +165,7 @@
             {
                 this.isLoading = false;
 
-                if( this.comments.length === 1 )
+                if( this.commentsState.comments.length === 1 )
                 {
                     // Tell the parent thread list to refresh
                     this.$rootScope.$broadcast( "refreshCommentThreadList" );

@@ -5,6 +5,11 @@ var Ally;
         }
         return ReplyComment;
     }());
+    var CommentsState = /** @class */ (function () {
+        function CommentsState() {
+        }
+        return CommentsState;
+    }());
     /**
      * The controller for the committee home page
      */
@@ -18,6 +23,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isLoading = false;
             this.shouldShowAdminControls = false;
+            this.digestFrequency = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -40,6 +46,20 @@ var Ally;
             }
         };
         /**
+         * Occurs when the user elects to set the thread digest frequency
+         */
+        GroupCommentThreadViewController.prototype.onChangeDigestFrequency = function () {
+            var _this = this;
+            this.isLoading = true;
+            var putUri = "/api/CommentThread/" + this.thread.commentThreadId + "/DigestFrequency/" + this.commentsState.digestFrequency;
+            this.$http.put(putUri, null).then(function () {
+                _this.isLoading = false;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to change: " + response.data.exceptionMessage);
+            });
+        };
+        /**
          * Retrieve the comments from the server
          */
         GroupCommentThreadViewController.prototype.retrieveComments = function () {
@@ -47,14 +67,14 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/CommentThread/" + this.thread.commentThreadId + "/Comments").then(function (response) {
                 _this.isLoading = false;
-                _this.comments = response.data;
+                _this.commentsState = response.data;
                 var processComments = function (c) {
                     c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
                     if (c.replies)
                         _.each(c.replies, processComments);
                 };
-                _.forEach(_this.comments, processComments);
-                _this.comments = _.sortBy(_this.comments, function (ct) { return ct.postDateUtc; }).reverse();
+                _.forEach(_this.commentsState.comments, processComments);
+                _this.commentsState.comments = _.sortBy(_this.commentsState.comments, function (ct) { return ct.postDateUtc; }).reverse();
             }, function (response) {
                 _this.isLoading = false;
             });
@@ -82,14 +102,14 @@ var Ally;
         GroupCommentThreadViewController.prototype.deleteComment = function (comment) {
             var _this = this;
             var deleteMessage = "Are you sure you want to delete this comment?";
-            if (this.comments.length === 1)
+            if (this.commentsState.comments.length === 1)
                 deleteMessage = "Since there is only one comment, if you delete this comment you'll delete the thread. Are you sure you want to delete this comment?";
             if (!confirm(deleteMessage))
                 return;
             this.isLoading = true;
             this.$http.delete("/api/CommentThread/" + this.thread.commentThreadId + "/" + comment.commentId).then(function () {
                 _this.isLoading = false;
-                if (_this.comments.length === 1) {
+                if (_this.commentsState.comments.length === 1) {
                     // Tell the parent thread list to refresh
                     _this.$rootScope.$broadcast("refreshCommentThreadList");
                     _this.closeModal(false);
