@@ -159,7 +159,7 @@ grunt.initConfig({
                     'Website/third-party-css/jquery.timepicker.css',
                     'Website/third-party-css/angular-wizard.min.css',
                     'Website/third-party-css/isteven-multi-select.css',
-                    'Website/assets/lib/fullcalendar/dist/fullcalendar.min.css',
+                    'Website/assets/lib/fullcalendar/fullcalendar.min.css',
                     'Website/assets/compiled-css/bootstrap.css',
                     'Website/assets/compiled-css/style.css'
                 ]
