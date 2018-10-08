@@ -12,6 +12,7 @@
 
     class FoundGroup
     {
+        GroupId: number;
         AppName: string;
         ShortName: string;
     }
