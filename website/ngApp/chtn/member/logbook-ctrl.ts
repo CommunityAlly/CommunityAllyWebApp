@@ -54,9 +54,10 @@ namespace Ally
                 height: 600,
                 editable: false,
                 header: {
-                    left: 'month agendaWeek',
+                    //left: 'month agendaWeek',
+                    left: 'prevYear prev next nextYear today',
                     center: 'title',
-                    right: 'today prev,next'
+                    right: 'month listYear'
                 },
                 viewRender: function( view: any, element: JQuery )
                 {
@@ -187,7 +188,7 @@ namespace Ally
 
                         innerThis.calendarEvents.push( {
                             title: "Notice: " + shortText,
-                            start: entry.postDate.substring( 0, 10 ), // 10 = length of YYYY-MM-DD
+                            start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
                             toolTipTitle: "Notice Added",
                             fullDescription: fullDescription
                         } );
@@ -225,7 +226,7 @@ namespace Ally
 
                         innerThis.calendarEvents.push( {
                             title: "Logbook: " + shortText,
-                            start: entry.postDate.substring( 0, 10 ), // 10 = length of YYYY-MM-DD, cut off the time
+                            start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
                             toolTipTitle: "Logbook Entry Added",
                             fullDescription: fullDescription
                         } );
@@ -252,17 +253,17 @@ namespace Ally
 
                     this.isLoadingPolls = false;
 
-                    _.each( data, function( entry: any )
+                    _.each( data, ( entry: any ) =>
                     {
                         var shortText = entry.text;
                         if( shortText.length > 10 )
                             shortText = shortText.substring( 0, 10 ) + "...";
 
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-
+                        
                         this.calendarEvents.push( {
                             title: "Poll: " + shortText,
-                            start: entry.postDate.substring( 0, 10 ), // 10 = length of YYYY-MM-DD, cut off the time
+                            start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
                             toolTipTitle: "Poll Added",
                             fullDescription: fullDescription
                         } );
