@@ -17,7 +17,7 @@ var Ally;
             this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
-            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
@@ -31,6 +31,8 @@ var Ally;
                 _this.unitList = data.byUnit;
                 _this.allResidents = data.residents;
                 _this.committees = data.committees;
+                if (!_this.allResidents && data.ptaMembers)
+                    _this.allResidents = data.ptaMembers;
                 // Sort by last name
                 _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
                 _this.boardMembers = _.filter(data.residents, function (r) { return r.boardPosition !== 0; });

@@ -16,16 +16,8 @@
     /**
      * Represents a member of a CHTN group
      */
-    export class FellowChtnResident
+    export class FellowChtnResident extends SimpleUserEntry
     {
-        firstName: string;
-        lastName: string;
-        fullName: string;
-        email: string;
-        userId: string;
-        phoneNumber: string;
-        avatarUrl: string;
-        hasEmail: boolean;
         homes: any[];
         boardPosition: number;
         wePayAutoPayIsActive: boolean;
@@ -43,7 +35,7 @@
     {
         committeeId: number;
         committeeName: string;
-        contactUser: FellowChtnResident;
+        contactUser: SimpleUserEntry;
         isPrivate: boolean;
     }
 
@@ -53,6 +45,7 @@
         byUnit: any[];
         residents: FellowChtnResident[];
         committees: CommitteeListingInfo[];
+        ptaMembers: PtaMember[];
     }
 
 

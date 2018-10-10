@@ -1,0 +1,71 @@
+﻿<div class="page-home">
+    <div class="portlet-box white box-shadow margin-vertical" data-ng-if="$ctrl.welcomeMessage.length > 0">
+        <div class="portlet-header">
+            <div class="title">
+                Welcome!
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <group-send-email></group-send-email>
+        </div>
+        <!--end/left side bar-->
+
+        <!-- right sidebar -->
+        <div class="col-md-6">
+            <group-comment-threads></group-comment-threads>
+            <local-news-feed></local-news-feed>
+        </div>
+    </div>
+
+    <div data-ng-if="$ctrl.showFirstVisitModal && $ctrl.isSiteManager">
+        <div id="new-welcome-overlay-background" class="modal-overlay" data-ng-click="$ctrl.hideFirstVisit()"></div>
+        <div class="ca-modal-dialog modal-md">
+            <h1 id="new-welcome-title">Welcome to {{ $ctrl.allyAppName }}!</h1>
+            <p class="margin-top-10">
+                We're happy you've decided to give {{ $ctrl.allyAppName }} a try. We think you'll have no trouble getting up and running on your own, but
+                if you'd like some guidance getting started, check out this guide:
+            </p>
+            <p class="text-center margin-top-10">
+                <a style="font-size:x-large;" href="http://help.communityally.org/getting-started-with-condo-ally/" target="_blank">Setting up Your New {{ $ctrl.allyAppName }} Site</a>
+                <br />
+                <span class="note-text">(Link opens in new tab)</span>
+            </p>
+            <div class="text-center margin-top-10">
+                <iframe width="640" height="360" src="https://www.youtube.com/embed/1lJbysvWJDY" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <p class="text-right">
+                <a target="_blank" href="https://www.youtube.com/watch?v=1lJbysvWJDY" class="note-text">Open video in new window</a>
+            </p>
+            <p>
+                We love to help our users, so never hesitate to use the "Help" link at the bottom of the page or the "Contact support"
+                button in the bottom right of your window. Congratulations on taking a step toward a better home! We're sure
+                your home was great to begin with, but we're confident {{ $ctrl.allyAppName }} can make it even better.
+            </p>
+            <p class="text-right margin-right-10">
+                <span class="note-text">(Click anywhere outside this window to close)</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $( function()
+    {
+        $( "#tabs" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
+        $( "#tabs li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
+    } );
+    $( '.contact_support h3' ).click( function()
+    {
+        $( this ).parent().toggleClass( 'opened' );
+    } );
+    $( '.file_item' ).click( function()
+    {
+        $( '.file_item' ).removeClass( 'select' );
+        $( this ).toggleClass( 'select' );
+
+    } );
+    $( ".collapsibleContainer" ).collapsiblePanel();
+</script>

@@ -171,6 +171,10 @@ var Ally;
                             g.appNameString = "Neighborhood";
                             g.baseUrl = "https://" + g.shortName + ".NeighborhoodAlly.org/";
                         }
+                        else if (g.appName === 5) {
+                            g.appNameString = "PTA";
+                            g.baseUrl = "https://" + g.shortName + ".PTAAlly.org/";
+                        }
                     });
                 }, function () {
                     innerThis.isLoading = false;
@@ -1257,16 +1261,28 @@ PtaAppConfig.appShortName = "pta";
 PtaAppConfig.appName = "PTA Ally";
 PtaAppConfig.baseTld = "ptaally.org";
 PtaAppConfig.baseUrl = "https://ptaally.org/";
+PtaAppConfig.isChtnSite = false;
 PtaAppConfig.homeName = "Home";
-// Remove Residents and Manage Residents
-PtaAppConfig.menu = _.reject(PtaAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
-// Add them back under the name "Members"
-PtaAppConfig.menu.push(new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" }));
-PtaAppConfig.menu.splice(0, 0, new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }));
-// Remove assessment history and add dues history
-PtaAppConfig.menu = _.reject(PtaAppConfig.menu, function (mi) { return mi.menuTitle === "Assessment History"; });
-PtaAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager }));
-//PtaAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
+PtaAppConfig.menu = [
+    new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
+    new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+    new Ally.RoutePath_v3({ path: "Info/:viewName", templateHtml: "<association-info></association-info>" }),
+    new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
+    //new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
+    new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" }),
+    new Ally.RoutePath_v3({ path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>" }),
+    new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
+    new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
+    new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
+    new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
+    new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager }),
+    new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
+    new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
+    new Ally.RoutePath_v3({ path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager }),
+    new Ally.RoutePath_v3({ path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
+    new Ally.RoutePath_v3({ path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin }),
+    new Ally.RoutePath_v3({ path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin })
+];
 var AppConfig = null;
 var lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
@@ -2445,6 +2461,7 @@ var Ally;
         return Member;
     }());
     Ally.Member = Member;
+    /// Represents a member of a CHTN site
     var Resident = /** @class */ (function (_super) {
         __extends(Resident, _super);
         function Resident() {
@@ -2487,6 +2504,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isAdmin = false;
             this.showEmailSettings = true;
+            this.shouldShowHomePicker = true;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
             this.isLoading = false;
@@ -2505,6 +2523,7 @@ var Ally;
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.boardPositions = [
                 { id: 0, name: "None" },
@@ -2539,8 +2558,22 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: homeColumnWidth, sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); } },
-                        { field: 'isRenter', displayName: 'Is Renter', width: 80, cellClass: "resident-cell-is-renter", visible: this.showIsRenter, cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>' },
+                        {
+                            field: 'unitGridLabel',
+                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home',
+                            cellClass: "resident-cell-unit",
+                            width: homeColumnWidth,
+                            visible: AppConfig.isChtnSite,
+                            sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); }
+                        },
+                        {
+                            field: 'isRenter',
+                            displayName: 'Is Renter',
+                            width: 80,
+                            cellClass: "resident-cell-is-renter",
+                            visible: this.showIsRenter,
+                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
+                        },
                         { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
                         { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
@@ -2709,7 +2742,7 @@ var Ally;
                         res.lastLoginDateUtc = moment.utc(res.lastLoginDateUtc).toDate();
                 });
                 innerThis.populateGridUnitLabels();
-                if (!innerThis.allUnits) {
+                if (!innerThis.allUnits && AppConfig.isChtnSite) {
                     innerThis.isLoading = true;
                     innerThis.$http.get("/api/Unit").then(function (httpResponse) {
                         innerThis.isLoading = false;
@@ -2962,8 +2995,10 @@ var Ally;
                 simplifiedName = simplifiedName.replace(/place/g, "pl").replace(/avenue/g, "ave");
                 return simplifiedName;
             };
-            for (var i = 0; i < this.allUnits.length; ++i)
-                this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
+            if (this.allUnits) {
+                for (var i = 0; i < this.allUnits.length; ++i)
+                    this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
+            }
             var _loop_1 = function () {
                 var curRow = bulkRows[i];
                 while (curRow.length < 7)
@@ -3071,13 +3106,15 @@ var Ally;
                 csvTestName: undefined
             };
             // Try to step to the next unit
-            if (this.bulkImportRows.length > 0) {
-                var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
-                var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId; });
-                ++lastUnitIndex;
-                if (lastUnitIndex < this.allUnits.length) {
-                    newRow.unitName = this.allUnits[lastUnitIndex].name;
-                    newRow.unitId = this.allUnits[lastUnitIndex].unitId;
+            if (this.allUnits) {
+                if (this.bulkImportRows.length > 0) {
+                    var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
+                    var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId; });
+                    ++lastUnitIndex;
+                    if (lastUnitIndex < this.allUnits.length) {
+                        newRow.unitName = this.allUnits[lastUnitIndex].name;
+                        newRow.unitId = this.allUnits[lastUnitIndex].unitId;
+                    }
                 }
             }
             this.bulkImportRows.push(newRow);
@@ -3387,6 +3424,7 @@ var Ally;
             this.hideDocuments = false;
             this.hideVendors = false;
             this.showMaintenance = false;
+            this.showVendors = true;
             this.faqMenuText = "Info/FAQs";
             if (AppConfig.appShortName === "home")
                 this.faqMenuText = "Notes";
@@ -3400,6 +3438,7 @@ var Ally;
             this.showMaintenance = AppConfig.appShortName === "home"
                 || (AppConfig.appShortName === "condo")
                 || (AppConfig.appShortName === "hoa");
+            this.showVendors = AppConfig.appShortName !== "pta";
             if (this.hideDocuments)
                 this.selectedView = "Info";
             else
@@ -4009,7 +4048,7 @@ var Ally;
             this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
-            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
@@ -4023,6 +4062,8 @@ var Ally;
                 _this.unitList = data.byUnit;
                 _this.allResidents = data.residents;
                 _this.committees = data.committees;
+                if (!_this.allResidents && data.ptaMembers)
+                    _this.allResidents = data.ptaMembers;
                 // Sort by last name
                 _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
                 _this.boardMembers = _.filter(data.residents, function (r) { return r.boardPosition !== 0; });
@@ -4786,6 +4827,14 @@ var Ally;
         }
         return ProfileUserInfo;
     }(SimpleUserEntryWithTerms));
+    var PtaMember = /** @class */ (function (_super) {
+        __extends(PtaMember, _super);
+        function PtaMember() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return PtaMember;
+    }(SimpleUserEntry));
+    Ally.PtaMember = PtaMember;
     /**
      * The controller for the profile page
      */
@@ -7233,6 +7282,8 @@ var Ally;
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
             this.defaultSubject = "A message from your neighbor";
+            this.memberLabel = "resident";
+            this.memberPageName = "Residents";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -7242,16 +7293,22 @@ var Ally;
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
-            if (!this.committee) {
+            if (this.committee) {
+                this.messageObject.committeeId = this.committee.committeeId;
+                this.defaultSubject = "A message from a committee member";
+            }
+            else {
                 this.loadGroupEmails();
                 // Handle the global message that tells this component to prepare a draft of a message
                 // to inquire about assessment inaccuracies
                 this.$scope.$on("prepAssessmentEmailToBoard", function (event, data) { return _this.prepBadAssessmentEmailForBoard(data); });
-                this.defaultSubject = "A message from your neighbor";
-            }
-            else {
-                this.messageObject.committeeId = this.committee.committeeId;
-                this.defaultSubject = "A message from a committee member";
+                if (AppConfig.appShortName === "pta") {
+                    this.defaultSubject = "A message from a PTA member";
+                    this.memberLabel = "member";
+                    this.memberPageName = "Members";
+                }
+                else
+                    this.defaultSubject = "A message from your neighbor";
             }
             this.messageObject.subject = this.defaultSubject;
         };
@@ -7343,7 +7400,7 @@ var Ally;
             var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && AppConfig.isChtnSite;
             var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
         };
@@ -9028,6 +9085,333 @@ CA.angularApp.component('homeSignUp', {
     controller: Ally.HomeSignUpController
 });
 
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to view group site settings
+     */
+    var PtaSettingsController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function PtaSettingsController($http, siteInfo, $timeout, $scope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.$scope = $scope;
+            this.settings = new Ally.CondoSiteSettings();
+            this.showRightColumnSetting = true;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        PtaSettingsController.prototype.$onInit = function () {
+            this.defaultBGImage = $(document.documentElement).css("background-image");
+            this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
+            this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            // Hook up the file upload control after everything is loaded and setup
+            var innerThis = this;
+            this.$timeout(function () { return innerThis.hookUpFileUpload(); }, 200);
+            this.refreshData();
+        };
+        /**
+         * Populate the page from the server
+         */
+        PtaSettingsController.prototype.refreshData = function () {
+            this.isLoading = true;
+            var innerThis = this;
+            this.$http.get("/api/Settings").then(function (httpResponse) {
+                innerThis.isLoading = false;
+                innerThis.settings = httpResponse.data;
+            });
+        };
+        /**
+         * Clear the login image
+         */
+        PtaSettingsController.prototype.removeLoginImage = function () {
+            analytics.track("clearLoginImage");
+            this.isLoading = true;
+            var innerThis = this;
+            this.$http.get("/api/Settings/ClearLoginImage").then(function () {
+                innerThis.isLoading = false;
+                innerThis.siteInfo.publicSiteInfo.loginImageUrl = "";
+                innerThis.loginImageUrl = "";
+            }, function (httpResponse) {
+                innerThis.isLoading = false;
+                alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Save all of the settings
+         */
+        PtaSettingsController.prototype.saveSettings = function (shouldReload) {
+            var _this = this;
+            if (shouldReload === void 0) { shouldReload = false; }
+            analytics.track("editSettings");
+            this.isLoading = true;
+            this.$http.put("/api/Settings", this.settings).then(function () {
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
+                // Reload the page to show the page title has changed
+                if (shouldReload)
+                    location.reload();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
+            });
+        };
+        /**
+         * Occurs when the user wants to save a new site title
+         */
+        PtaSettingsController.prototype.onSiteTitleChange = function () {
+            var _this = this;
+            analytics.track("editSiteTitle");
+            this.isLoading = true;
+            this.$http.put("/api/Settings", { siteTitle: this.settings.siteTitle }).then(function () {
+                // Reload the page to show the page title has changed
+                location.reload();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
+            });
+        };
+        /**
+         * Occurs when the user wants to save a new welcome message
+         */
+        PtaSettingsController.prototype.onWelcomeMessageUpdate = function () {
+            var _this = this;
+            analytics.track("editWelcomeMessage");
+            this.isLoading = true;
+            this.$http.put("/api/Settings", { welcomeMessage: this.settings.welcomeMessage }).then(function () {
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data);
+            });
+        };
+        PtaSettingsController.prototype.onQaDeleteSite = function () {
+            this.$http.get("/api/QA/DeleteThisAssociation").then(function () {
+                location.reload();
+            }, function (httpResponse) {
+                alert("Failed to delete site: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Hooked up the login image JQuery upload control
+         */
+        PtaSettingsController.prototype.hookUpFileUpload = function () {
+            var innerThis = this;
+            $(function () {
+                $('#JQFileUploader').fileupload({
+                    autoUpload: true,
+                    add: function (e, data) {
+                        innerThis.$scope.$apply(function () {
+                            this.isLoading = true;
+                        });
+                        analytics.track("setLoginImage");
+                        $("#FileUploadProgressContainer").show();
+                        data.url = "api/DocumentUpload/LoginImage?ApiAuthToken=" + innerThis.siteInfo.authToken;
+                        var xhr = data.submit();
+                        xhr.done(function (result) {
+                            innerThis.$scope.$apply(function () {
+                                innerThis.isLoading = false;
+                                innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
+                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
+                            });
+                            $("#FileUploadProgressContainer").hide();
+                        });
+                    },
+                    progressall: function (e, data) {
+                        var progress = Math.floor((data.loaded * 100) / data.total);
+                        $('#FileUploadProgressBar').css('width', progress + '%');
+                        if (progress === 100)
+                            $("#FileUploadProgressLabel").text("Finalizing Upload...");
+                        else
+                            $("#FileUploadProgressLabel").text(progress + "%");
+                    }
+                });
+            });
+        };
+        PtaSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+        return PtaSettingsController;
+    }());
+    Ally.PtaSettingsController = PtaSettingsController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("ptaSettings", {
+    templateUrl: "/ngApp/pta/manager/pta-settings.html",
+    controller: Ally.PtaSettingsController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the PTA Ally home page
+     */
+    var PtaGroupHomeController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function PtaGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.appCacheService = appCacheService;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        PtaGroupHomeController.prototype.$onInit = function () {
+            this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
+            this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
+            this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
+            if (!this.homeRightColumnType)
+                this.homeRightColumnType = "localnews";
+            var subDomain = HtmlUtil.getSubdomain(window.location.host);
+            this.allyAppName = AppConfig.appName;
+            var MaxNumRecentPayments = 6;
+            this.recentPayments = this.siteInfo.userInfo.recentPayments;
+            if (this.recentPayments) {
+                if (this.recentPayments.length > MaxNumRecentPayments)
+                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
+                this.numRecentPayments = this.recentPayments.length;
+                // Fill up the list so there's always MaxNumRecentPayments
+                while (this.recentPayments.length < MaxNumRecentPayments)
+                    this.recentPayments.push({});
+            }
+            // The object that contains a message if the user wants to send one out
+            this.messageObject = {};
+            // If the user lives in a unit and assessments are enabled
+            if (this.siteInfo.privateSiteInfo.assessmentFrequency !== null
+                && this.siteInfo.userInfo.usersUnits !== null
+                && this.siteInfo.userInfo.usersUnits.length > 0) {
+                this.paymentInfo.paymentType = "periodic";
+                if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
+                    this.knowsNextPayment = true;
+                    this.errorPayInfoText = "Is the amount or date incorrect?";
+                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.updatePaymentText();
+                }
+            }
+            this.refreshData();
+        };
+        // Refresh the not text for the payment field
+        PtaGroupHomeController.prototype.updatePaymentText = function () {
+            if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
+                // If we have a next payment string
+                if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
+                    if (this.siteInfo.userInfo.usersUnits[0].includesLateFee)
+                        this.paymentInfo.note = "Assessment payment with late fee for ";
+                    else
+                        this.paymentInfo.note = "Assessment payment for ";
+                    this.paymentInfo.note += this.nextPaymentText;
+                }
+            }
+            else {
+                this.paymentInfo.note = "";
+            }
+        };
+        PtaGroupHomeController.prototype.onSelectPaymentType = function (paymentType) {
+            this.paymentInfo.paymentType = paymentType;
+            this.paymentInfo.amount = paymentType === "periodic" ? this.siteInfo.userInfo.assessmentAmount : 0;
+            this.updatePaymentText();
+        };
+        PtaGroupHomeController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
+            if (payPeriods === null)
+                return "";
+            // Ensure the periods is an array
+            if (payPeriods.constructor !== Array)
+                payPeriods = [payPeriods];
+            var paymentText = "";
+            var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
+            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
+                var curPeriod = payPeriods[periodIndex];
+                if (frequencyInfo.intervalName === "month") {
+                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+                    paymentText = monthNames[curPeriod.period - 1];
+                }
+                else if (frequencyInfo.intervalName === "quarter") {
+                    var quarterNames = ["Q1", "Q2", "Q3", "Q4"];
+                    paymentText = quarterNames[curPeriod.period - 1];
+                }
+                else if (frequencyInfo.intervalName === "half-year") {
+                    var halfYearNames = ["First Half", "Second Half"];
+                    paymentText = halfYearNames[curPeriod.period - 1];
+                }
+                paymentText += " " + curPeriod.year;
+                this.paymentInfo.paysFor = [curPeriod];
+            }
+            return paymentText;
+        };
+        PtaGroupHomeController.prototype.hideFirstVisit = function () {
+            this.$rootScope.hasClosedFirstVisitModal = true;
+            this.showFirstVisitModal = false;
+        };
+        PtaGroupHomeController.prototype.onIncorrectPayDetails = function () {
+            // Create a message to the board
+            this.messageObject.recipientType = "board";
+            if (this.knowsNextPayment)
+                this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my next payment of $" + this.siteInfo.userInfo.assessmentAmount + " will cover " + this.nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + this.siteInfo.userInfo.assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
+            else
+                this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
+            document.getElementById("send-email-panel").scrollIntoView();
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Populate the page from the server
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        PtaGroupHomeController.prototype.refreshData = function () {
+            //window.location.host is subdomain.domain.com
+            var subDomain = HtmlUtil.getSubdomain(window.location.host);
+            // A little test to help the automated tests run faster
+            var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
+            isTestSubdomain = false;
+            if (!isTestSubdomain && this.homeRightColumnType === "localnews") {
+                this.isLoading_LocalNews = true;
+                var localNewsUri;
+                var queryParams;
+                if (this.siteInfo.privateSiteInfo.country === "US") {
+                    localNewsUri = "https://localnewsally.org/api/LocalNews";
+                    queryParams = {
+                        clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
+                        chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
+                        zipCode: this.siteInfo.publicSiteInfo.zipCode,
+                        cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery
+                    };
+                }
+                else {
+                    localNewsUri = "https://localnewsally.org/api/LocalNews/International/MajorCity";
+                    queryParams = {
+                        clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
+                        countryCode: this.siteInfo.privateSiteInfo.country,
+                        city: this.siteInfo.privateSiteInfo.groupAddress.city
+                    };
+                }
+                var innerThis = this;
+                this.$http.get(localNewsUri, {
+                    cache: true,
+                    params: queryParams
+                }).then(function (httpResponse) {
+                    innerThis.localNews = httpResponse.data;
+                    innerThis.isLoading_LocalNews = false;
+                });
+            }
+        };
+        PtaGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
+        return PtaGroupHomeController;
+    }());
+    Ally.PtaGroupHomeController = PtaGroupHomeController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("ptaGroupHome", {
+    templateUrl: "/ngApp/pta/pta-group-home.html",
+    controller: Ally.PtaGroupHomeController
+});
+
 function ServiceBankInfoCtrl( $http )
 {
     var vm = this;
@@ -9651,6 +10035,16 @@ var Ally;
     Ally.createCsvString = createCsvString;
 })(Ally || (Ally = {}));
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Ally;
 (function (Ally) {
     /**
@@ -9665,11 +10059,13 @@ var Ally;
     /**
      * Represents a member of a CHTN group
      */
-    var FellowChtnResident = /** @class */ (function () {
+    var FellowChtnResident = /** @class */ (function (_super) {
+        __extends(FellowChtnResident, _super);
         function FellowChtnResident() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return FellowChtnResident;
-    }());
+    }(Ally.SimpleUserEntry));
     Ally.FellowChtnResident = FellowChtnResident;
     var CommitteeListingInfo = /** @class */ (function () {
         function CommitteeListingInfo() {

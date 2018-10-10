@@ -60,6 +60,10 @@ var Ally;
                             g.appNameString = "Neighborhood";
                             g.baseUrl = "https://" + g.shortName + ".NeighborhoodAlly.org/";
                         }
+                        else if (g.appName === 5) {
+                            g.appNameString = "PTA";
+                            g.baseUrl = "https://" + g.shortName + ".PTAAlly.org/";
+                        }
                     });
                 }, function () {
                     innerThis.isLoading = false;

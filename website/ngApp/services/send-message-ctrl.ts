@@ -13,7 +13,7 @@
         messageBody: string = "";
         messageSubject: string = "";
         sendResultIsError: boolean = false;
-        recipientInfo: any;
+        recipientInfo: SimpleUserEntry;
 
 
         /**

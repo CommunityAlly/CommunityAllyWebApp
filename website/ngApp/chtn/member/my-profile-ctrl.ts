@@ -11,21 +11,26 @@ namespace Ally
         userId: string;
         phoneNumber: string;
         avatarUrl: string;
+        showPhoneInMeetNeighbors: boolean;
+        postmarkReportedBadEmailUtc: Date;
         hasEmail: boolean;
     }
 
     export class SimpleUserEntryWithTerms extends SimpleUserEntry
     {
         acceptedTermsDate: Date;
-        postmarkReportedBadEmailUtc: Date;
     }
 
     class ProfileUserInfo extends SimpleUserEntryWithTerms
     {
         /** Not sent down, used when PUTing to update */
         password: string;
-        showPhoneInMeetNeighbors: boolean;
         includeInDiscussionEmail: boolean;
+    }
+
+    export class PtaMember extends SimpleUserEntry
+    {
+        boardPosition: number;
     }
 
 

@@ -37,6 +37,7 @@ var Ally;
         return Member;
     }());
     Ally.Member = Member;
+    /// Represents a member of a CHTN site
     var Resident = /** @class */ (function (_super) {
         __extends(Resident, _super);
         function Resident() {
@@ -79,6 +80,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isAdmin = false;
             this.showEmailSettings = true;
+            this.shouldShowHomePicker = true;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
             this.isLoading = false;
@@ -97,6 +99,7 @@ var Ally;
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.boardPositions = [
                 { id: 0, name: "None" },
@@ -131,8 +134,22 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: homeColumnWidth, sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); } },
-                        { field: 'isRenter', displayName: 'Is Renter', width: 80, cellClass: "resident-cell-is-renter", visible: this.showIsRenter, cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>' },
+                        {
+                            field: 'unitGridLabel',
+                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home',
+                            cellClass: "resident-cell-unit",
+                            width: homeColumnWidth,
+                            visible: AppConfig.isChtnSite,
+                            sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); }
+                        },
+                        {
+                            field: 'isRenter',
+                            displayName: 'Is Renter',
+                            width: 80,
+                            cellClass: "resident-cell-is-renter",
+                            visible: this.showIsRenter,
+                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
+                        },
                         { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
                         { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
@@ -301,7 +318,7 @@ var Ally;
                         res.lastLoginDateUtc = moment.utc(res.lastLoginDateUtc).toDate();
                 });
                 innerThis.populateGridUnitLabels();
-                if (!innerThis.allUnits) {
+                if (!innerThis.allUnits && AppConfig.isChtnSite) {
                     innerThis.isLoading = true;
                     innerThis.$http.get("/api/Unit").then(function (httpResponse) {
                         innerThis.isLoading = false;
@@ -554,8 +571,10 @@ var Ally;
                 simplifiedName = simplifiedName.replace(/place/g, "pl").replace(/avenue/g, "ave");
                 return simplifiedName;
             };
-            for (var i = 0; i < this.allUnits.length; ++i)
-                this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
+            if (this.allUnits) {
+                for (var i = 0; i < this.allUnits.length; ++i)
+                    this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
+            }
             var _loop_1 = function () {
                 var curRow = bulkRows[i];
                 while (curRow.length < 7)
@@ -663,13 +682,15 @@ var Ally;
                 csvTestName: undefined
             };
             // Try to step to the next unit
-            if (this.bulkImportRows.length > 0) {
-                var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
-                var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId; });
-                ++lastUnitIndex;
-                if (lastUnitIndex < this.allUnits.length) {
-                    newRow.unitName = this.allUnits[lastUnitIndex].name;
-                    newRow.unitId = this.allUnits[lastUnitIndex].unitId;
+            if (this.allUnits) {
+                if (this.bulkImportRows.length > 0) {
+                    var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
+                    var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId; });
+                    ++lastUnitIndex;
+                    if (lastUnitIndex < this.allUnits.length) {
+                        newRow.unitName = this.allUnits[lastUnitIndex].name;
+                        newRow.unitId = this.allUnits[lastUnitIndex].unitId;
+                    }
                 }
             }
             this.bulkImportRows.push(newRow);

@@ -20,7 +20,7 @@
                     {{ $ctrl.faqMenuText }}
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" data-ng-if="$ctrl.showVendors">
                 <a class="nav-link" data-ng-href="#!/Info/Vendor" id="info-sub-view-link-vendor"
                    data-ng-show="!$ctrl.hideVendors" data-ng-class="{'selected':$ctrl.selectedView=='Vendor'}" data-ng-click="$ctrl.selectedView='Vendor'">
                     Vendors

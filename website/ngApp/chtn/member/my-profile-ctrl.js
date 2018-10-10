@@ -31,6 +31,14 @@ var Ally;
         }
         return ProfileUserInfo;
     }(SimpleUserEntryWithTerms));
+    var PtaMember = /** @class */ (function (_super) {
+        __extends(PtaMember, _super);
+        function PtaMember() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return PtaMember;
+    }(SimpleUserEntry));
+    Ally.PtaMember = PtaMember;
     /**
      * The controller for the profile page
      */

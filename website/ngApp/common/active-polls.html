@@ -8,7 +8,11 @@
         <!--Show the question text-->
         <div class="text-12 text-bold">POLL<span data-ng-if="poll.hasUsersUnitVoted && poll.canViewResults"> RESULTS</span>:</div>
         <p id="poll-question-text-{{ $index }}" class="no-margin text-large">{{ poll.questionText }}</p>
-        <p class="no-margin"><small><u>Posted by {{ poll.authorName }}, {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</u></small></p>
+        <p class="no-margin">
+            <small><u>Posted by {{ poll.authorName }}, {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</u></small><br />
+            <span data-ng-if="poll.isAnonymous" class="note-text">This is an anonymous poll. Your identity will not be shown with your response.</span>
+            <span data-ng-if="!poll.isAnonymous" class="note-text">This is NOT an anonymous poll. Your identity will be shown with your response.</span>
+        </p>
 
         <!--Show the poll responses-->
         <div data-ng-hide="poll.hasUsersUnitVoted">

@@ -61,6 +61,7 @@ namespace Ally
         creationDate: Date;
         welcomeMessage: string;
         gpsPosition: any;
+        canHideContactInfo: boolean;
     }
 
 
@@ -80,7 +81,6 @@ namespace Ally
         homeRightColumnType: string;
         siteLaunchedDateUtc: Date;
         rentersCanViewDocs: boolean;
-        canHideContactInfo: boolean;
         //payPalClientId: string;
         maintenanceTodoListId: number;
 

@@ -34,7 +34,7 @@ namespace Ally
         {
             this.allyAppName = AppConfig.appName;
             this.groupShortName = HtmlUtil.getSubdomain();
-            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
+            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
 
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
@@ -52,6 +52,9 @@ namespace Ally
                 this.unitList = data.byUnit;
                 this.allResidents = data.residents;
                 this.committees = data.committees;
+
+                if( !this.allResidents && data.ptaMembers )
+                    this.allResidents = <FellowChtnResident[]>data.ptaMembers;
 
                 // Sort by last name
                 this.allResidents = _.sortBy( this.allResidents, function( r ) { return r.lastName; } );

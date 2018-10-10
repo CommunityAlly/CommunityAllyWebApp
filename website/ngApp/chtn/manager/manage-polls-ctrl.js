@@ -2,6 +2,7 @@ var Ally;
 (function (Ally) {
     var Poll = /** @class */ (function () {
         function Poll() {
+            this.isAnonymous = true;
         }
         return Poll;
     }());
@@ -15,6 +16,7 @@ var Ally;
         function ManagePollsController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.editingItem = new Poll();
             this.pollHistory = [];
             this.isLoading = false;
         }

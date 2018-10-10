@@ -13,6 +13,7 @@ var Ally;
             this.hideDocuments = false;
             this.hideVendors = false;
             this.showMaintenance = false;
+            this.showVendors = true;
             this.faqMenuText = "Info/FAQs";
             if (AppConfig.appShortName === "home")
                 this.faqMenuText = "Notes";
@@ -26,6 +27,7 @@ var Ally;
             this.showMaintenance = AppConfig.appShortName === "home"
                 || (AppConfig.appShortName === "condo")
                 || (AppConfig.appShortName === "hoa");
+            this.showVendors = AppConfig.appShortName !== "pta";
             if (this.hideDocuments)
                 this.selectedView = "Info";
             else

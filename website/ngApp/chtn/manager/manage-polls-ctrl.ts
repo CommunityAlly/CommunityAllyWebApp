@@ -4,6 +4,7 @@
     {
         pollId: number;
         allowOtherAnswer: boolean;
+        isAnonymous: boolean = true;
         expirationDate: Date;
         postDate: Date;
         authorUserId: string;
@@ -16,7 +17,6 @@
         whoCanVote: string;
         hasUsersUnitVoted: boolean;
         unitVoteText: string;
-        cleanResponses: any[];
         noResponseCount: number;
         canViewResults: boolean;
 
@@ -36,7 +36,7 @@
         static $inject = ["$http", "SiteInfo"];
 
         defaultPoll: Poll;
-        editingItem: Poll;
+        editingItem: Poll = new Poll();
         viewingPollResults: Poll;
         pollHistory: Poll[] = [];
         isLoading: boolean = false;

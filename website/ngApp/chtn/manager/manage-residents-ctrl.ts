@@ -52,6 +52,7 @@ namespace Ally
     }
 
 
+    /// Represents a member of a CHTN site
     export class Resident extends Member
     {
         units: Ally.HomeEntryWithName[];
@@ -113,6 +114,7 @@ namespace Ally
         homeName: string;
         showIsRenter: boolean;
         showEmailSettings: boolean = true;
+        shouldShowHomePicker: boolean = true;
         boardPositions: any[];
         newResident: any;
         editUser: any;
@@ -157,6 +159,7 @@ namespace Ally
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
 
             this.boardPositions = [
@@ -201,8 +204,22 @@ namespace Ally
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'unitGridLabel', displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home', cellClass: "resident-cell-unit", width: homeColumnWidth, sortingAlgorithm: function( a:string, b:string ) { return a.toString().localeCompare( b.toString() ); } },
-                        { field: 'isRenter', displayName: 'Is Renter', width: 80, cellClass: "resident-cell-is-renter", visible: this.showIsRenter, cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>' },
+                        {
+                            field: 'unitGridLabel',
+                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home',
+                            cellClass: "resident-cell-unit",
+                            width: homeColumnWidth,
+                            visible: AppConfig.isChtnSite,
+                            sortingAlgorithm: function( a: string, b: string ) { return a.toString().localeCompare( b.toString() ); }
+                        },
+                        {
+                            field: 'isRenter',
+                            displayName: 'Is Renter',
+                            width: 80,
+                            cellClass: "resident-cell-is-renter",
+                            visible: this.showIsRenter,
+                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
+                        },
                         { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
                         { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
@@ -436,7 +453,7 @@ namespace Ally
 
                 innerThis.populateGridUnitLabels();
 
-                if( !innerThis.allUnits )
+                if( !innerThis.allUnits && AppConfig.isChtnSite )
                 {
                     innerThis.isLoading = true;
 
@@ -763,7 +780,7 @@ namespace Ally
          */
         parseBulkCsv()
         {
-            var csvParser = (<any>$).csv;
+            var csvParser = ( <any>$ ).csv;
             var bulkRows = csvParser.toArrays( this.bulkImportCsv );
 
             this.bulkImportRows = [];
@@ -789,8 +806,11 @@ namespace Ally
                 return simplifiedName;
             };
 
-            for( var i = 0; i < this.allUnits.length; ++i )
-                this.allUnits[i].csvTestName = simplifyStreetName( this.allUnits[i].name );
+            if( this.allUnits )
+            {
+                for( var i = 0; i < this.allUnits.length; ++i )
+                    this.allUnits[i].csvTestName = simplifyStreetName( this.allUnits[i].name );
+            }
 
             for( var i = 0; i < bulkRows.length; ++i )
             {
@@ -933,17 +953,20 @@ namespace Ally
             };
 
             // Try to step to the next unit
-            if( this.bulkImportRows.length > 0 )
+            if( this.allUnits )
             {
-                var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
-                var lastUnitIndex = _.findIndex( this.allUnits, function( u ) { return u.unitId === lastUnitId; } );
-
-                ++lastUnitIndex;
-
-                if( lastUnitIndex < this.allUnits.length )
+                if( this.bulkImportRows.length > 0 )
                 {
-                    newRow.unitName = this.allUnits[lastUnitIndex].name;
-                    newRow.unitId = this.allUnits[lastUnitIndex].unitId;
+                    var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
+                    var lastUnitIndex = _.findIndex( this.allUnits, function( u ) { return u.unitId === lastUnitId; } );
+
+                    ++lastUnitIndex;
+
+                    if( lastUnitIndex < this.allUnits.length )
+                    {
+                        newRow.unitName = this.allUnits[lastUnitIndex].name;
+                        newRow.unitId = this.allUnits[lastUnitIndex].unitId;
+                    }
                 }
             }
 

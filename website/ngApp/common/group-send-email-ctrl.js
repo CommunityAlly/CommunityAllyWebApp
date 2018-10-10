@@ -33,6 +33,8 @@ var Ally;
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
             this.defaultSubject = "A message from your neighbor";
+            this.memberLabel = "resident";
+            this.memberPageName = "Residents";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -42,16 +44,22 @@ var Ally;
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
-            if (!this.committee) {
+            if (this.committee) {
+                this.messageObject.committeeId = this.committee.committeeId;
+                this.defaultSubject = "A message from a committee member";
+            }
+            else {
                 this.loadGroupEmails();
                 // Handle the global message that tells this component to prepare a draft of a message
                 // to inquire about assessment inaccuracies
                 this.$scope.$on("prepAssessmentEmailToBoard", function (event, data) { return _this.prepBadAssessmentEmailForBoard(data); });
-                this.defaultSubject = "A message from your neighbor";
-            }
-            else {
-                this.messageObject.committeeId = this.committee.committeeId;
-                this.defaultSubject = "A message from a committee member";
+                if (AppConfig.appShortName === "pta") {
+                    this.defaultSubject = "A message from a PTA member";
+                    this.memberLabel = "member";
+                    this.memberPageName = "Members";
+                }
+                else
+                    this.defaultSubject = "A message from your neighbor";
             }
             this.messageObject.subject = this.defaultSubject;
         };
@@ -143,7 +151,7 @@ var Ally;
             var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && AppConfig.isChtnSite;
             var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
         };

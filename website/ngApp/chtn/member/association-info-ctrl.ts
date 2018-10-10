@@ -17,6 +17,7 @@
         hideVendors: boolean = false;
         selectedView: string;
         showMaintenance: boolean = false;
+        showVendors: boolean = true;
         faqMenuText: string = "Info/FAQs";
 
 
@@ -40,7 +41,8 @@
             this.showMaintenance = AppConfig.appShortName === "home"
                                     || ( AppConfig.appShortName === "condo" )
                                     || ( AppConfig.appShortName === "hoa" );
-            
+            this.showVendors = AppConfig.appShortName !== "pta";
+
             if( this.hideDocuments )
                 this.selectedView = "Info";
             else
