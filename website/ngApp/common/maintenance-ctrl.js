@@ -129,6 +129,26 @@ var Ally;
             });
         };
         /**
+        * Occurs when the user clicks the button to delete equipment
+        */
+        MaintenanceController.prototype.deleteEquipment = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to delete this equipment? This action cannot be undone."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/Maintenance/Equipment/" + this.editingEquipment.equipmentId).then(function () {
+                _this.isLoading = false;
+                _this.editingEquipment = null;
+                _this.shouldShowEditEquipmentModal = false;
+                _this.loadEquipment()
+                    .then(function () { return _this.loadProjects(); })
+                    .then(function () { return _this.rebuildMaintenanceEntries(); });
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete the equipment: " + response.data.exceptionMessage);
+            });
+        };
+        /**
         * Retrieve the equipment available for this group
         */
         MaintenanceController.prototype.loadVendors = function () {

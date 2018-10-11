@@ -227,6 +227,34 @@
 
 
         /**
+        * Occurs when the user clicks the button to delete equipment
+        */
+        deleteEquipment()
+        {
+            if( !confirm( "Are you sure you want to delete this equipment? This action cannot be undone." ) )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.delete( "/api/Maintenance/Equipment/" + this.editingEquipment.equipmentId ).then( () =>
+            {
+                this.isLoading = false;
+                this.editingEquipment = null;
+                this.shouldShowEditEquipmentModal = false;
+
+                this.loadEquipment()
+                    .then( () => this.loadProjects() )
+                    .then( () => this.rebuildMaintenanceEntries() );
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to delete the equipment: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
         * Retrieve the equipment available for this group
         */
         loadVendors()
