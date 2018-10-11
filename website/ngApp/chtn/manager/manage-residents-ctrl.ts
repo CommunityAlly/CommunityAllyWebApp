@@ -52,11 +52,18 @@ namespace Ally
     }
 
 
+    export class MemberWithBoard extends Member
+    {
+        boardPosition: number;
+        lastLoginDateUtc: Date;
+        postmarkReportedBadEmailUtc: Date;
+    }
+
+
     /// Represents a member of a CHTN site
-    export class Resident extends Member
+    export class Resident extends MemberWithBoard
     {
         units: Ally.HomeEntryWithName[];
-        boardPosition: number;
         shouldShowAvatarInListing: boolean;
     }
 
@@ -64,8 +71,6 @@ namespace Ally
     export class UpdateResident extends Resident
     {
         isRenter: boolean;
-        lastLoginDateUtc: Date;
-        postmarkReportedBadEmailUtc: Date;
 
         // Not from the server
         fullName: string;
@@ -326,7 +331,7 @@ namespace Ally
             this.editUser = copiedUser;
 
             // Initialize the home picker state
-            this.editUser.showAdvancedHomePicker = this.allUnits.length > 20;
+            this.editUser.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
             this.multiselectMulti = "single";
 
             if( typeof ( this.editUser.units ) === "object" )
@@ -342,7 +347,7 @@ namespace Ally
             }
 
             // Add an empty unit option for the advanced picker in single-select mode
-            if( this.allUnits.length > 20 && this.multiselectMulti === "single" )
+            if( this.allUnits && this.allUnits.length > 20 && this.multiselectMulti === "single" )
             {
                 // Add an empty entry since the multi-select control doesn't allow deselection
                 if( this.allUnits[0].unitId !== -5 )
@@ -355,10 +360,9 @@ namespace Ally
             }
 
             // Set the selected units
-            var innerThis = this;
-            _.each( this.allUnits, function( allUnit )
+            _.each( this.allUnits, ( allUnit ) =>
             {
-                var isSelected = _.find( innerThis.editUser.units, function( userUnit: any ) { return userUnit.unitId === allUnit.unitId; } ) !== undefined;
+                var isSelected = _.find( this.editUser.units, function( userUnit: any ) { return userUnit.unitId === allUnit.unitId; } ) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             } );
 

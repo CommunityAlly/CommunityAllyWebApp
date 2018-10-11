@@ -2461,6 +2461,14 @@ var Ally;
         return Member;
     }());
     Ally.Member = Member;
+    var MemberWithBoard = /** @class */ (function (_super) {
+        __extends(MemberWithBoard, _super);
+        function MemberWithBoard() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return MemberWithBoard;
+    }(Member));
+    Ally.MemberWithBoard = MemberWithBoard;
     /// Represents a member of a CHTN site
     var Resident = /** @class */ (function (_super) {
         __extends(Resident, _super);
@@ -2468,7 +2476,7 @@ var Ally;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         return Resident;
-    }(Member));
+    }(MemberWithBoard));
     Ally.Resident = Resident;
     var UpdateResident = /** @class */ (function (_super) {
         __extends(UpdateResident, _super);
@@ -2645,6 +2653,7 @@ var Ally;
         * Edit a resident's information
         */
         ManageResidentsController.prototype.setEdit = function (resident) {
+            var _this = this;
             this.sentWelcomeEmail = false;
             if (resident === null) {
                 this.editUser = null;
@@ -2654,7 +2663,7 @@ var Ally;
             var copiedUser = jQuery.extend({}, resident);
             this.editUser = copiedUser;
             // Initialize the home picker state
-            this.editUser.showAdvancedHomePicker = this.allUnits.length > 20;
+            this.editUser.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
             this.multiselectMulti = "single";
             if (typeof (this.editUser.units) === "object") {
                 if (this.editUser.units.length > 0)
@@ -2665,7 +2674,7 @@ var Ally;
                 }
             }
             // Add an empty unit option for the advanced picker in single-select mode
-            if (this.allUnits.length > 20 && this.multiselectMulti === "single") {
+            if (this.allUnits && this.allUnits.length > 20 && this.multiselectMulti === "single") {
                 // Add an empty entry since the multi-select control doesn't allow deselection
                 if (this.allUnits[0].unitId !== -5) {
                     var emptyUnit = new Ally.Unit();
@@ -2675,9 +2684,8 @@ var Ally;
                 }
             }
             // Set the selected units
-            var innerThis = this;
             _.each(this.allUnits, function (allUnit) {
-                var isSelected = _.find(innerThis.editUser.units, function (userUnit) { return userUnit.unitId === allUnit.unitId; }) !== undefined;
+                var isSelected = _.find(_this.editUser.units, function (userUnit) { return userUnit.unitId === allUnit.unitId; }) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             });
             //this.residentGridOptions.selectAll( false );
@@ -7622,6 +7630,26 @@ var Ally;
             });
         };
         /**
+        * Occurs when the user clicks the button to delete equipment
+        */
+        MaintenanceController.prototype.deleteEquipment = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to delete this equipment? This action cannot be undone."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/Maintenance/Equipment/" + this.editingEquipment.equipmentId).then(function () {
+                _this.isLoading = false;
+                _this.editingEquipment = null;
+                _this.shouldShowEditEquipmentModal = false;
+                _this.loadEquipment()
+                    .then(function () { return _this.loadProjects(); })
+                    .then(function () { return _this.rebuildMaintenanceEntries(); });
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete the equipment: " + response.data.exceptionMessage);
+            });
+        };
+        /**
         * Retrieve the equipment available for this group
         */
         MaintenanceController.prototype.loadVendors = function () {
@@ -9083,166 +9111,6 @@ var Ally;
 CA.angularApp.component('homeSignUp', {
     templateUrl: "/ngApp/home/public/home-sign-up.html",
     controller: Ally.HomeSignUpController
-});
-
-
-var Ally;
-(function (Ally) {
-    /**
-     * The controller for the page to view group site settings
-     */
-    var PtaSettingsController = /** @class */ (function () {
-        /**
-         * The constructor for the class
-         */
-        function PtaSettingsController($http, siteInfo, $timeout, $scope) {
-            this.$http = $http;
-            this.siteInfo = siteInfo;
-            this.$timeout = $timeout;
-            this.$scope = $scope;
-            this.settings = new Ally.CondoSiteSettings();
-            this.showRightColumnSetting = true;
-        }
-        /**
-         * Called on each controller after all the controllers on an element have been constructed
-         */
-        PtaSettingsController.prototype.$onInit = function () {
-            this.defaultBGImage = $(document.documentElement).css("background-image");
-            this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
-            this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
-            this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
-            // Hook up the file upload control after everything is loaded and setup
-            var innerThis = this;
-            this.$timeout(function () { return innerThis.hookUpFileUpload(); }, 200);
-            this.refreshData();
-        };
-        /**
-         * Populate the page from the server
-         */
-        PtaSettingsController.prototype.refreshData = function () {
-            this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Settings").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.settings = httpResponse.data;
-            });
-        };
-        /**
-         * Clear the login image
-         */
-        PtaSettingsController.prototype.removeLoginImage = function () {
-            analytics.track("clearLoginImage");
-            this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Settings/ClearLoginImage").then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.publicSiteInfo.loginImageUrl = "";
-                innerThis.loginImageUrl = "";
-            }, function (httpResponse) {
-                innerThis.isLoading = false;
-                alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
-            });
-        };
-        /**
-         * Save all of the settings
-         */
-        PtaSettingsController.prototype.saveSettings = function (shouldReload) {
-            var _this = this;
-            if (shouldReload === void 0) { shouldReload = false; }
-            analytics.track("editSettings");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", this.settings).then(function () {
-                _this.isLoading = false;
-                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
-                // Reload the page to show the page title has changed
-                if (shouldReload)
-                    location.reload();
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        /**
-         * Occurs when the user wants to save a new site title
-         */
-        PtaSettingsController.prototype.onSiteTitleChange = function () {
-            var _this = this;
-            analytics.track("editSiteTitle");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", { siteTitle: this.settings.siteTitle }).then(function () {
-                // Reload the page to show the page title has changed
-                location.reload();
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        /**
-         * Occurs when the user wants to save a new welcome message
-         */
-        PtaSettingsController.prototype.onWelcomeMessageUpdate = function () {
-            var _this = this;
-            analytics.track("editWelcomeMessage");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", { welcomeMessage: this.settings.welcomeMessage }).then(function () {
-                _this.isLoading = false;
-                _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        PtaSettingsController.prototype.onQaDeleteSite = function () {
-            this.$http.get("/api/QA/DeleteThisAssociation").then(function () {
-                location.reload();
-            }, function (httpResponse) {
-                alert("Failed to delete site: " + httpResponse.data.exceptionMessage);
-            });
-        };
-        /**
-         * Hooked up the login image JQuery upload control
-         */
-        PtaSettingsController.prototype.hookUpFileUpload = function () {
-            var innerThis = this;
-            $(function () {
-                $('#JQFileUploader').fileupload({
-                    autoUpload: true,
-                    add: function (e, data) {
-                        innerThis.$scope.$apply(function () {
-                            this.isLoading = true;
-                        });
-                        analytics.track("setLoginImage");
-                        $("#FileUploadProgressContainer").show();
-                        data.url = "api/DocumentUpload/LoginImage?ApiAuthToken=" + innerThis.siteInfo.authToken;
-                        var xhr = data.submit();
-                        xhr.done(function (result) {
-                            innerThis.$scope.$apply(function () {
-                                innerThis.isLoading = false;
-                                innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
-                            });
-                            $("#FileUploadProgressContainer").hide();
-                        });
-                    },
-                    progressall: function (e, data) {
-                        var progress = Math.floor((data.loaded * 100) / data.total);
-                        $('#FileUploadProgressBar').css('width', progress + '%');
-                        if (progress === 100)
-                            $("#FileUploadProgressLabel").text("Finalizing Upload...");
-                        else
-                            $("#FileUploadProgressLabel").text(progress + "%");
-                    }
-                });
-            });
-        };
-        PtaSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];
-        return PtaSettingsController;
-    }());
-    Ally.PtaSettingsController = PtaSettingsController;
-})(Ally || (Ally = {}));
-CA.angularApp.component("ptaSettings", {
-    templateUrl: "/ngApp/pta/manager/pta-settings.html",
-    controller: Ally.PtaSettingsController
 });
 
 var Ally;

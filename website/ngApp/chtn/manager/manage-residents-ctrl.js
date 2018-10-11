@@ -37,6 +37,14 @@ var Ally;
         return Member;
     }());
     Ally.Member = Member;
+    var MemberWithBoard = /** @class */ (function (_super) {
+        __extends(MemberWithBoard, _super);
+        function MemberWithBoard() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return MemberWithBoard;
+    }(Member));
+    Ally.MemberWithBoard = MemberWithBoard;
     /// Represents a member of a CHTN site
     var Resident = /** @class */ (function (_super) {
         __extends(Resident, _super);
@@ -44,7 +52,7 @@ var Ally;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         return Resident;
-    }(Member));
+    }(MemberWithBoard));
     Ally.Resident = Resident;
     var UpdateResident = /** @class */ (function (_super) {
         __extends(UpdateResident, _super);
@@ -221,6 +229,7 @@ var Ally;
         * Edit a resident's information
         */
         ManageResidentsController.prototype.setEdit = function (resident) {
+            var _this = this;
             this.sentWelcomeEmail = false;
             if (resident === null) {
                 this.editUser = null;
@@ -230,7 +239,7 @@ var Ally;
             var copiedUser = jQuery.extend({}, resident);
             this.editUser = copiedUser;
             // Initialize the home picker state
-            this.editUser.showAdvancedHomePicker = this.allUnits.length > 20;
+            this.editUser.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
             this.multiselectMulti = "single";
             if (typeof (this.editUser.units) === "object") {
                 if (this.editUser.units.length > 0)
@@ -241,7 +250,7 @@ var Ally;
                 }
             }
             // Add an empty unit option for the advanced picker in single-select mode
-            if (this.allUnits.length > 20 && this.multiselectMulti === "single") {
+            if (this.allUnits && this.allUnits.length > 20 && this.multiselectMulti === "single") {
                 // Add an empty entry since the multi-select control doesn't allow deselection
                 if (this.allUnits[0].unitId !== -5) {
                     var emptyUnit = new Ally.Unit();
@@ -251,9 +260,8 @@ var Ally;
                 }
             }
             // Set the selected units
-            var innerThis = this;
             _.each(this.allUnits, function (allUnit) {
-                var isSelected = _.find(innerThis.editUser.units, function (userUnit) { return userUnit.unitId === allUnit.unitId; }) !== undefined;
+                var isSelected = _.find(_this.editUser.units, function (userUnit) { return userUnit.unitId === allUnit.unitId; }) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             });
             //this.residentGridOptions.selectAll( false );
