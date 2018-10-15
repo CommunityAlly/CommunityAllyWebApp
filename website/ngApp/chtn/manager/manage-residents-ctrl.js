@@ -89,6 +89,7 @@ var Ally;
             this.isAdmin = false;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
+            this.showKansasPtaExport = false;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
             this.isLoading = false;
@@ -108,7 +109,10 @@ var Ally;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
+            this.showKansasPtaExport = true;
+            AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
+            this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.boardPositions = [
                 { id: 0, name: "None" },
                 { id: 1, name: "President" },
@@ -498,6 +502,144 @@ var Ally;
             csvLink.setAttribute("download", "Residents.csv");
             document.body.appendChild(csvLink); // Required for FF
             csvLink.click(); // This will download the data file named "my_data.csv"
+            setTimeout(function () { document.body.removeChild(csvLink); }, 500);
+        };
+        /**
+         * Export the member list for a PTA in Kansas as a CSV ready to be uploaded to the state
+         */
+        ManageResidentsController.prototype.exportKansasPtaCsv = function () {
+            if (!this.siteInfo.privateSiteInfo.ptaUnitId) {
+                alert("You must first set your PTA unit ID in Manage -> Settings before you can export this list");
+                return;
+            }
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportKansasPtaCsv');
+            var innerThis = this;
+            var csvColumns = [
+                {
+                    headerText: "Local_Unit",
+                    fieldName: "Local_Unit"
+                },
+                {
+                    headerText: "First_Name",
+                    fieldName: "firstName"
+                },
+                {
+                    headerText: "Last_Name",
+                    fieldName: "lastName"
+                },
+                {
+                    headerText: "Number_of_Members",
+                    fieldName: "Number_of_Members"
+                },
+                {
+                    headerText: "Membership_Name",
+                    fieldName: "Membership_Name"
+                },
+                {
+                    headerText: "Name_Prefix",
+                    fieldName: "Name_Prefix"
+                },
+                {
+                    headerText: "Middle_Name",
+                    fieldName: "Middle_Name"
+                },
+                {
+                    headerText: "Name_Suffix",
+                    fieldName: "Name_Suffix"
+                },
+                {
+                    headerText: "Email",
+                    fieldName: "email"
+                },
+                {
+                    headerText: "Address_1",
+                    fieldName: "Address_1"
+                },
+                {
+                    headerText: "Address_2",
+                    fieldName: "Address_2"
+                },
+                {
+                    headerText: "Address_3",
+                    fieldName: "Address_3"
+                },
+                {
+                    headerText: "City",
+                    fieldName: "City"
+                },
+                {
+                    headerText: "State",
+                    fieldName: "State"
+                },
+                {
+                    headerText: "Zip",
+                    fieldName: "Zip"
+                },
+                {
+                    headerText: "Home_Telephone",
+                    fieldName: "phoneNumber"
+                },
+                {
+                    headerText: "Work_Telephone",
+                    fieldName: "Work_Telephone"
+                },
+                {
+                    headerText: "Mobile_Number",
+                    fieldName: "Mobile_Number"
+                },
+                {
+                    headerText: "Position",
+                    fieldName: "Position"
+                },
+                {
+                    headerText: "Begin_Date",
+                    fieldName: "Begin_Date"
+                },
+                {
+                    headerText: "End_Date",
+                    fieldName: "End_Date"
+                },
+                {
+                    headerText: "Second_Name",
+                    fieldName: "Second_Name"
+                },
+                {
+                    headerText: "Second_Email",
+                    fieldName: "Second_Email"
+                },
+                {
+                    headerText: "Teacher1",
+                    fieldName: "Teacher1"
+                },
+                {
+                    headerText: "Teacher2",
+                    fieldName: "Teacher2"
+                },
+                {
+                    headerText: "Teacher3",
+                    fieldName: "Teacher3"
+                },
+                {
+                    headerText: "Children_Names",
+                    fieldName: "Children_Names"
+                }
+            ];
+            var copiedMembers = _.clone(this.residentGridOptions.data);
+            for (var _i = 0, copiedMembers_1 = copiedMembers; _i < copiedMembers_1.length; _i++) {
+                var member = copiedMembers_1[_i];
+                member.Local_Unit = this.siteInfo.privateSiteInfo.ptaUnitId.toString();
+            }
+            var csvDataString = Ally.createCsvString(this.residentGridOptions.data, csvColumns);
+            csvDataString = "data:text/csv;charset=utf-8," + csvDataString;
+            var encodedUri = encodeURI(csvDataString);
+            // Works, but can't set the file name
+            //window.open( encodedUri );
+            var csvLink = document.createElement("a");
+            csvLink.setAttribute("href", encodedUri);
+            csvLink.setAttribute("download", "pta-members.csv");
+            document.body.appendChild(csvLink); // Required for FF
+            csvLink.click(); // This will download the file
             setTimeout(function () { document.body.removeChild(csvLink); }, 500);
         };
         /**

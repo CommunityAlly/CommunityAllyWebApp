@@ -1107,6 +1107,7 @@ var CondoAllyAppConfig = {
     isChtnSite: true,
     segmentWriteKey: "GnlZNd8jKCpDgFqRKbA4nftkuFIaqKPQ",
     homeName: "Unit",
+    memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
         new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
@@ -1191,6 +1192,8 @@ var HomeAppConfig = {
     baseTld: "homeally.org",
     baseUrl: "https://homeally.org/",
     isChtnSite: false,
+    homeName: "Home",
+    memberTypeLabel: "User",
     menu: [
         //new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
         new Ally.RoutePath_v3({ path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All }),
@@ -1263,6 +1266,7 @@ PtaAppConfig.baseTld = "ptaally.org";
 PtaAppConfig.baseUrl = "https://ptaally.org/";
 PtaAppConfig.isChtnSite = false;
 PtaAppConfig.homeName = "Home";
+PtaAppConfig.memberTypeLabel = "Member";
 PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
     new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
@@ -2513,6 +2517,7 @@ var Ally;
             this.isAdmin = false;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
+            this.showKansasPtaExport = false;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
             this.isLoading = false;
@@ -2532,7 +2537,10 @@ var Ally;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
+            this.showKansasPtaExport = true;
+            AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
+            this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.boardPositions = [
                 { id: 0, name: "None" },
                 { id: 1, name: "President" },
@@ -2925,6 +2933,144 @@ var Ally;
             setTimeout(function () { document.body.removeChild(csvLink); }, 500);
         };
         /**
+         * Export the member list for a PTA in Kansas as a CSV ready to be uploaded to the state
+         */
+        ManageResidentsController.prototype.exportKansasPtaCsv = function () {
+            if (!this.siteInfo.privateSiteInfo.ptaUnitId) {
+                alert("You must first set your PTA unit ID in Manage -> Settings before you can export this list");
+                return;
+            }
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportKansasPtaCsv');
+            var innerThis = this;
+            var csvColumns = [
+                {
+                    headerText: "Local_Unit",
+                    fieldName: "Local_Unit"
+                },
+                {
+                    headerText: "First_Name",
+                    fieldName: "firstName"
+                },
+                {
+                    headerText: "Last_Name",
+                    fieldName: "lastName"
+                },
+                {
+                    headerText: "Number_of_Members",
+                    fieldName: "Number_of_Members"
+                },
+                {
+                    headerText: "Membership_Name",
+                    fieldName: "Membership_Name"
+                },
+                {
+                    headerText: "Name_Prefix",
+                    fieldName: "Name_Prefix"
+                },
+                {
+                    headerText: "Middle_Name",
+                    fieldName: "Middle_Name"
+                },
+                {
+                    headerText: "Name_Suffix",
+                    fieldName: "Name_Suffix"
+                },
+                {
+                    headerText: "Email",
+                    fieldName: "email"
+                },
+                {
+                    headerText: "Address_1",
+                    fieldName: "Address_1"
+                },
+                {
+                    headerText: "Address_2",
+                    fieldName: "Address_2"
+                },
+                {
+                    headerText: "Address_3",
+                    fieldName: "Address_3"
+                },
+                {
+                    headerText: "City",
+                    fieldName: "City"
+                },
+                {
+                    headerText: "State",
+                    fieldName: "State"
+                },
+                {
+                    headerText: "Zip",
+                    fieldName: "Zip"
+                },
+                {
+                    headerText: "Home_Telephone",
+                    fieldName: "phoneNumber"
+                },
+                {
+                    headerText: "Work_Telephone",
+                    fieldName: "Work_Telephone"
+                },
+                {
+                    headerText: "Mobile_Number",
+                    fieldName: "Mobile_Number"
+                },
+                {
+                    headerText: "Position",
+                    fieldName: "Position"
+                },
+                {
+                    headerText: "Begin_Date",
+                    fieldName: "Begin_Date"
+                },
+                {
+                    headerText: "End_Date",
+                    fieldName: "End_Date"
+                },
+                {
+                    headerText: "Second_Name",
+                    fieldName: "Second_Name"
+                },
+                {
+                    headerText: "Second_Email",
+                    fieldName: "Second_Email"
+                },
+                {
+                    headerText: "Teacher1",
+                    fieldName: "Teacher1"
+                },
+                {
+                    headerText: "Teacher2",
+                    fieldName: "Teacher2"
+                },
+                {
+                    headerText: "Teacher3",
+                    fieldName: "Teacher3"
+                },
+                {
+                    headerText: "Children_Names",
+                    fieldName: "Children_Names"
+                }
+            ];
+            var copiedMembers = _.clone(this.residentGridOptions.data);
+            for (var _i = 0, copiedMembers_1 = copiedMembers; _i < copiedMembers_1.length; _i++) {
+                var member = copiedMembers_1[_i];
+                member.Local_Unit = this.siteInfo.privateSiteInfo.ptaUnitId.toString();
+            }
+            var csvDataString = Ally.createCsvString(this.residentGridOptions.data, csvColumns);
+            csvDataString = "data:text/csv;charset=utf-8," + csvDataString;
+            var encodedUri = encodeURI(csvDataString);
+            // Works, but can't set the file name
+            //window.open( encodedUri );
+            var csvLink = document.createElement("a");
+            csvLink.setAttribute("href", encodedUri);
+            csvLink.setAttribute("download", "pta-members.csv");
+            document.body.appendChild(csvLink); // Required for FF
+            csvLink.click(); // This will download the file
+            setTimeout(function () { document.body.removeChild(csvLink); }, 500);
+        };
+        /**
          * Save the resident settings to the server
          */
         ManageResidentsController.prototype.saveResidentSettings = function () {
@@ -3226,14 +3372,14 @@ var Ally;
     /**
      * Represents settings for a Condo, HOA, or Neighborhood Ally site
      */
-    var CondoSiteSettings = /** @class */ (function (_super) {
-        __extends(CondoSiteSettings, _super);
-        function CondoSiteSettings() {
+    var ChtnSiteSettings = /** @class */ (function (_super) {
+        __extends(ChtnSiteSettings, _super);
+        function ChtnSiteSettings() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        return CondoSiteSettings;
+        return ChtnSiteSettings;
     }(BaseSiteSettings));
-    Ally.CondoSiteSettings = CondoSiteSettings;
+    Ally.ChtnSiteSettings = ChtnSiteSettings;
     /**
      * The controller for the page to view group site settings
      */
@@ -3246,31 +3392,35 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
-            this.settings = new CondoSiteSettings();
+            this.settings = new ChtnSiteSettings();
+            this.originalSettings = new ChtnSiteSettings();
             this.showRightColumnSetting = true;
+            this.isPta = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         ChtnSettingsController.prototype.$onInit = function () {
+            var _this = this;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.isPta = AppConfig.appShortName === "pta";
             // Hook up the file upload control after everything is loaded and setup
-            var innerThis = this;
-            this.$timeout(function () { return innerThis.hookUpFileUpload(); }, 200);
+            this.$timeout(function () { return _this.hookUpLoginImageUpload(); }, 200);
             this.refreshData();
         };
         /**
          * Populate the page from the server
          */
         ChtnSettingsController.prototype.refreshData = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Settings").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.settings = httpResponse.data;
+            this.$http.get("/api/Settings").then(function (response) {
+                _this.isLoading = false;
+                _this.settings = response.data;
+                _this.originalSettings = _.clone(response.data);
             });
         };
         /**
@@ -3292,47 +3442,20 @@ var Ally;
         /**
          * Save all of the settings
          */
-        ChtnSettingsController.prototype.saveSettings = function (shouldReload) {
+        ChtnSettingsController.prototype.saveAllSettings = function () {
             var _this = this;
-            if (shouldReload === void 0) { shouldReload = false; }
             analytics.track("editSettings");
             this.isLoading = true;
             this.$http.put("/api/Settings", this.settings).then(function () {
                 _this.isLoading = false;
+                // Update the locally-stored values
                 _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
-                // Reload the page to show the page title has changed
-                if (shouldReload)
-                    location.reload();
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        /**
-         * Occurs when the user wants to save a new site title
-         */
-        ChtnSettingsController.prototype.onSiteTitleChange = function () {
-            var _this = this;
-            analytics.track("editSiteTitle");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", { siteTitle: this.settings.siteTitle }).then(function () {
-                // Reload the page to show the page title has changed
-                location.reload();
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        /**
-         * Occurs when the user wants to save a new welcome message
-         */
-        ChtnSettingsController.prototype.onWelcomeMessageUpdate = function () {
-            var _this = this;
-            analytics.track("editWelcomeMessage");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", { welcomeMessage: this.settings.welcomeMessage }).then(function () {
-                _this.isLoading = false;
                 _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
+                _this.siteInfo.privateSiteInfo.ptaUnitId = _this.settings.ptaUnitId;
+                var didChangeFullName = _this.settings.fullName !== _this.originalSettings.fullName;
+                // Reload the page to show the page title has changed
+                if (didChangeFullName)
+                    location.reload();
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to save: " + response.data);
@@ -3374,7 +3497,7 @@ var Ally;
         /**
          * Hooked up the login image JQuery upload control
          */
-        ChtnSettingsController.prototype.hookUpFileUpload = function () {
+        ChtnSettingsController.prototype.hookUpLoginImageUpload = function () {
             var innerThis = this;
             $(function () {
                 $('#JQFileUploader').fileupload({

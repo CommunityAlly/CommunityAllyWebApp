@@ -57,7 +57,7 @@ namespace Ally
     {
         /** The "ISO Alpha-2" 2 character country code */
         country: string;
-        groupAddress: any;
+        groupAddress: FullAddress;
         creationDate: Date;
         welcomeMessage: string;
         gpsPosition: any;
@@ -86,6 +86,9 @@ namespace Ally
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;
+
+        // Only on PTAs
+        ptaUnitId: number;
     }
 
 

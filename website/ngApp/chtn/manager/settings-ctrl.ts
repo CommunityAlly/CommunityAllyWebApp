@@ -13,7 +13,7 @@ namespace Ally
     /**
      * Represents settings for a Condo, HOA, or Neighborhood Ally site
      */
-    export class CondoSiteSettings extends BaseSiteSettings
+    export class ChtnSiteSettings extends BaseSiteSettings
     {
         allowOwnersToSendEmail: boolean;
         allowRentersToSendEmail: boolean;
@@ -21,6 +21,7 @@ namespace Ally
         rentersCanViewDocs: boolean;
         canHideContactInfo: boolean;
         isDiscussionEmailGroupEnabled: boolean;
+        ptaUnitId: number;
     }
 
 
@@ -31,12 +32,14 @@ namespace Ally
     {
         static $inject = ["$http", "SiteInfo", "$timeout", "$scope"];
 
-        settings: CondoSiteSettings = new CondoSiteSettings();
+        settings: ChtnSiteSettings = new ChtnSiteSettings();
+        originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
         defaultBGImage: string;
         showQaButton: boolean;
         loginImageUrl: string;
         isLoading: boolean;
         showRightColumnSetting: boolean = true;
+        isPta: boolean = false;
 
 
         /**
@@ -60,9 +63,11 @@ namespace Ally
 
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
 
+            this.isPta = AppConfig.appShortName === "pta";
+
+
             // Hook up the file upload control after everything is loaded and setup
-            var innerThis = this;
-            this.$timeout(() => innerThis.hookUpFileUpload(), 200 );
+            this.$timeout( () => this.hookUpLoginImageUpload(), 200 );
 
             this.refreshData();
         }
@@ -74,12 +79,12 @@ namespace Ally
         refreshData()
         {
             this.isLoading = true;
-
-            var innerThis = this;
-            this.$http.get( "/api/Settings" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<CondoSiteSettings> )
+            
+            this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.settings = httpResponse.data;
+                this.isLoading = false;
+                this.settings = response.data;
+                this.originalSettings = _.clone( response.data );
             } );
         }
 
@@ -111,64 +116,26 @@ namespace Ally
         /**
          * Save all of the settings
          */
-        saveSettings( shouldReload: boolean = false )
+        saveAllSettings()
         {
             analytics.track( "editSettings" );
 
             this.isLoading = true;
-
+            
             this.$http.put( "/api/Settings", this.settings ).then( () =>
             {
                 this.isLoading = false;
+
+                // Update the locally-stored values
                 this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
-
-                // Reload the page to show the page title has changed
-                if( shouldReload )
-                    location.reload();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to save: " + response.data );
-            } );
-        }
-
-
-        /**
-         * Occurs when the user wants to save a new site title
-         */
-        onSiteTitleChange()
-        {
-            analytics.track( "editSiteTitle" );
-
-            this.isLoading = true;
-
-            this.$http.put( "/api/Settings", { siteTitle: this.settings.siteTitle } ).then( () =>
-            {
-                // Reload the page to show the page title has changed
-                location.reload();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to save: " + response.data );
-            } );
-        }
-
-
-        /**
-         * Occurs when the user wants to save a new welcome message
-         */
-        onWelcomeMessageUpdate()
-        {
-            analytics.track( "editWelcomeMessage" );
-
-            this.isLoading = true;
-            
-            this.$http.put( "/api/Settings", { welcomeMessage: this.settings.welcomeMessage } ).then( () =>
-            {
-                this.isLoading = false;
                 this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
+                this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
+
+                var didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
+
+                // Reload the page to show the page title has changed
+                if( didChangeFullName )
+                    location.reload();
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
@@ -233,7 +200,7 @@ namespace Ally
         /**
          * Hooked up the login image JQuery upload control
          */
-        hookUpFileUpload()
+        hookUpLoginImageUpload()
         {
             var innerThis = this;
 

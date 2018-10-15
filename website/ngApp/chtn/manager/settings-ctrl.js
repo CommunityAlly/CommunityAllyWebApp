@@ -19,14 +19,14 @@ var Ally;
     /**
      * Represents settings for a Condo, HOA, or Neighborhood Ally site
      */
-    var CondoSiteSettings = /** @class */ (function (_super) {
-        __extends(CondoSiteSettings, _super);
-        function CondoSiteSettings() {
+    var ChtnSiteSettings = /** @class */ (function (_super) {
+        __extends(ChtnSiteSettings, _super);
+        function ChtnSiteSettings() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        return CondoSiteSettings;
+        return ChtnSiteSettings;
     }(BaseSiteSettings));
-    Ally.CondoSiteSettings = CondoSiteSettings;
+    Ally.ChtnSiteSettings = ChtnSiteSettings;
     /**
      * The controller for the page to view group site settings
      */
@@ -39,31 +39,35 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
-            this.settings = new CondoSiteSettings();
+            this.settings = new ChtnSiteSettings();
+            this.originalSettings = new ChtnSiteSettings();
             this.showRightColumnSetting = true;
+            this.isPta = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         ChtnSettingsController.prototype.$onInit = function () {
+            var _this = this;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.isPta = AppConfig.appShortName === "pta";
             // Hook up the file upload control after everything is loaded and setup
-            var innerThis = this;
-            this.$timeout(function () { return innerThis.hookUpFileUpload(); }, 200);
+            this.$timeout(function () { return _this.hookUpLoginImageUpload(); }, 200);
             this.refreshData();
         };
         /**
          * Populate the page from the server
          */
         ChtnSettingsController.prototype.refreshData = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Settings").then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.settings = httpResponse.data;
+            this.$http.get("/api/Settings").then(function (response) {
+                _this.isLoading = false;
+                _this.settings = response.data;
+                _this.originalSettings = _.clone(response.data);
             });
         };
         /**
@@ -85,47 +89,20 @@ var Ally;
         /**
          * Save all of the settings
          */
-        ChtnSettingsController.prototype.saveSettings = function (shouldReload) {
+        ChtnSettingsController.prototype.saveAllSettings = function () {
             var _this = this;
-            if (shouldReload === void 0) { shouldReload = false; }
             analytics.track("editSettings");
             this.isLoading = true;
             this.$http.put("/api/Settings", this.settings).then(function () {
                 _this.isLoading = false;
+                // Update the locally-stored values
                 _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
-                // Reload the page to show the page title has changed
-                if (shouldReload)
-                    location.reload();
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        /**
-         * Occurs when the user wants to save a new site title
-         */
-        ChtnSettingsController.prototype.onSiteTitleChange = function () {
-            var _this = this;
-            analytics.track("editSiteTitle");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", { siteTitle: this.settings.siteTitle }).then(function () {
-                // Reload the page to show the page title has changed
-                location.reload();
-            }, function (response) {
-                _this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        };
-        /**
-         * Occurs when the user wants to save a new welcome message
-         */
-        ChtnSettingsController.prototype.onWelcomeMessageUpdate = function () {
-            var _this = this;
-            analytics.track("editWelcomeMessage");
-            this.isLoading = true;
-            this.$http.put("/api/Settings", { welcomeMessage: this.settings.welcomeMessage }).then(function () {
-                _this.isLoading = false;
                 _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
+                _this.siteInfo.privateSiteInfo.ptaUnitId = _this.settings.ptaUnitId;
+                var didChangeFullName = _this.settings.fullName !== _this.originalSettings.fullName;
+                // Reload the page to show the page title has changed
+                if (didChangeFullName)
+                    location.reload();
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to save: " + response.data);
@@ -167,7 +144,7 @@ var Ally;
         /**
          * Hooked up the login image JQuery upload control
          */
-        ChtnSettingsController.prototype.hookUpFileUpload = function () {
+        ChtnSettingsController.prototype.hookUpLoginImageUpload = function () {
             var innerThis = this;
             $(function () {
                 $('#JQFileUploader').fileupload({

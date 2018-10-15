@@ -75,6 +75,7 @@ var CondoAllyAppConfig = {
     isChtnSite: true,
     segmentWriteKey: "GnlZNd8jKCpDgFqRKbA4nftkuFIaqKPQ",
     homeName: "Unit",
+    memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
         new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
@@ -159,6 +160,8 @@ var HomeAppConfig = {
     baseTld: "homeally.org",
     baseUrl: "https://homeally.org/",
     isChtnSite: false,
+    homeName: "Home",
+    memberTypeLabel: "User",
     menu: [
         //new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
         new Ally.RoutePath_v3({ path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All }),
@@ -231,6 +234,7 @@ PtaAppConfig.baseTld = "ptaally.org";
 PtaAppConfig.baseUrl = "https://ptaally.org/";
 PtaAppConfig.isChtnSite = false;
 PtaAppConfig.homeName = "Home";
+PtaAppConfig.memberTypeLabel = "Member";
 PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
     new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),

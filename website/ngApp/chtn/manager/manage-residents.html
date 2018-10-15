@@ -34,9 +34,10 @@
 
     <div data-ui-grid="$ctrl.residentGridOptions" data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
     
-    <div class="clearfix"> 
-        <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} residents</span>
-        <a href="javascript:void(0)" class="text-link pull-right" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
+    <div class="clearfix">
+        <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}</span>
+        <a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
+        <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
 
     <div id="EditUserContainer" class="modal-container" data-ng-show="$ctrl.editUser != null" data-ng-escape="$ctrl.setEdit( null )">
