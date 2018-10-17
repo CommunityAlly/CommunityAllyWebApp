@@ -76,8 +76,7 @@ namespace Ally
                 this.editVendorItem = new PreferredVendor();
 
                 // Wait until the page renders then hook up the autocomplete
-                var innerThis = this;
-                window.setTimeout(() => { innerThis.hookupAddressAutocomplete(); }, 500 );
+                window.setTimeout( () => this.hookupAddressAutocomplete(), 500 );
             }
         }
 
@@ -94,14 +93,14 @@ namespace Ally
                 phoneFields.mask( "(999) 999-9999 ?x999" );
             }
 
-            // If we know our group's position, let's tighten the 
+            // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
-            if( this.siteInfo.privateSiteInfo.googleGpsPosition )
+            if( this.siteInfo.publicSiteInfo.googleGpsPosition )
             {
                 const TwentyFiveMilesInMeters = 40234;
 
                 var circle = new google.maps.Circle( {
-                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 } );
 

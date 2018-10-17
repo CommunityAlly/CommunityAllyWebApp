@@ -1,0 +1,84 @@
+﻿<script src='https://www.google.com/recaptcha/api.js'></script>
+<div class="page page-follow-residents margin-vertical padding white-bg">
+
+    <div class="portlet-box white no-padding spinner-effect">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+        <div class="portlet-header" data-ng-if="!$ctrl.showMemberList">
+            <div class="title">Member Sign-Up</div>
+        </div>
+
+        <div class="portlet-body" data-ng-if="$ctrl.showInputForm">
+            <div class="mb-4">
+                Welcome to the member sign-up page for the {{$ctrl.groupName}}. Please fill out your details below and someone will get back with you shortly.
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-4">
+                    First Name:
+                </label>
+                <div class="col-8">
+                    <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.signUpInfo.firstName" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-4">
+                    Last Name:
+                </label>
+                <div class="col-8">
+                    <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.signUpInfo.lastName" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-4">
+                    E-mail:
+                </label>
+                <div class="col-8">
+                    <input type="email" class="form-control form-control-sm" data-ng-model="$ctrl.signUpInfo.email" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-4">
+                    Phone:
+                </label>
+                <div class="col-8">
+                    <input type="tel" class="form-control form-control-sm mask-phone" data-ng-model="$ctrl.signUpInfo.phoneNumber" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-4">
+                    Home Address:
+                </label>
+                <div class="col-8">
+                    <input type="text" id="member-home-address-text-box" class="form-control form-control-sm" data-ng-model="$ctrl.signUpInfo.streetAddress" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-4">
+                    What school(s) does your child attend?
+                </label>
+                <div class="col-8">
+                    <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.signUpInfo.schoolsAttended" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1 text-center">
+                <div class="g-recaptcha" style="display: inline-block; margin: 0 auto;" data-sitekey="6LfNM3UUAAAAAENjycvvELqQ7PzRQ1y0PtxGFMvF"></div>
+            </div>
+
+            <div class="text-center">
+                <div class="text-error m-2" data-ng-if="$ctrl.errorMessage">{{ $ctrl.errorMessage }}</div>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.submitInfo()">Submit</button>
+            </div>
+        </div>
+
+        <div class="portlet-body" data-ng-if="!$ctrl.showInputForm">
+            Your information has been successfully submitted. You should hear from a board member soon.
+        </div>
+    </div>
+</div>

@@ -59,7 +59,7 @@ namespace Ally
                 // Sort by last name
                 this.allResidents = _.sortBy( this.allResidents, function( r ) { return r.lastName; } );
 
-                this.boardMembers = _.filter( data.residents, function( r: any ) { return r.boardPosition !== 0; } );
+                this.boardMembers = _.filter( this.allResidents, function( r: any ) { return r.boardPosition !== 0; } );
                 this.boardMessageRecipient = null;
                 if( this.boardMembers.length > 0 )
                 {
@@ -131,7 +131,7 @@ namespace Ally
                 // Remove duplicates
                 this.allOwnerEmails = _.reduce( this.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
 
-                if( this.unitList.length > 0 )
+                if( this.unitList && this.unitList.length > 0 )
                 {
                     var useNumericNames = _.every( this.unitList, u => HtmlUtil.isNumericString( u.name ) );
                     if( useNumericNames )
@@ -178,39 +178,16 @@ namespace Ally
                 {
                     var clipboard = new Clipboard( ".clipboard-button" );
 
-                    var showTooltip = function( element: any, text: string )
-                    {
-                        $( element ).qtip( {
-                            style: {
-                                classes: 'qtip-light qtip-shadow'
-                            },
-                            position: {
-                                my: "leftMiddle",
-                                at: "rightMiddle"
-                            },
-                            content: { text: text },
-                            events: {
-                                hide: function( e: any )
-                                {
-                                    $( e.originalEvent.currentTarget ).qtip( "destroy" );
-                                }
-                            }
-                        } );
-
-                        $( element ).qtip( "show" );
-                    };
-
-
                     clipboard.on( "success", function( e: any )
                     {
-                        showTooltip( e.trigger, "Copied!" );
+                        Ally.HtmlUtil2.showTooltip( e.trigger, "Copied!" );
 
                         e.clearSelection();
                     } );
 
                     clipboard.on( "error", function( e: any )
                     {
-                        showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
+                        Ally.HtmlUtil2.showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
                     } );
 
                 }, 750 );

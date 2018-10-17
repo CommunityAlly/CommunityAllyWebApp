@@ -22,6 +22,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         PreferredVendorItemController.prototype.$onInit = function () {
+            var _this = this;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.isAddForm = this.vendorItem == null;
             if (this.isAddForm) {
@@ -29,8 +30,7 @@ var Ally;
                 this.vendorItem = new Ally.PreferredVendor();
                 this.editVendorItem = new Ally.PreferredVendor();
                 // Wait until the page renders then hook up the autocomplete
-                var innerThis = this;
-                window.setTimeout(function () { innerThis.hookupAddressAutocomplete(); }, 500);
+                window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 500);
             }
         };
         /**
@@ -42,12 +42,12 @@ var Ally;
                 var phoneFields = $(".mask-phone");
                 phoneFields.mask("(999) 999-9999 ?x999");
             }
-            // If we know our group's position, let's tighten the 
+            // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;
-            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {

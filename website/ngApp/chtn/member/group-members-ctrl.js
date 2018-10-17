@@ -35,7 +35,7 @@ var Ally;
                     _this.allResidents = data.ptaMembers;
                 // Sort by last name
                 _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
-                _this.boardMembers = _.filter(data.residents, function (r) { return r.boardPosition !== 0; });
+                _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== 0; });
                 _this.boardMessageRecipient = null;
                 if (_this.boardMembers.length > 0) {
                     var hasBoardEmail = _.some(_this.boardMembers, function (m) { return m.hasEmail; });
@@ -91,7 +91,7 @@ var Ally;
                 _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                if (_this.unitList.length > 0) {
+                if (_this.unitList && _this.unitList.length > 0) {
                     var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
                     if (useNumericNames)
                         _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
@@ -124,30 +124,12 @@ var Ally;
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");
-                    var showTooltip = function (element, text) {
-                        $(element).qtip({
-                            style: {
-                                classes: 'qtip-light qtip-shadow'
-                            },
-                            position: {
-                                my: "leftMiddle",
-                                at: "rightMiddle"
-                            },
-                            content: { text: text },
-                            events: {
-                                hide: function (e) {
-                                    $(e.originalEvent.currentTarget).qtip("destroy");
-                                }
-                            }
-                        });
-                        $(element).qtip("show");
-                    };
                     clipboard.on("success", function (e) {
-                        showTooltip(e.trigger, "Copied!");
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Copied!");
                         e.clearSelection();
                     });
                     clipboard.on("error", function (e) {
-                        showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
                     });
                 }, 750);
             });

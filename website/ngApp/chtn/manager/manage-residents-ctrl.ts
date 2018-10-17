@@ -65,6 +65,10 @@ namespace Ally
     {
         units: Ally.HomeEntryWithName[];
         shouldShowAvatarInListing: boolean;
+
+        /** Only referenced when creating a new member. Indicates if this member was created from a
+         * pending user */
+        pendingMemberId: number;
     }
 
 
@@ -75,6 +79,8 @@ namespace Ally
         // Not from the server
         fullName: string;
         unitGridLabel: string;
+        showAdvancedHomePicker: boolean;
+        singleUnitId: number;
     }
 
 
@@ -104,6 +110,21 @@ namespace Ally
     }
 
 
+    export class PendingMember
+    {
+        pendingMemberId: number;
+        groupId: number;
+        submitDateUtc: Date;
+        ipAddress: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        streetAddress: string;
+        schoolsAttended: string;
+    }
+
+
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -123,13 +144,15 @@ namespace Ally
         showKansasPtaExport: boolean = false;
         boardPositions: any[];
         newResident: any;
-        editUser: any;
+        editUser: Ally.UpdateResident;
         sentWelcomeEmail: boolean;
         allEmailsSent: boolean;
         multiselectMulti: string = "single";
         gridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
+        pendingMemberGridApi: uiGrid.IGridApiOf<PendingMember>;
         isSavingUser: boolean = false;
         residentGridOptions: uiGrid.IGridOptionsOf<Ally.UpdateResident>;
+        pendingMemberGridOptions: uiGrid.IGridOptionsOf<PendingMember>;
         emailHistoryGridOptions: uiGrid.IGridOptionsOf<RecentEmail>;
         editUserForm: ng.IFormController;
         isLoading: boolean = false;
@@ -144,6 +167,10 @@ namespace Ally
         showEmailHistory: boolean = false;
         bulkParseNormalizeNameCase: boolean = false;
         memberTypeLabel: string;
+        showLaunchSite: boolean = true;
+        showPendingMembers: boolean = false;
+        isLoadingPending: boolean = false;
+        pendingMemberSignUpUrl: string;
         
 
         /**
@@ -167,9 +194,35 @@ namespace Ally
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
-            this.showKansasPtaExport = true; AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
+            this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
+            this.showLaunchSite = AppConfig.appShortName !== "pta";
+            this.showPendingMembers = AppConfig.appShortName === "pta";
+
+            if( this.showPendingMembers )
+            {
+                this.pendingMemberSignUpUrl = `https://${HtmlUtil.getSubdomain()}.${AppConfig.baseTld}/#!/MemberSignUp`;
+
+                // Hook up the address copy link
+                setTimeout( () =>
+                {
+                    var clipboard = new Clipboard( ".clipboard-button" );
+
+                    clipboard.on( "success", function( e: any )
+                    {
+                        Ally.HtmlUtil2.showTooltip( e.trigger, "Copied!" );
+
+                        e.clearSelection();
+                    } );
+
+                    clipboard.on( "error", function( e: any )
+                    {
+                        Ally.HtmlUtil2.showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
+                    } );
+
+                }, 750 );
+            }
 
             this.boardPositions = [
                 { id: 0, name: "None" },
@@ -264,6 +317,36 @@ namespace Ally
                     }
                 };
 
+            this.pendingMemberGridOptions =
+                {
+                    data: [],
+                    columnDefs:
+                        [
+                            { field: 'firstName', displayName: 'First Name' },
+                            { field: 'lastName', displayName: 'Last Name' },
+                            { field: 'email', displayName: 'E-mail' },
+                            { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                        ],
+                    multiSelect: false,
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableFullRowSelection: true,
+                    enableColumnMenus: false,
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function( gridApi )
+                    {
+                        innerThis.pendingMemberGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged( innerThis.$rootScope, function( row )
+                        {
+                            innerThis.selectPendingMember( row.entity );
+                        } );
+
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
+
             if( window.innerWidth < 769 )
             {
                 for( var i = 2; i < this.residentGridOptions.columnDefs.length; ++i )
@@ -297,8 +380,9 @@ namespace Ally
                     }
                 };
 
-            this.refresh();
-            this.loadSettings();
+            this.refresh()
+                .then( () => this.loadSettings() )
+                .then( () => this.loadPendingMembers() );
         }
 
 
@@ -317,9 +401,31 @@ namespace Ally
 
 
         /**
+        * View a pending member's information
+        */
+        selectPendingMember( pendingMember: PendingMember )
+        {
+            this.pendingMemberGridApi.selection.clearSelectedRows();
+
+            var newUserInfo = new UpdateResident();
+            newUserInfo.firstName = pendingMember.firstName;
+            newUserInfo.lastName = pendingMember.lastName;
+            newUserInfo.email = pendingMember.email;
+            newUserInfo.phoneNumber = pendingMember.phoneNumber;
+            newUserInfo.pendingMemberId = pendingMember.pendingMemberId;
+            //newUserInfo.firstName = pendingMember.schoolsAttended;
+            //newUserInfo.firstName = pendingMember.streetAddress;
+            newUserInfo.boardPosition = 0;
+            newUserInfo.shouldSendWelcomeEmail = false;
+
+            this.setEdit( newUserInfo );
+        }
+
+
+        /**
         * Edit a resident's information
         */
-        setEdit( resident: any )
+        setEdit( resident: UpdateResident )
         {
             this.sentWelcomeEmail = false;
 
@@ -426,7 +532,7 @@ namespace Ally
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Residents" ).success(( residentArray: Ally.UpdateResident[] ) =>
+            return this.$http.get( "/api/Residents" ).success(( residentArray: Ally.UpdateResident[] ) =>
             {
                 innerThis.isLoading = false;
 
@@ -485,6 +591,28 @@ namespace Ally
 
 
         /**
+         * Populate the pending members grid
+         */
+        loadPendingMembers()
+        {
+            this.isLoadingPending = true;
+            
+            this.$http.get( "/api/Member/Pending" ).then( ( response: ng.IHttpPromiseCallbackArg<PendingMember[]> ) =>
+            {
+                this.isLoadingPending = false;
+
+                this.pendingMemberGridOptions.data = response.data;
+                this.pendingMemberGridOptions.minRowsToShow = response.data.length;
+                this.pendingMemberGridOptions.virtualizationThreshold = response.data.length;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoadingPending = false;
+            } );
+        }
+
+
+        /**
          * Occurs when the user presses the button to allow multiple home selections
          */
         enableMultiHomePicker()
@@ -495,6 +623,33 @@ namespace Ally
 
             if( this.allUnits && this.allUnits.length > 0 && this.allUnits[0].unitId === null )
                 this.allUnits.shift();
+        }
+
+
+        /**
+         * Reject a pending member
+         */
+        rejectPendingMember()
+        {
+            if( !this.editUser.pendingMemberId )
+                return;
+
+            if( !confirm( "Are you sure you want to remove this pending member? This action cannot be undone." ) )
+                return;
+
+            this.isLoading = false;
+
+            this.$http.put( "/api/Member/Pending/Deny/" + this.editUser.pendingMemberId, null ).then( () =>
+            {
+                this.isLoading = false;
+                this.editUser = null;
+                this.loadPendingMembers();
+
+            }, (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to reject pending member: " + response.data.exceptionMessage );
+            } );
         }
 
 
@@ -524,7 +679,7 @@ namespace Ally
 
             // Map the UI entry of units to the type expected on the server
             if( !this.editUser.showAdvancedHomePicker )
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId }];
+                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: null }];
 
             this.isSavingUser = true;
 
@@ -538,6 +693,9 @@ namespace Ally
                     alert( "Failed to add resident: " + response.data.errorMessage );
                     return;
                 }
+
+                if( innerThis.editUser.pendingMemberId )
+                    innerThis.loadPendingMembers();
 
                 innerThis.editUser = null;
                 innerThis.refresh();
@@ -705,7 +863,7 @@ namespace Ally
         {
             if( !this.siteInfo.privateSiteInfo.ptaUnitId )
             {
-                alert( "You must first set your PTA unit ID in Manage -> Settings before you can export this list" );
+                alert( "You must first set your PTA unit ID in Manage -> Settings before you can export in this format." );
                 return;
             }
 

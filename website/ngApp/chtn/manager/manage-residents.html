@@ -40,13 +40,33 @@
         <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
 
+    <div data-ng-if="$ctrl.showPendingMembers" class="portlet-box white mt-4 mb-4 no-padding">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoadingPending"></div>
+        <div class="portlet-header">
+            <div class="title">Pending Members</div>
+        </div>
+
+        <div class="portlet-body">
+            <div class="mb-3">
+                Here you can view people that have filled out the member sign-up form, but aren't yet approved. You can share the sign-up page link to recruit new members:<br />
+                <a id="sign-up-page-link" data-ng-href="{{$ctrl.pendingMemberSignUpUrl}}">{{$ctrl.pendingMemberSignUpUrl}}</a>
+                &nbsp;(<span class="text-link clipboard-button" data-clipboard-target="#sign-up-page-link" data-clipboard-action="copy">copy to clipboard</span>)
+            </div>
+
+            <div data-ng-if="$ctrl.pendingMemberGridOptions.data.length > 0" data-ui-grid="$ctrl.pendingMemberGridOptions" data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+            <div data-ng-if="$ctrl.pendingMemberGridOptions.data.length === 0" class="note-text">
+                There are currently no pending member sign-ups.
+            </div>
+        </div>
+    </div>
+
     <div id="EditUserContainer" class="modal-container" data-ng-show="$ctrl.editUser != null" data-ng-escape="$ctrl.setEdit( null )">
         <div class="modal-overlay"></div>
         <form id="editUserForm" name="$ctrl.editUserForm" novalidate class="ca-modal-dialog modal-lg">
             <div class="loading-overlay" data-ng-show="$ctrl.isSavingUser"></div>
             
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.setEdit( null )">&times;</span>
-            <h2>Resident Details</h2>
+            <h2>{{$ctrl.memberTypeLabel}} Details</h2>
             <div class="row">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
@@ -165,9 +185,11 @@
                 </div>
 
                 <div class="col-sm-6 text-sm-right">
-                    <input id="save-edit-button" class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$invalid" type="button" value="Save" data-ng-click="$ctrl.onSaveResident();" />
-                    <input id="cancel-edit-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.setEdit( null )" />
-                    <input id="remove-resident-button" class="btn btn-primary" data-ng-show="$ctrl.editUser.userId.length > 0" type="button" value="Remove Resident" data-ng-click="$ctrl.onDeleteResident();" />
+                    <button id="save-edit-button" class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$invalid" type="button" data-ng-click="$ctrl.onSaveResident();">{{ $ctrl.editUser.pendingMemberId ? "Approve" : "Save" }}</button>
+                    <button id="cancel-edit-button" class="btn btn-secondary" data-ng-if="!$ctrl.editUser.pendingMemberId" type="button" data-ng-click="$ctrl.setEdit( null )">Cancel</button>
+                    <button id="remove-resident-button" class="btn btn-secondary" data-ng-show="$ctrl.editUser.userId.length > 0" data-ng-click="$ctrl.onDeleteResident();">Remove Resident</button>
+                    <button class="btn btn-secondary" data-ng-if="$ctrl.editUser.pendingMemberId" data-ng-click="$ctrl.rejectPendingMember();">Reject</button>
+
                     <input type="hidden" value="{{$ctrl.editUser.userId}}" />
                     <div class="text-sm-right" data-ng-if="$ctrl.editUser.userId.length > 0">
                         <span class="note-text" data-ng-if="$ctrl.editUser.lastLoginDateUtc">Last logged-in {{ $ctrl.editUser.lastLoginDateUtc | date:'EEEE, MMMM d, y h:mma' }}</span>
@@ -179,28 +201,27 @@
         </form>
     </div>
 
-    <br />
-    <div data-ng-show="$ctrl.siteLaunchedDateUtc === null">
-        Is your site new and are you ready to share it with your fellow residents?<br />
-        <input type="button" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent" value="Launch Site" />
-        <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All e-mails sent!</span>
-        <br>
-        <span>
-            This will send all of the residents an e-mail with log-in instructions and basic site information. This will not send
-            an e-mail to you or anyone else who has already logged-in.
-        </span>
+    <div data-ng-if="$ctrl.showLaunchSite" class="mt-4 mb-4">
+        <div data-ng-show="$ctrl.siteLaunchedDateUtc === null">
+            Is your site new and are you ready to share it with your fellow residents?<br />
+            <input type="button" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent" value="Launch Site" />
+            <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All e-mails sent!</span>
+            <br>
+            <span>
+                This will send all of the residents an e-mail with log-in instructions and basic site information. This will not send
+                an e-mail to you or anyone else who has already logged-in.
+            </span>
+        </div>
+
+        <div data-ng-show="$ctrl.siteLaunchedDateUtc !== null" class="note-text">
+            Looking for the "Launch Site" button?<br />
+            This site has already been successfully launched. If you need to send login instructions to users, click on their name above, then click
+            the "Send Welcome E-mail" button.
+        </div>
     </div>
-
-    <div data-ng-show="$ctrl.siteLaunchedDateUtc !== null" class="note-text">
-        Looking for the "Launch Site" button?<br />
-        This site has already been successfully launched. If you need to send login instructions to users, click on their name above, then click
-        the "Send Welcome E-mail" button.
-    </div>
-
-    <br />
-    <br />
-
-    <div class="spinner-effect" data-ng-if="$ctrl.showIsRenter">
+    
+    
+    <div class="spinner-effect mt-4 mb-4" data-ng-if="$ctrl.showIsRenter">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingSettings"></div>
 
         <h4>Resident Permissions</h4>

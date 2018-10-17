@@ -50,6 +50,29 @@ namespace Ally
 
 
     /**
+     * Information that is provided to anyone that visits the group's site, even if not logged-in
+     */
+    export class PublicSiteInfo
+    {
+        bgImagePath: string;
+        fullName: string;
+        shortName: string;
+        baseUrl: string;
+        siteLogo: string;
+        siteTitleText: string;
+        chicagoWard: number;
+        zipCode: string;
+        localNewsNeighborhoodQuery: string;
+        gpsBounds: GpsPolygon;
+        gpsPosition: GpsPoint;
+        loginImageUrl: string;
+
+        // Not from the server
+        googleGpsPosition: google.maps.LatLng;
+    }
+
+
+    /**
      * Represents the group descriptive information that can only be accessed by a member of the
      * group
      */
@@ -60,7 +83,6 @@ namespace Ally
         groupAddress: FullAddress;
         creationDate: Date;
         welcomeMessage: string;
-        gpsPosition: any;
         canHideContactInfo: boolean;
     }
 
@@ -84,9 +106,6 @@ namespace Ally
         //payPalClientId: string;
         maintenanceTodoListId: number;
 
-        // Not from the server
-        googleGpsPosition: google.maps.LatLng;
-
         // Only on PTAs
         ptaUnitId: number;
     }
@@ -97,7 +116,7 @@ namespace Ally
      */
     export class SiteInfoService
     {
-        publicSiteInfo: any = {};
+        publicSiteInfo: PublicSiteInfo = new PublicSiteInfo();
         privateSiteInfo: ChtnPrivateSiteInfo = new ChtnPrivateSiteInfo();
         userInfo: UserInfo = new Ally.UserInfo();
         isLoggedIn: boolean = false;
@@ -232,14 +251,14 @@ namespace Ally
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
 
+            if( this.publicSiteInfo.gpsPosition && typeof ( google ) !== "undefined" )
+                this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng( this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon );
+
             // Handle private (logged-in only) info
             var privateSiteInfo = siteInfo.privateSiteInfo;
             if( !privateSiteInfo )
                 privateSiteInfo = {};
-
-            if( privateSiteInfo.gpsPosition && typeof ( google ) !== "undefined" )
-                privateSiteInfo.googleGpsPosition = new google.maps.LatLng( privateSiteInfo.gpsPosition.lat, privateSiteInfo.gpsPosition.lon );
-
+            
             this.privateSiteInfo = privateSiteInfo;
 
             // Set the site title

@@ -30,14 +30,14 @@ var Ally;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             // If we know our group's position, let's tighten the 
             var autocompleteOptions = undefined;
-            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var latLon = {
                     lat: 41.142248,
                     lng: -73.633228
                 };
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {
@@ -235,7 +235,7 @@ var MapCtrlMapMgr = /** @class */ (function () {
         if (typeof (google) === "undefined")
             return;
         // Store our home position
-        MapCtrlMapMgr._homeGpsPos = siteInfo.privateSiteInfo.googleGpsPosition;
+        MapCtrlMapMgr._homeGpsPos = siteInfo.publicSiteInfo.googleGpsPosition;
         MapCtrlMapMgr._groupGpsBounds = siteInfo.publicSiteInfo.gpsBounds;
         // Create the map centered at our home
         var myOptions = {

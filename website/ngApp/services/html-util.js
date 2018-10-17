@@ -57,6 +57,24 @@ var Ally;
                 return null;
             return moment.utc(dbString).toDate();
         };
+        HtmlUtil2.showTooltip = function (element, text) {
+            $(element).qtip({
+                style: {
+                    classes: 'qtip-light qtip-shadow'
+                },
+                position: {
+                    my: "leftMiddle",
+                    at: "rightMiddle"
+                },
+                content: { text: text },
+                events: {
+                    hide: function (e) {
+                        $(e.originalEvent.currentTarget).qtip("destroy");
+                    }
+                }
+            });
+            $(element).qtip("show");
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;

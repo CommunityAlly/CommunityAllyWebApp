@@ -72,6 +72,12 @@ var Ally;
         }
         return ResidentCsvRow;
     }());
+    var PendingMember = /** @class */ (function () {
+        function PendingMember() {
+        }
+        return PendingMember;
+    }());
+    Ally.PendingMember = PendingMember;
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -96,11 +102,15 @@ var Ally;
             this.isLoadingSettings = false;
             this.showEmailHistory = false;
             this.bulkParseNormalizeNameCase = false;
+            this.showLaunchSite = true;
+            this.showPendingMembers = false;
+            this.isLoadingPending = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageResidentsController.prototype.$onInit = function () {
+            var _this = this;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.siteLaunchedDateUtc = this.siteInfo.privateSiteInfo.siteLaunchedDateUtc;
             this.bulkImportRows = [{}];
@@ -109,10 +119,25 @@ var Ally;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
-            this.showKansasPtaExport = true;
-            AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
+            this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
+            this.showLaunchSite = AppConfig.appShortName !== "pta";
+            this.showPendingMembers = AppConfig.appShortName === "pta";
+            if (this.showPendingMembers) {
+                this.pendingMemberSignUpUrl = "https://" + HtmlUtil.getSubdomain() + "." + AppConfig.baseTld + "/#!/MemberSignUp";
+                // Hook up the address copy link
+                setTimeout(function () {
+                    var clipboard = new Clipboard(".clipboard-button");
+                    clipboard.on("success", function (e) {
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Copied!");
+                        e.clearSelection();
+                    });
+                    clipboard.on("error", function (e) {
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
+                    });
+                }, 750);
+            }
             this.boardPositions = [
                 { id: 0, name: "None" },
                 { id: 1, name: "President" },
@@ -190,6 +215,31 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            this.pendingMemberGridOptions =
+                {
+                    data: [],
+                    columnDefs: [
+                        { field: 'firstName', displayName: 'First Name' },
+                        { field: 'lastName', displayName: 'Last Name' },
+                        { field: 'email', displayName: 'E-mail' },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                    ],
+                    multiSelect: false,
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableFullRowSelection: true,
+                    enableColumnMenus: false,
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        innerThis.pendingMemberGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(innerThis.$rootScope, function (row) {
+                            innerThis.selectPendingMember(row.entity);
+                        });
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             if (window.innerWidth < 769) {
                 for (var i = 2; i < this.residentGridOptions.columnDefs.length; ++i)
                     this.residentGridOptions.columnDefs[i].visible = false;
@@ -218,8 +268,9 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
-            this.refresh();
-            this.loadSettings();
+            this.refresh()
+                .then(function () { return _this.loadSettings(); })
+                .then(function () { return _this.loadPendingMembers(); });
         };
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
@@ -228,6 +279,23 @@ var Ally;
             if (!boardPosition)
                 return "";
             return boardPosition.name;
+        };
+        /**
+        * View a pending member's information
+        */
+        ManageResidentsController.prototype.selectPendingMember = function (pendingMember) {
+            this.pendingMemberGridApi.selection.clearSelectedRows();
+            var newUserInfo = new UpdateResident();
+            newUserInfo.firstName = pendingMember.firstName;
+            newUserInfo.lastName = pendingMember.lastName;
+            newUserInfo.email = pendingMember.email;
+            newUserInfo.phoneNumber = pendingMember.phoneNumber;
+            newUserInfo.pendingMemberId = pendingMember.pendingMemberId;
+            //newUserInfo.firstName = pendingMember.schoolsAttended;
+            //newUserInfo.firstName = pendingMember.streetAddress;
+            newUserInfo.boardPosition = 0;
+            newUserInfo.shouldSendWelcomeEmail = false;
+            this.setEdit(newUserInfo);
         };
         /**
         * Edit a resident's information
@@ -307,7 +375,7 @@ var Ally;
         ManageResidentsController.prototype.refresh = function () {
             this.isLoading = true;
             var innerThis = this;
-            this.$http.get("/api/Residents").success(function (residentArray) {
+            return this.$http.get("/api/Residents").success(function (residentArray) {
                 innerThis.isLoading = false;
                 innerThis.residentGridOptions.data = residentArray;
                 innerThis.residentGridOptions.minRowsToShow = residentArray.length;
@@ -345,6 +413,21 @@ var Ally;
             });
         };
         /**
+         * Populate the pending members grid
+         */
+        ManageResidentsController.prototype.loadPendingMembers = function () {
+            var _this = this;
+            this.isLoadingPending = true;
+            this.$http.get("/api/Member/Pending").then(function (response) {
+                _this.isLoadingPending = false;
+                _this.pendingMemberGridOptions.data = response.data;
+                _this.pendingMemberGridOptions.minRowsToShow = response.data.length;
+                _this.pendingMemberGridOptions.virtualizationThreshold = response.data.length;
+            }, function (response) {
+                _this.isLoadingPending = false;
+            });
+        };
+        /**
          * Occurs when the user presses the button to allow multiple home selections
          */
         ManageResidentsController.prototype.enableMultiHomePicker = function () {
@@ -353,6 +436,25 @@ var Ally;
             this.multiselectMulti = 'multiple';
             if (this.allUnits && this.allUnits.length > 0 && this.allUnits[0].unitId === null)
                 this.allUnits.shift();
+        };
+        /**
+         * Reject a pending member
+         */
+        ManageResidentsController.prototype.rejectPendingMember = function () {
+            var _this = this;
+            if (!this.editUser.pendingMemberId)
+                return;
+            if (!confirm("Are you sure you want to remove this pending member? This action cannot be undone."))
+                return;
+            this.isLoading = false;
+            this.$http.put("/api/Member/Pending/Deny/" + this.editUser.pendingMemberId, null).then(function () {
+                _this.isLoading = false;
+                _this.editUser = null;
+                _this.loadPendingMembers();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to reject pending member: " + response.data.exceptionMessage);
+            });
         };
         /**
          * Occurs when the user presses the button to update a resident's information or create a new
@@ -374,7 +476,7 @@ var Ally;
             }
             // Map the UI entry of units to the type expected on the server
             if (!this.editUser.showAdvancedHomePicker)
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId }];
+                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: null }];
             this.isSavingUser = true;
             var innerThis = this;
             var onSave = function (response) {
@@ -383,6 +485,8 @@ var Ally;
                     alert("Failed to add resident: " + response.data.errorMessage);
                     return;
                 }
+                if (innerThis.editUser.pendingMemberId)
+                    innerThis.loadPendingMembers();
                 innerThis.editUser = null;
                 innerThis.refresh();
             };
@@ -509,7 +613,7 @@ var Ally;
          */
         ManageResidentsController.prototype.exportKansasPtaCsv = function () {
             if (!this.siteInfo.privateSiteInfo.ptaUnitId) {
-                alert("You must first set your PTA unit ID in Manage -> Settings before you can export this list");
+                alert("You must first set your PTA unit ID in Manage -> Settings before you can export in this format.");
                 return;
             }
             if (typeof (analytics) !== "undefined")

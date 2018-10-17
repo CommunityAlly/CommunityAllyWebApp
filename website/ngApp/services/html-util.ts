@@ -116,6 +116,29 @@ namespace Ally
 
             return moment.utc( dbString ).toDate();
         }
+
+
+        static showTooltip( element: any, text: string )
+        {
+            $( element ).qtip( {
+                style: {
+                    classes: 'qtip-light qtip-shadow'
+                },
+                position: {
+                    my: "leftMiddle",
+                    at: "rightMiddle"
+                },
+                content: { text: text },
+                events: {
+                    hide: function( e: any )
+                    {
+                        $( e.originalEvent.currentTarget ).qtip( "destroy" );
+                    }
+                }
+            } );
+
+            $( element ).qtip( "show" );
+        }
     }
 
 

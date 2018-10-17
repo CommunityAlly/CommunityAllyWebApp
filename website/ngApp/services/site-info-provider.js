@@ -29,6 +29,15 @@ var Ally;
     }());
     Ally.UserInfo = UserInfo;
     /**
+     * Information that is provided to anyone that visits the group's site, even if not logged-in
+     */
+    var PublicSiteInfo = /** @class */ (function () {
+        function PublicSiteInfo() {
+        }
+        return PublicSiteInfo;
+    }());
+    Ally.PublicSiteInfo = PublicSiteInfo;
+    /**
      * Represents the group descriptive information that can only be accessed by a member of the
      * group
      */
@@ -54,7 +63,7 @@ var Ally;
      */
     var SiteInfoService = /** @class */ (function () {
         function SiteInfoService() {
-            this.publicSiteInfo = {};
+            this.publicSiteInfo = new PublicSiteInfo();
             this.privateSiteInfo = new ChtnPrivateSiteInfo();
             this.userInfo = new Ally.UserInfo();
             this.isLoggedIn = false;
@@ -144,12 +153,12 @@ var Ally;
             // Store the site info to the root scope for access by the app module
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
+            if (this.publicSiteInfo.gpsPosition && typeof (google) !== "undefined")
+                this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng(this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon);
             // Handle private (logged-in only) info
             var privateSiteInfo = siteInfo.privateSiteInfo;
             if (!privateSiteInfo)
                 privateSiteInfo = {};
-            if (privateSiteInfo.gpsPosition && typeof (google) !== "undefined")
-                privateSiteInfo.googleGpsPosition = new google.maps.LatLng(privateSiteInfo.gpsPosition.lat, privateSiteInfo.gpsPosition.lon);
             this.privateSiteInfo = privateSiteInfo;
             // Set the site title
             document.title = this.publicSiteInfo.fullName;

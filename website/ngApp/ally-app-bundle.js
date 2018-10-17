@@ -1278,6 +1278,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
     new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
     new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
+    new Ally.RoutePath_v3({ path: "MemberSignUp", templateHtml: "<pta-member-sign-up></pta-member-sign-up>", menuTitle: null, role: Role_All }),
     new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
     new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager }),
     new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
@@ -2500,6 +2501,12 @@ var Ally;
         }
         return ResidentCsvRow;
     }());
+    var PendingMember = /** @class */ (function () {
+        function PendingMember() {
+        }
+        return PendingMember;
+    }());
+    Ally.PendingMember = PendingMember;
     /**
      * The controller for the page to add, edit, and delete members from the site
      */
@@ -2524,11 +2531,15 @@ var Ally;
             this.isLoadingSettings = false;
             this.showEmailHistory = false;
             this.bulkParseNormalizeNameCase = false;
+            this.showLaunchSite = true;
+            this.showPendingMembers = false;
+            this.isLoadingPending = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageResidentsController.prototype.$onInit = function () {
+            var _this = this;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.siteLaunchedDateUtc = this.siteInfo.privateSiteInfo.siteLaunchedDateUtc;
             this.bulkImportRows = [{}];
@@ -2537,10 +2548,25 @@ var Ally;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
-            this.showKansasPtaExport = true;
-            AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
+            this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
+            this.showLaunchSite = AppConfig.appShortName !== "pta";
+            this.showPendingMembers = AppConfig.appShortName === "pta";
+            if (this.showPendingMembers) {
+                this.pendingMemberSignUpUrl = "https://" + HtmlUtil.getSubdomain() + "." + AppConfig.baseTld + "/#!/MemberSignUp";
+                // Hook up the address copy link
+                setTimeout(function () {
+                    var clipboard = new Clipboard(".clipboard-button");
+                    clipboard.on("success", function (e) {
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Copied!");
+                        e.clearSelection();
+                    });
+                    clipboard.on("error", function (e) {
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
+                    });
+                }, 750);
+            }
             this.boardPositions = [
                 { id: 0, name: "None" },
                 { id: 1, name: "President" },
@@ -2618,6 +2644,31 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            this.pendingMemberGridOptions =
+                {
+                    data: [],
+                    columnDefs: [
+                        { field: 'firstName', displayName: 'First Name' },
+                        { field: 'lastName', displayName: 'Last Name' },
+                        { field: 'email', displayName: 'E-mail' },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                    ],
+                    multiSelect: false,
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableFullRowSelection: true,
+                    enableColumnMenus: false,
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        innerThis.pendingMemberGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(innerThis.$rootScope, function (row) {
+                            innerThis.selectPendingMember(row.entity);
+                        });
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             if (window.innerWidth < 769) {
                 for (var i = 2; i < this.residentGridOptions.columnDefs.length; ++i)
                     this.residentGridOptions.columnDefs[i].visible = false;
@@ -2646,8 +2697,9 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
-            this.refresh();
-            this.loadSettings();
+            this.refresh()
+                .then(function () { return _this.loadSettings(); })
+                .then(function () { return _this.loadPendingMembers(); });
         };
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
@@ -2656,6 +2708,23 @@ var Ally;
             if (!boardPosition)
                 return "";
             return boardPosition.name;
+        };
+        /**
+        * View a pending member's information
+        */
+        ManageResidentsController.prototype.selectPendingMember = function (pendingMember) {
+            this.pendingMemberGridApi.selection.clearSelectedRows();
+            var newUserInfo = new UpdateResident();
+            newUserInfo.firstName = pendingMember.firstName;
+            newUserInfo.lastName = pendingMember.lastName;
+            newUserInfo.email = pendingMember.email;
+            newUserInfo.phoneNumber = pendingMember.phoneNumber;
+            newUserInfo.pendingMemberId = pendingMember.pendingMemberId;
+            //newUserInfo.firstName = pendingMember.schoolsAttended;
+            //newUserInfo.firstName = pendingMember.streetAddress;
+            newUserInfo.boardPosition = 0;
+            newUserInfo.shouldSendWelcomeEmail = false;
+            this.setEdit(newUserInfo);
         };
         /**
         * Edit a resident's information
@@ -2735,7 +2804,7 @@ var Ally;
         ManageResidentsController.prototype.refresh = function () {
             this.isLoading = true;
             var innerThis = this;
-            this.$http.get("/api/Residents").success(function (residentArray) {
+            return this.$http.get("/api/Residents").success(function (residentArray) {
                 innerThis.isLoading = false;
                 innerThis.residentGridOptions.data = residentArray;
                 innerThis.residentGridOptions.minRowsToShow = residentArray.length;
@@ -2773,6 +2842,21 @@ var Ally;
             });
         };
         /**
+         * Populate the pending members grid
+         */
+        ManageResidentsController.prototype.loadPendingMembers = function () {
+            var _this = this;
+            this.isLoadingPending = true;
+            this.$http.get("/api/Member/Pending").then(function (response) {
+                _this.isLoadingPending = false;
+                _this.pendingMemberGridOptions.data = response.data;
+                _this.pendingMemberGridOptions.minRowsToShow = response.data.length;
+                _this.pendingMemberGridOptions.virtualizationThreshold = response.data.length;
+            }, function (response) {
+                _this.isLoadingPending = false;
+            });
+        };
+        /**
          * Occurs when the user presses the button to allow multiple home selections
          */
         ManageResidentsController.prototype.enableMultiHomePicker = function () {
@@ -2781,6 +2865,25 @@ var Ally;
             this.multiselectMulti = 'multiple';
             if (this.allUnits && this.allUnits.length > 0 && this.allUnits[0].unitId === null)
                 this.allUnits.shift();
+        };
+        /**
+         * Reject a pending member
+         */
+        ManageResidentsController.prototype.rejectPendingMember = function () {
+            var _this = this;
+            if (!this.editUser.pendingMemberId)
+                return;
+            if (!confirm("Are you sure you want to remove this pending member? This action cannot be undone."))
+                return;
+            this.isLoading = false;
+            this.$http.put("/api/Member/Pending/Deny/" + this.editUser.pendingMemberId, null).then(function () {
+                _this.isLoading = false;
+                _this.editUser = null;
+                _this.loadPendingMembers();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to reject pending member: " + response.data.exceptionMessage);
+            });
         };
         /**
          * Occurs when the user presses the button to update a resident's information or create a new
@@ -2802,7 +2905,7 @@ var Ally;
             }
             // Map the UI entry of units to the type expected on the server
             if (!this.editUser.showAdvancedHomePicker)
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId }];
+                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: null }];
             this.isSavingUser = true;
             var innerThis = this;
             var onSave = function (response) {
@@ -2811,6 +2914,8 @@ var Ally;
                     alert("Failed to add resident: " + response.data.errorMessage);
                     return;
                 }
+                if (innerThis.editUser.pendingMemberId)
+                    innerThis.loadPendingMembers();
                 innerThis.editUser = null;
                 innerThis.refresh();
             };
@@ -2937,7 +3042,7 @@ var Ally;
          */
         ManageResidentsController.prototype.exportKansasPtaCsv = function () {
             if (!this.siteInfo.privateSiteInfo.ptaUnitId) {
-                alert("You must first set your PTA unit ID in Manage -> Settings before you can export this list");
+                alert("You must first set your PTA unit ID in Manage -> Settings before you can export in this format.");
                 return;
             }
             if (typeof (analytics) !== "undefined")
@@ -3719,14 +3824,14 @@ var Ally;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             // If we know our group's position, let's tighten the 
             var autocompleteOptions = undefined;
-            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var latLon = {
                     lat: 41.142248,
                     lng: -73.633228
                 };
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {
@@ -3924,7 +4029,7 @@ var MapCtrlMapMgr = /** @class */ (function () {
         if (typeof (google) === "undefined")
             return;
         // Store our home position
-        MapCtrlMapMgr._homeGpsPos = siteInfo.privateSiteInfo.googleGpsPosition;
+        MapCtrlMapMgr._homeGpsPos = siteInfo.publicSiteInfo.googleGpsPosition;
         MapCtrlMapMgr._groupGpsBounds = siteInfo.publicSiteInfo.gpsBounds;
         // Create the map centered at our home
         var myOptions = {
@@ -4197,7 +4302,7 @@ var Ally;
                     _this.allResidents = data.ptaMembers;
                 // Sort by last name
                 _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
-                _this.boardMembers = _.filter(data.residents, function (r) { return r.boardPosition !== 0; });
+                _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== 0; });
                 _this.boardMessageRecipient = null;
                 if (_this.boardMembers.length > 0) {
                     var hasBoardEmail = _.some(_this.boardMembers, function (m) { return m.hasEmail; });
@@ -4253,7 +4358,7 @@ var Ally;
                 _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                if (_this.unitList.length > 0) {
+                if (_this.unitList && _this.unitList.length > 0) {
                     var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
                     if (useNumericNames)
                         _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
@@ -4286,30 +4391,12 @@ var Ally;
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");
-                    var showTooltip = function (element, text) {
-                        $(element).qtip({
-                            style: {
-                                classes: 'qtip-light qtip-shadow'
-                            },
-                            position: {
-                                my: "leftMiddle",
-                                at: "rightMiddle"
-                            },
-                            content: { text: text },
-                            events: {
-                                hide: function (e) {
-                                    $(e.originalEvent.currentTarget).qtip("destroy");
-                                }
-                            }
-                        });
-                        $(element).qtip("show");
-                    };
                     clipboard.on("success", function (e) {
-                        showTooltip(e.trigger, "Copied!");
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Copied!");
                         e.clearSelection();
                     });
                     clipboard.on("error", function (e) {
-                        showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
+                        Ally.HtmlUtil2.showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
                     });
                 }, 750);
             });
@@ -8201,6 +8288,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$rootScope = $rootScope;
             this.isLoading = false;
+            this.returnUrl = "https://localtest.mycondoally.com/#!/Home";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -8423,6 +8511,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         PreferredVendorItemController.prototype.$onInit = function () {
+            var _this = this;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.isAddForm = this.vendorItem == null;
             if (this.isAddForm) {
@@ -8430,8 +8519,7 @@ var Ally;
                 this.vendorItem = new Ally.PreferredVendor();
                 this.editVendorItem = new Ally.PreferredVendor();
                 // Wait until the page renders then hook up the autocomplete
-                var innerThis = this;
-                window.setTimeout(function () { innerThis.hookupAddressAutocomplete(); }, 500);
+                window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 500);
             }
         };
         /**
@@ -8443,12 +8531,12 @@ var Ally;
                 var phoneFields = $(".mask-phone");
                 phoneFields.mask("(999) 999-9999 ?x999");
             }
-            // If we know our group's position, let's tighten the 
+            // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;
-            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {
@@ -9401,6 +9489,92 @@ var Ally;
 CA.angularApp.component("ptaGroupHome", {
     templateUrl: "/ngApp/pta/pta-group-home.html",
     controller: Ally.PtaGroupHomeController
+});
+
+var Ally;
+(function (Ally) {
+    var MemberSignUpInfo = /** @class */ (function () {
+        function MemberSignUpInfo() {
+        }
+        return MemberSignUpInfo;
+    }());
+    /**
+     * The controller for the PTA Ally home page
+     */
+    var PtaMemberSignUpController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function PtaMemberSignUpController($http, $rootScope, siteInfo, $timeout, appCacheService) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.appCacheService = appCacheService;
+            this.isLoading = false;
+            this.signUpInfo = new MemberSignUpInfo();
+            this.showInputForm = true;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        PtaMemberSignUpController.prototype.$onInit = function () {
+            var _this = this;
+            this.groupName = this.siteInfo.publicSiteInfo.fullName;
+            window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 300);
+        };
+        /**
+         * Attach the Google Places auto-complete logic to the address text box
+         */
+        PtaMemberSignUpController.prototype.hookupAddressAutocomplete = function () {
+            // If we know our group's position, let's tighten the auto-complete suggestion radius
+            var autocompleteOptions = undefined;
+            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
+                // Also mask phone numbers for US phones
+                var phoneFields = $(".mask-phone");
+                phoneFields.mask("(999) 999-9999 ?x999");
+                var TwentyFiveMilesInMeters = 40234;
+                var circle = new google.maps.Circle({
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    radius: TwentyFiveMilesInMeters
+                });
+                autocompleteOptions = {
+                    bounds: circle.getBounds()
+                };
+            }
+            var addressInput = document.getElementById("member-home-address-text-box");
+            this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
+            var innerThis = this;
+            google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
+                var place = innerThis.addressAutocomplete.getPlace();
+                innerThis.signUpInfo.streetAddress = place.formatted_address;
+            });
+        };
+        PtaMemberSignUpController.prototype.submitInfo = function () {
+            var _this = this;
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                this.errorMessage = "Please complete the reCAPTCHA field";
+                return;
+            }
+            this.isLoading = true;
+            this.errorMessage = null;
+            this.$http.post("/api/PublicPta", this.signUpInfo).then(function (response) {
+                _this.isLoading = false;
+                _this.showInputForm = false;
+            }, function (response) {
+                _this.isLoading = false;
+                _this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
+            });
+        };
+        PtaMemberSignUpController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
+        return PtaMemberSignUpController;
+    }());
+    Ally.PtaMemberSignUpController = PtaMemberSignUpController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("ptaMemberSignUp", {
+    templateUrl: "/ngApp/pta/pta-member-sign-up.html",
+    controller: Ally.PtaMemberSignUpController
 });
 
 function ServiceBankInfoCtrl( $http )
@@ -10758,6 +10932,24 @@ var Ally;
                 return null;
             return moment.utc(dbString).toDate();
         };
+        HtmlUtil2.showTooltip = function (element, text) {
+            $(element).qtip({
+                style: {
+                    classes: 'qtip-light qtip-shadow'
+                },
+                position: {
+                    my: "leftMiddle",
+                    at: "rightMiddle"
+                },
+                content: { text: text },
+                events: {
+                    hide: function (e) {
+                        $(e.originalEvent.currentTarget).qtip("destroy");
+                    }
+                }
+            });
+            $(element).qtip("show");
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
@@ -10941,6 +11133,15 @@ var Ally;
     }());
     Ally.UserInfo = UserInfo;
     /**
+     * Information that is provided to anyone that visits the group's site, even if not logged-in
+     */
+    var PublicSiteInfo = /** @class */ (function () {
+        function PublicSiteInfo() {
+        }
+        return PublicSiteInfo;
+    }());
+    Ally.PublicSiteInfo = PublicSiteInfo;
+    /**
      * Represents the group descriptive information that can only be accessed by a member of the
      * group
      */
@@ -10966,7 +11167,7 @@ var Ally;
      */
     var SiteInfoService = /** @class */ (function () {
         function SiteInfoService() {
-            this.publicSiteInfo = {};
+            this.publicSiteInfo = new PublicSiteInfo();
             this.privateSiteInfo = new ChtnPrivateSiteInfo();
             this.userInfo = new Ally.UserInfo();
             this.isLoggedIn = false;
@@ -11056,12 +11257,12 @@ var Ally;
             // Store the site info to the root scope for access by the app module
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
+            if (this.publicSiteInfo.gpsPosition && typeof (google) !== "undefined")
+                this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng(this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon);
             // Handle private (logged-in only) info
             var privateSiteInfo = siteInfo.privateSiteInfo;
             if (!privateSiteInfo)
                 privateSiteInfo = {};
-            if (privateSiteInfo.gpsPosition && typeof (google) !== "undefined")
-                privateSiteInfo.googleGpsPosition = new google.maps.LatLng(privateSiteInfo.gpsPosition.lat, privateSiteInfo.gpsPosition.lon);
             this.privateSiteInfo = privateSiteInfo;
             // Set the site title
             document.title = this.publicSiteInfo.fullName;

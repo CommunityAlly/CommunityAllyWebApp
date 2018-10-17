@@ -4,7 +4,7 @@
         <br />
     </div>
 
-    <div class="container">
+    <div class="container" data-ng-if="$ctrl.boardMembers.length > 0 || $ctrl.committees.length > 0">
         <div class="row">
             <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.boardMembers.length > 0">
                 <div class="portlet-header">
@@ -75,7 +75,7 @@
             </div>
         </div>
 
-        <div data-ng-if="$ctrl.showMemberList">
+        <div class="portlet-body" data-ng-if="$ctrl.showMemberList">
             <h4>Members</h4>
             <div class="row">
                 <div class="col-md-4 col-sm-12" data-ng-repeat="resident in $ctrl.allResidents">
