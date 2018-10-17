@@ -985,7 +985,13 @@ namespace Ally
 
             var copiedMembers = _.clone( <any[]>this.residentGridOptions.data );
             for( let member of copiedMembers )
+            {
                 member.Local_Unit = this.siteInfo.privateSiteInfo.ptaUnitId.toString();
+                member.Membership_Name = ( !member.firstName || member.firstName === "N/A" ) ? member.lastName : member.firstName;
+
+                if( member.boardPosition !== 0 )
+                    member.Position = this.getBoardPositionName( member.boardPosition );
+            }
 
             var csvDataString = Ally.createCsvString( <any[]>this.residentGridOptions.data, csvColumns );
             csvDataString = "data:text/csv;charset=utf-8," + csvDataString;
