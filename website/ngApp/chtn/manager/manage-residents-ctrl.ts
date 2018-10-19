@@ -382,7 +382,11 @@ namespace Ally
 
             this.refresh()
                 .then( () => this.loadSettings() )
-                .then( () => this.loadPendingMembers() );
+                .then( () =>
+                {
+                    if( AppConfig.appShortName === "pta" )
+                        this.loadPendingMembers();
+                } );
         }
 
 

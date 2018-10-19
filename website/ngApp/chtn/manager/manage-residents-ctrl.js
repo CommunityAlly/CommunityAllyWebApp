@@ -270,7 +270,10 @@ var Ally;
                 };
             this.refresh()
                 .then(function () { return _this.loadSettings(); })
-                .then(function () { return _this.loadPendingMembers(); });
+                .then(function () {
+                if (AppConfig.appShortName === "pta")
+                    _this.loadPendingMembers();
+            });
         };
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)

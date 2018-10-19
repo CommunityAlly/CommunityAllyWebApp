@@ -35,7 +35,7 @@
     <div data-ui-grid="$ctrl.residentGridOptions" data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
     
     <div class="clearfix">
-        <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}</span>
+        <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}{{ $ctrl.residentGridOptions.data.length > 1 ? 's' : '' }}</span>
         <a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
         <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
