@@ -25,8 +25,10 @@ namespace Ally
         static $inject = ["$http", "SiteInfo", "$cacheFactory"];
 
         includeInactive = false;
-        committees: Committee[] = [];
-        newCommittee: Committee = new Committee();
+        activeCommittees: Committee[] = [];
+        inactiveCommittees: Committee[] = [];
+        showInactiveCommittees: boolean = false;
+        editCommittee: Committee = null;
         isLoading = false;
 
 
@@ -35,7 +37,6 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $cacheFactory: ng.ICacheFactoryService )
         {
-            this.newCommittee.committeeType = "Ongoing";
         }
 
 
@@ -45,6 +46,25 @@ namespace Ally
         $onInit()
         {
             this.retrieveCommittees();
+        }
+
+
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        startEditCommittee( committee: Committee )
+        {
+            this.editCommittee = committee;
+        }
+
+
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        showCreateModal()
+        {
+            this.editCommittee = new Committee();
+            this.editCommittee.committeeType = "Ongoing";
         }
 
 
@@ -79,13 +99,14 @@ namespace Ally
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Committee" ).success(( committees: Committee[] ) =>
+            this.$http.get( "/api/Committee?includeInactive=true" ).success(( committees: Committee[] ) =>
             {
                 innerThis.isLoading = false;
-                innerThis.committees = committees;
+                innerThis.activeCommittees = _.filter( committees, c => !c.deactivationDateUtc );
+                innerThis.inactiveCommittees = _.filter( committees, c => !!c.deactivationDateUtc );
 
                 // Convert the last login timestamps to local time
-                _.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
+                //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
 
             } ).error(( exc: Ally.ExceptionResult ) =>
             {
@@ -98,28 +119,35 @@ namespace Ally
         /**
         * Create a new committee
         */
-        createCommittee()
+        saveCommittee()
         {
-            if( HtmlUtil.isNullOrWhitespace( this.newCommittee.name ) )
+            if( HtmlUtil.isNullOrWhitespace( this.editCommittee.name ) )
             {
-                alert( "Please enter a name." );
+                alert( "Please enter a name for the new committee." );
+                return;
+            }
+
+            if( !this.editCommittee.committeeType )
+            {
+                alert( "Please select a type for the new committee." );
                 return;
             }
 
             this.isLoading = true;
 
-            var postUri = "/api/Committee?name=" + encodeURIComponent( this.newCommittee.name ) + "&type=" + encodeURIComponent( this.newCommittee.committeeType ) + "&isPrivate=" + this.newCommittee.isPrivate.toString();
+            var saveUri = `/api/Committee${( this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "" )}?name=${encodeURIComponent( this.editCommittee.name )}&type=${encodeURIComponent( this.editCommittee.committeeType )}&isPrivate=${this.editCommittee.isPrivate.toString()}`;
 
-            this.$http.post( postUri, null ).success(() =>
+            let httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
+            httpFunc( saveUri, null ).success(() =>
             {
                 this.isLoading = false;
-                this.newCommittee = new Committee();
+                this.editCommittee = null;
                 this.retrieveCommittees();
 
             } ).error(( error: ExceptionResult ) =>
             {
                 this.isLoading = false;
-                alert( "Failed to create the committee: " + error.exceptionMessage );
+                alert( "Failed to save the committee: " + error.exceptionMessage );
             } );
         }
     }

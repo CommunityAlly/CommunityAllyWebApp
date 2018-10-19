@@ -22,16 +22,30 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$cacheFactory = $cacheFactory;
             this.includeInactive = false;
-            this.committees = [];
-            this.newCommittee = new Committee();
+            this.activeCommittees = [];
+            this.inactiveCommittees = [];
+            this.showInactiveCommittees = false;
+            this.editCommittee = null;
             this.isLoading = false;
-            this.newCommittee.committeeType = "Ongoing";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageCommitteesController.prototype.$onInit = function () {
             this.retrieveCommittees();
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.startEditCommittee = function (committee) {
+            this.editCommittee = committee;
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.showCreateModal = function () {
+            this.editCommittee = new Committee();
+            this.editCommittee.committeeType = "Ongoing";
         };
         /**
         * Called when the user chooses to deactivate a committee
@@ -54,11 +68,12 @@ var Ally;
         ManageCommitteesController.prototype.retrieveCommittees = function () {
             this.isLoading = true;
             var innerThis = this;
-            this.$http.get("/api/Committee").success(function (committees) {
+            this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
                 innerThis.isLoading = false;
-                innerThis.committees = committees;
+                innerThis.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
+                innerThis.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
                 // Convert the last login timestamps to local time
-                _.forEach(committees, function (c) { return c.creationDateUtc = moment.utc(c.creationDateUtc).toDate(); });
+                //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
             }).error(function (exc) {
                 innerThis.isLoading = false;
                 alert("Failed to retrieve the committee listing");
@@ -67,21 +82,26 @@ var Ally;
         /**
         * Create a new committee
         */
-        ManageCommitteesController.prototype.createCommittee = function () {
+        ManageCommitteesController.prototype.saveCommittee = function () {
             var _this = this;
-            if (HtmlUtil.isNullOrWhitespace(this.newCommittee.name)) {
-                alert("Please enter a name.");
+            if (HtmlUtil.isNullOrWhitespace(this.editCommittee.name)) {
+                alert("Please enter a name for the new committee.");
+                return;
+            }
+            if (!this.editCommittee.committeeType) {
+                alert("Please select a type for the new committee.");
                 return;
             }
             this.isLoading = true;
-            var postUri = "/api/Committee?name=" + encodeURIComponent(this.newCommittee.name) + "&type=" + encodeURIComponent(this.newCommittee.committeeType) + "&isPrivate=" + this.newCommittee.isPrivate.toString();
-            this.$http.post(postUri, null).success(function () {
+            var saveUri = "/api/Committee" + (this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "") + "?name=" + encodeURIComponent(this.editCommittee.name) + "&type=" + encodeURIComponent(this.editCommittee.committeeType) + "&isPrivate=" + this.editCommittee.isPrivate.toString();
+            var httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
+            httpFunc(saveUri, null).success(function () {
                 _this.isLoading = false;
-                _this.newCommittee = new Committee();
+                _this.editCommittee = null;
                 _this.retrieveCommittees();
             }).error(function (error) {
                 _this.isLoading = false;
-                alert("Failed to create the committee: " + error.exceptionMessage);
+                alert("Failed to save the committee: " + error.exceptionMessage);
             });
         };
         ManageCommitteesController.$inject = ["$http", "SiteInfo", "$cacheFactory"];

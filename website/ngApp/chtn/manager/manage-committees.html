@@ -2,14 +2,12 @@
     <section class="padding white-bg padding margin-vertical box-shadow">
         <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
 
-        <h1>Active Committees</h1>
-        <p data-ng-if="$ctrl.committees.length === 0">
+        <h3>Active Committees</h3>
+        <p data-ng-if="$ctrl.activeCommittees.length === 0">
             There are currently no active committees.
         </p>
-        <div data-ng-if="$ctrl.committees.length > 0">
-            <label><input type="checkbox" data-ng-model="$ctrl.includeInactive" />Include inactive committees</label>
-
-            <table border="1" cellpadding="2">
+        <div data-ng-if="$ctrl.activeCommittees.length > 0">
+            <table border="1" cellpadding="3">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -20,63 +18,111 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr data-ng-repeat="c in $ctrl.committees">
+                    <tr data-ng-repeat="c in $ctrl.activeCommittees">
                         <td><a data-ng-href="#!/Committee/{{ c.committeeId }}/Home">{{ c.name }}</a></td>
                         <td>{{ c.committeeType }}</td>
                         <td>{{ c.creationDateUtc | date:'shortDate' }}</td>
                         <td>{{ c.isPrivate ? "Private" : "Open" }}</td>
-                        <td><span class="text-link" data-ng-click="$ctrl.toggleCommitteeActive( c )">{{ c.deactivationDateUtc ? 'Reactivate' : 'Deactivate' }}</span></td>
+                        <td>
+                            <span class="text-link" data-ng-click="$ctrl.startEditCommittee( c )">Edit</span> - 
+                            <span class="text-link" data-ng-click="$ctrl.toggleCommitteeActive( c )">{{ c.deactivationDateUtc ? 'Reactivate' : 'Deactivate' }}</span>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <div data-ng-if="$ctrl.inactiveCommittees.length > 0" class="mt-3">
+            <span class="note-text text-link" data-ng-click="$ctrl.showInactiveCommittees=!$ctrl.showInactiveCommittees">{{ $ctrl.showInactiveCommittees ? "Hide" : "Show" }} Inactive Committees</span>
+            <div class="mt-2" data-ng-if="$ctrl.showInactiveCommittees">
+                <h3>Inctive Committees</h3>
+                <p data-ng-if="$ctrl.inactiveCommittees.length === 0">
+                    There are currently no inactive committees.
+                </p>
+                <div data-ng-if="$ctrl.inactiveCommittees.length > 0">
+                    
+                    <table border="1" cellpadding="3">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Privacy</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ng-repeat="c in $ctrl.inactiveCommittees">
+                                <td>{{ c.name }}</td>
+                                <td>{{ c.committeeType }}</td>
+                                <td>{{ c.creationDateUtc | date:'shortDate' }}</td>
+                                <td>{{ c.isPrivate ? "Private" : "Open" }}</td>
+                                <td>
+                                    <span class="text-link" data-ng-click="$ctrl.toggleCommitteeActive( c )">{{ c.deactivationDateUtc ? 'Reactivate' : 'Deactivate' }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <br />
-        <br />
 
-        <h1>Create a New Committee</h1>
-        <br />
-        <table>
-            <tr>
-                <td class="AlignRightBold">Name:</td>
-                <td>
-                    <input type="text" data-ng-model="$ctrl.newCommittee.name" /><br />
-                    <span class="note-text" style="margin-left:0em;">The word "Committee" will be apppended to the end of the name if you don't add it</span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2"><br /></td>
-            </tr>
-            <tr>
-                <td class="AlignRightBold">Type:</td>
-                <td>
-                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Ongoing" name="committee-type" />Ongoing</label>
-                    <span class="note-text" style="margin-left:0.5em;">E.g. neighbor engagement, purchasing, maintenance</span><br />
-
-                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Seasonal" name="committee-type" />Seasonal</label>
-                    <span class="note-text" style="margin-left:0.5em;">E.g. gardening, snow removal, winterization</span><br />
-
-                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.committeeType" value="Goal-based" name="committee-type" />Goal-based</label>
-                    <span class="note-text" style="margin-left:0.5em;">E.g. fix roof, plan parking, change trash collection</span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2"><br /></td>
-            </tr>
-            <tr>
-                <td class="AlignRightBold">Privacy:</td>
-                <td>
-                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.isPrivate" ng-value="false" name="is-private" />Open</label>
-                    <span class="note-text" style="margin-left:0.5em;">Any user can view the contents of the committee, but only members can modify and get notifications.</span><br />
-
-                    <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.newCommittee.isPrivate" ng-value="true" name="is-private" />Private</label>
-                    <span class="note-text" style="margin-left:0.5em;">Only members can view the committee's information</span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" class="text-right">
-                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createCommittee()">Create</button>
-                </td>
-            </tr>
-        </table>
+        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showCreateModal()">Create New Committee</button>
     </section>
+
+    <div class="modal-container" data-ng-if="$ctrl.editCommittee">
+        <div class="modal-overlay"></div>
+
+        <div class="ca-modal-dialog modal-lg">
+            <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.editCommittee = null">&times;</span>
+            <h2>{{ $ctrl.editCommittee.committeeId ? 'Edit' : 'Add New' }} Committee</h2>
+
+            <table cellpadding="1">
+                <tr>
+                    <td class="AlignRightBold">Name:</td>
+                    <td>
+                        <input type="text" data-ng-model="$ctrl.editCommittee.name" /><br />
+                        <span data-ng-if="!$ctrl.editCommittee.committeeId" class="note-text" style="margin-left:0em;">The word "Committee" will be apppended to the end of the name if you don't add it</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><br /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRightBold">Type:</td>
+                    <td>
+                        <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.editCommittee.committeeType" value="Ongoing" name="committee-type" />Ongoing</label>
+                        <span class="note-text" style="margin-left:0.5em;">E.g. neighbor engagement, purchasing, maintenance</span><br />
+
+                        <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.editCommittee.committeeType" value="Seasonal" name="committee-type" />Seasonal</label>
+                        <span class="note-text" style="margin-left:0.5em;">E.g. gardening, snow removal, winterization</span><br />
+
+                        <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.editCommittee.committeeType" value="Goal-based" name="committee-type" />Goal-based</label>
+                        <span class="note-text" style="margin-left:0.5em;">E.g. fix roof, plan parking, change trash collection</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><br /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRightBold">Privacy:</td>
+                    <td>
+                        <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.editCommittee.isPrivate" ng-value="false" name="is-private" />Open</label>
+                        <span class="note-text" style="margin-left:0.5em;">Any user can view the contents of the committee, but only members can modify and get notifications.</span><br />
+
+                        <label style="display: inline-block;"><input type="radio" data-ng-model="$ctrl.editCommittee.isPrivate" ng-value="true" name="is-private" />Private</label>
+                        <span class="note-text" style="margin-left:0.5em;">Only members can view the committee's information</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="text-right">
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveCommittee()">Save</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
