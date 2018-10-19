@@ -57,7 +57,7 @@
                 <div class="col-8">
                     <input id="passwordTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.password" type="password" />
                     <br />
-                    <span class="note-text">Enter a value to change your password.</span>
+                    <span class="note-text">Enter a value to change your password.</span><label style="font-size: small;" class="ml-2"><input type="checkbox" data-ng-model="$ctrl.shouldShowPassword" data-ng-change="$ctrl.onShowPassword()" /> Show password</label>
                 </div>
             </div>
 

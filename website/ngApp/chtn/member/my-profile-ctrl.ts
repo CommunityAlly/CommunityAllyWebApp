@@ -52,6 +52,8 @@ namespace Ally
         initialProfileImageType: string;
         profileImageType: string;
         gravatarUrl: string;
+        showPassword: boolean = false;
+        shouldShowPassword: boolean = false;
 
 
         /**
@@ -141,6 +143,16 @@ namespace Ally
 
                 alert( "Failed to save: " + httpResponse.data.exceptionMessage );
             } );
+        }
+
+
+        /**
+         * Occurs when the user checks to box to see what they're typing
+         */
+        onShowPassword()
+        {
+            let passwordTextBox = <HTMLInputElement>document.getElementById( "passwordTextBox" );
+            passwordTextBox.type = this.shouldShowPassword ? "text" : "password";
         }
 
 

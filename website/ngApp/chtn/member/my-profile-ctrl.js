@@ -53,6 +53,8 @@ var Ally;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.showPassword = false;
+            this.shouldShowPassword = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -109,6 +111,13 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
+        };
+        /**
+         * Occurs when the user checks to box to see what they're typing
+         */
+        MyProfileController.prototype.onShowPassword = function () {
+            var passwordTextBox = document.getElementById("passwordTextBox");
+            passwordTextBox.type = this.shouldShowPassword ? "text" : "password";
         };
         /**
          * Populate the page
