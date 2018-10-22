@@ -28,11 +28,11 @@ var Ally;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
             this.allyAppName = AppConfig.appName;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if (!this.homeRightColumnType)
+            if (!this.homeRightColumnType && this.homeRightColumnType !== "")
                 this.homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
                 this.showDiscussionThreads = true;
-                this.showLocalNews = true;
+                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") !== -1;
             }
             else {
                 this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
@@ -43,6 +43,8 @@ var Ally;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
             this.$http.get("/api/Committee/MyCommittees", { cache: true }).then(function (response) {
                 _this.usersCommittees = response.data;
+                if (_this.usersCommittees)
+                    _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
             });
         };
         ChtnHomeController.prototype.hideFirstVisit = function () {

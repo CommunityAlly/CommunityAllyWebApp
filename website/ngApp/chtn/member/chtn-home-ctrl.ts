@@ -44,13 +44,13 @@
             this.allyAppName = AppConfig.appName;
 
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if( !this.homeRightColumnType )
+            if( !this.homeRightColumnType && this.homeRightColumnType !== "" )
                 this.homeRightColumnType = "localnews";
 
             if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate )
             {
                 this.showDiscussionThreads = true;
-                this.showLocalNews = true;
+                this.showLocalNews = this.homeRightColumnType.indexOf( "localnews" ) !== -1;
             }
             else
             {
@@ -62,10 +62,11 @@
 
             var innerThis = this;
             this.$scope.$on( "homeHasActivePolls", () => innerThis.shouldShowAlertSection = true );
-
+            
             this.$http.get( "/api/Committee/MyCommittees", { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Committee[]> ) =>
             {
                 this.usersCommittees = response.data;
+
                 if( this.usersCommittees )
                     this.usersCommittees = _.sortBy( this.usersCommittees, c => c.name.toLowerCase() );
             } );

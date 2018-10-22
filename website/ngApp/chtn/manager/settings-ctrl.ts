@@ -39,6 +39,7 @@ namespace Ally
         loginImageUrl: string;
         isLoading: boolean;
         showRightColumnSetting: boolean = true;
+        showLocalNewsSetting: boolean = false;
         isPta: boolean = false;
 
 
@@ -62,6 +63,7 @@ namespace Ally
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
 
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.showLocalNewsSetting = !this.showRightColumnSetting;
 
             this.isPta = AppConfig.appShortName === "pta";
 
@@ -130,6 +132,7 @@ namespace Ally
                 this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
                 this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
                 this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
+                this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
 
                 var didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
 

@@ -42,6 +42,7 @@ var Ally;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
             this.showRightColumnSetting = true;
+            this.showLocalNewsSetting = false;
             this.isPta = false;
         }
         /**
@@ -53,6 +54,7 @@ var Ally;
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
             // Hook up the file upload control after everything is loaded and setup
             this.$timeout(function () { return _this.hookUpLoginImageUpload(); }, 200);
@@ -99,6 +101,7 @@ var Ally;
                 _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
                 _this.siteInfo.privateSiteInfo.ptaUnitId = _this.settings.ptaUnitId;
+                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 var didChangeFullName = _this.settings.fullName !== _this.originalSettings.fullName;
                 // Reload the page to show the page title has changed
                 if (didChangeFullName)

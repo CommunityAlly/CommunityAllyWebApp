@@ -56,6 +56,23 @@
         <div class="note-text">An open chat similar to Facebook's "wall".</div>
     </div>
 
+
+
+    <div data-ng-if="$ctrl.showLocalNewsSetting">
+        <h2 class="mt-5">
+            Home Page
+        </h2>
+
+        <div>
+            <label>
+                <input type="checkbox" data-ng-model="$ctrl.settings.homeRightColumnType" ng-true-value="'localnews'" ng-false-value="''">
+                Show Local News
+            </label>
+        </div>
+
+        <div class="note-text">Show various local news stories.</div>
+    </div>
+
     <h2 class="mt-5">
         Login Image
     </h2>

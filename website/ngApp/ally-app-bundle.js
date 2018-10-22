@@ -1750,16 +1750,30 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$cacheFactory = $cacheFactory;
             this.includeInactive = false;
-            this.committees = [];
-            this.newCommittee = new Committee();
+            this.activeCommittees = [];
+            this.inactiveCommittees = [];
+            this.showInactiveCommittees = false;
+            this.editCommittee = null;
             this.isLoading = false;
-            this.newCommittee.committeeType = "Ongoing";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageCommitteesController.prototype.$onInit = function () {
             this.retrieveCommittees();
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.startEditCommittee = function (committee) {
+            this.editCommittee = committee;
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.showCreateModal = function () {
+            this.editCommittee = new Committee();
+            this.editCommittee.committeeType = "Ongoing";
         };
         /**
         * Called when the user chooses to deactivate a committee
@@ -1780,36 +1794,45 @@ var Ally;
         * Retrieve the list of available committees
         */
         ManageCommitteesController.prototype.retrieveCommittees = function () {
+            var _this = this;
             this.isLoading = true;
             var innerThis = this;
-            this.$http.get("/api/Committee").success(function (committees) {
-                innerThis.isLoading = false;
-                innerThis.committees = committees;
+            this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
+                _this.isLoading = false;
+                _this.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
+                _this.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
+                _this.activeCommittees = _.sortBy(_this.activeCommittees, function (c) { return c.name.toLowerCase(); });
+                _this.inactiveCommittees = _.sortBy(_this.inactiveCommittees, function (c) { return c.name.toLowerCase(); });
                 // Convert the last login timestamps to local time
-                _.forEach(committees, function (c) { return c.creationDateUtc = moment.utc(c.creationDateUtc).toDate(); });
+                //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
             }).error(function (exc) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to retrieve the committee listing");
             });
         };
         /**
         * Create a new committee
         */
-        ManageCommitteesController.prototype.createCommittee = function () {
+        ManageCommitteesController.prototype.saveCommittee = function () {
             var _this = this;
-            if (HtmlUtil.isNullOrWhitespace(this.newCommittee.name)) {
-                alert("Please enter a name.");
+            if (HtmlUtil.isNullOrWhitespace(this.editCommittee.name)) {
+                alert("Please enter a name for the new committee.");
+                return;
+            }
+            if (!this.editCommittee.committeeType) {
+                alert("Please select a type for the new committee.");
                 return;
             }
             this.isLoading = true;
-            var postUri = "/api/Committee?name=" + encodeURIComponent(this.newCommittee.name) + "&type=" + encodeURIComponent(this.newCommittee.committeeType) + "&isPrivate=" + this.newCommittee.isPrivate.toString();
-            this.$http.post(postUri, null).success(function () {
+            var saveUri = "/api/Committee" + (this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "") + "?name=" + encodeURIComponent(this.editCommittee.name) + "&type=" + encodeURIComponent(this.editCommittee.committeeType) + "&isPrivate=" + this.editCommittee.isPrivate.toString();
+            var httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
+            httpFunc(saveUri, null).success(function () {
                 _this.isLoading = false;
-                _this.newCommittee = new Committee();
+                _this.editCommittee = null;
                 _this.retrieveCommittees();
             }).error(function (error) {
                 _this.isLoading = false;
-                alert("Failed to create the committee: " + error.exceptionMessage);
+                alert("Failed to save the committee: " + error.exceptionMessage);
             });
         };
         ManageCommitteesController.$inject = ["$http", "SiteInfo", "$cacheFactory"];
@@ -2600,9 +2623,10 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
                         {
                             field: 'unitGridLabel',
-                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home',
+                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Residence',
                             cellClass: "resident-cell-unit",
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
@@ -2610,15 +2634,14 @@ var Ally;
                         },
                         {
                             field: 'isRenter',
-                            displayName: 'Is Renter',
+                            displayName: 'Renter',
                             width: 80,
                             cellClass: "resident-cell-is-renter",
                             visible: this.showIsRenter,
                             cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
                         },
-                        { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
-                        { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                        { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' }
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -2699,7 +2722,10 @@ var Ally;
                 };
             this.refresh()
                 .then(function () { return _this.loadSettings(); })
-                .then(function () { return _this.loadPendingMembers(); });
+                .then(function () {
+                if (AppConfig.appShortName === "pta")
+                    _this.loadPendingMembers();
+            });
         };
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
@@ -3503,6 +3529,7 @@ var Ally;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
             this.showRightColumnSetting = true;
+            this.showLocalNewsSetting = false;
             this.isPta = false;
         }
         /**
@@ -3514,6 +3541,7 @@ var Ally;
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
             // Hook up the file upload control after everything is loaded and setup
             this.$timeout(function () { return _this.hookUpLoginImageUpload(); }, 200);
@@ -3560,6 +3588,7 @@ var Ally;
                 _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
                 _this.siteInfo.privateSiteInfo.ptaUnitId = _this.settings.ptaUnitId;
+                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 var didChangeFullName = _this.settings.fullName !== _this.originalSettings.fullName;
                 // Reload the page to show the page title has changed
                 if (didChangeFullName)
@@ -3764,11 +3793,11 @@ var Ally;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
             this.allyAppName = AppConfig.appName;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if (!this.homeRightColumnType)
+            if (!this.homeRightColumnType && this.homeRightColumnType !== "")
                 this.homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
                 this.showDiscussionThreads = true;
-                this.showLocalNews = true;
+                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") !== -1;
             }
             else {
                 this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
@@ -3779,6 +3808,8 @@ var Ally;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
             this.$http.get("/api/Committee/MyCommittees", { cache: true }).then(function (response) {
                 _this.usersCommittees = response.data;
+                if (_this.usersCommittees)
+                    _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
             });
         };
         ChtnHomeController.prototype.hideFirstVisit = function () {
@@ -4373,8 +4404,12 @@ var Ally;
                         }
                     }
                 }
-                // Only show commitees with a contact person
-                _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
+                if (_this.committees) {
+                    // Only show commitees with a contact person
+                    //TWC - 10/19/18 - Show committees even without a contact person
+                    //this.committees = _.reject( this.committees, c => !c.contactUser );
+                    _this.committees = _.sortBy(_this.committees, function (c) { return c.committeeName.toLowerCase(); });
+                }
                 // If we should scroll to a specific home
                 var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
                 if (scrollToUnitId) {
@@ -5070,6 +5105,8 @@ var Ally;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.showPassword = false;
+            this.shouldShowPassword = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -5126,6 +5163,13 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
+        };
+        /**
+         * Occurs when the user checks to box to see what they're typing
+         */
+        MyProfileController.prototype.onShowPassword = function () {
+            var passwordTextBox = document.getElementById("passwordTextBox");
+            passwordTextBox.type = this.shouldShowPassword ? "text" : "password";
         };
         /**
          * Populate the page
