@@ -59,6 +59,7 @@ var Ally;
             this.$http.get("/api/Committee/" + this.committee.committeeId + "/Members").then(function (response) {
                 _this.isLoading = false;
                 _this.members = response.data;
+                _this.members = _.sortBy(_this.members, function (m) { return (m.fullName || "").toLowerCase(); });
                 var isMember = function (u) { return _.some(_this.members, function (m) { return m.userId === u.userId; }); };
                 _this.filteredGroupMembers = _.filter(_this.allGroupMembers, function (m) { return !isMember(m); });
                 _this.filteredGroupMembers = _.sortBy(_this.filteredGroupMembers, function (m) { return (m.fullName || "").toLowerCase(); });

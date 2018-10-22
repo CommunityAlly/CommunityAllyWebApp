@@ -94,6 +94,8 @@ namespace Ally
                 this.isLoading = false;
                 this.members = response.data;
 
+                this.members = _.sortBy( this.members, m => (m.fullName || "").toLowerCase() );
+
                 var isMember = ( u: FellowChtnResident ) => _.some( this.members, ( m: FellowChtnResident ) => m.userId === u.userId );
 
                 this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember( m ) );
