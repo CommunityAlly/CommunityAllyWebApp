@@ -266,9 +266,10 @@ namespace Ally
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
                         { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
                         {
                             field: 'unitGridLabel',
-                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Home',
+                            displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Residence',
                             cellClass: "resident-cell-unit",
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
@@ -276,15 +277,14 @@ namespace Ally
                         },
                         {
                             field: 'isRenter',
-                            displayName: 'Is Renter',
+                            displayName: 'Renter',
                             width: 80,
                             cellClass: "resident-cell-is-renter",
                             visible: this.showIsRenter,
                             cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
                         },
-                        { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
-                        { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                        { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' }
                     ],
                     multiSelect: false,
                     enableSorting: true,
