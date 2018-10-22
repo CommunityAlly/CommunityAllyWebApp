@@ -66,6 +66,8 @@
             this.$http.get( "/api/Committee/MyCommittees", { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Committee[]> ) =>
             {
                 this.usersCommittees = response.data;
+                if( this.usersCommittees )
+                    this.usersCommittees = _.sortBy( this.usersCommittees, c => c.name.toLowerCase() );
             } );
         }
 
