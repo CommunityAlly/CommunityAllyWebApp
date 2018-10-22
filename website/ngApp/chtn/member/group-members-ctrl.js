@@ -103,8 +103,12 @@ var Ally;
                         }
                     }
                 }
-                // Only show commitees with a contact person
-                _this.committees = _.reject(_this.committees, function (c) { return !c.contactUser; });
+                if (_this.committees) {
+                    // Only show commitees with a contact person
+                    //TWC - 10/19/18 - Show committees even without a contact person
+                    //this.committees = _.reject( this.committees, c => !c.contactUser );
+                    _this.committees = _.sortBy(_this.committees, function (c) { return c.committeeName.toLowerCase(); });
+                }
                 // If we should scroll to a specific home
                 var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
                 if (scrollToUnitId) {

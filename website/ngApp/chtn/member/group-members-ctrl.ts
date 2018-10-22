@@ -146,9 +146,15 @@ namespace Ally
                         }
                     }
                 }
+                
+                if( this.committees )
+                {
+                    // Only show commitees with a contact person
+                    //TWC - 10/19/18 - Show committees even without a contact person
+                    //this.committees = _.reject( this.committees, c => !c.contactUser );
 
-                // Only show commitees with a contact person
-                this.committees = _.reject( this.committees, c => !c.contactUser );
+                    this.committees = _.sortBy( this.committees, c => c.committeeName.toLowerCase() );
+                }
 
                 // If we should scroll to a specific home
                 let scrollToUnitId = this.appCacheService.getAndClear("scrollToUnitId");
