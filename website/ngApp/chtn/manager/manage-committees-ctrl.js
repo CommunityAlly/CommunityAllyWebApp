@@ -66,16 +66,19 @@ var Ally;
         * Retrieve the list of available committees
         */
         ManageCommitteesController.prototype.retrieveCommittees = function () {
+            var _this = this;
             this.isLoading = true;
             var innerThis = this;
             this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
-                innerThis.isLoading = false;
-                innerThis.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
-                innerThis.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
+                _this.isLoading = false;
+                _this.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
+                _this.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
+                _this.activeCommittees = _.sortBy(_this.activeCommittees, function (c) { return c.name.toLowerCase(); });
+                _this.inactiveCommittees = _.sortBy(_this.inactiveCommittees, function (c) { return c.name.toLowerCase(); });
                 // Convert the last login timestamps to local time
                 //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
             }).error(function (exc) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to retrieve the committee listing");
             });
         };

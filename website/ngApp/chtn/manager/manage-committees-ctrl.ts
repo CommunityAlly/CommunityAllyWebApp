@@ -101,16 +101,19 @@ namespace Ally
             var innerThis = this;
             this.$http.get( "/api/Committee?includeInactive=true" ).success(( committees: Committee[] ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.activeCommittees = _.filter( committees, c => !c.deactivationDateUtc );
-                innerThis.inactiveCommittees = _.filter( committees, c => !!c.deactivationDateUtc );
+                this.isLoading = false;
+                this.activeCommittees = _.filter( committees, c => !c.deactivationDateUtc );
+                this.inactiveCommittees = _.filter( committees, c => !!c.deactivationDateUtc );
+
+                this.activeCommittees = _.sortBy( this.activeCommittees, c => c.name.toLowerCase() );
+                this.inactiveCommittees = _.sortBy( this.inactiveCommittees, c => c.name.toLowerCase() );
 
                 // Convert the last login timestamps to local time
                 //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
 
             } ).error(( exc: Ally.ExceptionResult ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
                 alert( "Failed to retrieve the committee listing" );
             } );
         }
