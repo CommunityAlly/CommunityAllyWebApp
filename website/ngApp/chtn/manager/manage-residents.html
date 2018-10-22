@@ -202,7 +202,7 @@
     </div>
 
     <div data-ng-if="$ctrl.showLaunchSite" class="mt-4 mb-4">
-        <div data-ng-show="$ctrl.siteLaunchedDateUtc === null">
+        <div data-ng-show="!$ctrl.siteLaunchedDateUtc">
             Is your site new and are you ready to share it with your fellow residents?<br />
             <input type="button" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent" value="Launch Site" />
             <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All e-mails sent!</span>
@@ -216,7 +216,7 @@
         <div data-ng-show="$ctrl.siteLaunchedDateUtc !== null" class="note-text">
             Looking for the "Launch Site" button?<br />
             This site has already been successfully launched. If you need to send login instructions to users, click on their name above, then click
-            the "Send Welcome E-mail" button.
+            the "Send Welcome E-mail" button. If needed, you can <span class="text-link" data-ng-click="$ctrl.siteLaunchedDateUtc = null">show the launch site button</span> again.
         </div>
     </div>
     
