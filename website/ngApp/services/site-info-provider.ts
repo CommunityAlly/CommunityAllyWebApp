@@ -98,7 +98,7 @@ namespace Ally
         numUnits: number;
         isEmailSendingRestricted: boolean;
         hasAssessments: boolean;
-        assessmentFrequency: any;
+        assessmentFrequency: number;
         isPeriodicPaymentTrackingEnabled: boolean;
         homeRightColumnType: string;
         siteLaunchedDateUtc: Date;

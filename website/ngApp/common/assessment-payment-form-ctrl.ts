@@ -14,7 +14,7 @@
         payerPaysAchFee: boolean;
         isWePaySetup: boolean;
         hasAssessments: boolean;
-        assessmentFrequency: string;
+        assessmentFrequency: number;
         allyAppName: string;
         isAutoPayActive: boolean;
         nextAutoPayText: string;
@@ -223,7 +223,7 @@
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        getNextPaymentText( payPeriods: any[], assessmentFrequency: any )
+        getNextPaymentText( payPeriods: any[], assessmentFrequency: number )
         {
             if( payPeriods == null )
                 return "";

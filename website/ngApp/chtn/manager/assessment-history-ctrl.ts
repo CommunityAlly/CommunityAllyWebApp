@@ -9,6 +9,53 @@
     }
 
 
+    class PeriodicPayment
+    {
+        paymentId: number;
+        year: number;
+        /** The 1-based period index (i.e. 1 = January) */
+        period: number;
+        isPaid: boolean;
+        amount: number;
+        paymentDate: Date;
+        payerUserId: string;
+        wePayCheckoutId: number;
+        checkNumber: string;
+        notes: string;
+        payerNotes: string;
+        wePayStatus: string;
+        groupId: number;
+
+        isEmptyEntry: boolean = false;
+    }
+
+
+    class AssessmentPayment extends PeriodicPayment
+    {
+        unitId: number;
+    }
+
+
+    class PayerInfo
+    {
+        userId: string;
+        name: string;
+
+        // Not from the server
+        enteredPayments: PeriodicPayment[];
+        displayPayments: PeriodicPayment[];
+    }
+
+
+    class FullPaymentHistory
+    {
+        units: any[];
+        payments: PeriodicPayment[];
+        specialAssessments: any[];
+        payers: PayerInfo[];
+    }
+
+
     /**
      * The controller for the page to view resident assessment payment history
      */
@@ -38,8 +85,9 @@
         createSpecialAssessment: any;
         visiblePeriodNames: any[];
         unitPayments: any = {};
-        payers: any[];
+        payers: PayerInfo[];
         editPayment: any;
+        showRowType: string = "unit";
 
 
         /**
@@ -55,12 +103,20 @@
         */
         $onInit()
         {
-            if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
+            let isMembershipGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+            if( isMembershipGroup )
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
 
             this.authToken = window.localStorage.getItem( "ApiAuthToken" );
+
+            if( AppConfig.isChtnSite )
+                this.showRowType = "unit";
+            else if( isMembershipGroup )
+                this.showRowType = "member";
+            else
+                console.log( "Unhandled app type for payment history: " + AppConfig.appShortName );
 
             this.units = [
                 { name: "A", monthPayments: [1, 2, 3] },
@@ -89,6 +145,8 @@
             var PeriodicPaymentFrequency_Annually = 53;
 
             this.assessmentFrequency = <PeriodicPaymentFrequency>this.siteInfo.privateSiteInfo.assessmentFrequency;
+            if( isMembershipGroup )
+                this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
 
             // Set the period name
             this.payPeriodName = "month";
@@ -199,7 +257,7 @@
         /**
          * Add in entries to the payments array so every period has an entry
          */
-        fillInEmptyPayments( unit: any )
+        fillInEmptyPaymentsForUnit( unit: any )
         {
             var defaultOwnerUserId = ( unit.owners !== null && unit.owners.length > 0 ) ? unit.owners[0].userId : null;
 
@@ -226,6 +284,54 @@
                         payerUserId: defaultOwnerUserId,
                         paymentDate: new Date(),
                         isEmptyEntry: true
+                    };
+                }
+
+                sortedPayments.push( curPeriodPayment );
+
+                // curPeriod goes 1-vm.maxPeriodRange
+                curPeriod--;
+            }
+
+            return sortedPayments;
+        }
+
+
+        /**
+         * Add in entries to the payments array so every period has an entry
+         */
+        fillInEmptyPaymentsForMember( member: PayerInfo )
+        {
+            var sortedPayments = [];
+            var curPeriod = this.startPeriodValue;
+            var curYearValue = this.startYearValue;
+            for( var periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
+            {
+                if( curPeriod < 1 )
+                {
+                    curPeriod = this.maxPeriodRange;
+                    --curYearValue;
+                }
+
+                var curPeriodPayment: PeriodicPayment = _.find( member.enteredPayments, p => p.period === curPeriod && p.year === curYearValue );
+
+                if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
+                {
+                    curPeriodPayment = {
+                        isPaid: false,
+                        paymentId: null,
+                        period: curPeriod,
+                        year: curYearValue,
+                        amount: 0,
+                        payerUserId: member.userId,
+                        paymentDate: new Date(),
+                        isEmptyEntry: true,
+                        wePayCheckoutId: null,
+                        checkNumber: null,
+                        notes: null,
+                        payerNotes: null,
+                        wePayStatus: null,
+                        groupId: null
                     };
                 }
 
@@ -360,11 +466,10 @@
             }
 
             // Make sure every visible period has an valid entry object
-            var innerThis = this;
-            _.each( this.unitPayments, function( unit:any )
-            {
-                unit.payments = innerThis.fillInEmptyPayments( unit );
-            } );
+            if( AppConfig.appShortName === "pta" )
+                _.each( this.payers, payer => payer.displayPayments = this.fillInEmptyPaymentsForMember( payer ) );
+            else
+                _.each( this.unitPayments, ( unit: any ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
         }
 
 
@@ -376,17 +481,10 @@
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( function( httpResponse:ng.IHttpPromiseCallbackArg<any> )
+            this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
             {
                 var paymentInfo = httpResponse.data;
-
-                // Convert the date strings to objects
-                for( var i = 0; i < paymentInfo.payments.length; ++i )
-                {
-                    if( typeof ( paymentInfo.payments[i].paymentDate ) === "string" && paymentInfo.payments[i].paymentDate.length > 0 )
-                        paymentInfo.payments[i].paymentDate = new Date( paymentInfo.payments[i].paymentDate );
-                }
-
+                
                 // Build the map of unit ID to unit information
                 innerThis.unitPayments = {};
                 _.each( paymentInfo.units, function( unit:any )
@@ -402,7 +500,16 @@
                 } );
 
                 // Add the payment information to the units
-                _.each( paymentInfo.payments, function( payment:any )
+                if( AppConfig.appShortName === "pta" )
+                {
+                    _.each( httpResponse.data.payers, ( payer ) =>
+                    {
+                        payer.enteredPayments = _.filter( paymentInfo.payments, p => p.payerUserId === payer.userId );
+                    } );
+                }
+
+                // Add the payment information to the units
+                _.each( paymentInfo.payments, function( payment: AssessmentPayment )
                 {
                     if( innerThis.unitPayments[payment.unitId] )
                         innerThis.unitPayments[payment.unitId].payments.push( payment );
@@ -413,9 +520,7 @@
                 {
                     unit.allPayments = unit.payments;
                 } );
-
-                innerThis.displayPaymentsForRange( innerThis.startYearValue, innerThis.startPeriodValue );
-
+                
                 // Sort the units by name
                 var sortedUnits = [];
                 for( var key in innerThis.unitPayments )
@@ -424,7 +529,14 @@
 
                 innerThis.payers = _.sortBy( paymentInfo.payers, function( payer:any ) { return payer.name; } );
 
+                innerThis.displayPaymentsForRange( innerThis.startYearValue, innerThis.startPeriodValue );
+
                 innerThis.isLoading = false;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to retrieve payment history: " + response.data.exceptionMessage );
             } );
         }
 
@@ -433,17 +545,29 @@
          */
         getPaymentSumForPayPeriod( periodIndex:number )
         {
-            var sum = 0;
+            let sum = 0;
 
-            let unitIds:string[] = _.keys( this.unitPayments );
-
-            for( let i = 0; i < unitIds.length; ++i )
+            if( AppConfig.isChtnSite )
             {
-                var unitId = unitIds[i];
+                let unitIds: string[] = _.keys( this.unitPayments );
 
-                var paymentInfo = this.unitPayments[unitId].payments[periodIndex];
-                if( paymentInfo && paymentInfo.isPaid )
-                    sum += paymentInfo.amount;
+                for( let i = 0; i < unitIds.length; ++i )
+                {
+                    let unitId = unitIds[i];
+
+                    let paymentInfo = this.unitPayments[unitId].payments[periodIndex];
+                    if( paymentInfo && paymentInfo.isPaid )
+                        sum += paymentInfo.amount;
+                }
+            }
+            else
+            {
+                for( let i = 0; i < this.payers.length; ++i )
+                {
+                    let paymentInfo = this.payers[i].displayPayments[periodIndex];
+                    if( paymentInfo && paymentInfo.isPaid )
+                        sum += paymentInfo.amount;
+                }
             }
 
             return sum;
@@ -462,7 +586,7 @@
         /**
          * Occurs when the user clicks a date cell
          */
-        onPaymentCellClick( unit: any, periodPayment: any )
+        onUnitPaymentCellClick( unit: any, periodPayment: any )
         {
             periodPayment.unitId = unit.unitId;
 
@@ -477,6 +601,24 @@
                         return owner.userId === payer.userId;
                     } );
                 } )
+            };
+
+            setTimeout( function() { $( "#paid-amount-textbox" ).focus(); }, 10 );
+        }
+
+
+        /**
+         * Occurs when the user clicks a date cell
+         */
+        onMemberPaymentCellClick( payer: PayerInfo, periodPayment: PeriodicPayment )
+        {
+            periodPayment.payerUserId = payer.userId;
+
+            this.editPayment = {
+                unit: null,
+                payment: _.clone( periodPayment ), // Make a copy of the object so we can edit it without editing the grid
+                periodName: this.periodNames[periodPayment.period - 1],
+                filteredPayers: null
             };
 
             setTimeout( function() { $( "#paid-amount-textbox" ).focus(); }, 10 );

@@ -31,13 +31,30 @@
                     </th>
                 </tr>
             </thead>
-            <tbody>
+
+            <tbody data-ng-if="$ctrl.showRowType === 'unit'">
                 <tr data-ng-repeat="unit in $ctrl.unitPayments" ng-init="unitIndex = $index">
                     <td class="text-bold text-right">
                         {{ unit.name }}
                         <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
                     </td>
-                    <td ng-repeat="payment in unit.payments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onPaymentCellClick( unit, payment )">
+                    <td ng-repeat="payment in unit.payments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
+                        <div data-ng-if="!$ctrl.showPaymentInfo">
+                            <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
+                        </div>
+                        <div data-ng-if="$ctrl.showPaymentInfo">
+                            <span data-ng-show="payment.isPaid">{{ payment.amount | currency }}</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+
+            <tbody data-ng-if="$ctrl.showRowType === 'member'">
+                <tr data-ng-repeat="payer in $ctrl.payers" ng-init="memberIndex = $index">
+                    <td class="text-bold text-right">
+                        {{ payer.name }}
+                    </td>
+                    <td ng-repeat="payment in payer.displayPayments" id="pay-cell-{{ memberIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onMemberPaymentCellClick( payer, payment )">
                         <div data-ng-if="!$ctrl.showPaymentInfo">
                             <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
                         </div>
@@ -70,7 +87,7 @@
             <h3>Payment for {{$ctrl.editPayment.periodName}} {{$ctrl.editPayment.payment.year}}</h3>
             <form>
                 <div class="form-group row">
-                    <label class="col-xs-6 col-sm-4">PAID:</label>
+                    <label class="col-xs-6 col-sm-4" for="is-paid-checkbox">PAID:</label>
                     <div class="col-xs-6 col-sm-8">
                         <input id="is-paid-checkbox" type="checkbox" data-ng-model="$ctrl.editPayment.payment.isPaid" />
                     </div>
@@ -87,11 +104,11 @@
                     <label class="col-sm-4">Check Number:</label>
                     <div class="col-sm-8">
                         <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.checkNumber" />
-                        <span class="text-link" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
+                        <span class="text-link" data-ng-if="$ctrl.editPayment.payment.wePayCheckoutId" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
                     </div>
                 </div>
 
-                <div class="form-group row">
+                <div class="form-group row" data-ng-if="$ctrl.showRowType === 'unit'">
                     <label class="col-sm-4">Paid By:</label>
                     <div class="col-sm-8">
                         <select class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.payerUserId" data-ng-options="p.userId as p.name for p in $ctrl.payers"></select>
