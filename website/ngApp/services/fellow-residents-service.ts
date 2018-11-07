@@ -13,12 +13,21 @@
     }
 
 
+    class HomeEntry
+    {
+        memberHomeId: number;
+        userId: string;
+        unitId: number;
+        isRenter: boolean;
+    }
+
+
     /**
      * Represents a member of a CHTN group
      */
     export class FellowChtnResident extends SimpleUserEntry
     {
-        homes: any[];
+        homes: HomeEntry[];
         boardPosition: number;
         wePayAutoPayIsActive: boolean;
         showPhoneInMeetNeighbors: boolean;
@@ -39,10 +48,17 @@
         isPrivate: boolean;
     }
 
+    export class UnitListing
+    {
+        name: string;
+        unitId: number;
+        owners: FellowChtnResident[];
+        renters: FellowChtnResident[];
+    }
 
     export class FellowResidents
     {
-        byUnit: any[];
+        byUnit: UnitListing[];
         residents: FellowChtnResident[];
         committees: CommitteeListingInfo[];
         ptaMembers: PtaMember[];
@@ -81,7 +97,7 @@
         /**
          * Get the residents for an association, broken down by unit for easy display
          */
-        getByUnits(): ng.IPromise<FellowChtnResident[]>
+        getByUnits(): ng.IPromise<UnitListing[]>
         {
             var innerThis = this;
             return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>

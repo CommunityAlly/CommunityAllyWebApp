@@ -1130,6 +1130,8 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManagePayments", templateHtml: "<manage-payments></manage-payments>", menuTitle: "Online Payments", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin }),
@@ -3542,57 +3544,6 @@ var Ally;
 CA.angularApp.component("manageResidents", {
     templateUrl: "/ngApp/chtn/manager/manage-residents.html",
     controller: Ally.ManageResidentsController
-});
-
-var Ally;
-(function (Ally) {
-    /**
-     * The controller for the page to send invoices to residents
-     */
-    var SendInvoicesController = /** @class */ (function () {
-        /**
-        * The constructor for the class
-        */
-        function SendInvoicesController($http, siteInfo, appCacheService) {
-            this.$http = $http;
-            this.siteInfo = siteInfo;
-            this.appCacheService = appCacheService;
-            var innerThis = this;
-            this.residentGridOptions =
-                {
-                    data: [],
-                    columnDefs: [
-                        { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
-                        { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
-                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'boardPosition', displayName: 'Board Position', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
-                        { field: 'isSiteManager', displayName: 'Is Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
-                    ],
-                    multiSelect: false,
-                    enableSorting: true,
-                    enableHorizontalScrollbar: 0,
-                    enableVerticalScrollbar: 0,
-                    enableFullRowSelection: true,
-                    enableColumnMenus: false,
-                    enableRowHeaderSelection: false,
-                    onRegisterApi: function (gridApi) {
-                    }
-                };
-        }
-        /**
-        * Called on each controller after all the controllers on an element have been constructed
-        */
-        SendInvoicesController.prototype.$onInit = function () {
-        };
-        SendInvoicesController.$inject = ["$http", "SiteInfo", "appCacheService"];
-        return SendInvoicesController;
-    }());
-    Ally.SendInvoicesController = SendInvoicesController;
-})(Ally || (Ally = {}));
-CA.angularApp.component("sendInvoices", {
-    templateUrl: "/ngApp/chtn/manager/send-invoices.html",
-    controller: Ally.SendInvoicesController
 });
 
 var __extends = (this && this.__extends) || (function () {
@@ -7869,6 +7820,391 @@ CA.angularApp.component("localNewsFeed", {
 
 var Ally;
 (function (Ally) {
+    var MailingHistoryInfo = /** @class */ (function () {
+        function MailingHistoryInfo() {
+        }
+        return MailingHistoryInfo;
+    }());
+    var MailingResultEntry = /** @class */ (function () {
+        function MailingResultEntry() {
+        }
+        return MailingResultEntry;
+    }());
+    var MailingResults = /** @class */ (function () {
+        function MailingResults() {
+        }
+        return MailingResults;
+    }());
+    /**
+     * The controller for the invoice mailing view
+     */
+    var MailingHistoryController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function MailingHistoryController($http, siteInfo) {
+            var _this = this;
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.isLoading = false;
+            this.viewingResults = null;
+            this.historyGridOptions =
+                {
+                    data: [],
+                    columnDefs: [
+                        {
+                            field: "sendDateUtc",
+                            displayName: "Sent",
+                            cellFilter: "date:'short'",
+                            type: "date"
+                        },
+                        {
+                            field: "numPaperLettersSent",
+                            displayName: "# Letters Sent",
+                            type: "number"
+                        },
+                        {
+                            field: "numEmailsSent",
+                            displayName: "# E-mails Sent",
+                            type: "number"
+                        },
+                        {
+                            field: "amountPaid",
+                            displayName: "Amount Paid",
+                            cellFilter: "currency",
+                            type: "number",
+                            width: 110
+                        },
+                        {
+                            field: "mailingResultObject",
+                            displayName: "",
+                            width: 130,
+                            cellTemplate: '<div class="ui-grid-cell-contents"><span data-ng-click="grid.appScope.$ctrl.showMailingResults( row.entity )" class="text-link">View Results</span></div>'
+                        }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: 0,
+                    enableVerticalScrollbar: 0,
+                    enableColumnMenus: false,
+                    minRowsToShow: 5,
+                    onRegisterApi: function (gridApi) {
+                        _this.historyGridApi = gridApi;
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
+            this.resultsGridOptions =
+                {
+                    data: [],
+                    columnDefs: [
+                        {
+                            field: "mailingType",
+                            displayName: "Type",
+                            width: 100
+                        },
+                        {
+                            field: "recipient",
+                            displayName: "Recipient",
+                            width: 300,
+                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{row.entity.recipient}}</span></div>'
+                        },
+                        {
+                            field: "didSuccessfullySend",
+                            displayName: "Successful",
+                            width: 100,
+                            type: "boolean"
+                        },
+                        {
+                            field: "resultMessage",
+                            displayName: "Result Message",
+                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.resultMessage}}">{{row.entity.resultMessage}}</span></div>'
+                        }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: 0,
+                    enableVerticalScrollbar: 0,
+                    enableColumnMenus: false,
+                    minRowsToShow: 5,
+                    onRegisterApi: function (gridApi) {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        MailingHistoryController.prototype.$onInit = function () {
+            this.refreshHistory();
+        };
+        /**
+         * Display the results for a mailing
+         */
+        MailingHistoryController.prototype.showMailingResults = function (mailingEntry) {
+            this.viewingResults = mailingEntry.mailingResultObject;
+            _.forEach(this.viewingResults.emailResults, function (r) { return r.mailingType = "E-mail"; });
+            _.forEach(this.viewingResults.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
+            var resultsRows = [];
+            resultsRows = resultsRows.concat(this.viewingResults.emailResults, this.viewingResults.paperMailResults);
+            this.resultsGridOptions.data = resultsRows;
+            this.resultsGridOptions.minRowsToShow = resultsRows.length;
+            this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+        };
+        /**
+         * Load the mailing history
+         */
+        MailingHistoryController.prototype.refreshHistory = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Mailing/History").then(function (response) {
+                _this.isLoading = false;
+                _this.historyGridOptions.data = response.data;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to load mailing history: " + response.data.exceptionMessage);
+            });
+        };
+        MailingHistoryController.$inject = ["$http", "SiteInfo"];
+        return MailingHistoryController;
+    }());
+    Ally.MailingHistoryController = MailingHistoryController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("mailingHistory", {
+    templateUrl: "/ngApp/common/mailing/mailing-history.html",
+    controller: Ally.MailingHistoryController
+});
+
+var Ally;
+(function (Ally) {
+    var InvoiceMailingEntry = /** @class */ (function () {
+        function InvoiceMailingEntry() {
+        }
+        return InvoiceMailingEntry;
+    }());
+    var InvoiceFullMailing = /** @class */ (function () {
+        function InvoiceFullMailing() {
+        }
+        return InvoiceFullMailing;
+    }());
+    var FullMailingResult = /** @class */ (function () {
+        function FullMailingResult() {
+        }
+        return FullMailingResult;
+    }());
+    /**
+     * The controller for the invoice mailing view
+     */
+    var MailingInvoiceController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function MailingInvoiceController($http, siteInfo, fellowResidents, wizardHandler, $scope, $timeout, $location) {
+            var _this = this;
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
+            this.wizardHandler = wizardHandler;
+            this.$scope = $scope;
+            this.$timeout = $timeout;
+            this.$location = $location;
+            this.isLoading = false;
+            this.selectedEntries = [];
+            this.numEmailsToSend = 0;
+            this.numPaperLettersToSend = 0;
+            this.paperInvoiceDollars = 2;
+            this.homesGridOptions =
+                {
+                    data: [],
+                    columnDefs: [
+                        {
+                            field: "homeNames",
+                            displayName: AppConfig.homeName
+                        },
+                        {
+                            field: "ownerNames",
+                            displayName: "Owners"
+                        },
+                        {
+                            field: "amountDue",
+                            displayName: "Amount Due",
+                            width: 120,
+                            cellTemplate: '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity.amountDue" /></div>'
+                        }
+                        //,{
+                        //    field: "unitIds",
+                        //    displayName: "",
+                        //    width: 130,
+                        //    cellTemplate: '<div class="ui-grid-cell-contents"><a data-ng-href="/api/Mailing/Preview/Invoice/{{row.entity.unitIds}}?ApiAuthToken=' + this.siteInfo.authToken + '" target="_blank">Preview Invoice</a></div>'
+                        //}
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: 0,
+                    enableVerticalScrollbar: 0,
+                    enableColumnMenus: false,
+                    minRowsToShow: 5,
+                    enableRowHeaderSelection: true,
+                    multiSelect: true,
+                    enableSelectAll: true,
+                    onRegisterApi: function (gridApi) {
+                        _this.gridApi = gridApi;
+                        var updateFromSelection = function () {
+                            var selectedRows = gridApi.selection.getSelectedRows();
+                            _this.selectedEntries = selectedRows;
+                            //_.forEach( <InvoiceMailingEntry[]>this.homesGridOptions.data, e => e.shouldIncludeForSending = false );
+                            //_.forEach( this.selectedEntries, e => e.shouldIncludeForSending = true );
+                        };
+                        gridApi.selection.on.rowSelectionChanged($scope, function (row) { return updateFromSelection(); });
+                        gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) { return updateFromSelection(); });
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        MailingInvoiceController.prototype.$onInit = function () {
+            var _this = this;
+            this.authToken = this.siteInfo.authToken;
+            this.loadMailingInfo();
+            this.$scope.$on('wizard:stepChanged', function (event, args) {
+                _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
+                _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
+                // If we moved to the second step
+                //if( args.index === 1 )
+                //    this.$timeout( () => this.showMap = true, 50 );
+                //else
+                //    this.showMap = false;
+            });
+        };
+        MailingInvoiceController.prototype.previewInvoice = function (entry) {
+            var entryInfo = encodeURIComponent(JSON.stringify(entry));
+            var invoiceUri = "/api/Mailing/Preview/Invoice?ApiAuthToken=" + this.authToken + "&fromAddress=" + encodeURIComponent(this.fullMailingInfo.fromAddress) + "&notes=" + encodeURIComponent(this.fullMailingInfo.notes) + "&mailingInfo=" + entryInfo;
+            window.open(invoiceUri, "_blank");
+        };
+        MailingInvoiceController.prototype.onFinishedWizard = function () {
+            var _this = this;
+            if (this.numPaperLettersToSend === 0)
+                return;
+            var stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            var checkoutHandler = StripeCheckout.configure({
+                key: stripeKey,
+                image: '/assets/images/icons/Icon-144.png',
+                locale: 'auto',
+                email: this.siteInfo.userInfo.emailAddress,
+                token: function (token) {
+                    // You can access the token ID with `token.id`.
+                    // Get the token ID to your server-side code for use.
+                    _this.fullMailingInfo.stripeToken = token.id;
+                    _this.submitFullMailingAfterCharge();
+                }
+            });
+            this.isLoading = true;
+            // Open Checkout with further options:
+            checkoutHandler.open({
+                name: 'Community Ally',
+                description: "Mailing " + this.numPaperLettersToSend + " invoice" + (this.numPaperLettersToSend === 1 ? '' : 's'),
+                zipCode: true,
+                amount: this.numPaperLettersToSend * this.paperInvoiceDollars * 100 // Stripe uses cents
+            });
+            // Close Checkout on page navigation:
+            window.addEventListener('popstate', function () {
+                checkoutHandler.close();
+            });
+        };
+        MailingInvoiceController.prototype.submitFullMailingAfterCharge = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/Mailing/Send/Invoice", this.fullMailingInfo).then(function (response) {
+                _this.isLoading = false;
+                var message = "Your invoices have been successfully sent" + (response.data.hadErrors ? ', but there were errors' : '') + ". You can view the status in the history tab.";
+                alert(message);
+                _this.$location.path("/Mailing/History");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("There was a problem sending your mailing, none were sent and you were not charged. Error: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+        * Retrieve mailing info from the server
+        */
+        MailingInvoiceController.prototype.loadMailingInfo = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Mailing/RecipientInfo").then(function (response) {
+                _this.isLoading = false;
+                _this.fullMailingInfo = response.data;
+                _this.homesGridOptions.data = response.data.mailingEntries;
+                _this.$timeout(function () { return _this.gridApi.selection.selectAllRows(); }, 10);
+            });
+        };
+        MailingInvoiceController.prototype.toggleAllSending = function (type) {
+            if (this.selectedEntries.length === 0)
+                return;
+            if (type === "email") {
+                var shouldSetTo = !this.selectedEntries[0].shouldSendEmail;
+                for (var i = 0; i < this.selectedEntries.length; ++i) {
+                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].emailAddress))
+                        this.selectedEntries[i].shouldSendEmail = false;
+                    else
+                        this.selectedEntries[i].shouldSendEmail = shouldSetTo;
+                }
+            }
+            else {
+                var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
+                for (var i = 0; i < this.selectedEntries.length; ++i) {
+                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].streetAddress))
+                        this.selectedEntries[i].shouldSendPaperMail = false;
+                    else
+                        this.selectedEntries[i].shouldSendPaperMail = shouldSetTo;
+                }
+            }
+        };
+        MailingInvoiceController.$inject = ["$http", "SiteInfo", "fellowResidents", "WizardHandler", "$scope", "$timeout", "$location"];
+        return MailingInvoiceController;
+    }());
+    Ally.MailingInvoiceController = MailingInvoiceController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("mailingInvoice", {
+    templateUrl: "/ngApp/common/mailing/mailing-invoice.html",
+    controller: Ally.MailingInvoiceController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the mailing parent view
+     */
+    var MailingParentController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function MailingParentController($http, siteInfo, $routeParams, $cacheFactory, $rootScope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$routeParams = $routeParams;
+            this.$cacheFactory = $cacheFactory;
+            this.$rootScope = $rootScope;
+            this.selectedView = null;
+            this.selectedView = this.$routeParams.viewName || "Invoice";
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        MailingParentController.prototype.$onInit = function () {
+        };
+        MailingParentController.$inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
+        return MailingParentController;
+    }());
+    Ally.MailingParentController = MailingParentController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("mailingParent", {
+    templateUrl: "/ngApp/common/mailing/mailing-parent.html",
+    controller: Ally.MailingParentController
+});
+
+var Ally;
+(function (Ally) {
     var MaintenanceProject = /** @class */ (function () {
         function MaintenanceProject() {
         }
@@ -10379,6 +10715,11 @@ var Ally;
         return GroupEmailInfo;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
+    var HomeEntry = /** @class */ (function () {
+        function HomeEntry() {
+        }
+        return HomeEntry;
+    }());
     /**
      * Represents a member of a CHTN group
      */
@@ -10396,6 +10737,12 @@ var Ally;
         return CommitteeListingInfo;
     }());
     Ally.CommitteeListingInfo = CommitteeListingInfo;
+    var UnitListing = /** @class */ (function () {
+        function UnitListing() {
+        }
+        return UnitListing;
+    }());
+    Ally.UnitListing = UnitListing;
     var FellowResidents = /** @class */ (function () {
         function FellowResidents() {
         }

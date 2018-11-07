@@ -1,0 +1,144 @@
+﻿<div>
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+
+    <h2>Send Invoices</h2>
+    <p>
+        Here you can quickly and easily send out invoices to all of the members of your association. Follow the steps below to send e-mail and/or
+        mailed paper invoices to your members. Paper letters cost {{$ctrl.paperInvoiceDollars | currency}} (total, includes print, prep, and postage) per sent invoice.
+    </p>
+    <br />
+    <br />
+
+    <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
+        <wz-step title="Recipients">
+
+            <h2 class="StepTitle"></h2>
+            <p>
+                Select to which homes an invoice will be sent and how much will be listed due. You can preview the invoices on the third step.
+            </p>
+            <div>
+                <div data-ui-grid="$ctrl.homesGridOptions" ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+                <div>
+                    {{$ctrl.selectedEntries.length}} recipient{{$ctrl.selectedEntries.length === 1 ? '' : 's'}} selected
+                </div>
+            </div>
+            <br />
+            <input id="next-button-0" type="submit" class="btn btn-sign-up-wiz" style="width:95%; float: none; margin: 0 auto;" wz-next value="Next Step" />
+
+        </wz-step>
+
+        <wz-step title="Info">
+
+            <h2 class="StepTitle"></h2>
+            <p>
+                Enter the invoice/mailing "from" address and payment instructions or notes.
+            </p>
+            <div>
+                <div class="mb-3">
+                    From Address:<br />
+                    <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    Notes:<br />
+                    <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.notes" rows="4"></textarea>
+                    <span class="note-text">
+                        These notes will appear at the bottom of the invoice. Use this to thank your member or
+                        provide payment instructions.
+                    </span>
+                </div>
+            </div>
+
+            <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
+            <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: right;" wz-next value="Next Step" />
+            <div class="clearfix"></div>
+
+        </wz-step>
+
+        <wz-step title="Delivery Method">
+
+            <h2 class="StepTitle"></h2>
+            <p>
+                Select how you want to send the invoice to these homeowners.
+            </p>
+            <div>
+                <div>
+                    <span class="text-link" data-ng-click="$ctrl.toggleAllSending('email')">Toggle All E-mail Sending</span>
+                    <span class="text-link ml-3" data-ng-click="$ctrl.toggleAllSending('paper')">Toggle All Paper Mail Sending</span>
+                </div>
+                <div class="border p-2 m-2" data-ng-repeat="recipient in $ctrl.selectedEntries">
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <h2>{{ recipient.homeNames }}</h2>
+                                </td>
+                                <td>
+                                    {{ recipient.ownerNames }} owes  {{ recipient.amountDue | currency }}.
+                                </td>
+                            </tr>
+                            <tr data-ng-if="recipient.amountDue > 0">
+                                <td class="AlignRightBold">
+                                    <label><input type="checkbox" data-ng-model="recipient.shouldSendEmail" />Send E-mail</label>
+                                </td>
+                                <td style="width: 400px;">
+                                    <input type="text" class="form-control form-control-sm" data-ng-model="recipient.emailAddresses" />
+                                    <div class="text-error" data-ng-if="recipient.shouldSendEmail && (!recipient.emailAddresses || recipient.emailAddresses.length === 0)">E-mail Required</div>
+                                </td>
+                            </tr>
+                            <tr data-ng-if="recipient.amountDue > 0">
+                                <td class="AlignRightBold">
+                                    <label><input type="checkbox" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
+                                </td>
+                                <td style="width: 400px;">
+                                    <textarea type="text" class="form-control form-control-sm" data-ng-model="recipient.streetAddress" rows="4"></textarea>
+                                    <div class="text-error" data-ng-if="recipient.shouldSendPaperMail && (!recipient.streetAddress || recipient.streetAddress.length === 0)">Address Required</div>
+                                </td>
+                            </tr>
+                            <tr data-ng-if="recipient.amountDue > 0">
+                                <td colspan="2" style="text-align: center;">
+                                    <span class="text-link" data-ng-click="$ctrl.previewInvoice( recipient )">Preview Invoice PDF</span>
+                                </td>
+                            </tr>
+                            <tr data-ng-if="!recipient.amountDue">
+                                <td></td>
+                                <td class="note-text">
+                                    You indicated this member owes nothing so no invoice will be sent.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
+            <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: right;" wz-next value="Next Step" />
+            <div class="clearfix"></div>
+        </wz-step>
+
+        <wz-step title="Confirm">
+
+            <h2 class="StepTitle"></h2>
+            <p>
+                Confirm these numbers are correct, pay any mailing fees, and your letters and e-mails will be sent. Paper letters will
+                be sent via presorted first class mail and take about 7 calendar days to arrive.
+            </p>
+
+            <div class="text-center text-large">
+                <div>E-mails to send: <span style="font-weight: bold;">{{$ctrl.numEmailsToSend}}</span></div>
+                <div>Paper letters to mail: <span style="font-weight: bold;">{{$ctrl.numPaperLettersToSend}}</span></div>
+                <div data-ng-if="$ctrl.numPaperLettersToSend > 0">Total Cost: <span style="font-weight: bold;">{{$ctrl.numPaperLettersToSend * 2 | currency}}</span></div>
+                <div data-ng-if="$ctrl.numPaperLettersToSend === 0">Total Cost: <span style="font-weight: bold;">Free</span></div>
+            </div>
+
+            <br />
+            <br />
+            <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
+            <input id="finish-button" type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: right;" wz-next value="Finish" />
+            <div class="clearfix"></div>
+        </wz-step>
+
+    </wizard>
+
+</div>

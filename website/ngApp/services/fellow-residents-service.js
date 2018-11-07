@@ -19,6 +19,11 @@ var Ally;
         return GroupEmailInfo;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
+    var HomeEntry = /** @class */ (function () {
+        function HomeEntry() {
+        }
+        return HomeEntry;
+    }());
     /**
      * Represents a member of a CHTN group
      */
@@ -36,6 +41,12 @@ var Ally;
         return CommitteeListingInfo;
     }());
     Ally.CommitteeListingInfo = CommitteeListingInfo;
+    var UnitListing = /** @class */ (function () {
+        function UnitListing() {
+        }
+        return UnitListing;
+    }());
+    Ally.UnitListing = UnitListing;
     var FellowResidents = /** @class */ (function () {
         function FellowResidents() {
         }

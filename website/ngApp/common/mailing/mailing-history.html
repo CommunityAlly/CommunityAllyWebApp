@@ -1,0 +1,19 @@
+﻿<div>
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay">  </div>
+    <h2>Mailing History</h2>
+    <p>Here you can view the history of mail sent by your group and view the status of mailings.</p>
+
+    <div data-ng-if="$ctrl.historyGridOptions.data.length > 0" data-ui-grid="$ctrl.historyGridOptions" ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+
+    <div class="note-text" data-ng-if="$ctrl.historyGridOptions.data.length === 0">Your group has not sent any mailings.</div>
+
+    <div class="modal-container" data-ng-if="$ctrl.viewingResults" data-ng-escape="$ctrl.viewingResults = null">
+        <div class="modal-overlay"></div>
+        <div novalidate class="ca-modal-dialog modal-lg">
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.viewingResults = null">&times;</span>
+
+            <div data-ui-grid="$ctrl.resultsGridOptions" ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+
+        </div>
+    </div>
+</div>
