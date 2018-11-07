@@ -693,11 +693,17 @@ footer {
   .page-documents h2 small {
     font-size: 13px;
     font-weight: normal; }
-  .page-documents .Document_Folder, .page-documents .Document_File, .page-documents .Document_Folder_Selected, .page-documents .Document_File_Selected {
+  .page-documents .file_info {
+    margin: auto auto; }
+  .page-documents .Document_File {
     cursor: pointer; }
   .page-documents .Document_Folder_Selected, .page-documents .Document_File_Selected {
-    background-color: #4BF;
+    background-color: #CEF;
     font-weight: bold; }
+    .page-documents .Document_Folder_Selected .media-thumbnail img, .page-documents .Document_File_Selected .media-thumbnail img {
+      cursor: pointer; }
+    .page-documents .Document_Folder_Selected .file-name, .page-documents .Document_File_Selected .file-name {
+      font-weight: bolder; }
   .page-documents .Document_Folder_DropHover {
     background-color: #6CF; }
   .page-documents .Document_Folder > table, .page-documents .Document_Folder_Selected > table, .page-documents .Document_File > table, .page-documents .Document_File_Selected > table {

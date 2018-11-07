@@ -35,13 +35,32 @@
         font-weight: normal;
     }
 
+    .file_item {
+    }
+
+    .file_info {
+        margin: auto auto;
+    }
+
     .Document_Folder, .Document_File, .Document_Folder_Selected, .Document_File_Selected {
+        
+    }
+
+    .Document_File {
         cursor: pointer;
     }
 
     .Document_Folder_Selected, .Document_File_Selected {
-        background-color: #4BF;
+        background-color: #CEF;
         font-weight: bold;
+
+        .media-thumbnail img {
+            cursor: pointer;
+        }
+
+        .file-name {
+            font-weight: bolder;
+        }
     }
 
     .Document_Folder_DropHover {

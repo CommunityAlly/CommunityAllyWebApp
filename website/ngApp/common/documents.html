@@ -59,7 +59,7 @@
                         This folder is empty
                     </p>
 
-                    <div id="FileContainer_{{ $index }}" class="file_item" data-ng-class="{'select': $ctrl.selectedFile === curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
+                    <div id="FileContainer_{{ $index }}" class="file_item p-2" data-ng-class="{'Document_File_Selected': $ctrl.selectedFile === curFile, 'Document_File': $ctrl.selectedFile !== curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
                         <div class="file_info media-item margin-top">
                             <div class="media-thumbnail">
                                 <img id="File_{{ $index }}" class="file-thumbnail draggable" ng-src="{{$ctrl.getFileIcon(curFile.fileName)}}" />
