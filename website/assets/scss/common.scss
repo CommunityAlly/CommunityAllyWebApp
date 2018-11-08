@@ -313,3 +313,8 @@ input[type=number].ui-grid-pager-control-input::-webkit-outer-spin-button
     display: inline-block;
     vertical-align: middle !important;
 }
+
+.info-item-body img
+{
+    max-width: 100%;
+}

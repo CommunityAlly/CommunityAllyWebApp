@@ -456,6 +456,9 @@ input[type=number].ui-grid-pager-control-input::-webkit-outer-spin-button {
   display: inline-block;
   vertical-align: middle !important; }
 
+.info-item-body img {
+  max-width: 100%; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;

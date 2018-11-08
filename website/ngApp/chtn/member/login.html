@@ -18,49 +18,85 @@
             <button data-ng-click="$ctrl.demoLogin()">Log In</button>
         </div>
 
-        <!-- Needs to be ng-show rather than ng-if for the Protractor tests -->
-        <div data-ng-show="$ctrl.loginImageUrl" style="margin-bottom: 21px;">
-            <img class="login-image" alt="Welcome image" data-ng-src="{{$ctrl.loginImageUrl}}" />
-        </div>
+        <div>
+            <div style="max-width: 760px; margin: 0 auto;">
+                <!-- Needs to be ng-show rather than ng-if for the Protractor tests -->
+                <div data-ng-show="$ctrl.loginImageUrl" style="margin-bottom: 21px;">
+                    <img alt="Welcome image" style="width: 100%;" data-ng-src="{{$ctrl.loginImageUrl}}" />
+                </div>
 
-        <div data-ng-show="$ctrl.loginResult" style="font-weight: bold; color: #F00; font-size:1.25em;">
-            <span id="error-label" class="error-text">{{ $ctrl.loginResult }}</span><br />
-            <br />
-        </div>
+                <div data-ng-show="$ctrl.loginResult" style="font-weight: bold; color: #F00; font-size:1.25em;">
+                    <span id="error-label" class="error-text">{{ $ctrl.loginResult }}</span><br />
+                    <br />
+                </div>
 
-        <form data-ng-if="!$ctrl.isDemoSite" data-ng-submit="$ctrl.onLogin()">
-            <table style="border-collapse:collapse; margin: 0 auto; padding: 0; width: 100%; max-width: 400px;">
-                <tbody>
-                    <tr>
-                        <td class="text-right">
-                            <label for="login-email-textbox">E-mail Address:</label>
-                        </td>
-                        <td>
+                <form data-ng-if="!$ctrl.isDemoSite" data-ng-submit="$ctrl.onLogin()">
+                    <div class="form-group row">
+                        <label for="login-email-textbox" class="col-sm-4 col-xs-12 col-form-label">
+                            E-mail Address:
+                        </label>
+                        <div class="col-sm-8 col-xs-12">
                             <input type="email" class="input_field" id="login-email-textbox" data-ng-model="$ctrl.loginInfo.emailAddress" data-rule-required="true">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-right">
-                            <label for="login-password-textbox">Password:</label>
-                        </td>
-                        <td>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="login-password-textbox" class="col-sm-4 col-xs-12 col-form-label">
+                            Password:
+                        </label>
+                        <div class="col-sm-8 col-xs-12">
                             <input type="password" class="input_field" id="login-password-textbox" data-ng-model="$ctrl.loginInfo.password" data-rule-required="true">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" class="text-center">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-12">
                             <label><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" class="text-center">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-12">
                             <input type="submit" value="Log In" id="login-button" class="btn btn-primary" style="float:none;"><br />
                             <br />
                             <span class="text-link" id="login-reset-password" data-ng-click="$ctrl.onForgotPassword()">Forgot Your Password?</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <!--<table style="border-collapse:collapse; margin: 0 auto; padding: 0; width: 100%; max-width: 400px;">
+        <tbody>
+            <tr>
+                <td class="text-right">
+                    <label for="login-email-textbox">E-mail Address:</label>
+                </td>
+                <td>
+                    <input type="email" class="input_field" id="login-email-textbox" data-ng-model="$ctrl.loginInfo.emailAddress" data-rule-required="true">
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right">
+                    <label for="login-password-textbox">Password:</label>
+                </td>
+                <td>
+                    <input type="password" class="input_field" id="login-password-textbox" data-ng-model="$ctrl.loginInfo.password" data-rule-required="true">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="text-center">
+                    <label><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="text-center">
+                    <input type="submit" value="Log In" id="login-button" class="btn btn-primary" style="float:none;"><br />
+                    <br />
+                    <span class="text-link" id="login-reset-password" data-ng-click="$ctrl.onForgotPassword()">Forgot Your Password?</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>-->
         </form>
     </div>
 </div>

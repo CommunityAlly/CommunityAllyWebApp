@@ -59,17 +59,22 @@
 
             if( !this.isDemoSite )
             {
-                this.sectionStyle["left"] = "50%";
+                //this.sectionStyle["left"] = "50%";
 
                 if( this.loginImageUrl )
                 {
-                    this.sectionStyle["width"] = "760px";
-                    this.sectionStyle["margin-left"] = "-380px";
+                    this.sectionStyle["max-width"] = "760px";
+                    this.sectionStyle["margin-left"] = "auto";
+                    this.sectionStyle["margin-right"] = "auto";
+                    //this.sectionStyle["margin-left"] = "-380px";
                 }
                 else
                 {
-                    this.sectionStyle["width"] = "450px";
-                    this.sectionStyle["margin-left"] = "-225px";
+                    this.sectionStyle["max-width"] = "500px";
+                    this.sectionStyle["margin-left"] = "auto";
+                    this.sectionStyle["margin-right"] = "auto";
+                    //this.sectionStyle["max-width"] = "450px";
+                    //this.sectionStyle["margin-left"] = "-225px";
                 }
             }
 
