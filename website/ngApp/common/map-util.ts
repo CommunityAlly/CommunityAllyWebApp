@@ -52,6 +52,8 @@ namespace Ally
         chicagoWard: number;
         neighborhoodName: string;
         oneLiner: string;
+        multiLiner: string;
+        timeZoneIana: string;
     }
 
 

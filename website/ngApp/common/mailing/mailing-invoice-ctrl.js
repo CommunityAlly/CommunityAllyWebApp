@@ -2,6 +2,7 @@ var Ally;
 (function (Ally) {
     var InvoiceMailingEntry = /** @class */ (function () {
         function InvoiceMailingEntry() {
+            this.isValid = null;
         }
         return InvoiceMailingEntry;
     }());
@@ -14,6 +15,11 @@ var Ally;
         function FullMailingResult() {
         }
         return FullMailingResult;
+    }());
+    var AddressVerificationResult = /** @class */ (function () {
+        function AddressVerificationResult() {
+        }
+        return AddressVerificationResult;
     }());
     /**
      * The controller for the invoice mailing view
@@ -92,13 +98,54 @@ var Ally;
             this.authToken = this.siteInfo.authToken;
             this.loadMailingInfo();
             this.$scope.$on('wizard:stepChanged', function (event, args) {
-                _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
-                _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
                 // If we moved to the second step
-                //if( args.index === 1 )
-                //    this.$timeout( () => this.showMap = true, 50 );
-                //else
-                //    this.showMap = false;
+                _this.activeStepIndex = args.index;
+                if (_this.activeStepIndex === 1) {
+                    // Tell the grid to resize as there is a bug with UI-Grid
+                    _this.$timeout(function () {
+                        //$( window ).resize();
+                        //$( window ).resize();
+                        //var evt = document.createEvent( 'UIEvents' );
+                        //evt.initUIEvent( 'resize', true, false, window, 0 );
+                        //window.dispatchEvent( evt );
+                        for (var _i = 0, _a = _this.selectedEntries; _i < _a.length; _i++) {
+                            var curRow = _a[_i];
+                            _this.gridApi.selection.selectRow(curRow);
+                        }
+                        //this.$timeout( () => this.gridApi.selection.selectAllRows(), 200 );
+                    }, 250);
+                }
+                else if (_this.activeStepIndex === 3) {
+                    _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
+                    _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
+                }
+            });
+        };
+        MailingInvoiceController.prototype.onShouldSendPaperMailChange = function (recipient) {
+            if (recipient.shouldSendPaperMail)
+                this.validateAddress(recipient);
+        };
+        MailingInvoiceController.prototype.onAddressChanged = function (recipient) {
+            if (recipient.shouldSendPaperMail)
+                this.validateAddress(recipient);
+        };
+        /**
+         * Run the recipient addresses through an address validator
+         */
+        MailingInvoiceController.prototype.validateAddress = function (recipient) {
+            recipient.isValidating = true;
+            recipient.isValid = null;
+            return this.$http.get("/api/Mailing/VerifyAddress?address=" + encodeURIComponent(recipient.streetAddress)).then(function (response) {
+                recipient.isValidating = false;
+                recipient.isValid = response.data.isValid;
+                recipient.validationMessage = response.data.verificationMessage;
+                if (recipient.isValid)
+                    recipient.validatedAddress = response.data.parsedStreetAddress.multiLiner;
+            }, function (response) {
+                recipient.isValidating = false;
+                recipient.isValid = false;
+                recipient.validatedAddress = null;
+                recipient.validationMessage = response.data.exceptionMessage;
             });
         };
         MailingInvoiceController.prototype.previewInvoice = function (entry) {
@@ -108,8 +155,13 @@ var Ally;
         };
         MailingInvoiceController.prototype.onFinishedWizard = function () {
             var _this = this;
-            if (this.numPaperLettersToSend === 0)
+            if (this.numPaperLettersToSend === 0) {
+                if (this.numEmailsToSend === 0)
+                    alert("No e-mails or paper letters selected to send.");
+                else
+                    this.submitFullMailingAfterCharge();
                 return;
+            }
             var stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
             var checkoutHandler = StripeCheckout.configure({
                 key: stripeKey,
@@ -159,16 +211,17 @@ var Ally;
                 _this.isLoading = false;
                 _this.fullMailingInfo = response.data;
                 _this.homesGridOptions.data = response.data.mailingEntries;
-                _this.$timeout(function () { return _this.gridApi.selection.selectAllRows(); }, 10);
+                _this.selectedEntries = _.clone(response.data.mailingEntries);
             });
         };
         MailingInvoiceController.prototype.toggleAllSending = function (type) {
+            var _this = this;
             if (this.selectedEntries.length === 0)
                 return;
             if (type === "email") {
                 var shouldSetTo = !this.selectedEntries[0].shouldSendEmail;
                 for (var i = 0; i < this.selectedEntries.length; ++i) {
-                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].emailAddress))
+                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].emailAddresses) || !this.selectedEntries[i].amountDue)
                         this.selectedEntries[i].shouldSendEmail = false;
                     else
                         this.selectedEntries[i].shouldSendEmail = shouldSetTo;
@@ -177,10 +230,24 @@ var Ally;
             else {
                 var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
                 for (var i = 0; i < this.selectedEntries.length; ++i) {
-                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].streetAddress))
+                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].streetAddress) || !this.selectedEntries[i].amountDue)
                         this.selectedEntries[i].shouldSendPaperMail = false;
                     else
                         this.selectedEntries[i].shouldSendPaperMail = shouldSetTo;
+                }
+                // If we enabled the sending and there are selected recipients, then verify all addresses
+                if (shouldSetTo && this.selectedEntries.length > 0) {
+                    var recipientsToVerify_1 = _.clone(this.selectedEntries);
+                    var validateAllStep = function () {
+                        _this.validateAddress(recipientsToVerify_1[0]).then(function () {
+                            recipientsToVerify_1.splice(0, 1);
+                            while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
+                                recipientsToVerify_1.splice(0, 1);
+                            if (recipientsToVerify_1.length > 0)
+                                validateAllStep();
+                        });
+                    };
+                    validateAllStep();
                 }
             }
         };

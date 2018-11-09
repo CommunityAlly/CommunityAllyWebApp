@@ -8,27 +8,12 @@
     </p>
     <br />
     <br />
+    <h1 style="color: blue;">TEST MODE: No e-mails will be sent, no paper letters will be sent, and your credit card will not be charged.</h1>
+    <br />
+    <br />
 
     <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
-        <wz-step title="Recipients">
-
-            <h2 class="StepTitle"></h2>
-            <p>
-                Select to which homes an invoice will be sent and how much will be listed due. You can preview the invoices on the third step.
-            </p>
-            <div>
-                <div data-ui-grid="$ctrl.homesGridOptions" ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
-                <div>
-                    {{$ctrl.selectedEntries.length}} recipient{{$ctrl.selectedEntries.length === 1 ? '' : 's'}} selected
-                </div>
-            </div>
-            <br />
-            <input id="next-button-0" type="submit" class="btn btn-sign-up-wiz" style="width:95%; float: none; margin: 0 auto;" wz-next value="Next Step" />
-
-        </wz-step>
-
         <wz-step title="Info">
-
             <h2 class="StepTitle"></h2>
             <p>
                 Enter the invoice/mailing "from" address and payment instructions or notes.
@@ -37,6 +22,13 @@
                 <div class="mb-3">
                     From Address:<br />
                     <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    Sending Reason:<br />
+                    <label><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Assessment" />Assessment</label>
+                    <label class="ml-2"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
+                    <label class="ml-2"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
                 </div>
 
                 <div class="mb-3">
@@ -49,14 +41,27 @@
                 </div>
             </div>
 
+            <input id="next-button-0" type="submit" class="btn btn-sign-up-wiz" style="width:95%; float: none; margin: 0 auto;" wz-next value="Next Step" />
+        </wz-step>
+
+        <wz-step title="Recipients">
+            <h2 class="StepTitle"></h2>
+            <p>
+                Select to which homes an invoice will be sent and how much will be listed due. You can preview the invoices on the third step.
+            </p>
+            <div>
+                <div data-ng-if="$ctrl.activeStepIndex === 1" data-ui-grid="$ctrl.homesGridOptions" ui-grid-auto-resize ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+                <div>
+                    {{$ctrl.selectedEntries.length}} recipient{{$ctrl.selectedEntries.length === 1 ? '' : 's'}} selected
+                </div>
+            </div>
+            <br />
             <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
             <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: right;" wz-next value="Next Step" />
             <div class="clearfix"></div>
-
         </wz-step>
 
         <wz-step title="Delivery Method">
-
             <h2 class="StepTitle"></h2>
             <p>
                 Select how you want to send the invoice to these homeowners.
@@ -66,8 +71,8 @@
                     <span class="text-link" data-ng-click="$ctrl.toggleAllSending('email')">Toggle All E-mail Sending</span>
                     <span class="text-link ml-3" data-ng-click="$ctrl.toggleAllSending('paper')">Toggle All Paper Mail Sending</span>
                 </div>
-                <div class="border p-2 m-2" data-ng-repeat="recipient in $ctrl.selectedEntries">
-
+                <div class="border p-2 m-2" style="position: relative;" data-ng-repeat="recipient in $ctrl.selectedEntries">
+                    <div class="loading-overlay" data-ng-if="recipient.isValidating"></div>
                     <table>
                         <tbody>
                             <tr>
@@ -77,6 +82,7 @@
                                 <td>
                                     {{ recipient.ownerNames }} owes  {{ recipient.amountDue | currency }}.
                                 </td>
+                                <td></td>
                             </tr>
                             <tr data-ng-if="recipient.amountDue > 0">
                                 <td class="AlignRightBold">
@@ -86,26 +92,38 @@
                                     <input type="text" class="form-control form-control-sm" data-ng-model="recipient.emailAddresses" />
                                     <div class="text-error" data-ng-if="recipient.shouldSendEmail && (!recipient.emailAddresses || recipient.emailAddresses.length === 0)">E-mail Required</div>
                                 </td>
+                                <td></td>
                             </tr>
                             <tr data-ng-if="recipient.amountDue > 0">
                                 <td class="AlignRightBold">
-                                    <label><input type="checkbox" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
+                                    <label><input type="checkbox" data-ng-change="$ctrl.onShouldSendPaperMailChange( recipient )" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
                                 </td>
                                 <td style="width: 400px;">
-                                    <textarea type="text" class="form-control form-control-sm" data-ng-model="recipient.streetAddress" rows="4"></textarea>
+                                    <textarea type="text" class="form-control form-control-sm" data-ng-change="$ctrl.onAddressChanged( recipient )" data-ng-model-options="{ debounce: 1000 }" data-ng-model="recipient.streetAddress" rows="4"></textarea>
+                                </td>
+                                <td>
                                     <div class="text-error" data-ng-if="recipient.shouldSendPaperMail && (!recipient.streetAddress || recipient.streetAddress.length === 0)">Address Required</div>
+
+                                    <div class="text-error" data-ng-if="recipient.isValid === false">{{recipient.validationMessage}}</div>
+
+                                    <div class="text-error" data-ng-if="recipient.isValid === true" style="color: darkgreen;">
+                                        {{recipient.validationMessage}}:<br />
+                                        <div style="white-space: pre;">{{recipient.validatedAddress}}</div>
+                                    </div>
                                 </td>
                             </tr>
                             <tr data-ng-if="recipient.amountDue > 0">
                                 <td colspan="2" style="text-align: center;">
                                     <span class="text-link" data-ng-click="$ctrl.previewInvoice( recipient )">Preview Invoice PDF</span>
                                 </td>
+                                <td></td>
                             </tr>
                             <tr data-ng-if="!recipient.amountDue">
                                 <td></td>
                                 <td class="note-text">
                                     You indicated this member owes nothing so no invoice will be sent.
                                 </td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>
@@ -118,7 +136,6 @@
         </wz-step>
 
         <wz-step title="Confirm">
-
             <h2 class="StepTitle"></h2>
             <p>
                 Confirm these numbers are correct, pay any mailing fees, and your letters and e-mails will be sent. Paper letters will
@@ -134,11 +151,15 @@
 
             <br />
             <br />
+            <h1 style="color: blue;">Use this information to checkout:<br />
+            Credit Card Number: 4242424242424242<br />
+            Expiration: 12/21<br />
+            CVC: 123<br />
+            ZIP: 12345</h1>
             <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
             <input id="finish-button" type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: right;" wz-next value="Finish" />
             <div class="clearfix"></div>
         </wz-step>
-
     </wizard>
 
 </div>

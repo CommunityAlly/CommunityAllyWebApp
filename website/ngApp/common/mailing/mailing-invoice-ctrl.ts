@@ -8,11 +8,17 @@ namespace Ally
         primaryUserId: string;
         homeNames: string;
         amountDue: number;
-        emailAddress: string;
+        emailAddresses: string;
         streetAddress: string;
         ownerNames: string;
         shouldSendEmail: boolean;
         shouldSendPaperMail: boolean;
+
+        // Not sent down from the server
+        isValidating: boolean;
+        isValid: boolean = null;
+        validationMessage: string;
+        validatedAddress: string;
     }
 
 
@@ -22,12 +28,21 @@ namespace Ally
         fromAddress: string;
         notes: string;
         stripeToken: string;
+        sendingReason: string;
     }
 
 
     class FullMailingResult
     {
         hadErrors: boolean;
+    }
+
+
+    class AddressVerificationResult
+    {
+        isValid: boolean;
+        verificationMessage: string
+        parsedStreetAddress: FullAddress;
     }
 
 
@@ -46,6 +61,7 @@ namespace Ally
         authToken: string;
         paperInvoiceDollars: number = 2;
         fullMailingInfo: InvoiceFullMailing;
+        activeStepIndex: number;
 
 
         /**
@@ -121,17 +137,76 @@ namespace Ally
 
             this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
-                this.numEmailsToSend = _.filter( this.selectedEntries, e => e.shouldSendEmail ).length;
-                this.numPaperLettersToSend = _.filter( this.selectedEntries, e => e.shouldSendPaperMail ).length;
-                
                 // If we moved to the second step
-                //if( args.index === 1 )
-                //    this.$timeout( () => this.showMap = true, 50 );
-                //else
-                //    this.showMap = false;
+                this.activeStepIndex = args.index;
+                if( this.activeStepIndex === 1 )
+                {
+                    // Tell the grid to resize as there is a bug with UI-Grid
+                    this.$timeout( () =>
+                    {
+                        //$( window ).resize();
+                        //$( window ).resize();
+                        //var evt = document.createEvent( 'UIEvents' );
+                        //evt.initUIEvent( 'resize', true, false, window, 0 );
+                        //window.dispatchEvent( evt );
+
+                        for( var curRow of this.selectedEntries )
+                        {
+                            this.gridApi.selection.selectRow( curRow );
+                        }
+                        //this.$timeout( () => this.gridApi.selection.selectAllRows(), 200 );
+
+                    }, 250 );
+                }
+                // Or if we moved to the last step
+                else if( this.activeStepIndex === 3 )
+                {
+                    this.numEmailsToSend = _.filter( this.selectedEntries, e => e.shouldSendEmail ).length;
+                    this.numPaperLettersToSend = _.filter( this.selectedEntries, e => e.shouldSendPaperMail ).length;
+                }
             } );
         }
         
+
+        onShouldSendPaperMailChange( recipient: InvoiceMailingEntry )
+        {
+            if( recipient.shouldSendPaperMail )
+                this.validateAddress( recipient );
+        }
+
+
+        onAddressChanged( recipient: InvoiceMailingEntry )
+        {
+            if( recipient.shouldSendPaperMail )
+                this.validateAddress( recipient );
+        }
+
+
+        /**
+         * Run the recipient addresses through an address validator
+         */
+        validateAddress( recipient: InvoiceMailingEntry )
+        {
+            recipient.isValidating = true;
+            recipient.isValid = null;
+
+            return this.$http.get( "/api/Mailing/VerifyAddress?address=" + encodeURIComponent( recipient.streetAddress ) ).then( ( response: ng.IHttpPromiseCallbackArg<AddressVerificationResult> ) =>
+            {
+                recipient.isValidating = false;
+                recipient.isValid = response.data.isValid;
+                recipient.validationMessage = response.data.verificationMessage;
+                if( recipient.isValid )
+                    recipient.validatedAddress = response.data.parsedStreetAddress.multiLiner;
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                recipient.isValidating = false;
+                recipient.isValid = false;
+                recipient.validatedAddress = null;
+                recipient.validationMessage = response.data.exceptionMessage;
+            } );
+        }
+
 
         previewInvoice(entry:InvoiceMailingEntry)
         {
@@ -145,7 +220,14 @@ namespace Ally
         onFinishedWizard()
         {
             if( this.numPaperLettersToSend === 0 )
+            {
+                if( this.numEmailsToSend === 0 )
+                    alert( "No e-mails or paper letters selected to send." );
+                else
+                    this.submitFullMailingAfterCharge();
+
                 return;
+            }
 
             let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 
@@ -214,9 +296,9 @@ namespace Ally
                 this.isLoading = false;
 
                 this.fullMailingInfo = response.data;
-                this.homesGridOptions.data = response.data.mailingEntries;
 
-                this.$timeout( () => this.gridApi.selection.selectAllRows(), 10 );
+                this.homesGridOptions.data = response.data.mailingEntries;
+                this.selectedEntries = _.clone( response.data.mailingEntries );                                
             } );
         }
 
@@ -232,7 +314,7 @@ namespace Ally
 
                 for( let i = 0; i < this.selectedEntries.length; ++i )
                 {
-                    if( HtmlUtil.isNullOrWhitespace( this.selectedEntries[i].emailAddress ) )
+                    if( HtmlUtil.isNullOrWhitespace( this.selectedEntries[i].emailAddresses ) || !this.selectedEntries[i].amountDue )
                         this.selectedEntries[i].shouldSendEmail = false;
                     else
                         this.selectedEntries[i].shouldSendEmail = shouldSetTo;
@@ -244,10 +326,32 @@ namespace Ally
 
                 for( let i = 0; i < this.selectedEntries.length; ++i )
                 {
-                    if( HtmlUtil.isNullOrWhitespace( this.selectedEntries[i].streetAddress ) )
+                    if( HtmlUtil.isNullOrWhitespace( this.selectedEntries[i].streetAddress ) || !this.selectedEntries[i].amountDue )
                         this.selectedEntries[i].shouldSendPaperMail = false;
                     else
                         this.selectedEntries[i].shouldSendPaperMail = shouldSetTo;
+                }
+
+                // If we enabled the sending and there are selected recipients, then verify all addresses
+                if( shouldSetTo && this.selectedEntries.length > 0 )
+                {
+                    let recipientsToVerify = _.clone( this.selectedEntries );
+
+                    var validateAllStep = () =>
+                    {
+                        this.validateAddress( recipientsToVerify[0] ).then( () =>
+                        {
+                            recipientsToVerify.splice( 0, 1 );
+
+                            while( recipientsToVerify.length > 0 && !recipientsToVerify[0].amountDue )
+                                recipientsToVerify.splice( 0, 1 );
+
+                            if( recipientsToVerify.length > 0 )
+                                validateAllStep();
+                        } );
+                    };
+
+                    validateAllStep();
                 }
             }
         }
