@@ -211,6 +211,8 @@ var Ally;
                 _this.isLoading = false;
                 _this.fullMailingInfo = response.data;
                 _this.homesGridOptions.data = response.data.mailingEntries;
+                _this.homesGridOptions.minRowsToShow = response.data.mailingEntries.length;
+                _this.homesGridOptions.virtualizationThreshold = response.data.mailingEntries.length;
                 _this.selectedEntries = _.clone(response.data.mailingEntries);
             });
         };

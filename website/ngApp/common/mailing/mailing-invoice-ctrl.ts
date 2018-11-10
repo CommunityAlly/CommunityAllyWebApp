@@ -298,6 +298,9 @@ namespace Ally
                 this.fullMailingInfo = response.data;
 
                 this.homesGridOptions.data = response.data.mailingEntries;
+                this.homesGridOptions.minRowsToShow = response.data.mailingEntries.length;
+                this.homesGridOptions.virtualizationThreshold = response.data.mailingEntries.length;
+
                 this.selectedEntries = _.clone( response.data.mailingEntries );                                
             } );
         }

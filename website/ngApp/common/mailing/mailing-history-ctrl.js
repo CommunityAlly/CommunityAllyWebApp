@@ -40,13 +40,15 @@ var Ally;
                         },
                         {
                             field: "numPaperLettersSent",
-                            displayName: "# Letters Sent",
-                            type: "number"
+                            displayName: "# Letters",
+                            type: "number",
+                            width: 100
                         },
                         {
                             field: "numEmailsSent",
-                            displayName: "# E-mails Sent",
-                            type: "number"
+                            displayName: "# E-mails",
+                            type: "number",
+                            width: 100
                         },
                         {
                             field: "amountPaid",
@@ -54,6 +56,11 @@ var Ally;
                             cellFilter: "currency",
                             type: "number",
                             width: 110
+                        },
+                        {
+                            field: "sendingReason",
+                            displayName: "Reason",
+                            width: 150
                         },
                         {
                             field: "mailingResultObject",

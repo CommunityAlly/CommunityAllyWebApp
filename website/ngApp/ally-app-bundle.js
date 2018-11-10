@@ -7865,13 +7865,15 @@ var Ally;
                         },
                         {
                             field: "numPaperLettersSent",
-                            displayName: "# Letters Sent",
-                            type: "number"
+                            displayName: "# Letters",
+                            type: "number",
+                            width: 100
                         },
                         {
                             field: "numEmailsSent",
-                            displayName: "# E-mails Sent",
-                            type: "number"
+                            displayName: "# E-mails",
+                            type: "number",
+                            width: 100
                         },
                         {
                             field: "amountPaid",
@@ -7879,6 +7881,11 @@ var Ally;
                             cellFilter: "currency",
                             type: "number",
                             width: 110
+                        },
+                        {
+                            field: "sendingReason",
+                            displayName: "Reason",
+                            width: 150
                         },
                         {
                             field: "mailingResultObject",
@@ -8192,6 +8199,8 @@ var Ally;
                 _this.isLoading = false;
                 _this.fullMailingInfo = response.data;
                 _this.homesGridOptions.data = response.data.mailingEntries;
+                _this.homesGridOptions.minRowsToShow = response.data.mailingEntries.length;
+                _this.homesGridOptions.virtualizationThreshold = response.data.mailingEntries.length;
                 _this.selectedEntries = _.clone(response.data.mailingEntries);
             });
         };
