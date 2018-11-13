@@ -37,18 +37,20 @@
      */
     export class MailingHistoryController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "$timeout"];
         isLoading: boolean = false;
         historyGridApi: uiGrid.IGridApiOf<MailingHistoryInfo>;
         historyGridOptions: uiGrid.IGridOptionsOf<MailingHistoryInfo>;
         resultsGridOptions: uiGrid.IGridOptionsOf<MailingResultEntry>;
         viewingResults: MailingResults = null;
 
+        // Used to compensate for ui-grid's inability to resize
+        resultsGridheight: number;
 
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService )
         {
             this.historyGridOptions =
                 {
@@ -163,17 +165,29 @@
          */
         showMailingResults( mailingEntry: MailingHistoryInfo )
         {
-            this.viewingResults = mailingEntry.mailingResultObject;
+            this.$timeout( () =>
+            {
+                _.forEach( mailingEntry.mailingResultObject.emailResults, r => r.mailingType = "E-mail" );
+                _.forEach( mailingEntry.mailingResultObject.paperMailResults, r => r.mailingType = "Paper Letter" );
 
-            _.forEach( this.viewingResults.emailResults, r => r.mailingType = "E-mail" );
-            _.forEach( this.viewingResults.paperMailResults, r => r.mailingType = "Paper Letter" );
+                var resultsRows: MailingResultEntry[] = [];
+                resultsRows = resultsRows.concat( mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults );
 
-            var resultsRows:MailingResultEntry[] = [];
-            resultsRows = resultsRows.concat( this.viewingResults.emailResults, this.viewingResults.paperMailResults );
+                this.resultsGridOptions.data = resultsRows;
+                this.resultsGridOptions.minRowsToShow = resultsRows.length;
+                this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
 
-            this.resultsGridOptions.data = resultsRows;
-            this.resultsGridOptions.minRowsToShow = resultsRows.length;
-            this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+                this.resultsGridheight = (resultsRows.length + 1) * this.resultsGridOptions.rowHeight;
+
+                this.$timeout( () =>
+                {
+                    this.viewingResults = mailingEntry.mailingResultObject;
+                    //var evt = document.createEvent( 'UIEvents' );
+                    //evt.initUIEvent( 'resize', true, false, window, 0 );
+                    //window.dispatchEvent( evt );
+                }, 10 );
+
+            }, 0 );
         }
 
 

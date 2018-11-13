@@ -22,10 +22,11 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function MailingHistoryController($http, siteInfo) {
+        function MailingHistoryController($http, siteInfo, $timeout) {
             var _this = this;
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
             this.isLoading = false;
             this.viewingResults = null;
             this.historyGridOptions =
@@ -128,14 +129,23 @@ var Ally;
          * Display the results for a mailing
          */
         MailingHistoryController.prototype.showMailingResults = function (mailingEntry) {
-            this.viewingResults = mailingEntry.mailingResultObject;
-            _.forEach(this.viewingResults.emailResults, function (r) { return r.mailingType = "E-mail"; });
-            _.forEach(this.viewingResults.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
-            var resultsRows = [];
-            resultsRows = resultsRows.concat(this.viewingResults.emailResults, this.viewingResults.paperMailResults);
-            this.resultsGridOptions.data = resultsRows;
-            this.resultsGridOptions.minRowsToShow = resultsRows.length;
-            this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+            var _this = this;
+            this.$timeout(function () {
+                _.forEach(mailingEntry.mailingResultObject.emailResults, function (r) { return r.mailingType = "E-mail"; });
+                _.forEach(mailingEntry.mailingResultObject.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
+                var resultsRows = [];
+                resultsRows = resultsRows.concat(mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults);
+                _this.resultsGridOptions.data = resultsRows;
+                _this.resultsGridOptions.minRowsToShow = resultsRows.length;
+                _this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+                _this.resultsGridheight = (resultsRows.length + 1) * _this.resultsGridOptions.rowHeight;
+                _this.$timeout(function () {
+                    _this.viewingResults = mailingEntry.mailingResultObject;
+                    //var evt = document.createEvent( 'UIEvents' );
+                    //evt.initUIEvent( 'resize', true, false, window, 0 );
+                    //window.dispatchEvent( evt );
+                }, 10);
+            }, 0);
         };
         /**
          * Load the mailing history
@@ -151,7 +161,7 @@ var Ally;
                 alert("Failed to load mailing history: " + response.data.exceptionMessage);
             });
         };
-        MailingHistoryController.$inject = ["$http", "SiteInfo"];
+        MailingHistoryController.$inject = ["$http", "SiteInfo", "$timeout"];
         return MailingHistoryController;
     }());
     Ally.MailingHistoryController = MailingHistoryController;

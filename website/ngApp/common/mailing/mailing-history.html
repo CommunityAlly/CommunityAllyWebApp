@@ -12,7 +12,7 @@
         <div novalidate class="ca-modal-dialog modal-lg">
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.viewingResults = null">&times;</span>
 
-            <div data-ui-grid="$ctrl.resultsGridOptions" ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+            <div data-ui-grid="$ctrl.resultsGridOptions" ui-grid-auto-resize ui-grid-resize-columns data-ng-style="{'height':$ctrl.resultsGridheight+'px'}" class="gridStyle margin-top-20"></div>
 
         </div>
     </div>
