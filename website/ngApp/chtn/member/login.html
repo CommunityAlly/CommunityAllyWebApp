@@ -30,25 +30,18 @@
                     <br />
                 </div>
 
-                <form data-ng-if="!$ctrl.isDemoSite" data-ng-submit="$ctrl.onLogin()">
-                    <div class="form-group row">
-                        <label for="login-email-textbox" class="col-sm-4 col-xs-12 col-form-label">
-                            E-mail Address:
-                        </label>
-                        <div class="col-sm-8 col-xs-12">
-                            <input type="email" class="input_field" id="login-email-textbox" data-ng-model="$ctrl.loginInfo.emailAddress" data-rule-required="true">
-                        </div>
+                <form data-ng-if="!$ctrl.isDemoSite" style="max-width: 500px; margin: 0 auto;" data-ng-submit="$ctrl.onLogin()">
+
+                    <div class="form-group text-left">
+                        <label for="login-email-textbox">E-mail Address:</label>
+                        <input type="email" class="form-control" id="login-email-textbox" placeholder="Enter email" data-ng-model="$ctrl.loginInfo.emailAddress" data-rule-required="true">
                     </div>
 
-                    <div class="form-group row">
-                        <label for="login-password-textbox" class="col-sm-4 col-xs-12 col-form-label">
-                            Password:
-                        </label>
-                        <div class="col-sm-8 col-xs-12">
-                            <input type="password" class="input_field" id="login-password-textbox" data-ng-model="$ctrl.loginInfo.password" data-rule-required="true">
-                        </div>
+                    <div class="form-group text-left">
+                        <label for="login-password-textbox">Password:</label>
+                        <input type="password" class="form-control" id="login-password-textbox" placeholder="Password" data-ng-model="$ctrl.loginInfo.password" data-rule-required="true">
                     </div>
-
+                    
                     <div class="form-group row">
                         <div class="col-12">
                             <label><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
@@ -62,6 +55,7 @@
                             <span class="text-link" id="login-reset-password" data-ng-click="$ctrl.onForgotPassword()">Forgot Your Password?</span>
                         </div>
                     </div>
+                </form>
             </div>
         </div>
 
