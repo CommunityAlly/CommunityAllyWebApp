@@ -7847,10 +7847,11 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function MailingHistoryController($http, siteInfo) {
+        function MailingHistoryController($http, siteInfo, $timeout) {
             var _this = this;
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
             this.isLoading = false;
             this.viewingResults = null;
             this.historyGridOptions =
@@ -7953,14 +7954,23 @@ var Ally;
          * Display the results for a mailing
          */
         MailingHistoryController.prototype.showMailingResults = function (mailingEntry) {
-            this.viewingResults = mailingEntry.mailingResultObject;
-            _.forEach(this.viewingResults.emailResults, function (r) { return r.mailingType = "E-mail"; });
-            _.forEach(this.viewingResults.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
-            var resultsRows = [];
-            resultsRows = resultsRows.concat(this.viewingResults.emailResults, this.viewingResults.paperMailResults);
-            this.resultsGridOptions.data = resultsRows;
-            this.resultsGridOptions.minRowsToShow = resultsRows.length;
-            this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+            var _this = this;
+            this.$timeout(function () {
+                _.forEach(mailingEntry.mailingResultObject.emailResults, function (r) { return r.mailingType = "E-mail"; });
+                _.forEach(mailingEntry.mailingResultObject.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
+                var resultsRows = [];
+                resultsRows = resultsRows.concat(mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults);
+                _this.resultsGridOptions.data = resultsRows;
+                _this.resultsGridOptions.minRowsToShow = resultsRows.length;
+                _this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+                _this.resultsGridheight = (resultsRows.length + 1) * _this.resultsGridOptions.rowHeight;
+                _this.$timeout(function () {
+                    _this.viewingResults = mailingEntry.mailingResultObject;
+                    //var evt = document.createEvent( 'UIEvents' );
+                    //evt.initUIEvent( 'resize', true, false, window, 0 );
+                    //window.dispatchEvent( evt );
+                }, 10);
+            }, 0);
         };
         /**
          * Load the mailing history
@@ -7976,7 +7986,7 @@ var Ally;
                 alert("Failed to load mailing history: " + response.data.exceptionMessage);
             });
         };
-        MailingHistoryController.$inject = ["$http", "SiteInfo"];
+        MailingHistoryController.$inject = ["$http", "SiteInfo", "$timeout"];
         return MailingHistoryController;
     }());
     Ally.MailingHistoryController = MailingHistoryController;
@@ -8030,6 +8040,7 @@ var Ally;
             this.numEmailsToSend = 0;
             this.numPaperLettersToSend = 0;
             this.paperInvoiceDollars = 2;
+            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
             this.homesGridOptions =
                 {
                     data: [],
@@ -8046,7 +8057,25 @@ var Ally;
                             field: "amountDue",
                             displayName: "Amount Due",
                             width: 120,
-                            cellTemplate: '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity.amountDue" /></div>'
+                            cellTemplate: amountCellTemplate
+                        },
+                        {
+                            field: "balanceForward",
+                            displayName: "Balance Forward",
+                            width: 140,
+                            cellTemplate: amountCellTemplate
+                        },
+                        {
+                            field: "lateFee",
+                            displayName: "Late Fee",
+                            width: 120,
+                            cellTemplate: amountCellTemplate
+                        },
+                        {
+                            field: "total",
+                            displayName: "Total",
+                            width: 90,
+                            cellTemplate: '<div class="ui-grid-cell-contents">{{ row.entity.amountDue - (row.entity.balanceForward || 0) + (row.entity.lateFee || 0) | currency }}</div>'
                         }
                         //,{
                         //    field: "unitIds",
@@ -8086,16 +8115,17 @@ var Ally;
             this.authToken = this.siteInfo.authToken;
             this.loadMailingInfo();
             this.$scope.$on('wizard:stepChanged', function (event, args) {
-                // If we moved to the second step
+                // If we moved to the second step, amounts due
                 _this.activeStepIndex = args.index;
                 if (_this.activeStepIndex === 1) {
-                    // Tell the grid to resize as there is a bug with UI-Grid
                     _this.$timeout(function () {
+                        // Tell the grid to resize as there is a bug with UI-Grid
                         //$( window ).resize();
                         //$( window ).resize();
                         //var evt = document.createEvent( 'UIEvents' );
                         //evt.initUIEvent( 'resize', true, false, window, 0 );
                         //window.dispatchEvent( evt );
+                        // Update the grid to show the selection based on our internal selection
                         for (var _i = 0, _a = _this.selectedEntries; _i < _a.length; _i++) {
                             var curRow = _a[_i];
                             _this.gridApi.selection.selectRow(curRow);
@@ -8103,11 +8133,23 @@ var Ally;
                         //this.$timeout( () => this.gridApi.selection.selectAllRows(), 200 );
                     }, 250);
                 }
+                // Or if we moved to the third step, contact method
+                if (_this.activeStepIndex === 2) {
+                    // Filter out any fields with an empty due
+                    _this.selectedEntries = _.filter(_this.selectedEntries, function (e) { return _this.getTotalDue(e) != 0; });
+                }
                 else if (_this.activeStepIndex === 3) {
                     _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
                     _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
                 }
             });
+        };
+        MailingInvoiceController.prototype.setAllDues = function () {
+            var _this = this;
+            _.forEach(this.fullMailingInfo.mailingEntries, function (e) { return e.amountDue = _this.allDuesSetAmount; });
+        };
+        MailingInvoiceController.prototype.getTotalDue = function (recipient) {
+            return recipient.amountDue - Math.abs(recipient.balanceForward || 0) + (recipient.lateFee || 0);
         };
         MailingInvoiceController.prototype.onShouldSendPaperMailChange = function (recipient) {
             if (recipient.shouldSendPaperMail)
@@ -8138,7 +8180,7 @@ var Ally;
         };
         MailingInvoiceController.prototype.previewInvoice = function (entry) {
             var entryInfo = encodeURIComponent(JSON.stringify(entry));
-            var invoiceUri = "/api/Mailing/Preview/Invoice?ApiAuthToken=" + this.authToken + "&fromAddress=" + encodeURIComponent(this.fullMailingInfo.fromAddress) + "&notes=" + encodeURIComponent(this.fullMailingInfo.notes) + "&mailingInfo=" + entryInfo;
+            var invoiceUri = "/api/Mailing/Preview/Invoice?ApiAuthToken=" + this.authToken + "&fromAddress=" + encodeURIComponent(this.fullMailingInfo.fromAddress) + "&notes=" + encodeURIComponent(this.fullMailingInfo.notes) + "&dueDateString=" + encodeURIComponent(this.fullMailingInfo.dueDateString) + "&duesLabel=" + encodeURIComponent(this.fullMailingInfo.duesLabel) + "&mailingInfo=" + entryInfo;
             window.open(invoiceUri, "_blank");
         };
         MailingInvoiceController.prototype.onFinishedWizard = function () {

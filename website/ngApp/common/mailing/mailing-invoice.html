@@ -20,25 +20,56 @@
                 First, please provide some basic information we need to generate the invoice document.
             </p>
             <div>
-                <div class="mb-3">
-                    From Address:<br />
-                    <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>
+                <div class="mb-3 row">
+                    <div class="form-group col-12">
+                        <label for="due-date-textbox" class="col-form-label">
+                            From Address:
+                        </label>
+                        <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    Sending Reason:<br />
-                    <label><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Assessment" />Assessment</label>
-                    <label class="ml-2"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
-                    <label class="ml-2"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
+                <!--<div class="mb-3 row">
+                    <div class="form-group col-12">
+                        <label class="col-2 col-form-label">
+                            Sending Reason:
+                        </label>
+                        <div class="col-10" style="display: inline-block;">
+                            <label><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Assessment" />Assessment</label>
+                            <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
+                            <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
+                        </div>  
+                    </div>                    
+                </div>-->
+
+                <div class="mb-3 form-group row">
+                    <label for="due-date-textbox" class="col-2 col-form-label">
+                        Due Date:
+                    </label>
+                    <div class="col-5">
+                        <input type="text" class="input_field" id="due-date-textbox" data-ng-model="$ctrl.fullMailingInfo.dueDateString">
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    Notes:<br />
-                    <span class="note-text">
-                        These notes will appear at the bottom of the invoice. Use this to thank your member or
-                        provide payment instructions.
-                    </span>
-                    <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.notes" rows="4"></textarea>
+                <div class="mb-3 form-group row">
+                    <label for="dues-label-textbox" class="col-2 col-form-label">
+                        Dues Label:
+                    </label>
+                    <div class="col-5">
+                        <input type="text" class="input_field" id="dues-label-textbox" data-ng-model="$ctrl.fullMailingInfo.duesLabel">
+                    </div>
+                </div>
+
+                <div class="mb-3 form-group row">
+                    <div class="form-group col-12">
+                        <label for="notes-textbox" class="col-form-label">
+                            Notes:
+                        </label><br />
+                        <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.notes" rows="4"></textarea>
+                        <span class="note-text">
+                            These notes will appear at the bottom of the invoice. For example, use them to provide payment instructions and/or thank your member.
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -50,6 +81,9 @@
             <p>
                 Select to which homes an invoice will be sent and how much will be listed due. You can preview the invoices on the third step.
             </p>
+            <div style="text-align: right;">
+                Set all amounts due to: $<input type="number" style="width: 70px;" data-ng-model="$ctrl.allDuesSetAmount" /><button type="button" data-ng-click="$ctrl.setAllDues()">Set</button>
+            </div>
             <div>
                 <div data-ng-if="$ctrl.activeStepIndex === 1" data-ui-grid="$ctrl.homesGridOptions" ui-grid-auto-resize ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
                 <div>
@@ -81,7 +115,7 @@
                                     <h2>{{ recipient.homeNames }}</h2>
                                 </td>
                                 <td>
-                                    {{ recipient.ownerNames }} owes  {{ recipient.amountDue | currency }}.
+                                    {{ recipient.ownerNames }} owes  {{ recipient.amountDue - (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
                                 </td>
                                 <td></td>
                             </tr>

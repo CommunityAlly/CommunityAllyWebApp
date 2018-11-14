@@ -8,6 +8,8 @@ namespace Ally
         primaryUserId: string;
         homeNames: string;
         amountDue: number;
+        balanceForward: number;
+        lateFee: number;
         emailAddresses: string;
         streetAddress: string;
         ownerNames: string;
@@ -29,6 +31,8 @@ namespace Ally
         notes: string;
         stripeToken: string;
         sendingReason: string;
+        dueDateString: string;
+        duesLabel: string;
     }
 
 
@@ -62,6 +66,7 @@ namespace Ally
         paperInvoiceDollars: number = 2;
         fullMailingInfo: InvoiceFullMailing;
         activeStepIndex: number;
+        allDuesSetAmount: number;
 
 
         /**
@@ -69,6 +74,8 @@ namespace Ally
         */
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService, private wizardHandler: any, private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $location: ng.ILocationService )
         {
+            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
+
             this.homesGridOptions =
                 {
                     data: [],
@@ -86,7 +93,25 @@ namespace Ally
                                 field: "amountDue",
                                 displayName: "Amount Due",
                                 width: 120,
-                                cellTemplate: '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity.amountDue" /></div>'
+                                cellTemplate: amountCellTemplate
+                            },
+                            {
+                                field: "balanceForward",
+                                displayName: "Balance Forward",
+                                width: 140,
+                                cellTemplate: amountCellTemplate
+                            },
+                            {
+                                field: "lateFee",
+                                displayName: "Late Fee",
+                                width: 120,
+                                cellTemplate: amountCellTemplate
+                            },
+                            {
+                                field: "total",
+                                displayName: "Total",
+                                width: 90,
+                                cellTemplate: '<div class="ui-grid-cell-contents">{{ row.entity.amountDue - (row.entity.balanceForward || 0) + (row.entity.lateFee || 0) | currency }}</div>'
                             }
                             //,{
                             //    field: "unitIds",
@@ -137,19 +162,20 @@ namespace Ally
 
             this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
-                // If we moved to the second step
+                // If we moved to the second step, amounts due
                 this.activeStepIndex = args.index;
                 if( this.activeStepIndex === 1 )
                 {
-                    // Tell the grid to resize as there is a bug with UI-Grid
                     this.$timeout( () =>
                     {
+                        // Tell the grid to resize as there is a bug with UI-Grid
                         //$( window ).resize();
                         //$( window ).resize();
                         //var evt = document.createEvent( 'UIEvents' );
                         //evt.initUIEvent( 'resize', true, false, window, 0 );
                         //window.dispatchEvent( evt );
 
+                        // Update the grid to show the selection based on our internal selection
                         for( var curRow of this.selectedEntries )
                         {
                             this.gridApi.selection.selectRow( curRow );
@@ -157,6 +183,12 @@ namespace Ally
                         //this.$timeout( () => this.gridApi.selection.selectAllRows(), 200 );
 
                     }, 250 );
+                }
+                // Or if we moved to the third step, contact method
+                if( this.activeStepIndex === 2 )
+                {
+                    // Filter out any fields with an empty due
+                    this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
                 }
                 // Or if we moved to the last step
                 else if( this.activeStepIndex === 3 )
@@ -167,6 +199,18 @@ namespace Ally
             } );
         }
         
+
+        setAllDues()
+        {
+            _.forEach( this.fullMailingInfo.mailingEntries, e => e.amountDue = this.allDuesSetAmount );
+        }
+
+
+        getTotalDue( recipient: InvoiceMailingEntry )
+        {
+            return recipient.amountDue - Math.abs( recipient.balanceForward || 0 ) + ( recipient.lateFee || 0 );
+        }
+
 
         onShouldSendPaperMailChange( recipient: InvoiceMailingEntry )
         {
@@ -211,7 +255,7 @@ namespace Ally
         previewInvoice(entry:InvoiceMailingEntry)
         {
             var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
-            var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( this.fullMailingInfo.fromAddress )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&mailingInfo=${entryInfo}`;
+            var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( this.fullMailingInfo.fromAddress )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
 
             window.open( invoiceUri, "_blank" );
         }
