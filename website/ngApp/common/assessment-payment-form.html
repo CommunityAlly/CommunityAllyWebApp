@@ -93,7 +93,7 @@
         <div class="margin-top-20">
             <div class="manage_pannel text-right">
                 <a href="javascript:void(0)" id="btn_view_pay_history">View Payment History </a>
-                <a href="javascript:void(0)" id="btn_view_pay_info">View Payments Information</a>
+                <a href="javascript:void(0)" id="btn_view_pay_info">View Payment Information</a>
             </div>
 
             <div class="mt-4">
@@ -105,10 +105,11 @@
                     </div>
                     <p data-ng-if="!$ctrl.recentPayments.length">You have no payment history.</p>
                 </div>
+
                 <div id="pm_info" class="collapse">
-                    <h4>Payment History</h4>
+                    <h4>Payment Information</h4>
                     <span class="hide note-text text-link">hide</span>
-                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called WePay to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and WePay use the same security used by major banks to secure all information and data transfer. Learn more about WePay's security. </p>
+                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called WePay to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and WePay use the same security used by major banks to secure all information and data transfer. <a href="https://support.wepay.com/entries/23064032-Security" target="_blank">Learn more about WePay's security</a>. </p>
                 </div>
             </div>
         </div>
