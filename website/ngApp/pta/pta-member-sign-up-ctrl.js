@@ -39,7 +39,7 @@ var Ally;
             if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
                 // Also mask phone numbers for US phones
                 var phoneFields = $(".mask-phone");
-                phoneFields.mask("(999) 999-9999 ?x999");
+                phoneFields.mask("(999) 999-9999? x999", { autoclear: false });
                 var TwentyFiveMilesInMeters = 40234;
                 var circle = new google.maps.Circle({
                     center: this.siteInfo.publicSiteInfo.googleGpsPosition,

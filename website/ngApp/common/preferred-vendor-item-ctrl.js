@@ -40,7 +40,7 @@ var Ally;
             // Also mask phone numbers
             if (this.siteInfo.privateSiteInfo.country === "US" || this.siteInfo.privateSiteInfo.country === "CA") {
                 var phoneFields = $(".mask-phone");
-                phoneFields.mask("(999) 999-9999 ?x999");
+                phoneFields.mask("(999) 999-9999? x999", { autoclear: false });
             }
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;

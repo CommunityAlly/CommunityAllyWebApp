@@ -101,7 +101,7 @@ grunt.initConfig({
             files:{
                 'Website/js/AllyLibBottom.min.js': [
                     'Website/js/lib/jquery/jquery.jeditable.mini.js',
-                    'Website/js/lib/jquery/jquery.maskedinput.min.js',
+                    'Website/js/lib/jquery/jquery.maskedinput.js',
                     'Website/js/lib/jquery/jquery.validate.min.js',
                     'Website/js/lib/jquery/jquery.timepicker.min.js',
                     'Website/js/lib/jquery/jquery.csv.min.js',

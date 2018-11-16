@@ -61,7 +61,7 @@ namespace Ally
             {
                 // Also mask phone numbers for US phones
                 var phoneFields: any = $( ".mask-phone" );
-                phoneFields.mask( "(999) 999-9999 ?x999" );
+                phoneFields.mask( "(999) 999-9999? x999", { autoclear: false } );
 
                 const TwentyFiveMilesInMeters = 40234;
 
