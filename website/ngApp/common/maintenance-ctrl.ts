@@ -440,10 +440,10 @@
             this.isLoading = true;
 
             // Convert the tags to strings
-            if( this.editingEquipment.typeTags && this.editingEquipment.typeTags.length > 0 )
-                this.editingEquipment.type = this.editingEquipment.typeTags[0].text;
-            else
-                this.editingEquipment.type = undefined;
+            //if( this.editingEquipment.typeTags && this.editingEquipment.typeTags.length > 0 )
+            //    this.editingEquipment.type = this.editingEquipment.typeTags[0].text;
+            //else
+            //    this.editingEquipment.type = undefined;
 
             if( this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0 )
                 this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
