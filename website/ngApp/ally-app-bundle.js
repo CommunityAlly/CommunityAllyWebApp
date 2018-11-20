@@ -4058,6 +4058,8 @@ var Ally;
                 retPath += "MapMarker_Hospital";
             else if (markerNumber === MarkerNumber_PostOffice)
                 retPath += "MapMarker_PostOffice";
+            else
+                retPath += "green_blank";
             retPath += ".png";
             return retPath;
         };
@@ -7730,9 +7732,10 @@ var Ally;
                 this.showDiscussionLargeWarning = false;
             var isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf("discussion") !== -1;
             var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
+            var isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && AppConfig.isChtnSite;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
             var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
         };
@@ -8152,8 +8155,8 @@ var Ally;
             return recipient.amountDue - Math.abs(recipient.balanceForward || 0) + (recipient.lateFee || 0);
         };
         MailingInvoiceController.prototype.onShouldSendPaperMailChange = function (recipient) {
-            if (recipient.shouldSendPaperMail)
-                this.validateAddress(recipient);
+            //if( recipient.shouldSendPaperMail )
+            //    this.validateAddress( recipient );
         };
         MailingInvoiceController.prototype.onAddressChanged = function (recipient) {
             if (recipient.shouldSendPaperMail)
@@ -8165,7 +8168,8 @@ var Ally;
         MailingInvoiceController.prototype.validateAddress = function (recipient) {
             recipient.isValidating = true;
             recipient.isValid = null;
-            return this.$http.get("/api/Mailing/VerifyAddress?address=" + encodeURIComponent(recipient.streetAddress)).then(function (response) {
+            var validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent(JSON.stringify(recipient.streetAddressObject));
+            return this.$http.get(validateUri).then(function (response) {
                 recipient.isValidating = false;
                 recipient.isValid = response.data.isValid;
                 recipient.validationMessage = response.data.verificationMessage;
@@ -8262,7 +8266,7 @@ var Ally;
             else {
                 var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
                 for (var i = 0; i < this.selectedEntries.length; ++i) {
-                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].streetAddress) || !this.selectedEntries[i].amountDue)
+                    if (!this.selectedEntries[i].streetAddressObject || !this.selectedEntries[i].amountDue)
                         this.selectedEntries[i].shouldSendPaperMail = false;
                     else
                         this.selectedEntries[i].shouldSendPaperMail = shouldSetTo;
@@ -8279,7 +8283,7 @@ var Ally;
                                 validateAllStep();
                         });
                     };
-                    validateAllStep();
+                    //validateAllStep();
                 }
             }
         };
@@ -9374,6 +9378,45 @@ var Ally;
 CA.angularApp.component("preferredVendors", {
     templateUrl: "/ngApp/common/preferred-vendors.html",
     controller: Ally.PreferredVendorsController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the vendors page
+     */
+    var StreetAddressFormController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function StreetAddressFormController($http, siteInfo) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        StreetAddressFormController.prototype.$onInit = function () {
+        };
+        /**
+         * Occurs when one of the input fields is changed
+         */
+        StreetAddressFormController.prototype.onComponentChange = function () {
+            if (this.onChange)
+                this.onChange();
+        };
+        StreetAddressFormController.$inject = ["$http", "SiteInfo"];
+        return StreetAddressFormController;
+    }());
+    Ally.StreetAddressFormController = StreetAddressFormController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("streetAddressForm", {
+    bindings: {
+        streetAddress: "=",
+        onChange: "&"
+    },
+    templateUrl: "/ngApp/common/street-address-form.html",
+    controller: Ally.StreetAddressFormController
 });
 
 /// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />

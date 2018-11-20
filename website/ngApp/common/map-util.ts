@@ -54,6 +54,7 @@ namespace Ally
         oneLiner: string;
         multiLiner: string;
         timeZoneIana: string;
+        recipientName: string;
     }
 
 

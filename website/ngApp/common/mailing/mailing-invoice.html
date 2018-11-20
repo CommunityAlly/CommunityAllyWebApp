@@ -25,7 +25,8 @@
                         <label for="due-date-textbox" class="col-form-label">
                             From Address:
                         </label>
-                        <textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>
+                        <!--<textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>-->
+                        <street-address-form data-street-address="$ctrl.fullMailingInfo.fromStreetAddress"></street-address-form>
                     </div>
                 </div>
 
@@ -47,7 +48,7 @@
                         Due Date:
                     </label>
                     <div class="col-5">
-                        <input type="text" class="input_field" id="due-date-textbox" data-ng-model="$ctrl.fullMailingInfo.dueDateString">
+                        <input type="text" class="form-control" id="due-date-textbox" data-ng-model="$ctrl.fullMailingInfo.dueDateString">
                     </div>
                 </div>
 
@@ -56,7 +57,7 @@
                         Dues Label:
                     </label>
                     <div class="col-5">
-                        <input type="text" class="input_field" id="dues-label-textbox" data-ng-model="$ctrl.fullMailingInfo.duesLabel">
+                        <input type="text" class="form-control" id="dues-label-textbox" data-ng-model="$ctrl.fullMailingInfo.duesLabel">
                     </div>
                 </div>
 
@@ -123,7 +124,7 @@
                                 <td class="AlignRightBold">
                                     <label><input type="checkbox" data-ng-model="recipient.shouldSendEmail" />Send E-mail</label>
                                 </td>
-                                <td style="width: 400px;">
+                                <td style="width: 600px;">
                                     <input type="text" class="form-control form-control-sm" data-ng-model="recipient.emailAddresses" />
                                     <div class="text-error" data-ng-if="recipient.shouldSendEmail && (!recipient.emailAddresses || recipient.emailAddresses.length === 0)">E-mail Required</div>
                                 </td>
@@ -133,11 +134,12 @@
                                 <td class="AlignRightBold">
                                     <label><input type="checkbox" data-ng-change="$ctrl.onShouldSendPaperMailChange( recipient )" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
                                 </td>
-                                <td style="width: 400px;">
-                                    <textarea type="text" class="form-control form-control-sm" data-ng-change="$ctrl.onAddressChanged( recipient )" data-ng-model-options="{ debounce: 1000 }" data-ng-model="recipient.streetAddress" rows="4"></textarea>
+                                <td style="width: 600px;">
+                                    <!--<textarea type="text" class="form-control form-control-sm" data-ng-change="$ctrl.onAddressChanged( recipient )" data-ng-model-options="{ debounce: 1000 }" data-ng-model="recipient.streetAddress" rows="4"></textarea>-->
+                                    <street-address-form data-street-address="recipient.streetAddressObject"></street-address-form>
                                 </td>
                                 <td>
-                                    <div class="text-error" data-ng-if="recipient.shouldSendPaperMail && (!recipient.streetAddress || recipient.streetAddress.length === 0)">Address Required</div>
+                                    <!--<div class="text-error" data-ng-if="recipient.shouldSendPaperMail && (!recipient.streetAddress || recipient.streetAddress.length === 0)">Address Required</div>-->
 
                                     <div class="text-error" data-ng-if="recipient.isValid === false">{{recipient.validationMessage}}</div>
 

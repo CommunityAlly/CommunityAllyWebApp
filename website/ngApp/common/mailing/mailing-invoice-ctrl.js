@@ -154,8 +154,8 @@ var Ally;
             return recipient.amountDue - Math.abs(recipient.balanceForward || 0) + (recipient.lateFee || 0);
         };
         MailingInvoiceController.prototype.onShouldSendPaperMailChange = function (recipient) {
-            if (recipient.shouldSendPaperMail)
-                this.validateAddress(recipient);
+            //if( recipient.shouldSendPaperMail )
+            //    this.validateAddress( recipient );
         };
         MailingInvoiceController.prototype.onAddressChanged = function (recipient) {
             if (recipient.shouldSendPaperMail)
@@ -167,7 +167,8 @@ var Ally;
         MailingInvoiceController.prototype.validateAddress = function (recipient) {
             recipient.isValidating = true;
             recipient.isValid = null;
-            return this.$http.get("/api/Mailing/VerifyAddress?address=" + encodeURIComponent(recipient.streetAddress)).then(function (response) {
+            var validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent(JSON.stringify(recipient.streetAddressObject));
+            return this.$http.get(validateUri).then(function (response) {
                 recipient.isValidating = false;
                 recipient.isValid = response.data.isValid;
                 recipient.validationMessage = response.data.verificationMessage;
@@ -264,7 +265,7 @@ var Ally;
             else {
                 var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
                 for (var i = 0; i < this.selectedEntries.length; ++i) {
-                    if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].streetAddress) || !this.selectedEntries[i].amountDue)
+                    if (!this.selectedEntries[i].streetAddressObject || !this.selectedEntries[i].amountDue)
                         this.selectedEntries[i].shouldSendPaperMail = false;
                     else
                         this.selectedEntries[i].shouldSendPaperMail = shouldSetTo;
@@ -281,7 +282,7 @@ var Ally;
                                 validateAllStep();
                         });
                     };
-                    validateAllStep();
+                    //validateAllStep();
                 }
             }
         };
