@@ -169,6 +169,8 @@ var Ally;
                 retPath += "MapMarker_Hospital";
             else if (markerNumber === MarkerNumber_PostOffice)
                 retPath += "MapMarker_PostOffice";
+            else
+                retPath += "green_blank";
             retPath += ".png";
             return retPath;
         };
@@ -279,6 +281,8 @@ var MapCtrlMapMgr = /** @class */ (function () {
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_PostOffice.png";
             else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_MyHome)
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_MyHome.png";
+            else
+                markerImageUrl = "/assets/images/MapMarkers/green_blank.png";
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(tempMarker.lat, tempMarker.lon),
                 map: MapCtrlMapMgr._mainMap,
