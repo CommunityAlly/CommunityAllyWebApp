@@ -206,10 +206,11 @@
 
             var isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf( "discussion" ) !== -1;
             var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf( "board" ) !== -1;
+            var isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf( "propertymanagers" ) !== -1;
 
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && AppConfig.isChtnSite;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
 
             var groupInfo = _.find( this.availableEmailGroups, ( g: GroupEmailInfo ) => g.recipientType === this.messageObject.recipientType );
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
