@@ -7828,6 +7828,16 @@ CA.angularApp.component("localNewsFeed", {
     controller: Ally.LocalNewsFeedController
 });
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Ally;
 (function (Ally) {
     var MailingHistoryInfo = /** @class */ (function () {
@@ -7835,11 +7845,25 @@ var Ally;
         }
         return MailingHistoryInfo;
     }());
-    var MailingResultEntry = /** @class */ (function () {
-        function MailingResultEntry() {
+    var MailingResultBase = /** @class */ (function () {
+        function MailingResultBase() {
         }
-        return MailingResultEntry;
+        return MailingResultBase;
     }());
+    var MailingResultEmail = /** @class */ (function (_super) {
+        __extends(MailingResultEmail, _super);
+        function MailingResultEmail() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return MailingResultEmail;
+    }(MailingResultBase));
+    var MailingResultPaperMail = /** @class */ (function (_super) {
+        __extends(MailingResultPaperMail, _super);
+        function MailingResultPaperMail() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return MailingResultPaperMail;
+    }(MailingResultBase));
     var MailingResults = /** @class */ (function () {
         function MailingResults() {
         }
@@ -7924,7 +7948,7 @@ var Ally;
                             field: "recipient",
                             displayName: "Recipient",
                             width: 300,
-                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{row.entity.recipient}}</span></div>'
+                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{ row.entity.recipientEmail || row.entity.recipientStreetAddress.oneLiner }}</span></div>'
                         },
                         {
                             field: "didSuccessfullySend",
@@ -8052,7 +8076,8 @@ var Ally;
                     columnDefs: [
                         {
                             field: "homeNames",
-                            displayName: AppConfig.homeName
+                            displayName: AppConfig.homeName,
+                            width: 210
                         },
                         {
                             field: "ownerNames",
@@ -8198,7 +8223,8 @@ var Ally;
                     this.submitFullMailingAfterCharge();
                 return;
             }
-            var stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            var stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
             var checkoutHandler = StripeCheckout.configure({
                 key: stripeKey,
                 image: '/assets/images/icons/Icon-144.png',

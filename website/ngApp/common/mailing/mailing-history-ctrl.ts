@@ -14,21 +14,32 @@
     }
 
 
-    class MailingResultEntry
+    class MailingResultBase
     {
-        recipient: string;
         didSuccessfullySend: boolean;
         resultMessage: string;
 
         // Not from the server
         mailingType: string;
     }
+
+
+    class MailingResultEmail extends MailingResultBase
+    {
+        recipientEmail: string;
+    }
+
+
+    class MailingResultPaperMail extends MailingResultBase
+    {
+        recipientStreetAddress: FullAddress;
+    }
     
 
     class MailingResults
     {
-        emailResults: MailingResultEntry[];
-        paperMailResults: MailingResultEntry[];
+        emailResults: MailingResultEmail[];
+        paperMailResults: MailingResultPaperMail[];
     }
 
 
@@ -41,7 +52,7 @@
         isLoading: boolean = false;
         historyGridApi: uiGrid.IGridApiOf<MailingHistoryInfo>;
         historyGridOptions: uiGrid.IGridOptionsOf<MailingHistoryInfo>;
-        resultsGridOptions: uiGrid.IGridOptionsOf<MailingResultEntry>;
+        resultsGridOptions: uiGrid.IGridOptionsOf<MailingResultBase>;
         viewingResults: MailingResults = null;
 
         // Used to compensate for ui-grid's inability to resize
@@ -123,7 +134,7 @@
                                 field: "recipient",
                                 displayName: "Recipient",
                                 width: 300,
-                                cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{row.entity.recipient}}</span></div>'
+                                cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{ row.entity.recipientEmail || row.entity.recipientStreetAddress.oneLiner }}</span></div>'
                             },
                             {
                                 field: "didSuccessfullySend",
@@ -170,7 +181,7 @@
                 _.forEach( mailingEntry.mailingResultObject.emailResults, r => r.mailingType = "E-mail" );
                 _.forEach( mailingEntry.mailingResultObject.paperMailResults, r => r.mailingType = "Paper Letter" );
 
-                var resultsRows: MailingResultEntry[] = [];
+                var resultsRows: MailingResultBase[] = [];
                 resultsRows = resultsRows.concat( mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults );
 
                 this.resultsGridOptions.data = resultsRows;

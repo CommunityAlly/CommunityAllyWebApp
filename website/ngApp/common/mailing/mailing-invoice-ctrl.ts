@@ -85,7 +85,8 @@ namespace Ally
                         [
                             {
                                 field: "homeNames",
-                                displayName: AppConfig.homeName
+                                displayName: AppConfig.homeName,
+                                width: 210
                             },
                             {
                                 field: "ownerNames",
@@ -277,7 +278,8 @@ namespace Ally
                 return;
             }
 
-            let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            let stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 
             let checkoutHandler = StripeCheckout.configure( {
                 key: stripeKey,

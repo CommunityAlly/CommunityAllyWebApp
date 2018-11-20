@@ -49,7 +49,8 @@ var Ally;
                     columnDefs: [
                         {
                             field: "homeNames",
-                            displayName: AppConfig.homeName
+                            displayName: AppConfig.homeName,
+                            width: 210
                         },
                         {
                             field: "ownerNames",
@@ -195,7 +196,8 @@ var Ally;
                     this.submitFullMailingAfterCharge();
                 return;
             }
-            var stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            var stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
             var checkoutHandler = StripeCheckout.configure({
                 key: stripeKey,
                 image: '/assets/images/icons/Icon-144.png',

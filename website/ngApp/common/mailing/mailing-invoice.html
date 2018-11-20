@@ -5,13 +5,14 @@
     <a class="help-link" style="display: inline-block; margin-left: 20px;" target="_blank" href="https://help.communityally.org/sending-invoices/">View Help</a>
     <p>
         Here you can quickly and easily send out invoices to all of the members of your association. Follow the steps below to send e-mail and/or
-        mailed paper invoices to your members. Paper letters cost {{$ctrl.paperInvoiceDollars | currency}} (total, includes print, prep, and postage) per sent invoice.
+        mailed paper invoices to your members. Paper letters cost {{$ctrl.paperInvoiceDollars | currency}} (total, includes print, prep, and postage. +$1 for international mailing) per sent
+        invoice. Paper letters are sent via presorted first class mail and take about 7 calendar days to arrive.
     </p>
     <br />
     <br />
-    <h1 style="color: blue;">TEST MODE: No e-mails will be sent, no paper letters will be sent, and your credit card will not be charged.</h1>
+    <!--<h1 style="color: blue;">TEST MODE: No e-mails will be sent, no paper letters will be sent, and your credit card will not be charged.</h1>
     <br />
-    <br />
+    <br />-->
 
     <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
         <wz-step title="Info">
@@ -175,8 +176,7 @@
         <wz-step title="Confirm">
             <h2 class="StepTitle"></h2>
             <p>
-                Confirm these numbers are correct, pay any mailing fees, and your letters and e-mails will be sent. Paper letters will
-                be sent via presorted first class mail and take about 7 calendar days to arrive.
+                Confirm these numbers are correct, pay any mailing fees, and your letters and e-mails will be sent.
             </p>
 
             <div class="text-center text-large">
@@ -188,11 +188,11 @@
 
             <br />
             <br />
-            <h1 style="color: blue;">Use this information to checkout:<br />
+            <!--<h1 style="color: blue;">Use this information to checkout:<br />
             Credit Card Number: 4242424242424242<br />
             Expiration: 12/21<br />
             CVC: 123<br />
-            ZIP: 12345</h1>
+            ZIP: 12345</h1>-->
             <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
             <input id="finish-button" type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: right;" wz-next value="Finish" />
             <div class="clearfix"></div>
