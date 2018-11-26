@@ -105,6 +105,7 @@ var Ally;
             this.showLaunchSite = true;
             this.showPendingMembers = false;
             this.isLoadingPending = false;
+            this.selectedResidentDetailsView = "Primary";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -310,6 +311,7 @@ var Ally;
                 this.editUser = null;
                 return;
             }
+            this.selectedResidentDetailsView = "Primary";
             this.editUserForm.$setPristine();
             var copiedUser = jQuery.extend({}, resident);
             this.editUser = copiedUser;

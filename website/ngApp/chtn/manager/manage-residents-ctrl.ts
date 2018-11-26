@@ -57,6 +57,9 @@ namespace Ally
         boardPosition: number;
         lastLoginDateUtc: Date;
         postmarkReportedBadEmailUtc: Date;
+        mailingAddressObject: FullAddress;
+        alternatePhoneNumber: string;
+        managerNotes: string;
     }
 
 
@@ -171,6 +174,7 @@ namespace Ally
         showPendingMembers: boolean = false;
         isLoadingPending: boolean = false;
         pendingMemberSignUpUrl: string;
+        selectedResidentDetailsView: string = "Primary";
         
 
         /**
@@ -439,6 +443,7 @@ namespace Ally
                 return;
             }
 
+            this.selectedResidentDetailsView = "Primary";
             this.editUserForm.$setPristine();
 
             var copiedUser = jQuery.extend( {}, resident );

@@ -33,7 +33,7 @@
     </div>
 
     <div data-ui-grid="$ctrl.residentGridOptions" data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
-    
+
     <div class="clearfix">
         <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}{{ $ctrl.residentGridOptions.data.length > 1 ? 's' : '' }}</span>
         <a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
@@ -64,10 +64,27 @@
         <div class="modal-overlay"></div>
         <form id="editUserForm" name="$ctrl.editUserForm" novalidate class="ca-modal-dialog modal-lg">
             <div class="loading-overlay" data-ng-show="$ctrl.isSavingUser"></div>
-            
+
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.setEdit( null )">&times;</span>
             <h2>{{$ctrl.memberTypeLabel}} Details</h2>
-            <div class="row">
+
+            <div>
+                <ul class="nav nav-pills justify-content-center">
+                    <li class="nav-item" style="cursor: pointer;">
+                        <span class="nav-link" data-ng-class="{'active':$ctrl.selectedResidentDetailsView==='Primary'}" data-ng-click="$ctrl.selectedResidentDetailsView='Primary'">
+                            Primary
+                        </span>
+                    </li>
+                    <li class="nav-item" style="cursor: pointer;">
+                        <span class="nav-link" data-ng-class="{'active':$ctrl.selectedResidentDetailsView==='Secondary'}" data-ng-click="$ctrl.selectedResidentDetailsView='Secondary'">
+                            Secondary
+                        </span>
+                    </li>
+                </ul>
+            </div>
+            <hr />
+
+            <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Primary'">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">First Name:</label>
@@ -163,6 +180,37 @@
                 </div>
             </div>
 
+            <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Secondary'">
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+                        <label for="alternate-phone-number-text-box" class="col-sm-4 col-xs-12 font-weight-bold">Alternate Phone:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.alternatePhoneNumber" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="font-weight-bold">Mailing Address</label>
+                    <street-address-form data-street-address="$ctrl.editUser.mailingAddressObject"></street-address-form>
+                </div>
+
+                <div class="col-12">
+                    <label for="manager-notes-text-box" class="font-weight-bold">Notes:</label>
+                    <div class="col-12">
+                        <textarea id="manager-notes-text-box" type="text" maxlength="4000" rows="3" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.managerNotes"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <hr />
+            
             <div class="row">
                 <div class="col-sm-6">
                     <div data-ng-show="$ctrl.editUser.userId.length > 0">
@@ -219,8 +267,8 @@
             the "Send Welcome E-mail" button. If needed, you can <span class="text-link" data-ng-click="$ctrl.siteLaunchedDateUtc = null">show the launch site button</span> again.
         </div>
     </div>
-    
-    
+
+
     <div class="spinner-effect mt-4 mb-4" data-ng-if="$ctrl.showIsRenter">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingSettings"></div>
 
