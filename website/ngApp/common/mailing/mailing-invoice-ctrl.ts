@@ -22,13 +22,14 @@ namespace Ally
         isValid: boolean = null;
         validationMessage: string;
         validatedAddress: string;
+        wasPopUpBlocked: boolean;
     }
 
 
     class InvoiceFullMailing
     {
         mailingEntries: InvoiceMailingEntry[];
-        fromAddress: string;
+        //fromAddress: string;
         fromStreetAddress: FullAddress;
         notes: string;
         stripeToken: string;
@@ -49,6 +50,23 @@ namespace Ally
         isValid: boolean;
         verificationMessage: string
         parsedStreetAddress: FullAddress;
+    }
+
+
+    class InvoicePreviewInfo
+    {
+        fromAddress: FullAddress;
+        notes: string;
+        dueDateString: string;
+        duesLabel: string;
+        mailingInfo: InvoiceMailingEntry;
+    }
+
+
+    class InvoicePreviewInfoResult
+    {
+        previewId: string;
+        previewUrl: string;
     }
 
 
@@ -257,12 +275,38 @@ namespace Ally
         }
 
 
+        
         previewInvoice(entry:InvoiceMailingEntry)
         {
-            var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
-            var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( this.fullMailingInfo.fromAddress )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
+            var previewPostInfo = new InvoicePreviewInfo();
+            previewPostInfo.dueDateString = this.fullMailingInfo.dueDateString;
+            previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
+            previewPostInfo.fromAddress = this.fullMailingInfo.fromStreetAddress;
+            previewPostInfo.mailingInfo = entry;
+            previewPostInfo.notes = this.fullMailingInfo.notes;
 
-            window.open( invoiceUri, "_blank" );
+            this.isLoading = true;
+            entry.wasPopUpBlocked = false;
+
+            this.$http.post( "/api/Mailing/Preview/Invoice", previewPostInfo ).then( ( response: ng.IHttpPromiseCallbackArg<InvoicePreviewInfoResult> ) =>
+            {
+                this.isLoading = false;
+
+                let getUri = "/api/Mailing/Preview/Invoice/" + response.data.previewId;
+                getUri += "?ApiAuthToken=" + this.authToken;
+
+                let newWindow = window.open( getUri, "_blank" );
+                entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+            } );
+
+            //var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
+            //var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( JSON.stringify( this.fullMailingInfo.fromStreetAddress ) )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
+
+            //window.open( invoiceUri, "_blank" );
         }
 
 

@@ -153,6 +153,7 @@
                             <tr data-ng-if="recipient.amountDue > 0">
                                 <td colspan="2" style="text-align: center;">
                                     <span class="text-link" data-ng-click="$ctrl.previewInvoice( recipient )">Preview Invoice PDF</span>
+                                    <div data-ng-if="recipient.wasPopUpBlocked" class="text-error">Preview may have been blocked, please allow pop-ups in browser settings or up in the address bar</div>
                                 </td>
                                 <td></td>
                             </tr>

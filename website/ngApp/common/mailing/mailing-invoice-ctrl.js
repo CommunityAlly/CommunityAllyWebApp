@@ -21,6 +21,16 @@ var Ally;
         }
         return AddressVerificationResult;
     }());
+    var InvoicePreviewInfo = /** @class */ (function () {
+        function InvoicePreviewInfo() {
+        }
+        return InvoicePreviewInfo;
+    }());
+    var InvoicePreviewInfoResult = /** @class */ (function () {
+        function InvoicePreviewInfoResult() {
+        }
+        return InvoicePreviewInfoResult;
+    }());
     /**
      * The controller for the invoice mailing view
      */
@@ -183,9 +193,27 @@ var Ally;
             });
         };
         MailingInvoiceController.prototype.previewInvoice = function (entry) {
-            var entryInfo = encodeURIComponent(JSON.stringify(entry));
-            var invoiceUri = "/api/Mailing/Preview/Invoice?ApiAuthToken=" + this.authToken + "&fromAddress=" + encodeURIComponent(this.fullMailingInfo.fromAddress) + "&notes=" + encodeURIComponent(this.fullMailingInfo.notes) + "&dueDateString=" + encodeURIComponent(this.fullMailingInfo.dueDateString) + "&duesLabel=" + encodeURIComponent(this.fullMailingInfo.duesLabel) + "&mailingInfo=" + entryInfo;
-            window.open(invoiceUri, "_blank");
+            var _this = this;
+            var previewPostInfo = new InvoicePreviewInfo();
+            previewPostInfo.dueDateString = this.fullMailingInfo.dueDateString;
+            previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
+            previewPostInfo.fromAddress = this.fullMailingInfo.fromStreetAddress;
+            previewPostInfo.mailingInfo = entry;
+            previewPostInfo.notes = this.fullMailingInfo.notes;
+            this.isLoading = true;
+            entry.wasPopUpBlocked = false;
+            this.$http.post("/api/Mailing/Preview/Invoice", previewPostInfo).then(function (response) {
+                _this.isLoading = false;
+                var getUri = "/api/Mailing/Preview/Invoice/" + response.data.previewId;
+                getUri += "?ApiAuthToken=" + _this.authToken;
+                var newWindow = window.open(getUri, "_blank");
+                entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+            }, function (response) {
+                _this.isLoading = false;
+            });
+            //var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
+            //var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( JSON.stringify( this.fullMailingInfo.fromStreetAddress ) )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
+            //window.open( invoiceUri, "_blank" );
         };
         MailingInvoiceController.prototype.onFinishedWizard = function () {
             var _this = this;
