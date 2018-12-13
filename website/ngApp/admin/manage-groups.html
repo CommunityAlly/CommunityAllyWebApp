@@ -24,8 +24,9 @@
         </select><br />
         Old Short Name: <input data-ng-model="$ctrl.changeShortNameData.old" type="text" /><br />
         New Short Name: <input data-ng-model="$ctrl.changeShortNameData.newShortName" type="text" /><br />
-
+        
         <button data-ng-click="$ctrl.changeShortName()">Change</button>
+        <div style="font-size: large; color: blue;">{{$ctrl.changeShortNameResult}}</div>
     </fieldset>
     <br />
 

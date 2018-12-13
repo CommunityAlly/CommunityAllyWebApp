@@ -80,6 +80,8 @@ var Ally;
          * Change a group's short name
          */
         ManageGroupsController.prototype.changeShortName = function () {
+            var _this = this;
+            this.changeShortNameResult = null;
             // Make sure the new short name is only letters and numbers and lower case
             if (/[^a-zA-Z0-9]/.test(this.changeShortNameData.newShortName)) {
                 alert("The new short name must be alphanumeric");
@@ -94,13 +96,12 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).success(function (data) {
-                innerThis.isLoading = false;
-                innerThis.retrieveGroups();
-            }).error(function () {
-                innerThis.isLoading = false;
-                alert("Failed to change short name");
+            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then(function (response) {
+                _this.isLoading = false;
+                _this.changeShortNameResult = "Successfully changed";
+            }, function (response) {
+                _this.isLoading = false;
+                _this.changeShortNameResult = "Failed to change: " + response.data.exceptionMessage;
             });
         };
         /**

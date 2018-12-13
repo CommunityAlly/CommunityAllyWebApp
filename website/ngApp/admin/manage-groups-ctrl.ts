@@ -44,6 +44,7 @@
             subject: "",
             body: ""
         };
+        changeShortNameResult: string;
 
 
         /**
@@ -122,6 +123,8 @@
          */
         changeShortName()
         {
+            this.changeShortNameResult = null;
+
             // Make sure the new short name is only letters and numbers and lower case
             if( /[^a-zA-Z0-9]/.test( this.changeShortNameData.newShortName ) )
             {
@@ -143,16 +146,15 @@
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null ).success( function( data )
+            this.$http.put( "/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.retrieveGroups();
+                this.isLoading = false;
+                this.changeShortNameResult = "Successfully changed";
 
-            } ).error( function()
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
-                alert( "Failed to change short name" );
+                this.isLoading = false;
+                this.changeShortNameResult = "Failed to change: " + response.data.exceptionMessage;
             } );
         }
 
