@@ -91,26 +91,6 @@
         position: relative;
     }
 
-    #CreateDirectoryPanel {
-        position: absolute;
-        left: 40%;
-        top: 5%;
-        background-color: #FFF;
-        border: 5px solid #39A2C0;
-        padding: 1em;
-        text-align: center;
-
-        input.form-control {
-            display: inline-block;
-            width: 200px;
-            padding: 3px 6px;
-        }
-
-        button {
-            width: 75px;
-        }
-    }
-
     #FileUploadProgressContainer {
         position: fixed;
         left: 0px;

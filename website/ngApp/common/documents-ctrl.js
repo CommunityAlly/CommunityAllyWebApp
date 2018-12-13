@@ -242,7 +242,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        DocumentsController.prototype.CreateDirectory = function () {
+        DocumentsController.prototype.createDirectory = function () {
             this.createUnderParentDirName = null;
             if (this.committee)
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId;
@@ -291,9 +291,7 @@ var Ally;
             var _this = this;
             // Display the loading image
             this.isLoading = true;
-            $("#CreateDirectoryButtonsPanel").hide();
-            var directoryName = encodeURIComponent(this.newDirectoryName);
-            var putUri = "/api/ManageDocuments/CreateDirectory?folderName=" + directoryName;
+            var putUri = "/api/ManageDocuments/CreateDirectory?folderName=" + encodeURIComponent(this.newDirectoryName);
             // If we're creating a subdirectory
             putUri += "&parentFolderPath=";
             if (this.createUnderParentDirName)
@@ -304,11 +302,9 @@ var Ally;
                 _this.newDirectoryName = "";
                 _this.Refresh();
                 _this.shouldShowCreateFolderModal = false;
-                $("#CreateDirectoryButtonsPanel").show();
             }, function (response) {
                 alert("Failed to create the folder: " + response.data.exceptionMessage);
                 _this.isLoading = false;
-                $("#CreateDirectoryButtonsPanel").show();
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////

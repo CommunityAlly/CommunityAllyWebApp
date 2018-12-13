@@ -364,7 +364,7 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        CreateDirectory()
+        createDirectory()
         {
             this.createUnderParentDirName = null;
 
@@ -434,10 +434,7 @@ namespace Ally
             // Display the loading image
             this.isLoading = true;
 
-            $( "#CreateDirectoryButtonsPanel" ).hide();
-
-            var directoryName = encodeURIComponent( this.newDirectoryName );
-            var putUri = "/api/ManageDocuments/CreateDirectory?folderName=" + directoryName;
+            var putUri = "/api/ManageDocuments/CreateDirectory?folderName=" + encodeURIComponent( this.newDirectoryName );
 
             // If we're creating a subdirectory
             putUri += "&parentFolderPath=";
@@ -453,13 +450,11 @@ namespace Ally
                 this.Refresh();
 
                 this.shouldShowCreateFolderModal = false;
-                $( "#CreateDirectoryButtonsPanel" ).show();
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 alert( "Failed to create the folder: " + response.data.exceptionMessage );
                 this.isLoading = false;
-                $( "#CreateDirectoryButtonsPanel" ).show();
             } );
         }
 

@@ -9,7 +9,7 @@
             <div class="col-lg-3 col-md-5 col-sm-12">
                 <div id="directory-panel">
                     <div class="form-group">
-                        <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateFileFilter()" data-ng-model="$ctrl.fileSearch.all" data-ng-model-options="{ debounce: 1 }" placeholder="Search files"  aria-describedby="basic-addon2" />
+                        <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateFileFilter()" data-ng-model="$ctrl.fileSearch.all" data-ng-model-options="{ debounce: 1 }" placeholder="Search files" aria-describedby="basic-addon2" />
                     </div>
 
                     <div data-ng-class="{'directory-list-panel':$ctrl.isSiteManager, 'directory-list-panel-full': !$ctrl.isSiteManager}">
@@ -34,8 +34,8 @@
                             Your association has not yet uploaded any files.
                         </div>
                     </div>
-                    <div class="text-center padding-vertical" data-ng-show="$ctrl.isSiteManager">
-                        <a class="btn-create-folder" href="javascript:void(0)" data-ng-click="$ctrl.CreateDirectory()">+ Create New Folder</a>
+                    <div class="text-center pt-3" data-ng-show="$ctrl.isSiteManager">
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createDirectory()">+ Create New Folder</button>
                     </div>
                 </div>
             </div>
@@ -112,22 +112,23 @@
                     </div>
                 </div>
 
-                <div id="CreateDirectoryContainer" class="PopUpContainer" data-ng-show="$ctrl.shouldShowCreateFolderModal" data-ng-form data-ng-enter="$ctrl.onCreateDirectoryClicked()" data-ng-escape="$ctrl.onCancelAddDirectory()">
-                    <div class="OverlayPanel"></div>
-                    <div id="CreateDirectoryPanel">
-                        <div>
-                            Folder Name: <input class="form-control" id="CreateDirectoryNameTextBox" maxlength="32" data-ng-model="$ctrl.newDirectoryName" type="text" /><br />
-                        </div>
-                        <div id="CreateDirectoryButtonsPanel" class="text-center margin-top">
-                            <button id="create-directory-button" class="btn btn-primary" data-ng-click="$ctrl.onCreateDirectoryClicked()" >OK</button>&nbsp;
-                            <button class="btn btn-primary" data-ng-click="$ctrl.onCancelAddDirectory()" >Cancel</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
+    </div>
+
+    <div id="CreateDirectoryContainer" class="modal-container" data-ng-show="$ctrl.shouldShowCreateFolderModal" data-ng-form data-ng-enter="$ctrl.onCreateDirectoryClicked()" data-ng-escape="$ctrl.onCancelAddDirectory()">
+        <div class="modal-overlay"></div>
+        <div class="ca-modal-dialog modal-sm">
+            <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+            <div>
+                Folder Name: <input class="form-control" id="CreateDirectoryNameTextBox" maxlength="32" data-ng-model="$ctrl.newDirectoryName" type="text" /><br />
+            </div>
+            <div class="text-center margin-top">
+                <button id="create-directory-button" class="btn btn-primary" data-ng-click="$ctrl.onCreateDirectoryClicked()">OK</button>&nbsp;
+                <button class="btn btn-primary" data-ng-click="$ctrl.onCancelAddDirectory()">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <div id="FileUploadProgressContainer" style="display:none;">
