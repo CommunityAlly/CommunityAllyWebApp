@@ -84,8 +84,9 @@
                 <tr>
                     <td class="AlignRightBold">Name:</td>
                     <td>
-                        <input type="text" data-ng-model="$ctrl.editCommittee.name" /><br />
-                        <span data-ng-if="!$ctrl.editCommittee.committeeId" class="note-text" style="margin-left:0em;">The word "Committee" will be apppended to the end of the name if you don't add it</span>
+                        <input type="text" style="width: 100%; max-width: 350px;" data-ng-model="$ctrl.editCommittee.name" /><br />
+                        <!--<span data-ng-if="!$ctrl.editCommittee.committeeId" class="note-text" style="margin-left:0em;">The word "Committee" will be apppended to the end of the name if you don't add it</span>-->
+                        <span data-ng-if="!$ctrl.editCommittee.committeeId" class="note-text" style="margin-left:0em;">It's a good idea to add the word "Committee" to the end of the name so it's clear when it shows up on various pages</span>
                     </td>
                 </tr>
                 <tr>
