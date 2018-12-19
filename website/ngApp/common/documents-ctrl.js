@@ -59,7 +59,7 @@ var Ally;
             var innerThis = this;
             var hookUpFileUpload = function () {
                 $(function () {
-                    var uploader = $('#JQFileUploader');
+                    var uploader = $('#JQDocsFileUploader');
                     uploader.fileupload({
                         autoUpload: true,
                         add: function (e, data) {

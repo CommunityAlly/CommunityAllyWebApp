@@ -3701,11 +3701,11 @@ var Ally;
         ChtnSettingsController.prototype.hookUpLoginImageUpload = function () {
             var innerThis = this;
             $(function () {
-                $('#JQFileUploader').fileupload({
+                $('#JQLoginImageFileUploader').fileupload({
                     autoUpload: true,
                     add: function (e, data) {
                         innerThis.$scope.$apply(function () {
-                            this.isLoading = true;
+                            innerThis.isLoading = true;
                         });
                         analytics.track("setLoginImage");
                         $("#FileUploadProgressContainer").show();
@@ -3715,7 +3715,7 @@ var Ally;
                             innerThis.$scope.$apply(function () {
                                 innerThis.isLoading = false;
                                 innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
+                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = innerThis.loginImageUrl;
                             });
                             $("#FileUploadProgressContainer").hide();
                         });
@@ -7069,7 +7069,7 @@ var Ally;
             var innerThis = this;
             var hookUpFileUpload = function () {
                 $(function () {
-                    var uploader = $('#JQFileUploader');
+                    var uploader = $('#JQDocsFileUploader');
                     uploader.fileupload({
                         autoUpload: true,
                         add: function (e, data) {

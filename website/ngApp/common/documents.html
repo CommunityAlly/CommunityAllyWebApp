@@ -1,6 +1,6 @@
 ﻿<section class="docs">
     <h1>{{ $ctrl.title }}</h1>
-    <input id="JQFileUploader" type="file" name="files[]" data-url="Pages/DocumentUpload.aspx?isupload=1" multiple style="display:none;" />
+    <input id="JQDocsFileUploader" type="file" name="files[]" data-url="Pages/DocumentUpload.aspx?isupload=1" multiple style="display:none;" />
 
     <div id="documents-area" class="spinner-effect">
         <div id="file-tree-panel-overlay" class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
@@ -53,7 +53,7 @@
                         <a href="javascript:void(0)" id="delete-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.isSiteManager" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</a>
                         <a href="javascript:void(0)" id="create-subdirectory-button" class="btn-create-folder" data-ng-if="!$ctrl.selectedDirectory.parentDirectory && $ctrl.isSiteManager" data-ng-click="$ctrl.CreateSubDirectory()">Create Sub-Folder</a>
 
-                        <a href="javascript:void(0)" class="upload_btn btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.isSiteManager" onclick="$('#JQFileUploader').click();">+ Upload File</a>
+                        <a href="javascript:void(0)" class="upload_btn btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.isSiteManager" onclick="$('#JQDocsFileUploader').click();">+ Upload File</a>
                     </div>
                     <p data-ng-show="$ctrl.selectedDirectory.files.length === 0">
                         This folder is empty

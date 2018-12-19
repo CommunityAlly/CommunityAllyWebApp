@@ -209,13 +209,13 @@ namespace Ally
 
             $( function()
             {
-                $( '#JQFileUploader' ).fileupload( {
+                $( '#JQLoginImageFileUploader' ).fileupload( {
                     autoUpload: true,
                     add: function( e: any, data: any )
                     {
                         innerThis.$scope.$apply( function()
                         {
-                            this.isLoading = true;
+                            innerThis.isLoading = true;
                         } );
 
                         analytics.track( "setLoginImage" );
@@ -230,7 +230,7 @@ namespace Ally
                             {
                                 innerThis.isLoading = false;
                                 innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
+                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = innerThis.loginImageUrl;
                             } );
 
                             $( "#FileUploadProgressContainer" ).hide();

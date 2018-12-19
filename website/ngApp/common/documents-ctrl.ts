@@ -111,7 +111,8 @@ namespace Ally
             {
                 $( function()
                 {
-                    var uploader: any = $( '#JQFileUploader' );
+                    var uploader: any = $( '#JQDocsFileUploader' );
+
                     uploader.fileupload( {
                         autoUpload: true,
                         add: function( e: any, data: any )
