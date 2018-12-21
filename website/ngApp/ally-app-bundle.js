@@ -2774,8 +2774,8 @@ var Ally;
                             if (!sortColumns || sortColumns.length === 0)
                                 return;
                             // Remember the sort
-                            var simpleSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
-                            window.localStorage.setItem(LocalKey_ResidentSort, JSON.stringify(simpleSortInfo));
+                            innerThis.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
+                            window.localStorage.setItem(LocalKey_ResidentSort, JSON.stringify(innerThis.residentSortInfo));
                         });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
