@@ -103,7 +103,7 @@ grunt.initConfig({
                     'Website/js/lib/jquery/jquery.jeditable.mini.js',
                     'Website/js/lib/jquery/jquery.maskedinput.js',
                     'Website/js/lib/jquery/jquery.validate.min.js',
-                    'Website/js/lib/jquery/jquery.timepicker.min.js',
+                    'Website/js/lib/jquery/jquery.timepicker.js',
                     'Website/js/lib/jquery/jquery.csv.min.js',
                     'Website/js/lib/jquery/livestamp.min.js',
                     'Website/js/lib/calendar/fullcalendar.js',
@@ -225,6 +225,9 @@ grunt.initConfig({
 
     // Only build the app code file
     grunt.registerTask('ally-app-bundle', ['concat:allyAppBundle']);
+
+    // Only build the top and bottom file
+    grunt.registerTask('js-lib', ['uglify:allyLibTop','uglify:allyLibBottom']);
 
     // Build everything, including the full JS libraries
     grunt.registerTask('full', ['ngtemplates','concat','uglify','sass', 'cssmin']);
