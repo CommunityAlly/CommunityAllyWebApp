@@ -176,6 +176,8 @@
          */
         showMailingResults( mailingEntry: MailingHistoryInfo )
         {
+            // We need to put this in a timeout because ui-grid cannot properly size itself until
+            // the DOM element for the grid is shown
             this.$timeout( () =>
             {
                 _.forEach( mailingEntry.mailingResultObject.emailResults, r => r.mailingType = "E-mail" );
@@ -213,6 +215,8 @@
             {
                 this.isLoading = false;
                 this.historyGridOptions.data = response.data;
+                this.historyGridOptions.minRowsToShow = response.data.length;
+                this.historyGridOptions.virtualizationThreshold = response.data.length;
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {

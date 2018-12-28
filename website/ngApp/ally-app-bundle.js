@@ -7992,6 +7992,8 @@ var Ally;
          */
         MailingHistoryController.prototype.showMailingResults = function (mailingEntry) {
             var _this = this;
+            // We need to put this in a timeout because ui-grid cannot properly size itself until
+            // the DOM element for the grid is shown
             this.$timeout(function () {
                 _.forEach(mailingEntry.mailingResultObject.emailResults, function (r) { return r.mailingType = "E-mail"; });
                 _.forEach(mailingEntry.mailingResultObject.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
@@ -8018,6 +8020,8 @@ var Ally;
             this.$http.get("/api/Mailing/History").then(function (response) {
                 _this.isLoading = false;
                 _this.historyGridOptions.data = response.data;
+                _this.historyGridOptions.minRowsToShow = response.data.length;
+                _this.historyGridOptions.virtualizationThreshold = response.data.length;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to load mailing history: " + response.data.exceptionMessage);
