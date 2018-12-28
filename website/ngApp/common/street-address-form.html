@@ -6,5 +6,5 @@
     <div class="col-5 form-group">City: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.city" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
     <div class="col-2 form-group">State: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.state" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
     <div class="col-2 form-group">Zip: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.zip" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
-    <div class="col-3 form-group">Country: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.country" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
+    <div class="col-3 form-group">Country Code: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.country" data-ng-change="$ctrl.onComponentChange()" maxlength="2" data-ng-model-options="{ debounce: 500 }" /><a class="note-text" href="https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes" target="_blank">ISO 3166-1 2-char</a></div>
 </div>
