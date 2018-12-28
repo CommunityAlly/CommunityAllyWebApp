@@ -8037,7 +8037,7 @@ var Ally;
 (function (Ally) {
     var InvoiceMailingEntry = /** @class */ (function () {
         function InvoiceMailingEntry() {
-            this.isValid = null;
+            this.isValidMailingAddress = null;
         }
         return InvoiceMailingEntry;
     }());
@@ -8087,6 +8087,9 @@ var Ally;
             this.numEmailsToSend = 0;
             this.numPaperLettersToSend = 0;
             this.paperInvoiceDollars = 2;
+            this.isAdmin = false;
+            this.numInvalidMailingAddresses = 0;
+            this.numAddressesToBulkValidate = 0;
             var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
             this.homesGridOptions =
                 {
@@ -8161,6 +8164,7 @@ var Ally;
         MailingInvoiceController.prototype.$onInit = function () {
             var _this = this;
             this.authToken = this.siteInfo.authToken;
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.loadMailingInfo();
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 // If we moved to the second step, amounts due
@@ -8185,6 +8189,8 @@ var Ally;
                 if (_this.activeStepIndex === 2) {
                     // Filter out any fields with an empty due
                     _this.selectedEntries = _.filter(_this.selectedEntries, function (e) { return _this.getTotalDue(e) != 0; });
+                    // For long lists of homes, make sure the user is brought to the top
+                    window.setTimeout(function () { return document.getElementById("delivery-method-header").scrollIntoView(true); }, 50);
                 }
                 else if (_this.activeStepIndex === 3) {
                     _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
@@ -8202,27 +8208,55 @@ var Ally;
         MailingInvoiceController.prototype.onShouldSendPaperMailChange = function (recipient) {
             //if( recipient.shouldSendPaperMail )
             //    this.validateAddress( recipient );
+            if (recipient.shouldSendPaperMail)
+                this.testAddressRequiredFields(recipient);
+            else {
+                recipient.isValidMailingAddress = recipient.validationMessage = null;
+                this.numInvalidMailingAddresses = _.filter(this.selectedEntries, function (e) { return e.isValidMailingAddress === false; }).length;
+            }
         };
         MailingInvoiceController.prototype.onAddressChanged = function (recipient) {
+            //if( recipient.shouldSendPaperMail )
+            //    this.validateAddress( recipient );
             if (recipient.shouldSendPaperMail)
-                this.validateAddress(recipient);
+                this.testAddressRequiredFields(recipient);
+        };
+        /**
+         * Test the mailability of an address
+         */
+        MailingInvoiceController.prototype.testAddressRequiredFields = function (recipient) {
+            var _this = this;
+            recipient.isValidating = true;
+            recipient.isValidMailingAddress = null;
+            recipient.validationMessage = null;
+            return this.$http.post("/api/Mailing/TestMailability", recipient.streetAddressObject).then(function (response) {
+                recipient.isValidating = false;
+                recipient.isValidMailingAddress = response.data.isValid;
+                recipient.validationMessage = response.data.verificationMessage;
+                _this.numInvalidMailingAddresses = _.filter(_this.selectedEntries, function (e) { return e.isValidMailingAddress === false; }).length;
+            }, function (response) {
+                recipient.isValidating = false;
+                recipient.isValidMailingAddress = false;
+                recipient.validatedAddress = null;
+                recipient.validationMessage = "Address validation failed: " + response.data.exceptionMessage;
+            });
         };
         /**
          * Run the recipient addresses through an address validator
          */
         MailingInvoiceController.prototype.validateAddress = function (recipient) {
             recipient.isValidating = true;
-            recipient.isValid = null;
+            recipient.isValidMailingAddress = null;
             var validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent(JSON.stringify(recipient.streetAddressObject));
             return this.$http.get(validateUri).then(function (response) {
                 recipient.isValidating = false;
-                recipient.isValid = response.data.isValid;
+                recipient.isValidMailingAddress = response.data.isValid;
                 recipient.validationMessage = response.data.verificationMessage;
-                if (recipient.isValid)
+                if (recipient.isValidMailingAddress)
                     recipient.validatedAddress = response.data.parsedStreetAddress.multiLiner;
             }, function (response) {
                 recipient.isValidating = false;
-                recipient.isValid = false;
+                recipient.isValidMailingAddress = false;
                 recipient.validatedAddress = null;
                 recipient.validationMessage = response.data.exceptionMessage;
             });
@@ -8314,6 +8348,19 @@ var Ally;
                 _this.selectedEntries = _.clone(response.data.mailingEntries);
             });
         };
+        /**
+         * Scroll to the first invalid mail address
+         */
+        MailingInvoiceController.prototype.scrollToFirstAddressError = function () {
+            var firstBadAddress = _.find(this.selectedEntries, function (e) { return e.isValidMailingAddress === false; });
+            if (!firstBadAddress)
+                return;
+            var badAddressIndex = _.indexOf(this.selectedEntries, firstBadAddress);
+            if (badAddressIndex === -1)
+                return;
+            var badAddressElem = document.getElementById("recipient-entry-" + badAddressIndex);
+            badAddressElem.scrollIntoView();
+        };
         MailingInvoiceController.prototype.toggleAllSending = function (type) {
             var _this = this;
             if (this.selectedEntries.length === 0)
@@ -8335,8 +8382,12 @@ var Ally;
                     else
                         this.selectedEntries[i].shouldSendPaperMail = shouldSetTo;
                 }
-                // If we enabled the sending and there are selected recipients, then verify all addresses
-                if (shouldSetTo && this.selectedEntries.length > 0) {
+                // If we disabled paper mail sending then clear the errors
+                if (!shouldSetTo) {
+                    _.each(this.selectedEntries, function (e) { return e.isValidMailingAddress = e.validationMessage = null; });
+                    this.numInvalidMailingAddresses = 0;
+                }
+                else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
                     var validateAllStep = function () {
                         _this.validateAddress(recipientsToVerify_1[0]).then(function () {
@@ -8348,6 +8399,18 @@ var Ally;
                         });
                     };
                     //validateAllStep();
+                    this.numAddressesToBulkValidate = recipientsToVerify_1.length;
+                    var testAddressAllStep = function () {
+                        _this.testAddressRequiredFields(recipientsToVerify_1[0]).then(function () {
+                            recipientsToVerify_1.splice(0, 1);
+                            while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
+                                recipientsToVerify_1.splice(0, 1);
+                            _this.numAddressesToBulkValidate = recipientsToVerify_1.length;
+                            if (recipientsToVerify_1.length > 0)
+                                testAddressAllStep();
+                        });
+                    };
+                    testAddressAllStep();
                 }
             }
         };

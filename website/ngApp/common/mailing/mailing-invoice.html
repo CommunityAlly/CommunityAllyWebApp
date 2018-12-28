@@ -100,7 +100,7 @@
 
         <wz-step title="Delivery Method">
             <h2 class="StepTitle"></h2>
-            <p>
+            <p id="delivery-method-header">
                 Select how you want to send the invoice to these homeowners.
             </p>
             <div>
@@ -108,19 +108,39 @@
                     <span class="text-link" data-ng-click="$ctrl.toggleAllSending('email')">Toggle All E-mail Sending</span>
                     <span class="text-link ml-3" data-ng-click="$ctrl.toggleAllSending('paper')">Toggle All Paper Mail Sending</span>
                 </div>
-                <div class="border p-2 m-2" style="position: relative;" data-ng-repeat="recipient in $ctrl.selectedEntries">
+
+                <div data-ng-if="$ctrl.numAddressesToBulkValidate > 0" class="m-3" style="color: blue;">
+                    <img src="/assets/images/Spinner_Small.gif" /> Validating mailing addressess... {{ $ctrl.numAddressesToBulkValidate }} remaining.
+                </div>
+
+                <div data-ng-if="$ctrl.numInvalidMailingAddresses > 0" class="m-3 text-error">
+                    {{ $ctrl.numInvalidMailingAddresses }} mailing address{{$ctrl.numInvalidMailingAddresses === 1 ? '' : 'es'}} appear{{$ctrl.numInvalidMailingAddresses === 1 ? 's' : ''}} to be
+                    invalid. Please <span class="text-link" data-ng-click="$ctrl.scrollToFirstAddressError()">click here</span> or scroll down and look for red error text to the right of the mailing address.
+                </div>
+
+                <div id="recipient-entry-{{$index}}" class="border p-2 m-2" style="position: relative;" data-ng-repeat="recipient in $ctrl.selectedEntries">
                     <div class="loading-overlay" data-ng-if="recipient.isValidating"></div>
+
+                    <div class="mb-4 row">
+                        <div class="col-12">
+                            <h4>{{ recipient.homeNames }}</h4>
+                        </div>
+                        <div class="col-12">
+                            {{ recipient.ownerNames }} owes  {{ recipient.amountDue - (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
+                        </div>
+                    </div>
+
                     <table>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <h2>{{ recipient.homeNames }}</h2>
-                                </td>
-                                <td>
-                                    {{ recipient.ownerNames }} owes  {{ recipient.amountDue - (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
-                                </td>
-                                <td></td>
-                            </tr>
+                            <!--<tr>
+                    <td>
+                        <h4>{{ recipient.homeNames }}</h4>
+                    </td>
+                    <td>
+                        {{ recipient.ownerNames }} owes  {{ recipient.amountDue - (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
+                    </td>
+                    <td></td>
+                </tr>-->
                             <tr data-ng-if="recipient.amountDue > 0">
                                 <td class="AlignRightBold">
                                     <label><input type="checkbox" data-ng-model="recipient.shouldSendEmail" />Send E-mail</label>
@@ -132,21 +152,23 @@
                                 <td></td>
                             </tr>
                             <tr data-ng-if="recipient.amountDue > 0">
-                                <td class="AlignRightBold">
+                                <td style="width: 140px;" class="AlignRightBold">
                                     <label><input type="checkbox" data-ng-change="$ctrl.onShouldSendPaperMailChange( recipient )" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
                                 </td>
-                                <td style="width: 600px;">
+                                <td style="width: 700px; padding-top: 30px;">
                                     <!--<textarea type="text" class="form-control form-control-sm" data-ng-change="$ctrl.onAddressChanged( recipient )" data-ng-model-options="{ debounce: 1000 }" data-ng-model="recipient.streetAddress" rows="4"></textarea>-->
-                                    <street-address-form data-street-address="recipient.streetAddressObject"></street-address-form>
+                                    <street-address-form data-street-address="recipient.streetAddressObject" on-change="$ctrl.onAddressChanged( recipient )"></street-address-form>
                                 </td>
                                 <td>
                                     <!--<div class="text-error" data-ng-if="recipient.shouldSendPaperMail && (!recipient.streetAddress || recipient.streetAddress.length === 0)">Address Required</div>-->
+                                    <!--<div data-ng-if="$ctrl.isAdmin">
+                            <span class="text-link note-text" data-ng-click="$ctrl.testAddressMailability(recipient)">Test Deliverability</span>
+                        </div>-->
 
-                                    <div class="text-error" data-ng-if="recipient.isValid === false">{{recipient.validationMessage}}</div>
-
-                                    <div class="text-error" data-ng-if="recipient.isValid === true" style="color: darkgreen;">
-                                        {{recipient.validationMessage}}:<br />
-                                        <div style="white-space: pre;">{{recipient.validatedAddress}}</div>
+                                    <div class="text-error" data-ng-style="{'color': recipient.isValidMailingAddress ? 'darkgreen' : 'red', 'font-size':'medium'}">
+                                        {{recipient.validationMessage}}
+                                        <!--{{recipient.validationMessage}}:<br />
+                            <div style="white-space: pre;">{{recipient.validatedAddress}}</div>-->
                                     </div>
                                 </td>
                             </tr>
@@ -167,6 +189,15 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <div data-ng-if="$ctrl.numAddressesToBulkValidate > 0" class="m-3" style="color: blue;">
+                <img src="/assets/images/Spinner_Small.gif" /> Validating mailing addressess... {{ $ctrl.numAddressesToBulkValidate }} remaining.
+            </div>
+
+            <div data-ng-if="$ctrl.numInvalidMailingAddresses > 0" class="m-3 text-error">
+                {{ $ctrl.numInvalidMailingAddresses }} mailing address{{$ctrl.numInvalidMailingAddresses === 1 ? '' : 'es'}} appear{{$ctrl.numInvalidMailingAddresses === 1 ? 's' : ''}} to be
+                invalid. Please <span class="text-link" data-ng-click="$ctrl.scrollToFirstAddressError()">click here</span> or scroll up and look for red error text to the right of the mailing address.
             </div>
 
             <input type="submit" class="btn btn-sign-up-wiz" style="width:47%; float: left;" wz-previous value="Back" />
