@@ -186,11 +186,15 @@
         /**
          * Archive this thread
          */
-        archiveThread()
+        archiveThread( shouldArchive: boolean = true )
         {
             this.isLoading = true;
 
-            this.$http.put( `/api/CommentThread/Archive/${this.thread.commentThreadId}`, null ).then( () =>
+            var putUri = `/api/CommentThread/Archive/${this.thread.commentThreadId}`;
+            if( !shouldArchive )
+                putUri = `/api/CommentThread/Unarchive/${this.thread.commentThreadId}`;
+
+            this.$http.put( putUri, null ).then( () =>
             {
                 this.isLoading = false;
 

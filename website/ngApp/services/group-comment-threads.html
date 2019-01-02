@@ -39,6 +39,43 @@
             </div>
         </div>
 
+        <div class="note-text text-link mt-3" data-ng-if="$ctrl.archivedThreads === null" data-ng-click="$ctrl.refreshCommentThreads( true )">View Archived Threads</div>
+        
+        <div class="mt-3" data-ng-if="$ctrl.archivedThreads !== null">
+            <div data-ng-repeat="thread in $ctrl.archivedThreads" class="mt-2 mb-2">
+                <h5 class="text-link" data-ng-click="$ctrl.displayDiscussModal( thread )">{{ thread.title }}</h5>
+
+                <span class="note-text" style="display: block;" data-ng-if="thread.numCommentsSinceLastRead === 0">
+                    There are no new comments since you last checked
+                </span>
+
+                <span class="note-text" style="display: block;" data-ng-if="thread.numCommentsSinceLastRead > 0">
+                    There {{thread.numCommentsSinceLastRead === 1 ? 'is' : 'are'}} {numCommentsSinceLastRead} new comment{{thread.numCommentsSinceLastRead === 1 ? '' : 's'}} since you last checked
+                </span>
+
+                <span class="note-text" style="display: block;" data-ng-if="thread.archiveDateUtc">
+                    Archived 
+                    <span data-livestamp="{{ thread.archiveDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.archiveDateUtc | date:'medium' }}"></span>
+                </span>
+
+                <span class="note-text" style="display: block;" data-ng-if="thread.lastCommentDateUtc.getTime() !== thread.createDateUtc.getTime()">
+                    Updated by <span style="font-weight:bold;">{{ thread.lastCommentAuthorName }}</span>
+                    <span data-livestamp="{{ thread.lastCommentDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.lastCommentDateUtc | date:'medium' }}"></span>
+                </span>
+
+                <span class="note-text">
+                    Created by <span style="font-weight:bold;">{{ thread.authorFullName }}</span>
+                    <span data-livestamp="{{ thread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ thread.createDateUtc | date:'medium' }}"></span>
+                </span>
+
+                <hr data-ng-if="$index < $ctrl.archivedThreads.length - 1" />
+            </div>
+
+            <div class="note-text" data-ng-if="$ctrl.archivedThreads.length === 0">
+                There are no archived discussion threads.
+            </div>
+        </div>
+
         <div data-ng-if="$ctrl.showCreateNewModal" class="modal-container">
             <div class="modal-overlay" data-ng-click="$ctrl.setDisplayCreateModal(false)"></div>
             <div class="ca-modal-dialog">

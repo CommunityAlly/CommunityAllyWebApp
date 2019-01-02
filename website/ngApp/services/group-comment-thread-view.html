@@ -8,10 +8,11 @@
 
         <h2 style="margin-bottom: 0;">{{ $ctrl.thread.title }}</h2>
         <div data-ng-if="$ctrl.shouldShowAdminControls">
-            <span class="note-text text-link" data-ng-click="$ctrl.archiveThread()">Archive Thread</span>
+            <span data-ng-if="!$ctrl.thread.archiveDateUtc" class="note-text text-link" data-ng-click="$ctrl.archiveThread(true)">Archive Thread</span>
+            <span data-ng-if="$ctrl.thread.archiveDateUtc" class="note-text text-link" data-ng-click="$ctrl.archiveThread(false)">Unarchive Thread</span>
         </div>
 
-        <div class="mt-2">
+        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc">
             Get notified of new comments:
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" data-ng-value="null" ng-checked="$ctrl.digestFrequency === null" name="digest-frequency" />Never</label>
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="instant" name="digest-frequency" />Immediately</label>
@@ -19,13 +20,17 @@
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="weekly" name="digest-frequency" />Weekly on Sunday</label>
         </div>
 
-        <div class="mt-2">
+        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc">
             Add New Comment:<br />
             <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'new')" data-ng-model="$ctrl.newCommentText" maxlength="1000" placeholder="Enter your comment here" class="form-control"></textarea>
 
             <p class="text-right">
                 <button class="btn btn-primary" data-ng-click="$ctrl.submitNewComment()">Add Comment</button>
             </p>
+        </div>
+
+        <div class="alert alert-info" data-ng-if="$ctrl.thread.archiveDateUtc">
+            This discussion thread has been archived and must be unarchived in order to be edited.
         </div>
 
         <div data-ng-repeat="comment in $ctrl.commentsState.comments" class="mt-2 mb-2">
@@ -42,12 +47,12 @@
                         <span data-ng-if="comment.deletedDateUtc" class="note-text">
                             (Deleted <span data-livestamp="{{ comment.deletedDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ comment.deletedDateUtc | date:'medium' }}"></span>)
                         </span>
-                        <span data-ng-if="comment.isMyComment && !comment.deletedDateUtc">
+                        <span data-ng-if="comment.isMyComment && !comment.deletedDateUtc && !$ctrl.thread.archiveDateUtc">
                             - <span class="text-link" data-ng-click="$ctrl.startEditComment( comment )">Edit</span>
                             - <span class="text-link" data-ng-click="$ctrl.deleteComment( comment )">Delete</span>
                         </span>
                     </p>
-                    
+
                     <p data-ng-if="comment.commentId !== $ctrl.editCommentId" ng-bind-html="comment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
                     <div data-ng-if="comment.commentId === $ctrl.editCommentId">
                         <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'edit')" data-ng-model="$ctrl.editCommentText" class="form-control"></textarea>
@@ -73,12 +78,12 @@
                         <span data-ng-if="replyComment.deletedDateUtc" class="note-text">
                             (Deleted <span data-livestamp="{{ replyComment.deletedDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ replyComment.deletedDateUtc | date:'medium' }}"></span>)
                         </span>
-                        <span data-ng-if="replyComment.isMyComment && !replyComment.deletedDateUtc">
+                        <span data-ng-if="replyComment.isMyComment && !replyComment.deletedDateUtc && !$ctrl.thread.archiveDateUtc">
                             - <span class="text-link" data-ng-click="$ctrl.startEditComment( replyComment )">Edit</span>
                             - <span class="text-link" data-ng-click="$ctrl.deleteComment( replyComment )">Delete</span>
                         </span>
                     </p>
-                    
+
                     <p data-ng-if="replyComment.commentId !== $ctrl.editCommentId" ng-bind-html="replyComment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
                     <div data-ng-if="replyComment.commentId === $ctrl.editCommentId">
                         <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'edit')" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="1000"></textarea>
@@ -87,11 +92,11 @@
                             <button class="btn btn-primary" data-ng-click="$ctrl.editCommentId = -1;">Cancel</button>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
 
-            <p data-ng-show="$ctrl.replyToCommentId !== comment.commentId" class="mt-3">
+            <p data-ng-show="$ctrl.replyToCommentId !== comment.commentId && !$ctrl.thread.archiveDateUtc" class="mt-3">
                 <span class="text-button" data-ng-click="$ctrl.startReplyToComment( comment )">Reply to this comment {{ comment.replies.length > 0 ? "thread" : "" }}</span>
             </p>
 

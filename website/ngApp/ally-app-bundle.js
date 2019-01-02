@@ -11324,10 +11324,14 @@ var Ally;
         /**
          * Archive this thread
          */
-        GroupCommentThreadViewController.prototype.archiveThread = function () {
+        GroupCommentThreadViewController.prototype.archiveThread = function (shouldArchive) {
             var _this = this;
+            if (shouldArchive === void 0) { shouldArchive = true; }
             this.isLoading = true;
-            this.$http.put("/api/CommentThread/Archive/" + this.thread.commentThreadId, null).then(function () {
+            var putUri = "/api/CommentThread/Archive/" + this.thread.commentThreadId;
+            if (!shouldArchive)
+                putUri = "/api/CommentThread/Unarchive/" + this.thread.commentThreadId;
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 // Tell the parent thread list to refresh
                 _this.$rootScope.$broadcast("refreshCommentThreadList");
@@ -11437,6 +11441,7 @@ var Ally;
             this.viewingThread = null;
             this.showCreateNewModal = false;
             this.showBoardOnly = false;
+            this.archivedThreads = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -11448,8 +11453,8 @@ var Ally;
                 commentText: "",
                 replyToCommentId: null
             };
-            this.$scope.$on("refreshCommentThreadList", function (event, data) { return _this.refreshCommentThreads(); });
-            this.refreshCommentThreads();
+            this.$scope.$on("refreshCommentThreadList", function (event, data) { return _this.refreshCommentThreads(false); });
+            this.refreshCommentThreads(false);
         };
         GroupCommentThreadsController.prototype.setDisplayCreateModal = function (shouldShow) {
             this.showCreateNewModal = shouldShow;
@@ -11482,7 +11487,7 @@ var Ally;
             this.$http.post("/api/CommentThread", createInfo).then(function (response) {
                 _this.isLoading = false;
                 _this.showCreateNewModal = false;
-                _this.refreshCommentThreads();
+                _this.refreshCommentThreads(false);
             }, function (response) {
                 _this.isLoading = false;
                 _this.newThreadErrorMessage = response.data.exceptionMessage;
@@ -11491,16 +11496,24 @@ var Ally;
         /**
          * Retrieve the comments from the server for the current thread
          */
-        GroupCommentThreadsController.prototype.refreshCommentThreads = function () {
+        GroupCommentThreadsController.prototype.refreshCommentThreads = function (retrieveArchived) {
             var _this = this;
+            if (retrieveArchived === void 0) { retrieveArchived = false; }
             this.isLoading = true;
             var getUri = "/api/CommentThread";
+            if (retrieveArchived)
+                getUri += "/Archived";
             if (this.committeeId)
                 getUri += "?committeeId=" + this.committeeId;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
-                _this.commentThreads = response.data;
-                _this.commentThreads = _.sortBy(_this.commentThreads, function (ct) { return ct.lastCommentDateUtc; }).reverse();
+                response.data = _.sortBy(response.data, function (ct) { return ct.lastCommentDateUtc; }).reverse();
+                if (retrieveArchived)
+                    _this.archivedThreads = response.data;
+                else {
+                    _this.commentThreads = response.data;
+                    _this.archivedThreads = null;
+                }
             }, function (response) {
                 _this.isLoading = false;
             });

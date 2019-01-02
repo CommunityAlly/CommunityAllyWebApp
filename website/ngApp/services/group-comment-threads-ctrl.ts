@@ -6,6 +6,7 @@
         groupId: number;
         title: string;
         createDateUtc: Date;
+        archiveDateUtc: Date;
         authorUserId: string;
         authorFullName: string;
         lastCommentDateUtc: Date;
@@ -32,6 +33,7 @@
         newThreadErrorMessage: string;
         showBoardOnly: boolean = false;
         committeeId: number;
+        archivedThreads: CommentThread[] = null;
 
 
         /**
@@ -54,9 +56,9 @@
                 replyToCommentId: null
             };
 
-            this.$scope.$on( "refreshCommentThreadList", ( event, data ) => this.refreshCommentThreads() );
+            this.$scope.$on( "refreshCommentThreadList", ( event, data ) => this.refreshCommentThreads( false ) );
 
-            this.refreshCommentThreads();
+            this.refreshCommentThreads( false );
         }
 
         
@@ -104,7 +106,7 @@
             {
                 this.isLoading = false;
                 this.showCreateNewModal = false;
-                this.refreshCommentThreads();
+                this.refreshCommentThreads( false );
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
@@ -117,21 +119,32 @@
         /**
          * Retrieve the comments from the server for the current thread
          */
-        refreshCommentThreads()
+        refreshCommentThreads( retrieveArchived: boolean = false )
         {
             this.isLoading = true;
 
             var getUri = "/api/CommentThread";
+
+            if( retrieveArchived )
+                getUri += "/Archived";
+
             if( this.committeeId )
                 getUri += "?committeeId=" + this.committeeId;
 
             this.$http.get( getUri ).then( ( response: ng.IHttpPromiseCallbackArg<CommentThread[]> ) =>
             {
                 this.isLoading = false;
-                this.commentThreads = response.data;
-                
-                this.commentThreads = _.sortBy( this.commentThreads, ct => ct.lastCommentDateUtc ).reverse();
 
+                response.data = _.sortBy( response.data, ct => ct.lastCommentDateUtc ).reverse();
+
+                if( retrieveArchived )
+                    this.archivedThreads = response.data;
+                else
+                {
+                    this.commentThreads = response.data;
+                    this.archivedThreads = null;
+                }
+                
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;

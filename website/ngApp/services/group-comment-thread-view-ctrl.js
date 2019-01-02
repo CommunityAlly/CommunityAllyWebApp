@@ -124,10 +124,14 @@ var Ally;
         /**
          * Archive this thread
          */
-        GroupCommentThreadViewController.prototype.archiveThread = function () {
+        GroupCommentThreadViewController.prototype.archiveThread = function (shouldArchive) {
             var _this = this;
+            if (shouldArchive === void 0) { shouldArchive = true; }
             this.isLoading = true;
-            this.$http.put("/api/CommentThread/Archive/" + this.thread.commentThreadId, null).then(function () {
+            var putUri = "/api/CommentThread/Archive/" + this.thread.commentThreadId;
+            if (!shouldArchive)
+                putUri = "/api/CommentThread/Unarchive/" + this.thread.commentThreadId;
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 // Tell the parent thread list to refresh
                 _this.$rootScope.$broadcast("refreshCommentThreadList");
