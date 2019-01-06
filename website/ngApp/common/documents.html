@@ -62,7 +62,7 @@
                     <div id="FileContainer_{{ $index }}" class="file_item p-2" data-ng-class="{'Document_File_Selected': $ctrl.selectedFile === curFile, 'Document_File': $ctrl.selectedFile !== curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
                         <div class="file_info media-item margin-top">
                             <div class="media-thumbnail">
-                                <img id="File_{{ $index }}" class="file-thumbnail draggable" ng-dblclick="$ctrl.viewDoc( curFile )" ng-src="{{$ctrl.getFileIcon(curFile.fileName)}}" />
+                                <img id="File_{{ $index }}" class="file-thumbnail draggable" ng-dblclick="$ctrl.viewDoc( curFile, false )" ng-src="{{$ctrl.getFileIcon(curFile.fileName)}}" />
                             </div>
 
                             <div class="media-content">
@@ -72,8 +72,8 @@
                                         Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span>
                                     </div>
                                     <div class="col-md-6 text-md-right padding-right">
-                                        <a href="{{curFile.url}}?ApiAuthToken={{$ctrl.apiAuthToken}}" target="_blank" class="text-button">View</a>
-                                        <a href="{{curFile.url}}?ApiAuthToken={{$ctrl.apiAuthToken}}" target="_blank" class="text-button" download="{{curFile.fileName}}">Download</a>
+                                        <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
+                                        <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
                                         <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" data-ng-if="$ctrl.isSiteManager" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a>
                                         <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" data-ng-if="$ctrl.isSiteManager" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a>
                                     </div>

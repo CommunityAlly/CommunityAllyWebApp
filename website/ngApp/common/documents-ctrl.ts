@@ -23,6 +23,12 @@ namespace Ally
     }
 
 
+    class DocLinkInfo
+    {
+        vid: number;
+    }
+
+
     export class DocumentDirectory
     {
         name: string;
@@ -124,8 +130,9 @@ namespace Ally
                             let dirPath = innerThis.getSelectedDirectoryPath();
 
                             $( "#FileUploadProgressContainer" ).show();
-                            data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent( dirPath ) + "&ApiAuthToken=" + innerThis.apiAuthToken;
+                            data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
                             var xhr = data.submit();
+                            
                             xhr.done( function( result: any )
                             {
                                 // Clear the document cache
@@ -134,6 +141,10 @@ namespace Ally
                                 $( "#FileUploadProgressContainer" ).hide();
                                 innerThis.Refresh();
                             } );
+                        },
+                        beforeSend: function( xhr: any )
+                        {
+                            xhr.setRequestHeader( "ApiAuthToken", innerThis.apiAuthToken );
                         },
                         progressall: function( e: any, data: any )
                         {
@@ -144,6 +155,11 @@ namespace Ally
                                 $( "#FileUploadProgressLabel" ).text( "Finalizing Upload..." );
                             else
                                 $( "#FileUploadProgressLabel" ).text( progress + "%" );
+                        },
+                        fail: function( xhr: any )
+                        {
+                            $( "#FileUploadProgressContainer" ).hide();
+                            alert( "Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again." );
                         }
                     } );
                 } );
@@ -169,9 +185,37 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Open a document via double-click
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        viewDoc( curFile: DocumentTreeFile )
+        viewDoc( curFile: DocumentTreeFile, isForDownload: boolean )
         {
-            window.open( `${curFile.url}?ApiAuthToken=${this.apiAuthToken}`, '_blank' );
+            this.isLoading = true;
+
+            this.$http.get( "/api/DocumentLink/" + curFile.docId ).then(( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
+            {
+                this.isLoading = false;
+
+                let fileUri = `${curFile.url}?vid=${response.data.vid}`;
+
+                if( isForDownload )
+                {
+                    var link = document.createElement( 'a' );
+                    link.href = fileUri;
+                    link.download = curFile.fileName;
+                    link.click();
+                }
+                else
+                {
+                    let newWindow = window.open( fileUri, '_blank' );
+
+                    let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                    if( wasPopUpBlocked )
+                        alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                }
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to open document: " + response.data.exceptionMessage );
+            } );
         }
 
 

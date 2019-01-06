@@ -7020,6 +7020,11 @@ var Ally;
         return DocumentTreeFile;
     }());
     Ally.DocumentTreeFile = DocumentTreeFile;
+    var DocLinkInfo = /** @class */ (function () {
+        function DocLinkInfo() {
+        }
+        return DocLinkInfo;
+    }());
     var DocumentDirectory = /** @class */ (function () {
         function DocumentDirectory() {
         }
@@ -7078,7 +7083,7 @@ var Ally;
                             //innerThis.$scope.$apply( function() { innerThis.isLoading = false; });
                             var dirPath = innerThis.getSelectedDirectoryPath();
                             $("#FileUploadProgressContainer").show();
-                            data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent(dirPath) + "&ApiAuthToken=" + innerThis.apiAuthToken;
+                            data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
                             var xhr = data.submit();
                             xhr.done(function (result) {
                                 // Clear the document cache
@@ -7087,6 +7092,9 @@ var Ally;
                                 innerThis.Refresh();
                             });
                         },
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader("ApiAuthToken", innerThis.apiAuthToken);
+                        },
                         progressall: function (e, data) {
                             var progress = parseInt((data.loaded / data.total * 100).toString(), 10);
                             $('#FileUploadProgressBar').css('width', progress + '%');
@@ -7094,6 +7102,10 @@ var Ally;
                                 $("#FileUploadProgressLabel").text("Finalizing Upload...");
                             else
                                 $("#FileUploadProgressLabel").text(progress + "%");
+                        },
+                        fail: function (xhr) {
+                            $("#FileUploadProgressContainer").hide();
+                            alert("Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again.");
                         }
                     });
                 });
@@ -7112,8 +7124,28 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Open a document via double-click
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        DocumentsController.prototype.viewDoc = function (curFile) {
-            window.open(curFile.url + "?ApiAuthToken=" + this.apiAuthToken, '_blank');
+        DocumentsController.prototype.viewDoc = function (curFile, isForDownload) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/DocumentLink/" + curFile.docId).then(function (response) {
+                _this.isLoading = false;
+                var fileUri = curFile.url + "?vid=" + response.data.vid;
+                if (isForDownload) {
+                    var link = document.createElement('a');
+                    link.href = fileUri;
+                    link.download = curFile.fileName;
+                    link.click();
+                }
+                else {
+                    var newWindow = window.open(fileUri, '_blank');
+                    var wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                    if (wasPopUpBlocked)
+                        alert("Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for " + AppConfig.appName + ".");
+                }
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to open document: " + response.data.exceptionMessage);
+            });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Get the name of the selected directory. If it is a sub-directory then include the parent
