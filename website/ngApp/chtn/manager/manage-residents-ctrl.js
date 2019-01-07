@@ -100,6 +100,7 @@ var Ally;
             this.isSavingUser = false;
             this.isLoading = false;
             this.isLoadingSettings = false;
+            this.shouldSortUnitsNumerically = false;
             this.showEmailHistory = false;
             this.bulkParseNormalizeNameCase = false;
             this.showLaunchSite = true;
@@ -171,7 +172,12 @@ var Ally;
                             cellClass: "resident-cell-unit",
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
-                            sortingAlgorithm: function (a, b) { return a.toString().localeCompare(b.toString()); }
+                            sortingAlgorithm: function (a, b) {
+                                if (innerThis.shouldSortUnitsNumerically) {
+                                    return parseInt(a) - parseInt(b);
+                                }
+                                return a.toString().localeCompare(b.toString());
+                            }
                         },
                         {
                             field: 'isRenter',
@@ -400,6 +406,9 @@ var Ally;
                     innerThis.$http.get("/api/Unit").then(function (httpResponse) {
                         innerThis.isLoading = false;
                         innerThis.allUnits = httpResponse.data;
+                        innerThis.shouldSortUnitsNumerically = _.every(innerThis.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
+                        if (innerThis.shouldSortUnitsNumerically)
+                            innerThis.allUnits = _.sortBy(innerThis.allUnits, function (u) { return parseFloat(u.name); });
                         // If we have a lot of units then allow searching
                         innerThis.multiselectOptions = innerThis.allUnits.length > 20 ? "filter" : "";
                     }, function () {

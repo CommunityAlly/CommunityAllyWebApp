@@ -167,6 +167,7 @@ namespace Ally
         residentSortInfo: any;
         bulkImportCsv: string;
         hasOneAdmin: boolean;
+        shouldSortUnitsNumerically: boolean = false;
         showEmailHistory: boolean = false;
         bulkParseNormalizeNameCase: boolean = false;
         memberTypeLabel: string;
@@ -269,7 +270,15 @@ namespace Ally
                             cellClass: "resident-cell-unit",
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
-                            sortingAlgorithm: function( a: string, b: string ) { return a.toString().localeCompare( b.toString() ); }
+                            sortingAlgorithm: function( a: string, b: string )
+                            {
+                                if( innerThis.shouldSortUnitsNumerically )
+                                {
+                                    return parseInt( a ) - parseInt( b );
+                                }
+
+                                return a.toString().localeCompare( b.toString() );
+                            }
                         },
                         {
                             field: 'isRenter',
@@ -576,7 +585,12 @@ namespace Ally
                     {
                         innerThis.isLoading = false;
                         innerThis.allUnits = <Ally.Unit[]>httpResponse.data;
+                        
+                        innerThis.shouldSortUnitsNumerically = _.every( innerThis.allUnits, u => HtmlUtil.isNumericString( u.name ) );
 
+                        if( innerThis.shouldSortUnitsNumerically )
+                            innerThis.allUnits = _.sortBy( innerThis.allUnits, u => parseFloat( u.name ) );
+                        
                         // If we have a lot of units then allow searching
                         innerThis.multiselectOptions = innerThis.allUnits.length > 20 ? "filter" : "";
                     },
