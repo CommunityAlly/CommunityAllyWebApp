@@ -139,15 +139,7 @@ var Ally;
                     });
                 }, 750);
             }
-            this.boardPositions = [
-                { id: 0, name: "None" },
-                { id: 1, name: "President" },
-                { id: 2, name: "Treasurer" },
-                { id: 4, name: "Secretary" },
-                { id: 8, name: "Director/Trustee" },
-                { id: 16, name: "Vice President" },
-                { id: 32, name: "Property Manager" }
-            ];
+            this.boardPositions = Ally.FellowResidentsService.BoardPositionNames;
             this.newResident = {
                 boardPosition: 0,
                 isRenter: false
@@ -279,7 +271,7 @@ var Ally;
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
                 return "";
-            var boardPosition = jQuery.grep(this.boardPositions, function (pos, i) { return pos.id === boardValue; })[0];
+            var boardPosition = jQuery.grep(Ally.FellowResidentsService.BoardPositionNames, function (pos, i) { return pos.id === boardValue; })[0];
             if (!boardPosition)
                 return "";
             return boardPosition.name;

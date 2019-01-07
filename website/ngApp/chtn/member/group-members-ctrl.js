@@ -51,20 +51,12 @@ var Ally;
                 // Remove board members from the member list
                 if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                     _this.allResidents = _.filter(_this.allResidents, function (r) { return r.boardPosition === 0; });
-                var boardPositionNames = [
-                    { id: 0, name: "None" },
-                    { id: 1, name: "President" },
-                    { id: 2, name: "Treasurer" },
-                    { id: 4, name: "Secretary" },
-                    { id: 8, name: "Director" },
-                    { id: 16, name: "Vice President" },
-                    { id: 32, name: "Property Manager" }
-                ];
                 for (var i = 0; i < _this.boardMembers.length; ++i) {
-                    _this.boardMembers[i].boardPositionName = _.find(boardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
+                    _this.boardMembers[i].boardPositionName = _.find(Ally.FellowResidentsService.BoardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
                 }
                 var boardSortOrder = [
                     1,
+                    64,
                     16,
                     2,
                     4,

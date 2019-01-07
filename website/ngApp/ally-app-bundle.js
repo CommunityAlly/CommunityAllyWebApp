@@ -2704,15 +2704,7 @@ var Ally;
                     });
                 }, 750);
             }
-            this.boardPositions = [
-                { id: 0, name: "None" },
-                { id: 1, name: "President" },
-                { id: 2, name: "Treasurer" },
-                { id: 4, name: "Secretary" },
-                { id: 8, name: "Director/Trustee" },
-                { id: 16, name: "Vice President" },
-                { id: 32, name: "Property Manager" }
-            ];
+            this.boardPositions = Ally.FellowResidentsService.BoardPositionNames;
             this.newResident = {
                 boardPosition: 0,
                 isRenter: false
@@ -2844,7 +2836,7 @@ var Ally;
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
                 return "";
-            var boardPosition = jQuery.grep(this.boardPositions, function (pos, i) { return pos.id === boardValue; })[0];
+            var boardPosition = jQuery.grep(Ally.FellowResidentsService.BoardPositionNames, function (pos, i) { return pos.id === boardValue; })[0];
             if (!boardPosition)
                 return "";
             return boardPosition.name;
@@ -4420,17 +4412,8 @@ var Ally;
                 // Remove board members from the member list
                 if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                     _this.allResidents = _.filter(_this.allResidents, function (r) { return r.boardPosition === 0; });
-                var boardPositionNames = [
-                    { id: 0, name: "None" },
-                    { id: 1, name: "President" },
-                    { id: 2, name: "Treasurer" },
-                    { id: 4, name: "Secretary" },
-                    { id: 8, name: "Director" },
-                    { id: 16, name: "Vice President" },
-                    { id: 32, name: "Property Manager" }
-                ];
                 for (var i = 0; i < _this.boardMembers.length; ++i) {
-                    _this.boardMembers[i].boardPositionName = _.find(boardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
+                    _this.boardMembers[i].boardPositionName = _.find(Ally.FellowResidentsService.BoardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
                 }
                 var boardSortOrder = [
                     1,
@@ -11224,6 +11207,16 @@ var Ally;
             this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
             this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
         };
+        FellowResidentsService.BoardPositionNames = [
+            { id: 0, name: "None" },
+            { id: 1, name: "President" },
+            { id: 2, name: "Treasurer" },
+            { id: 4, name: "Secretary" },
+            { id: 8, name: "Director" },
+            { id: 16, name: "Vice President" },
+            { id: 32, name: "Property Manager" },
+            { id: 64, name: "Secretary + Treasurer" }
+        ];
         return FellowResidentsService;
     }());
     Ally.FellowResidentsService = FellowResidentsService;
