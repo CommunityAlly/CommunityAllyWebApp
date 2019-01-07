@@ -244,12 +244,16 @@ var Ally;
                 this.editingTodo = new Ally.TodoItem();
                 this.editingTodo.owningTodoListId = this.maintenanceTodoListId;
                 this.selectedAssignee = [];
+                if (this.editingProject)
+                    this.editingTodo.description = this.editingProject.title;
                 this.editingProject = null;
                 setTimeout(function () { return $("#edit-todo-name-text-box").focus(); }, 50);
             }
             else {
-                this.editingTodo = null;
                 this.editingProject = new MaintenanceProject();
+                if (this.editingTodo)
+                    this.editingProject.title = this.editingTodo.description;
+                this.editingTodo = null;
                 setTimeout(function () { return $("#project-title-text-box").focus(); }, 50);
             }
         };
