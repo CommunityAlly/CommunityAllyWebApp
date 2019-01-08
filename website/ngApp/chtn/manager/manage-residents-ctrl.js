@@ -593,6 +593,21 @@ var Ally;
                     }
                 },
                 {
+                    headerText: "Alternate Mailing",
+                    fieldName: "mailingAddressObject",
+                    dataMapper: function (value) {
+                        return !value ? "" : value.oneLiner;
+                    }
+                },
+                {
+                    headerText: "Alternate Phone",
+                    fieldName: "alternatePhoneNumber"
+                },
+                {
+                    headerText: "Manager Notes",
+                    fieldName: "managerNotes"
+                },
+                {
                     headerText: "Last Login Date",
                     fieldName: "lastLoginDateUtc",
                     dataMapper: function (value) {
