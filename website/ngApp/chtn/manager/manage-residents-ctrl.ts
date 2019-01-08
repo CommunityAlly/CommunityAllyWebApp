@@ -110,6 +110,9 @@ namespace Ally
         isRenter: boolean;
         isAdmin: boolean;
         csvTestName: string;
+        mailingAddress: string;
+        alternatePhone: string;
+        managerNotes: string;
     }
 
 
@@ -137,7 +140,7 @@ namespace Ally
 
         isAdmin: boolean = false;
         siteLaunchedDateUtc: Date;
-        bulkImportRows: any[];
+        bulkImportRows: ResidentCsvRow[];
         multiselectOptions: string;
         allUnits: Ally.Unit[];
         homeName: string;
@@ -193,7 +196,7 @@ namespace Ally
         {
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.siteLaunchedDateUtc = this.siteInfo.privateSiteInfo.siteLaunchedDateUtc;
-            this.bulkImportRows = [{}];
+            this.bulkImportRows = [new ResidentCsvRow()];
             this.multiselectOptions = "";
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
@@ -1153,7 +1156,7 @@ namespace Ally
             {
                 let curRow = <string[]>bulkRows[i];
 
-                while( curRow.length < 7 )
+                while( curRow.length < 10 )
                     curRow.push( "" );
 
                 // Skip the header row, if there is one
@@ -1178,7 +1181,10 @@ namespace Ally
                     phoneNumber: curRow[4],
                     isRenter: !HtmlUtil.isNullOrWhitespace( curRow[5] ),
                     isAdmin: !HtmlUtil.isNullOrWhitespace( curRow[6] ),
-                    csvTestName: ""
+                    csvTestName: "",
+                    mailingAddress: curRow[7],
+                    alternatePhone: curRow[8],
+                    managerNotes: curRow[9]
                 };
 
                 if( HtmlUtil.isNullOrWhitespace( newRow.unitName ) )
@@ -1260,9 +1266,10 @@ namespace Ally
             this.$http.post( "/api/Residents/BulkLoad", this.bulkImportRows ).success( function()
             {
                 innerThis.isLoading = false;
-                innerThis.bulkImportRows = [{}];
+                innerThis.bulkImportRows = [new ResidentCsvRow()];
                 innerThis.bulkImportCsv = "";
                 alert( "Success" );
+                innerThis.refresh();
 
             } ).error( function()
             {
@@ -1286,7 +1293,10 @@ namespace Ally
                 phoneNumber: "",
                 isRenter: false,
                 isAdmin: false,
-                csvTestName: undefined
+                csvTestName: undefined,
+                mailingAddress: "",
+                alternatePhone: "",
+                managerNotes: ""
             };
 
             // Try to step to the next unit

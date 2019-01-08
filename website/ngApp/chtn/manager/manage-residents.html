@@ -330,11 +330,14 @@
                 <tr>
                     <th style="width:13%;">Unit</th>
                     <th>Email</th>
-                    <th style="width:13%;">First</th>
-                    <th style="width:13%;">Last</th>
-                    <th style="width:13%;">Phone</th>
-                    <th style="width:9%;">Renter</th>
-                    <th style="width:9%;">Admin</th>
+                    <th style="width:10%;">First</th>
+                    <th style="width:10%;">Last</th>
+                    <th style="width:10%;">Phone</th>
+                    <th style="width:5%;">Renter</th>
+                    <th style="width:5%;">Admin</th>
+                    <th style="">Mailing</th>
+                    <th style="">Alternate Phone</th>
+                    <th style="">Notes</th>
                 </tr>
             </thead>
             <tbody>
@@ -353,6 +356,9 @@
                     <td><input style="width:97%;" type="text" data-ng-model="row.phoneNumber" /></td>
                     <td class="text-center"><input type="checkbox" data-ng-model="row.isRenter" /></td>
                     <td class="text-center"><input type="checkbox" data-ng-model="row.isAdmin" /></td>
+                    <td><input style="width:97%;" type="text" data-ng-model="row.mailingAddress" /></td>
+                    <td><input style="width:97%;" type="text" data-ng-model="row.alternatePhone" /></td>
+                    <td><input style="width:97%;" type="text" data-ng-model="row.managerNotes" /></td>
                 </tr>
             </tbody>
         </table>

@@ -115,7 +115,7 @@ var Ally;
             var _this = this;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.siteLaunchedDateUtc = this.siteInfo.privateSiteInfo.siteLaunchedDateUtc;
-            this.bulkImportRows = [{}];
+            this.bulkImportRows = [new ResidentCsvRow()];
             this.multiselectOptions = "";
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
@@ -840,7 +840,7 @@ var Ally;
             }
             var _loop_1 = function () {
                 var curRow = bulkRows[i];
-                while (curRow.length < 7)
+                while (curRow.length < 10)
                     curRow.push("");
                 // Skip the header row, if there is one
                 if (curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name")
@@ -861,7 +861,10 @@ var Ally;
                     phoneNumber: curRow[4],
                     isRenter: !HtmlUtil.isNullOrWhitespace(curRow[5]),
                     isAdmin: !HtmlUtil.isNullOrWhitespace(curRow[6]),
-                    csvTestName: ""
+                    csvTestName: "",
+                    mailingAddress: curRow[7],
+                    alternatePhone: curRow[8],
+                    managerNotes: curRow[9]
                 };
                 if (HtmlUtil.isNullOrWhitespace(newRow.unitName))
                     newRow.unitId = null;
@@ -921,9 +924,10 @@ var Ally;
             var innerThis = this;
             this.$http.post("/api/Residents/BulkLoad", this.bulkImportRows).success(function () {
                 innerThis.isLoading = false;
-                innerThis.bulkImportRows = [{}];
+                innerThis.bulkImportRows = [new ResidentCsvRow()];
                 innerThis.bulkImportCsv = "";
                 alert("Success");
+                innerThis.refresh();
             }).error(function () {
                 innerThis.isLoading = false;
                 alert("Bulk upload failed");
@@ -942,7 +946,10 @@ var Ally;
                 phoneNumber: "",
                 isRenter: false,
                 isAdmin: false,
-                csvTestName: undefined
+                csvTestName: undefined,
+                mailingAddress: "",
+                alternatePhone: "",
+                managerNotes: ""
             };
             // Try to step to the next unit
             if (this.allUnits) {
