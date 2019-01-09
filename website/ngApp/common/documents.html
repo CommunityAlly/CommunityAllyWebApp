@@ -1,5 +1,9 @@
 ﻿<section class="docs">
     <h1>{{ $ctrl.title }}</h1>
+    <div data-ng-if="$ctrl.showPopUpWarning" class="alert alert-warning" role="alert">
+        Your browser appears to be blocking pop-ups which are required to view documents. These guides may help: <a href="https://support.google.com/chrome/answer/95472?co=GENIE.Platform%3DDesktop&hl=en" rel="noreferrer" target="_blank">Chrome</a> - <a href="https://support.mozilla.org/en-US/kb/pop-blocker-settings-exceptions-troubleshooting#w_pop-up-blocker-settings" rel="noreferrer" target="_blank">Firefox</a> - <a href="https://www.digitaltrends.com/computing/how-to-allow-pop-ups-on-a-mac/" rel="noreferrer" target="_blank">Safari</a>
+    </div>
+
     <input id="JQDocsFileUploader" type="file" name="files[]" data-url="Pages/DocumentUpload.aspx?isupload=1" multiple style="display:none;" />
 
     <div id="documents-area" class="spinner-effect">

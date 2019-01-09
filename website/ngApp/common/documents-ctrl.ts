@@ -65,23 +65,24 @@ namespace Ally
         static LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         static DirName_Committees = "Committees_Root";
 
-        public documentTree: DocumentDirectory;
-        public selectedDirectory: DocumentDirectory;
-        public selectedFile: DocumentTreeFile;
-        public isLoading = false;
-        private fileSortType: string;
-        private filesSortDescend = false;
-        private fileSearch: any;
-        private searchFileList: DocumentTreeFile[];
-        private shouldShowCreateFolderModal: boolean;
-        private fullSearchFileList: DocumentTreeFile[];
-        private createUnderParentDirName: string;
-        public newDirectoryName: string;
-        public isSiteManager: boolean;
-        public committee: Ally.Committee;
-        public title = "Documents";
-        public getDocsUri = "/api/ManageDocuments";
-        public apiAuthToken: string;
+        documentTree: DocumentDirectory;
+        selectedDirectory: DocumentDirectory;
+        selectedFile: DocumentTreeFile;
+        isLoading = false;
+        fileSortType: string;
+        filesSortDescend = false;
+        fileSearch: any;
+        searchFileList: DocumentTreeFile[];
+        shouldShowCreateFolderModal: boolean;
+        fullSearchFileList: DocumentTreeFile[];
+        createUnderParentDirName: string;
+        newDirectoryName: string;
+        isSiteManager: boolean;
+        committee: Ally.Committee;
+        title = "Documents";
+        getDocsUri = "/api/ManageDocuments";
+        apiAuthToken: string;
+        showPopUpWarning: boolean = false;
 
 
         /**
@@ -188,6 +189,23 @@ namespace Ally
         viewDoc( curFile: DocumentTreeFile, isForDownload: boolean )
         {
             this.isLoading = true;
+            this.showPopUpWarning = false;
+
+            let viewDocWindow: Window;
+
+            if( !isForDownload )
+            {
+                viewDocWindow = window.open( '', '_blank' );
+
+                let wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
+                if( wasPopUpBlocked )
+                {
+                    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                    this.showPopUpWarning = true;
+                }
+                else
+                    viewDocWindow.document.write( 'Loading document...' );
+            }
 
             this.$http.get( "/api/DocumentLink/" + curFile.docId ).then(( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
             {
@@ -204,11 +222,12 @@ namespace Ally
                 }
                 else
                 {
-                    let newWindow = window.open( fileUri, '_blank' );
+                    //let newWindow = window.open( fileUri, '_blank' );
+                    viewDocWindow.location.href = fileUri;
 
-                    let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                    if( wasPopUpBlocked )
-                        alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                    //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                    //if( wasPopUpBlocked )
+                    //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
                 }
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>

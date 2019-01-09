@@ -46,6 +46,7 @@ var Ally;
             this.filesSortDescend = false;
             this.title = "Documents";
             this.getDocsUri = "/api/ManageDocuments";
+            this.showPopUpWarning = false;
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
             if (!this.fileSortType)
                 this.fileSortType = "title";
@@ -117,6 +118,18 @@ var Ally;
         DocumentsController.prototype.viewDoc = function (curFile, isForDownload) {
             var _this = this;
             this.isLoading = true;
+            this.showPopUpWarning = false;
+            var viewDocWindow;
+            if (!isForDownload) {
+                viewDocWindow = window.open('', '_blank');
+                var wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
+                if (wasPopUpBlocked) {
+                    alert("Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for " + AppConfig.appName + ".");
+                    this.showPopUpWarning = true;
+                }
+                else
+                    viewDocWindow.document.write('Loading document...');
+            }
             this.$http.get("/api/DocumentLink/" + curFile.docId).then(function (response) {
                 _this.isLoading = false;
                 var fileUri = curFile.url + "?vid=" + response.data.vid;
@@ -127,10 +140,11 @@ var Ally;
                     link.click();
                 }
                 else {
-                    var newWindow = window.open(fileUri, '_blank');
-                    var wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                    if (wasPopUpBlocked)
-                        alert("Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for " + AppConfig.appName + ".");
+                    //let newWindow = window.open( fileUri, '_blank' );
+                    viewDocWindow.location.href = fileUri;
+                    //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                    //if( wasPopUpBlocked )
+                    //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
                 }
             }, function (response) {
                 _this.isLoading = false;
