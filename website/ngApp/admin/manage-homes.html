@@ -10,7 +10,7 @@
                     <th></th>
                     <th>Name</th>
                     <th>% Interest</th>
-                    <th>Address ID</th>
+                    <th data-ng-if="$ctrl.isAdmin">Address ID</th>
                     <th>Street Address</th>
                     <th>Notes</th>
                 </tr>
@@ -19,11 +19,11 @@
                 <tr data-ng-repeat="unit in $ctrl.units">
                     <td>
                         <span class="text-button" data-ng-click="$ctrl.onEditUnitClick( unit );">Edit</span>
-                        <span class="text-button" data-ng-click="$ctrl.onDeleteUnitClick( unit );">Delete</span>
+                        - <span class="text-button" data-ng-click="$ctrl.onDeleteUnitClick( unit );">Delete</span>
                     </td>
                     <td>{{unit.name}}</td>
                     <td>{{unit.percentageInterest}}</td>
-                    <td>{{unit.addressId}}</td>
+                    <td data-ng-if="$ctrl.isAdmin">{{unit.addressId}}</td>
                     <td>{{unit.fullAddress.oneLiner}}</td>
                     <td>{{unit.notes}}</td>
                 </tr>
@@ -31,7 +31,7 @@
         </table>
     </div>
     <br />
-    <fieldset>
+    <fieldset id="unit-edit-panel">
         <legend>{{$ctrl.isEdit == false | iif : "Add Unit" : "Edit Unit"}}</legend>
         <form id="AddUnitForm">
             <table>
@@ -53,35 +53,37 @@
                 </tr>
                 <tr>
                     <td colspan="2" class="text-right">
-                        <input id="add-update-unit-button" type="button" value="{{ $ctrl.isEdit == false | iif : 'Add New Unit' : 'Edit Unit'}}" data-ng-click="$ctrl.onCreateUnitClick()" />
-                        <input type="button" data-ng-show="$ctrl.isEdit" value="Cancel Edit" data-ng-click="$ctrl.isEdit = false; $ctrl.unitToEdit = {}; $ctrl.isLoading = false;" />
+                        <input id="add-update-unit-button" type="button" value="{{ $ctrl.isEdit == false | iif : 'Add New Unit' : 'Save Changes'}}" data-ng-click="$ctrl.onCreateUnitClick()" />
+                        <input type="button" data-ng-show="$ctrl.isEdit" value="Cancel" data-ng-click="$ctrl.isEdit = false; $ctrl.unitToEdit = {}; $ctrl.isLoading = false;" />
                     </td>
                 </tr>
             </table>
         </form>
     </fieldset>
-    <br />
-    <br />
-    <span class="text-button" data-ng-click="$ctrl.onDeleteAllClick()">Delete All Units</span><br />
-    <br />
 
-    <div style="border: 1px solid #000;">
-        Quickly generate units:<br />
-        Last Letter or Number:
-        <input type="text" data-ng-model="$ctrl.lastFastAddName" maxlength="1" />
-        <input type="button" data-ng-click="$ctrl.onFastAddUnits()" value="Add Lettered" />
+    <div data-ng-if="$ctrl.isAdmin">
+        <br />
+        <br />
+        <span class="text-button" data-ng-click="$ctrl.onDeleteAllClick()">Delete All Units</span><br />
+        <br />
+
+        <div style="border: 1px solid #000;">
+            Quickly generate units:<br />
+            Last Letter or Number:
+            <input type="text" data-ng-model="$ctrl.lastFastAddName" maxlength="1" />
+            <input type="button" data-ng-click="$ctrl.onFastAddUnits()" value="Add Lettered" />
+        </div>
+
+        <div style="border: 1px solid #000;">
+            Generate condo units, one name per line:<br />
+            <textarea rows="15" data-ng-model="$ctrl.unitNamePerLine"></textarea>
+            <input type="button" data-ng-click="$ctrl.onAddUnitsPerLine()" value="Add Units" />
+        </div>
+
+        <div style="border: 1px solid #000;">
+            Generate homes, one street address per line:<span class="note-text">&nbsp;(Use a | to specify home short name|home address or short name|home address|notes)</span><br />
+            <textarea rows="15" style="width: 70%;" data-ng-model="$ctrl.unitAddressPerLine"></textarea>
+            <input type="button" data-ng-click="$ctrl.onAddUnitsByAddressPerLine()" value="Add Homes" />
+        </div>
     </div>
-
-    <div style="border: 1px solid #000;">
-        Generate condo units, one name per line:<br />
-        <textarea rows="15" data-ng-model="$ctrl.unitNamePerLine"></textarea>
-        <input type="button" data-ng-click="$ctrl.onAddUnitsPerLine()" value="Add Units" />
-    </div>
-
-    <div style="border: 1px solid #000;">
-        Generate homes, one street address per line:<span class="note-text">&nbsp;(Use a | to specify home short name|home address or short name|home address|notes)</span><br />
-        <textarea rows="15" style="width: 70%;" data-ng-model="$ctrl.unitAddressPerLine"></textarea>
-        <input type="button" data-ng-click="$ctrl.onAddUnitsByAddressPerLine()" value="Add Homes" />
-    </div>
-
 </div>

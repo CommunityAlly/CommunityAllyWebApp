@@ -7,9 +7,9 @@ var Ally;
         /**
             * The constructor for the class
             */
-        function ManageHomesController($http, $q) {
+        function ManageHomesController($http, siteInfo) {
             this.$http = $http;
-            this.$q = $q;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
@@ -18,6 +18,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageHomesController.prototype.$onInit = function () {
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.refresh();
         };
         /**
@@ -62,6 +63,7 @@ var Ally;
             this.unitToEdit = _.clone(unit);
             if (unit.fullAddress)
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
+            document.getElementById("unit-edit-panel").scrollIntoView();
         };
         /**
          * Occurs when the user presses the button to delete a unit
@@ -135,7 +137,7 @@ var Ally;
             }, function () {
             });
         };
-        ManageHomesController.$inject = ["$http", "$rootScope"];
+        ManageHomesController.$inject = ["$http", "SiteInfo"];
         return ManageHomesController;
     }());
     Ally.ManageHomesController = ManageHomesController;

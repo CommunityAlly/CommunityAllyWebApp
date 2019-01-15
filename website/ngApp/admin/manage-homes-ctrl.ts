@@ -5,7 +5,7 @@
      */
     export class ManageHomesController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope"];
+        static $inject = ["$http", "SiteInfo"];
         isLoading: boolean = false;
         unitToEdit: Unit = new Unit();
         isEdit: boolean = false;
@@ -13,12 +13,13 @@
         unitNamePerLine: string;
         unitAddressPerLine: string;
         lastFastAddName: string;
+        isAdmin: boolean;
 
 
         /**
             * The constructor for the class
             */
-        constructor( private $http: ng.IHttpService, private $q: ng.IQService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -28,6 +29,8 @@
         */
         $onInit()
         {
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
+
             this.refresh();
         }
 
@@ -90,6 +93,8 @@
 
             if( unit.fullAddress )
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
+
+            document.getElementById( "unit-edit-panel" ).scrollIntoView();
         }
 
 
