@@ -17,6 +17,14 @@ namespace Ally
     }
 
 
+    class UpdateAssessmentInfo
+    {
+        unitId: number;
+        assessment: number;
+        assessmentNote: string;
+    }
+
+
     /**
      * The controller for the page to view online payment information
      */
@@ -301,15 +309,15 @@ namespace Ally
         {
             this.isLoadingUnits = true;
 
-            // The UI inputs string values for these fields, so convert them to numbers
-            if( typeof ( unit.assessment ) === "string" )
-                unit.assessment = parseFloat( unit.assessment );
-
-            if( typeof ( unit.adjustedAssessment ) === "string" )
-                unit.adjustedAssessment = parseFloat( unit.adjustedAssessment );
-
+            var updateInfo: UpdateAssessmentInfo =
+                {
+                    unitId: unit.unitId,
+                    assessment: typeof ( unit.adjustedAssessment ) === "string" ? parseFloat( unit.adjustedAssessment ) : unit.adjustedAssessment,
+                    assessmentNote: unit.adjustedAssessmentReason
+                };
+            
             var innerThis = this;
-            this.$http.put( "/api/Unit", unit ).then( () =>
+            this.$http.put( "/api/Unit/UpdateAssessment", updateInfo ).then( () =>
             {
                 innerThis.isLoadingUnits = false;
 

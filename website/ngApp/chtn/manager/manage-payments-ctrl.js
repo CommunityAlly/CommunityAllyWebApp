@@ -5,6 +5,11 @@ var Ally;
         }
         return PaymentPageInfo;
     }());
+    var UpdateAssessmentInfo = /** @class */ (function () {
+        function UpdateAssessmentInfo() {
+        }
+        return UpdateAssessmentInfo;
+    }());
     /**
      * The controller for the page to view online payment information
      */
@@ -201,13 +206,13 @@ var Ally;
          */
         ManagePaymentsController.prototype.onUnitAssessmentChanged = function (unit) {
             this.isLoadingUnits = true;
-            // The UI inputs string values for these fields, so convert them to numbers
-            if (typeof (unit.assessment) === "string")
-                unit.assessment = parseFloat(unit.assessment);
-            if (typeof (unit.adjustedAssessment) === "string")
-                unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
+            var updateInfo = {
+                unitId: unit.unitId,
+                assessment: typeof (unit.adjustedAssessment) === "string" ? parseFloat(unit.adjustedAssessment) : unit.adjustedAssessment,
+                assessmentNote: unit.adjustedAssessmentReason
+            };
             var innerThis = this;
-            this.$http.put("/api/Unit", unit).then(function () {
+            this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(function () {
                 innerThis.isLoadingUnits = false;
                 innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
                 innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);

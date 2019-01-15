@@ -291,27 +291,26 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th class="text-right">Unit</th>
-                                    <th class="text-center">Base Assessment</th>
-                                    <th class="text-center">Adjusted Assessment</th>
-                                    <th class="text-center">Adjustment Reason</th>
+                                    <th class="text-right" style="width: 260px;">Unit</th>
+                                    <th class="text-center" style="width: 140px;">Assessment</th>
+                                    <th class="text-left">Notes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr data-ng-repeat="unit in $ctrl.units">
                                     <td class="text-right">{{ unit.name }}</td>
-                                    <td class="text-center">
+                                    <!--<td class="text-center">
                                         <span data-ng-if="$ctrl.userInfo.isAdmin" class="text-button test1" data-onshow="selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.assessment">{{ unit.assessment | currency }}</span>
                                         <span data-ng-if="!$ctrl.userInfo.isAdmin">{{ unit.assessment | currency }}</span>
-                                    </td>
-                                    <td class="text-center"><span class="text-button test1" data-onshow="$ctrl.selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessment">{{ unit.adjustedAssessment | currency }}</span></td>
-                                    <td class="text-center"><span class="text-button text-danger test1" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit reason" }}</span></td>
+                                    </td>-->
+                                    <td class="text-center"><span class="text-button" data-onshow="$ctrl.selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessment">{{ (unit.adjustedAssessment || 0) | currency }}</span></td>
+                                    <td class="text-left"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
                                 </tr>
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <th class="text-right">Total</th>
-                                    <th class="text-center">{{ $ctrl.assessmentSum | currency }}</th>
+                                    <!--<th class="text-center">{{ $ctrl.assessmentSum | currency }}</th>-->
                                     <th class="text-center">{{ $ctrl.adjustedAssessmentSum | currency }}</th>
                                     <th></th>
                                 </tr>
