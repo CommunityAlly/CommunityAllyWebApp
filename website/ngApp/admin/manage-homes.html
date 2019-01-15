@@ -12,6 +12,7 @@
                     <th>% Interest</th>
                     <th>Address ID</th>
                     <th>Street Address</th>
+                    <th>Notes</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +25,7 @@
                     <td>{{unit.percentageInterest}}</td>
                     <td>{{unit.addressId}}</td>
                     <td>{{unit.fullAddress.oneLiner}}</td>
+                    <td>{{unit.notes}}</td>
                 </tr>
             </tbody>
         </table>
@@ -44,6 +46,10 @@
                 <tr>
                     <td class="AlignRight">Street Address:</td>
                     <td><input id="unit-address-text-box" type="text" style="width: 100%;" data-ng-model="$ctrl.unitToEdit.streetAddress" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Notes:</td>
+                    <td><input id="unit-notes-text-box" type="text" style="width: 100%;" data-ng-model="$ctrl.unitToEdit.notes" maxlength="1024" data-ng-enter="$ctrl.onCreateUnitClick()" /></td>
                 </tr>
                 <tr>
                     <td colspan="2" class="text-right">
@@ -73,7 +79,7 @@
     </div>
 
     <div style="border: 1px solid #000;">
-        Generate homes, one street address per line:<span class="note-text">&nbsp;(Use a | to specify home short name|home address)</span><br />
+        Generate homes, one street address per line:<span class="note-text">&nbsp;(Use a | to specify home short name|home address or short name|home address|notes)</span><br />
         <textarea rows="15" style="width: 70%;" data-ng-model="$ctrl.unitAddressPerLine"></textarea>
         <input type="button" data-ng-click="$ctrl.onAddUnitsByAddressPerLine()" value="Add Homes" />
     </div>

@@ -120,7 +120,7 @@
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoading = false;
-                alert( "Failed fast add:" + response.data.exceptionMessage );
+                alert( "Failed fast add: " + response.data.exceptionMessage );
             } );
         }
 
@@ -166,12 +166,13 @@
             this.$http.post( "/api/Unit/FromAddresses", postData ).then(() =>
             {
                 this.isLoading = false;
+                this.unitAddressPerLine = "";
                 this.refresh();
 
-            }, () =>
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;
-                alert( "Failed" );
+                alert( "Failed to add: " + response.data.exceptionMessage );
             } );
         }
 

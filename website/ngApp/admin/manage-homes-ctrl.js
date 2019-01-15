@@ -59,7 +59,7 @@ var Ally;
          */
         ManageHomesController.prototype.onEditUnitClick = function (unit) {
             this.isEdit = true;
-            this.unitToEdit = unit;
+            this.unitToEdit = _.clone(unit);
             if (unit.fullAddress)
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
         };
@@ -83,7 +83,7 @@ var Ally;
                 _this.refresh();
             }, function (response) {
                 _this.isLoading = false;
-                alert("Failed fast add:" + response.data.exceptionMessage);
+                alert("Failed fast add: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -116,10 +116,11 @@ var Ally;
             this.isLoading = true;
             this.$http.post("/api/Unit/FromAddresses", postData).then(function () {
                 _this.isLoading = false;
+                _this.unitAddressPerLine = "";
                 _this.refresh();
-            }, function () {
+            }, function (response) {
                 _this.isLoading = false;
-                alert("Failed");
+                alert("Failed to add: " + response.data.exceptionMessage);
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////

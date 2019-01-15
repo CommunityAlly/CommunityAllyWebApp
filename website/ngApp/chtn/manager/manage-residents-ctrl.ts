@@ -12,6 +12,10 @@ namespace Ally
         adjustedAssessment: number;
         adjustedAssessmentReason: string;
         addressId: number;
+        notes: string;
+        addedByDateUtc: Date;
+        addedByUserId: string;
+
         fullAddress: any;
         nameWithUnit: string;
 
@@ -137,7 +141,7 @@ namespace Ally
     export class ManageResidentsController implements ng.IController
     {
         static $inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
-
+        
         isAdmin: boolean = false;
         siteLaunchedDateUtc: Date;
         bulkImportRows: ResidentCsvRow[];
