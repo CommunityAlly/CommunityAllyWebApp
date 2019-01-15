@@ -117,7 +117,7 @@
         {
             this.isLoading = true;
 
-            this.$http.post( "/api/Unit?fastAdd=" + this.lastFastAddName, null ).then(() =>
+            this.$http.post( "/api/Unit/FastAdd?fastAdd=" + this.lastFastAddName, null ).then(() =>
             {
                 this.isLoading = false;
                 this.refresh();

@@ -80,7 +80,7 @@ var Ally;
         ManageHomesController.prototype.onFastAddUnits = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.post("/api/Unit?fastAdd=" + this.lastFastAddName, null).then(function () {
+            this.$http.post("/api/Unit/FastAdd?fastAdd=" + this.lastFastAddName, null).then(function () {
                 _this.isLoading = false;
                 _this.refresh();
             }, function (response) {

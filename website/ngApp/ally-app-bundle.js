@@ -357,9 +357,9 @@ var Ally;
         /**
             * The constructor for the class
             */
-        function ManageHomesController($http, $q) {
+        function ManageHomesController($http, siteInfo) {
             this.$http = $http;
-            this.$q = $q;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
@@ -368,6 +368,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageHomesController.prototype.$onInit = function () {
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.refresh();
         };
         /**
@@ -409,9 +410,10 @@ var Ally;
          */
         ManageHomesController.prototype.onEditUnitClick = function (unit) {
             this.isEdit = true;
-            this.unitToEdit = unit;
+            this.unitToEdit = _.clone(unit);
             if (unit.fullAddress)
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
+            document.getElementById("unit-edit-panel").scrollIntoView();
         };
         /**
          * Occurs when the user presses the button to delete a unit
@@ -428,12 +430,12 @@ var Ally;
         ManageHomesController.prototype.onFastAddUnits = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.post("/api/Unit?fastAdd=" + this.lastFastAddName, null).then(function () {
+            this.$http.post("/api/Unit/FastAdd?fastAdd=" + this.lastFastAddName, null).then(function () {
                 _this.isLoading = false;
                 _this.refresh();
             }, function (response) {
                 _this.isLoading = false;
-                alert("Failed fast add:" + response.data.exceptionMessage);
+                alert("Failed fast add: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -466,10 +468,11 @@ var Ally;
             this.isLoading = true;
             this.$http.post("/api/Unit/FromAddresses", postData).then(function () {
                 _this.isLoading = false;
+                _this.unitAddressPerLine = "";
                 _this.refresh();
-            }, function () {
+            }, function (response) {
                 _this.isLoading = false;
-                alert("Failed");
+                alert("Failed to add: " + response.data.exceptionMessage);
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -484,7 +487,7 @@ var Ally;
             }, function () {
             });
         };
-        ManageHomesController.$inject = ["$http", "$rootScope"];
+        ManageHomesController.$inject = ["$http", "SiteInfo"];
         return ManageHomesController;
     }());
     Ally.ManageHomesController = ManageHomesController;
@@ -1965,6 +1968,11 @@ var Ally;
         }
         return PaymentPageInfo;
     }());
+    var UpdateAssessmentInfo = /** @class */ (function () {
+        function UpdateAssessmentInfo() {
+        }
+        return UpdateAssessmentInfo;
+    }());
     /**
      * The controller for the page to view online payment information
      */
@@ -2161,13 +2169,13 @@ var Ally;
          */
         ManagePaymentsController.prototype.onUnitAssessmentChanged = function (unit) {
             this.isLoadingUnits = true;
-            // The UI inputs string values for these fields, so convert them to numbers
-            if (typeof (unit.assessment) === "string")
-                unit.assessment = parseFloat(unit.assessment);
-            if (typeof (unit.adjustedAssessment) === "string")
-                unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
+            var updateInfo = {
+                unitId: unit.unitId,
+                assessment: typeof (unit.adjustedAssessment) === "string" ? parseFloat(unit.adjustedAssessment) : unit.adjustedAssessment,
+                assessmentNote: unit.adjustedAssessmentReason
+            };
             var innerThis = this;
-            this.$http.put("/api/Unit", unit).then(function () {
+            this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(function () {
                 innerThis.isLoadingUnits = false;
                 innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
                 innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
