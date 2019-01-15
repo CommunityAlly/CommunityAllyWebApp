@@ -77,9 +77,9 @@
                                     </div>
                                     <div class="col-md-6 text-md-right padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
-                                        <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
-                                        <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" data-ng-if="$ctrl.isSiteManager" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a>
-                                        <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" data-ng-if="$ctrl.isSiteManager" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a>
+                                        - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
+                                        <span data-ng-if="$ctrl.isSiteManager"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
+                                        <span data-ng-if="$ctrl.isSiteManager"> - <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
                                     </div>
                                 </div>
                             </div>
