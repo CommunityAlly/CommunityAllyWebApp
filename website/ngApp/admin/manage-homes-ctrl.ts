@@ -86,7 +86,7 @@
         onEditUnitClick( unit: Unit )
         {
             this.isEdit = true;
-            this.unitToEdit = unit;
+            this.unitToEdit = _.clone( unit );
 
             if( unit.fullAddress )
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
