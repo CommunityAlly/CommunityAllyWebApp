@@ -5730,11 +5730,16 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         EmailAbuseController.prototype.$onInit = function () {
+            this.boardEmail = "board." + HtmlUtil.getSubdomain() + "@inmail." + AppConfig.baseTld;
         };
         /**
          * Ask that
          */
         EmailAbuseController.prototype.reportAbuse = function (abuseReason) {
+            if (abuseReason === "not-member") {
+                if (!confirm("You should reach out to the board rather than contact technical support. Click 'OK' to still proceed with contacting technical support anyway."))
+                    return;
+            }
             // It's double encoded to prevent angular trouble, so double decode
             var idVal = decodeURIComponent(this.$routeParams.idValue);
             var postData = {

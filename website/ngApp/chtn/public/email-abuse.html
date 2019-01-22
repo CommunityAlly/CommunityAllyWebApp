@@ -17,8 +17,9 @@
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('dont-want-any')">I Don't Want to Receive Any Messages</button>
         </div>
         <br />
-        <div class="vertical-stack-button">
+        <div class="vertical-stack-button mt-4">
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('not-member')">I'm Not a Resident of This Group</button>
+            <div class="alert alert-warning">If you are not a resident of the group, you should instead <a ng-href="mailto:{{$ctrl.boardEmail}}?subject=Not%20a%20Member%20of%20Association">send an e-mail to the board</a> asking to be removed.</div>
         </div>
         <br />
         <div class="vertical-stack-button">

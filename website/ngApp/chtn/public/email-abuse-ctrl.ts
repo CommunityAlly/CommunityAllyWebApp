@@ -20,12 +20,13 @@ namespace Ally
         isLoading = false;
         otherReasonText: string;
         showButtons = true;
+        boardEmail: string;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $routeParams: IEmailAbuseRouteParams)
+        constructor( private $http: ng.IHttpService, private $routeParams: IEmailAbuseRouteParams )
         {
         }
 
@@ -35,6 +36,7 @@ namespace Ally
         */
         $onInit()
         {
+            this.boardEmail = `board.${HtmlUtil.getSubdomain()}@inmail.${AppConfig.baseTld}`;
         }
 
 
@@ -43,6 +45,12 @@ namespace Ally
          */
         reportAbuse( abuseReason:string )
         {
+            if( abuseReason === "not-member" )
+            {
+                if( !confirm( "You should reach out to the board rather than contact technical support. Click 'OK' to still proceed with contacting technical support anyway." ) )
+                    return;
+            }
+
             // It's double encoded to prevent angular trouble, so double decode
             var idVal = decodeURIComponent( this.$routeParams.idValue );
 
