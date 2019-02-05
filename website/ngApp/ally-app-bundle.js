@@ -12310,6 +12310,7 @@ var Ally;
             this.$http = $http;
             this.todoLists = [];
             this.isLoading = false;
+            this.newListName = "";
             this.isFixedList = false;
             this.shouldExpandTodoItemModal = false;
         }
@@ -12360,6 +12361,9 @@ var Ally;
             this.$http.post(postUri, null).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to create: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -12373,6 +12377,9 @@ var Ally;
                 _this.isLoading = false;
                 _this.newItemDescription = "";
                 _this.loadAllTodoLists();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to create: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -12398,6 +12405,9 @@ var Ally;
                 _this.newItemDescription = "";
                 _this.editTodoItem = null;
                 _this.loadAllTodoLists();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to create: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -12409,6 +12419,41 @@ var Ally;
             this.$http.put("/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null).then(function (response) {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to toggle: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Delete a to-do item
+         */
+        TodoListCtrl.prototype.deleteTodoItem = function (curItem) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.delete("/api/Todo/Item/" + curItem.todoItemId).then(function (response) {
+                _this.isLoading = false;
+                _this.loadAllTodoLists();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Delete a to-do list
+         */
+        TodoListCtrl.prototype.deleteTodoList = function (curList) {
+            var _this = this;
+            if (curList.todoItems.length > 0) {
+                if (!confirm("Are you sure you want to delete this list with active to-dos?"))
+                    return;
+            }
+            this.isLoading = true;
+            this.$http.delete("/api/Todo/List/" + curList.todoListId).then(function (response) {
+                _this.isLoading = false;
+                _this.loadAllTodoLists();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
         TodoListCtrl.$inject = ["$http"];

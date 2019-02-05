@@ -41,7 +41,7 @@
         todoLists: TodoList[] = [];
         isLoading: boolean = false;
         newItemDescription: string;
-        newListName: string;
+        newListName: string = "";
         fixedTodoListId: number;
         isFixedList: boolean = false;
         shouldExpandTodoItemModal: boolean = false;
@@ -120,6 +120,10 @@
             {
                 this.isLoading = false;
                 this.loadAllTodoLists();
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to create: " + response.data.exceptionMessage );
             } );
         }
 
@@ -137,6 +141,10 @@
                 this.isLoading = false;
                 this.newItemDescription = "";
                 this.loadAllTodoLists();
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to create: " + response.data.exceptionMessage );
             } );
         }
 
@@ -170,6 +178,11 @@
                 this.newItemDescription = "";
                 this.editTodoItem = null;
                 this.loadAllTodoLists();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to create: " + response.data.exceptionMessage );
             } );
         }
 
@@ -185,6 +198,57 @@
             {
                 this.isLoading = false;
                 this.loadAllTodoLists();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to toggle: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Delete a to-do item
+         */
+        deleteTodoItem( curItem: TodoItem )
+        {
+            this.isLoading = true;
+
+            this.$http.delete( "/api/Todo/Item/" + curItem.todoItemId ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoading = false;
+                this.loadAllTodoLists();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to delete: " + response.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Delete a to-do list
+         */
+        deleteTodoList( curList: TodoList )
+        {
+            if( curList.todoItems.length > 0 )
+            {
+                if( !confirm( "Are you sure you want to delete this list with active to-dos?" ) )
+                    return;
+            }
+
+            this.isLoading = true;
+
+            this.$http.delete( "/api/Todo/List/" + curList.todoListId ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoading = false;
+                this.loadAllTodoLists();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to delete: " + response.data.exceptionMessage );
             } );
         }
     }
