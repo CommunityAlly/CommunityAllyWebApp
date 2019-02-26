@@ -18,6 +18,14 @@
         showLocalNews: boolean = false;
         shouldShowAlertSection: boolean;
         usersCommittees: Committee[];
+        testPay_ShouldShow: boolean = false;
+        testPay_ReturnUrl: string;
+        testPay_Amt: number;
+        testPay_isValid: boolean = false;
+        testPay_IpnUrl: string;
+        testPay_UserFirst: string;
+        testPay_UserLast: string;
+        testPay_Description: string;
 
 
         /**
@@ -33,6 +41,17 @@
         */
         $onInit()
         {
+            this.testPay_ShouldShow = this.siteInfo.publicSiteInfo.shortName === "qa"
+                                    || this.siteInfo.publicSiteInfo.shortName === "localtest";
+            if( this.testPay_ShouldShow )
+            {
+                this.testPay_ReturnUrl = window.location.href;
+                this.testPay_IpnUrl = this.siteInfo.publicSiteInfo.baseUrl + "/api/PayPalIpn";
+                this.testPay_UserFirst = this.siteInfo.userInfo.firstName;
+                this.testPay_UserLast = this.siteInfo.userInfo.lastName;
+                this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
+            }
+
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
@@ -70,6 +89,12 @@
                 if( this.usersCommittees )
                     this.usersCommittees = _.sortBy( this.usersCommittees, c => c.name.toLowerCase() );
             } );
+        }
+
+
+        onTestPayAmtChange()
+        {
+            this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
         }
 
 

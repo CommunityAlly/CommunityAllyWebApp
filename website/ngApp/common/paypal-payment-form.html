@@ -1,0 +1,63 @@
+﻿<div class="portlet-box white payment_bl margin-vertical">
+    <div class="portlet-header">
+        <div class="title">Payment</div>
+    </div>
+
+    <div class="portlet-body">
+        <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
+
+        <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+            <input type="hidden" name="cmd" value="_donations">
+            <input type="hidden" name="business" value="test-receiver@pair3d.com">
+            <input type="hidden" name="lc" value="CA">
+            <input type="hidden" name="item_name" value="Assessment">
+            <input type="hidden" name="button_subtype" value="services">
+            <input type="hidden" name="no_note" value="1"> <!-- 1 = Hide notes -->
+            <input type="hidden" name="no_shipping" value="1"> <!-- 1 = No need for shipping address -->
+            <input type="hidden" name="amount" value="{{$ctrl.paymentInfo.amount}}">
+            <input type="hidden" name="currency_code" value="USD">
+            <input type="hidden" name="return" value="{{$ctrl.returnUrl}}">
+            <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHosted">
+            <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+            <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+        </form>
+
+
+        <form action="#">
+            <div class="pay_for">
+                <div class="text-16 font-600">I am paying for</div>
+
+                <div style="display: inline-block;">
+                    <label class="custom-control custom-radio">
+                        <input id="radioStacked1" name="payment" type="radio" value="periodic" class="custom-control-input" data-ng-click="$ctrl.onSelectPaymentType('periodic')" ng-model="$ctrl.paymentInfo.paymentType">
+                        <span class="custom-control-indicator"></span>
+                        <span class="custom-control-description">Assessment</span>
+                    </label>
+                    <label class="custom-control custom-radio">
+                        <input id="other" name="payment" type="radio" data-ng-click="$ctrl.onSelectPaymentType('other')" value="other" ng-model="$ctrl.paymentInfo.paymentType" class="custom-control-input">
+                        <span class="custom-control-indicator"></span>
+                        <span class="custom-control-description">Other</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="amount_field row">
+                <div class="col-sm-4 pay_check">
+                    <label>Amount</label>
+                    <input class="form-control grey" type="text" value="" data-ng-disabled="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-model="$ctrl.paymentInfo.amount" />
+                </div>
+                <div class="col-sm-8 memo">
+                    <label>Memo</label>
+                    <input class="form-control grey" type="text" placeholder="" data-ng-model="$ctrl.paymentInfo.note" />
+                    <div data-ng-show="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-click="$ctrl.onIncorrectPayDetails()" class="text-link margin-top-10">{{ $ctrl.errorPayInfoText }}</div>
+                </div>
+                <i class="error" ng-show="$ctrl.paymentError">{{$ctrl.paymentErrorMessage}}</i>
+            </div>
+
+            <div class="buttons margin-top-30" style="text-align: center;">
+                <div id="paypal-button"></div>
+            </div>
+        </form>
+
+    </div>
+</div>

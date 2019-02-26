@@ -3875,12 +3875,23 @@ var Ally;
             this.$scope = $scope;
             this.showDiscussionThreads = false;
             this.showLocalNews = false;
+            this.testPay_ShouldShow = false;
+            this.testPay_isValid = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ChtnHomeController.prototype.$onInit = function () {
             var _this = this;
+            this.testPay_ShouldShow = this.siteInfo.publicSiteInfo.shortName === "qa"
+                || this.siteInfo.publicSiteInfo.shortName === "localtest";
+            if (this.testPay_ShouldShow) {
+                this.testPay_ReturnUrl = window.location.href;
+                this.testPay_IpnUrl = this.siteInfo.publicSiteInfo.baseUrl + "/api/PayPalIpn";
+                this.testPay_UserFirst = this.siteInfo.userInfo.firstName;
+                this.testPay_UserLast = this.siteInfo.userInfo.lastName;
+                this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
+            }
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
@@ -3906,6 +3917,9 @@ var Ally;
                 if (_this.usersCommittees)
                     _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
             });
+        };
+        ChtnHomeController.prototype.onTestPayAmtChange = function () {
+            this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
         };
         ChtnHomeController.prototype.hideFirstVisit = function () {
             this.$rootScope.hasClosedFirstVisitModal = true;
