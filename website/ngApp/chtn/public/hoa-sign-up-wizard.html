@@ -7,7 +7,13 @@
         {{ $ctrl.resultMessage }}
     </div>
 
-    <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
+    <div class="alert alert-info">
+        <strong>Hold up!</strong> We appreciate you being here, but we have temporarily disabled new sign-ups. We're very happy with the number
+        of associations we're currently helping so we are pausing new sign-ups. We'll update this page when sign-ups
+        are re-enabled. Good luck on your search for HOA software!
+    </div>
+
+    <wizard data-ng-if="false" data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
         <wz-step title="Name">
 
             <h2 class="StepTitle"></h2>
