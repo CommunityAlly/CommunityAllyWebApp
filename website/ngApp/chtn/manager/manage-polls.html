@@ -64,11 +64,11 @@
             </span>
         </p>
 
-        <p class="margin-top-20" style="display: none;">
+        <p class="margin-top-20">
             <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.isAnonymous"> Responses are anonymous</label><br />
             <span class="note-text">
                 If selected, you will not be able to see how units voted, only total response counts. Anonymous polls can help to provide
-                more votes or more honest feedback.
+                more votes and/or more honest feedback.
             </span>
         </p>
 
@@ -78,6 +78,14 @@
             <span class="note-text">
                 On noon of this date the poll will close, regardless of the number of units that have voted.
             </span>
+        </p>
+
+        <p>
+            Who can vote on this poll? <select data-ng-model="$ctrl.editingItem.whoCanVote">
+                <option value="Board">Board</option>
+                <option value="Owners">Owners</option>
+                <option value="Everyone">Everyone</option>
+            </select>
         </p>
 
         <p class="text-right">
@@ -147,6 +155,26 @@
             </div>
         </div>
         <div class="clearfix"></div>
+        <div class="mt-3 mb-3 note-text" data-ng-if="$ctrl.viewingPollResults.isAnonymous">This was an anonymous poll so individual responses cannot be viewed.</div>
+        <div class="mt-3 mb-3" data-ng-if="!$ctrl.viewingPollResults.isAnonymous && $ctrl.viewingPollResults.responses.length > 0">
+            <h2>Responses</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Resident</th>
+                        <th>Home</th>
+                        <th>Vote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-ng-repeat="response in $ctrl.viewingPollResults.responses">
+                        <td>{{response.userFullName}}</td>
+                        <td>{{response.unitName}}</td>
+                        <td>{{response.answerText}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <span style="position:absolute; right: 5px; bottom: 5px;" class="note-text">Click anywhere to close</span>
     </div>
 </div>

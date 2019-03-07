@@ -7,7 +7,7 @@
     {
         static $inject = ["$http", "SiteInfo", "$timeout", "$rootScope"];
 
-        polls: any[];        
+        polls: Poll[];        
         isLoading: boolean = false;
 
 

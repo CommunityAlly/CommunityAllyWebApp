@@ -1,6 +1,6 @@
 ﻿namespace Ally
 {
-    class Poll
+    export class Poll
     {
         pollId: number;
         allowOtherAnswer: boolean;
@@ -13,8 +13,8 @@
         detailText: string;
         isComplete: boolean;
         answers: any[];
-        responses: any[];
-        whoCanVote: string;
+        responses: PollResponse[];
+        whoCanVote: string = "Owners";
         hasUsersUnitVoted: boolean;
         unitVoteText: string;
         noResponseCount: number;
@@ -25,6 +25,25 @@
         chartData: number[];
         chartLabels: string[];
         answerCounts: any[];
+    }
+
+
+    export class PollResponse
+    {
+        pollResponseId: number;
+        pollId: number;
+        userId: string;
+        responseDate: Date;
+        userFullName: string;
+        answerId: number;
+        writeInAnswer: string;
+        sortOrder: number;
+        ipAddress: string;
+        answeredFromEmail: boolean;
+        unitId: number;
+
+        unitName: string;
+        answerText: string;
     }
 
 

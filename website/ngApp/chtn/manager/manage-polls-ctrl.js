@@ -3,9 +3,17 @@ var Ally;
     var Poll = /** @class */ (function () {
         function Poll() {
             this.isAnonymous = true;
+            this.whoCanVote = "Owners";
         }
         return Poll;
     }());
+    Ally.Poll = Poll;
+    var PollResponse = /** @class */ (function () {
+        function PollResponse() {
+        }
+        return PollResponse;
+    }());
+    Ally.PollResponse = PollResponse;
     /**
      * The controller for the manage polls page
      */
