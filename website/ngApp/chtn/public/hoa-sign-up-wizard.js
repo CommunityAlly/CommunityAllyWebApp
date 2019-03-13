@@ -39,6 +39,7 @@ var Ally;
             this.hideWizard = false;
             this.hoaPoly = { vertices: [] };
             this.showMap = false;
+            this.didSignUpForHoaAlert = false;
             // The default sign-up info object
             this.signUpInfo = new Ally.HoaSignUpInfo();
         }
@@ -223,6 +224,24 @@ var Ally;
             }, function (httpResponse) {
                 innerThis.isLoading = false;
                 alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Called when the user press the button to submit their e-mail address
+         */
+        HoaSignUpWizardController.prototype.submitEmailForHoaNotify = function () {
+            var _this = this;
+            if (HtmlUtil.isNullOrWhitespace(this.hoaAlertEmail)) {
+                alert("Please enter a valid e-mail address");
+                return;
+            }
+            this.isLoading = true;
+            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail)).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.didSignUpForHoaAlert = true;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to submit: " + httpResponse.data.exceptionMessage);
             });
         };
         HoaSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];

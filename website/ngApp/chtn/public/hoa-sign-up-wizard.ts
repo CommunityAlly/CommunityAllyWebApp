@@ -40,6 +40,8 @@ namespace Ally
         resultMessage: string;
         hoaPoly: any = { vertices: [] };
         showMap = false;
+        hoaAlertEmail: string;
+        didSignUpForHoaAlert: boolean = false;
 
         // The default sign-up info object
         signUpInfo = new Ally.HoaSignUpInfo();
@@ -320,6 +322,32 @@ namespace Ally
                 innerThis.isLoading = false;
 
                 alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Called when the user press the button to submit their e-mail address
+         */
+        submitEmailForHoaNotify()
+        {
+            if( HtmlUtil.isNullOrWhitespace( this.hoaAlertEmail ) )
+            {
+                alert( "Please enter a valid e-mail address" );
+                return;
+            }
+
+            this.isLoading = true;
+
+            this.$http.get( "/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent( this.hoaAlertEmail ) ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoading = false;
+                this.didSignUpForHoaAlert = true;
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to submit: " + httpResponse.data.exceptionMessage );
             } );
         }
     }
