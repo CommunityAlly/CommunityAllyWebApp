@@ -50,7 +50,7 @@
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
             {
                 this.isLoading = false;
-                alert( "Failed to load homes" );
+                alert( "Failed to load homes: " + response.data.exceptionMessage );
             } );
         }
 
@@ -76,10 +76,16 @@
                 this.refresh();
             };
 
+            var onError = ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to save: " + response.data.exceptionMessage );
+            };
+
             if( this.isEdit )
-                this.$http.put( "/api/Unit", this.unitToEdit ).then( onSave );
+                this.$http.put( "/api/Unit", this.unitToEdit ).then( onSave, onError );
             else
-                this.$http.post( "/api/Unit", this.unitToEdit ).then( onSave );
+                this.$http.post( "/api/Unit", this.unitToEdit ).then( onSave, onError );
         }
 
 
@@ -103,9 +109,17 @@
          */
         onDeleteUnitClick( unit: Unit )
         {
+            this.isLoading = true;
+
             this.$http.delete( "/api/Unit/" + unit.unitId ).then( () =>
             {
+                this.isLoading = false;
                 this.refresh();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to delete: " + response.data.exceptionMessage );
             } );
         }
 

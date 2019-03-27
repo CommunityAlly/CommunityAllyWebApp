@@ -32,7 +32,7 @@ var Ally;
                 _this.units = response.data;
             }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to load homes");
+                alert("Failed to load homes: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -50,10 +50,14 @@ var Ally;
                 _this.unitToEdit = new Ally.Unit();
                 _this.refresh();
             };
+            var onError = function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data.exceptionMessage);
+            };
             if (this.isEdit)
-                this.$http.put("/api/Unit", this.unitToEdit).then(onSave);
+                this.$http.put("/api/Unit", this.unitToEdit).then(onSave, onError);
             else
-                this.$http.post("/api/Unit", this.unitToEdit).then(onSave);
+                this.$http.post("/api/Unit", this.unitToEdit).then(onSave, onError);
         };
         /**
          * Occurs when the user presses the button to edit a unit
@@ -70,8 +74,13 @@ var Ally;
          */
         ManageHomesController.prototype.onDeleteUnitClick = function (unit) {
             var _this = this;
+            this.isLoading = true;
             this.$http.delete("/api/Unit/" + unit.unitId).then(function () {
+                _this.isLoading = false;
                 _this.refresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
         /**
