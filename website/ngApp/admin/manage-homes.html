@@ -10,6 +10,7 @@
                     <th></th>
                     <th>Name</th>
                     <th>% Interest</th>
+                    <th data-ng-if="$ctrl.isAdmin">Unit ID</th>
                     <th data-ng-if="$ctrl.isAdmin">Address ID</th>
                     <th>Street Address</th>
                     <th>Notes</th>
@@ -23,6 +24,7 @@
                     </td>
                     <td>{{unit.name}}</td>
                     <td>{{unit.percentageInterest}}</td>
+                    <td data-ng-if="$ctrl.isAdmin">{{unit.unitId}}</td>
                     <td data-ng-if="$ctrl.isAdmin">{{unit.addressId}}</td>
                     <td>{{unit.fullAddress.oneLiner}}</td>
                     <td>{{unit.notes}}</td>
