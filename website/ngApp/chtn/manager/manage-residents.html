@@ -251,6 +251,11 @@
         </form>
     </div>
 
+    <div data-ng-if="$ctrl.showAddHomeLink" class="mt-2 mb-2 alert alert-info">
+        Since you're a new site, you can still adjust your unit/home listing manually if you need to:<br />
+        <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">How to Add or Edit Homes</a>
+    </div>
+
     <div data-ng-if="$ctrl.showLaunchSite" class="mt-4 mb-4">
         <div data-ng-show="!$ctrl.siteLaunchedDateUtc">
             Is your site new and are you ready to share it with your fellow residents?<br />

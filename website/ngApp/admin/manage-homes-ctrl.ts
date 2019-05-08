@@ -14,11 +14,14 @@
         unitAddressPerLine: string;
         lastFastAddName: string;
         isAdmin: boolean;
+        homeName: string;
+        isHoaAlly: boolean = false;
+        isCondoAlly: boolean = false;
 
 
         /**
-            * The constructor for the class
-            */
+         * The constructor for the class
+         */
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
         {
         }
@@ -30,6 +33,8 @@
         $onInit()
         {
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.homeName = AppConfig.homeName || "Unit";
+            this.isCondoAlly = AppConfig.appShortName === "condo";
 
             this.refresh();
         }
@@ -101,6 +106,26 @@
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
 
             document.getElementById( "unit-edit-panel" ).scrollIntoView();
+        }
+
+
+        /**
+         * Occurs when the user presses the button to refresh a unit's geocoded info from Google
+         */
+        onRefreshUnitFromGoogle( unit: Unit )
+        {
+            this.isLoading = true;
+
+            this.$http.put( "/api/Unit/ForceRefreshAddressFromGoogle?unitId=" + unit.unitId, null ).then( () =>
+            {
+                this.isLoading = false;
+                this.refresh();
+
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoading = false;
+                alert( "Failed to refresh: " + response.data.exceptionMessage );
+            } );
         }
 
 
@@ -196,20 +221,25 @@
         }
 
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user presses the button to delete all units
-        ///////////////////////////////////////////////////////////////////////////////////////////////
+        /**
+         * Occurs when the user presses the button to delete all units
+         */
         onDeleteAllClick()
         {
             if( !confirm( "This will delete every unit! This should only be used for new sites!" ) )
                 return;
 
+            this.isLoading = true;
+
             this.$http.get( "/api/Unit?deleteAction=all" ).then( () =>
             {
+                this.isLoading = false;
                 this.refresh();
 
-            }, () =>
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
+                this.isLoading = false;
+                alert( "Failed to delete units: " + response.data.exceptionMessage );
             } );
         }
     }

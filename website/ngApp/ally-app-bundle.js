@@ -219,13 +219,18 @@ var Ally;
          * Find the groups to which a user, via e-mail address, belongs
          */
         ManageGroupsController.prototype.findAssociationsForUser = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
-                innerThis.isLoading = false;
-                innerThis.foundUserAssociations = response.data;
+                _this.isLoading = false;
+                _this.foundUserAssociations = response.data;
+                _.forEach(_this.foundUserAssociations, function (g) {
+                    g.viewUrl = "https://{{ group.shortName }}.CondoAlly.com/";
+                    if (g.appName === "3")
+                        g.viewUrl = "https://{{ group.shortName }}.HoaAlly.org/";
+                });
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to find associations for user");
             });
         };
@@ -355,20 +360,24 @@ var Ally;
      */
     var ManageHomesController = /** @class */ (function () {
         /**
-            * The constructor for the class
-            */
+         * The constructor for the class
+         */
         function ManageHomesController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
+            this.isHoaAlly = false;
+            this.isCondoAlly = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageHomesController.prototype.$onInit = function () {
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.homeName = AppConfig.homeName || "Unit";
+            this.isCondoAlly = AppConfig.appShortName === "condo";
             this.refresh();
         };
         /**
@@ -418,6 +427,20 @@ var Ally;
             if (unit.fullAddress)
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
             document.getElementById("unit-edit-panel").scrollIntoView();
+        };
+        /**
+         * Occurs when the user presses the button to refresh a unit's geocoded info from Google
+         */
+        ManageHomesController.prototype.onRefreshUnitFromGoogle = function (unit) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/Unit/ForceRefreshAddressFromGoogle?unitId=" + unit.unitId, null).then(function () {
+                _this.isLoading = false;
+                _this.refresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to refresh: " + response.data.exceptionMessage);
+            });
         };
         /**
          * Occurs when the user presses the button to delete a unit
@@ -484,16 +507,20 @@ var Ally;
                 alert("Failed to add: " + response.data.exceptionMessage);
             });
         };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user presses the button to delete all units
-        ///////////////////////////////////////////////////////////////////////////////////////////////
+        /**
+         * Occurs when the user presses the button to delete all units
+         */
         ManageHomesController.prototype.onDeleteAllClick = function () {
             var _this = this;
             if (!confirm("This will delete every unit! This should only be used for new sites!"))
                 return;
+            this.isLoading = true;
             this.$http.get("/api/Unit?deleteAction=all").then(function () {
+                _this.isLoading = false;
                 _this.refresh();
-            }, function () {
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete units: " + response.data.exceptionMessage);
             });
         };
         ManageHomesController.$inject = ["$http", "SiteInfo"];
@@ -1419,6 +1446,7 @@ var Ally;
             this.shouldShowCreateSpecialAssessment = false;
             this.unitPayments = {};
             this.showRowType = "unit";
+            this.isForPta = false;
             this.onSavePayment = function () {
                 var innerThis = this;
                 var onSave = function () {
@@ -1446,11 +1474,14 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         AssessmentHistoryController.prototype.$onInit = function () {
+            this.isForPta = AppConfig.appShortName === "pta";
             var isMembershipGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             if (isMembershipGroup)
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
+            if (this.isForPta)
+                this.NumPeriodsVisible = 8;
             this.authToken = window.localStorage.getItem("ApiAuthToken");
             if (AppConfig.isChtnSite)
                 this.showRowType = "unit";
@@ -1704,6 +1735,8 @@ var Ally;
                 var headerName = this.shortPeriodNames[currentPeriod - 1];
                 if (currentPeriod === 1 || currentPeriod === this.maxPeriodRange)
                     headerName += " " + year;
+                if (AppConfig.appShortName === "pta")
+                    headerName = year + " - " + (year + 1);
                 this.visiblePeriodNames.push({
                     name: headerName,
                     periodIndex: currentPeriod,
@@ -2697,6 +2730,7 @@ var Ally;
             this.showPendingMembers = false;
             this.isLoadingPending = false;
             this.selectedResidentDetailsView = "Primary";
+            this.showAddHomeLink = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2716,6 +2750,8 @@ var Ally;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.showLaunchSite = AppConfig.appShortName !== "pta";
             this.showPendingMembers = AppConfig.appShortName === "pta";
+            // Show the add home article link if the site isn't launched and is less than 5 days old
+            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(5, "days"));
             if (this.showPendingMembers) {
                 this.pendingMemberSignUpUrl = "https://" + HtmlUtil.getSubdomain() + "." + AppConfig.baseTld + "/#!/MemberSignUp";
                 // Hook up the address copy link

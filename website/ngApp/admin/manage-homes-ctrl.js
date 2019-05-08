@@ -5,20 +5,24 @@ var Ally;
      */
     var ManageHomesController = /** @class */ (function () {
         /**
-            * The constructor for the class
-            */
+         * The constructor for the class
+         */
         function ManageHomesController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
+            this.isHoaAlly = false;
+            this.isCondoAlly = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageHomesController.prototype.$onInit = function () {
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.homeName = AppConfig.homeName || "Unit";
+            this.isCondoAlly = AppConfig.appShortName === "condo";
             this.refresh();
         };
         /**
@@ -68,6 +72,20 @@ var Ally;
             if (unit.fullAddress)
                 this.unitToEdit.streetAddress = unit.fullAddress.oneLiner;
             document.getElementById("unit-edit-panel").scrollIntoView();
+        };
+        /**
+         * Occurs when the user presses the button to refresh a unit's geocoded info from Google
+         */
+        ManageHomesController.prototype.onRefreshUnitFromGoogle = function (unit) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/Unit/ForceRefreshAddressFromGoogle?unitId=" + unit.unitId, null).then(function () {
+                _this.isLoading = false;
+                _this.refresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to refresh: " + response.data.exceptionMessage);
+            });
         };
         /**
          * Occurs when the user presses the button to delete a unit
@@ -134,16 +152,20 @@ var Ally;
                 alert("Failed to add: " + response.data.exceptionMessage);
             });
         };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user presses the button to delete all units
-        ///////////////////////////////////////////////////////////////////////////////////////////////
+        /**
+         * Occurs when the user presses the button to delete all units
+         */
         ManageHomesController.prototype.onDeleteAllClick = function () {
             var _this = this;
             if (!confirm("This will delete every unit! This should only be used for new sites!"))
                 return;
+            this.isLoading = true;
             this.$http.get("/api/Unit?deleteAction=all").then(function () {
+                _this.isLoading = false;
                 _this.refresh();
-            }, function () {
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete units: " + response.data.exceptionMessage);
             });
         };
         ManageHomesController.$inject = ["$http", "SiteInfo"];

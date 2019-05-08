@@ -183,7 +183,8 @@ namespace Ally
         isLoadingPending: boolean = false;
         pendingMemberSignUpUrl: string;
         selectedResidentDetailsView: string = "Primary";
-        
+        showAddHomeLink: boolean = false;
+
 
         /**
          * The constructor for the class
@@ -211,6 +212,9 @@ namespace Ally
             this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.showLaunchSite = AppConfig.appShortName !== "pta";
             this.showPendingMembers = AppConfig.appShortName === "pta";
+
+            // Show the add home article link if the site isn't launched and is less than 5 days old
+            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 5, "days" ) );
 
             if( this.showPendingMembers )
             {
