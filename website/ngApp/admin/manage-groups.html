@@ -5,7 +5,7 @@
         Find associations for user by e-mail: <input data-ng-model="$ctrl.findUserAssociationsEmail" data-ng-enter="$ctrl.findAssociationsForUser()" type="text" /><button data-ng-click="$ctrl.findAssociationsForUser()">Find</button>
         <div>
             <p data-ng-repeat="group in $ctrl.foundUserAssociations">
-                <a data-ng-href="https://{{ group.shortName }}.CondoAlly.com/">{{ group.shortName }} ({{ group.appName }})</a> (Group ID: {{group.groupId}})
+                <a data-ng-href="{{ group.viewUrl }}">{{ group.shortName }} ({{ group.appName }})</a> (Group ID: {{group.groupId}})
             </p>
         </div>
     </div>

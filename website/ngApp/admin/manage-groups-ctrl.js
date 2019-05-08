@@ -108,13 +108,18 @@ var Ally;
          * Find the groups to which a user, via e-mail address, belongs
          */
         ManageGroupsController.prototype.findAssociationsForUser = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
-                innerThis.isLoading = false;
-                innerThis.foundUserAssociations = response.data;
+                _this.isLoading = false;
+                _this.foundUserAssociations = response.data;
+                _.forEach(_this.foundUserAssociations, function (g) {
+                    g.viewUrl = "https://{{ group.shortName }}.CondoAlly.com/";
+                    if (g.appName === "3")
+                        g.viewUrl = "https://{{ group.shortName }}.HoaAlly.org/";
+                });
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to find associations for user");
             });
         };

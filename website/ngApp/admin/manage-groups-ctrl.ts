@@ -12,9 +12,12 @@
 
     class FoundGroup
     {
-        GroupId: number;
-        AppName: string;
-        ShortName: string;
+        groupId: number;
+        appName: string;
+        shortName: string;
+
+        // Not from the server
+        viewUrl: string;
     }
 
 
@@ -166,14 +169,21 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.get( "/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.foundUserAssociations = response.data;
+                this.isLoading = false;
+                this.foundUserAssociations = response.data;
+
+                _.forEach( this.foundUserAssociations, g =>
+                {
+                    g.viewUrl = "https://{{ group.shortName }}.CondoAlly.com/";
+                    if( g.appName === "3" )
+                        g.viewUrl = "https://{{ group.shortName }}.HoaAlly.org/";
+                } );
+
             }, () =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
                 alert( "Failed to find associations for user" );
             } );
         }
