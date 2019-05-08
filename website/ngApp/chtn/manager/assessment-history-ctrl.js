@@ -58,6 +58,7 @@ var Ally;
             this.shouldShowCreateSpecialAssessment = false;
             this.unitPayments = {};
             this.showRowType = "unit";
+            this.isForPta = false;
             this.onSavePayment = function () {
                 var innerThis = this;
                 var onSave = function () {
@@ -85,11 +86,14 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         AssessmentHistoryController.prototype.$onInit = function () {
+            this.isForPta = AppConfig.appShortName === "pta";
             var isMembershipGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             if (isMembershipGroup)
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
+            if (this.isForPta)
+                this.NumPeriodsVisible = 8;
             this.authToken = window.localStorage.getItem("ApiAuthToken");
             if (AppConfig.isChtnSite)
                 this.showRowType = "unit";
@@ -343,6 +347,8 @@ var Ally;
                 var headerName = this.shortPeriodNames[currentPeriod - 1];
                 if (currentPeriod === 1 || currentPeriod === this.maxPeriodRange)
                     headerName += " " + year;
+                if (AppConfig.appShortName === "pta")
+                    headerName = year + " - " + (year + 1);
                 this.visiblePeriodNames.push({
                     name: headerName,
                     periodIndex: currentPeriod,

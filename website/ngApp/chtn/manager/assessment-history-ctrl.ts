@@ -88,6 +88,7 @@
         payers: PayerInfo[];
         editPayment: any;
         showRowType: string = "unit";
+        isForPta: boolean = false;
 
 
         /**
@@ -103,11 +104,16 @@
         */
         $onInit()
         {
+            this.isForPta = AppConfig.appShortName === "pta";
+
             let isMembershipGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             if( isMembershipGroup )
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
+
+            if( this.isForPta )
+                this.NumPeriodsVisible = 8;
 
             this.authToken = window.localStorage.getItem( "ApiAuthToken" );
 
@@ -454,6 +460,9 @@
                 var headerName = this.shortPeriodNames[currentPeriod - 1];
                 if( currentPeriod === 1 || currentPeriod === this.maxPeriodRange )
                     headerName += " " + year;
+
+                if( AppConfig.appShortName === "pta" )
+                    headerName = year + " - " + ( year + 1 );
 
                 this.visiblePeriodNames.push( {
                     name: headerName,
