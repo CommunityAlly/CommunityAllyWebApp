@@ -176,9 +176,9 @@
 
                 _.forEach( this.foundUserAssociations, g =>
                 {
-                    g.viewUrl = "https://{{ group.shortName }}.CondoAlly.com/";
+                    g.viewUrl = `https://${g.shortName}.condoally.com/`;
                     if( g.appName === "3" )
-                        g.viewUrl = "https://{{ group.shortName }}.HoaAlly.org/";
+                        g.viewUrl = `https://${g.shortName}.hoaally.org/`;
                 } );
 
             }, () =>
