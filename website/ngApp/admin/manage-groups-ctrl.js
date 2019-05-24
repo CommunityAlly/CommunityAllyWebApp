@@ -115,7 +115,7 @@ var Ally;
                 _this.foundUserAssociations = response.data;
                 _.forEach(_this.foundUserAssociations, function (g) {
                     g.viewUrl = "https://" + g.shortName + ".condoally.com/";
-                    if (g.appName === "3")
+                    if (g.appName === 3)
                         g.viewUrl = "https://" + g.shortName + ".hoaally.org/";
                 });
             }, function () {

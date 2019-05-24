@@ -13,7 +13,7 @@
     class FoundGroup
     {
         groupId: number;
-        appName: string;
+        appName: number;
         shortName: string;
 
         // Not from the server
@@ -177,7 +177,7 @@
                 _.forEach( this.foundUserAssociations, g =>
                 {
                     g.viewUrl = `https://${g.shortName}.condoally.com/`;
-                    if( g.appName === "3" )
+                    if( g.appName === 3 )
                         g.viewUrl = `https://${g.shortName}.hoaally.org/`;
                 } );
 
