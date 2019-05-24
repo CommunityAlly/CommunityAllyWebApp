@@ -225,9 +225,9 @@ var Ally;
                 _this.isLoading = false;
                 _this.foundUserAssociations = response.data;
                 _.forEach(_this.foundUserAssociations, function (g) {
-                    g.viewUrl = "https://{{ group.shortName }}.CondoAlly.com/";
+                    g.viewUrl = "https://" + g.shortName + ".condoally.com/";
                     if (g.appName === "3")
-                        g.viewUrl = "https://{{ group.shortName }}.HoaAlly.org/";
+                        g.viewUrl = "https://" + g.shortName + ".hoaally.org/";
                 });
             }, function () {
                 _this.isLoading = false;
@@ -2787,11 +2787,12 @@ var Ally;
             this.residentGridOptions =
                 {
                     data: [],
+                    enableFiltering: false,
                     columnDefs: [
-                        { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
-                        { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
-                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                        { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
+                        { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
+                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
                         {
                             field: 'unitGridLabel',
                             displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Residence',
@@ -2803,7 +2804,8 @@ var Ally;
                                     return parseInt(a) - parseInt(b);
                                 }
                                 return a.toString().localeCompare(b.toString());
-                            }
+                            },
+                            enableFiltering: true
                         },
                         {
                             field: 'isRenter',
@@ -2811,10 +2813,11 @@ var Ally;
                             width: 80,
                             cellClass: "resident-cell-is-renter",
                             visible: this.showIsRenter,
-                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
+                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>',
+                            enableFiltering: false
                         },
-                        { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
-                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' }
+                        { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>', enableFiltering: false },
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false }
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -2893,7 +2896,7 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
-            this.refresh()
+            this.refreshResidents()
                 .then(function () { return _this.loadSettings(); })
                 .then(function () {
                 if (AppConfig.appShortName === "pta")
@@ -3001,7 +3004,8 @@ var Ally;
         /**
          * Populate the residents
          */
-        ManageResidentsController.prototype.refresh = function () {
+        ManageResidentsController.prototype.refreshResidents = function () {
+            var _this = this;
             this.isLoading = true;
             var innerThis = this;
             return this.$http.get("/api/Residents").success(function (residentArray) {
@@ -3009,6 +3013,8 @@ var Ally;
                 innerThis.residentGridOptions.data = residentArray;
                 innerThis.residentGridOptions.minRowsToShow = residentArray.length;
                 innerThis.residentGridOptions.virtualizationThreshold = residentArray.length;
+                innerThis.residentGridOptions.enableFiltering = residentArray.length > 15;
+                innerThis.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
                 innerThis.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
                 //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
                 // If we have sort info to use
@@ -3120,7 +3126,7 @@ var Ally;
                 if (innerThis.editUser.pendingMemberId)
                     innerThis.loadPendingMembers();
                 innerThis.editUser = null;
-                innerThis.refresh();
+                innerThis.refreshResidents();
             };
             var isAddingNew = false;
             var onError = function (response) {
@@ -3430,7 +3436,7 @@ var Ally;
                 innerThis.editUser = null;
                 // Update the fellow residents page next time we're there
                 innerThis.fellowResidents.clearResidentCache();
-                innerThis.refresh();
+                innerThis.refreshResidents();
             }).error(function () {
                 alert("Failed to remove the resident. Please let support know if this continues to happen.");
                 innerThis.isSavingUser = false;
@@ -3568,7 +3574,7 @@ var Ally;
                 innerThis.bulkImportRows = [new ResidentCsvRow()];
                 innerThis.bulkImportCsv = "";
                 alert("Success");
-                innerThis.refresh();
+                innerThis.refreshResidents();
             }).error(function () {
                 innerThis.isLoading = false;
                 alert("Bulk upload failed");
@@ -7966,7 +7972,9 @@ var Ally;
                     clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
                     chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
                     zipCode: this.siteInfo.publicSiteInfo.zipCode,
-                    cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery
+                    cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery,
+                    city: this.siteInfo.privateSiteInfo.groupAddress.city,
+                    state2Char: this.siteInfo.privateSiteInfo.groupAddress.state
                 };
             }
             else {
@@ -10332,7 +10340,6 @@ var Ally;
                     this.updatePaymentText();
                 }
             }
-            this.refreshData();
         };
         // Refresh the not text for the payment field
         PtaGroupHomeController.prototype.updatePaymentText = function () {
@@ -10395,46 +10402,6 @@ var Ally;
             else
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
-        };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the page from the server
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        PtaGroupHomeController.prototype.refreshData = function () {
-            //window.location.host is subdomain.domain.com
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
-            // A little test to help the automated tests run faster
-            var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
-            isTestSubdomain = false;
-            if (!isTestSubdomain && this.homeRightColumnType === "localnews") {
-                this.isLoading_LocalNews = true;
-                var localNewsUri;
-                var queryParams;
-                if (this.siteInfo.privateSiteInfo.country === "US") {
-                    localNewsUri = "https://localnewsally.org/api/LocalNews";
-                    queryParams = {
-                        clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                        chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
-                        zipCode: this.siteInfo.publicSiteInfo.zipCode,
-                        cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery
-                    };
-                }
-                else {
-                    localNewsUri = "https://localnewsally.org/api/LocalNews/International/MajorCity";
-                    queryParams = {
-                        clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                        countryCode: this.siteInfo.privateSiteInfo.country,
-                        city: this.siteInfo.privateSiteInfo.groupAddress.city
-                    };
-                }
-                var innerThis = this;
-                this.$http.get(localNewsUri, {
-                    cache: true,
-                    params: queryParams
-                }).then(function (httpResponse) {
-                    innerThis.localNews = httpResponse.data;
-                    innerThis.isLoading_LocalNews = false;
-                });
-            }
         };
         PtaGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
         return PtaGroupHomeController;
@@ -11361,7 +11328,7 @@ var Ally;
             { id: 1, name: "President" },
             { id: 2, name: "Treasurer" },
             { id: 4, name: "Secretary" },
-            { id: 8, name: "Director" },
+            { id: 8, name: "Director/Member at Large" },
             { id: 16, name: "Vice President" },
             { id: 32, name: "Property Manager" },
             { id: 64, name: "Secretary + Treasurer" }

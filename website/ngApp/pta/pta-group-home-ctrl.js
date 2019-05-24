@@ -51,7 +51,6 @@ var Ally;
                     this.updatePaymentText();
                 }
             }
-            this.refreshData();
         };
         // Refresh the not text for the payment field
         PtaGroupHomeController.prototype.updatePaymentText = function () {
@@ -114,46 +113,6 @@ var Ally;
             else
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
-        };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the page from the server
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        PtaGroupHomeController.prototype.refreshData = function () {
-            //window.location.host is subdomain.domain.com
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
-            // A little test to help the automated tests run faster
-            var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
-            isTestSubdomain = false;
-            if (!isTestSubdomain && this.homeRightColumnType === "localnews") {
-                this.isLoading_LocalNews = true;
-                var localNewsUri;
-                var queryParams;
-                if (this.siteInfo.privateSiteInfo.country === "US") {
-                    localNewsUri = "https://localnewsally.org/api/LocalNews";
-                    queryParams = {
-                        clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                        chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
-                        zipCode: this.siteInfo.publicSiteInfo.zipCode,
-                        cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery
-                    };
-                }
-                else {
-                    localNewsUri = "https://localnewsally.org/api/LocalNews/International/MajorCity";
-                    queryParams = {
-                        clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                        countryCode: this.siteInfo.privateSiteInfo.country,
-                        city: this.siteInfo.privateSiteInfo.groupAddress.city
-                    };
-                }
-                var innerThis = this;
-                this.$http.get(localNewsUri, {
-                    cache: true,
-                    params: queryParams
-                }).then(function (httpResponse) {
-                    innerThis.localNews = httpResponse.data;
-                    innerThis.isLoading_LocalNews = false;
-                });
-            }
         };
         PtaGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
         return PtaGroupHomeController;
