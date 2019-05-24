@@ -164,11 +164,12 @@ var Ally;
             this.residentGridOptions =
                 {
                     data: [],
+                    enableFiltering: false,
                     columnDefs: [
-                        { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first" },
-                        { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last" },
-                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>' },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                        { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
+                        { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
+                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
                         {
                             field: 'unitGridLabel',
                             displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Residence',
@@ -180,7 +181,8 @@ var Ally;
                                     return parseInt(a) - parseInt(b);
                                 }
                                 return a.toString().localeCompare(b.toString());
-                            }
+                            },
+                            enableFiltering: true
                         },
                         {
                             field: 'isRenter',
@@ -188,10 +190,11 @@ var Ally;
                             width: 80,
                             cellClass: "resident-cell-is-renter",
                             visible: this.showIsRenter,
-                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>'
+                            cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isRenter"></div>',
+                            enableFiltering: false
                         },
-                        { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>' },
-                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>' }
+                        { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>', enableFiltering: false },
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false }
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -270,7 +273,7 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
-            this.refresh()
+            this.refreshResidents()
                 .then(function () { return _this.loadSettings(); })
                 .then(function () {
                 if (AppConfig.appShortName === "pta")
@@ -378,7 +381,8 @@ var Ally;
         /**
          * Populate the residents
          */
-        ManageResidentsController.prototype.refresh = function () {
+        ManageResidentsController.prototype.refreshResidents = function () {
+            var _this = this;
             this.isLoading = true;
             var innerThis = this;
             return this.$http.get("/api/Residents").success(function (residentArray) {
@@ -386,6 +390,8 @@ var Ally;
                 innerThis.residentGridOptions.data = residentArray;
                 innerThis.residentGridOptions.minRowsToShow = residentArray.length;
                 innerThis.residentGridOptions.virtualizationThreshold = residentArray.length;
+                innerThis.residentGridOptions.enableFiltering = residentArray.length > 15;
+                innerThis.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
                 innerThis.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
                 //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
                 // If we have sort info to use
@@ -497,7 +503,7 @@ var Ally;
                 if (innerThis.editUser.pendingMemberId)
                     innerThis.loadPendingMembers();
                 innerThis.editUser = null;
-                innerThis.refresh();
+                innerThis.refreshResidents();
             };
             var isAddingNew = false;
             var onError = function (response) {
@@ -807,7 +813,7 @@ var Ally;
                 innerThis.editUser = null;
                 // Update the fellow residents page next time we're there
                 innerThis.fellowResidents.clearResidentCache();
-                innerThis.refresh();
+                innerThis.refreshResidents();
             }).error(function () {
                 alert("Failed to remove the resident. Please let support know if this continues to happen.");
                 innerThis.isSavingUser = false;
@@ -945,7 +951,7 @@ var Ally;
                 innerThis.bulkImportRows = [new ResidentCsvRow()];
                 innerThis.bulkImportCsv = "";
                 alert("Success");
-                innerThis.refresh();
+                innerThis.refreshResidents();
             }).error(function () {
                 innerThis.isLoading = false;
                 alert("Bulk upload failed");
