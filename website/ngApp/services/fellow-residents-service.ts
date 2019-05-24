@@ -75,7 +75,7 @@
             { id: 1, name: "President" },
             { id: 2, name: "Treasurer" },
             { id: 4, name: "Secretary" },
-            { id: 8, name: "Director" },
+            { id: 8, name: "Director/Member at Large" },
             { id: 16, name: "Vice President" },
             { id: 32, name: "Property Manager" },
             { id: 64, name: "Secretary + Treasurer" }
