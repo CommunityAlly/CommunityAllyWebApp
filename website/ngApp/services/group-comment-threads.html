@@ -41,7 +41,8 @@
 
         <div class="note-text text-link mt-3" data-ng-if="$ctrl.archivedThreads === null" data-ng-click="$ctrl.refreshCommentThreads( true )">View Archived Threads</div>
         
-        <div class="mt-3" data-ng-if="$ctrl.archivedThreads !== null">
+        <div class="mt-3" data-ng-if="$ctrl.archivedThreads !== null && $ctrl.archivedThreads.length > 0">
+            <h4 class="mt-4">Archived Threads</h4>
             <div data-ng-repeat="thread in $ctrl.archivedThreads" class="mt-2 mb-2">
                 <h5 class="text-link" data-ng-click="$ctrl.displayDiscussModal( thread )">{{ thread.title }}</h5>
 

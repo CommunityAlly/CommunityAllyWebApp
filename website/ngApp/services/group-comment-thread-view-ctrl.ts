@@ -54,6 +54,9 @@
         }
 
 
+        /**
+         * Handle the key down message on the message text area
+         */
         onTextAreaKeyDown( e: any, messageType: string )
         {
             let keyCode = ( e.keyCode ? e.keyCode : e.which );

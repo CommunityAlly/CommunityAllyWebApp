@@ -11373,6 +11373,9 @@ var Ally;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.retrieveComments();
         };
+        /**
+         * Handle the key down message on the message text area
+         */
         GroupCommentThreadViewController.prototype.onTextAreaKeyDown = function (e, messageType) {
             var keyCode = (e.keyCode ? e.keyCode : e.which);
             var KeyCode_Enter = 13;
