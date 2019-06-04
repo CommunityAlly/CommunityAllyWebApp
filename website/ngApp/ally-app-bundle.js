@@ -7265,9 +7265,12 @@ var Ally;
                 var fileUri = curFile.url + "?vid=" + response.data.vid;
                 if (isForDownload) {
                     var link = document.createElement('a');
+                    link.setAttribute("type", "hidden"); // make it hidden if needed
                     link.href = fileUri;
                     link.download = curFile.fileName;
+                    document.body.appendChild(link);
                     link.click();
+                    link.remove();
                 }
                 else {
                     //let newWindow = window.open( fileUri, '_blank' );
