@@ -83,6 +83,7 @@ namespace Ally
         getDocsUri = "/api/ManageDocuments";
         apiAuthToken: string;
         showPopUpWarning: boolean = false;
+        shouldShowSubdirectories: boolean = true;
 
 
         /**
@@ -428,6 +429,12 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onDirectoryClicked( dir: DocumentDirectory )
         {
+            // If the user clicked on the currently-selected directory, then toggle the subdirectories
+            if( this.selectedDirectory === dir )
+                this.shouldShowSubdirectories = !this.shouldShowSubdirectories;
+            else
+                this.shouldShowSubdirectories = true;
+
             this.selectedDirectory = dir;
             this.selectedFile = null;
             this.fileSearch.all = null;
