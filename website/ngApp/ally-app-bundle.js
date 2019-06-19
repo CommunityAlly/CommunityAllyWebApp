@@ -5276,6 +5276,7 @@ var Ally;
             this.$scope = $scope;
             this.showPassword = false;
             this.shouldShowPassword = false;
+            this.selectedProfileView = "Primary";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -7177,6 +7178,7 @@ var Ally;
             this.title = "Documents";
             this.getDocsUri = "/api/ManageDocuments";
             this.showPopUpWarning = false;
+            this.shouldShowSubdirectories = true;
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
             if (!this.fileSortType)
                 this.fileSortType = "title";
@@ -7418,6 +7420,11 @@ var Ally;
         // not refresh
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.onDirectoryClicked = function (dir) {
+            // If the user clicked on the currently-selected directory, then toggle the subdirectories
+            if (this.selectedDirectory === dir)
+                this.shouldShowSubdirectories = !this.shouldShowSubdirectories;
+            else
+                this.shouldShowSubdirectories = true;
             this.selectedDirectory = dir;
             this.selectedFile = null;
             this.fileSearch.all = null;
