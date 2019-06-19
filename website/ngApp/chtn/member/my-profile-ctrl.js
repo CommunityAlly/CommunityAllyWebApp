@@ -55,6 +55,7 @@ var Ally;
             this.$scope = $scope;
             this.showPassword = false;
             this.shouldShowPassword = false;
+            this.selectedProfileView = "Primary";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed

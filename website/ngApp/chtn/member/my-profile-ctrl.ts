@@ -26,6 +26,8 @@ namespace Ally
         /** Not sent down, used when PUTing to update */
         password: string;
         includeInDiscussionEmail: boolean;
+        alternatePhoneNumber: string;
+        mailingAddressObject: FullAddress;
     }
 
     export class PtaMember extends SimpleUserEntry
@@ -54,6 +56,7 @@ namespace Ally
         gravatarUrl: string;
         showPassword: boolean = false;
         shouldShowPassword: boolean = false;
+        selectedProfileView: string = "Primary";
 
 
         /**

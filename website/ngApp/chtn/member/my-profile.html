@@ -19,8 +19,25 @@
     <div id="my-profile" style="position:relative;">
         <div class="loading-overlay" style="background-image:none;" data-ng-show="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms"></div>
 
-        <h2>Basic Information</h2>
-        <form>
+        <h2>Profile Information</h2>
+
+        <div>
+            <ul class="nav nav-pills justify-content-center">
+                <li class="nav-item" style="cursor: pointer;">
+                    <span class="nav-link" data-ng-class="{'active':$ctrl.selectedProfileView==='Primary'}" data-ng-click="$ctrl.selectedProfileView='Primary'">
+                        Primary
+                    </span>
+                </li>
+                <li class="nav-item" style="cursor: pointer;">
+                    <span class="nav-link" data-ng-class="{'active':$ctrl.selectedProfileView==='Secondary'}" data-ng-click="$ctrl.selectedProfileView='Secondary'">
+                        Secondary
+                    </span>
+                </li>
+            </ul>
+        </div>
+        <hr />
+
+        <form data-ng-if="$ctrl.selectedProfileView==='Primary'">
             <div class="form-group row">
                 <label for="firstNameTextBox" class="col-4">
                     First Name:
@@ -87,16 +104,41 @@
                     <span class="note-text">Indicates if you want to receive e-mails sent to the discussion group e-mail address.</span>
                 </div>
             </div>
+        </form>
 
-            <div style="text-align: center;">
-                <button id="save-profile-button" data-ng-disabled="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms" class="btn btn-primary" style="float:none;"
-                        data-ng-click="$ctrl.onSaveInfo();" type="button" value="Save" data-ng-style="$ctrl.saveButtonStyle">
-                    Save
-                </button>
-                <br />
-                <span id="profile-error-label" style="font-weight: bold; font-size: 1.25em" data-ng-style="{color:'#0C0'}">{{ $ctrl.resultMessage }}</span>
+        <form data-ng-if="$ctrl.selectedProfileView==='Secondary'">
+            <div class="col-md-6 col-sm-12">
+                <div class="form-group row">
+                    <label for="alternate-phone-number-text-box" class="col-sm-4 col-xs-12 font-weight-bold">Alternate Phone:</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.alternatePhoneNumber" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-12">
+                <div class="form-group row">
+
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label class="font-weight-bold">Alternate Mailing Address</label>
+                <span class="note-text">&nbsp;(Only set this if it differs from your home address)</span>
+                <street-address-form data-street-address="$ctrl.profileInfo.mailingAddressObject"></street-address-form>
             </div>
         </form>
+
+        <hr />
+
+        <div style="text-align: center;">
+            <button id="save-profile-button" data-ng-disabled="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms" class="btn btn-primary" style="float:none;"
+                    data-ng-click="$ctrl.onSaveInfo();" type="button" value="Save" data-ng-style="$ctrl.saveButtonStyle">
+                Save
+            </button>
+            <br />
+            <span id="profile-error-label" style="font-weight: bold; font-size: 1.25em" data-ng-style="{color:'#0C0'}">{{ $ctrl.resultMessage }}</span>
+        </div>
     </div>
 
     <script type="text/javascript">
