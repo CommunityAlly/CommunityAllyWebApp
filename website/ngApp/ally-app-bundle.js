@@ -3742,7 +3742,6 @@ var Ally;
                 _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
                 _this.siteInfo.privateSiteInfo.ptaUnitId = _this.settings.ptaUnitId;
-                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 var didChangeFullName = _this.settings.fullName !== _this.originalSettings.fullName;
                 // Reload the page to show the page title has changed
                 if (didChangeFullName)
@@ -3962,11 +3961,11 @@ var Ally;
                 this.homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
                 this.showDiscussionThreads = true;
-                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") !== -1;
+                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") > -1;
             }
             else {
-                this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
-                this.showLocalNews = this.homeRightColumnType === "localnews";
+                this.showDiscussionThreads = this.homeRightColumnType.indexOf("chatwall") > -1;
+                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") > -1;
             }
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;

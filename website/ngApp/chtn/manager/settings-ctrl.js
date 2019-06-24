@@ -101,7 +101,6 @@ var Ally;
                 _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 _this.siteInfo.privateSiteInfo.welcomeMessage = _this.settings.welcomeMessage;
                 _this.siteInfo.privateSiteInfo.ptaUnitId = _this.settings.ptaUnitId;
-                _this.siteInfo.privateSiteInfo.homeRightColumnType = _this.settings.homeRightColumnType;
                 var didChangeFullName = _this.settings.fullName !== _this.originalSettings.fullName;
                 // Reload the page to show the page title has changed
                 if (didChangeFullName)

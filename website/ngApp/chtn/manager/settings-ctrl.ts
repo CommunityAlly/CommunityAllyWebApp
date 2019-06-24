@@ -132,8 +132,7 @@ namespace Ally
                 this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
                 this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
                 this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
-                this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
-
+                
                 var didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
 
                 // Reload the page to show the page title has changed

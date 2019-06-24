@@ -37,23 +37,28 @@
             Home Page Right Column
         </h2>
 
-        <div>
-            <label>
+        <div class="mb-2">
+            <label class="mb-0">
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="localnews">
                 Local News
             </label>
+            <div class="note-text">Show various local news stories.</div>
         </div>
 
-        <div class="note-text">Show various local news stories.</div>
-
-        <div>
-            <label>
+        <div class="mb-2">
+            <label class="mb-0">
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="chatwall">
                 Discussion
             </label>
+            <div class="note-text">An open chat similar to Facebook's "wall".</div>
         </div>
 
-        <div class="note-text">An open chat similar to Facebook's "wall".</div>
+        <div>
+            <label class="mb-0">
+                <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="localnews,chatwall">
+                Show Both Local News and Discussion
+            </label>
+        </div>
     </div>
 
 

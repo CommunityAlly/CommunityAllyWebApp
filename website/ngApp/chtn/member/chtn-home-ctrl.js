@@ -43,11 +43,11 @@ var Ally;
                 this.homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
                 this.showDiscussionThreads = true;
-                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") !== -1;
+                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") > -1;
             }
             else {
-                this.showDiscussionThreads = this.homeRightColumnType === "chatwall";
-                this.showLocalNews = this.homeRightColumnType === "localnews";
+                this.showDiscussionThreads = this.homeRightColumnType.indexOf("chatwall") > -1;
+                this.showLocalNews = this.homeRightColumnType.indexOf("localnews") > -1;
             }
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
