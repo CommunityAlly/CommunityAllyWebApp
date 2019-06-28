@@ -34,6 +34,7 @@
         showBoardOnly: boolean = false;
         committeeId: number;
         archivedThreads: CommentThread[] = null;
+        canCreateThreads: boolean = false;
 
 
         /**
@@ -49,6 +50,11 @@
         */
         $onInit()
         {
+            if( !this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone" )
+                this.canCreateThreads = true;
+            else if( this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board" )
+                this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
 
             this.editComment = {

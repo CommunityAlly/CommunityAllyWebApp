@@ -84,6 +84,8 @@ namespace Ally
         creationDate: Date;
         welcomeMessage: string;
         canHideContactInfo: boolean;
+        maintenanceTodoListId: number;
+        whoCanCreateDiscussionThreads: string;
     }
 
 
@@ -104,7 +106,6 @@ namespace Ally
         siteLaunchedDateUtc: Date;
         rentersCanViewDocs: boolean;
         //payPalClientId: string;
-        maintenanceTodoListId: number;
 
         // Only on PTAs
         ptaUnitId: number;

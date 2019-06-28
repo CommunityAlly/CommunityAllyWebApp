@@ -801,6 +801,11 @@ namespace Ally
             {
                 innerThis.isLoadingSettings = false;
                 this.residentSettings = data;
+
+                // Update the SiteInfoService so the privateSiteInfo properties reflects changes
+                this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
+                this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
+
             } ).error(( exc: any ) =>
             {
                 innerThis.isLoadingSettings = false;

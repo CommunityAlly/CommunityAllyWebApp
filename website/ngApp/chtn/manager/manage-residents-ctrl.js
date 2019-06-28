@@ -553,6 +553,9 @@ var Ally;
             this.$http.get("/api/Settings").success(function (data) {
                 innerThis.isLoadingSettings = false;
                 _this.residentSettings = data;
+                // Update the SiteInfoService so the privateSiteInfo properties reflects changes
+                _this.siteInfo.privateSiteInfo.rentersCanViewDocs = _this.residentSettings.rentersCanViewDocs;
+                _this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = _this.residentSettings.whoCanCreateDiscussionThreads;
             }).error(function (exc) {
                 innerThis.isLoadingSettings = false;
                 console.log("Failed to retrieve settings");

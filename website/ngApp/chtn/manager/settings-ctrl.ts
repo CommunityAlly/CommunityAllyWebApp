@@ -21,6 +21,7 @@ namespace Ally
         rentersCanViewDocs: boolean;
         canHideContactInfo: boolean;
         isDiscussionEmailGroupEnabled: boolean;
+        whoCanCreateDiscussionThreads: string;
         ptaUnitId: number;
     }
 

@@ -297,25 +297,35 @@
             <div data-ui-grid="$ctrl.emailHistoryGridOptions" ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
             <br />
         </div>
-        <br />
-        <br />
-        <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.rentersCanViewDocs" data-ng-change="$ctrl.saveResidentSettings()" />Renters can view documents</label>
-        <br />
-        <br />
-        <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.canHideContactInfo" data-ng-change="$ctrl.saveResidentSettings()" />Residents can hide their contact info on the <a href="#!/BuildingResidents">Residents</a> page.</label><br />
-        <span class="note-text">
-            Residents' phone and e-mail address can be shown on the Residents page. If you check this box, residents have the option in <a href="#!/MyProfile">their profile page</a> to hide
-            their contact info from other non-admin users. We believe in sharing contact info to promote collaboration and transparency, but we understand
-            the world is not perfect and sometimes privacy is more important.
-        </span>
-        <br />
-        <br />
-        <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.isDiscussionEmailGroupEnabled" data-ng-change="$ctrl.saveResidentSettings()" />Enable the discussion group e-mail</label><br />
-        <span class="note-text">
-            The discussion group e-mails works like the other group e-mails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page, except users can unsubscribe from specific
-            discussions. We've since decided that the home page discussion threads are a better option for discussions and the discussion group e-mail should not be used, but leave it here for
-            groups that prefer e-mail.
-        </span>
+        
+        <div class="mt-4">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.rentersCanViewDocs" data-ng-change="$ctrl.saveResidentSettings()" />Renters can view documents</label>
+        </div>
+
+        <div class="mt-4">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.canHideContactInfo" data-ng-change="$ctrl.saveResidentSettings()" />Residents can hide their contact info on the <a href="#!/BuildingResidents">Residents</a> page.</label><br />
+            <span class="note-text">
+                Residents' phone and e-mail address can be shown on the Residents page. If you check this box, residents have the option in <a href="#!/MyProfile">their profile page</a> to hide
+                their contact info from other non-admin users. We believe in sharing contact info to promote collaboration and transparency, but we understand
+                the world is not perfect and sometimes privacy is more important.
+            </span>
+        </div>
+
+        <div class="mt-4">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.isDiscussionEmailGroupEnabled" data-ng-change="$ctrl.saveResidentSettings()" />Enable the discussion group e-mail</label><br />
+            <span class="note-text">
+                The discussion group e-mails works like the other group e-mails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page, except users can unsubscribe from specific
+                discussions. We've since decided that the home page discussion threads are a better option for discussions and the discussion group e-mail should not be used, but leave it here for
+                groups that prefer e-mail.
+            </span>
+        </div>
+
+        <div class="mt-4">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.whoCanCreateDiscussionThreads" data-ng-change="$ctrl.saveResidentSettings()" data-ng-true-value="'everyone'" data-ng-false-value="'board'" />Non-Admin can create discussion threads</label><br />
+            <span class="note-text">
+                When enabled, anyone can start new discussion threads on the home page. If disabled, only board members and/or site admin can create discussion threads
+            </span>
+        </div>
     </div>
 
     <div data-ng-show="$ctrl.isAdmin">
