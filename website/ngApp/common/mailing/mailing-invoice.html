@@ -141,7 +141,7 @@
                     </td>
                     <td></td>
                 </tr>-->
-                            <tr data-ng-if="recipient.amountDue > 0">
+                            <tr>
                                 <td class="AlignRightBold">
                                     <label><input type="checkbox" data-ng-model="recipient.shouldSendEmail" />Send E-mail</label>
                                 </td>
@@ -151,7 +151,7 @@
                                 </td>
                                 <td></td>
                             </tr>
-                            <tr data-ng-if="recipient.amountDue > 0">
+                            <tr>
                                 <td style="width: 140px;" class="AlignRightBold">
                                     <label><input type="checkbox" data-ng-change="$ctrl.onShouldSendPaperMailChange( recipient )" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
                                 </td>
@@ -172,17 +172,10 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr data-ng-if="recipient.amountDue > 0">
+                            <tr>
                                 <td colspan="2" style="text-align: center;">
                                     <span class="text-link" data-ng-click="$ctrl.previewInvoice( recipient )">Preview Invoice PDF</span>
                                     <div data-ng-if="recipient.wasPopUpBlocked" class="text-error">Preview may have been blocked, please allow pop-ups in browser settings or up in the address bar</div>
-                                </td>
-                                <td></td>
-                            </tr>
-                            <tr data-ng-if="!recipient.amountDue">
-                                <td></td>
-                                <td class="note-text">
-                                    You indicated this member owes nothing so no invoice will be sent.
                                 </td>
                                 <td></td>
                             </tr>
