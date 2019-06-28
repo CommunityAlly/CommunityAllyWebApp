@@ -3176,6 +3176,9 @@ var Ally;
             this.$http.get("/api/Settings").success(function (data) {
                 innerThis.isLoadingSettings = false;
                 _this.residentSettings = data;
+                // Update the SiteInfoService so the privateSiteInfo properties reflects changes
+                _this.siteInfo.privateSiteInfo.rentersCanViewDocs = _this.residentSettings.rentersCanViewDocs;
+                _this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = _this.residentSettings.whoCanCreateDiscussionThreads;
             }).error(function (exc) {
                 innerThis.isLoadingSettings = false;
                 console.log("Failed to retrieve settings");
@@ -8369,7 +8372,8 @@ var Ally;
                 // Or if we moved to the third step, contact method
                 if (_this.activeStepIndex === 2) {
                     // Filter out any fields with an empty due
-                    _this.selectedEntries = _.filter(_this.selectedEntries, function (e) { return _this.getTotalDue(e) != 0; });
+                    // TWC - 6/25/19 - Had a request to still be able to send out $0 invoices, makes sense
+                    //this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
                     // For long lists of homes, make sure the user is brought to the top
                     window.setTimeout(function () { return document.getElementById("delivery-method-header").scrollIntoView(true); }, 50);
                 }
@@ -11595,12 +11599,17 @@ var Ally;
             this.showCreateNewModal = false;
             this.showBoardOnly = false;
             this.archivedThreads = null;
+            this.canCreateThreads = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadsController.prototype.$onInit = function () {
             var _this = this;
+            if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
+                this.canCreateThreads = true;
+            else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
+                this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.editComment = {
                 commentText: "",
