@@ -3253,16 +3253,7 @@ var Ally;
                 }
             ];
             var csvDataString = Ally.createCsvString(this.residentGridOptions.data, csvColumns);
-            csvDataString = "data:text/csv;charset=utf-8," + csvDataString;
-            var encodedUri = encodeURI(csvDataString);
-            // Works, but can't set the file name
-            //window.open( encodedUri );
-            var csvLink = document.createElement("a");
-            csvLink.setAttribute("href", encodedUri);
-            csvLink.setAttribute("download", "Residents.csv");
-            document.body.appendChild(csvLink); // Required for FF
-            csvLink.click(); // This will download the data file named "my_data.csv"
-            setTimeout(function () { document.body.removeChild(csvLink); }, 500);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Residents.csv");
         };
         /**
          * Export the member list for a PTA in Kansas as a CSV ready to be uploaded to the state
@@ -11926,6 +11917,38 @@ var Ally;
                 }
             });
             $(element).qtip("show");
+        };
+        /** Download a CSV string as a file */
+        HtmlUtil2.downloadCsv = function (csvText, downloadFileName) {
+            HtmlUtil2.downloadFile(csvText, downloadFileName, "text/csv");
+        };
+        /** Download a XML string as a file */
+        HtmlUtil2.downloadXml = function (xmlText, downloadFileName) {
+            HtmlUtil2.downloadFile(xmlText, downloadFileName, "text/xml");
+        };
+        /** Download a string as a file */
+        HtmlUtil2.downloadFile = function (fileContents, downloadFileName, contentType) {
+            if (typeof (Blob) !== "undefined") {
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style.display = "none";
+                var blob = new Blob([fileContents], { type: contentType });
+                var url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = downloadFileName;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+            else {
+                var wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
+                var encodedFileDataUri = encodeURI(wrappedFileDataString);
+                var downloadLink_1 = document.createElement("a");
+                downloadLink_1.setAttribute("href", encodedFileDataUri);
+                downloadLink_1.setAttribute("download", downloadFileName);
+                document.body.appendChild(downloadLink_1);
+                downloadLink_1.click(); // This will download the file
+                setTimeout(function () { document.body.removeChild(downloadLink_1); }, 500);
+            }
         };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"

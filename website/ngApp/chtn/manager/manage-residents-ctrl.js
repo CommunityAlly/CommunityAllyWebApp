@@ -630,16 +630,7 @@ var Ally;
                 }
             ];
             var csvDataString = Ally.createCsvString(this.residentGridOptions.data, csvColumns);
-            csvDataString = "data:text/csv;charset=utf-8," + csvDataString;
-            var encodedUri = encodeURI(csvDataString);
-            // Works, but can't set the file name
-            //window.open( encodedUri );
-            var csvLink = document.createElement("a");
-            csvLink.setAttribute("href", encodedUri);
-            csvLink.setAttribute("download", "Residents.csv");
-            document.body.appendChild(csvLink); // Required for FF
-            csvLink.click(); // This will download the data file named "my_data.csv"
-            setTimeout(function () { document.body.removeChild(csvLink); }, 500);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Residents.csv");
         };
         /**
          * Export the member list for a PTA in Kansas as a CSV ready to be uploaded to the state

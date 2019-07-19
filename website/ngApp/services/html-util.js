@@ -75,6 +75,38 @@ var Ally;
             });
             $(element).qtip("show");
         };
+        /** Download a CSV string as a file */
+        HtmlUtil2.downloadCsv = function (csvText, downloadFileName) {
+            HtmlUtil2.downloadFile(csvText, downloadFileName, "text/csv");
+        };
+        /** Download a XML string as a file */
+        HtmlUtil2.downloadXml = function (xmlText, downloadFileName) {
+            HtmlUtil2.downloadFile(xmlText, downloadFileName, "text/xml");
+        };
+        /** Download a string as a file */
+        HtmlUtil2.downloadFile = function (fileContents, downloadFileName, contentType) {
+            if (typeof (Blob) !== "undefined") {
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style.display = "none";
+                var blob = new Blob([fileContents], { type: contentType });
+                var url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = downloadFileName;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+            else {
+                var wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
+                var encodedFileDataUri = encodeURI(wrappedFileDataString);
+                var downloadLink_1 = document.createElement("a");
+                downloadLink_1.setAttribute("href", encodedFileDataUri);
+                downloadLink_1.setAttribute("download", downloadFileName);
+                document.body.appendChild(downloadLink_1);
+                downloadLink_1.click(); // This will download the file
+                setTimeout(function () { document.body.removeChild(downloadLink_1); }, 500);
+            }
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;

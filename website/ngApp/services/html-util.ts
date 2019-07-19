@@ -139,6 +139,56 @@ namespace Ally
 
             $( element ).qtip( "show" );
         }
+
+
+        /** Download a CSV string as a file */
+        static downloadCsv( csvText: string, downloadFileName: string )
+        {
+            HtmlUtil2.downloadFile( csvText, downloadFileName, "text/csv" );
+        }
+
+
+        /** Download a XML string as a file */
+        static downloadXml( xmlText: string, downloadFileName: string )
+        {
+            HtmlUtil2.downloadFile( xmlText, downloadFileName, "text/xml" );
+        }
+
+
+        /** Download a string as a file */
+        static downloadFile( fileContents: string, downloadFileName: string, contentType: string )
+        {
+            if( typeof ( Blob ) !== "undefined" )
+            {
+                let a = document.createElement( "a" );
+                document.body.appendChild( a );
+                a.style.display = "none";
+
+                let blob = new Blob( [fileContents], { type: contentType } );
+                let url = window.URL.createObjectURL( blob );
+
+                a.href = url;
+                a.download = downloadFileName;
+                a.click();
+                window.URL.revokeObjectURL( url );
+            }
+            else
+            {
+
+                let wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
+
+                let encodedFileDataUri = encodeURI( wrappedFileDataString );
+
+                let downloadLink = document.createElement( "a" );
+                downloadLink.setAttribute( "href", encodedFileDataUri );
+                downloadLink.setAttribute( "download", downloadFileName );
+                document.body.appendChild( downloadLink );
+
+                downloadLink.click(); // This will download the file
+
+                setTimeout( function () { document.body.removeChild( downloadLink ); }, 500 );
+            }
+        }
     }
 
 
