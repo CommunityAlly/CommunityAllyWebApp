@@ -129,6 +129,14 @@ namespace Ally
                             //var scope = angular.element( scopeElement ).scope();
                             //innerThis.$scope.$apply( function() { innerThis.isLoading = false; });
 
+                            const MaxFileSize = 1024 * 1024 * 50;
+                            if( data.files[0].size > MaxFileSize )
+                            {
+                                let fileMB = Math.round( data.files[0].size / ( 1024 * 1024 ) ) + 1;
+                                alert( `The selected file is too large (${fileMB}MB). The maximum file size allowed is 50MB.` );
+                                return;
+                            }
+
                             let dirPath = innerThis.getSelectedDirectoryPath();
 
                             $( "#FileUploadProgressContainer" ).show();
