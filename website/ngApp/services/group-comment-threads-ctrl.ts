@@ -9,6 +9,7 @@
         archiveDateUtc: Date;
         authorUserId: string;
         pinnedDateUtc: Date;
+        isReadOnly: boolean;
         authorFullName: string;
         lastCommentDateUtc: Date;
         lastCommentAuthorName: string;
@@ -30,6 +31,7 @@
         newThreadTitle: string;
         newThreadBody: string;
         newThreadIsBoardOnly: boolean;
+        newThreadIsReadOnly: boolean;
         shouldSendNoticeForNewThread: boolean;
         newThreadErrorMessage: string;
         showBoardOnly: boolean = false;
@@ -75,6 +77,7 @@
             this.newThreadTitle = "";
             this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
+            this.newThreadIsReadOnly = false;
             this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
 
@@ -128,6 +131,7 @@
                 title: this.newThreadTitle,
                 body: this.newThreadBody,
                 isBoardOnly: this.newThreadIsBoardOnly,
+                isReadOnly: this.newThreadIsReadOnly,
                 shouldSendNotice: this.shouldSendNoticeForNewThread,
                 committeeId: this.committeeId
             };

@@ -12,7 +12,7 @@
             <span data-ng-if="$ctrl.thread.archiveDateUtc" class="note-text text-link" data-ng-click="$ctrl.archiveThread(false)">Unarchive Thread</span>
         </div>
 
-        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc">
+        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc && !$ctrl.thread.isReadOnly">
             Get notified of new comments:
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" data-ng-value="null" ng-checked="$ctrl.digestFrequency === null" name="digest-frequency" />Never</label>
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="instant" name="digest-frequency" />Immediately</label>
@@ -20,7 +20,7 @@
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="weekly" name="digest-frequency" />Weekly on Sunday</label>
         </div>
 
-        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc">
+        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc && !$ctrl.thread.isReadOnly">
             Add New Comment:<br />
             <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'new')" data-ng-model="$ctrl.newCommentText" maxlength="1000" placeholder="Enter your comment here" class="form-control"></textarea>
 
@@ -96,7 +96,7 @@
                 </div>
             </div>
 
-            <p data-ng-show="$ctrl.replyToCommentId !== comment.commentId && !$ctrl.thread.archiveDateUtc" class="mt-3">
+            <p data-ng-show="$ctrl.replyToCommentId !== comment.commentId && !$ctrl.thread.archiveDateUtc && !$ctrl.thread.isReadOnly" class="mt-3">
                 <span class="text-button" data-ng-click="$ctrl.startReplyToComment( comment )">Reply to this comment {{ comment.replies.length > 0 ? "thread" : "" }}</span>
             </p>
 
@@ -106,6 +106,10 @@
                     <button class="btn btn-primary" data-ng-click="$ctrl.submitReplyComment()">Add Comment</button>
                     <button class="btn btn-primary" data-ng-click="$ctrl.replyToCommentId = -1;">Cancel</button>
                 </div>
+            </div>
+
+            <div class="alert alert-info" data-ng-if="$ctrl.thread.isReadOnly">
+                This is a read-only discussion thread to serve as a notice and does not allow comments.
             </div>
 
             <hr data-ng-if="$index < $ctrl.commentsState.comments.length - 1" />

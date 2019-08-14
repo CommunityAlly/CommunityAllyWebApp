@@ -104,6 +104,13 @@
                     <span class="note-text">Indicates this discussion thread will only be visible to board members and site admin.</span>
                 </div>
 
+                <div class="form-group" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
+                    <label for="is-read-only-thread-check-box">Is Read-Only:</label>
+                    <input id="is-read-only-thread-check-box" type="checkbox" data-ng-model="$ctrl.newThreadIsReadOnly" />
+                    <br />
+                    <span class="note-text">Enable this to create threads that act more like notices and do not allow discussion.</span>
+                </div>
+
                 <div class="form-group">
                     <label for="send-notice-check-box">Send Out E-mail Notice:</label>
                     <input id="send-notice-check-box" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
