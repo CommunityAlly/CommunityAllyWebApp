@@ -8,6 +8,7 @@
         createDateUtc: Date;
         archiveDateUtc: Date;
         authorUserId: string;
+        pinnedDateUtc: Date;
         authorFullName: string;
         lastCommentDateUtc: Date;
         lastCommentAuthorName: string;
@@ -95,6 +96,29 @@
         }
 
 
+        /**
+         * Occurs when the user clicks the pin to toggle a thread's pinned status
+         * @param thread
+         */
+        onClickPin( thread: CommentThread )
+        {
+            this.isLoading = true;
+
+            this.$http.put( "/api/CommentThread/TogglePinned/" + thread.commentThreadId, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.refreshCommentThreads();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to toggle: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
         createNewThread()
         {
             this.isLoading = true;
@@ -141,7 +165,8 @@
             {
                 this.isLoading = false;
 
-                response.data = _.sortBy( response.data, ct => ct.lastCommentDateUtc ).reverse();
+                // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
+                response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( "years", 100 ).toDate() ).reverse();
 
                 if( retrieveArchived )
                     this.archivedThreads = response.data;
