@@ -7197,6 +7197,12 @@ var Ally;
                             //var scopeElement = document.getElementById( 'documents-area' );
                             //var scope = angular.element( scopeElement ).scope();
                             //innerThis.$scope.$apply( function() { innerThis.isLoading = false; });
+                            var MaxFileSize = 1024 * 1024 * 50;
+                            if (data.files[0].size > MaxFileSize) {
+                                var fileMB = Math.round(data.files[0].size / (1024 * 1024)) + 1;
+                                alert("The selected file is too large (" + fileMB + "MB). The maximum file size allowed is 50MB.");
+                                return;
+                            }
                             var dirPath = innerThis.getSelectedDirectoryPath();
                             $("#FileUploadProgressContainer").show();
                             data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
@@ -7527,7 +7533,7 @@ var Ally;
                 destinationFolderPath: ""
             };
             this.$http.put("/api/ManageDocuments/RenameFile", fileAction).then(function () {
-                // Clear the document cache
+                // Clear the local document cache
                 _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
                 _this.Refresh();
             }, function (response) {
@@ -11614,6 +11620,7 @@ var Ally;
             this.newThreadTitle = "";
             this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
+            this.newThreadIsReadOnly = false;
             this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
             // If we're displaying the modal, focus on the title text box
@@ -11626,6 +11633,21 @@ var Ally;
         GroupCommentThreadsController.prototype.hideDiscussModal = function () {
             this.viewingThread = null;
         };
+        /**
+         * Occurs when the user clicks the pin to toggle a thread's pinned status
+         * @param thread
+         */
+        GroupCommentThreadsController.prototype.onClickPin = function (thread) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/CommentThread/TogglePinned/" + thread.commentThreadId, null).then(function (response) {
+                _this.isLoading = false;
+                _this.refreshCommentThreads();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to toggle: " + response.data.exceptionMessage);
+            });
+        };
         GroupCommentThreadsController.prototype.createNewThread = function () {
             var _this = this;
             this.isLoading = true;
@@ -11634,6 +11656,7 @@ var Ally;
                 title: this.newThreadTitle,
                 body: this.newThreadBody,
                 isBoardOnly: this.newThreadIsBoardOnly,
+                isReadOnly: this.newThreadIsReadOnly,
                 shouldSendNotice: this.shouldSendNoticeForNewThread,
                 committeeId: this.committeeId
             };
@@ -11660,7 +11683,8 @@ var Ally;
                 getUri += "?committeeId=" + this.committeeId;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
-                response.data = _.sortBy(response.data, function (ct) { return ct.lastCommentDateUtc; }).reverse();
+                // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
+                response.data = _.sortBy(response.data, function (ct) { return ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract("years", 100).toDate(); }).reverse();
                 if (retrieveArchived)
                     _this.archivedThreads = response.data;
                 else {
