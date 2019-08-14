@@ -141,8 +141,9 @@ namespace Ally
 
                             $( "#FileUploadProgressContainer" ).show();
                             data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
+
                             var xhr = data.submit();
-                            
+
                             xhr.done( function( result: any )
                             {
                                 // Clear the document cache
@@ -158,7 +159,7 @@ namespace Ally
                         },
                         progressall: function( e: any, data: any )
                         {
-                            var progress = parseInt(( data.loaded / data.total * 100 ).toString(), 10 );
+                            var progress = parseInt( ( data.loaded / data.total * 100 ).toString(), 10 );
                             $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );
 
                             if( progress === 100 )
@@ -216,37 +217,39 @@ namespace Ally
                     viewDocWindow.document.write( 'Loading document...' );
             }
 
-            this.$http.get( "/api/DocumentLink/" + curFile.docId ).then(( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
-            {
-                this.isLoading = false;
-
-                let fileUri = `${curFile.url}?vid=${response.data.vid}`;
-
-                if( isForDownload )
+            this.$http.get( "/api/DocumentLink/" + curFile.docId ).then(
+                ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
                 {
-                    var link = document.createElement( 'a' );
-                    link.setAttribute( "type", "hidden" ); // make it hidden if needed
-                    link.href = fileUri;
-                    link.download = curFile.fileName;
-                    document.body.appendChild( link );
-                    link.click();
-                    link.remove();
-                }
-                else
+                    this.isLoading = false;
+
+                    let fileUri = `${curFile.url}?vid=${response.data.vid}`;
+
+                    if( isForDownload )
+                    {
+                        var link = document.createElement( 'a' );
+                        link.setAttribute( "type", "hidden" ); // make it hidden if needed
+                        link.href = fileUri;
+                        link.download = curFile.fileName;
+                        document.body.appendChild( link );
+                        link.click();
+                        link.remove();
+                    }
+                    else
+                    {
+                        //let newWindow = window.open( fileUri, '_blank' );
+                        viewDocWindow.location.href = fileUri;
+
+                        //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                        //if( wasPopUpBlocked )
+                        //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                    }
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    //let newWindow = window.open( fileUri, '_blank' );
-                    viewDocWindow.location.href = fileUri;
-
-                    //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                    //if( wasPopUpBlocked )
-                    //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                    this.isLoading = false;
+                    alert( "Failed to open document: " + response.data.exceptionMessage );
                 }
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to open document: " + response.data.exceptionMessage );
-            } );
+            );
         }
 
 
@@ -369,36 +372,38 @@ namespace Ally
                                 innerThis.selectedFile = null;
 
                                 // Tell the server
-                                innerThis.$http.put( "/api/ManageDocuments/MoveFile", fileAction ).then( function()
-                                {
-                                    innerThis.isLoading = false;
+                                innerThis.$http.put( "/api/ManageDocuments/MoveFile", fileAction ).then(
+                                    function()
+                                    {
+                                        innerThis.isLoading = false;
 
-                                    // Clear the document cache
-                                    innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                                        // Clear the document cache
+                                        innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
 
-                                    innerThis.Refresh();
-                                    //innerThis.documentTree = httpResponse.data;
-                                    //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
+                                        innerThis.Refresh();
+                                        //innerThis.documentTree = httpResponse.data;
+                                        //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
 
-                                    //// Hook up parent directories
-                                    //innerThis.documentTree.subdirectories.forEach(( dir ) =>
-                                    //{
-                                    //    innerThis.hookupParentDirs( dir );
-                                    //} );
+                                        //// Hook up parent directories
+                                        //innerThis.documentTree.subdirectories.forEach(( dir ) =>
+                                        //{
+                                        //    innerThis.hookupParentDirs( dir );
+                                        //} );
 
 
-                                    //innerThis.hookUpFileDragging();
+                                        //innerThis.hookUpFileDragging();
 
-                                    //// Find the directory we had selected
-                                    //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
-                                    //innerThis.SortFiles();
-
-                                }, function( data: any )
+                                        //// Find the directory we had selected
+                                        //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
+                                        //innerThis.SortFiles();
+                                    },
+                                    function( data: any )
                                     {
                                         innerThis.isLoading = false;
                                         var message = data.exceptionMessage || data.message || data;
                                         alert( "Failed to move file: " + message );
-                                    } );
+                                    }
+                                );
                             } );
                         },
                         hoverClass: "Document_Folder_DropHover"
@@ -532,21 +537,23 @@ namespace Ally
             if( this.createUnderParentDirName )
                 putUri += encodeURIComponent( this.createUnderParentDirName );
 
-            this.$http.put( putUri, null ).then( () =>
-            {
-                // Clear the document cache
-                this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+            this.$http.put( putUri, null ).then(
+                () =>
+                {
+                    // Clear the document cache
+                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                this.newDirectoryName = "";
-                this.Refresh();
+                    this.newDirectoryName = "";
+                    this.Refresh();
 
-                this.shouldShowCreateFolderModal = false;
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                alert( "Failed to create the folder: " + response.data.exceptionMessage );
-                this.isLoading = false;
-            } );
+                    this.shouldShowCreateFolderModal = false;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    alert( "Failed to create the folder: " + response.data.exceptionMessage );
+                    this.isLoading = false;
+                }
+            );
         }
 
 
@@ -596,20 +603,22 @@ namespace Ally
                 destinationFolderPath: ""
             };
 
-            this.$http.put( "/api/ManageDocuments/RenameFile", fileAction ).then( () =>
-            {
-                // Clear the document cache
-                this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+            this.$http.put( "/api/ManageDocuments/RenameFile", fileAction ).then(
+                () =>
+                {
+                    // Clear the local document cache
+                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                this.Refresh();
+                    this.Refresh();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to rename: " + response.data.exceptionMessage );
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to rename: " + response.data.exceptionMessage );
-
-                this.Refresh();
-            } );
+                    this.Refresh();
+                }
+            );
         }
 
 
@@ -623,20 +632,22 @@ namespace Ally
                 // Display the loading image
                 this.isLoading = true;
 
-                this.$http.delete( "/api/ManageDocuments?docPath=" + document.relativeS3Path ).then( () =>
-                {
-                    // Clear the document cache
-                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                this.$http.delete( "/api/ManageDocuments?docPath=" + document.relativeS3Path ).then(
+                    () =>
+                    {
+                        // Clear the document cache
+                        this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                    this.Refresh();
+                        this.Refresh();
+                    },
+                    ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                    {
+                        this.isLoading = false;
+                        alert( "Failed to delete file: " + response.data.exceptionMessage );
 
-                }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
-                    alert( "Failed to delete file: " + response.data.exceptionMessage );
-
-                    this.Refresh();
-                } );
+                        this.Refresh();
+                    }
+                );
             }
         }
 
@@ -663,21 +674,23 @@ namespace Ally
             var oldDirectoryPath = encodeURIComponent( this.getSelectedDirectoryPath() );
             var newDirectoryNameQS = encodeURIComponent( newDirectoryName );
 
-            this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then( () =>
-            {
-                // Clear the document cache
-                this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+            this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then(
+                () =>
+                {
+                    // Clear the document cache
+                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                // Update the selected directory name so we can reselect it
-                this.selectedDirectory.name = newDirectoryName;
+                    // Update the selected directory name so we can reselect it
+                    this.selectedDirectory.name = newDirectoryName;
 
-                this.Refresh();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to rename directory: " + response.data.exceptionMessage );
-            } );
+                    this.Refresh();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to rename directory: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -701,19 +714,22 @@ namespace Ally
                 this.isLoading = true;
 
                 var dirPath = this.getSelectedDirectoryPath();
-                this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then( () =>
-                {
-                    // Clear the document cache
-                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then(
+                    () =>
+                    {
+                        // Clear the document cache
+                        this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
 
-                    this.Refresh();
+                        this.Refresh();
 
-                }, ( httpResult: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
+                    },
+                    ( httpResult: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                    {
+                        this.isLoading = false;
 
-                    alert( "Failed to delete the folder: " + httpResult.data.exceptionMessage );
-                } );
+                        alert( "Failed to delete the folder: " + httpResult.data.exceptionMessage );
+                    }
+                );
             }
         }
 
@@ -774,7 +790,7 @@ namespace Ally
             if( !dir.subdirectories )
                 return;
 
-            dir.subdirectories.forEach(( subDir ) =>
+            dir.subdirectories.forEach( ( subDir ) =>
             {
                 subDir.parentDirectory = dir;
                 this.hookupParentDirs( subDir );
@@ -804,51 +820,53 @@ namespace Ally
                 this.getDocsUri += "/Committee/" + this.committee.committeeId;
 
             var innerThis = this;
-            this.$http.get( this.getDocsUri, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<DocumentDirectory> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.documentTree = httpResponse.data;
-                innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
-
-                // Hook up parent directories
-                innerThis.documentTree.subdirectories.forEach(( dir ) =>
+            this.$http.get( this.getDocsUri, { cache: true } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<DocumentDirectory> ) =>
                 {
-                    innerThis.hookupParentDirs( dir );
-                } );
+                    innerThis.isLoading = false;
+                    innerThis.documentTree = httpResponse.data;
+                    innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
 
-                // Build an array of all local files
-                let allFiles: DocumentTreeFile[] = [];
-                let processDir = ( subdir: DocumentDirectory ) =>
-                {
-                    _.each( subdir.files, ( f: DocumentTreeFile ) =>
+                    // Hook up parent directories
+                    innerThis.documentTree.subdirectories.forEach( ( dir ) =>
                     {
-                        f.localFilePath = subdir.name + "/" + f.title;
-                        f.uploadDateString = moment( f.uploadDate ).format( "MMMM D, YYYY" );
+                        innerThis.hookupParentDirs( dir );
                     } );
 
-                    Array.prototype.push.apply( allFiles, subdir.files );
+                    // Build an array of all local files
+                    let allFiles: DocumentTreeFile[] = [];
+                    let processDir = ( subdir: DocumentDirectory ) =>
+                    {
+                        _.each( subdir.files, ( f: DocumentTreeFile ) =>
+                        {
+                            f.localFilePath = subdir.name + "/" + f.title;
+                            f.uploadDateString = moment( f.uploadDate ).format( "MMMM D, YYYY" );
+                        } );
 
-                    _.each( subdir.subdirectories, processDir );
-                };
-                processDir( innerThis.documentTree );
+                        Array.prototype.push.apply( allFiles, subdir.files );
 
-                innerThis.fullSearchFileList = allFiles;
+                        _.each( subdir.subdirectories, processDir );
+                    };
+                    processDir( innerThis.documentTree );
 
-                // Find the directory we had selected before the refresh
-                if( selectedDirectoryPath )
+                    innerThis.fullSearchFileList = allFiles;
+
+                    // Find the directory we had selected before the refresh
+                    if( selectedDirectoryPath )
+                    {
+                        innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
+                        innerThis.SortFiles();
+                    }
+
+                    innerThis.hookUpFileDragging();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
-                    innerThis.SortFiles();
+                    innerThis.isLoading = false;
+                    //$( "#FileTreePanel" ).hide();
+                    //innerThis.errorMessage = "Failed to retrieve the building documents.";
                 }
-
-                innerThis.hookUpFileDragging();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                innerThis.isLoading = false;
-                //$( "#FileTreePanel" ).hide();
-                //innerThis.errorMessage = "Failed to retrieve the building documents.";
-            } );
+            );
         }
     }
 }

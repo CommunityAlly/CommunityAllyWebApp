@@ -73,6 +73,12 @@ var Ally;
                             //var scopeElement = document.getElementById( 'documents-area' );
                             //var scope = angular.element( scopeElement ).scope();
                             //innerThis.$scope.$apply( function() { innerThis.isLoading = false; });
+                            var MaxFileSize = 1024 * 1024 * 50;
+                            if (data.files[0].size > MaxFileSize) {
+                                var fileMB = Math.round(data.files[0].size / (1024 * 1024)) + 1;
+                                alert("The selected file is too large (" + fileMB + "MB). The maximum file size allowed is 50MB.");
+                                return;
+                            }
                             var dirPath = innerThis.getSelectedDirectoryPath();
                             $("#FileUploadProgressContainer").show();
                             data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
@@ -403,7 +409,7 @@ var Ally;
                 destinationFolderPath: ""
             };
             this.$http.put("/api/ManageDocuments/RenameFile", fileAction).then(function () {
-                // Clear the document cache
+                // Clear the local document cache
                 _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
                 _this.Refresh();
             }, function (response) {
