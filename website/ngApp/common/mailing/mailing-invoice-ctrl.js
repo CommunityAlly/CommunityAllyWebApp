@@ -230,6 +230,7 @@ var Ally;
         MailingInvoiceController.prototype.previewInvoice = function (entry) {
             var _this = this;
             var previewPostInfo = new InvoicePreviewInfo();
+            previewPostInfo.invoiceTitleString = this.fullMailingInfo.invoiceTitleString;
             previewPostInfo.dueDateString = this.fullMailingInfo.dueDateString;
             previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
             previewPostInfo.fromAddress = this.fullMailingInfo.fromStreetAddress;

@@ -34,6 +34,7 @@ namespace Ally
         notes: string;
         stripeToken: string;
         sendingReason: string;
+        invoiceTitleString: string;
         dueDateString: string;
         duesLabel: string;
     }
@@ -57,6 +58,7 @@ namespace Ally
     {
         fromAddress: FullAddress;
         notes: string;
+        invoiceTitleString: string;
         dueDateString: string;
         duesLabel: string;
         mailingInfo: InvoiceMailingEntry;
@@ -325,6 +327,7 @@ namespace Ally
         previewInvoice(entry:InvoiceMailingEntry)
         {
             var previewPostInfo = new InvoicePreviewInfo();
+            previewPostInfo.invoiceTitleString = this.fullMailingInfo.invoiceTitleString;
             previewPostInfo.dueDateString = this.fullMailingInfo.dueDateString;
             previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
             previewPostInfo.fromAddress = this.fullMailingInfo.fromStreetAddress;

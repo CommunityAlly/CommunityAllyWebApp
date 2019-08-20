@@ -32,17 +32,26 @@
                 </div>
 
                 <!--<div class="mb-3 row">
-                    <div class="form-group col-12">
-                        <label class="col-2 col-form-label">
-                            Sending Reason:
-                        </label>
-                        <div class="col-10" style="display: inline-block;">
-                            <label><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Assessment" />Assessment</label>
-                            <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
-                            <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
-                        </div>  
-                    </div>                    
-                </div>-->
+        <div class="form-group col-12">
+            <label class="col-2 col-form-label">
+                Sending Reason:
+            </label>
+            <div class="col-10" style="display: inline-block;">
+                <label><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Assessment" />Assessment</label>
+                <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
+                <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
+            </div>
+        </div>
+    </div>-->
+
+                <div class="mb-3 form-group row">
+                    <label for="invoice-title-textbox" class="col-2 col-form-label">
+                        Invoice Title:
+                    </label>
+                    <div class="col-5">
+                        <input type="text" class="form-control" id="invoice-title-textbox" data-ng-model="$ctrl.fullMailingInfo.invoiceTitleString">
+                    </div>
+                </div>
 
                 <div class="mb-3 form-group row">
                     <label for="due-date-textbox" class="col-2 col-form-label">
