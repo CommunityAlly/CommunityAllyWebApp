@@ -135,7 +135,7 @@
                             <h4>{{ recipient.homeNames }}</h4>
                         </div>
                         <div class="col-12">
-                            {{ recipient.ownerNames }} owes  {{ recipient.amountDue - (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
+                            {{ recipient.ownerNames }} owes  {{ recipient.amountDue + (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
                         </div>
                     </div>
 
@@ -146,7 +146,7 @@
                         <h4>{{ recipient.homeNames }}</h4>
                     </td>
                     <td>
-                        {{ recipient.ownerNames }} owes  {{ recipient.amountDue - (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
+                        {{ recipient.ownerNames }} owes  {{ recipient.amountDue + (recipient.balanceForward || 0) + (recipient.lateFee || 0) | currency }}.
                     </td>
                     <td></td>
                 </tr>-->

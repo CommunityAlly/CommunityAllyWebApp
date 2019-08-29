@@ -137,7 +137,7 @@ namespace Ally
                                 field: "total",
                                 displayName: "Total",
                                 width: 90,
-                                cellTemplate: '<div class="ui-grid-cell-contents">{{ row.entity.amountDue - (row.entity.balanceForward || 0) + (row.entity.lateFee || 0) | currency }}</div>'
+                                cellTemplate: '<div class="ui-grid-cell-contents">{{ row.entity.amountDue + (row.entity.balanceForward || 0) + (row.entity.lateFee || 0) | currency }}</div>'
                             }
                             //,{
                             //    field: "unitIds",
