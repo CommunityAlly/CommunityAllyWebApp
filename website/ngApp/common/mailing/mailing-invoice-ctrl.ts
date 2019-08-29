@@ -16,6 +16,7 @@ namespace Ally
         ownerNames: string;
         shouldSendEmail: boolean;
         shouldSendPaperMail: boolean;
+        overrideNotes: string;
 
         // Not sent down from the server
         isValidating: boolean;
@@ -231,6 +232,18 @@ namespace Ally
         }
         
 
+        customizeNotes( recipient: InvoiceMailingEntry )
+        {
+            recipient.overrideNotes = this.fullMailingInfo.notes || " ";
+        }
+
+
+        uncustomizeNotes( recipient: InvoiceMailingEntry )
+        {
+            recipient.overrideNotes = null;
+        }
+
+
         setAllDues()
         {
             _.forEach( this.fullMailingInfo.mailingEntries, e => e.amountDue = this.allDuesSetAmount );
@@ -332,7 +345,7 @@ namespace Ally
             previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
             previewPostInfo.fromAddress = this.fullMailingInfo.fromStreetAddress;
             previewPostInfo.mailingInfo = entry;
-            previewPostInfo.notes = this.fullMailingInfo.notes;
+            previewPostInfo.notes = entry.overrideNotes || this.fullMailingInfo.notes;
 
             this.isLoading = true;
             entry.wasPopUpBlocked = false;

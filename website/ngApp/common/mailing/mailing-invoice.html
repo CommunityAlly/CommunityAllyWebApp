@@ -26,7 +26,6 @@
                         <label for="due-date-textbox" class="col-form-label">
                             From Address:
                         </label>
-                        <!--<textarea type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.fromAddress" rows="4"></textarea>-->
                         <street-address-form data-street-address="$ctrl.fullMailingInfo.fromStreetAddress"></street-address-form>
                     </div>
                 </div>
@@ -165,7 +164,6 @@
                                     <label><input type="checkbox" data-ng-change="$ctrl.onShouldSendPaperMailChange( recipient )" data-ng-model="recipient.shouldSendPaperMail" />Send Paper Mail</label>
                                 </td>
                                 <td style="width: 700px; padding-top: 30px;">
-                                    <!--<textarea type="text" class="form-control form-control-sm" data-ng-change="$ctrl.onAddressChanged( recipient )" data-ng-model-options="{ debounce: 1000 }" data-ng-model="recipient.streetAddress" rows="4"></textarea>-->
                                     <street-address-form data-street-address="recipient.streetAddressObject" on-change="$ctrl.onAddressChanged( recipient )"></street-address-form>
                                 </td>
                                 <td>
@@ -178,6 +176,15 @@
                                         {{recipient.validationMessage}}
                                         <!--{{recipient.validationMessage}}:<br />
                             <div style="white-space: pre;">{{recipient.validatedAddress}}</div>-->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <span data-ng-if="!recipient.overrideNotes" data-ng-click="$ctrl.customizeNotes( recipient )" class="text-link note-text">Customize Notes</span>
+                                    <div data-ng-if="recipient.overrideNotes">
+                                        <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="recipient.overrideNotes" rows="4"></textarea>
+                                        <div data-ng-click="$ctrl.uncustomizeNotes( recipient )" class="text-link">Uncustomize Notes</div>
                                     </div>
                                 </td>
                             </tr>

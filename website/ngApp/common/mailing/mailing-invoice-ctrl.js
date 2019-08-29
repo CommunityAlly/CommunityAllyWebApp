@@ -91,7 +91,7 @@ var Ally;
                             field: "total",
                             displayName: "Total",
                             width: 90,
-                            cellTemplate: '<div class="ui-grid-cell-contents">{{ row.entity.amountDue - (row.entity.balanceForward || 0) + (row.entity.lateFee || 0) | currency }}</div>'
+                            cellTemplate: '<div class="ui-grid-cell-contents">{{ row.entity.amountDue + (row.entity.balanceForward || 0) + (row.entity.lateFee || 0) | currency }}</div>'
                         }
                         //,{
                         //    field: "unitIds",
@@ -164,6 +164,12 @@ var Ally;
                 }
             });
         };
+        MailingInvoiceController.prototype.customizeNotes = function (recipient) {
+            recipient.overrideNotes = this.fullMailingInfo.notes || " ";
+        };
+        MailingInvoiceController.prototype.uncustomizeNotes = function (recipient) {
+            recipient.overrideNotes = null;
+        };
         MailingInvoiceController.prototype.setAllDues = function () {
             var _this = this;
             _.forEach(this.fullMailingInfo.mailingEntries, function (e) { return e.amountDue = _this.allDuesSetAmount; });
@@ -235,7 +241,7 @@ var Ally;
             previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
             previewPostInfo.fromAddress = this.fullMailingInfo.fromStreetAddress;
             previewPostInfo.mailingInfo = entry;
-            previewPostInfo.notes = this.fullMailingInfo.notes;
+            previewPostInfo.notes = entry.overrideNotes || this.fullMailingInfo.notes;
             this.isLoading = true;
             entry.wasPopUpBlocked = false;
             this.$http.post("/api/Mailing/Preview/Invoice", previewPostInfo).then(function (response) {
