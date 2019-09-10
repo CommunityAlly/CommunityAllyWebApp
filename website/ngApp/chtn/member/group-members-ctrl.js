@@ -105,7 +105,10 @@ var Ally;
                 var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
                 if (scrollToUnitId) {
                     var scrollToElemId = "unit-id-" + scrollToUnitId;
-                    setTimeout(function () { return document.getElementById(scrollToElemId).scrollIntoView(); }, 300);
+                    setTimeout(function () {
+                        document.getElementById(scrollToElemId).scrollIntoView();
+                        $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
+                    }, 300);
                 }
                 // Populate the e-mail name lists
                 _this.setupGroupEmails();

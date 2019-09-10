@@ -152,7 +152,11 @@ namespace Ally
                 if( scrollToUnitId )
                 {
                     var scrollToElemId = "unit-id-" + scrollToUnitId;
-                    setTimeout( () => document.getElementById(scrollToElemId).scrollIntoView(), 300 );
+                    setTimeout( () =>
+                    {
+                        document.getElementById( scrollToElemId ).scrollIntoView();
+                        $( "#" + scrollToElemId ).effect( "pulsate", { times: 3 }, 2000 );
+                    }, 300 );
                 }
 
                 // Populate the e-mail name lists
