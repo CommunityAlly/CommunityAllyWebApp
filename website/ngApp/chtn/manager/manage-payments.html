@@ -333,7 +333,7 @@
                         <div data-ng-show="$ctrl.isLoading || $ctrl.isLoadingLateFee" class="loading-overlay"></div>
                         <form data-ng-submit="$ctrl.saveLateFee()">
                             <p>
-                                Add a late fee if a resident hasn't paid their assessment by the <input style="width: 30px;" maxlength="2" class="form-control form-control-sm d-inline-block" type="text" data-ng-model="$ctrl.lateFeeInfo.lateFeeDayOfMonth" /><sup>{{ getLateFeeDateSuper() }}</sup> day of the month.
+                                Add a late fee if a resident hasn't paid their assessment by the <input style="width: 45px;" maxlength="2" class="form-control form-control-sm d-inline-block" type="text" data-ng-model="$ctrl.lateFeeInfo.lateFeeDayOfMonth" /><sup>{{ getLateFeeDateSuper() }}</sup> day of the month.
 
                             </p>
                             <div class="margin-top" data-ng-style="{ 'color': !$ctrl.lateFeeInfo.lateFeeDayOfMonth ? '#AAA' : '#000'}">
