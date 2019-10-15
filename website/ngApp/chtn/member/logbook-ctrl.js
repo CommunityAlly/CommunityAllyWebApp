@@ -7,13 +7,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function LogbookController($scope, $timeout, $http, $rootScope, $q, fellowResidents) {
+        function LogbookController($scope, $timeout, $http, $rootScope, $q, fellowResidents, siteInfo) {
             this.$scope = $scope;
             this.$timeout = $timeout;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$q = $q;
             this.fellowResidents = fellowResidents;
+            this.siteInfo = siteInfo;
             this.showBadNotificationDateWarning = false;
             this.isLoadingNews = false;
             this.isLoadingLogbookForCalendar = false;
@@ -21,6 +22,8 @@ var Ally;
             this.isLoadingCalendarEvents = false;
             this.onlyRefreshCalendarEvents = false;
             this.showExpandedCalendarEventModel = false;
+            this.currentTimeZoneAbbreviation = "CT";
+            this.localTimeZoneDiffersFromGroup = false;
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // Occurs when the user clicks a user in the calendar event modal
             ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +51,14 @@ var Ally;
         */
         LogbookController.prototype.$onInit = function () {
             var _this = this;
+            var tempMoment = moment();
+            var localTimeZone = moment.tz.guess();
+            this.currentTimeZoneAbbreviation = tempMoment.tz(localTimeZone).format('z');
+            if (this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana) {
+                this.groupTimeZoneAbbreviation = tempMoment.tz(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana).format('z');
+                if (this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation)
+                    this.localTimeZoneDiffersFromGroup = true;
+            }
             if (AppConfig.isChtnSite) {
                 this.fellowResidents.getResidents().then(function (residents) {
                     _this.residents = residents;
@@ -388,7 +399,7 @@ var Ally;
             });
         };
         ;
-        LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents"];
+        LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
         LogbookController.DateFormat = "YYYY-MM-DD";
         LogbookController.TimeFormat = "h:mma";
         LogbookController.NoTime = "12:37am";

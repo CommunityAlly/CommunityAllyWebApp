@@ -32,29 +32,39 @@
 
                 <div>
                     <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">Date:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label class="col-sm-3 col-xs-12">Date:</label>
+                        <div class="col-sm-9 col-xs-12">
                             <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" readonly="readonly" data-ng-model="$ctrl.editEvent.dateOnly" />
                         </div>
                     </div>
 
-                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel">
-                        <label class="col-sm-4 col-xs-12">Time:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
+                        <label class="col-sm-3 col-xs-12">Time:</label>
+                        <div class="col-sm-3 col-xs-11">
                             <input id="calendar-event-time" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editEvent.timeOnly">
+                        </div>
+                        <div class="col-xs-1 note-text" style="vertical-align: middle; line-height: 31px;">
+                            Time Zone: {{ $ctrl.currentTimeZoneAbbreviation }}
+                        </div>
+                    </div>
+
+                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.localTimeZoneDiffersFromGroup">
+                        <label class="col-sm-2 hidden-xs"></label>
+                        <div class="col-xs-10 note-text">
+                            Note: Your local time is currently in {{ $ctrl.currentTimeZoneAbbreviation }}, but your association is in the {{ $ctrl.groupTimeZoneAbbreviation }} time zone
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">What:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label class="col-sm-3 col-xs-12">What:</label>
+                        <div class="col-sm-9 col-xs-12">
                             <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()">
                         </div>
                     </div>
 
                     <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel">
-                        <label class="col-sm-4 col-xs-12">Description:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label class="col-sm-3 col-xs-12">Description:</label>
+                        <div class="col-sm-9 col-xs-12">
                             <textarea class="form-control form-control-sm" data-ng--model="$ctrl.editEvent.description" rows="4"></textarea>
                         </div>
                     </div>
@@ -85,8 +95,8 @@
                             </div>
 
                             <div class="form-group row" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                <label class="col-sm-4 col-xs-12">Send To:</label>
-                                <div class="col-sm-8 col-xs-12">
+                                <label class="col-sm-3 col-xs-12">Send To:</label>
+                                <div class="col-sm-9 col-xs-12">
                                     <div class="resident-list">
                                         <div data-ng-repeat="resident in $ctrl.residents">
                                             <label data-ng-class="{'grayed':!resident.hasEmail}">
@@ -140,7 +150,7 @@
                     <div class="form-group row">
                         <label class="col-sm-4 col-xs-12">Time:</label>
                         <div class="col-sm-8 col-xs-12">
-                            {{ $ctrl.viewEvent.timeOnly || "All Day" }}
+                            {{ $ctrl.viewEvent.timeOnly || "All Day" }} <span data-ng-if="$ctrl.viewEvent.timeOnly">{{ $ctrl.currentTimeZoneAbbreviation }}</span>
                         </div>
                     </div>
 

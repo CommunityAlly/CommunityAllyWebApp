@@ -78,6 +78,7 @@ grunt.initConfig({
                     'Website/js/lib/charts/Chart.min.js',
                     'Website/js/lib/charts/angular-chart.js',
                     'Website/js/lib/calendar/moment.min.js',
+                    'Website/js/lib/calendar/moment-timezone-with-data-10-year-range.js',
                     'Website/js/lib/other/jsnlog.min.js',
                     'Website/js/lib/other/lodash.compat.min.js',
                     'Website/js/HtmlUtil.js',

@@ -5,7 +5,7 @@ namespace Ally
      */
     export class LogbookController implements ng.IController
     {
-        static $inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents"];
+        static $inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
 
         calendarEvents: any[];
         residents: any[];
@@ -19,6 +19,9 @@ namespace Ally
         isLoadingCalendarEvents: boolean = false;
         onlyRefreshCalendarEvents: boolean = false;
         showExpandedCalendarEventModel: boolean = false;
+        currentTimeZoneAbbreviation: string = "CT";
+        groupTimeZoneAbbreviation: string;
+        localTimeZoneDiffersFromGroup: boolean = false;
 
         static DateFormat = "YYYY-MM-DD";
         static TimeFormat = "h:mma";
@@ -28,7 +31,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $q: ng.IQService, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $q: ng.IQService, private fellowResidents: Ally.FellowResidentsService, private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -38,6 +41,18 @@ namespace Ally
         */
         $onInit()
         {
+            let tempMoment = <any>moment();
+            let localTimeZone: string = ( <any>moment ).tz.guess();
+            this.currentTimeZoneAbbreviation = tempMoment.tz( localTimeZone ).format( 'z' );
+
+            if( this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
+            {
+                this.groupTimeZoneAbbreviation = tempMoment.tz( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana ).format( 'z' );
+
+                if( this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation )
+                    this.localTimeZoneDiffersFromGroup = true;
+            }
+            
             if( AppConfig.isChtnSite )
             {
                 this.fellowResidents.getResidents().then( ( residents: any[] ) =>
