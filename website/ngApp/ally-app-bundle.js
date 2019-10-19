@@ -4075,10 +4075,7 @@ var Ally;
                 var place = innerThis.addressAutocomplete.getPlace();
                 innerThis.editingTip.address = place.formatted_address;
             });
-            if (AppConfig.appShortName === "hoa")
-                this.retrieveHoaHomes();
-            else
-                this.refresh();
+            this.retrieveHoaHomes();
             var innerThis = this;
             this.$timeout(function () { return innerThis.getWalkScore(); }, 1000);
             MapCtrlMapMgr.Init(this.siteInfo, this.$scope, this);
@@ -4234,7 +4231,17 @@ var Ally;
         ChtnMapController.prototype.retrieveHoaHomes = function () {
             var _this = this;
             this.$http.get("/api/BuildingResidents/FullUnits").then(function (httpResponse) {
-                _this.hoaHomes = httpResponse.data;
+                if (httpResponse.data) {
+                    if (AppConfig.appShortName === "condo") {
+                        // Only show homes if our units have an address other than the condo's address
+                        var nonMainAddresses = _.filter(httpResponse.data, function (u) { return u.addressId && !!u.fullAddress; });
+                        nonMainAddresses = _.filter(nonMainAddresses, function (u) { return u.fullAddress.oneLiner != _this.siteInfo.privateSiteInfo.groupAddress.oneLiner; });
+                        if (nonMainAddresses.length > 0)
+                            _this.hoaHomes = httpResponse.data;
+                    }
+                    else if (AppConfig.appShortName === "hoa")
+                        _this.hoaHomes = httpResponse.data;
+                }
                 _this.refresh();
             }, function () {
                 _this.refresh();
@@ -4322,7 +4329,7 @@ var MapCtrlMapMgr = /** @class */ (function () {
                     MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker.markerIndex, gpsPos.lat(), gpsPos.lng());
                 });
             });
-            if (AppConfig.appShortName === "hoa" && tempMarker.unitId) {
+            if (tempMarker.unitId) {
                 marker.unitId = tempMarker.unitId;
                 marker.addListener('click', function (innerMarker) {
                     return function () {

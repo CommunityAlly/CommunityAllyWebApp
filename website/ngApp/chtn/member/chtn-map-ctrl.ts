@@ -76,10 +76,7 @@ namespace Ally
             } );
 
 
-            if( AppConfig.appShortName === "hoa" )
-                this.retrieveHoaHomes();
-            else
-                this.refresh();
+            this.retrieveHoaHomes();
 
             var innerThis = this;
             this.$timeout( () => innerThis.getWalkScore(), 1000 );
@@ -303,8 +300,21 @@ namespace Ally
         {
             this.$http.get( "/api/BuildingResidents/FullUnits" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
             {
-                this.hoaHomes = httpResponse.data;
+                if( httpResponse.data )
+                {
+                    if( AppConfig.appShortName === "condo" )
+                    {
+                        // Only show homes if our units have an address other than the condo's address
+                        let nonMainAddresses = _.filter( httpResponse.data, u => u.addressId && !!u.fullAddress );
+                        nonMainAddresses = _.filter( nonMainAddresses, u => u.fullAddress.oneLiner != this.siteInfo.privateSiteInfo.groupAddress.oneLiner );
 
+                        if( nonMainAddresses.length > 0 )
+                            this.hoaHomes = httpResponse.data;
+                    }
+                    else if( AppConfig.appShortName === "hoa" )
+                        this.hoaHomes = httpResponse.data;
+                }
+                
                 this.refresh();
 
             }, () =>
@@ -484,7 +494,7 @@ class MapCtrlMapMgr
                 
             } );
 
-            if( AppConfig.appShortName === "hoa" && tempMarker.unitId )
+            if( tempMarker.unitId )
             {
                 (marker as any).unitId = tempMarker.unitId;
 

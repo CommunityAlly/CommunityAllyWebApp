@@ -16,7 +16,7 @@ namespace Ally
         addedByDateUtc: Date;
         addedByUserId: string;
 
-        fullAddress: any;
+        fullAddress: FullAddress;
         nameWithUnit: string;
 
         // Not from the server
