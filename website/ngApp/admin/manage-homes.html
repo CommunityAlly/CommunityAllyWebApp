@@ -85,13 +85,13 @@
             <input type="button" data-ng-click="$ctrl.onFastAddUnits()" value="Add Lettered" />
         </div>
 
-        <div data-ng-if="$ctrl.isCondoAlly" style="border: 1px solid #000;">
+        <div data-ng-if="$ctrl.isCondoAlly || $ctrl.isAdmin" style="border: 1px solid #000;">
             Generate condo units, one name per line:<br />
             <textarea rows="15" data-ng-model="$ctrl.unitNamePerLine"></textarea>
             <input type="button" data-ng-click="$ctrl.onAddUnitsPerLine()" value="Add Units" />
         </div>
 
-        <div data-ng-if="!$ctrl.isCondoAlly" style="border: 1px solid #000;">
+        <div data-ng-if="!$ctrl.isCondoAlly || $ctrl.isAdmin" style="border: 1px solid #000;">
             Generate homes, one street address per line:<span class="note-text">&nbsp;(Use a | to specify home short name|home address or short name|home address|notes)</span><br />
             <textarea rows="15" style="width: 70%;" data-ng-model="$ctrl.unitAddressPerLine"></textarea>
             <input type="button" data-ng-click="$ctrl.onAddUnitsByAddressPerLine()" value="Add Homes" />
