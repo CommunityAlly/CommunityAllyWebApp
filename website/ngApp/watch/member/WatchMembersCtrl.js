@@ -43,6 +43,7 @@ function WatchMembersCtrl( $rootScope, $resource, SiteInfo )
     vm.mapCenter = SiteInfo.privateSiteInfo.gpsPosition;
     vm.groupBounds = SiteInfo.publicSiteInfo.gpsBounds;
 
+    // These keys have been disabled 11/3/19
     //var debugKey = "AIzaSyD5fTq9-A3iDFpPSUtRR0Qr38l-xl694b0";
     //var releaseKey = "AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI";
 
