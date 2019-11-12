@@ -236,7 +236,7 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail)).then(function (httpResponse) {
+            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes)).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.didSignUpForHoaAlert = true;
             }, function (httpResponse) {

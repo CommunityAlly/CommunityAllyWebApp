@@ -41,6 +41,7 @@ namespace Ally
         hoaPoly: any = { vertices: [] };
         showMap = false;
         hoaAlertEmail: string;
+        hoaAlertNumHomes: string;
         didSignUpForHoaAlert: boolean = false;
 
         // The default sign-up info object
@@ -336,10 +337,10 @@ namespace Ally
                 alert( "Please enter a valid e-mail address" );
                 return;
             }
-
+            
             this.isLoading = true;
 
-            this.$http.get( "/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent( this.hoaAlertEmail ) ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent( this.hoaAlertEmail ) + "&numHomes=" + encodeURIComponent( this.hoaAlertNumHomes ) ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isLoading = false;
                 this.didSignUpForHoaAlert = true;

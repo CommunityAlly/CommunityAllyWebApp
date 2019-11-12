@@ -1286,8 +1286,8 @@ NeighborhoodAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignU
 var BlockClubAppConfig = _.clone(CondoAllyAppConfig);
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
-BlockClubAppConfig.baseTld = "chicagoblock.club";
-BlockClubAppConfig.baseUrl = "https://chicagoblock.club/";
+BlockClubAppConfig.baseTld = "blockclubally.org";
+BlockClubAppConfig.baseUrl = "https://blockclubally.org/";
 BlockClubAppConfig.homeName = "Home";
 // Remove Residents and Manage Residents
 BlockClubAppConfig.menu = _.reject(BlockClubAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
@@ -6125,7 +6125,7 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail)).then(function (httpResponse) {
+            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes)).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.didSignUpForHoaAlert = true;
             }, function (httpResponse) {
@@ -6157,8 +6157,9 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function NeighborSignUpController($http) {
+        function NeighborSignUpController($http, siteInfo) {
             this.$http = $http;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
             this.signUpInfo = new NewUserSignUpInfo();
             this.resultIsError = false;
@@ -6167,10 +6168,22 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         NeighborSignUpController.prototype.$onInit = function () {
+            var _this = this;
             // Hook up address auto-complete, after the page has loaded
             setTimeout(function () {
+                var autocompleteOptions = undefined;
+                if (_this.siteInfo.publicSiteInfo.googleGpsPosition) {
+                    var TwentyFiveMilesInMeters = 40234;
+                    var circle = new google.maps.Circle({
+                        center: _this.siteInfo.publicSiteInfo.googleGpsPosition,
+                        radius: TwentyFiveMilesInMeters
+                    });
+                    autocompleteOptions = {
+                        bounds: circle.getBounds()
+                    };
+                }
                 var addressInput = document.getElementById("address-text-box");
-                new google.maps.places.Autocomplete(addressInput);
+                new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
             }, 750);
         };
         /**
@@ -13318,6 +13331,7 @@ function WatchMembersCtrl( $rootScope, $resource, SiteInfo )
     vm.mapCenter = SiteInfo.privateSiteInfo.gpsPosition;
     vm.groupBounds = SiteInfo.publicSiteInfo.gpsBounds;
 
+    // These keys have been disabled 11/3/19
     //var debugKey = "AIzaSyD5fTq9-A3iDFpPSUtRR0Qr38l-xl694b0";
     //var releaseKey = "AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI";
 
