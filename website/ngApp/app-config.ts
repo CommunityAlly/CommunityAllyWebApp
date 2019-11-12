@@ -282,8 +282,8 @@ NeighborhoodAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSig
 var BlockClubAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
-BlockClubAppConfig.baseTld = "chicagoblock.club";
-BlockClubAppConfig.baseUrl = "https://chicagoblock.club/";
+BlockClubAppConfig.baseTld = "blockclubally.org";
+BlockClubAppConfig.baseUrl = "https://blockclubally.org/";
 BlockClubAppConfig.homeName = "Home";
 
 // Remove Residents and Manage Residents
