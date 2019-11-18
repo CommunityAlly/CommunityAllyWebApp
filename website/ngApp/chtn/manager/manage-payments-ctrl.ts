@@ -63,6 +63,7 @@ namespace Ally
         payPalSignUpClientSecret: string;
         payPalSignUpErrorMessage: string;
         isUpdatingPayPalCredentials: boolean;
+        allowNewWePaySignUp: boolean = false;
 
 
         /**
@@ -81,6 +82,9 @@ namespace Ally
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear( "hwpid" );
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
 
+            // Allow a single HOA to try WePay
+            this.allowNewWePaySignUp = AppConfig.appShortName === "hoa" && this.siteInfo.publicSiteInfo.shortName === "tigertrace";
+            
             this.payments = [
                 {
                     Date: "",

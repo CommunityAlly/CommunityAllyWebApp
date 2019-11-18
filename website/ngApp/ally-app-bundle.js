@@ -2074,6 +2074,7 @@ var Ally;
             this.isLoadingPayment = false;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
+            this.allowNewWePaySignUp = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2081,6 +2082,8 @@ var Ally;
         ManagePaymentsController.prototype.$onInit = function () {
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
+            // Allow a single HOA to try WePay
+            this.allowNewWePaySignUp = AppConfig.appShortName === "hoa" && this.siteInfo.publicSiteInfo.shortName === "tigertrace";
             this.payments = [
                 {
                     Date: "",
