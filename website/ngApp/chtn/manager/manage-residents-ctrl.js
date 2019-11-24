@@ -121,6 +121,7 @@ var Ally;
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.shouldShowResidentPermissions = this.showIsRenter || AppConfig.appShortName === "block-club";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
             this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;

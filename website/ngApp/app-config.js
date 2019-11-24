@@ -217,6 +217,7 @@ BlockClubAppConfig.appName = "Block Club Ally";
 BlockClubAppConfig.baseTld = "blockclubally.org";
 BlockClubAppConfig.baseUrl = "https://blockclubally.org/";
 BlockClubAppConfig.homeName = "Home";
+BlockClubAppConfig.memberTypeLabel = "Member";
 // Remove Residents and Manage Residents
 BlockClubAppConfig.menu = _.reject(BlockClubAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
 // Add them back under the name "Members"

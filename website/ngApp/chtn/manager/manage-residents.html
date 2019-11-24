@@ -276,10 +276,10 @@
     </div>
 
 
-    <div class="spinner-effect mt-4 mb-4" data-ng-if="$ctrl.showIsRenter">
+    <div class="spinner-effect mt-4 mb-4" data-ng-if="$ctrl.shouldShowResidentPermissions">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingSettings"></div>
 
-        <h4>Resident Permissions</h4>
+        <h4>{{$ctrl.memberTypeLabel}} Permissions</h4>
 
         <div data-ng-if="$ctrl.showEmailSettings">
             <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow owners to send group e-mails</label><br />

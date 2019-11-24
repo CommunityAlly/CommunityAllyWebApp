@@ -1289,6 +1289,7 @@ BlockClubAppConfig.appName = "Block Club Ally";
 BlockClubAppConfig.baseTld = "blockclubally.org";
 BlockClubAppConfig.baseUrl = "https://blockclubally.org/";
 BlockClubAppConfig.homeName = "Home";
+BlockClubAppConfig.memberTypeLabel = "Member";
 // Remove Residents and Manage Residents
 BlockClubAppConfig.menu = _.reject(BlockClubAppConfig.menu, function (mi) { return mi.menuTitle === "Residents"; });
 // Add them back under the name "Members"
@@ -2782,6 +2783,7 @@ var Ally;
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
             this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.shouldShowResidentPermissions = this.showIsRenter || AppConfig.appShortName === "block-club";
             this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
             this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
