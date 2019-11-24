@@ -86,6 +86,7 @@ namespace Ally
         canHideContactInfo: boolean;
         maintenanceTodoListId: number;
         whoCanCreateDiscussionThreads: string;
+        isDiscussionEmailGroupEnabled: boolean;
     }
 
 

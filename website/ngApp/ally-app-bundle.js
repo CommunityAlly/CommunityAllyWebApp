@@ -3440,16 +3440,18 @@ var Ally;
          * Save the resident settings to the server
          */
         ManageResidentsController.prototype.saveResidentSettings = function () {
+            var _this = this;
             analytics.track("editResidentSettings");
             this.isLoadingSettings = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", this.residentSettings).success(function () {
-                innerThis.isLoadingSettings = false;
+                _this.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
-                innerThis.fellowResidents.clearResidentCache();
-                innerThis.siteInfo.privateSiteInfo.canHideContactInfo = innerThis.residentSettings.canHideContactInfo;
+                _this.fellowResidents.clearResidentCache();
+                // Update the locally cached settings to match the saved values
+                _this.siteInfo.privateSiteInfo.canHideContactInfo = _this.residentSettings.canHideContactInfo;
+                _this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = _this.residentSettings.isDiscussionEmailGroupEnabled;
             }).error(function () {
-                innerThis.isLoadingSettings = false;
+                _this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");
             });
         };
@@ -11678,6 +11680,7 @@ var Ally;
             this.showBoardOnly = false;
             this.archivedThreads = null;
             this.canCreateThreads = false;
+            this.isDiscussionEmailEnabled = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -11689,6 +11692,7 @@ var Ally;
             else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
                 this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
             this.editComment = {
                 commentText: "",
                 replyToCommentId: null

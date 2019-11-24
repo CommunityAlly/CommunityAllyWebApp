@@ -778,16 +778,18 @@ var Ally;
          * Save the resident settings to the server
          */
         ManageResidentsController.prototype.saveResidentSettings = function () {
+            var _this = this;
             analytics.track("editResidentSettings");
             this.isLoadingSettings = true;
-            var innerThis = this;
             this.$http.put("/api/Settings", this.residentSettings).success(function () {
-                innerThis.isLoadingSettings = false;
+                _this.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
-                innerThis.fellowResidents.clearResidentCache();
-                innerThis.siteInfo.privateSiteInfo.canHideContactInfo = innerThis.residentSettings.canHideContactInfo;
+                _this.fellowResidents.clearResidentCache();
+                // Update the locally cached settings to match the saved values
+                _this.siteInfo.privateSiteInfo.canHideContactInfo = _this.residentSettings.canHideContactInfo;
+                _this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = _this.residentSettings.isDiscussionEmailGroupEnabled;
             }).error(function () {
-                innerThis.isLoadingSettings = false;
+                _this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");
             });
         };

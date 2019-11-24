@@ -1063,20 +1063,24 @@ namespace Ally
 
             this.isLoadingSettings = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/Settings", this.residentSettings ).success(() => 
-            {
-                innerThis.isLoadingSettings = false;
+            this.$http.put( "/api/Settings", this.residentSettings ).success(
+                () => 
+                {
+                    this.isLoadingSettings = false;
 
-                // Update the fellow residents page next time we're there
-                innerThis.fellowResidents.clearResidentCache();
+                    // Update the fellow residents page next time we're there
+                    this.fellowResidents.clearResidentCache();
 
-                innerThis.siteInfo.privateSiteInfo.canHideContactInfo = innerThis.residentSettings.canHideContactInfo;
-            } ).error(() =>
-            {
-                innerThis.isLoadingSettings = false;
-                alert( "Failed to update settings, please try again or contact support." );
-            } );
+                    // Update the locally cached settings to match the saved values
+                    this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
+                    this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
+
+                } ).error(() =>
+                {
+                    this.isLoadingSettings = false;
+                    alert( "Failed to update settings, please try again or contact support." );
+                }
+            );
         }
 
 
