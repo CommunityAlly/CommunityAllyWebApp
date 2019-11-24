@@ -38,6 +38,7 @@
         committeeId: number;
         archivedThreads: CommentThread[] = null;
         canCreateThreads: boolean = false;
+        isDiscussionEmailEnabled: boolean = true;
 
 
         /**
@@ -59,6 +60,7 @@
                 this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
 
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
 
             this.editComment = {
                 commentText: "",

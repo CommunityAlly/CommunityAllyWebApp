@@ -24,6 +24,7 @@ var Ally;
             this.showBoardOnly = false;
             this.archivedThreads = null;
             this.canCreateThreads = false;
+            this.isDiscussionEmailEnabled = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -35,6 +36,7 @@ var Ally;
             else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
                 this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
             this.editComment = {
                 commentText: "",
                 replyToCommentId: null
