@@ -112,6 +112,11 @@
                         g.appNameString = "PTA";
                         g.baseUrl = "https://" + g.shortName + ".PTAAlly.org/";
                     }
+                    else if( g.appName === 6 )
+                    {
+                        g.appNameString = "BlockClub";
+                        g.baseUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
+                    }
                 } );
             }, function()
                 {
