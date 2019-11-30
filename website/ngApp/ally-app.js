@@ -4,11 +4,12 @@ var OverrideBaseApiPath = null;
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
         $locationProvider.hashPrefix('!');
-        var subdomain = HtmlUtil.getSubdomain(OverrideBaseApiPath);
-        if (subdomain === null && window.location.hash !== "#!/Login") {
-            GlobalRedirect(AppConfig.baseUrl);
-            return;
-        }
+        //var subdomain = HtmlUtil.getSubdomain( OverrideBaseApiPath );      
+        //if( subdomain === null && window.location.hash !== "#!/Login" )
+        //{
+        //    GlobalRedirect( AppConfig.baseUrl );
+        //    return;
+        //}
         var isLoginRequired = function ($location, $q, siteInfo, appCacheService) {
             var deferred = $q.defer();
             // We have no user information so they must login

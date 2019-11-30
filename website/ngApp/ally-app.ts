@@ -16,12 +16,12 @@ CA.angularApp.config(
 {
     $locationProvider.hashPrefix( '!' );
 
-    var subdomain = HtmlUtil.getSubdomain( OverrideBaseApiPath );      
-    if( subdomain === null && window.location.hash !== "#!/Login" )
-    {
-        GlobalRedirect( AppConfig.baseUrl );
-        return;
-    }
+    //var subdomain = HtmlUtil.getSubdomain( OverrideBaseApiPath );      
+    //if( subdomain === null && window.location.hash !== "#!/Login" )
+    //{
+    //    GlobalRedirect( AppConfig.baseUrl );
+    //    return;
+    //}
 
     var isLoginRequired = function( $location: ng.ILocationService, $q: ng.IQService, siteInfo: Ally.SiteInfoService, appCacheService: AppCacheService )
     {

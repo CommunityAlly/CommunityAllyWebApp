@@ -66,6 +66,8 @@ namespace Ally
         gpsBounds: GpsPolygon;
         gpsPosition: GpsPoint;
         loginImageUrl: string;
+        baseApiUrl: string;
+        appType: number;
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;
@@ -152,11 +154,14 @@ namespace Ally
             {
                 $rootScope.isLoadingSite = false;
                 deferred.reject();
+
             };
 
-
             // Retrieve information for the current association
-            $http.get( "/api/GroupSite" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            const GetInfoUri = "/api/GroupSite";
+            //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
+            //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
+            $http.get( GetInfoUri ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
             {
                 // If we received data but the user isn't logged-in
                 if( httpResponse.data && !httpResponse.data.userInfo )
@@ -170,7 +175,7 @@ namespace Ally
                             //console.log( "Received cross domain token:" + response.value );
                             innerThis.setAuthToken( response.value );
 
-                            $http.get( "/api/GroupSite" ).then(( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                            $http.get( GetInfoUri ).then(( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                             {
                                 onSiteInfoReceived( httpResponse.data );
                             }, onRequestFailed );
@@ -253,6 +258,7 @@ namespace Ally
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
 
+            // Store the Google lat/lon object to make life easier later
             if( this.publicSiteInfo.gpsPosition && typeof ( google ) !== "undefined" )
                 this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng( this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon );
 
@@ -275,6 +281,10 @@ namespace Ally
             // If the user is logged-in
             this.isLoggedIn = $rootScope.userInfo !== null && $rootScope.userInfo !== undefined;
             $rootScope.isLoggedIn = this.isLoggedIn;
+
+            // Update the background
+            if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
+                $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
 
             if( this.isLoggedIn )
             {
@@ -317,18 +327,16 @@ namespace Ally
                         window.location.hash = LoginPath;
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
+
+                        return;
                     }
                     else
                         GlobalRedirect( AppConfig.baseUrl + LoginPath );
                 }
             }
 
-            // Update the background
-            if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
-                $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
-
-            // If we need to redirect
-            if( this.publicSiteInfo.baseUrl )
+            // If we need to redirect from the login subdomain
+            if( this.publicSiteInfo.baseUrl && subdomain === "login" )
             {
                 if( ( subdomain === null || subdomain !== this.publicSiteInfo.shortName )
                     && HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )

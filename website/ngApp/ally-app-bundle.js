@@ -794,11 +794,12 @@ var OverrideBaseApiPath = null;
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
         $locationProvider.hashPrefix('!');
-        var subdomain = HtmlUtil.getSubdomain(OverrideBaseApiPath);
-        if (subdomain === null && window.location.hash !== "#!/Login") {
-            GlobalRedirect(AppConfig.baseUrl);
-            return;
-        }
+        //var subdomain = HtmlUtil.getSubdomain( OverrideBaseApiPath );      
+        //if( subdomain === null && window.location.hash !== "#!/Login" )
+        //{
+        //    GlobalRedirect( AppConfig.baseUrl );
+        //    return;
+        //}
         var isLoginRequired = function ($location, $q, siteInfo, appCacheService) {
             var deferred = $q.defer();
             // We have no user information so they must login
@@ -12300,8 +12301,11 @@ var Ally;
                 $rootScope.isLoadingSite = false;
                 deferred.reject();
             };
+            var GetInfoUri = "/api/GroupSite";
             // Retrieve information for the current association
-            $http.get("/api/GroupSite").then(function (httpResponse) {
+            //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
+            //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
+            $http.get(GetInfoUri).then(function (httpResponse) {
                 // If we received data but the user isn't logged-in
                 if (httpResponse.data && !httpResponse.data.userInfo) {
                     // Check the cross-domain localStorage for an auth token
@@ -12310,7 +12314,7 @@ var Ally;
                         if (response && HtmlUtil.isValidString(response.value)) {
                             //console.log( "Received cross domain token:" + response.value );
                             innerThis.setAuthToken(response.value);
-                            $http.get("/api/GroupSite").then(function (httpResponse) {
+                            $http.get(GetInfoUri).then(function (httpResponse) {
                                 onSiteInfoReceived(httpResponse.data);
                             }, onRequestFailed);
                         }
@@ -12370,6 +12374,7 @@ var Ally;
             // Store the site info to the root scope for access by the app module
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
+            // Store the Google lat/lon object to make life easier later
             if (this.publicSiteInfo.gpsPosition && typeof (google) !== "undefined")
                 this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng(this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon);
             // Handle private (logged-in only) info
@@ -12386,6 +12391,9 @@ var Ally;
             // If the user is logged-in
             this.isLoggedIn = $rootScope.userInfo !== null && $rootScope.userInfo !== undefined;
             $rootScope.isLoggedIn = this.isLoggedIn;
+            // Update the background
+            if (!HtmlUtil.isNullOrWhitespace(this.publicSiteInfo.bgImagePath))
+                $(document.documentElement).css("background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")");
             if (this.isLoggedIn) {
                 if (typeof ($zopim) !== "undefined") {
                     $zopim(function () {
@@ -12415,16 +12423,14 @@ var Ally;
                         window.location.hash = LoginPath;
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
+                        return;
                     }
                     else
                         GlobalRedirect(AppConfig.baseUrl + LoginPath);
                 }
             }
-            // Update the background
-            if (!HtmlUtil.isNullOrWhitespace(this.publicSiteInfo.bgImagePath))
-                $(document.documentElement).css("background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")");
-            // If we need to redirect
-            if (this.publicSiteInfo.baseUrl) {
+            // If we need to redirect from the login subdomain
+            if (this.publicSiteInfo.baseUrl && subdomain === "login") {
                 if ((subdomain === null || subdomain !== this.publicSiteInfo.shortName)
                     && HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
                     GlobalRedirect(this.publicSiteInfo.baseUrl + "/#!/Home");
