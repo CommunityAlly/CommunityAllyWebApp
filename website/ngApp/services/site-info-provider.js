@@ -83,8 +83,8 @@ var Ally;
                 $rootScope.isLoadingSite = false;
                 deferred.reject();
             };
-            var GetInfoUri = "/api/GroupSite";
             // Retrieve information for the current association
+            var GetInfoUri = "/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get(GetInfoUri).then(function (httpResponse) {

@@ -2089,7 +2089,8 @@ var Ally;
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             // Allow a single HOA to try WePay
-            this.allowNewWePaySignUp = AppConfig.appShortName === "hoa" && this.siteInfo.publicSiteInfo.shortName === "tigertrace";
+            var exemptGroupShortNames = ["tigertrace", "7mthope"];
+            this.allowNewWePaySignUp = exemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
             this.payments = [
                 {
                     Date: "",
@@ -12301,8 +12302,8 @@ var Ally;
                 $rootScope.isLoadingSite = false;
                 deferred.reject();
             };
-            var GetInfoUri = "/api/GroupSite";
             // Retrieve information for the current association
+            var GetInfoUri = "/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get(GetInfoUri).then(function (httpResponse) {

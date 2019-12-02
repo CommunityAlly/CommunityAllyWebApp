@@ -83,7 +83,8 @@ namespace Ally
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
 
             // Allow a single HOA to try WePay
-            this.allowNewWePaySignUp = AppConfig.appShortName === "hoa" && this.siteInfo.publicSiteInfo.shortName === "tigertrace";
+            let exemptGroupShortNames: string[] = ["tigertrace", "7mthope"];
+            this.allowNewWePaySignUp = exemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             
             this.payments = [
                 {
