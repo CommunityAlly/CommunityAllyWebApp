@@ -59,7 +59,7 @@ namespace Ally
      */
     export class DocumentsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "$cacheFactory", "$scope"];
+        static $inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents"];
 
         static LocalStorageKey_SortType = "DocsInfo_FileSortType";
         static LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
@@ -77,7 +77,7 @@ namespace Ally
         fullSearchFileList: DocumentTreeFile[];
         createUnderParentDirName: string;
         newDirectoryName: string;
-        isSiteManager: boolean;
+        canManage: boolean;
         committee: Ally.Committee;
         title = "Documents";
         getDocsUri = "/api/ManageDocuments";
@@ -89,7 +89,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $cacheFactory: ng.ICacheFactoryService, private $scope: ng.IScope )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $cacheFactory: ng.ICacheFactoryService, private $scope: ng.IScope, private siteInfo: SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
         {
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
             if( !this.fileSortType )
@@ -101,7 +101,11 @@ namespace Ally
                 all: ""
             };
 
-            this.isSiteManager = $rootScope["isSiteManager"];
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+
+            // Make sure committee members can manage their data
+            if( this.committee && !this.canManage )
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
         }
 
 
@@ -336,7 +340,7 @@ namespace Ally
         hookUpFileDragging()
         {
             // If the user can't manage the association then do nothing
-            if( !this.isSiteManager )
+            if( !this.canManage )
                 return;
 
             var innerThis = this;

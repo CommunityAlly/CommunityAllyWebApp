@@ -40,6 +40,10 @@
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
         <div class="portlet-header" data-ng-if="!$ctrl.showMemberList">
+            <div class="float-right col-2" style="display: none;">
+                <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateMemberFilter()" data-ng-model="$ctrl.memberSearchTerm" data-ng-model-options="{ debounce: 1 }" placeholder="Search" aria-describedby="basic-addon2" />
+            </div>
+
             <div class="title">{{ $ctrl.showMemberList ? "Members" : "Residents" }}</div>
         </div>
 

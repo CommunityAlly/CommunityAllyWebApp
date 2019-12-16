@@ -15,13 +15,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function FAQsController($http, $rootScope, siteInfo, $cacheFactory) {
+        function FAQsController($http, $rootScope, siteInfo, $cacheFactory, fellowResidents) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
             this.isBodyMissing = false;
-            this.isSiteManager = false;
+            this.canManage = false;
             this.headerText = "Information and Frequently Asked Questions (FAQs)";
             this.editingInfoItem = new InfoItem();
             if (AppConfig.appShortName === "home")
@@ -31,8 +32,12 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         FAQsController.prototype.$onInit = function () {
+            var _this = this;
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
-            this.isSiteManager = this.$rootScope["isSiteManager"];
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
@@ -159,7 +164,7 @@ var Ally;
                 _this.retrieveInfo();
             });
         };
-        FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
+        FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         return FAQsController;
     }());
     Ally.FAQsController = FAQsController;

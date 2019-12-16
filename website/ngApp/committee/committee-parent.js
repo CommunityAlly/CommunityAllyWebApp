@@ -27,7 +27,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         CommitteeParentController.prototype.$onInit = function () {
-            this.canManage = this.siteInfo.userInfo.isSiteManager;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             this.retrieveCommittee();
         };
         /*

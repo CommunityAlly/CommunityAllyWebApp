@@ -77,6 +77,26 @@ var Ally;
             });
         };
         /**
+         * Get the members for a committee
+         */
+        FellowResidentsService.prototype.getCommitteeMembers = function (committeeId) {
+            return this.$http.get("/api/Committee/" + committeeId + "/Members").then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Determine if a user is a committee member
+         */
+        FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
+            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+        };
+        /**
          * Get the residents for an association, broken down by unit for easy display
          */
         FellowResidentsService.prototype.getByUnits = function () {

@@ -9,7 +9,7 @@ namespace Ally
      */
     export class CommitteeMembersController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents", "$cacheFactory"];
+        static $inject = ["$http", "fellowResidents", "$cacheFactory", "SiteInfo"];
 
         isLoading: boolean = false;
         committee: Ally.Committee;
@@ -17,6 +17,7 @@ namespace Ally
         userForAdd: FellowChtnResident;
         allGroupMembers: FellowChtnResident[];
         contactUser: FellowChtnResident;
+        canManage: boolean = false;
 
 
         // The list of all group members that are not already members of this committee
@@ -26,7 +27,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private fellowResidents: Ally.FellowResidentsService, private $cacheFactory: ng.ICacheFactoryService )
+        constructor( private $http: ng.IHttpService, private fellowResidents: Ally.FellowResidentsService, private $cacheFactory: ng.ICacheFactoryService, private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -50,6 +51,7 @@ namespace Ally
             this.fellowResidents.getResidents().then( residents =>
             {
                 this.allGroupMembers = residents;
+
                 this.getMembers();
             });
         }
@@ -89,10 +91,10 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/Committee/${this.committee.committeeId}/Members` ).then( ( response: ng.IHttpPromiseCallbackArg<FellowChtnResident[]> ) =>
+            this.fellowResidents.getCommitteeMembers( this.committee.committeeId ).then( ( committeeMembers: FellowChtnResident[] ) =>
             {
                 this.isLoading = false;
-                this.members = response.data;
+                this.members = committeeMembers;
 
                 this.members = _.sortBy( this.members, m => (m.fullName || "").toLowerCase() );
 
@@ -102,6 +104,9 @@ namespace Ally
                 this.filteredGroupMembers = _.sortBy( this.filteredGroupMembers, m => (m.fullName || "").toLowerCase() );
 
                 this.contactUser = _.find( this.members, m => m.userId == this.committee.contactMemberUserId );
+
+                // Admin or committee members can manage the committee
+                this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager || _.any( this.members, m => m.userId === this.siteInfo.userInfo.userId );
 
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {

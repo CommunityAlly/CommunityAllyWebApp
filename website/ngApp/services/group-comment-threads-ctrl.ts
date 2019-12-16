@@ -21,7 +21,7 @@
      */
     export class GroupCommentThreadsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$scope"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents"];
 
         isLoading: boolean = false;
         editComment: any;
@@ -44,7 +44,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $scope: ng.IScope )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $scope: ng.IScope, private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -54,10 +54,23 @@
         */
         $onInit()
         {
-            if( !this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone" )
-                this.canCreateThreads = true;
-            else if( this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board" )
-                this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+
+            if( !this.canCreateThreads )
+            {
+                if( this.committeeId )
+                {
+                    // Make sure committee members can manage their data
+                    this.fellowResidents.isCommitteeMember( this.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canCreateThreads = isCommitteeMember );
+                }
+                else
+                {
+                    if( !this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone" )
+                        this.canCreateThreads = true;
+                    else if( this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board" )
+                        this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                }
+            }
 
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;

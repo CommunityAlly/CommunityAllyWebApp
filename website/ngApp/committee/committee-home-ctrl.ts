@@ -9,15 +9,16 @@ namespace Ally
      */
     export class CommitteeHomeController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
+        static $inject = ["SiteInfo", "fellowResidents"];
 
         committee: Ally.Committee;
+        canManage: boolean = false;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $cacheFactory: ng.ICacheFactoryService )
+        constructor( private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -27,6 +28,11 @@ namespace Ally
         */
         $onInit()
         {
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+
+            // Make sure committee members can manage their data
+            if( this.committee && !this.canManage )
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
         }
     }
 }

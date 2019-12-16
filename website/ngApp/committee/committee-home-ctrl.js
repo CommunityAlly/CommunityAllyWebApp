@@ -9,18 +9,22 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function CommitteeHomeController($http, $rootScope, siteInfo, $cacheFactory) {
-            this.$http = $http;
-            this.$rootScope = $rootScope;
+        function CommitteeHomeController(siteInfo, fellowResidents) {
             this.siteInfo = siteInfo;
-            this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
+            this.canManage = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         CommitteeHomeController.prototype.$onInit = function () {
+            var _this = this;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         };
-        CommitteeHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
+        CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents"];
         return CommitteeHomeController;
     }());
     Ally.CommitteeHomeController = CommitteeHomeController;

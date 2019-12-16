@@ -42,7 +42,7 @@ namespace Ally
         */
         $onInit()
         {
-            this.canManage = this.siteInfo.userInfo.isSiteManager;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
 
             this.retrieveCommittee();
         }

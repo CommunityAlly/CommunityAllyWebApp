@@ -16,26 +16,34 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function TodoListCtrl($http) {
+        function TodoListCtrl($http, siteInfo, fellowResidents) {
             this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.todoLists = [];
             this.isLoading = false;
             this.newListName = "";
             this.isFixedList = false;
             this.shouldExpandTodoItemModal = false;
+            this.canManage = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         TodoListCtrl.prototype.$onInit = function () {
+            var _this = this;
             this.isFixedList = !!this.fixedTodoListId;
             if (this.isFixedList)
                 this.loadFixedTodoList();
             else
                 this.loadAllTodoLists();
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         };
         /**
-         * Retrieve a todo list
+         * Retrieve a todo list by ID
          */
         TodoListCtrl.prototype.loadFixedTodoList = function () {
             var _this = this;
@@ -46,7 +54,7 @@ var Ally;
             });
         };
         /**
-         * Retrieve the todo lists
+         * Retrieve all available todo lists
          */
         TodoListCtrl.prototype.loadAllTodoLists = function () {
             var _this = this;
@@ -70,6 +78,7 @@ var Ally;
                 postUri += "&committeeId=" + this.committee.committeeId;
             this.$http.post(postUri, null).then(function () {
                 _this.isLoading = false;
+                _this.newListName = "";
                 _this.loadAllTodoLists();
             }, function (response) {
                 _this.isLoading = false;
@@ -166,7 +175,7 @@ var Ally;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
-        TodoListCtrl.$inject = ["$http"];
+        TodoListCtrl.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return TodoListCtrl;
     }());
     Ally.TodoListCtrl = TodoListCtrl;

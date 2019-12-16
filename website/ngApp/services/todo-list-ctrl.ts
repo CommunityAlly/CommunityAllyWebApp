@@ -37,7 +37,7 @@
 
     export class TodoListCtrl implements ng.IController
     {
-        static $inject = ["$http"];
+        static $inject = ["$http", "SiteInfo", "fellowResidents"];
         todoLists: TodoList[] = [];
         isLoading: boolean = false;
         newItemDescription: string;
@@ -47,12 +47,13 @@
         shouldExpandTodoItemModal: boolean = false;
         editTodoItem: TodoItem;
         committee: Ally.Committee;
+        canManage: boolean = false;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService )
+        constructor( private $http: ng.IHttpService, private siteInfo: SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -68,11 +69,17 @@
                 this.loadFixedTodoList();
             else
                 this.loadAllTodoLists();
+
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+
+            // Make sure committee members can manage their data
+            if( this.committee && !this.canManage )
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
         }
 
 
         /**
-         * Retrieve a todo list
+         * Retrieve a todo list by ID
          */
         loadFixedTodoList()
         {
@@ -87,7 +94,7 @@
 
 
         /**
-         * Retrieve the todo lists
+         * Retrieve all available todo lists
          */
         loadAllTodoLists()
         {
@@ -119,7 +126,9 @@
             this.$http.post( postUri, null ).then( () =>
             {
                 this.isLoading = false;
+                this.newListName = "";
                 this.loadAllTodoLists();
+
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;

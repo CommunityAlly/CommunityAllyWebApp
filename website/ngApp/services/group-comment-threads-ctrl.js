@@ -13,11 +13,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope) {
+        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.fellowResidents = fellowResidents;
             this.isLoading = false;
             this.viewingThread = null;
             this.showCreateNewModal = false;
@@ -31,10 +32,19 @@ var Ally;
         */
         GroupCommentThreadsController.prototype.$onInit = function () {
             var _this = this;
-            if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
-                this.canCreateThreads = true;
-            else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
-                this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            if (!this.canCreateThreads) {
+                if (this.committeeId) {
+                    // Make sure committee members can manage their data
+                    this.fellowResidents.isCommitteeMember(this.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
+                }
+                else {
+                    if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
+                        this.canCreateThreads = true;
+                    else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
+                        this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                }
+            }
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
             this.editComment = {
@@ -124,7 +134,7 @@ var Ally;
                 _this.isLoading = false;
             });
         };
-        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope"];
+        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents"];
         return GroupCommentThreadsController;
     }());
     Ally.GroupCommentThreadsController = GroupCommentThreadsController;

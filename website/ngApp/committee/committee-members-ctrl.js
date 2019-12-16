@@ -9,11 +9,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function CommitteeMembersController($http, fellowResidents, $cacheFactory) {
+        function CommitteeMembersController($http, fellowResidents, $cacheFactory, siteInfo) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$cacheFactory = $cacheFactory;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
+            this.canManage = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -56,14 +58,16 @@ var Ally;
         CommitteeMembersController.prototype.getMembers = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Committee/" + this.committee.committeeId + "/Members").then(function (response) {
+            this.fellowResidents.getCommitteeMembers(this.committee.committeeId).then(function (committeeMembers) {
                 _this.isLoading = false;
-                _this.members = response.data;
+                _this.members = committeeMembers;
                 _this.members = _.sortBy(_this.members, function (m) { return (m.fullName || "").toLowerCase(); });
                 var isMember = function (u) { return _.some(_this.members, function (m) { return m.userId === u.userId; }); };
                 _this.filteredGroupMembers = _.filter(_this.allGroupMembers, function (m) { return !isMember(m); });
                 _this.filteredGroupMembers = _.sortBy(_this.filteredGroupMembers, function (m) { return (m.fullName || "").toLowerCase(); });
                 _this.contactUser = _.find(_this.members, function (m) { return m.userId == _this.committee.contactMemberUserId; });
+                // Admin or committee members can manage the committee
+                _this.canManage = _this.siteInfo.userInfo.isAdmin || _this.siteInfo.userInfo.isSiteManager || _.any(_this.members, function (m) { return m.userId === _this.siteInfo.userInfo.userId; });
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve committee members, please refresh the page to try again");
@@ -101,7 +105,7 @@ var Ally;
                 alert("Failed to remove member, please refresh the page to try again: " + response.data.exceptionMessage);
             });
         };
-        CommitteeMembersController.$inject = ["$http", "fellowResidents", "$cacheFactory"];
+        CommitteeMembersController.$inject = ["$http", "fellowResidents", "$cacheFactory", "SiteInfo"];
         return CommitteeMembersController;
     }());
     Ally.CommitteeMembersController = CommitteeMembersController;

@@ -4635,6 +4635,28 @@ var Ally;
                 _this.setupGroupEmails();
             });
         };
+        GroupMembersController.prototype.updateMemberFilter = function () {
+            var lowerFilter = angular.lowercase(this.memberSearchTerm) || '';
+            var filterSearchFiles = function (unitListing) {
+                if (angular.lowercase(unitListing.name || '').indexOf(lowerFilter) !== -1)
+                    return true;
+                return false;
+                //if( _.any(unitListing.owners) )
+                //return angular.lowercase( unitListing.name || '' ).indexOf( lowerFilter ) !== -1
+                //    || angular.lowercase( file.uploadDateString || '' ).indexOf( lowerFilter ) !== -1
+                //    || angular.lowercase( file.uploaderFullName || '' ).indexOf( lowerFilter ) !== -1;
+            };
+            //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
+            //setTimeout( function()
+            //{
+            //    // Force redraw of the document. Not sure why, but the file list disappears on Chrome
+            //    var element = document.getElementById( "documents-area" );
+            //    var disp = element.style.display;
+            //    element.style.display = 'none';
+            //    var trick = element.offsetHeight;
+            //    element.style.display = disp;
+            //}, 50 );
+        };
         GroupMembersController.prototype.setupGroupEmails = function () {
             var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
@@ -6481,18 +6503,22 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function CommitteeHomeController($http, $rootScope, siteInfo, $cacheFactory) {
-            this.$http = $http;
-            this.$rootScope = $rootScope;
+        function CommitteeHomeController(siteInfo, fellowResidents) {
             this.siteInfo = siteInfo;
-            this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
+            this.canManage = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         CommitteeHomeController.prototype.$onInit = function () {
+            var _this = this;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         };
-        CommitteeHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
+        CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents"];
         return CommitteeHomeController;
     }());
     Ally.CommitteeHomeController = CommitteeHomeController;
@@ -6516,11 +6542,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function CommitteeMembersController($http, fellowResidents, $cacheFactory) {
+        function CommitteeMembersController($http, fellowResidents, $cacheFactory, siteInfo) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$cacheFactory = $cacheFactory;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
+            this.canManage = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -6563,14 +6591,16 @@ var Ally;
         CommitteeMembersController.prototype.getMembers = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Committee/" + this.committee.committeeId + "/Members").then(function (response) {
+            this.fellowResidents.getCommitteeMembers(this.committee.committeeId).then(function (committeeMembers) {
                 _this.isLoading = false;
-                _this.members = response.data;
+                _this.members = committeeMembers;
                 _this.members = _.sortBy(_this.members, function (m) { return (m.fullName || "").toLowerCase(); });
                 var isMember = function (u) { return _.some(_this.members, function (m) { return m.userId === u.userId; }); };
                 _this.filteredGroupMembers = _.filter(_this.allGroupMembers, function (m) { return !isMember(m); });
                 _this.filteredGroupMembers = _.sortBy(_this.filteredGroupMembers, function (m) { return (m.fullName || "").toLowerCase(); });
                 _this.contactUser = _.find(_this.members, function (m) { return m.userId == _this.committee.contactMemberUserId; });
+                // Admin or committee members can manage the committee
+                _this.canManage = _this.siteInfo.userInfo.isAdmin || _this.siteInfo.userInfo.isSiteManager || _.any(_this.members, function (m) { return m.userId === _this.siteInfo.userInfo.userId; });
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve committee members, please refresh the page to try again");
@@ -6608,7 +6638,7 @@ var Ally;
                 alert("Failed to remove member, please refresh the page to try again: " + response.data.exceptionMessage);
             });
         };
-        CommitteeMembersController.$inject = ["$http", "fellowResidents", "$cacheFactory"];
+        CommitteeMembersController.$inject = ["$http", "fellowResidents", "$cacheFactory", "SiteInfo"];
         return CommitteeMembersController;
     }());
     Ally.CommitteeMembersController = CommitteeMembersController;
@@ -6651,7 +6681,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         CommitteeParentController.prototype.$onInit = function () {
-            this.canManage = this.siteInfo.userInfo.isSiteManager;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             this.retrieveCommittee();
         };
         /*
@@ -6720,13 +6750,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function FAQsController($http, $rootScope, siteInfo, $cacheFactory) {
+        function FAQsController($http, $rootScope, siteInfo, $cacheFactory, fellowResidents) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
             this.isBodyMissing = false;
-            this.isSiteManager = false;
+            this.canManage = false;
             this.headerText = "Information and Frequently Asked Questions (FAQs)";
             this.editingInfoItem = new InfoItem();
             if (AppConfig.appShortName === "home")
@@ -6736,8 +6767,12 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         FAQsController.prototype.$onInit = function () {
+            var _this = this;
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
-            this.isSiteManager = this.$rootScope["isSiteManager"];
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
@@ -6864,7 +6899,7 @@ var Ally;
                 _this.retrieveInfo();
             });
         };
-        FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
+        FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         return FAQsController;
     }());
     Ally.FAQsController = FAQsController;
@@ -7243,11 +7278,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function DocumentsController($http, $rootScope, $cacheFactory, $scope) {
+        function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents) {
+            var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$cacheFactory = $cacheFactory;
             this.$scope = $scope;
+            this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.isLoading = false;
             this.filesSortDescend = false;
             this.title = "Documents";
@@ -7261,7 +7299,10 @@ var Ally;
             this.fileSearch = {
                 all: ""
             };
-            this.isSiteManager = $rootScope["isSiteManager"];
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -7425,7 +7466,7 @@ var Ally;
         // Make it so the user can drag and drop files between folders
         DocumentsController.prototype.hookUpFileDragging = function () {
             // If the user can't manage the association then do nothing
-            if (!this.isSiteManager)
+            if (!this.canManage)
                 return;
             var innerThis = this;
             setTimeout(function () {
@@ -7791,7 +7832,7 @@ var Ally;
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });
         };
-        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope"];
+        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents"];
         DocumentsController.LocalStorageKey_SortType = "DocsInfo_FileSortType";
         DocumentsController.LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         DocumentsController.DirName_Committees = "Committees_Root";
@@ -11300,6 +11341,26 @@ var Ally;
             });
         };
         /**
+         * Get the members for a committee
+         */
+        FellowResidentsService.prototype.getCommitteeMembers = function (committeeId) {
+            return this.$http.get("/api/Committee/" + committeeId + "/Members").then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Determine if a user is a committee member
+         */
+        FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
+            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+        };
+        /**
          * Get the residents for an association, broken down by unit for easy display
          */
         FellowResidentsService.prototype.getByUnits = function () {
@@ -11675,11 +11736,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope) {
+        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.fellowResidents = fellowResidents;
             this.isLoading = false;
             this.viewingThread = null;
             this.showCreateNewModal = false;
@@ -11693,10 +11755,19 @@ var Ally;
         */
         GroupCommentThreadsController.prototype.$onInit = function () {
             var _this = this;
-            if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
-                this.canCreateThreads = true;
-            else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
-                this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            if (!this.canCreateThreads) {
+                if (this.committeeId) {
+                    // Make sure committee members can manage their data
+                    this.fellowResidents.isCommitteeMember(this.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
+                }
+                else {
+                    if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
+                        this.canCreateThreads = true;
+                    else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
+                        this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                }
+            }
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
             this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
             this.editComment = {
@@ -11786,7 +11857,7 @@ var Ally;
                 _this.isLoading = false;
             });
         };
-        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope"];
+        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents"];
         return GroupCommentThreadsController;
     }());
     Ally.GroupCommentThreadsController = GroupCommentThreadsController;
@@ -12523,26 +12594,34 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function TodoListCtrl($http) {
+        function TodoListCtrl($http, siteInfo, fellowResidents) {
             this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.todoLists = [];
             this.isLoading = false;
             this.newListName = "";
             this.isFixedList = false;
             this.shouldExpandTodoItemModal = false;
+            this.canManage = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         TodoListCtrl.prototype.$onInit = function () {
+            var _this = this;
             this.isFixedList = !!this.fixedTodoListId;
             if (this.isFixedList)
                 this.loadFixedTodoList();
             else
                 this.loadAllTodoLists();
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         };
         /**
-         * Retrieve a todo list
+         * Retrieve a todo list by ID
          */
         TodoListCtrl.prototype.loadFixedTodoList = function () {
             var _this = this;
@@ -12553,7 +12632,7 @@ var Ally;
             });
         };
         /**
-         * Retrieve the todo lists
+         * Retrieve all available todo lists
          */
         TodoListCtrl.prototype.loadAllTodoLists = function () {
             var _this = this;
@@ -12577,6 +12656,7 @@ var Ally;
                 postUri += "&committeeId=" + this.committee.committeeId;
             this.$http.post(postUri, null).then(function () {
                 _this.isLoading = false;
+                _this.newListName = "";
                 _this.loadAllTodoLists();
             }, function (response) {
                 _this.isLoading = false;
@@ -12673,7 +12753,7 @@ var Ally;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
-        TodoListCtrl.$inject = ["$http"];
+        TodoListCtrl.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return TodoListCtrl;
     }());
     Ally.TodoListCtrl = TodoListCtrl;

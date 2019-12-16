@@ -107,6 +107,38 @@
 
 
         /**
+         * Get the members for a committee
+         */
+        getCommitteeMembers(committeeId: number)
+        {
+            return this.$http.get( `/api/Committee/${committeeId}/Members` ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowChtnResident[]> ) =>
+            {
+                return httpResponse.data;
+
+            }, function ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            {
+                return this.$q.reject( httpResponse );
+            } );
+        }
+
+
+        /**
+         * Determine if a user is a committee member
+         */
+        isCommitteeMember( committeeId: number, userId: string )
+        {
+            return this.$http.get( `/api/Committee/${committeeId}/IsMember`, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) =>
+            {
+                return httpResponse.data;
+
+            }, function ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            {
+                return this.$q.reject( httpResponse );
+            } );
+        }
+
+
+        /**
          * Get the residents for an association, broken down by unit for easy display
          */
         getByUnits(): ng.IPromise<UnitListing[]>

@@ -16,7 +16,7 @@
                         <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateFileFilter()" data-ng-model="$ctrl.fileSearch.all" data-ng-model-options="{ debounce: 1 }" placeholder="Search files" aria-describedby="basic-addon2" />
                     </div>
 
-                    <div data-ng-class="{'directory-list-panel':$ctrl.isSiteManager, 'directory-list-panel-full': !$ctrl.isSiteManager}">
+                    <div data-ng-class="{'directory-list-panel':$ctrl.canManage, 'directory-list-panel-full': !$ctrl.canManage}">
 
                         <div data-ng-repeat="curDirectory in $ctrl.documentTree.subdirectories">
                             <div id="directory-name-{{ $index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
@@ -38,7 +38,7 @@
                             Your association has not yet uploaded any files.
                         </div>
                     </div>
-                    <div class="text-center pt-3" data-ng-show="$ctrl.isSiteManager">
+                    <div class="text-center pt-3" data-ng-show="$ctrl.canManage">
                         <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createDirectory()">+ Create New Folder</button>
                     </div>
                 </div>
@@ -53,11 +53,11 @@
                         <div class="pull-right margin-right-10">
                             Sort By:<br /><span class="text-link" data-ng-class="{'bold-underline': $ctrl.fileSortType === 'title'}" data-ng-click="$ctrl.SetFileSortType('title')">Name</span> - <span data-ng-class="{'bold-underline': $ctrl.fileSortType === 'uploadDate'}" data-ng-click="$ctrl.SetFileSortType('uploadDate')" class="text-link">Upload Date</span>
                         </div>
-                        <a href="javascript:void(0)" id="rename-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.isSiteManager" data-ng-click="$ctrl.RenameSelectedDirectory()">Rename Folder</a>
-                        <a href="javascript:void(0)" id="delete-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.isSiteManager" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</a>
-                        <a href="javascript:void(0)" id="create-subdirectory-button" class="btn-create-folder" data-ng-if="!$ctrl.selectedDirectory.parentDirectory && $ctrl.isSiteManager" data-ng-click="$ctrl.CreateSubDirectory()">Create Sub-Folder</a>
+                        <a href="javascript:void(0)" id="rename-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.RenameSelectedDirectory()">Rename Folder</a>
+                        <a href="javascript:void(0)" id="delete-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</a>
+                        <a href="javascript:void(0)" id="create-subdirectory-button" class="btn-create-folder" data-ng-if="!$ctrl.selectedDirectory.parentDirectory && $ctrl.canManage" data-ng-click="$ctrl.CreateSubDirectory()">Create Sub-Folder</a>
 
-                        <a href="javascript:void(0)" class="upload_btn btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.isSiteManager" onclick="$('#JQDocsFileUploader').click();">+ Upload File</a>
+                        <a href="javascript:void(0)" class="upload_btn btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" onclick="$('#JQDocsFileUploader').click();">+ Upload File</a>
                     </div>
                     <p data-ng-show="$ctrl.selectedDirectory.files.length === 0">
                         This folder is empty
@@ -78,8 +78,8 @@
                                     <div class="col-md-6 text-md-right padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
                                         - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
-                                        <span data-ng-if="$ctrl.isSiteManager"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
-                                        <span data-ng-if="$ctrl.isSiteManager"> - <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
                                     </div>
                                 </div>
                             </div>

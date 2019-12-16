@@ -37,11 +37,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function DocumentsController($http, $rootScope, $cacheFactory, $scope) {
+        function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents) {
+            var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$cacheFactory = $cacheFactory;
             this.$scope = $scope;
+            this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.isLoading = false;
             this.filesSortDescend = false;
             this.title = "Documents";
@@ -55,7 +58,10 @@ var Ally;
             this.fileSearch = {
                 all: ""
             };
-            this.isSiteManager = $rootScope["isSiteManager"];
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -219,7 +225,7 @@ var Ally;
         // Make it so the user can drag and drop files between folders
         DocumentsController.prototype.hookUpFileDragging = function () {
             // If the user can't manage the association then do nothing
-            if (!this.isSiteManager)
+            if (!this.canManage)
                 return;
             var innerThis = this;
             setTimeout(function () {
@@ -585,7 +591,7 @@ var Ally;
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });
         };
-        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope"];
+        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents"];
         DocumentsController.LocalStorageKey_SortType = "DocsInfo_FileSortType";
         DocumentsController.LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         DocumentsController.DirName_Committees = "Committees_Root";

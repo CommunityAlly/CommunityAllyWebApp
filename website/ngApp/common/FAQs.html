@@ -9,7 +9,7 @@
 
     <div id="info-item-{{ $index }}" class="association-info-item" data-ng-repeat="info in $ctrl.infoItems">
         <a name="info-item-nav-{{ $index }}"><h4 style="display: inline-block;" id="info-item-title-{{ $index }}">{{ info.title }}</h4></a>
-        <div data-ng-show="$ctrl.isSiteManager" style="display: inline-block; font-size: small; margin-left: 9px;">
+        <div data-ng-show="$ctrl.canManage" style="display: inline-block; font-size: small; margin-left: 9px;">
             <a href="javascript:void(0)" id="info-item-edit-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.onStartEditInfoItem( info );">Edit</a>
             <a href="javascript:void(0)" id="info-item-delete-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.onDeleteInfoItem( info );">Delete</a>
         </div>
@@ -18,7 +18,7 @@
         <br />
     </div>
 
-    <div class="add_info" data-ng-show="$ctrl.isSiteManager">
+    <div class="add_info" data-ng-show="$ctrl.canManage">
         <br />
         <h4>Add New Information</h4>
         <form action="" id="info-item-edit-form">
@@ -88,7 +88,7 @@
         </form>
     </div>
 
-    <div class="add_info" data-ng-hide="$ctrl.isSiteManager" style="padding-top: 3em; font-weight: bold;">
+    <div class="add_info" data-ng-hide="$ctrl.canManage" style="padding-top: 3em; font-weight: bold;">
         Site admin can add and edit association information. If you would like to add information, please let someone on your board
         know or ask to be made a site admin.
     </div>

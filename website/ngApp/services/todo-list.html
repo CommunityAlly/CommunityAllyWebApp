@@ -3,28 +3,31 @@
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
         <div data-ng-if="!$ctrl.isFixedList">
             <div data-ng-repeat="curList in $ctrl.todoLists">
-                <h4>{{ curList.name }} <span class="note-text" style="font-size:0.55em;">To-Do List</span><span class="ml-2"><span class="text-link note-text" data-ng-click="$ctrl.deleteTodoList( curList )">Delete</span></span></h4>
+                <h4>{{ curList.name }} <span class="note-text" style="font-size:0.55em;">To-Do List</span><span data-ng-if="$ctrl.canManage" class="ml-2"><span class="text-link note-text" data-ng-click="$ctrl.deleteTodoList( curList )">Delete</span></span></h4>
                 <div>
                     <div class="todo-item-box mt-2" data-ng-repeat="curItem in curList.todoItems">
                         <div style="width: 80%; display: inline-block; line-height: 24px; vertical-align: top;">
                             <input type="checkbox" data-ng-click="$ctrl.onToggleComplete( curList.todoListId, curItem.todoItemId )" />
                             {{ curItem.description }}
-                            <span class="ml-2"><span class="text-link note-text" data-ng-click="$ctrl.deleteTodoItem( curItem )">Delete</span></span>
+                            <span class="ml-2" data-ng-if="$ctrl.canManage"><span class="text-link note-text" data-ng-click="$ctrl.deleteTodoItem( curItem )">Delete</span></span>
                         </div>
                     </div>
                     <!--<div class="text-link note-text" data-onaftersave="$ctrl.onAddItem( curList.todoListId )" data-editable-text="$ctrl.newItemDescription">
-            Add New To-Do Item
-        </div>-->
-                    <div class="text-link note-text mt-2" data-ng-click="$ctrl.addNewItem( curList.todoListId )">
+                Add New To-Do Item
+            </div>-->
+                    <div class="text-link note-text mt-2" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.addNewItem( curList.todoListId )">
                         Add To-Do
                     </div>
                 </div>
                 <hr style="margin-top: 20px; margin-bottom: 20px;" />
             </div>
-            <div>
+            <div data-ng-if="$ctrl.canManage">
                 <div class="note-text text-link" style="border-bottom-style: none !important;" data-onaftersave="$ctrl.onAddList()" data-editable-text="$ctrl.newListName">
                     Add New To-Do List
                 </div>
+            </div>
+            <div data-ng-if="!$ctrl.canManage">
+                There are no to-do lists to view.
             </div>
         </div>
         <div data-ng-if="$ctrl.isFixedList">
@@ -32,10 +35,10 @@
                 <div style="width: 80%; display: inline-block; line-height: 24px; vertical-align: top;">
                     <input type="checkbox" data-ng-click="$ctrl.onToggleComplete( curList.todoListId, curItem.todoItemId )" />
                     {{ curItem.description }}
-                    <span class="ml-2"><span class="text-link note-text" data-ng-click="$ctrl.deleteTodoItem( curItem )">Delete</span></span>
+                    <span class="ml-2" data-ng-if="$ctrl.canManage"><span class="text-link note-text" data-ng-click="$ctrl.deleteTodoItem( curItem )">Delete</span></span>
                 </div>
             </div>
-            <div class="text-link note-text mt-2" data-ng-click="$ctrl.addNewItem( curList.todoListId )">
+            <div class="text-link note-text mt-2" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.addNewItem( curList.todoListId )">
                 Add To-Do
             </div>
         </div>

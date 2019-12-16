@@ -17,7 +17,7 @@
             </div>
         </div>
         
-        <group-send-email committee="$ctrl.committee"></group-send-email>
+        <group-send-email data-ng-if="$ctrl.canManage" committee="$ctrl.committee"></group-send-email>
     </div>
 
     <div class="col-md-6">

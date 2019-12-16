@@ -20,14 +20,14 @@ namespace Ally
      */
     export class FAQsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         
         editingInfoItem: InfoItem;
         hideDocuments: boolean;
         isLoadingInfo: boolean;
         infoItems: InfoItem[];
         isBodyMissing = false;
-        isSiteManager = false;
+        canManage: boolean = false;
         getUri: string;
         committee: Ally.Committee;
         headerText: string = "Information and Frequently Asked Questions (FAQs)";
@@ -36,7 +36,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $cacheFactory: ng.ICacheFactoryService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $cacheFactory: ng.ICacheFactoryService, private fellowResidents: Ally.FellowResidentsService )
         {
             this.editingInfoItem = new InfoItem();
             if( AppConfig.appShortName === "home" )
@@ -50,7 +50,11 @@ namespace Ally
         $onInit()
         {
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
-            this.isSiteManager = this.$rootScope["isSiteManager"];
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+
+            // Make sure committee members can manage their data
+            if( this.committee && !this.canManage )
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
             
             this.retrieveInfo();
 
