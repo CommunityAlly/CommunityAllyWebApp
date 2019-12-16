@@ -126,7 +126,7 @@
                             {
                                 field: 'name',
                                 displayName: 'Name',
-                                cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-click="grid.appScope.$ctrl.editEquipment( row.entity )">{{ row.entity.name }}</span></div>'
+                                cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="grid.appScope.$ctrl.isSiteManager" data-ng-click="grid.appScope.$ctrl.editEquipment( row.entity )">{{ row.entity.name }}</span><span data-ng-if="!grid.appScope.$ctrl.isSiteManager">{{ row.entity.name }}</span></div>'
                             },
                             { field: 'type', displayName: 'Type', width: 150 },
                             { field: 'installDate', displayName: "Installed", width: 90, cellFilter: "date:'shortDate'", type: "date" },
