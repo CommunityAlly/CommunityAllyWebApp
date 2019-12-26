@@ -189,6 +189,27 @@ namespace Ally
                 setTimeout( function () { document.body.removeChild( downloadLink ); }, 500 );
             }
         }
+
+
+        /** Determine if a string starts with a numeric string */
+        static startsWithNumber( testString: string, shouldTrim: boolean = true ): boolean
+        {
+            if( HtmlUtil.isNullOrWhitespace( testString ) )
+                return false;
+
+            if( shouldTrim )
+                testString = testString.trim();
+
+            let firstWhitespaceIndex = testString.search( /\s/ );
+
+            // If no whitespace was found then test the whole string
+            if( firstWhitespaceIndex === -1 )
+                firstWhitespaceIndex = testString.length;
+
+            testString = testString.substring( 0, firstWhitespaceIndex - 1 );
+
+            return HtmlUtil.isNumericString( testString );
+        }
     }
 
 

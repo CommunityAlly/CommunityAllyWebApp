@@ -125,23 +125,38 @@ namespace Ally
 
                 if( this.unitList && this.unitList.length > 0 )
                 {
+                    // If all homes have a numeric name then lets sort numerically
                     var useNumericNames = _.every( this.unitList, u => HtmlUtil.isNumericString( u.name ) );
                     if( useNumericNames )
                         this.unitList = _.sortBy( this.unitList, u => +u.name );
                     else
                     {
+                        // If all homes share the same suffix then sort by only the first part, if numeric
                         var firstSuffix = this.unitList[0].name.substr( this.unitList[0].name.indexOf( " " ) );
-                        let allHaveSameSuffix = _.every( this.unitList, u => HtmlUtil.endsWith( u.name, firstSuffix ) );
-                        if( allHaveSameSuffix )
+                        const allHaveNumericPrefix = _.every( this.unitList, u => HtmlUtil2.startsWithNumber( u.name ) );
+                        const allHaveSameSuffix = _.every( this.unitList, u => HtmlUtil.endsWith( u.name, firstSuffix ) );
+                        if( allHaveNumericPrefix && allHaveSameSuffix )
                         {
                             this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.indexOf( " " ) ) ) );
+                        }
+                        else
+                        {
+                            // If all units start with a number and end with a string (Like,
+                            // 123 Elm St) then first sort by the street, then number
+                            if( allHaveNumericPrefix )
+                            {
+                                const getAfterNumber = ( str: string ) => str.substring( str.search( /\s/ ) + 1 );
+
+                                this.unitList = _.sortBy( this.unitList, u => [ getAfterNumber( u.name ), parseInt( u.name.substr( 0, u.name.search( /\s/ ) ) ) ] );
+                                //this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.search( /\s/ ) ) ) );
+                            }
                         }
                     }
                 }
                 
                 if( this.committees )
                 {
-                    // Only show commitees with a contact person
+                    // Only show committees with a contact person
                     //TWC - 10/19/18 - Show committees even without a contact person
                     //this.committees = _.reject( this.committees, c => !c.contactUser );
 

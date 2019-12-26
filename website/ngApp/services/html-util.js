@@ -107,6 +107,20 @@ var Ally;
                 setTimeout(function () { document.body.removeChild(downloadLink_1); }, 500);
             }
         };
+        /** Determine if a string starts with a numeric string */
+        HtmlUtil2.startsWithNumber = function (testString, shouldTrim) {
+            if (shouldTrim === void 0) { shouldTrim = true; }
+            if (HtmlUtil.isNullOrWhitespace(testString))
+                return false;
+            if (shouldTrim)
+                testString = testString.trim();
+            var firstWhitespaceIndex = testString.search(/\s/);
+            // If no whitespace was found then test the whole string
+            if (firstWhitespaceIndex === -1)
+                firstWhitespaceIndex = testString.length;
+            testString = testString.substring(0, firstWhitespaceIndex - 1);
+            return HtmlUtil.isNumericString(testString);
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
