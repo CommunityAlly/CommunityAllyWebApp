@@ -177,6 +177,9 @@ namespace Ally
 
                 // Populate the e-mail name lists
                 this.setupGroupEmails();
+            }, ( httpErrorResponse ) =>
+            {
+                alert( "Failed to retrieve group members. Please let tech support know via the contact form in the bottom right." );
             } );
         }
 
