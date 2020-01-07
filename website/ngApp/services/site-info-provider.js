@@ -273,7 +273,7 @@ var Ally;
         }
         SiteInfoProvider.prototype.$get = function () {
             if (!SiteInfoProvider.isSiteInfoLoaded)
-                alert("Not yet loaded!");
+                console.log("Not yet loaded!");
             return SiteInfoProvider.siteInfo;
         };
         SiteInfoProvider.isSiteInfoLoaded = false;

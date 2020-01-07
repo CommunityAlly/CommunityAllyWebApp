@@ -425,7 +425,7 @@ namespace Ally
         public $get() : SiteInfoService
         {
             if( !SiteInfoProvider.isSiteInfoLoaded )
-                alert( "Not yet loaded!" );
+                console.log( "Not yet loaded!" );
 
             return SiteInfoProvider.siteInfo;
         }

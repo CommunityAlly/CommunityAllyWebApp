@@ -946,7 +946,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
         });
         // Create an interceptor so we can add our auth token header. Also, this allows us to set our
         // own base URL for API calls so local testing can use the live API.
-        $provide.factory("apiUriInterceptor", ["$rootScope", function ($rootScope) {
+        $provide.factory("apiUriInterceptor", ["$rootScope", "SiteInfo", function ($rootScope, siteInfo) {
                 // If we're making a request because the Angular app's run block, then see if we have
                 // a cached auth token
                 if (typeof ($rootScope.authToken) !== "string" && window.localStorage)
@@ -955,10 +955,13 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     request: function (reqConfig) {
                         // If we're talking to the Community Ally API server
                         if (HtmlUtil.startsWith(reqConfig.url, "/api/")) {
+                            //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
                             if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
                                 reqConfig.url = OverrideBaseApiPath + reqConfig.url;
                             }
+                            //else if( siteInfo.publicSiteInfo.baseApiUrl )
+                            //    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
                         }
@@ -1326,7 +1329,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
     new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
     new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
-    new Ally.RoutePath_v3({ path: "MemberSignUp", templateHtml: "<pta-member-sign-up></pta-member-sign-up>", menuTitle: null, role: Role_All }),
+    new Ally.RoutePath_v3({ path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All }),
     new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
     new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager }),
     new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
@@ -4645,6 +4648,8 @@ var Ally;
                 }
                 // Populate the e-mail name lists
                 _this.setupGroupEmails();
+            }, function (httpErrorResponse) {
+                alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
             });
         };
         GroupMembersController.prototype.updateMemberFilter = function () {
@@ -6502,6 +6507,95 @@ var Ally;
 CA.angularApp.component("neighborhoodSignUpWizard", {
     templateUrl: "/ngApp/chtn/public/neighborhood-sign-up-wizard.html",
     controller: Ally.NeighborhoodSignUpWizardController
+});
+
+var Ally;
+(function (Ally) {
+    var MemberSignUpInfo = /** @class */ (function () {
+        function MemberSignUpInfo() {
+        }
+        return MemberSignUpInfo;
+    }());
+    /**
+     * The controller for the page that allows anonymous users share their contact info to be
+     * invited to the group's site
+     */
+    var PendingMemberSignUpController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function PendingMemberSignUpController($http, $rootScope, siteInfo, $timeout, appCacheService) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.appCacheService = appCacheService;
+            this.isLoading = false;
+            this.signUpInfo = new MemberSignUpInfo();
+            this.showInputForm = true;
+            this.showSchoolField = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        PendingMemberSignUpController.prototype.$onInit = function () {
+            var _this = this;
+            this.groupName = this.siteInfo.publicSiteInfo.fullName;
+            this.showSchoolField = AppConfig.appShortName === "pta";
+            window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 300);
+        };
+        /**
+         * Attach the Google Places auto-complete logic to the address text box
+         */
+        PendingMemberSignUpController.prototype.hookupAddressAutocomplete = function () {
+            // If we know our group's position, let's tighten the auto-complete suggestion radius
+            var autocompleteOptions = undefined;
+            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
+                // Also mask phone numbers for US phones
+                var phoneFields = $(".mask-phone");
+                phoneFields.mask("(999) 999-9999? x999", { autoclear: false });
+                var TwentyFiveMilesInMeters = 40234;
+                var circle = new google.maps.Circle({
+                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    radius: TwentyFiveMilesInMeters
+                });
+                autocompleteOptions = {
+                    bounds: circle.getBounds()
+                };
+            }
+            var addressInput = document.getElementById("member-home-address-text-box");
+            this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
+            var innerThis = this;
+            google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
+                var place = innerThis.addressAutocomplete.getPlace();
+                innerThis.signUpInfo.streetAddress = place.formatted_address;
+            });
+        };
+        PendingMemberSignUpController.prototype.submitInfo = function () {
+            var _this = this;
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                this.errorMessage = "Please complete the reCAPTCHA field";
+                return;
+            }
+            this.isLoading = true;
+            this.errorMessage = null;
+            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then(function (response) {
+                _this.isLoading = false;
+                _this.showInputForm = false;
+            }, function (response) {
+                _this.isLoading = false;
+                _this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
+            });
+        };
+        PendingMemberSignUpController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
+        return PendingMemberSignUpController;
+    }());
+    Ally.PendingMemberSignUpController = PendingMemberSignUpController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("pendingMemberSignUp", {
+    templateUrl: "/ngApp/chtn/public/pending-member-sign-up.html",
+    controller: Ally.PendingMemberSignUpController
 });
 
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
@@ -10565,92 +10659,6 @@ CA.angularApp.component("ptaGroupHome", {
     controller: Ally.PtaGroupHomeController
 });
 
-var Ally;
-(function (Ally) {
-    var MemberSignUpInfo = /** @class */ (function () {
-        function MemberSignUpInfo() {
-        }
-        return MemberSignUpInfo;
-    }());
-    /**
-     * The controller for the PTA Ally home page
-     */
-    var PtaMemberSignUpController = /** @class */ (function () {
-        /**
-         * The constructor for the class
-         */
-        function PtaMemberSignUpController($http, $rootScope, siteInfo, $timeout, appCacheService) {
-            this.$http = $http;
-            this.$rootScope = $rootScope;
-            this.siteInfo = siteInfo;
-            this.$timeout = $timeout;
-            this.appCacheService = appCacheService;
-            this.isLoading = false;
-            this.signUpInfo = new MemberSignUpInfo();
-            this.showInputForm = true;
-        }
-        /**
-        * Called on each controller after all the controllers on an element have been constructed
-        */
-        PtaMemberSignUpController.prototype.$onInit = function () {
-            var _this = this;
-            this.groupName = this.siteInfo.publicSiteInfo.fullName;
-            window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 300);
-        };
-        /**
-         * Attach the Google Places auto-complete logic to the address text box
-         */
-        PtaMemberSignUpController.prototype.hookupAddressAutocomplete = function () {
-            // If we know our group's position, let's tighten the auto-complete suggestion radius
-            var autocompleteOptions = undefined;
-            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
-                // Also mask phone numbers for US phones
-                var phoneFields = $(".mask-phone");
-                phoneFields.mask("(999) 999-9999? x999", { autoclear: false });
-                var TwentyFiveMilesInMeters = 40234;
-                var circle = new google.maps.Circle({
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
-                    radius: TwentyFiveMilesInMeters
-                });
-                autocompleteOptions = {
-                    bounds: circle.getBounds()
-                };
-            }
-            var addressInput = document.getElementById("member-home-address-text-box");
-            this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
-            google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                innerThis.signUpInfo.streetAddress = place.formatted_address;
-            });
-        };
-        PtaMemberSignUpController.prototype.submitInfo = function () {
-            var _this = this;
-            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
-            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
-                this.errorMessage = "Please complete the reCAPTCHA field";
-                return;
-            }
-            this.isLoading = true;
-            this.errorMessage = null;
-            this.$http.post("/api/PublicPta", this.signUpInfo).then(function (response) {
-                _this.isLoading = false;
-                _this.showInputForm = false;
-            }, function (response) {
-                _this.isLoading = false;
-                _this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
-            });
-        };
-        PtaMemberSignUpController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
-        return PtaMemberSignUpController;
-    }());
-    Ally.PtaMemberSignUpController = PtaMemberSignUpController;
-})(Ally || (Ally = {}));
-CA.angularApp.component("ptaMemberSignUp", {
-    templateUrl: "/ngApp/pta/pta-member-sign-up.html",
-    controller: Ally.PtaMemberSignUpController
-});
-
 function ServiceBankInfoCtrl( $http )
 {
     var vm = this;
@@ -12589,7 +12597,7 @@ var Ally;
         }
         SiteInfoProvider.prototype.$get = function () {
             if (!SiteInfoProvider.isSiteInfoLoaded)
-                alert("Not yet loaded!");
+                console.log("Not yet loaded!");
             return SiteInfoProvider.siteInfo;
         };
         SiteInfoProvider.isSiteInfoLoaded = false;

@@ -156,7 +156,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
         });
         // Create an interceptor so we can add our auth token header. Also, this allows us to set our
         // own base URL for API calls so local testing can use the live API.
-        $provide.factory("apiUriInterceptor", ["$rootScope", function ($rootScope) {
+        $provide.factory("apiUriInterceptor", ["$rootScope", "SiteInfo", function ($rootScope, siteInfo) {
                 // If we're making a request because the Angular app's run block, then see if we have
                 // a cached auth token
                 if (typeof ($rootScope.authToken) !== "string" && window.localStorage)
@@ -165,10 +165,13 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     request: function (reqConfig) {
                         // If we're talking to the Community Ally API server
                         if (HtmlUtil.startsWith(reqConfig.url, "/api/")) {
+                            //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
                             if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
                                 reqConfig.url = OverrideBaseApiPath + reqConfig.url;
                             }
+                            //else if( siteInfo.publicSiteInfo.baseApiUrl )
+                            //    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
                         }
