@@ -16,9 +16,10 @@ namespace Ally
 
 
     /**
-     * The controller for the PTA Ally home page
+     * The controller for the page that allows anonymous users share their contact info to be
+     * invited to the group's site
      */
-    export class PtaMemberSignUpController implements ng.IController
+    export class PendingMemberSignUpController implements ng.IController
     {
         static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
         isLoading: boolean = false;
@@ -27,6 +28,7 @@ namespace Ally
         groupName: string;
         addressAutocomplete: google.maps.places.Autocomplete;
         errorMessage: string;
+        showSchoolField: boolean = false;
 
 
         /**
@@ -44,6 +46,7 @@ namespace Ally
         $onInit()
         {
             this.groupName = this.siteInfo.publicSiteInfo.fullName;
+            this.showSchoolField = AppConfig.appShortName === "pta";
 
             window.setTimeout( () => this.hookupAddressAutocomplete(), 300 );
         }
@@ -101,7 +104,7 @@ namespace Ally
             this.isLoading = true;
             this.errorMessage = null;
 
-            this.$http.post( "/api/PublicPta", this.signUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.post( "/api/PublicPendingUser", this.signUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isLoading = false;
                 this.showInputForm = false;
@@ -116,7 +119,7 @@ namespace Ally
 }
 
 
-CA.angularApp.component( "ptaMemberSignUp", {
-    templateUrl: "/ngApp/pta/pta-member-sign-up.html",
-    controller: Ally.PtaMemberSignUpController
+CA.angularApp.component( "pendingMemberSignUp", {
+    templateUrl: "/ngApp/chtn/public/pending-member-sign-up.html",
+    controller: Ally.PendingMemberSignUpController
 } );
