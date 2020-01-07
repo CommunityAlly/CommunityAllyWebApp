@@ -213,7 +213,7 @@ namespace Ally
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.showLaunchSite = AppConfig.appShortName !== "pta";
-            this.showPendingMembers = AppConfig.appShortName === "pta";
+            this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
 
             // Show the add home article link if the site isn't launched and is less than 5 days old
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 5, "days" ) );
@@ -405,7 +405,7 @@ namespace Ally
                 .then( () => this.loadSettings() )
                 .then( () =>
                 {
-                    if( AppConfig.appShortName === "pta" )
+                    if( this.showPendingMembers )
                         this.loadPendingMembers();
                 } );
         }

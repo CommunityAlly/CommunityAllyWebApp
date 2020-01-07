@@ -105,7 +105,7 @@ function FrequencyIdToInfo( frequencyId: number )
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Condo Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var CondoAllyAppConfig: Ally.AppConfigInfo =
+const CondoAllyAppConfig: Ally.AppConfigInfo =
 {
     appShortName: "condo",
     appName: "Condo Ally",
@@ -156,7 +156,7 @@ var CondoAllyAppConfig: Ally.AppConfigInfo =
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Neighborhood Watch Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//var WatchAppConfig: Ally.AppConfigInfo =
+//const WatchAppConfig: Ally.AppConfigInfo =
 //{
 //    appShortName: "watch",
 //    appName: "Neighborhood Watch Ally",
@@ -185,7 +185,7 @@ var CondoAllyAppConfig: Ally.AppConfigInfo =
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Service Professional Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//var ServiceAppConfig: Ally.AppConfigInfo =
+//const ServiceAppConfig: Ally.AppConfigInfo =
 //{
 //    appShortName: "service",
 //    appName: "Service Professional Ally",
@@ -209,7 +209,7 @@ var CondoAllyAppConfig: Ally.AppConfigInfo =
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Home Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var HomeAppConfig: Ally.AppConfigInfo =
+const HomeAppConfig: Ally.AppConfigInfo =
 {
     appShortName: "home",
     appName: "Home Ally",
@@ -242,7 +242,7 @@ var HomeAppConfig: Ally.AppConfigInfo =
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // HOA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var HOAAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
+const HOAAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 HOAAppConfig.appShortName = "hoa";
 HOAAppConfig.appName = "HOA Ally";
 HOAAppConfig.baseTld = "hoaally.org";
@@ -255,7 +255,7 @@ HOAAppConfig.menu.push( new Ally.RoutePath_v3( { path: "HoaSignUp", templateHtml
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Neighborhood Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var NeighborhoodAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
+const NeighborhoodAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 NeighborhoodAppConfig.appShortName = "neighborhood";
 NeighborhoodAppConfig.appName = "Neighborhood Ally";
 NeighborhoodAppConfig.baseTld = "neighborhoodally.org";
@@ -274,12 +274,13 @@ NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi 
 NeighborhoodAppConfig.menu.splice( 3, 0, new Ally.RoutePath_v3( { path: "DuesHistory", menuTitle:"Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
 
 NeighborhoodAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
+NeighborhoodAppConfig.menu.push( new Ally.RoutePath_v3( { path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", role: Role_All } ) );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Block Club Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var BlockClubAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
+const BlockClubAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
 BlockClubAppConfig.baseTld = "blockclubally.org";
@@ -299,12 +300,13 @@ BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { re
 BlockClubAppConfig.menu.splice( 3, 0, new Ally.RoutePath_v3( { path: "DuesHistory", menuTitle: "Dues History", templateHtml: "<dues-history></dues-history>", role: Role_Manager } ) );
 
 BlockClubAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All } ) );
+BlockClubAppConfig.menu.push( new Ally.RoutePath_v3( { path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", role: Role_All } ) );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // PTA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var PtaAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
+const PtaAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 PtaAppConfig.appShortName = "pta";
 PtaAppConfig.appName = "PTA Ally";
 PtaAppConfig.baseTld = "ptaally.org";
@@ -342,7 +344,7 @@ PtaAppConfig.menu = [
 
 var AppConfig:Ally.AppConfigInfo = null;
 
-var lowerDomain = document.domain.toLowerCase();
+let lowerDomain = document.domain.toLowerCase();
 if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
     lowerDomain = OverrideBaseApiPath.toLowerCase();
 
@@ -386,13 +388,13 @@ AppConfig.isPublicRoute = function( path: string )
         path = path.substr( 2 );
 
     // If the path has a parameter, only test the first word
-    var hasParameter = path.indexOf( "/", 1 ) !== -1;
+    const hasParameter = path.indexOf( "/", 1 ) !== -1;
     if( hasParameter )
         path = path.substr( 0, path.indexOf( "/", 1 ) );
 
-    var route = _.find( AppConfig.menu, function( m )
+    const route = _.find( AppConfig.menu, function( m )
     {
-        var testPath = m.path;
+        let testPath = m.path;
         if( !testPath )
             return false;
 
