@@ -49,7 +49,7 @@
 
     class FullPaymentHistory
     {
-        units: any[];
+        units: UnitWithOwner[];
         payments: PeriodicPayment[];
         specialAssessments: any[];
         payers: PayerInfo[];
@@ -64,12 +64,13 @@
         static $inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         
         LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
+        LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
+
         // The number of pay periods that are visible on the grid
         NumPeriodsVisible = 10;
 
         pageTitle: string;
         authToken: string;
-        units: any[];
         showPaymentInfo: boolean;
         assessmentFrequency: PeriodicPaymentFrequency;
         payPeriodName: string;
@@ -88,7 +89,9 @@
         payers: PayerInfo[];
         editPayment: any;
         showRowType: string = "unit";
-        isForPta: boolean = false;
+        isForMemberGroup: boolean = false;
+        isSavingPayment: boolean = false;
+        shouldColorCodePayments: boolean = false;
 
 
         /**
@@ -104,31 +107,24 @@
         */
         $onInit()
         {
-            this.isForPta = AppConfig.appShortName === "pta";
+            this.isForMemberGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
 
-            let isMembershipGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
-            if( isMembershipGroup )
+            if( this.isForMemberGroup )
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
 
-            if( this.isForPta )
+            if( this.isForMemberGroup )
                 this.NumPeriodsVisible = 8;
 
             this.authToken = window.localStorage.getItem( "ApiAuthToken" );
 
             if( AppConfig.isChtnSite )
                 this.showRowType = "unit";
-            else if( isMembershipGroup )
+            else if( this.isForMemberGroup )
                 this.showRowType = "member";
             else
                 console.log( "Unhandled app type for payment history: " + AppConfig.appShortName );
-
-            this.units = [
-                { name: "A", monthPayments: [1, 2, 3] },
-                { name: "B", monthPayments: [1, 2, 3] },
-                { name: "C", monthPayments: [1, 2, 3] }
-            ];
 
             // Example
             var payment =
@@ -144,6 +140,7 @@
                 };
 
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
+            this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
 
             var PeriodicPaymentFrequency_Monthly = 50;
             var PeriodicPaymentFrequency_Quarterly = 51;
@@ -151,7 +148,7 @@
             var PeriodicPaymentFrequency_Annually = 53;
 
             this.assessmentFrequency = <PeriodicPaymentFrequency>this.siteInfo.privateSiteInfo.assessmentFrequency;
-            if( isMembershipGroup )
+            if( this.isForMemberGroup )
                 this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
 
             // Set the period name
@@ -248,14 +245,13 @@
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/Association/updatePeriodicPaymentTracking?isPeriodicPaymentTrackingEnabled=" + this.isPeriodicPaymentTrackingEnabled, null ).then( function()
+            this.$http.put( "/api/Association/updatePeriodicPaymentTracking?isPeriodicPaymentTrackingEnabled=" + this.isPeriodicPaymentTrackingEnabled, null ).then( () =>
             {
-                innerThis.isLoading = false;
-            }, function()
+                this.isLoading = false;
+            }, () =>
             {
                 alert( "Failed to update the payment tracking" );
-                innerThis.isLoading = false;
+                this.isLoading = false;
             } );
         }
 
@@ -278,7 +274,7 @@
                     --curYearValue;
                 }
 
-                var curPeriodPayment = _.find( unit.allPayments, function( p:any ) { return p.period === curPeriod && p.year === curYearValue; } );
+                var curPeriodPayment = _.find( unit.allPayments, (p:any) => p.period === curPeriod && p.year === curYearValue );
 
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
@@ -369,17 +365,16 @@
             // Create the special assessment
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/PaymentHistory/SpecialAssessment", this.createSpecialAssessment ).then( function()
+            this.$http.post( "/api/PaymentHistory/SpecialAssessment", this.createSpecialAssessment ).then( () =>
             {
-                innerThis.isLoading = false;
-                innerThis.shouldShowCreateSpecialAssessment = false;
+                this.isLoading = false;
+                this.shouldShowCreateSpecialAssessment = false;
 
-                innerThis.retrievePaymentHistory();
+                this.retrievePaymentHistory();
 
-            }, function( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
                 var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert( "Failed to add special assessment: " + errorMessage );
@@ -461,7 +456,7 @@
                 if( currentPeriod === 1 || currentPeriod === this.maxPeriodRange )
                     headerName += " " + year;
 
-                if( AppConfig.appShortName === "pta" )
+                if( this.isForMemberGroup )
                     headerName = year + " - " + ( year + 1 );
 
                 this.visiblePeriodNames.push( {
@@ -475,7 +470,7 @@
             }
 
             // Make sure every visible period has an valid entry object
-            if( AppConfig.appShortName === "pta" )
+            if( this.isForMemberGroup )
                 _.each( this.payers, payer => payer.displayPayments = this.fillInEmptyPaymentsForMember( payer ) );
             else
                 _.each( this.unitPayments, ( unit: any ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
@@ -489,27 +484,26 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
             {
                 var paymentInfo = httpResponse.data;
                 
                 // Build the map of unit ID to unit information
-                innerThis.unitPayments = {};
-                _.each( paymentInfo.units, function( unit:any )
+                this.unitPayments = {};
+                _.each( paymentInfo.units, ( unit:UnitWithOwner ) =>
                 {
-                    innerThis.unitPayments[unit.unitId] = unit;
+                    this.unitPayments[unit.unitId] = unit;
 
                     // Only take the first two owners for now
-                    innerThis.unitPayments[unit.unitId].displayOwners = _.first( unit.owners, 2 );
-                    while( innerThis.unitPayments[unit.unitId].displayOwners.length < 2 )
-                        innerThis.unitPayments[unit.unitId].displayOwners.push( { name: "" } );
+                    this.unitPayments[unit.unitId].displayOwners = _.first( unit.owners, 2 );
+                    while( this.unitPayments[unit.unitId].displayOwners.length < 2 )
+                        this.unitPayments[unit.unitId].displayOwners.push( { name: "" } );
 
-                    innerThis.unitPayments[unit.unitId].payments = [];
+                    this.unitPayments[unit.unitId].payments = [];
                 } );
 
-                // Add the payment information to the units
-                if( AppConfig.appShortName === "pta" )
+                // Add the payment information to the members
+                if( this.isForMemberGroup && httpResponse.data.payers )
                 {
                     _.each( httpResponse.data.payers, ( payer ) =>
                     {
@@ -518,29 +512,29 @@
                 }
 
                 // Add the payment information to the units
-                _.each( paymentInfo.payments, function( payment: AssessmentPayment )
+                _.each( paymentInfo.payments, ( payment: AssessmentPayment ) =>
                 {
-                    if( innerThis.unitPayments[payment.unitId] )
-                        innerThis.unitPayments[payment.unitId].payments.push( payment );
+                    if( this.unitPayments[payment.unitId] )
+                        this.unitPayments[payment.unitId].payments.push( payment );
                 } );
 
                 // Store all of the payments rather than just what is visible
-                _.each( paymentInfo.units, function( unit:any )
+                _.each( paymentInfo.units, ( unit:any ) =>
                 {
                     unit.allPayments = unit.payments;
                 } );
                 
                 // Sort the units by name
                 var sortedUnits = [];
-                for( var key in innerThis.unitPayments )
-                    sortedUnits.push( innerThis.unitPayments[key] );
-                innerThis.unitPayments = _.sortBy( sortedUnits, function( unit:any ) { return unit.name; } );
+                for( var key in this.unitPayments )
+                    sortedUnits.push( this.unitPayments[key] );
+                this.unitPayments = _.sortBy( sortedUnits, unit => unit.name );
 
-                innerThis.payers = _.sortBy( paymentInfo.payers, function( payer:any ) { return payer.name; } );
+                this.payers = _.sortBy( paymentInfo.payers, payer => payer.name );
 
-                innerThis.displayPaymentsForRange( innerThis.startYearValue, innerThis.startPeriodValue );
+                this.displayPaymentsForRange( this.startYearValue, this.startPeriodValue );
 
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
@@ -589,6 +583,7 @@
         onshowPaymentInfo()
         {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
+            window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
         }
 
 
@@ -603,16 +598,13 @@
                 unit: unit,
                 payment: _.clone( periodPayment ), // Make a copy of the object so we can edit it without editing the grid
                 periodName: this.periodNames[periodPayment.period - 1],
-                filteredPayers: _.filter( this.payers, function( payer:any )
+                filteredPayers: _.filter( this.payers, ( payer:any ) =>
                 {
-                    return !_.some( unit.owners, function( owner:any )
-                    {
-                        return owner.userId === payer.userId;
-                    } );
+                    return !_.some( unit.owners, ( owner:any ) => owner.userId === payer.userId );
                 } )
             };
 
-            setTimeout( function() { $( "#paid-amount-textbox" ).focus(); }, 10 );
+            setTimeout( () => { $( "#paid-amount-textbox" ).focus(); }, 10 );
         }
 
 
@@ -630,28 +622,26 @@
                 filteredPayers: null
             };
 
-            setTimeout( function() { $( "#paid-amount-textbox" ).focus(); }, 10 );
+            setTimeout( () => { $( "#paid-amount-textbox" ).focus(); }, 10 );
         }
 
 
-        onSavePayment = function()
+        onSavePayment = () =>
         {
-            var innerThis = this;
-
-            var onSave = function()
+            var onSave = () =>
             {
-                innerThis.isSavingPayment = false;
+                this.isSavingPayment = false;
 
-                innerThis.editPayment = null;
-                innerThis.retrievePaymentHistory();
+                this.editPayment = null;
+                this.retrievePaymentHistory();
             };
 
-            var onError = function( httpResponse:ng.IHttpPromiseCallbackArg<any> )
+            var onError = ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isSavingPayment = false;
+                this.isSavingPayment = false;
 
                 alert( httpResponse.data.message );
-                innerThis.editPayment = null;
+                this.editPayment = null;
             };
 
             this.isSavingPayment = true;

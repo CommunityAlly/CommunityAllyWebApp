@@ -1,6 +1,6 @@
 <div class="page page-manage-assessmenthistory">
     <h1>{{ $ctrl.pageTitle }}</h1>
-    <p data-ng-if="!$ctrl.isForPta">
+    <p data-ng-if="!$ctrl.isForMemberGroup">
         <label><input id="enable-tracking-checkbox" type="checkbox" data-ng-change="$ctrl.onChangePeriodicPaymentTracking()" data-ng-model="$ctrl.isPeriodicPaymentTrackingEnabled">Enable Payment History for Residents</label><br>
         <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each unit's most recent payment recorded because that is how residents will know what payment they're making next.</span>
     </p>
@@ -8,8 +8,9 @@
         <div class="pull-right">
             Export To: <a data-ng-href="/api/PaymentHistory/Xlsx?ApiAuthToken={{ $ctrl.authToken }}" onclick="analytics.track( 'exportAssessmentXlsx' ); return true;" target="_blank">Excel (xslx)</a> or <a data-ng-href="/api/PaymentHistory/Csv?ApiAuthToken={{ $ctrl.authToken }}" onclick="analytics.track( 'exportAssessmentCsv' ); return true;" target="_blank">CSV</a>
         </div>
-        
+
         <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
+        <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
         <button class="btn btn-primary" style="display: none;" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
     </p>
     <div class="margin-top-10 spinner-effect">
@@ -26,7 +27,7 @@
                     <th class="text-right" style="width: 15%;">
                         
                     </th>
-                    <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForPta ? '1.1em' : ''}">
+                    <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : ''}">
                         {{ period.name }}
                     </th>
                 </tr>
@@ -43,7 +44,12 @@
                             <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
                         </div>
                         <div data-ng-if="$ctrl.showPaymentInfo">
-                            <span data-ng-show="payment.isPaid">{{ payment.amount | currency }}</span>
+                            <div data-ng-if="payment.isPaid">
+                                <div data-ng-if="$ctrl.shouldColorCodePayments">
+                                    <span data-ng-style="{'color': payment.amount < unit.assessment ? 'red' : 'green'}">{{ payment.amount | currency }}</span>
+                                </div>
+                                <div data-ng-if="!$ctrl.shouldColorCodePayments">{{ payment.amount | currency }}</div>
+                            </div>
                         </div>
                     </td>
                 </tr>

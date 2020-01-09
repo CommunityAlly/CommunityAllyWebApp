@@ -1447,37 +1447,40 @@ var Ally;
         * The constructor for the class
         */
         function AssessmentHistoryController($http, $location, siteInfo, appCacheService) {
+            var _this = this;
             this.$http = $http;
             this.$location = $location;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
+            this.LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
             // The number of pay periods that are visible on the grid
             this.NumPeriodsVisible = 10;
             this.shouldShowCreateSpecialAssessment = false;
             this.unitPayments = {};
             this.showRowType = "unit";
-            this.isForPta = false;
+            this.isForMemberGroup = false;
+            this.isSavingPayment = false;
+            this.shouldColorCodePayments = false;
             this.onSavePayment = function () {
-                var innerThis = this;
                 var onSave = function () {
-                    innerThis.isSavingPayment = false;
-                    innerThis.editPayment = null;
-                    innerThis.retrievePaymentHistory();
+                    _this.isSavingPayment = false;
+                    _this.editPayment = null;
+                    _this.retrievePaymentHistory();
                 };
                 var onError = function (httpResponse) {
-                    innerThis.isSavingPayment = false;
+                    _this.isSavingPayment = false;
                     alert(httpResponse.data.message);
-                    innerThis.editPayment = null;
+                    _this.editPayment = null;
                 };
-                this.isSavingPayment = true;
-                if (this.editPayment.payment.paymentId) {
+                _this.isSavingPayment = true;
+                if (_this.editPayment.payment.paymentId) {
                     analytics.track("editAssessmentHistoryPayment");
-                    this.$http.put("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+                    _this.$http.put("/api/PaymentHistory", _this.editPayment.payment).then(onSave, onError);
                 }
                 else {
                     analytics.track("addAssessmentHistoryPayment");
-                    this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+                    _this.$http.post("/api/PaymentHistory", _this.editPayment.payment).then(onSave, onError);
                 }
             };
         }
@@ -1485,26 +1488,20 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         AssessmentHistoryController.prototype.$onInit = function () {
-            this.isForPta = AppConfig.appShortName === "pta";
-            var isMembershipGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
-            if (isMembershipGroup)
+            this.isForMemberGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+            if (this.isForMemberGroup)
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
-            if (this.isForPta)
+            if (this.isForMemberGroup)
                 this.NumPeriodsVisible = 8;
             this.authToken = window.localStorage.getItem("ApiAuthToken");
             if (AppConfig.isChtnSite)
                 this.showRowType = "unit";
-            else if (isMembershipGroup)
+            else if (this.isForMemberGroup)
                 this.showRowType = "member";
             else
                 console.log("Unhandled app type for payment history: " + AppConfig.appShortName);
-            this.units = [
-                { name: "A", monthPayments: [1, 2, 3] },
-                { name: "B", monthPayments: [1, 2, 3] },
-                { name: "C", monthPayments: [1, 2, 3] }
-            ];
             // Example
             var payment = {
                 paymentId: 0,
@@ -1517,12 +1514,13 @@ var Ally;
                 unitId: 1
             };
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
+            this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
             var PeriodicPaymentFrequency_Monthly = 50;
             var PeriodicPaymentFrequency_Quarterly = 51;
             var PeriodicPaymentFrequency_Semiannually = 52;
             var PeriodicPaymentFrequency_Annually = 53;
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
-            if (isMembershipGroup)
+            if (this.isForMemberGroup)
                 this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
             // Set the period name
             this.payPeriodName = "month";
@@ -1582,6 +1580,7 @@ var Ally;
             this.retrievePaymentHistory();
         };
         AssessmentHistoryController.prototype.onChangePeriodicPaymentTracking = function () {
+            var _this = this;
             if (this.isPeriodicPaymentTrackingEnabled === this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled)
                 return;
             // If the user is enabling the tracking then make sure all units have a payment entered
@@ -1595,12 +1594,11 @@ var Ally;
             }
             this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled = this.isPeriodicPaymentTrackingEnabled;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.put("/api/Association/updatePeriodicPaymentTracking?isPeriodicPaymentTrackingEnabled=" + this.isPeriodicPaymentTrackingEnabled, null).then(function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             }, function () {
                 alert("Failed to update the payment tracking");
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         /**
@@ -1679,17 +1677,17 @@ var Ally;
          * Create a special assessment entry
          */
         AssessmentHistoryController.prototype.addSpecialAssessment = function () {
+            var _this = this;
             // JS is 0 based month plus Angular uses strings so move to 1-based integer for the server
             this.createSpecialAssessment = parseInt(this.createSpecialAssessment) + 1;
             // Create the special assessment
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/PaymentHistory/SpecialAssessment", this.createSpecialAssessment).then(function () {
-                innerThis.isLoading = false;
-                innerThis.shouldShowCreateSpecialAssessment = false;
-                innerThis.retrievePaymentHistory();
+                _this.isLoading = false;
+                _this.shouldShowCreateSpecialAssessment = false;
+                _this.retrievePaymentHistory();
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to add special assessment: " + errorMessage);
             });
@@ -1746,7 +1744,7 @@ var Ally;
                 var headerName = this.shortPeriodNames[currentPeriod - 1];
                 if (currentPeriod === 1 || currentPeriod === this.maxPeriodRange)
                     headerName += " " + year;
-                if (AppConfig.appShortName === "pta")
+                if (this.isForMemberGroup)
                     headerName = year + " - " + (year + 1);
                 this.visiblePeriodNames.push({
                     name: headerName,
@@ -1757,7 +1755,7 @@ var Ally;
                 --currentPeriod;
             }
             // Make sure every visible period has an valid entry object
-            if (AppConfig.appShortName === "pta")
+            if (this.isForMemberGroup)
                 _.each(this.payers, function (payer) { return payer.displayPayments = _this.fillInEmptyPaymentsForMember(payer); });
             else
                 _.each(this.unitPayments, function (unit) { return unit.payments = _this.fillInEmptyPaymentsForUnit(unit); });
@@ -1768,29 +1766,28 @@ var Ally;
         AssessmentHistoryController.prototype.retrievePaymentHistory = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/PaymentHistory?oldestDate=").then(function (httpResponse) {
                 var paymentInfo = httpResponse.data;
                 // Build the map of unit ID to unit information
-                innerThis.unitPayments = {};
+                _this.unitPayments = {};
                 _.each(paymentInfo.units, function (unit) {
-                    innerThis.unitPayments[unit.unitId] = unit;
+                    _this.unitPayments[unit.unitId] = unit;
                     // Only take the first two owners for now
-                    innerThis.unitPayments[unit.unitId].displayOwners = _.first(unit.owners, 2);
-                    while (innerThis.unitPayments[unit.unitId].displayOwners.length < 2)
-                        innerThis.unitPayments[unit.unitId].displayOwners.push({ name: "" });
-                    innerThis.unitPayments[unit.unitId].payments = [];
+                    _this.unitPayments[unit.unitId].displayOwners = _.first(unit.owners, 2);
+                    while (_this.unitPayments[unit.unitId].displayOwners.length < 2)
+                        _this.unitPayments[unit.unitId].displayOwners.push({ name: "" });
+                    _this.unitPayments[unit.unitId].payments = [];
                 });
-                // Add the payment information to the units
-                if (AppConfig.appShortName === "pta") {
+                // Add the payment information to the members
+                if (_this.isForMemberGroup && httpResponse.data.payers) {
                     _.each(httpResponse.data.payers, function (payer) {
                         payer.enteredPayments = _.filter(paymentInfo.payments, function (p) { return p.payerUserId === payer.userId; });
                     });
                 }
                 // Add the payment information to the units
                 _.each(paymentInfo.payments, function (payment) {
-                    if (innerThis.unitPayments[payment.unitId])
-                        innerThis.unitPayments[payment.unitId].payments.push(payment);
+                    if (_this.unitPayments[payment.unitId])
+                        _this.unitPayments[payment.unitId].payments.push(payment);
                 });
                 // Store all of the payments rather than just what is visible
                 _.each(paymentInfo.units, function (unit) {
@@ -1798,12 +1795,12 @@ var Ally;
                 });
                 // Sort the units by name
                 var sortedUnits = [];
-                for (var key in innerThis.unitPayments)
-                    sortedUnits.push(innerThis.unitPayments[key]);
-                innerThis.unitPayments = _.sortBy(sortedUnits, function (unit) { return unit.name; });
-                innerThis.payers = _.sortBy(paymentInfo.payers, function (payer) { return payer.name; });
-                innerThis.displayPaymentsForRange(innerThis.startYearValue, innerThis.startPeriodValue);
-                innerThis.isLoading = false;
+                for (var key in _this.unitPayments)
+                    sortedUnits.push(_this.unitPayments[key]);
+                _this.unitPayments = _.sortBy(sortedUnits, function (unit) { return unit.name; });
+                _this.payers = _.sortBy(paymentInfo.payers, function (payer) { return payer.name; });
+                _this.displayPaymentsForRange(_this.startYearValue, _this.startPeriodValue);
+                _this.isLoading = false;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve payment history: " + response.data.exceptionMessage);
@@ -1837,6 +1834,7 @@ var Ally;
          */
         AssessmentHistoryController.prototype.onshowPaymentInfo = function () {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
+            window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
         };
         /**
          * Occurs when the user clicks a date cell
@@ -1848,9 +1846,7 @@ var Ally;
                 payment: _.clone(periodPayment),
                 periodName: this.periodNames[periodPayment.period - 1],
                 filteredPayers: _.filter(this.payers, function (payer) {
-                    return !_.some(unit.owners, function (owner) {
-                        return owner.userId === payer.userId;
-                    });
+                    return !_.some(unit.owners, function (owner) { return owner.userId === payer.userId; });
                 })
             };
             setTimeout(function () { $("#paid-amount-textbox").focus(); }, 10);
@@ -2690,6 +2686,20 @@ var Ally;
         return Unit;
     }());
     Ally.Unit = Unit;
+    var PayerInfo = /** @class */ (function () {
+        function PayerInfo() {
+        }
+        return PayerInfo;
+    }());
+    Ally.PayerInfo = PayerInfo;
+    var UnitWithOwner = /** @class */ (function (_super) {
+        __extends(UnitWithOwner, _super);
+        function UnitWithOwner() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return UnitWithOwner;
+    }(Unit));
+    Ally.UnitWithOwner = UnitWithOwner;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }

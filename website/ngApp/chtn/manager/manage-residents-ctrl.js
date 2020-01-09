@@ -17,6 +17,20 @@ var Ally;
         return Unit;
     }());
     Ally.Unit = Unit;
+    var PayerInfo = /** @class */ (function () {
+        function PayerInfo() {
+        }
+        return PayerInfo;
+    }());
+    Ally.PayerInfo = PayerInfo;
+    var UnitWithOwner = /** @class */ (function (_super) {
+        __extends(UnitWithOwner, _super);
+        function UnitWithOwner() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return UnitWithOwner;
+    }(Unit));
+    Ally.UnitWithOwner = UnitWithOwner;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }

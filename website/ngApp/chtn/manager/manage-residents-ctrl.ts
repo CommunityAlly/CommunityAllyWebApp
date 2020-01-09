@@ -26,6 +26,17 @@ namespace Ally
     }
 
 
+    export class PayerInfo
+    {
+        userId: string;
+        name: string;
+    }
+
+    export class UnitWithOwner extends Unit
+    {
+        owners: PayerInfo[];
+    }
+
     export class HomeEntry
     {
         memberHomeId: number;
