@@ -2781,6 +2781,7 @@ var Ally;
             this.isLoadingPending = false;
             this.selectedResidentDetailsView = "Primary";
             this.showAddHomeLink = false;
+            this.hasMemberNotOwnerRenter = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2801,6 +2802,7 @@ var Ally;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.showLaunchSite = AppConfig.appShortName !== "pta";
             this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
+            this.hasMemberNotOwnerRenter = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
             // Show the add home article link if the site isn't launched and is less than 5 days old
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(5, "days"));
             if (this.showPendingMembers) {

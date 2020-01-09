@@ -26,6 +26,8 @@
     </div>
 
     <div class="row">
+
+        <!-- left sidebar -->
         <div class="col-md-6">
             <div data-ng-if="$ctrl.usersCommittees.length > 0" class="portlet-box white margin-vertical">
                 <div class="portlet-header">
@@ -69,7 +71,6 @@
 
             <group-send-email></group-send-email>
         </div><!--end/left side bar-->
-
         <!-- right sidebar -->
         <div class="col-md-6">
             <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads"></group-comment-threads>
