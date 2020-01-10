@@ -97,10 +97,10 @@ var Ally;
             if (this.isForMemberGroup)
                 this.NumPeriodsVisible = 8;
             this.authToken = window.localStorage.getItem("ApiAuthToken");
-            if (AppConfig.isChtnSite)
-                this.showRowType = "unit";
-            else if (this.isForMemberGroup)
+            if (this.isForMemberGroup)
                 this.showRowType = "member";
+            else if (AppConfig.isChtnSite)
+                this.showRowType = "unit";
             else
                 console.log("Unhandled app type for payment history: " + AppConfig.appShortName);
             // Example

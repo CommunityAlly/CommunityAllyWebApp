@@ -62,7 +62,7 @@
     export class AssessmentHistoryController implements ng.IController
     {
         static $inject = ["$http", "$location", "SiteInfo", "appCacheService"];
-        
+
         LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
         LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
 
@@ -88,7 +88,7 @@
         unitPayments: any = {};
         payers: PayerInfo[];
         editPayment: any;
-        showRowType: string = "unit";
+        showRowType: "unit" | "member" = "unit";
         isForMemberGroup: boolean = false;
         isSavingPayment: boolean = false;
         shouldColorCodePayments: boolean = false;
@@ -97,7 +97,7 @@
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private $location: ng.ILocationService, private siteInfo: Ally.SiteInfoService, private appCacheService:AppCacheService )
+        constructor( private $http: ng.IHttpService, private $location: ng.ILocationService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
         {
         }
 
@@ -119,25 +119,25 @@
 
             this.authToken = window.localStorage.getItem( "ApiAuthToken" );
 
-            if( AppConfig.isChtnSite )
-                this.showRowType = "unit";
-            else if( this.isForMemberGroup )
+            if( this.isForMemberGroup )
                 this.showRowType = "member";
+            else if( AppConfig.isChtnSite )
+                this.showRowType = "unit";
             else
                 console.log( "Unhandled app type for payment history: " + AppConfig.appShortName );
 
             // Example
             var payment =
-                {
-                    paymentId: 0,
-                    year: 2014,
-                    period: 1, // 1 = January
-                    isPaid: false,
-                    amount: 1.23,
-                    paymentDate: "1/2/14",
-                    checkNumber: "123",
-                    unitId: 1
-                };
+            {
+                paymentId: 0,
+                year: 2014,
+                period: 1, // 1 = January
+                isPaid: false,
+                amount: 1.23,
+                paymentDate: "1/2/14",
+                checkNumber: "123",
+                unitId: 1
+            };
 
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
             this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
@@ -255,7 +255,7 @@
             } );
         }
 
-        
+
         /**
          * Add in entries to the payments array so every period has an entry
          */
@@ -274,7 +274,7 @@
                     --curYearValue;
                 }
 
-                var curPeriodPayment = _.find( unit.allPayments, (p:any) => p.period === curPeriod && p.year === curYearValue );
+                var curPeriodPayment = _.find( unit.allPayments, ( p: any ) => p.period === curPeriod && p.year === curYearValue );
 
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
@@ -353,7 +353,7 @@
             this.$location.path( "/ManagePayments" );
         }
 
-        
+
         /**
          * Create a special assessment entry
          */
@@ -372,7 +372,7 @@
 
                 this.retrievePaymentHistory();
 
-            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoading = false;
 
@@ -381,7 +381,7 @@
             } );
         }
 
-        
+
         /**
          * Display the modal to create special assessments
          */
@@ -397,7 +397,7 @@
             };
         }
 
-        
+
         /**
          * Go back a few pay periods
          */
@@ -435,7 +435,7 @@
         /**
          * Populate the display for a date range
          */
-        displayPaymentsForRange( startYear:number, startPeriod:number )
+        displayPaymentsForRange( startYear: number, startPeriod: number )
         {
             this.startYearValue = startYear;
             this.startPeriodValue = startPeriod;
@@ -487,10 +487,10 @@
             this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
             {
                 var paymentInfo = httpResponse.data;
-                
+
                 // Build the map of unit ID to unit information
                 this.unitPayments = {};
-                _.each( paymentInfo.units, ( unit:UnitWithOwner ) =>
+                _.each( paymentInfo.units, ( unit: UnitWithOwner ) =>
                 {
                     this.unitPayments[unit.unitId] = unit;
 
@@ -519,11 +519,11 @@
                 } );
 
                 // Store all of the payments rather than just what is visible
-                _.each( paymentInfo.units, ( unit:any ) =>
+                _.each( paymentInfo.units, ( unit: any ) =>
                 {
                     unit.allPayments = unit.payments;
                 } );
-                
+
                 // Sort the units by name
                 var sortedUnits = [];
                 for( var key in this.unitPayments )
@@ -546,7 +546,7 @@
         /**
          * Get the amount paid by all units in a pay period
          */
-        getPaymentSumForPayPeriod( periodIndex:number )
+        getPaymentSumForPayPeriod( periodIndex: number )
         {
             let sum = 0;
 
@@ -598,9 +598,9 @@
                 unit: unit,
                 payment: _.clone( periodPayment ), // Make a copy of the object so we can edit it without editing the grid
                 periodName: this.periodNames[periodPayment.period - 1],
-                filteredPayers: _.filter( this.payers, ( payer:any ) =>
+                filteredPayers: _.filter( this.payers, ( payer: any ) =>
                 {
-                    return !_.some( unit.owners, ( owner:any ) => owner.userId === payer.userId );
+                    return !_.some( unit.owners, ( owner: any ) => owner.userId === payer.userId );
                 } )
             };
 
@@ -636,7 +636,7 @@
                 this.retrievePaymentHistory();
             };
 
-            var onError = ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
+            var onError = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isSavingPayment = false;
 
