@@ -111,6 +111,7 @@ namespace Ally
         sendDateUtc: Date;
         numRecipients: string;
         numAttachments: string;
+        messageBody: string;
     }
 
 
@@ -172,10 +173,12 @@ namespace Ally
         multiselectMulti: string = "single";
         gridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
         pendingMemberGridApi: uiGrid.IGridApiOf<PendingMember>;
+        emailHistoryGridApi: uiGrid.IGridApiOf<RecentEmail>;
         isSavingUser: boolean = false;
         residentGridOptions: uiGrid.IGridOptionsOf<Ally.UpdateResident>;
         pendingMemberGridOptions: uiGrid.IGridOptionsOf<PendingMember>;
         emailHistoryGridOptions: uiGrid.IGridOptionsOf<RecentEmail>;
+        viewingRecentEmailBody: string;
         editUserForm: ng.IFormController;
         isLoading: boolean = false;
         adminSetPass_Username: string;
@@ -197,7 +200,7 @@ namespace Ally
         selectedResidentDetailsView: string = "Primary";
         showAddHomeLink: boolean = false;
         hasMemberNotOwnerRenter: boolean = false;
-
+        
 
         /**
          * The constructor for the class
@@ -368,12 +371,12 @@ namespace Ally
                     enableFullRowSelection: true,
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function( gridApi )
+                    onRegisterApi: ( gridApi ) =>
                     {
-                        innerThis.pendingMemberGridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged( innerThis.$rootScope, function( row )
+                        this.pendingMemberGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
                         {
-                            innerThis.selectPendingMember( row.entity );
+                            this.selectPendingMember( row.entity );
                         } );
 
                         // Fix dumb scrolling
@@ -407,12 +410,20 @@ namespace Ally
                     paginationPageSize: 20,
                     paginationPageSizes: [20],
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function( gridApi )
+                    onRegisterApi: ( gridApi ) =>
                     {
+                        this.emailHistoryGridApi = gridApi;
+
+                        gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row: uiGrid.IGridRowOf<RecentEmail> ) =>
+                        {
+                            this.viewingRecentEmailBody = row.entity.messageBody;
+                        } );
+
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            
 
             this.refreshResidents()
                 .then( () => this.loadSettings() )
@@ -457,6 +468,13 @@ namespace Ally
             newUserInfo.shouldSendWelcomeEmail = false;
 
             this.setEdit( newUserInfo );
+        }
+
+
+        closeViewingEmail()
+        {
+            this.viewingRecentEmailBody = null;
+            this.emailHistoryGridApi.selection.clearSelectedRows();
         }
 
 
@@ -1368,6 +1386,7 @@ namespace Ally
         toggleEmailHistoryVisible()
         {
             this.showEmailHistory = !this.showEmailHistory;
+            this.viewingRecentEmailBody = null;
 
             if( this.showEmailHistory && !this.emailHistoryGridOptions.data )
             {

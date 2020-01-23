@@ -134,7 +134,7 @@ var HtmlUtil =
         return str.length > 0;
     },
 
-    // Get a substring up to the occurance of a character
+    // Get a substring up to the occurrence of a character
     getStringUpToFirst: function( str, endChar )
     {
         var endIndex = str.indexOf( endChar );

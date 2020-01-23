@@ -210,9 +210,9 @@
                     </div>
                 </div>
             </div>
-            
+
             <hr />
-            
+
             <div class="row">
                 <div class="col-sm-6">
                     <div data-ng-show="$ctrl.editUser.userId.length > 0">
@@ -300,10 +300,22 @@
         <div data-ng-if="$ctrl.showEmailHistory">
             <h4>Group E-mail History</h4>
             <span class="note-text">Here you can view group e-mails sent in the last 6 months.</span>
-            <div data-ui-grid="$ctrl.emailHistoryGridOptions" ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
+            <div data-ui-grid="$ctrl.emailHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
             <br />
         </div>
-        
+
+        <div id="view-email-body-container" class="modal-container" data-ng-if="$ctrl.viewingRecentEmailBody" data-ng-escape="$ctrl.closeViewingEmail()">
+            <div class="modal-overlay" data-ng-click="$ctrl.closeViewingEmail()"></div>
+            <div class="ca-modal-dialog modal-lg" data-ng-click="$ctrl.closeViewingEmail()">
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeViewingEmail()">&times;</span>
+                <h3>E-mail Message</h3>
+                <p style="white-space: pre-wrap;">
+                    {{ $ctrl.viewingRecentEmailBody }}
+                </p>
+                <div class="note-text text-right mt-2">Click anywhere to close</div>
+            </div>
+        </div>
+
         <div class="mt-4" data-ng-if="!$ctrl.hasMemberNotOwnerRenter">
             <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.rentersCanViewDocs" data-ng-change="$ctrl.saveResidentSettings()" />Renters can view documents</label>
         </div>

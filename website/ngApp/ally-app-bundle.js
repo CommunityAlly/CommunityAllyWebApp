@@ -2923,9 +2923,9 @@ var Ally;
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
-                        innerThis.pendingMemberGridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged(innerThis.$rootScope, function (row) {
-                            innerThis.selectPendingMember(row.entity);
+                        _this.pendingMemberGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function (row) {
+                            _this.selectPendingMember(row.entity);
                         });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
@@ -2955,6 +2955,10 @@ var Ally;
                     paginationPageSizes: [20],
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
+                        _this.emailHistoryGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function (row) {
+                            _this.viewingRecentEmailBody = row.entity.messageBody;
+                        });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -2990,6 +2994,10 @@ var Ally;
             newUserInfo.boardPosition = 0;
             newUserInfo.shouldSendWelcomeEmail = false;
             this.setEdit(newUserInfo);
+        };
+        ManageResidentsController.prototype.closeViewingEmail = function () {
+            this.viewingRecentEmailBody = null;
+            this.emailHistoryGridApi.selection.clearSelectedRows();
         };
         /**
         * Edit a resident's information
@@ -3677,6 +3685,7 @@ var Ally;
         ManageResidentsController.prototype.toggleEmailHistoryVisible = function () {
             var _this = this;
             this.showEmailHistory = !this.showEmailHistory;
+            this.viewingRecentEmailBody = null;
             if (this.showEmailHistory && !this.emailHistoryGridOptions.data) {
                 this.isLoadingSettings = true;
                 this.$http.get("/api/Email/RecentGroupEmails").then(function (response) {
