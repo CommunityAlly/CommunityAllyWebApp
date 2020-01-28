@@ -19,6 +19,7 @@ var Ally;
     })(PeriodicPaymentFrequency || (PeriodicPaymentFrequency = {}));
     var PeriodicPayment = /** @class */ (function () {
         function PeriodicPayment() {
+            /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
             this.isEmptyEntry = false;
         }
         return PeriodicPayment;

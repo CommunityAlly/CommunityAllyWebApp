@@ -44,9 +44,9 @@
                             <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
                         </div>
                         <div data-ng-if="$ctrl.showPaymentInfo">
-                            <div data-ng-if="payment.isPaid">
+                            <div data-ng-if="!payment.isEmptyEntry">
                                 <div data-ng-if="$ctrl.shouldColorCodePayments">
-                                    <span data-ng-style="{'color': payment.amount < unit.assessment ? 'red' : 'green'}">{{ payment.amount | currency }}</span>
+                                    <span data-ng-style="{'color': payment.amount && !payment.isPaid ? 'red' : 'black'}">{{ payment.amount | currency }}</span>
                                 </div>
                                 <div data-ng-if="!$ctrl.shouldColorCodePayments">{{ payment.amount | currency }}</div>
                             </div>

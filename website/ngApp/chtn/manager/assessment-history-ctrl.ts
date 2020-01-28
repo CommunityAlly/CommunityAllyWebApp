@@ -26,6 +26,7 @@
         wePayStatus: string;
         groupId: number;
 
+        /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
         isEmptyEntry: boolean = false;
     }
 
