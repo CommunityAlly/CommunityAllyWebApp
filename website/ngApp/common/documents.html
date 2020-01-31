@@ -60,7 +60,7 @@
                         <a href="javascript:void(0)" class="upload_btn btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" onclick="$('#JQDocsFileUploader').click();">+ Upload File</a>
                     </div>
                     <p data-ng-show="$ctrl.selectedDirectory.files.length === 0">
-                        This folder is empty
+                        This folder contains no files
                     </p>
 
                     <div id="FileContainer_{{ $index }}" class="file_item p-2" data-ng-class="{'Document_File_Selected': $ctrl.selectedFile === curFile, 'Document_File': $ctrl.selectedFile !== curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
