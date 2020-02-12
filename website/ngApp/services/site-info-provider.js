@@ -19,6 +19,12 @@ var Ally;
         return UsersHome;
     }());
     Ally.UsersHome = UsersHome;
+    var PayPeriod = /** @class */ (function () {
+        function PayPeriod() {
+        }
+        return PayPeriod;
+    }());
+    Ally.PayPeriod = PayPeriod;
     /**
      * The logged-in user's info
      */

@@ -7,16 +7,24 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function AssessmentPaymentFormController($http, siteInfo, $rootScope) {
+        function AssessmentPaymentFormController($http, siteInfo, $rootScope, $sce) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$rootScope = $rootScope;
+            this.$sce = $sce;
             this.isLoading_Payment = false;
+            this.isParagonPaymentSetup = false;
+            this.showParagon = false;
+            this.showParagonSignUpModal = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         AssessmentPaymentFormController.prototype.$onInit = function () {
+            this.showParagon = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.paragonPaymentParams = "&BillingAddress1=" + encodeURIComponent("900 W Ainslie St") + "&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=" + encodeURIComponent(this.siteInfo.userInfo.firstName) + "&LastName=" + encodeURIComponent(this.siteInfo.userInfo.lastName);
+            this.paragonPayUri = this.$sce.trustAsResourceUrl("https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}");
+            this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
@@ -61,7 +69,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -78,6 +86,60 @@ var Ally;
                     $(this).parent().hide('');
                 });
             }, 400);
+        };
+        /**
+         * Display the Paragon payment sign-up modal, with pre-population of data
+         */
+        AssessmentPaymentFormController.prototype.showParagonSignUp = function () {
+            var _this = this;
+            this.showParagonSignUpModal = true;
+            if (this.paragonSignUpInfo)
+                return;
+            // Pre-populate the user's info
+            this.isLoading_Payment = true;
+            this.$http.get("/api/Paragon/SignUpPrefill").then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.paragonSignUpInfo = response.data;
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
+            });
+        };
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        AssessmentPaymentFormController.prototype.submitParagonSignUp = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.paragonSignUpError = null;
+            this.$http.post("/api/Paragon/PaymentSignUp", this.paragonSignUpInfo).then(function (response) {
+                // Reload the page to refresh the payment info. We don't really need to do this,
+                // but makes sure the UI is up to date a little better as well updates the
+                // siteInfo object.
+                window.location.reload();
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonSignUpError = errorResponse.data.exceptionMessage;
+            });
+        };
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        AssessmentPaymentFormController.prototype.submitParagonPayment = function () {
+            var _this = this;
+            this.paragonPaymentMessage = null;
+            var paymentInfo = new ParagonNewPaymentInfo();
+            paymentInfo.notes = this.paymentInfo.note;
+            paymentInfo.paymentAmount = this.paymentInfo.amount;
+            paymentInfo.paysFor = this.paymentInfo.paysFor;
+            this.isLoading_Payment = true;
+            this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.paragonPaymentMessage = "Payment Successfully Processed";
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+            });
         };
         /**
          * Occurs when the user presses the button to make a payment to their organization
@@ -179,21 +241,21 @@ var Ally;
             return paymentText;
         };
         /**
-         * Occurs when the user presses the button to etup auto-pay for assessments
+         * Occurs when the user presses the button to setup auto-pay for assessments
          */
         AssessmentPaymentFormController.prototype.onSetupAutoPay = function (fundingTypeName) {
+            var _this = this;
             this.isLoading_Payment = true;
-            var innerThis = this;
             this.$http.get("/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName).then(function (httpResponse) {
                 var redirectUrl = httpResponse.data;
                 if (typeof (redirectUrl) === "string" && redirectUrl.length > 0)
                     window.location.href = redirectUrl;
                 else {
-                    innerThis.isLoading_Payment = false;
+                    _this.isLoading_Payment = false;
                     alert("Unable to initiate WePay auto-pay setup");
                 }
             }, function (httpResponse) {
-                innerThis.isLoading_Payment = false;
+                _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
                     alert(httpResponse.data.exceptionMessage);
             });
@@ -202,20 +264,20 @@ var Ally;
          * Occurs when the user clicks the button to disable auto-pay
          */
         AssessmentPaymentFormController.prototype.onDisableAutoPay = function () {
+            var _this = this;
             if (!confirm("Just to double check, this will disable your auto-payment. You need to make sure to manually make your regular payments to avoid any late fees your association may enforce."))
                 return;
             this.isLoading_Payment = true;
-            var innerThis = this;
             this.$http.get("/api/WePayPayment/DisableAutoPay").then(function () {
-                innerThis.isLoading_Payment = false;
-                innerThis.isAutoPayActive = false;
+                _this.isLoading_Payment = false;
+                _this.isAutoPayActive = false;
             }, function (httpResponse) {
-                innerThis.isLoading_Payment = false;
+                _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
                     alert(httpResponse.data.exceptionMessage);
             });
         };
-        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope"];
+        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce"];
         return AssessmentPaymentFormController;
     }());
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
@@ -224,3 +286,16 @@ CA.angularApp.component("assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
     controller: Ally.AssessmentPaymentFormController
 });
+var ParagonPayerSignUpInfo = /** @class */ (function () {
+    function ParagonPayerSignUpInfo() {
+        this.billingAddress = new Ally.FullAddress();
+        this.checkType = "PERSONAL";
+        this.accountType = "CHECKING";
+    }
+    return ParagonPayerSignUpInfo;
+}());
+var ParagonNewPaymentInfo = /** @class */ (function () {
+    function ParagonNewPaymentInfo() {
+    }
+    return ParagonNewPaymentInfo;
+}());

@@ -1418,6 +1418,7 @@ var Ally;
     })(PeriodicPaymentFrequency || (PeriodicPaymentFrequency = {}));
     var PeriodicPayment = /** @class */ (function () {
         function PeriodicPayment() {
+            /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
             this.isEmptyEntry = false;
         }
         return PeriodicPayment;
@@ -2047,6 +2048,11 @@ CA.angularApp.component("manageCommittees", {
 
 var Ally;
 (function (Ally) {
+    var ElectronicPayment = /** @class */ (function () {
+        function ElectronicPayment() {
+        }
+        return ElectronicPayment;
+    }());
     var PaymentPageInfo = /** @class */ (function () {
         function PaymentPageInfo() {
         }
@@ -2064,10 +2070,11 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManagePaymentsController($http, siteInfo, appCacheService) {
+        function ManagePaymentsController($http, siteInfo, appCacheService, uiGridConstants) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.uiGridConstants = uiGridConstants;
             this.PaymentHistory = [];
             this.message = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
@@ -2082,6 +2089,7 @@ var Ally;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
             this.allowNewWePaySignUp = false;
+            this.HistoryPageSize = 50;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2113,6 +2121,30 @@ var Ally;
                     allPayTheSameAmount: null,
                     units: []
                 };
+            this.paymentsGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'unitName', displayName: 'Unit', width: 60 },
+                        { field: 'resident', displayName: 'Resident', width: 160 },
+                        { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
+                        { field: 'status', displayName: 'Status', width: 110 },
+                        { field: 'notes', displayName: 'Notes' },
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span></div>' }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: this.HistoryPageSize,
+                    paginationPageSizes: [this.HistoryPageSize],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             // Populate the page
             this.refresh();
         };
@@ -2128,6 +2160,10 @@ var Ally;
                 _this.hasAssessments = _this.siteInfo.privateSiteInfo.hasAssessments;
                 var data = httpResponse.data;
                 _this.paymentInfo = data;
+                _this.paymentsGridOptions.data = _this.paymentInfo.electronicPayments;
+                _this.paymentsGridOptions.enablePaginationControls = _this.paymentInfo.electronicPayments.length > _this.HistoryPageSize;
+                _this.paymentsGridOptions.minRowsToShow = Math.min(_this.paymentInfo.electronicPayments.length, _this.HistoryPageSize);
+                _this.paymentsGridOptions.virtualizationThreshold = _this.paymentsGridOptions.minRowsToShow;
                 _this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
@@ -2142,7 +2178,7 @@ var Ally;
             });
         };
         /**
-         * Load all of the untis on the page
+         * Load all of the units on the page
          */
         ManagePaymentsController.prototype.refreshUnits = function () {
             // Load the units and assessments
@@ -2406,7 +2442,25 @@ var Ally;
                 return;
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
-            this.$http.get("/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true }).then(function (httpResponse) {
+            this.$http.get("/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true }).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Show the Paragon info for a specific transaction
+         */
+        ManagePaymentsController.prototype.showParagonCheckoutInfo = function (paragonReferenceNumber) {
+            var _this = this;
+            this.viewingParagonReferenceNumber = paragonReferenceNumber;
+            if (!this.viewingParagonReferenceNumber)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/OnlinePayment/ParagonCheckoutInfo?paymentReferenceNumber=" + paragonReferenceNumber, { cache: true }).then(function (httpResponse) {
                 _this.isLoadingCheckoutDetails = false;
                 _this.checkoutInfo = httpResponse.data;
             }, function (httpResponse) {
@@ -2424,7 +2478,7 @@ var Ally;
                 _this.isLoading = false;
                 // Update the unit assessments
                 _this.refreshUnits();
-                // Update the assesment flag
+                // Update the assessment flag
                 _this.hasAssessments = _this.signUpInfo.hasAssessments;
                 _this.siteInfo.privateSiteInfo.hasAssessments = _this.hasAssessments;
             }, function (httpResponse) {
@@ -2462,10 +2516,15 @@ var Ally;
         ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
             alert("TODO hook this up");
         };
-        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService"];
+        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         return ManagePaymentsController;
     }());
     Ally.ManagePaymentsController = ManagePaymentsController;
+    var ParagonPaymentDetails = /** @class */ (function () {
+        function ParagonPaymentDetails() {
+        }
+        return ParagonPaymentDetails;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePayments", {
     templateUrl: "/ngApp/chtn/manager/manage-payments.html",
@@ -5252,20 +5311,26 @@ var Ally;
                 position: "relative"
             };
             if (!this.isDemoSite) {
+                this.welcomeImageContainerStyle = {};
+                this.welcomeImageContainerStyle["margin-bottom"] = "21px";
+                // Pre-size the welcome image container to avoid jumping around
+                var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
+                if (savedWelcomeImageWidth) {
+                    this.welcomeImageContainerStyle["width"] = savedWelcomeImageWidth + "px";
+                    this.welcomeImageContainerStyle["height"] = window.localStorage["welcomeImage_height"] + "px";
+                }
                 //this.sectionStyle["left"] = "50%";
                 if (this.loginImageUrl) {
                     this.sectionStyle["max-width"] = "760px";
-                    this.sectionStyle["margin-left"] = "auto";
-                    this.sectionStyle["margin-right"] = "auto";
                     //this.sectionStyle["margin-left"] = "-380px";
                 }
                 else {
                     this.sectionStyle["max-width"] = "500px";
-                    this.sectionStyle["margin-left"] = "auto";
-                    this.sectionStyle["margin-right"] = "auto";
                     //this.sectionStyle["max-width"] = "450px";
                     //this.sectionStyle["margin-left"] = "-225px";
                 }
+                this.sectionStyle["margin-left"] = "auto";
+                this.sectionStyle["margin-right"] = "auto";
             }
             // If we got sent here for a 403, but the user was already logged in
             if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn403) === "true") {
@@ -5280,6 +5345,24 @@ var Ally;
             setTimeout(function () {
                 $("#login-email-textbox").focus();
             }, 200);
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the welcome image loads
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        LoginController.prototype.onWelcomeImageLoaded = function () {
+            var welcomeImageElem = document.getElementById("welcome-image");
+            console.log("Welcome image loaded " + welcomeImageElem.width + "x" + welcomeImageElem.height);
+            window.localStorage["welcomeImage_width"] = welcomeImageElem.width;
+            window.localStorage["welcomeImage_height"] = welcomeImageElem.height;
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the welcome image fails to load
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        LoginController.prototype.onWelcomeImageError = function () {
+            var welcomeImageElem = document.getElementById("welcome-image");
+            console.log("Welcome image loaded " + welcomeImageElem.width + "x" + welcomeImageElem.height);
+            window.localStorage.removeItem("welcomeImage_width");
+            window.localStorage.removeItem("welcomeImage_height");
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button when they forgot their password
@@ -7150,16 +7233,24 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function AssessmentPaymentFormController($http, siteInfo, $rootScope) {
+        function AssessmentPaymentFormController($http, siteInfo, $rootScope, $sce) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$rootScope = $rootScope;
+            this.$sce = $sce;
             this.isLoading_Payment = false;
+            this.isParagonPaymentSetup = false;
+            this.showParagon = false;
+            this.showParagonSignUpModal = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         AssessmentPaymentFormController.prototype.$onInit = function () {
+            this.showParagon = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.paragonPaymentParams = "&BillingAddress1=" + encodeURIComponent("900 W Ainslie St") + "&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=" + encodeURIComponent(this.siteInfo.userInfo.firstName) + "&LastName=" + encodeURIComponent(this.siteInfo.userInfo.lastName);
+            this.paragonPayUri = this.$sce.trustAsResourceUrl("https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}");
+            this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
@@ -7204,7 +7295,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -7221,6 +7312,60 @@ var Ally;
                     $(this).parent().hide('');
                 });
             }, 400);
+        };
+        /**
+         * Display the Paragon payment sign-up modal, with pre-population of data
+         */
+        AssessmentPaymentFormController.prototype.showParagonSignUp = function () {
+            var _this = this;
+            this.showParagonSignUpModal = true;
+            if (this.paragonSignUpInfo)
+                return;
+            // Pre-populate the user's info
+            this.isLoading_Payment = true;
+            this.$http.get("/api/Paragon/SignUpPrefill").then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.paragonSignUpInfo = response.data;
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
+            });
+        };
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        AssessmentPaymentFormController.prototype.submitParagonSignUp = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.paragonSignUpError = null;
+            this.$http.post("/api/Paragon/PaymentSignUp", this.paragonSignUpInfo).then(function (response) {
+                // Reload the page to refresh the payment info. We don't really need to do this,
+                // but makes sure the UI is up to date a little better as well updates the
+                // siteInfo object.
+                window.location.reload();
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonSignUpError = errorResponse.data.exceptionMessage;
+            });
+        };
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        AssessmentPaymentFormController.prototype.submitParagonPayment = function () {
+            var _this = this;
+            this.paragonPaymentMessage = null;
+            var paymentInfo = new ParagonNewPaymentInfo();
+            paymentInfo.notes = this.paymentInfo.note;
+            paymentInfo.paymentAmount = this.paymentInfo.amount;
+            paymentInfo.paysFor = this.paymentInfo.paysFor;
+            this.isLoading_Payment = true;
+            this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.paragonPaymentMessage = "Payment Successfully Processed";
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+            });
         };
         /**
          * Occurs when the user presses the button to make a payment to their organization
@@ -7322,21 +7467,21 @@ var Ally;
             return paymentText;
         };
         /**
-         * Occurs when the user presses the button to etup auto-pay for assessments
+         * Occurs when the user presses the button to setup auto-pay for assessments
          */
         AssessmentPaymentFormController.prototype.onSetupAutoPay = function (fundingTypeName) {
+            var _this = this;
             this.isLoading_Payment = true;
-            var innerThis = this;
             this.$http.get("/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName).then(function (httpResponse) {
                 var redirectUrl = httpResponse.data;
                 if (typeof (redirectUrl) === "string" && redirectUrl.length > 0)
                     window.location.href = redirectUrl;
                 else {
-                    innerThis.isLoading_Payment = false;
+                    _this.isLoading_Payment = false;
                     alert("Unable to initiate WePay auto-pay setup");
                 }
             }, function (httpResponse) {
-                innerThis.isLoading_Payment = false;
+                _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
                     alert(httpResponse.data.exceptionMessage);
             });
@@ -7345,20 +7490,20 @@ var Ally;
          * Occurs when the user clicks the button to disable auto-pay
          */
         AssessmentPaymentFormController.prototype.onDisableAutoPay = function () {
+            var _this = this;
             if (!confirm("Just to double check, this will disable your auto-payment. You need to make sure to manually make your regular payments to avoid any late fees your association may enforce."))
                 return;
             this.isLoading_Payment = true;
-            var innerThis = this;
             this.$http.get("/api/WePayPayment/DisableAutoPay").then(function () {
-                innerThis.isLoading_Payment = false;
-                innerThis.isAutoPayActive = false;
+                _this.isLoading_Payment = false;
+                _this.isAutoPayActive = false;
             }, function (httpResponse) {
-                innerThis.isLoading_Payment = false;
+                _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
                     alert(httpResponse.data.exceptionMessage);
             });
         };
-        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope"];
+        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce"];
         return AssessmentPaymentFormController;
     }());
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
@@ -7367,6 +7512,19 @@ CA.angularApp.component("assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
     controller: Ally.AssessmentPaymentFormController
 });
+var ParagonPayerSignUpInfo = /** @class */ (function () {
+    function ParagonPayerSignUpInfo() {
+        this.billingAddress = new Ally.FullAddress();
+        this.checkType = "PERSONAL";
+        this.accountType = "CHECKING";
+    }
+    return ParagonPayerSignUpInfo;
+}());
+var ParagonNewPaymentInfo = /** @class */ (function () {
+    function ParagonNewPaymentInfo() {
+    }
+    return ParagonNewPaymentInfo;
+}());
 
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../../Scripts/typings/moment/moment.d.ts" />
@@ -9519,7 +9677,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -9587,7 +9745,7 @@ var Ally;
                 onCancel: function (data, actions) {
                     _this.isLoading = false;
                     /*
-                     * Buyer cancelled the payment
+                     * Buyer canceled the payment
                      */
                 },
                 onError: function (err) {
@@ -9969,6 +10127,8 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         StreetAddressFormController.prototype.$onInit = function () {
+            // Normalize the values that could come from the binding
+            this.shouldHideName = !this.shouldHideName ? false : true;
         };
         /**
          * Occurs when one of the input fields is changed
@@ -9985,7 +10145,8 @@ var Ally;
 CA.angularApp.component("streetAddressForm", {
     bindings: {
         streetAddress: "=",
-        onChange: "&"
+        onChange: "&",
+        shouldHideName: "<"
     },
     templateUrl: "/ngApp/common/street-address-form.html",
     controller: Ally.StreetAddressFormController
@@ -10113,7 +10274,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -10176,9 +10337,9 @@ var Ally;
             // Create a message to the board
             this.messageObject.recipientType = "board";
             if (this.knowsNextPayment)
-                this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my next payment of $" + this.siteInfo.userInfo.assessmentAmount + " will cover " + this.nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + this.siteInfo.userInfo.assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
+                this.messageObject.message = "Hello Board Members,\n\nOur association's home page says my next payment of $" + this.siteInfo.userInfo.assessmentAmount + " will cover " + this.nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + this.siteInfo.userInfo.assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             else
-                this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
+                this.messageObject.message = "Hello Board Members,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -10605,7 +10766,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -11135,6 +11296,36 @@ angular.module( "CondoAlly" ).directive( "ngEscape", function()
                 event.preventDefault();
             }
         } );
+    };
+} );
+
+angular.module( "CondoAlly" ).directive( "imageonload", function()
+{
+    return {
+        restrict: "A",
+        link: function( scope, element, attrs )
+        {
+            element.bind( "load", function()
+            {
+                if( attrs.imageonload )
+                    scope.$apply( attrs.imageonload );
+            } );
+        }
+    };
+} );
+
+angular.module( "CondoAlly" ).directive( "imageonerror", function()
+{
+    return {
+        restrict: "A",
+        link: function( scope, element, attrs )
+        {
+            element.bind( "error", function()
+            {
+                if( attrs.imageonload )
+                    scope.$apply( attrs.imageonload );
+            } );
+        }
     };
 } );
 // Allow conditional inline values
@@ -12366,6 +12557,12 @@ var Ally;
         return UsersHome;
     }());
     Ally.UsersHome = UsersHome;
+    var PayPeriod = /** @class */ (function () {
+        function PayPeriod() {
+        }
+        return PayPeriod;
+    }());
+    Ally.PayPeriod = PayPeriod;
     /**
      * The logged-in user's info
      */

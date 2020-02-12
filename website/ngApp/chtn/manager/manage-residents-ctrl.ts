@@ -104,6 +104,7 @@ namespace Ally
 
     class RecentEmail
     {
+        groupEmailId: string;
         senderName: string;
         recipientGroup: string;
         messageSource: string;

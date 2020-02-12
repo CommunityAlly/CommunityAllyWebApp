@@ -39,3 +39,33 @@ angular.module( "CondoAlly" ).directive( "ngEscape", function()
         } );
     };
 } );
+
+angular.module( "CondoAlly" ).directive( "imageonload", function()
+{
+    return {
+        restrict: "A",
+        link: function( scope, element, attrs )
+        {
+            element.bind( "load", function()
+            {
+                if( attrs.imageonload )
+                    scope.$apply( attrs.imageonload );
+            } );
+        }
+    };
+} );
+
+angular.module( "CondoAlly" ).directive( "imageonerror", function()
+{
+    return {
+        restrict: "A",
+        link: function( scope, element, attrs )
+        {
+            element.bind( "error", function()
+            {
+                if( attrs.imageonload )
+                    scope.$apply( attrs.imageonload );
+            } );
+        }
+    };
+} );

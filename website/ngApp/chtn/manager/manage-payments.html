@@ -10,7 +10,7 @@
         <div style="color:#00F; font-size:large;">{{ $ctrl.message }}</div>
 
         <div data-ng-if="$ctrl.hasLoadedPage" class="row">
-            
+
             <div id="sign-up-panel" data-ng-if="$ctrl.hasAssessments == null" class="col-lg-9 col-md-12">
                 <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
 
@@ -108,19 +108,19 @@
                 </form>
 
                 <!--<div data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.needsReLogin">
-                    <table style="width:100%;">
-                        <tr>
-                            <td style="width:50%;">WePay Balance: {{ $ctrl.paymentInfo.balanceDetail.availableBalance | currency }}</td>
-                            <td style="width:50%;">WePay Pending Balance: {{ $ctrl.paymentInfo.balanceDetail.pendingBalance | currency }}</td>
-                            <td style="width:33%; display: none;">
-                                <input type="button" value="Withdrawal" data-ng-click="$ctrl.onWithdrawalClick();" />
-                            </td>
-                        </tr>
-                    </table>
-                    <div data-ng-if="isAdmin">
-                        <span class="text-link" data-ng-click="">Clear access token</span>
-                    </div>
-                </div>-->
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:50%;">WePay Balance: {{ $ctrl.paymentInfo.balanceDetail.availableBalance | currency }}</td>
+                        <td style="width:50%;">WePay Pending Balance: {{ $ctrl.paymentInfo.balanceDetail.pendingBalance | currency }}</td>
+                        <td style="width:33%; display: none;">
+                            <input type="button" value="Withdrawal" data-ng-click="$ctrl.onWithdrawalClick();" />
+                        </td>
+                    </tr>
+                </table>
+                <div data-ng-if="isAdmin">
+                    <span class="text-link" data-ng-click="">Clear access token</span>
+                </div>
+            </div>-->
 
                 <div data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.needsReLogin">
                     You need to log-in to WePay with your association's account to re-enable access.<br>
@@ -128,33 +128,33 @@
                 </div>
 
                 <!--<div data-ng-hide="$ctrl.paymentInfo.payPalClientId">
-        <h3>Setup PayPal Payments</h3>
-        In order to accept payments via PayPal you need to sign-up for a PayPal business account. It only takes a few
-        minutes and we've written a helpful guide to walk you through the process.<br />
-        <a href="https://help.communityally.org/accept-payments-through-paypal/" target="_blank">Accept Payments Through PayPal Guide</a><br />
-        <br />
-        Once you get near the end of sign-up you'll need to paste in your PayPal client ID and secret API value here to
-        enable payments.<br />
-        <form>
-            <div class="form-group row">
-                <label class="col-sm-4">Client ID:</label>
-                <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientId"></div>
-            </div>
+                <h3>Setup PayPal Payments</h3>
+                In order to accept payments via PayPal you need to sign-up for a PayPal business account. It only takes a few
+                minutes and we've written a helpful guide to walk you through the process.<br />
+                <a href="https://help.communityally.org/accept-payments-through-paypal/" target="_blank">Accept Payments Through PayPal Guide</a><br />
+                <br />
+                Once you get near the end of sign-up you'll need to paste in your PayPal client ID and secret API value here to
+                enable payments.<br />
+                <form>
+                    <div class="form-group row">
+                        <label class="col-sm-4">Client ID:</label>
+                        <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientId"></div>
+                    </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4">Client Secret:</label>
-                <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientSecret"></div>
-            </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4">Client Secret:</label>
+                        <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientSecret"></div>
+                    </div>
 
-            <div data-ng-if="$ctrl.payPalSignUpErrorMessage" class="text-error">
-                {{ $ctrl.payPalSignUpErrorMessage }}
-            </div>
+                    <div data-ng-if="$ctrl.payPalSignUpErrorMessage" class="text-error">
+                        {{ $ctrl.payPalSignUpErrorMessage }}
+                    </div>
 
-            <div class="text-right mt-3">
-                <input class="btn btn-primary" type="button" value="Enable PayPal Payments" data-ng-click="$ctrl.enablePayPal();">
-            </div>
-        </form>
-    </div>-->
+                    <div class="text-right mt-3">
+                        <input class="btn btn-primary" type="button" value="Enable PayPal Payments" data-ng-click="$ctrl.enablePayPal();">
+                    </div>
+                </form>
+            </div>-->
 
                 <h3 class="margin-top">Electronic Payment History</h3>
                 <div class="wide_tble_wrap">
@@ -162,7 +162,7 @@
                         No electronic payments have yet been made.
                     </div>
 
-                    <table class="table table-bordered" data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0">
+                    <!--<table class="table table-bordered" data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -176,7 +176,7 @@
                         </thead>
                         <tbody>
                             <tr data-ng-repeat="payment in $ctrl.paymentInfo.electronicPayments" data-ng-class="{ 'highlight': (payment.wePayCheckoutId == $ctrl.highlightWePayCheckoutId) }">
-                                <td>{{ payment.submitDate | date }}</td>
+                                <td>{{ payment.submitDateUtc | date }}</td>
                                 <td>{{ payment.unitName }}</td>
                                 <td>{{ payment.resident }}</td>
                                 <td>{{ payment.amount | currency }}</td>
@@ -185,10 +185,14 @@
                                 <td>
                                     <span class="text-link" data-ng-if="payment.wePayCheckoutId" data-ng-click="$ctrl.showWePayCheckoutInfo( payment.wePayCheckoutId )">WePay Details</span>
                                     <span class="text-link" data-ng-if="payment.payPalCheckoutId" data-ng-click="$ctrl.showPayPalCheckoutInfo( payment.payPalCheckoutId )">PayPal Details</span>
+                                    <span class="text-link" data-ng-if="payment.paragonReferenceNumber" data-ng-click="$ctrl.showParagonCheckoutInfo( payment.paragonReferenceNumber )">Paragon Details</span>
                                 </td>
                             </tr>
                         </tbody>
-                    </table>
+                    </table>-->
+
+                    <div data-ui-grid="$ctrl.paymentsGridOptions" ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
+                    <div style="height: 20px;"></div>
                 </div>
 
                 <div data-ng-if="$ctrl.paymentInfo.payPalClientId">
@@ -307,9 +311,9 @@
                                 <tr data-ng-repeat="unit in $ctrl.units">
                                     <td class="text-right">{{ unit.name }}</td>
                                     <!--<td class="text-center">
-                                        <span data-ng-if="$ctrl.userInfo.isAdmin" class="text-button test1" data-onshow="selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.assessment">{{ unit.assessment | currency }}</span>
-                                        <span data-ng-if="!$ctrl.userInfo.isAdmin">{{ unit.assessment | currency }}</span>
-                                    </td>-->
+                                    <span data-ng-if="$ctrl.userInfo.isAdmin" class="text-button test1" data-onshow="selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.assessment">{{ unit.assessment | currency }}</span>
+                                    <span data-ng-if="!$ctrl.userInfo.isAdmin">{{ unit.assessment | currency }}</span>
+                                </td>-->
                                     <td class="text-center"><span class="text-button" data-onshow="$ctrl.selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessment">{{ (unit.adjustedAssessment || 0) | currency }}</span></td>
                                     <td class="text-left"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
                                 </tr>
@@ -407,6 +411,25 @@
                         <tr><td class="AlignRightBold">Payer Name: </td><td>{{ $ctrl.checkoutInfo.payerName }}</td></tr>
                         <tr><td class="AlignRightBold">Payer Email: </td><td>{{ $ctrl.checkoutInfo.payerEmail }}</td></tr>
                         <tr><td class="AlignRightBold">Payment Error: </td><td>{{ $ctrl.checkoutInfo.paymentError }}</td></tr>
+                    </tbody>
+                </table>
+                <br />
+                <br />
+                <p class="note-text text-right">(Click anywhere to close)</p>
+            </div>
+        </div>
+
+        <div data-ng-if="$ctrl.viewingParagonReferenceNumber" class="modal-container" data-ng-escape="$ctrl.showParagonCheckoutInfo( null )">
+            <div class="modal-overlay" data-ng-click="$ctrl.showParagonCheckoutInfo( null )"></div>
+            <div class="ca-modal-dialog modal-sm" data-ng-click="$ctrl.showParagonCheckoutInfo( null )">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCheckoutDetails"></div>
+                <table>
+                    <tbody>
+                        <tr><td class="AlignRightBold">Auth Code: </td><td>{{ $ctrl.checkoutInfo.authorization_code }}</td></tr>
+                        <tr><td class="AlignRightBold">Date: </td><td>{{ $ctrl.checkoutInfo.date }}</td></tr>
+                        <tr><td class="AlignRightBold">Amount: </td><td>{{ $ctrl.checkoutInfo.total_amount }}</td></tr>
+                        <tr><td class="AlignRightBold">Reference #: </td><td>{{ $ctrl.checkoutInfo.payment_reference_number }}</td></tr>
+                        <tr><td class="AlignRightBold">Result Message: </td><td>{{ $ctrl.checkoutInfo.result_message }}</td></tr>
                     </tbody>
                 </table>
                 <br />

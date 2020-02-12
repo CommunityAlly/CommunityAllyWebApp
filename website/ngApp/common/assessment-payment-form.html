@@ -35,7 +35,7 @@
                     <input class="form-control grey" type="text" placeholder="" data-ng-model="$ctrl.paymentInfo.note" />
                     <div data-ng-show="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-click="$ctrl.onIncorrectPayDetails()" class="text-link margin-top-10">{{ $ctrl.errorPayInfoText }}</div>
                 </div>
-                <i class="error" ng-show="$ctrl.payMentError">{{$ctrl.payMentErrorMessage}}</i>
+                <i class="error" ng-show="$ctrl.paymentError">{{$ctrl.paymentErrorMessage}}</i>
             </div>
 
             <p class="buttons margin-top-30">
@@ -50,6 +50,96 @@
                     {{ $ctrl.assessmentCreditCardFeeLabel }}
                 </span>
             </p>
+
+            <div class="buttons margin-top-30" data-ng-if="$ctrl.showParagon">
+                <p class="single_p">{{ $ctrl.allyAppName }} uses <a target="_blank" href="https://paragonsolutions.com/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments. </p>
+
+                <div class="text-center d-inline-block" data-ng-if="$ctrl.isParagonPaymentSetup">
+                    <!--<a id="paragon-pay-button" onclick="if( $ctrl.paymentInfo.amount < 1 ) return false; $( this ).hide(); $( '#paragon-spinner' ).show(); return true;" data-ng-href="https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" class="btn btn-info" role="button">Pay Now</a>-->
+                    <!--<input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.showParagonSignUpModal = true" value="Pay Modal">-->
+                    <div data-ng-if="$ctrl.paragonPaymentMessage" style="font-size: large; color: blue;">{{$ctrl.paragonPaymentMessage}}</div>
+                    <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.submitParagonPayment()" value="Make Payment Via Paragon">
+                    <br />
+                    $1 fee for ACH/eCheck, $0.30+2.9% fee for Credit Card
+                </div>
+
+                <div class="text-center" data-ng-if="!$ctrl.isParagonPaymentSetup">
+                    <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.showParagonSignUp()" value="Sign-up To Make Online Payments">
+                </div>
+            </div>
+
+            <div class="modal-container" data-ng-show="$ctrl.showParagonSignUpModal" data-ng-escape="$ctrl.showParagonSignUpModal = false">
+                <div class="modal-overlay" data-ng-click="$ctrl.showParagonSignUpModal = false"></div>
+                <div class="ca-modal-dialog modal-lg">
+                    <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
+                    <span style="float: right;" class="close-x" data-ng-click="$ctrl.showParagonSignUpModal = false">&times;</span>
+                    <h2>Your Payment Information</h2>
+                    Enter your bank account information below to complete sign-up.
+                    <h4 class="mt-2" style="text-decoration: underline">Your Contact Information</h4>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="billing-sign-up-first-name">First Name</label>
+                            <input type="text" class="form-control" id="billing-sign-up-first-name" placeholder="First Name" data-ng-model="$ctrl.paragonSignUpInfo.firstName">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="billing-sign-up-last-name">Last Name</label>
+                            <input type="text" class="form-control" id="billing-sign-up-last-name" placeholder="Last Name" data-ng-model="$ctrl.paragonSignUpInfo.lastName">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="billing-sign-up-email">E-mail Address</label>
+                            <input type="text" class="form-control" id="billing-sign-up-email" placeholder="E-mail Address" data-ng-model="$ctrl.paragonSignUpInfo.email">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="billing-sign-up-phone">Phone Number</label>
+                            <input type="text" class="form-control" id="billing-sign-up-phone" placeholder="Phone Number" data-ng-model="$ctrl.paragonSignUpInfo.phoneNumber">
+                        </div>
+                    </div>
+                    <street-address-form data-should-hide-name="true" data-street-address="$ctrl.paragonSignUpInfo.billingAddress"></street-address-form>
+                    <h4 class="mt-2" style="text-decoration: underline">Your Bank Account Information</h4>
+                    <div class="row">
+                        <label for="edit-user-first-text-box" class="col-sm-2 col-xs-12">Account Type:</label>
+                        <div class="col-sm-5 col-xs-12">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="acct-type-checking" data-ng-value="'CHECKING'" data-ng-model="$ctrl.paragonSignUpInfo.accountType">
+                                <label class="form-check-label" for="acct-type-checking">Checking</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="acct-type-savings" data-ng-value="'SAVINGS'" data-ng-model="$ctrl.paragonSignUpInfo.accountType">
+                                <label class="form-check-label" for="acct-type-savings">Savings</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-5 col-xs-12">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="check-type-personal" data-ng-value="'PERSONAL'" data-ng-model="$ctrl.paragonSignUpInfo.checkType">
+                                <label class="form-check-label" for="check-type-personal">Personal</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="check-type-savings" data-ng-value="'BUSINESS'" data-ng-model="$ctrl.paragonSignUpInfo.checkType">
+                                <label class="form-check-label" for="check-type-business">Business</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="billing-sign-up-routing">Routing Number</label>
+                            <input id="billing-sign-up-routing" type="text" class="form-control" placeholder="Routing Number" data-ng-model="$ctrl.paragonSignUpInfo.routingNumber" />
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="billing-sign-up-account">Account Number</label>
+                            <input id="billing-sign-up-account" type="text" class="form-control" placeholder="Account Number" data-ng-model="$ctrl.paragonSignUpInfo.checkAccountNumber" />
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: right;">
+                        <div class="col-12">
+                            <div class="text-error" data-ng-if="$ctrl.paragonSignUpError">Failed to Sign-up: {{$ctrl.paragonSignUpError}}</div>
+                            <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.submitParagonSignUp()" value="Submit">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <fieldset data-ng-style="{'display': $ctrl.isAutoPayActive ? 'block':'none'}">
                 <legend>Auto-Pay</legend>

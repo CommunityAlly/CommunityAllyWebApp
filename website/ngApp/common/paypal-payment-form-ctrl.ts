@@ -84,7 +84,7 @@ namespace Ally
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
 
-                    this.nextPaymentText = this.getNextPaymentText( this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue,
+                    this.nextPaymentText = this.getNextPaymentText( [this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue],
                         this.siteInfo.privateSiteInfo.assessmentFrequency );
 
                     this.updatePaymentText();
@@ -183,7 +183,7 @@ namespace Ally
                 {
                     this.isLoading = false;
                     /* 
-                     * Buyer cancelled the payment 
+                     * Buyer canceled the payment 
                      */
                 },
 
@@ -221,14 +221,14 @@ namespace Ally
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        getNextPaymentText( payPeriods: any[], assessmentFrequency: any )
+        getNextPaymentText( payPeriods: Ally.PayPeriod[], assessmentFrequency: any )
         {
             if( payPeriods == null )
                 return "";
 
             // Ensure the periods is an array
             if( payPeriods.constructor !== Array )
-                payPeriods = [payPeriods];
+                payPeriods = [<any>payPeriods];
 
             var paymentText = "";
 

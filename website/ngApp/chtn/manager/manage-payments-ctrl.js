@@ -1,5 +1,10 @@
 var Ally;
 (function (Ally) {
+    var ElectronicPayment = /** @class */ (function () {
+        function ElectronicPayment() {
+        }
+        return ElectronicPayment;
+    }());
     var PaymentPageInfo = /** @class */ (function () {
         function PaymentPageInfo() {
         }
@@ -17,10 +22,11 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManagePaymentsController($http, siteInfo, appCacheService) {
+        function ManagePaymentsController($http, siteInfo, appCacheService, uiGridConstants) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.uiGridConstants = uiGridConstants;
             this.PaymentHistory = [];
             this.message = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
@@ -35,6 +41,7 @@ var Ally;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
             this.allowNewWePaySignUp = false;
+            this.HistoryPageSize = 50;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -66,6 +73,30 @@ var Ally;
                     allPayTheSameAmount: null,
                     units: []
                 };
+            this.paymentsGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'unitName', displayName: 'Unit', width: 60 },
+                        { field: 'resident', displayName: 'Resident', width: 160 },
+                        { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
+                        { field: 'status', displayName: 'Status', width: 110 },
+                        { field: 'notes', displayName: 'Notes' },
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span></div>' }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: this.HistoryPageSize,
+                    paginationPageSizes: [this.HistoryPageSize],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             // Populate the page
             this.refresh();
         };
@@ -81,6 +112,10 @@ var Ally;
                 _this.hasAssessments = _this.siteInfo.privateSiteInfo.hasAssessments;
                 var data = httpResponse.data;
                 _this.paymentInfo = data;
+                _this.paymentsGridOptions.data = _this.paymentInfo.electronicPayments;
+                _this.paymentsGridOptions.enablePaginationControls = _this.paymentInfo.electronicPayments.length > _this.HistoryPageSize;
+                _this.paymentsGridOptions.minRowsToShow = Math.min(_this.paymentInfo.electronicPayments.length, _this.HistoryPageSize);
+                _this.paymentsGridOptions.virtualizationThreshold = _this.paymentsGridOptions.minRowsToShow;
                 _this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
@@ -95,7 +130,7 @@ var Ally;
             });
         };
         /**
-         * Load all of the untis on the page
+         * Load all of the units on the page
          */
         ManagePaymentsController.prototype.refreshUnits = function () {
             // Load the units and assessments
@@ -359,7 +394,25 @@ var Ally;
                 return;
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
-            this.$http.get("/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true }).then(function (httpResponse) {
+            this.$http.get("/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true }).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Show the Paragon info for a specific transaction
+         */
+        ManagePaymentsController.prototype.showParagonCheckoutInfo = function (paragonReferenceNumber) {
+            var _this = this;
+            this.viewingParagonReferenceNumber = paragonReferenceNumber;
+            if (!this.viewingParagonReferenceNumber)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/OnlinePayment/ParagonCheckoutInfo?paymentReferenceNumber=" + paragonReferenceNumber, { cache: true }).then(function (httpResponse) {
                 _this.isLoadingCheckoutDetails = false;
                 _this.checkoutInfo = httpResponse.data;
             }, function (httpResponse) {
@@ -377,7 +430,7 @@ var Ally;
                 _this.isLoading = false;
                 // Update the unit assessments
                 _this.refreshUnits();
-                // Update the assesment flag
+                // Update the assessment flag
                 _this.hasAssessments = _this.signUpInfo.hasAssessments;
                 _this.siteInfo.privateSiteInfo.hasAssessments = _this.hasAssessments;
             }, function (httpResponse) {
@@ -415,10 +468,15 @@ var Ally;
         ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
             alert("TODO hook this up");
         };
-        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService"];
+        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         return ManagePaymentsController;
     }());
     Ally.ManagePaymentsController = ManagePaymentsController;
+    var ParagonPaymentDetails = /** @class */ (function () {
+        function ParagonPaymentDetails() {
+        }
+        return ParagonPaymentDetails;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePayments", {
     templateUrl: "/ngApp/chtn/manager/manage-payments.html",

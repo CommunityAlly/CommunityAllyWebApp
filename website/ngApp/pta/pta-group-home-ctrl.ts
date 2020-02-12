@@ -79,7 +79,7 @@
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
 
-                    this.nextPaymentText = this.getNextPaymentText( this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue,
+                    this.nextPaymentText = this.getNextPaymentText( [this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue],
                         this.siteInfo.privateSiteInfo.assessmentFrequency );
 
                     this.updatePaymentText();
@@ -122,14 +122,14 @@
 
 
 
-        getNextPaymentText( payPeriods: any[], assessmentFrequency: number )
+        getNextPaymentText( payPeriods: Ally.PayPeriod[], assessmentFrequency: number )
         {
             if( payPeriods === null )
                 return "";
 
             // Ensure the periods is an array
             if( payPeriods.constructor !== Array )
-                payPeriods = [payPeriods];
+                payPeriods = [<any>payPeriods];
 
             var paymentText = "";
 

@@ -8,6 +8,7 @@
         static $inject = ["$http", "SiteInfo"];
         streetAddress: FullAddress;
         onChange: () => void;
+        shouldHideName: boolean;
 
 
         /**
@@ -23,6 +24,8 @@
          */
         $onInit()
         {
+            // Normalize the values that could come from the binding
+            this.shouldHideName = !this.shouldHideName ? false : true;
         }
 
 
@@ -40,7 +43,8 @@
 CA.angularApp.component( "streetAddressForm", {
     bindings: {
         streetAddress: "=",
-        onChange: "&"
+        onChange: "&",
+        shouldHideName: "<"
     },
     templateUrl: "/ngApp/common/street-address-form.html",
     controller: Ally.StreetAddressFormController

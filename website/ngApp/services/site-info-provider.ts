@@ -15,8 +15,16 @@ namespace Ally
         name: string;
         isRenter: boolean;
         assessment: number;
-        nextAssessmentDue: any;
+        nextAssessmentDue: PayPeriod;
         includesLateFee: boolean;
+    }
+
+
+    export class PayPeriod
+    {
+        period: number;
+        year: number;
+        frequency: number;
     }
 
 
@@ -37,6 +45,7 @@ namespace Ally
         fullName: string;
         lastLoginDateUtc: Date;
         postmarkReportedBadEmailUtc: Date;
+        isParagonPaymentSetup: boolean;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];

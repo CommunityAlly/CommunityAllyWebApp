@@ -5,7 +5,7 @@
      */
     export class AssessmentPaymentFormController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$rootScope"];
+        static $inject = ["$http", "SiteInfo", "$rootScope", "$sce"];
 
         isLoading_Payment: boolean = false;
         assessmentCreditCardFeeLabel: string;
@@ -23,12 +23,20 @@
         assessmentAmount: number;
         nextPaymentText: string;
         knowsNextPayment: boolean;
+        isParagonPaymentSetup: boolean = false;
+        paragonPaymentParams: string;
+        showParagon: boolean = false;
+        paragonPayUri: string;
+        showParagonSignUpModal: boolean = false;
+        paragonSignUpInfo: ParagonPayerSignUpInfo;
+        paragonSignUpError: string;
+        paragonPaymentMessage: string;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $rootScope: ng.IRootScopeService)
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $rootScope: ng.IRootScopeService, private $sce: ng.ISCEService )
         {
         }
 
@@ -38,6 +46,11 @@
          */
         $onInit()
         {
+            this.showParagon = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.paragonPaymentParams = `&BillingAddress1=${encodeURIComponent( "900 W Ainslie St" )}&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=${encodeURIComponent( this.siteInfo.userInfo.firstName )}&LastName=${encodeURIComponent(this.siteInfo.userInfo.lastName)}`;
+            this.paragonPayUri = this.$sce.trustAsResourceUrl( "https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" );
+            this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
+            
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
@@ -96,7 +109,7 @@
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
 
-                    this.nextPaymentText = this.getNextPaymentText( this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue,
+                    this.nextPaymentText = this.getNextPaymentText( [this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue],
                         this.siteInfo.privateSiteInfo.assessmentFrequency );
 
                     this.updatePaymentText();
@@ -123,7 +136,83 @@
             }, 400 );
         }
         
-        
+
+        /**
+         * Display the Paragon payment sign-up modal, with pre-population of data
+         */
+        showParagonSignUp()
+        {
+            this.showParagonSignUpModal = true;
+
+            if( this.paragonSignUpInfo )
+                return;
+
+            // Pre-populate the user's info
+            this.isLoading_Payment = true;
+
+            this.$http.get( "/api/Paragon/SignUpPrefill" ).then( ( response: ng.IHttpPromiseCallbackArg<ParagonPayerSignUpInfo> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonSignUpInfo = response.data;
+
+            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
+            } );            
+        }
+
+
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        submitParagonSignUp()
+        {
+            this.isLoading_Payment = true;
+            this.paragonSignUpError = null;
+
+            this.$http.post( "/api/Paragon/PaymentSignUp", this.paragonSignUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                // Reload the page to refresh the payment info. We don't really need to do this,
+                // but makes sure the UI is up to date a little better as well updates the
+                // siteInfo object.
+                window.location.reload();
+
+            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonSignUpError = errorResponse.data.exceptionMessage;
+            } );
+        }
+
+
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        submitParagonPayment()
+        {
+            this.paragonPaymentMessage = null;
+
+            var paymentInfo = new ParagonNewPaymentInfo();
+            paymentInfo.notes = this.paymentInfo.note;
+            paymentInfo.paymentAmount = this.paymentInfo.amount;
+            paymentInfo.paysFor = this.paymentInfo.paysFor;
+
+            this.isLoading_Payment = true;
+
+            this.$http.post( "/api/Paragon/MakePayment", paymentInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonPaymentMessage = "Payment Successfully Processed";
+
+            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+            } );
+        }
+
+
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
@@ -223,14 +312,14 @@
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        getNextPaymentText( payPeriods: any[], assessmentFrequency: number )
+        getNextPaymentText( payPeriods: Ally.PayPeriod[], assessmentFrequency: number )
         {
             if( payPeriods == null )
                 return "";
 
             // Ensure the periods is an array
             if( payPeriods.constructor !== Array )
-                payPeriods = [payPeriods];
+                payPeriods = [<any>payPeriods];
 
             var paymentText = "";
 
@@ -270,14 +359,13 @@
 
 
         /**
-         * Occurs when the user presses the button to etup auto-pay for assessments
+         * Occurs when the user presses the button to setup auto-pay for assessments
          */
         onSetupAutoPay( fundingTypeName: string )
         {
             this.isLoading_Payment = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName ).then( function( httpResponse )
+            this.$http.get( "/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
             {
                 var redirectUrl = httpResponse.data;
 
@@ -285,13 +373,13 @@
                     window.location.href = redirectUrl;
                 else
                 {
-                    innerThis.isLoading_Payment = false;
+                    this.isLoading_Payment = false;
                     alert( "Unable to initiate WePay auto-pay setup" );
                 }
 
-            }, function( httpResponse )
+            }, ( httpResponse ) =>
             {
-                innerThis.isLoading_Payment = false;
+                this.isLoading_Payment = false;
 
                 if( httpResponse.data && httpResponse.data.exceptionMessage )
                     alert( httpResponse.data.exceptionMessage );
@@ -309,15 +397,14 @@
 
             this.isLoading_Payment = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/WePayPayment/DisableAutoPay" ).then( function()
+            this.$http.get( "/api/WePayPayment/DisableAutoPay" ).then( () =>
             {
-                innerThis.isLoading_Payment = false;
-                innerThis.isAutoPayActive = false;
+                this.isLoading_Payment = false;
+                this.isAutoPayActive = false;
 
-            }, function( httpResponse )
+            }, ( httpResponse ) =>
                 {
-                    innerThis.isLoading_Payment = false;
+                    this.isLoading_Payment = false;
 
                     if( httpResponse.data && httpResponse.data.exceptionMessage )
                         alert( httpResponse.data.exceptionMessage );
@@ -331,3 +418,25 @@ CA.angularApp.component( "assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
     controller: Ally.AssessmentPaymentFormController
 } );
+
+
+class ParagonPayerSignUpInfo
+{
+    email: string;
+    phoneNumber: string;
+    firstName: string;
+    lastName: string;
+    billingAddress: Ally.FullAddress = new Ally.FullAddress();
+    routingNumber: string;
+    checkAccountNumber: string;
+    checkType: "PERSONAL" | "BUSINESS" = "PERSONAL";
+    accountType: "CHECKING" | "SAVINGS" = "CHECKING";
+}
+
+
+class ParagonNewPaymentInfo
+{
+    paymentAmount: number;
+    notes: string;
+    paysFor: Ally.PayPeriod[];
+}

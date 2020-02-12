@@ -1,5 +1,19 @@
 namespace Ally
 {
+    class ElectronicPayment
+    {
+        submitDateUtc: Date;
+        unitName: string;
+        resident: string;
+        amount: number;
+        status: string;
+        wePayCheckoutId: number;
+        notes: string;
+        fundingSource: string;
+        paragonReferenceNumber: string;
+    }
+
+
     class PaymentPageInfo
     {
         isWePaySetup: boolean;
@@ -11,7 +25,7 @@ namespace Ally
         needsReLogin: boolean;
         lateFeeDayOfMonth: number;
         lateFeeAmount: string;
-        electronicPayments: any[];
+        electronicPayments: ElectronicPayment[];
         unitAssessments: any[];
         usersWithAutoPay: any[];
     }
@@ -30,7 +44,7 @@ namespace Ally
      */
     export class ManagePaymentsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "appCacheService"];
+        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         
         PaymentHistory: any[] = [];
         message = "";
@@ -58,18 +72,20 @@ namespace Ally
         signUpInfo: any;
         viewingWePayCheckoutId: number;
         viewingPayPalCheckoutId: string;
+        viewingParagonReferenceNumber: string;
         checkoutInfo: any;
         payPalSignUpClientId: string;
         payPalSignUpClientSecret: string;
         payPalSignUpErrorMessage: string;
         isUpdatingPayPalCredentials: boolean;
         allowNewWePaySignUp: boolean = false;
-
+        paymentsGridOptions: uiGrid.IGridOptionsOf<ElectronicPayment>;
+        readonly HistoryPageSize: number = 50;
 
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService, private uiGridConstants: uiGrid.IUiGridConstants )
         {
         }
 
@@ -110,6 +126,33 @@ namespace Ally
                 units: []
             };
 
+            this.paymentsGridOptions =
+            {
+                columnDefs:
+                    [
+                        { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'unitName', displayName: 'Unit', width: 60 },
+                        { field: 'resident', displayName: 'Resident', width: 160 },
+                        { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
+                        { field: 'status', displayName: 'Status', width: 110 },
+                        { field: 'notes', displayName: 'Notes' },
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span></div>' }
+                    ],
+                enableSorting: true,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableColumnMenus: false,
+                enablePaginationControls: true,
+                paginationPageSize: this.HistoryPageSize,
+                paginationPageSizes: [this.HistoryPageSize],
+                enableRowHeaderSelection: false,
+                onRegisterApi: ( gridApi ) =>
+                {
+                    // Fix dumb scrolling
+                    HtmlUtil.uiGridFixScroll();
+                }
+            };
+
             // Populate the page
             this.refresh();
         }
@@ -122,7 +165,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/OnlinePayment" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/OnlinePayment" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<PaymentPageInfo> ) =>
             {
                 this.isLoading = false;
                 this.hasLoadedPage = true;
@@ -131,6 +174,10 @@ namespace Ally
 
                 var data = httpResponse.data;
                 this.paymentInfo = data;
+                this.paymentsGridOptions.data = this.paymentInfo.electronicPayments;
+                this.paymentsGridOptions.enablePaginationControls = this.paymentInfo.electronicPayments.length > this.HistoryPageSize;
+                this.paymentsGridOptions.minRowsToShow = Math.min( this.paymentInfo.electronicPayments.length, this.HistoryPageSize );
+                this.paymentsGridOptions.virtualizationThreshold = this.paymentsGridOptions.minRowsToShow;
 
                 this.lateFeeInfo =
                     {
@@ -150,7 +197,7 @@ namespace Ally
 
         
         /**
-         * Load all of the untis on the page
+         * Load all of the units on the page
          */
         refreshUnits()
         {
@@ -525,7 +572,7 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/OnlinePayment/CheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isLoadingCheckoutDetails = false;
 
@@ -541,6 +588,34 @@ namespace Ally
 
 
         /**
+         * Show the Paragon info for a specific transaction
+         */
+        showParagonCheckoutInfo( paragonReferenceNumber: string )
+        {
+            this.viewingParagonReferenceNumber = paragonReferenceNumber;
+
+            if( !this.viewingParagonReferenceNumber )
+                return;
+
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+
+            this.$http.get( "/api/OnlinePayment/ParagonCheckoutInfo?paymentReferenceNumber=" + paragonReferenceNumber, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<ParagonPaymentDetails> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                this.checkoutInfo = httpResponse.data;
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+            } );
+        }
+
+        
+        /**
          * Save the sign-up answers
          */
         signUp_Commit()
@@ -554,7 +629,7 @@ namespace Ally
                 // Update the unit assessments
                 this.refreshUnits();
 
-                // Update the assesment flag
+                // Update the assessment flag
                 this.hasAssessments = this.signUpInfo.hasAssessments;
                 this.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
 
@@ -607,6 +682,16 @@ namespace Ally
         {
             alert( "TODO hook this up" );
         }
+    }
+
+
+    class ParagonPaymentDetails
+    {
+        authorization_code: string;
+        total_amount: string;
+        date: string;
+        payment_reference_number: string;
+        result_message: string;
     }
 }
 
