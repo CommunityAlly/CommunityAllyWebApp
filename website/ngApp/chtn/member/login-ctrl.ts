@@ -19,6 +19,7 @@
         loginInfo: LoginInfo = new LoginInfo();
         loginImageUrl: string;
         sectionStyle: any;
+        welcomeImageContainerStyle: any;
         isLoading: boolean;
         rememberMe: boolean;
 
@@ -59,23 +60,33 @@
 
             if( !this.isDemoSite )
             {
+                this.welcomeImageContainerStyle = {};
+                this.welcomeImageContainerStyle["margin-bottom"] = "21px";
+
+                // Pre-size the welcome image container to avoid jumping around
+                var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
+                if( savedWelcomeImageWidth )
+                {
+                    this.welcomeImageContainerStyle["width"] = savedWelcomeImageWidth + "px";
+                    this.welcomeImageContainerStyle["height"] = window.localStorage["welcomeImage_height"] + "px";
+                }
                 //this.sectionStyle["left"] = "50%";
 
                 if( this.loginImageUrl )
                 {
                     this.sectionStyle["max-width"] = "760px";
-                    this.sectionStyle["margin-left"] = "auto";
-                    this.sectionStyle["margin-right"] = "auto";
+
                     //this.sectionStyle["margin-left"] = "-380px";
                 }
                 else
                 {
                     this.sectionStyle["max-width"] = "500px";
-                    this.sectionStyle["margin-left"] = "auto";
-                    this.sectionStyle["margin-right"] = "auto";
                     //this.sectionStyle["max-width"] = "450px";
                     //this.sectionStyle["margin-left"] = "-225px";
                 }
+
+                this.sectionStyle["margin-left"] = "auto";
+                this.sectionStyle["margin-right"] = "auto";
             }
 
             // If we got sent here for a 403, but the user was already logged in
@@ -98,6 +109,32 @@
         }
 
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the welcome image loads
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        onWelcomeImageLoaded()
+        {
+            var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
+            console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
+
+            window.localStorage["welcomeImage_width"] = welcomeImageElem.width;
+            window.localStorage["welcomeImage_height"] = welcomeImageElem.height;
+        }
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the welcome image fails to load
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        onWelcomeImageError()
+        {
+            var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
+            console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
+
+            window.localStorage.removeItem( "welcomeImage_width" );
+            window.localStorage.removeItem( "welcomeImage_height" );
+        }
+
+        
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button when they forgot their password
         ///////////////////////////////////////////////////////////////////////////////////////////////

@@ -21,8 +21,8 @@
         <div>
             <div style="max-width: 760px; margin: 0 auto;">
                 <!-- Needs to be ng-show rather than ng-if for the Protractor tests -->
-                <div data-ng-show="$ctrl.loginImageUrl" style="margin-bottom: 21px;">
-                    <img alt="Welcome image" style="width: 100%;" data-ng-src="{{$ctrl.loginImageUrl}}" />
+                <div data-ng-if="$ctrl.welcomeImageContainerStyle" data-ng-style="$ctrl.welcomeImageContainerStyle">
+                    <img id="welcome-image" data-ng-show="$ctrl.loginImageUrl" alt="Welcome image" style="width: 100%;" data-imageonload="$ctrl.onWelcomeImageLoaded()" imageonerror="$ctrl.onWelcomeImageError()" data-ng-src="{{$ctrl.loginImageUrl}}" />
                 </div>
 
                 <div data-ng-show="$ctrl.loginResult" style="font-weight: bold; color: #F00; font-size:1.25em;">
