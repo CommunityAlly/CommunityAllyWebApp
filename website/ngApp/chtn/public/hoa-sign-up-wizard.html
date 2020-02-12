@@ -32,6 +32,10 @@
         </div>
     </div>
 
+    <div class="alert alert-info" data-ng-if="$ctrl.hoaAlertNumHomes > 1 && $ctrl.hoaAlertNumHomes < 41">
+        Are you a condo association rather than an HOA? If so, you'd probably prefer to <a href="https://condoally.com/">sign-up for Condo Ally</a> instead.
+    </div>
+
     <wizard data-ng-if="false" data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
         <wz-step title="Name">
 
