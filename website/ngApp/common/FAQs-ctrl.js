@@ -98,6 +98,14 @@ var Ally;
             this.$http.get(this.getUri, { cache: true }).then(function (httpResponse) {
                 _this.isLoadingInfo = false;
                 _this.infoItems = httpResponse.data;
+                // Make <a> links open in new tabs
+                setTimeout(function () {
+                    for (var i = 0; i < _this.infoItems.length; ++i) {
+                        $("a", "#info-item-body-" + i).each(function () {
+                            $(this).attr('target', '_blank');
+                        });
+                    }
+                }, 500);
             });
         };
         ;

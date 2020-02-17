@@ -136,6 +136,18 @@ namespace Ally
             {            
                 this.isLoadingInfo = false;
                 this.infoItems = httpResponse.data;
+
+                // Make <a> links open in new tabs
+                setTimeout( () =>
+                {
+                    for( let i = 0; i < this.infoItems.length; ++i )
+                    {
+                        $( "a", "#info-item-body-" + i ).each( function ()
+                        {
+                            $( this ).attr( 'target', '_blank' );
+                        } );
+                    }
+                }, 500 );
             });
         };
 
