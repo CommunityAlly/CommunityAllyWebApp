@@ -63,8 +63,7 @@
                         <div data-ng-if="entry.project.cost"><label style="font-weight:bold;">Cost:</label>&nbsp;{{ entry.project.cost | currency }}</div>
                         <div data-ng-if="entry.project.vendorCompanyName"><label style="font-weight:bold;">Vendor:</label>&nbsp;{{ entry.project.vendorCompanyName }}</div>
                         <div data-ng-if="entry.project.equipmentName"><label style="font-weight:bold;">Equipment:</label>&nbsp;{{ entry.project.equipmentName }}</div>
-                        <p id="maintenance-item-body-{{ $index }}" data-ng-if="entry.project.descriptionText" class="maintenance-item-body" style="white-space: pre-wrap;">
-                            {{ entry.project.descriptionText }}
+                        <p id="maintenance-item-body-{{ $index }}" data-ng-if="entry.project.descriptionText" class="maintenance-item-body" style="white-space: pre-wrap;" ng-bind-html="entry.project.descriptionText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}">
                         </p>
                     </div>
                 </div>

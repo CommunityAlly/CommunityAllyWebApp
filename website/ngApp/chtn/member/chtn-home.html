@@ -6,7 +6,7 @@
             </div>
         </div>
         <div id="portlet-body welcome-message-label">
-            <pre style="font-family: inherit; font-size: 1rem; white-space: pre-wrap;">{{ $ctrl.welcomeMessage }}</pre>
+            <pre style="font-family: inherit; font-size: 1rem; white-space: pre-wrap;" ng-bind-html="$ctrl.welcomeMessage | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></pre>
         </div>
     </div>
     
