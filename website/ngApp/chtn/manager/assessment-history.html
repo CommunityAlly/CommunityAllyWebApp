@@ -110,7 +110,8 @@
                     <label class="col-sm-4">Check Number:</label>
                     <div class="col-sm-8">
                         <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.checkNumber" />
-                        <span class="text-link" data-ng-if="$ctrl.editPayment.payment.wePayCheckoutId" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
+                        <span class="text-link" data-ng-if="$ctrl.editPayment.payment.wePayCheckoutId && !$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
+                        <span class="text-link" data-ng-if="$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewOnlinePaymentDetails($ctrl.editPayment.payment.paymentsInfoId)">View Online Payment Details</span>
                     </div>
                 </div>
 

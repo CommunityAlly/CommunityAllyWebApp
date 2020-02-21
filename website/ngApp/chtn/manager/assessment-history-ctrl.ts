@@ -25,6 +25,7 @@
         payerNotes: string;
         wePayStatus: string;
         groupId: number;
+        paymentsInfoId: number;
 
         /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
         isEmptyEntry: boolean = false;
@@ -334,7 +335,8 @@
                         notes: null,
                         payerNotes: null,
                         wePayStatus: null,
-                        groupId: null
+                        groupId: null,
+                        paymentsInfoId: null
                     };
                 }
 
@@ -351,6 +353,13 @@
         viewWePayDetails( wePayCheckoutId: string )
         {
             this.appCacheService.set( "hwpid", wePayCheckoutId );
+            this.$location.path( "/ManagePayments" );
+        }
+
+
+        viewOnlinePaymentDetails( paymentsInfoId: number )
+        {
+            this.appCacheService.set( "onpayid", paymentsInfoId.toString() );
             this.$location.path( "/ManagePayments" );
         }
 

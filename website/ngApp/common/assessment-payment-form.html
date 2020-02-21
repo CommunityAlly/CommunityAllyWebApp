@@ -50,17 +50,19 @@
                     {{ $ctrl.assessmentCreditCardFeeLabel }}
                 </span>
             </p>
-
-            <div class="buttons margin-top-30" data-ng-if="$ctrl.showParagon">
-                <p class="single_p">{{ $ctrl.allyAppName }} uses <a target="_blank" href="https://paragonsolutions.com/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments. </p>
+            <br />
+            <br />
+            <br />
+            <div class="buttons margin-top-30 text-center" data-ng-if="$ctrl.showParagon">
+                <p class="single_p text-left">{{ $ctrl.allyAppName }} uses <a target="_blank" href="https://paragonsolutions.com/compliance-security/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments. </p>
 
                 <div class="text-center d-inline-block" data-ng-if="$ctrl.isParagonPaymentSetup">
                     <!--<a id="paragon-pay-button" onclick="if( $ctrl.paymentInfo.amount < 1 ) return false; $( this ).hide(); $( '#paragon-spinner' ).show(); return true;" data-ng-href="https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" class="btn btn-info" role="button">Pay Now</a>-->
                     <!--<input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.showParagonSignUpModal = true" value="Pay Modal">-->
-                    <div data-ng-if="$ctrl.paragonPaymentMessage" style="font-size: large; color: blue;">{{$ctrl.paragonPaymentMessage}}</div>
-                    <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.submitParagonPayment()" value="Make Payment Via Paragon">
+                    <div data-ng-if="$ctrl.paragonPaymentMessage" style="font-size: x-large; color: blue;">{{ $ctrl.paragonPaymentMessage }}</div>
+                    <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.submitParagonPayment()" value="Pay Now Via Paragon">
                     <br />
-                    $1 fee for ACH/eCheck, $0.30+2.9% fee for Credit Card
+                    This payment will use the account ending in {{ $ctrl.paragonCheckingLast4 }}. $1 fee applies.
                 </div>
 
                 <div class="text-center" data-ng-if="!$ctrl.isParagonPaymentSetup">
@@ -136,6 +138,10 @@
                         <div class="col-12">
                             <div class="text-error" data-ng-if="$ctrl.paragonSignUpError">Failed to Sign-up: {{$ctrl.paragonSignUpError}}</div>
                             <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.submitParagonSignUp()" value="Submit">
+                            <br />
+                            <span class="note-text">Your information will be transmitted to Paragon using a highly secure connection. Community Ally does not store any of your bank information.
+                            <br />
+                            This may take up to a minute.</span>
                         </div>
                     </div>
                 </div>
@@ -165,7 +171,7 @@
                     <br />
                     <p class="note-text" style="color: red; display: none;" data-ng-show="$ctrl.payerPaysAchFee">
                         NOTE: There is currently an issue with WePay charging a higher transaction fee (1% + $1.30) than it should ($1.50)
-                        on ACH preapprovals. We'll update this as soon as we hear an update. In the meantime, consider making manual
+                        on ACH pre-approvals. We'll update this as soon as we hear an update. In the meantime, consider making manual
                         payments.
                     </p>
                     <br />

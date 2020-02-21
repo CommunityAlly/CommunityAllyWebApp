@@ -1661,7 +1661,8 @@ var Ally;
                         notes: null,
                         payerNotes: null,
                         wePayStatus: null,
-                        groupId: null
+                        groupId: null,
+                        paymentsInfoId: null
                     };
                 }
                 sortedPayments.push(curPeriodPayment);
@@ -1672,6 +1673,10 @@ var Ally;
         };
         AssessmentHistoryController.prototype.viewWePayDetails = function (wePayCheckoutId) {
             this.appCacheService.set("hwpid", wePayCheckoutId);
+            this.$location.path("/ManagePayments");
+        };
+        AssessmentHistoryController.prototype.viewOnlinePaymentDetails = function (paymentsInfoId) {
+            this.appCacheService.set("onpayid", paymentsInfoId.toString());
             this.$location.path("/ManagePayments");
         };
         /**
@@ -2096,6 +2101,9 @@ var Ally;
         */
         ManagePaymentsController.prototype.$onInit = function () {
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
+            var tempPayId = this.appCacheService.getAndClear("onpayid");
+            if (HtmlUtil.isNumericString(tempPayId))
+                this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             // Allow a single HOA to try WePay
             var exemptGroupShortNames = ["tigertrace", "7mthope"];
@@ -2175,6 +2183,17 @@ var Ally;
                     _this.lateFeeInfo.lateFeeAmount = "$" + _this.lateFeeInfo.lateFeeAmount;
                 _this.refreshUnits();
                 _this.updateTestFee();
+                // If we were sent here to pre-open a transaction's details
+                if (_this.highlightPaymentsInfoId) {
+                    var payment = data.electronicPayments.filter(function (e) { return e.paymentId === _this.highlightPaymentsInfoId; });
+                    if (payment && payment.length > 0) {
+                        if (payment[0].wePayCheckoutId)
+                            _this.showWePayCheckoutInfo(payment[0].wePayCheckoutId);
+                        else if (payment[0].paragonReferenceNumber)
+                            _this.showParagonCheckoutInfo(payment[0].paragonReferenceNumber);
+                    }
+                    _this.highlightPaymentsInfoId = null;
+                }
             });
         };
         /**
@@ -4078,7 +4097,7 @@ var Ally;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
-            this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
+            this.canMakePayment = true; //this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
@@ -7259,6 +7278,7 @@ var Ally;
             this.paragonPaymentParams = "&BillingAddress1=" + encodeURIComponent("900 W Ainslie St") + "&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=" + encodeURIComponent(this.siteInfo.userInfo.firstName) + "&LastName=" + encodeURIComponent(this.siteInfo.userInfo.lastName);
             this.paragonPayUri = this.$sce.trustAsResourceUrl("https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}");
             this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
+            this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";

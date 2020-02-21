@@ -48,6 +48,9 @@ var Ally;
         */
         ManagePaymentsController.prototype.$onInit = function () {
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
+            var tempPayId = this.appCacheService.getAndClear("onpayid");
+            if (HtmlUtil.isNumericString(tempPayId))
+                this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             // Allow a single HOA to try WePay
             var exemptGroupShortNames = ["tigertrace", "7mthope"];
@@ -127,6 +130,17 @@ var Ally;
                     _this.lateFeeInfo.lateFeeAmount = "$" + _this.lateFeeInfo.lateFeeAmount;
                 _this.refreshUnits();
                 _this.updateTestFee();
+                // If we were sent here to pre-open a transaction's details
+                if (_this.highlightPaymentsInfoId) {
+                    var payment = data.electronicPayments.filter(function (e) { return e.paymentId === _this.highlightPaymentsInfoId; });
+                    if (payment && payment.length > 0) {
+                        if (payment[0].wePayCheckoutId)
+                            _this.showWePayCheckoutInfo(payment[0].wePayCheckoutId);
+                        else if (payment[0].paragonReferenceNumber)
+                            _this.showParagonCheckoutInfo(payment[0].paragonReferenceNumber);
+                    }
+                    _this.highlightPaymentsInfoId = null;
+                }
             });
         };
         /**

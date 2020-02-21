@@ -24,6 +24,7 @@
         nextPaymentText: string;
         knowsNextPayment: boolean;
         isParagonPaymentSetup: boolean = false;
+        paragonCheckingLast4: string;
         paragonPaymentParams: string;
         showParagon: boolean = false;
         paragonPayUri: string;
@@ -50,6 +51,7 @@
             this.paragonPaymentParams = `&BillingAddress1=${encodeURIComponent( "900 W Ainslie St" )}&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=${encodeURIComponent( this.siteInfo.userInfo.firstName )}&LastName=${encodeURIComponent(this.siteInfo.userInfo.lastName)}`;
             this.paragonPayUri = this.$sce.trustAsResourceUrl( "https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" );
             this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
+            this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;

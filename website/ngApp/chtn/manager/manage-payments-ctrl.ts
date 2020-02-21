@@ -2,6 +2,7 @@ namespace Ally
 {
     class ElectronicPayment
     {
+        paymentId: number;
         submitDateUtc: Date;
         unitName: string;
         resident: string;
@@ -50,6 +51,7 @@ namespace Ally
         message = "";
         showPaymentPage: boolean = true; //AppConfig.appShortName === "condo";
         highlightWePayCheckoutId: string;
+        highlightPaymentsInfoId: number;
         PeriodicPaymentFrequencies:any[] = PeriodicPaymentFrequencies;
         AssociationPaysAch:boolean = true;
         AssociationPaysCC:boolean = false; // Payer pays credit card fees
@@ -96,6 +98,10 @@ namespace Ally
         $onInit()
         {
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear( "hwpid" );
+            const tempPayId = this.appCacheService.getAndClear( "onpayid" );
+            if( HtmlUtil.isNumericString( tempPayId ) )
+                this.highlightPaymentsInfoId = parseInt( tempPayId );
+
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
 
             // Allow a single HOA to try WePay
@@ -192,6 +198,21 @@ namespace Ally
 
                 this.refreshUnits();
                 this.updateTestFee();
+
+                // If we were sent here to pre-open a transaction's details
+                if( this.highlightPaymentsInfoId )
+                {
+                    const payment = data.electronicPayments.filter( e => e.paymentId === this.highlightPaymentsInfoId );
+                    if( payment && payment.length > 0 )
+                    {
+                        if( payment[0].wePayCheckoutId )
+                            this.showWePayCheckoutInfo( payment[0].wePayCheckoutId );
+                        else if( payment[0].paragonReferenceNumber )
+                            this.showParagonCheckoutInfo( payment[0].paragonReferenceNumber );
+                    }
+
+                    this.highlightPaymentsInfoId = null;
+                }
             } );
         }
 

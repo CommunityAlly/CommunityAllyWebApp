@@ -46,6 +46,8 @@ namespace Ally
         lastLoginDateUtc: Date;
         postmarkReportedBadEmailUtc: Date;
         isParagonPaymentSetup: boolean;
+        paragonCheckingLast4: string;
+        paragonCardLast4: string;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];
