@@ -23,15 +23,17 @@
         assessmentAmount: number;
         nextPaymentText: string;
         knowsNextPayment: boolean;
-        isParagonPaymentSetup: boolean = false;
         paragonCheckingLast4: string;
+        paragonCardLast4: string;
         paragonPaymentParams: string;
         showParagon: boolean = false;
-        paragonPayUri: string;
-        showParagonSignUpModal: boolean = false;
+        showParagonCheckingSignUpModal: boolean = false;
+        showParagonCreditSignUpModal: boolean = false;
         paragonSignUpInfo: ParagonPayerSignUpInfo;
         paragonSignUpError: string;
         paragonPaymentMessage: string;
+        paragonCardTokenizedUrl: string;
+        paragonCardTokenizationMessage: string;
 
 
         /**
@@ -47,12 +49,11 @@
          */
         $onInit()
         {
-            this.showParagon = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
-            this.paragonPaymentParams = `&BillingAddress1=${encodeURIComponent( "900 W Ainslie St" )}&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=${encodeURIComponent( this.siteInfo.userInfo.firstName )}&LastName=${encodeURIComponent(this.siteInfo.userInfo.lastName)}`;
-            this.paragonPayUri = this.$sce.trustAsResourceUrl( "https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" );
-            this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
+            this.showParagon = false;//this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.paragonPaymentParams = `&BillingAddress1=${encodeURIComponent( "900 W Ainslie St" )}&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=${encodeURIComponent( this.siteInfo.userInfo.firstName )}&LastName=${encodeURIComponent( this.siteInfo.userInfo.lastName )}`;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
-            
+            this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
+
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
@@ -62,7 +63,7 @@
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
             this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
-            
+
             if( !this.isAutoPayActive && HtmlUtil.isNumericString( HtmlUtil.GetQueryStringParameter( "preapproval_id" ) ) )
             {
                 // The user just set up auto-pay and it may take a second
@@ -80,12 +81,12 @@
                 this.assessmentAmount = 0;
 
             this.paymentInfo =
-                {
-                    paymentType: "other",
-                    amount: this.assessmentAmount,
-                    note: "",
-                    fundingType: null
-                };
+            {
+                paymentType: "other",
+                amount: this.assessmentAmount,
+                note: "",
+                fundingType: null
+            };
 
             var MaxNumRecentPayments: number = 6;
             this.recentPayments = this.siteInfo.userInfo.recentPayments;
@@ -93,7 +94,7 @@
             {
                 if( this.recentPayments.length > MaxNumRecentPayments )
                     this.recentPayments = this.recentPayments.slice( 0, MaxNumRecentPayments );
-                
+
                 // Fill up the list so there's always MaxNumRecentPayments
                 while( this.recentPayments.length < MaxNumRecentPayments )
                     this.recentPayments.push( {} );
@@ -118,33 +119,35 @@
                 }
             }
 
-            setTimeout( ()=>
+            setTimeout( () =>
             {
-                $('#btn_view_pay_history').click(function () {
-                    $('#pm_info').collapse('hide');
-                    $('#payment_history').collapse('show');
-                });
+                $( '#btn_view_pay_history' ).click( function()
+                {
+                    $( '#pm_info' ).collapse( 'hide' );
+                    $( '#payment_history' ).collapse( 'show' );
+                } );
 
-                $('#btn_view_pay_info').click(function () {
-                    $('#payment_history').collapse('hide');
-                    $('#pm_info').collapse('show');
-                });
+                $( '#btn_view_pay_info' ).click( function()
+                {
+                    $( '#payment_history' ).collapse( 'hide' );
+                    $( '#pm_info' ).collapse( 'show' );
+                } );
 
-                $( '.hide' ).click( function ()
+                $( '.hide' ).click( function()
                 {
                     $( this ).parent().hide( '' );
                 } );
 
             }, 400 );
         }
-        
+
 
         /**
          * Display the Paragon payment sign-up modal, with pre-population of data
          */
         showParagonSignUp()
         {
-            this.showParagonSignUpModal = true;
+            this.showParagonCheckingSignUpModal = true;
 
             if( this.paragonSignUpInfo )
                 return;
@@ -161,7 +164,48 @@
             {
                 this.isLoading_Payment = false;
                 this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
-            } );            
+            } );
+        }
+
+
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        showParagonCreditSignUp()
+        {
+            this.isLoading_Payment = true;
+            this.paragonCardTokenizedUrl = null;
+            this.paragonCardTokenizationMessage = "Connecting...";
+            this.showParagonCreditSignUpModal = true;
+
+            //this.paragonCardTokenizedUrl = this.$sce.trustAsResourceUrl( "https://login.mycondoally.com/api/PublicParagon/FinishCardTokenization2" );
+            //this.isLoading_Payment = false;
+
+
+            this.$http.get( "/api/Paragon/CardTokenizationKey" ).then( ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonCardTokenizedUrl = this.$sce.trustAsResourceUrl( "https://stage.paragonsolutions.com/ws/hosted.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&InvNum=" + response.data );
+                this.paragonCardTokenizationMessage = null;
+
+            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading_Payment = false;
+                this.paragonCardTokenizationMessage = "There was an error connecting to the server. Please close this window and try again. If this has happened more than once please contact support.";
+            } );
+        }
+
+
+        /**
+         * Hide the paragon window, reloading the page if needed
+         */
+        hideParagonCreditSignUp()
+        {
+            this.showParagonCreditSignUpModal = false;
+
+            // Reload the page to refresh the payment info
+            if( this.paragonCardTokenizedUrl )
+                window.location.reload();
         }
 
 
@@ -173,7 +217,7 @@
             this.isLoading_Payment = true;
             this.paragonSignUpError = null;
 
-            this.$http.post( "/api/Paragon/PaymentSignUp", this.paragonSignUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.post( "/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 // Reload the page to refresh the payment info. We don't really need to do this,
                 // but makes sure the UI is up to date a little better as well updates the
@@ -191,14 +235,18 @@
         /**
          * Submit the user's Paragon bank account information
          */
-        submitParagonPayment()
+        submitParagonPayment( paySource: string )
         {
+            if( !confirm( "This will submit payment." ) )
+                return;
+
             this.paragonPaymentMessage = null;
 
             var paymentInfo = new ParagonNewPaymentInfo();
             paymentInfo.notes = this.paymentInfo.note;
             paymentInfo.paymentAmount = this.paymentInfo.amount;
             paymentInfo.paysFor = this.paymentInfo.paysFor;
+            paymentInfo.paySource = paySource;
 
             this.isLoading_Payment = true;
 
@@ -210,6 +258,27 @@
             }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoading_Payment = false;
+                this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+            } );
+        }
+
+
+        /**
+         * Un-enroll a certain payment source from Paragon payments
+         */
+        unenrollParagonAccount( paySource: string )
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.get( "/api/Paragon/UnenrollPayment?paySource=" + paySource ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            {
+                // Reload the page to see the change
+                window.location.reload();
+
+            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoading_Payment = false;
+                alert( "Failed to un-enroll: " + errorResponse.data.exceptionMessage );
                 this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
             } );
         }
@@ -232,7 +301,7 @@
             } );
 
             var innerThis = this;
-            this.$http.post( "/api/WePayPayment", this.paymentInfo ).then( function( httpResponse:any )
+            this.$http.post( "/api/WePayPayment", this.paymentInfo ).then( function( httpResponse: any )
             {
                 var checkoutInfo = httpResponse.data;
 
@@ -244,7 +313,7 @@
                     alert( "Unable to initiate WePay checkout" );
                 }
 
-            }, function( httpResponse:any )
+            }, function( httpResponse: any )
             {
                 innerThis.isLoading_Payment = false;
 
@@ -270,9 +339,9 @@
             if( this.knowsNextPayment && HtmlUtil.isValidString( this.nextPaymentText ) )
                 prepEventData += "|" + this.nextPaymentText;
 
-            this.$rootScope.$broadcast( "prepAssessmentEmailToBoard", prepEventData );            
+            this.$rootScope.$broadcast( "prepAssessmentEmailToBoard", prepEventData );
         }
-        
+
 
         /**
          * Refresh the note text for the payment field
@@ -405,12 +474,12 @@
                 this.isAutoPayActive = false;
 
             }, ( httpResponse ) =>
-                {
-                    this.isLoading_Payment = false;
+            {
+                this.isLoading_Payment = false;
 
-                    if( httpResponse.data && httpResponse.data.exceptionMessage )
-                        alert( httpResponse.data.exceptionMessage );
-                } );
+                if( httpResponse.data && httpResponse.data.exceptionMessage )
+                    alert( httpResponse.data.exceptionMessage );
+            } );
         }
     }
 }
@@ -441,4 +510,5 @@ class ParagonNewPaymentInfo
     paymentAmount: number;
     notes: string;
     paysFor: Ally.PayPeriod[];
+    paySource: string;
 }

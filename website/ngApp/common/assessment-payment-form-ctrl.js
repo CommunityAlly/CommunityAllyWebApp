@@ -13,19 +13,18 @@ var Ally;
             this.$rootScope = $rootScope;
             this.$sce = $sce;
             this.isLoading_Payment = false;
-            this.isParagonPaymentSetup = false;
             this.showParagon = false;
-            this.showParagonSignUpModal = false;
+            this.showParagonCheckingSignUpModal = false;
+            this.showParagonCreditSignUpModal = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         AssessmentPaymentFormController.prototype.$onInit = function () {
-            this.showParagon = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.showParagon = false; //this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.paragonPaymentParams = "&BillingAddress1=" + encodeURIComponent("900 W Ainslie St") + "&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=" + encodeURIComponent(this.siteInfo.userInfo.firstName) + "&LastName=" + encodeURIComponent(this.siteInfo.userInfo.lastName);
-            this.paragonPayUri = this.$sce.trustAsResourceUrl("https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}");
-            this.isParagonPaymentSetup = this.siteInfo.userInfo.isParagonPaymentSetup;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
+            this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
@@ -93,7 +92,7 @@ var Ally;
          */
         AssessmentPaymentFormController.prototype.showParagonSignUp = function () {
             var _this = this;
-            this.showParagonSignUpModal = true;
+            this.showParagonCheckingSignUpModal = true;
             if (this.paragonSignUpInfo)
                 return;
             // Pre-populate the user's info
@@ -109,11 +108,40 @@ var Ally;
         /**
          * Submit the user's Paragon bank account information
          */
+        AssessmentPaymentFormController.prototype.showParagonCreditSignUp = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.paragonCardTokenizedUrl = null;
+            this.paragonCardTokenizationMessage = "Connecting...";
+            this.showParagonCreditSignUpModal = true;
+            //this.paragonCardTokenizedUrl = this.$sce.trustAsResourceUrl( "https://login.mycondoally.com/api/PublicParagon/FinishCardTokenization2" );
+            //this.isLoading_Payment = false;
+            this.$http.get("/api/Paragon/CardTokenizationKey").then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.paragonCardTokenizedUrl = _this.$sce.trustAsResourceUrl("https://stage.paragonsolutions.com/ws/hosted.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&InvNum=" + response.data);
+                _this.paragonCardTokenizationMessage = null;
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.paragonCardTokenizationMessage = "There was an error connecting to the server. Please close this window and try again. If this has happened more than once please contact support.";
+            });
+        };
+        /**
+         * Hide the paragon window, reloading the page if needed
+         */
+        AssessmentPaymentFormController.prototype.hideParagonCreditSignUp = function () {
+            this.showParagonCreditSignUpModal = false;
+            // Reload the page to refresh the payment info
+            if (this.paragonCardTokenizedUrl)
+                window.location.reload();
+        };
+        /**
+         * Submit the user's Paragon bank account information
+         */
         AssessmentPaymentFormController.prototype.submitParagonSignUp = function () {
             var _this = this;
             this.isLoading_Payment = true;
             this.paragonSignUpError = null;
-            this.$http.post("/api/Paragon/PaymentSignUp", this.paragonSignUpInfo).then(function (response) {
+            this.$http.post("/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo).then(function (response) {
                 // Reload the page to refresh the payment info. We don't really need to do this,
                 // but makes sure the UI is up to date a little better as well updates the
                 // siteInfo object.
@@ -126,19 +154,37 @@ var Ally;
         /**
          * Submit the user's Paragon bank account information
          */
-        AssessmentPaymentFormController.prototype.submitParagonPayment = function () {
+        AssessmentPaymentFormController.prototype.submitParagonPayment = function (paySource) {
             var _this = this;
+            if (!confirm("This will submit payment."))
+                return;
             this.paragonPaymentMessage = null;
             var paymentInfo = new ParagonNewPaymentInfo();
             paymentInfo.notes = this.paymentInfo.note;
             paymentInfo.paymentAmount = this.paymentInfo.amount;
             paymentInfo.paysFor = this.paymentInfo.paysFor;
+            paymentInfo.paySource = paySource;
             this.isLoading_Payment = true;
             this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function (response) {
                 _this.isLoading_Payment = false;
                 _this.paragonPaymentMessage = "Payment Successfully Processed";
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
+                _this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+            });
+        };
+        /**
+         * Un-enroll a certain payment source from Paragon payments
+         */
+        AssessmentPaymentFormController.prototype.unenrollParagonAccount = function (paySource) {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.get("/api/Paragon/UnenrollPayment?paySource=" + paySource).then(function (response) {
+                // Reload the page to see the change
+                window.location.reload();
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to un-enroll: " + errorResponse.data.exceptionMessage);
                 _this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
             });
         };
