@@ -85,7 +85,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LoginController.prototype.onWelcomeImageLoaded = function () {
             var welcomeImageElem = document.getElementById("welcome-image");
-            console.log("Welcome image loaded " + welcomeImageElem.width + "x" + welcomeImageElem.height);
+            //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
             window.localStorage["welcomeImage_width"] = welcomeImageElem.width;
             window.localStorage["welcomeImage_height"] = welcomeImageElem.height;
         };
@@ -94,7 +94,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LoginController.prototype.onWelcomeImageError = function () {
             var welcomeImageElem = document.getElementById("welcome-image");
-            console.log("Welcome image loaded " + welcomeImageElem.width + "x" + welcomeImageElem.height);
+            console.log("Welcome image error");
             window.localStorage.removeItem("welcomeImage_width");
             window.localStorage.removeItem("welcomeImage_height");
         };

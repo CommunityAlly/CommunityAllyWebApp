@@ -115,7 +115,7 @@
         onWelcomeImageLoaded()
         {
             var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
-            console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
+            //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
 
             window.localStorage["welcomeImage_width"] = welcomeImageElem.width;
             window.localStorage["welcomeImage_height"] = welcomeImageElem.height;
@@ -128,7 +128,7 @@
         onWelcomeImageError()
         {
             var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
-            console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
+            console.log( `Welcome image error` );
 
             window.localStorage.removeItem( "welcomeImage_width" );
             window.localStorage.removeItem( "welcomeImage_height" );
