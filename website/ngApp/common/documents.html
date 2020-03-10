@@ -120,6 +120,9 @@
         </div>
 
     </div>
+    <div class="text-right" data-ng-if="$ctrl.downloadZipVid">
+        <a data-ng-href="/api/DocumentUpload/GetFullZip?vid={{$ctrl.downloadZipVid}}" target="_blank" data-ng-click="$ctrl.getDownloadZipVid()">Download Zip Of All Files</a> <span class="note-text">(Can take a few minutes)</span>
+    </div>
 
     <div id="CreateDirectoryContainer" class="modal-container" data-ng-show="$ctrl.shouldShowCreateFolderModal" data-ng-form data-ng-enter="$ctrl.onCreateDirectoryClicked()" data-ng-escape="$ctrl.onCancelAddDirectory()">
         <div class="modal-overlay"></div>

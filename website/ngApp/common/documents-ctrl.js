@@ -145,7 +145,7 @@ var Ally;
             }
             this.$http.get("/api/DocumentLink/" + curFile.docId).then(function (response) {
                 _this.isLoading = false;
-                var fileUri = curFile.url + "?vid=" + response.data.vid;
+                var fileUri = curFile.url + "?vid=" + encodeURIComponent(response.data.vid);
                 if (isForDownload) {
                     var link = document.createElement('a');
                     link.setAttribute("type", "hidden"); // make it hidden if needed
@@ -166,6 +166,22 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to open document: " + response.data.exceptionMessage);
             });
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Get a view ID needed to download a full zip
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        DocumentsController.prototype.getDownloadZipVid = function () {
+            var _this = this;
+            // Update after a half second
+            setTimeout(function () {
+                _this.$http.get("/api/DocumentLink/0").then(function (response) {
+                    _this.downloadZipVid = response.data.vid;
+                }, function (response) {
+                    console.log("Failed to get zip link: " + response.data.exceptionMessage);
+                });
+            }, 750);
+            // Return true because this is called from an <a> onclick handler
+            return true;
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Get the name of the selected directory. If it is a sub-directory then include the parent
@@ -579,6 +595,8 @@ var Ally;
                 };
                 processDir(innerThis.documentTree);
                 innerThis.fullSearchFileList = allFiles;
+                if (innerThis.fullSearchFileList.length > 0)
+                    innerThis.getDownloadZipVid();
                 // Find the directory we had selected before the refresh
                 if (selectedDirectoryPath) {
                     innerThis.selectedDirectory = innerThis.FindDirectoryByPath(selectedDirectoryPath);

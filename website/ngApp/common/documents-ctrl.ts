@@ -25,7 +25,7 @@ namespace Ally
 
     class DocLinkInfo
     {
-        vid: number;
+        vid: string;
     }
 
 
@@ -84,6 +84,7 @@ namespace Ally
         apiAuthToken: string;
         showPopUpWarning: boolean = false;
         shouldShowSubdirectories: boolean = true;
+        downloadZipVid: string;
 
 
         /**
@@ -226,7 +227,7 @@ namespace Ally
                 {
                     this.isLoading = false;
 
-                    let fileUri = `${curFile.url}?vid=${response.data.vid}`;
+                    let fileUri = `${curFile.url}?vid=${encodeURIComponent(response.data.vid)}`;
 
                     if( isForDownload )
                     {
@@ -254,6 +255,31 @@ namespace Ally
                     alert( "Failed to open document: " + response.data.exceptionMessage );
                 }
             );
+        }
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Get a view ID needed to download a full zip
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        getDownloadZipVid()
+        {
+            // Update after a half second
+            setTimeout( () =>
+            {
+                this.$http.get( "/api/DocumentLink/0" ).then(
+                    ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
+                    {
+                        this.downloadZipVid = response.data.vid;
+                    },
+                    ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                    {
+                        console.log( "Failed to get zip link: " + response.data.exceptionMessage );
+                    }
+                );
+            }, 750 );
+
+            // Return true because this is called from an <a> onclick handler
+            return true;
         }
 
 
@@ -854,6 +880,9 @@ namespace Ally
                     processDir( innerThis.documentTree );
 
                     innerThis.fullSearchFileList = allFiles;
+
+                    if( innerThis.fullSearchFileList.length > 0 )
+                        innerThis.getDownloadZipVid();
 
                     // Find the directory we had selected before the refresh
                     if( selectedDirectoryPath )
