@@ -103,6 +103,80 @@ namespace Ally
         }
 
 
+        /**
+         * Export the vendor list as a CSV
+         */
+        exportVendorCsv()
+        {
+            if( typeof ( analytics ) !== "undefined" )
+                analytics.track( 'exportResidentCsv' );
+
+            var innerThis = this;
+
+            var csvColumns = [
+                {
+                    headerText: "Company Name",
+                    fieldName: "companyName"
+                },
+                {
+                    headerText: "Company Phone",
+                    fieldName: "companyPhone"
+                },
+                {
+                    headerText: "Company Website",
+                    fieldName: "companyWeb"
+                },
+                {
+                    headerText: "Address",
+                    fieldName: "fullAddress",
+                    dataMapper: function ( value: FullAddress )
+                    {
+                        return !value ? "" : value.oneLiner;
+                    }
+                },
+                {
+                    headerText: "Contact Name",
+                    fieldName: "contactName"
+                },
+                {
+                    headerText: "Contact Phone",
+                    fieldName: "contactPhone"
+                },
+                {
+                    headerText: "Contact Email",
+                    fieldName: "contactEmail"
+                },
+                {
+                    headerText: "Services",
+                    fieldName: "servicesProvided",
+                    dataMapper: function( servicesProvided: string )
+                    {
+                        if( HtmlUtil.isNullOrWhitespace( servicesProvided ) )
+                            return servicesProvided;
+
+                        // Trim leading and trailing pipes
+                        if( HtmlUtil.startsWith( servicesProvided, "|" ) )
+                            servicesProvided = servicesProvided.substr( 1 );
+
+                        if( HtmlUtil.endsWith( servicesProvided, "|" ) )
+                            servicesProvided = servicesProvided.substr( 0, servicesProvided.length - 1 );
+
+                        return servicesProvided;
+                    }
+                },
+                {
+                    headerText: "Notes",
+                    fieldName: "notes"
+                }
+            ];
+
+            var csvDataString = Ally.createCsvString( this.allVendors, csvColumns );
+
+            HtmlUtil2.downloadCsv( csvDataString, "Vendors.csv" );
+        }
+
+
+
         onTagFilterToggle( tagName: string )
         {
             // Add if the tag to our filter list if it's not there, remove it if it is
