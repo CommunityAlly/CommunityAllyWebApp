@@ -84,7 +84,7 @@ namespace Ally
         apiAuthToken: string;
         showPopUpWarning: boolean = false;
         shouldShowSubdirectories: boolean = true;
-        downloadZipVid: string;
+        downloadZipUrl: string;
 
 
         /**
@@ -269,7 +269,12 @@ namespace Ally
                 this.$http.get( "/api/DocumentLink/0" ).then(
                     ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
                     {
-                        this.downloadZipVid = response.data.vid;
+                        if( this.committee )
+                            this.downloadZipUrl = `/api/DocumentUpload/GetCommitteeFullZip/${this.committee.committeeId}?vid=` + response.data.vid;
+                        else
+                            this.downloadZipUrl = "/api/DocumentUpload/GetFullZip?vid=" + response.data.vid;
+
+                        ///api/DocumentUpload/GetFullZip?vid={{$ctrl.downloadZipUrl}}
                     },
                     ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                     {

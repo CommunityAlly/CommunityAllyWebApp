@@ -7777,7 +7777,11 @@ var Ally;
             // Update after a half second
             setTimeout(function () {
                 _this.$http.get("/api/DocumentLink/0").then(function (response) {
-                    _this.downloadZipVid = response.data.vid;
+                    if (_this.committee)
+                        _this.downloadZipUrl = "/api/DocumentUpload/GetCommitteeFullZip/" + _this.committee.committeeId + "?vid=" + response.data.vid;
+                    else
+                        _this.downloadZipUrl = "/api/DocumentUpload/GetFullZip?vid=" + response.data.vid;
+                    ///api/DocumentUpload/GetFullZip?vid={{$ctrl.downloadZipUrl}}
                 }, function (response) {
                     console.log("Failed to get zip link: " + response.data.exceptionMessage);
                 });
