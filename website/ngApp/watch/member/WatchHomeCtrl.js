@@ -3,7 +3,7 @@
     var vm = this;
 
     var WatchMembersResource = $resource( '/api/Watch/Home' );
-    var LocalNewsResource = $resource( 'https://localnewsally.org/api/LocalNews', null, { cache: true } );
+    var LocalNewsResource = $resource( 'https://localnewsally.azurewebsites.net/api/LocalNews', null, { cache: true } );
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
