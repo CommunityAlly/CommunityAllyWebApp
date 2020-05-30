@@ -86,8 +86,10 @@ var Ally;
         LoginController.prototype.onWelcomeImageLoaded = function () {
             var welcomeImageElem = document.getElementById("welcome-image");
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
-            window.localStorage["welcomeImage_width"] = welcomeImageElem.width;
-            window.localStorage["welcomeImage_height"] = welcomeImageElem.height;
+            window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;
+            window.localStorage["welcomeImage_height"] = welcomeImageElem.naturalHeight;
+            this.welcomeImageContainerStyle["width"] = welcomeImageElem.naturalWidth + "px";
+            this.welcomeImageContainerStyle["height"] = welcomeImageElem.naturalHeight + "px";
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image fails to load

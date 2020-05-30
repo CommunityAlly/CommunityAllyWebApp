@@ -117,8 +117,11 @@
             var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
 
-            window.localStorage["welcomeImage_width"] = welcomeImageElem.width;
-            window.localStorage["welcomeImage_height"] = welcomeImageElem.height;
+            window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;
+            window.localStorage["welcomeImage_height"] = welcomeImageElem.naturalHeight;
+
+            this.welcomeImageContainerStyle["width"] = welcomeImageElem.naturalWidth + "px";
+            this.welcomeImageContainerStyle["height"] = welcomeImageElem.naturalHeight + "px";
         }
 
 
