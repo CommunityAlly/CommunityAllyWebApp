@@ -85,6 +85,7 @@ namespace Ally
         showPopUpWarning: boolean = false;
         shouldShowSubdirectories: boolean = true;
         downloadZipUrl: string;
+        docsHttpCache: ng.ICacheObject;
 
 
         /**
@@ -92,6 +93,8 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $cacheFactory: ng.ICacheFactoryService, private $scope: ng.IScope, private siteInfo: SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
         {
+            this.docsHttpCache = this.$cacheFactory.get( "docs-http-cache" ) || this.$cacheFactory( "docs-http-cache" );
+
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
             if( !this.fileSortType )
                 this.fileSortType = "title";
@@ -120,64 +123,65 @@ namespace Ally
             this.Refresh();
 
             let innerThis = this;
-            let hookUpFileUpload = function()
+            let hookUpFileUpload = () =>
             {
-                $( function()
-                {
-                    var uploader: any = $( '#JQDocsFileUploader' );
+                var uploader: any = $( '#JQDocsFileUploader' );
 
-                    uploader.fileupload( {
-                        autoUpload: true,
-                        add: function( e: any, data: any )
+                uploader.fileupload( {
+                    autoUpload: true,
+                    add: ( e: any, data: any ) =>
+                    {
+                        //var scopeElement = document.getElementById( 'documents-area' );
+                        //var scope = angular.element( scopeElement ).scope();
+                        //this.$scope.$apply( () => this.isLoading = false );
+
+                        const MaxFileSize = 1024 * 1024 * 50;
+                        if( data.files[0].size > MaxFileSize )
                         {
-                            //var scopeElement = document.getElementById( 'documents-area' );
-                            //var scope = angular.element( scopeElement ).scope();
-                            //innerThis.$scope.$apply( function() { innerThis.isLoading = false; });
-
-                            const MaxFileSize = 1024 * 1024 * 50;
-                            if( data.files[0].size > MaxFileSize )
-                            {
-                                let fileMB = Math.round( data.files[0].size / ( 1024 * 1024 ) ) + 1;
-                                alert( `The selected file is too large (${fileMB}MB). The maximum file size allowed is 50MB.` );
-                                return;
-                            }
-
-                            let dirPath = innerThis.getSelectedDirectoryPath();
-
-                            $( "#FileUploadProgressContainer" ).show();
-                            data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
-
-                            var xhr = data.submit();
-
-                            xhr.done( function( result: any )
-                            {
-                                // Clear the document cache
-                                innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
-
-                                $( "#FileUploadProgressContainer" ).hide();
-                                innerThis.Refresh();
-                            } );
-                        },
-                        beforeSend: function( xhr: any )
-                        {
-                            xhr.setRequestHeader( "ApiAuthToken", innerThis.apiAuthToken );
-                        },
-                        progressall: function( e: any, data: any )
-                        {
-                            var progress = parseInt( ( data.loaded / data.total * 100 ).toString(), 10 );
-                            $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );
-
-                            if( progress === 100 )
-                                $( "#FileUploadProgressLabel" ).text( "Finalizing Upload..." );
-                            else
-                                $( "#FileUploadProgressLabel" ).text( progress + "%" );
-                        },
-                        fail: function( xhr: any )
-                        {
-                            $( "#FileUploadProgressContainer" ).hide();
-                            alert( "Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again." );
+                            let fileMB = Math.round( data.files[0].size / ( 1024 * 1024 ) ) + 1;
+                            alert( `The selected file is too large (${fileMB}MB). The maximum file size allowed is 50MB.` );
+                            return;
                         }
-                    } );
+
+                        let dirPath = this.getSelectedDirectoryPath();
+
+                        $( "#FileUploadProgressContainer" ).show();
+                        data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
+                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
+                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
+
+                        var xhr = data.submit();
+
+                        xhr.done( ( result: any ) =>
+                        {
+                            this.docsHttpCache.removeAll();
+
+                            $( "#FileUploadProgressContainer" ).hide();
+                            this.Refresh();
+                        } );
+                    },
+                    beforeSend: ( xhr: any ) =>
+                    {
+                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
+                            xhr.setRequestHeader( "Authorization", "Bearer " + this.apiAuthToken );
+                        else
+                            xhr.setRequestHeader( "ApiAuthToken", this.apiAuthToken );
+                    },
+                    progressall: ( e: any, data: any ) =>
+                    {
+                        var progress = parseInt( ( data.loaded / data.total * 100 ).toString(), 10 );
+                        $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );
+
+                        if( progress === 100 )
+                            $( "#FileUploadProgressLabel" ).text( "Finalizing Upload..." );
+                        else
+                            $( "#FileUploadProgressLabel" ).text( progress + "%" );
+                    },
+                    fail: ( xhr: any ) =>
+                    {
+                        $( "#FileUploadProgressContainer" ).hide();
+                        alert( "Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again." );
+                    }
                 } );
             };
 
@@ -355,7 +359,7 @@ namespace Ally
 
             this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
 
-            setTimeout( function()
+            setTimeout( () =>
             {
                 // Force redraw of the document. Not sure why, but the file list disappears on Chrome
                 var element = document.getElementById( "documents-area" );
@@ -375,47 +379,45 @@ namespace Ally
                 return;
 
             var innerThis = this;
-            setTimeout( function()
+            setTimeout( () =>
             {
                 // Make the folders accept dropped files
                 let droppables: any = $( ".droppable" );
                 droppables.droppable(
                     {
-                        drop: function( event: any, ui: any )
+                        drop: ( event: any, ui: any ) =>
                         {
-                            let selectedDirectoryPath = innerThis.getSelectedDirectoryPath();
+                            let selectedDirectoryPath = this.getSelectedDirectoryPath();
 
                             var uiDraggable: any = $( ui.draggable );
                             uiDraggable.draggable( "option", "revert", "false" );
 
-                            var destFolderName = $( this ).attr( "data-folder-path" ).trim();
+                            var destFolderName = $( event.target ).attr( "data-folder-path" ).trim();
 
-                            innerThis.$scope.$apply( function()
+                            this.$scope.$apply( () =>
                             {
                                 // Display the loading image
-                                innerThis.isLoading = true;
+                                this.isLoading = true;
 
                                 var fileAction = {
-                                    relativeS3Path: innerThis.selectedFile.relativeS3Path,
+                                    relativeS3Path: this.selectedFile.relativeS3Path,
                                     action: "move",
                                     newFileName: "",
                                     sourceFolderPath: selectedDirectoryPath,
                                     destinationFolderPath: destFolderName
                                 };
 
-                                //innerThis.selectedDirectory = null;
-                                innerThis.selectedFile = null;
+                                this.selectedFile = null;
 
                                 // Tell the server
-                                innerThis.$http.put( "/api/ManageDocuments/MoveFile", fileAction ).then(
-                                    function()
+                                this.$http.put( "/api/ManageDocuments/MoveFile", fileAction ).then(
+                                    () =>
                                     {
-                                        innerThis.isLoading = false;
+                                        this.isLoading = false;
 
-                                        // Clear the document cache
-                                        innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getDocsUri );
+                                        this.docsHttpCache.removeAll();
 
-                                        innerThis.Refresh();
+                                        this.Refresh();
                                         //innerThis.documentTree = httpResponse.data;
                                         //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
 
@@ -432,9 +434,9 @@ namespace Ally
                                         //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
                                         //innerThis.SortFiles();
                                     },
-                                    function( data: any )
+                                    ( data: any ) =>
                                     {
-                                        innerThis.isLoading = false;
+                                        this.isLoading = false;
                                         var message = data.exceptionMessage || data.message || data;
                                         alert( "Failed to move file: " + message );
                                     }
@@ -451,16 +453,16 @@ namespace Ally
                         distance: 10,
                         revert: true,
                         helper: "clone",
-                        opacity: 0.7,
+                        opacity: 1,
                         containment: "document",
-                        appendTo: "body",
-                        start: function( event: any, ui: any )
+                        appendTo: "body",                        
+                        start: ( event: any, ui: any ) =>
                         {
                             // Get the index of the file being dragged (ID is formatted like "File_12")
-                            let fileIndexString = $( this ).attr( "id" ).substring( "File_".length );
+                            let fileIndexString = $( event.target ).attr( "id" ).substring( "File_".length );
                             let fileIndex = parseInt( fileIndexString );
 
-                            innerThis.$scope.$apply( function()
+                            innerThis.$scope.$apply( () =>
                             {
                                 var fileInfo = innerThis.selectedDirectory.files[fileIndex];
                                 innerThis.selectedFile = fileInfo;
@@ -575,8 +577,7 @@ namespace Ally
             this.$http.put( putUri, null ).then(
                 () =>
                 {
-                    // Clear the document cache
-                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                    this.docsHttpCache.removeAll();
 
                     this.newDirectoryName = "";
                     this.Refresh();
@@ -641,8 +642,7 @@ namespace Ally
             this.$http.put( "/api/ManageDocuments/RenameFile", fileAction ).then(
                 () =>
                 {
-                    // Clear the local document cache
-                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                    this.docsHttpCache.removeAll();
 
                     this.Refresh();
                 },
@@ -670,8 +670,7 @@ namespace Ally
                 this.$http.delete( "/api/ManageDocuments?docPath=" + document.relativeS3Path ).then(
                     () =>
                     {
-                        // Clear the document cache
-                        this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                        this.docsHttpCache.removeAll();
 
                         this.Refresh();
                     },
@@ -712,8 +711,7 @@ namespace Ally
             this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then(
                 () =>
                 {
-                    // Clear the document cache
-                    this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                    this.docsHttpCache.removeAll();
 
                     // Update the selected directory name so we can reselect it
                     this.selectedDirectory.name = newDirectoryName;
@@ -752,8 +750,7 @@ namespace Ally
                 this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then(
                     () =>
                     {
-                        // Clear the document cache
-                        this.$cacheFactory.get( '$http' ).remove( this.getDocsUri );
+                        this.docsHttpCache.removeAll();
 
                         this.Refresh();
 
@@ -854,18 +851,17 @@ namespace Ally
             if( this.committee )
                 this.getDocsUri += "/Committee/" + this.committee.committeeId;
 
-            var innerThis = this;
-            this.$http.get( this.getDocsUri, { cache: true } ).then(
+            this.$http.get( this.getDocsUri, { cache: this.docsHttpCache } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<DocumentDirectory> ) =>
                 {
-                    innerThis.isLoading = false;
-                    innerThis.documentTree = httpResponse.data;
-                    innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
+                    this.isLoading = false;
+                    this.documentTree = httpResponse.data;
+                    this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
 
                     // Hook up parent directories
-                    innerThis.documentTree.subdirectories.forEach( ( dir ) =>
+                    this.documentTree.subdirectories.forEach( ( dir ) =>
                     {
-                        innerThis.hookupParentDirs( dir );
+                        this.hookupParentDirs( dir );
                     } );
 
                     // Build an array of all local files
@@ -882,25 +878,25 @@ namespace Ally
 
                         _.each( subdir.subdirectories, processDir );
                     };
-                    processDir( innerThis.documentTree );
+                    processDir( this.documentTree );
 
-                    innerThis.fullSearchFileList = allFiles;
+                    this.fullSearchFileList = allFiles;
 
-                    if( innerThis.fullSearchFileList.length > 0 )
-                        innerThis.getDownloadZipVid();
+                    if( this.fullSearchFileList.length > 0 && !this.downloadZipUrl )
+                        this.getDownloadZipVid();
 
                     // Find the directory we had selected before the refresh
                     if( selectedDirectoryPath )
                     {
-                        innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
-                        innerThis.SortFiles();
+                        this.selectedDirectory = this.FindDirectoryByPath( selectedDirectoryPath );
+                        this.SortFiles();
                     }
 
-                    innerThis.hookUpFileDragging();
+                    this.hookUpFileDragging();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
                     //$( "#FileTreePanel" ).hide();
                     //innerThis.errorMessage = "Failed to retrieve the building documents.";
                 }
