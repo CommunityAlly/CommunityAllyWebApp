@@ -34,12 +34,12 @@
 
                     <div class="form-group text-left">
                         <label for="login-email-textbox">E-mail Address:</label>
-                        <input type="email" class="form-control" id="login-email-textbox" placeholder="Enter email" data-ng-model="$ctrl.loginInfo.emailAddress" data-rule-required="true">
+                        <input type="email" class="form-control" id="login-email-textbox" placeholder="Enter email" data-ng-model="$ctrl.loginInfo.emailAddress" autocomplete="username" data-rule-required="true">
                     </div>
 
                     <div class="form-group text-left">
                         <label for="login-password-textbox">Password:</label>
-                        <input type="password" class="form-control" id="login-password-textbox" placeholder="Password" data-ng-model="$ctrl.loginInfo.password" data-rule-required="true">
+                        <input type="password" class="form-control" id="login-password-textbox" placeholder="Password" data-ng-model="$ctrl.loginInfo.password" autocomplete="current-password" data-rule-required="true">
                     </div>
                     
                     <div class="form-group row">
