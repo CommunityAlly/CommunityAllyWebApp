@@ -209,7 +209,7 @@ var Ally;
                 logbookDeferred.resolve();
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
-                this.$http.get("/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
+                this.$http.get("/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
                     _this.isLoadingPolls = false;
                     _.each(data, function (entry) {

@@ -262,7 +262,7 @@ namespace Ally
             {
                 this.isLoadingPolls = true;
                 
-                this.$http.get( "/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                this.$http.get( "/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     var data = httpResponse.data;
 
