@@ -38,6 +38,7 @@ var Ally;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
                 this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+            this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
@@ -95,7 +96,7 @@ var Ally;
                 if (this.committee)
                     this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
             }
-            this.$http.get(this.getUri, { cache: true }).then(function (httpResponse) {
+            this.$http.get(this.getUri, { cache: this.faqsHttpCache }).then(function (httpResponse) {
                 _this.isLoadingInfo = false;
                 _this.infoItems = httpResponse.data;
                 // Make <a> links open in new tabs
@@ -131,6 +132,7 @@ var Ally;
         // Occurs when the user wants to add a new info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.onSubmitItem = function () {
+            var _this = this;
             this.editingInfoItem.body = $("#editor").html();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
             var validateable = $("#info-item-edit-form");
@@ -140,16 +142,18 @@ var Ally;
             if (this.committee)
                 this.editingInfoItem.committeeId = this.committee.committeeId;
             this.isLoadingInfo = true;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoadingInfo = false;
+                _this.isLoadingInfo = false;
                 $("#editor").html("");
-                innerThis.editingInfoItem = new InfoItem();
-                innerThis.$cacheFactory.get('$http').remove(innerThis.getUri);
-                innerThis.retrieveInfo();
+                _this.editingInfoItem = new InfoItem();
+                // Switched to removeAll because when we switched to the new back-end, the cache
+                // key is the full request URI, not just the "/api/InfoItem" form
+                //this.faqsHttpCache.remove( this.getUri );
+                _this.faqsHttpCache.removeAll();
+                _this.retrieveInfo();
             };
             var onError = function () {
-                innerThis.isLoadingInfo = false;
+                _this.isLoadingInfo = false;
                 alert("Failed to save your information. Please try again and if this happens again contact support.");
             };
             // If we're editing an existing info item
@@ -168,7 +172,7 @@ var Ally;
             this.isLoadingInfo = true;
             this.$http.delete("/api/InfoItem/" + infoItem.infoItemId).then(function () {
                 _this.isLoadingInfo = false;
-                _this.$cacheFactory.get('$http').remove(_this.getUri);
+                _this.faqsHttpCache.removeAll();
                 _this.retrieveInfo();
             });
         };

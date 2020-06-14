@@ -31,6 +31,7 @@ namespace Ally
         getUri: string;
         committee: Ally.Committee;
         headerText: string = "Information and Frequently Asked Questions (FAQs)";
+        faqsHttpCache: ng.ICacheObject;
 
         
         /**
@@ -55,7 +56,9 @@ namespace Ally
             // Make sure committee members can manage their data
             if( this.committee && !this.canManage )
                 this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
-            
+
+            this.faqsHttpCache = this.$cacheFactory.get( "faqs-http-cache" ) || this.$cacheFactory( "faqs-http-cache" );
+
             this.retrieveInfo();
 
             // Hook up the rich text editor
@@ -132,7 +135,7 @@ namespace Ally
                     this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
             }
             
-            this.$http.get( this.getUri, { cache: true }).then( ( httpResponse: ng.IHttpPromiseCallbackArg<InfoItem[]> ) =>
+            this.$http.get( this.getUri, { cache: this.faqsHttpCache }).then( ( httpResponse: ng.IHttpPromiseCallbackArg<InfoItem[]> ) =>
             {            
                 this.isLoadingInfo = false;
                 this.infoItems = httpResponse.data;
@@ -193,19 +196,23 @@ namespace Ally
 
             this.isLoadingInfo = true;
 
-            var innerThis = this;
-            var onSave = function()
+            var onSave = () =>
             {
-                innerThis.isLoadingInfo = false;
+                this.isLoadingInfo = false;
                 $( "#editor" ).html( "" );
-                innerThis.editingInfoItem = new InfoItem();
-                innerThis.$cacheFactory.get( '$http' ).remove( innerThis.getUri );
-                innerThis.retrieveInfo();
+                this.editingInfoItem = new InfoItem();
+
+                // Switched to removeAll because when we switched to the new back-end, the cache
+                // key is the full request URI, not just the "/api/InfoItem" form
+                //this.faqsHttpCache.remove( this.getUri );
+                this.faqsHttpCache.removeAll();
+
+                this.retrieveInfo();
             };
 
-            var onError = function()
+            var onError = () =>
             {
-                innerThis.isLoadingInfo = false;
+                this.isLoadingInfo = false;
                 alert( "Failed to save your information. Please try again and if this happens again contact support." );
             };
 
@@ -231,7 +238,7 @@ namespace Ally
             this.$http.delete( "/api/InfoItem/" + infoItem.infoItemId ).then( () =>
             {
                 this.isLoadingInfo = false;
-                this.$cacheFactory.get( '$http' ).remove( this.getUri );
+                this.faqsHttpCache.removeAll();
                 this.retrieveInfo();
             });
         }
