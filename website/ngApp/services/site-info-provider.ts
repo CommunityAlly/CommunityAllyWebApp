@@ -141,27 +141,24 @@ namespace Ally
         static AlwaysDiscussDate = new Date( 2018, 7, 1 ); // Groups created after August 1, 2018 always have discussion enabled
 
         // Retrieve the basic information for the current site
-        refreshSiteInfo( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $q: ng.IQService )
+        refreshSiteInfo( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $q: ng.IQService ) : ng.IPromise<any>
         {
             this._rootScope = $rootScope;
 
-            var deferred = $q.defer();
+            const deferred = $q.defer();
 
             $rootScope.isLoadingSite = true;
 
-            var innerThis = this;
-
-
-            var onSiteInfoReceived = ( siteInfo: any ) =>
+            const onSiteInfoReceived = ( siteInfo: any ) =>
             {
                 $rootScope.isLoadingSite = false;
 
-                innerThis.handleSiteInfo( siteInfo, $rootScope );
+                this.handleSiteInfo( siteInfo, $rootScope );
 
                 deferred.resolve();
             };
 
-            var onRequestFailed = () =>
+            const onRequestFailed = () =>
             {
                 $rootScope.isLoadingSite = false;
                 deferred.reject();
@@ -172,19 +169,19 @@ namespace Ally
             const GetInfoUri = "/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
-            $http.get( GetInfoUri ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            $http.get( GetInfoUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 // If we received data but the user isn't logged-in
                 if( httpResponse.data && !httpResponse.data.userInfo )
                 {
                     // Check the cross-domain localStorage for an auth token
-                    innerThis.xdLocalStorage.getItem("allyApiAuthToken").then( function( response:any )
+                    this.xdLocalStorage.getItem("allyApiAuthToken").then( function( response:any )
                     {
                         // If we received an auth token then retry accessing the group data
                         if( response && HtmlUtil.isValidString( response.value ) )
                         {
                             //console.log( "Received cross domain token:" + response.value );
-                            innerThis.setAuthToken( response.value );
+                            this.setAuthToken( response.value );
 
                             $http.get( GetInfoUri ).then(( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                             {
@@ -215,14 +212,14 @@ namespace Ally
         testIfIsNeutralPage( locationHash: string )
         {
             // We only care about Angular paths
-            var HashPrefix = "#!/";
+            const HashPrefix = "#!/";
             if( !HtmlUtil.startsWith( locationHash, HashPrefix ) )
                 return false;
 
             // Remove that prefix and add a slash as that's what the menu item stores
             locationHash = "/" + locationHash.substring( HashPrefix.length );
 
-            var menuItem = _.find( AppConfig.menu, ( menuItem: any ) => menuItem.path === locationHash );
+            const menuItem = _.find( AppConfig.menu, ( menuItem: any ) => menuItem.path === locationHash );
 
             return typeof ( menuItem ) === "object";
         };
@@ -232,7 +229,7 @@ namespace Ally
         // This function should be used to properly populate the scope with the information.
         handleSiteInfo( siteInfo: any, $rootScope: ng.IRootScopeService )
         {
-            var subdomain = HtmlUtil.getSubdomain( window.location.host );
+            const subdomain = HtmlUtil.getSubdomain( window.location.host );
 
             if( !this.authToken && $rootScope.authToken )
                 this.setAuthToken( $rootScope.authToken );
@@ -241,8 +238,8 @@ namespace Ally
             if( siteInfo === null || siteInfo === "null" )
             {
                 // Allow the user to log-in with no subdomain, create a temp site info object
-                var isNeutralSubdomain = subdomain === null || subdomain === "www" || subdomain === "login";
-                var isNeutralPage = this.testIfIsNeutralPage( window.location.hash );
+                const isNeutralSubdomain = subdomain === null || subdomain === "www" || subdomain === "login";
+                const isNeutralPage = this.testIfIsNeutralPage( window.location.hash );
 
                 if( isNeutralSubdomain && isNeutralPage )
                 {
@@ -274,7 +271,7 @@ namespace Ally
                 this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng( this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon );
 
             // Handle private (logged-in only) info
-            var privateSiteInfo = siteInfo.privateSiteInfo;
+            let privateSiteInfo = siteInfo.privateSiteInfo;
             if( !privateSiteInfo )
                 privateSiteInfo = {};
             
@@ -327,7 +324,7 @@ namespace Ally
                 $rootScope.userInfo = null;
 
                 // If we're not at the log-in page, the get us there
-                var LoginPath = "#!/Login";
+                const LoginPath = "#!/Login";
                 if( window.location.hash != LoginPath && !AppConfig.isPublicRoute( window.location.hash ) )
                 {
                     // If we're at a valid subdomain
@@ -381,7 +378,7 @@ namespace Ally
     {
         public static loginInit( $q: ng.IQService, $http: ng.IHttpService, $rootScope: ng.IRootScopeService, $sce: ng.ISCEService, xdLocalStorage: any ): ng.IPromise<SiteInfoService>
         {
-            var deferred = $q.defer<SiteInfoService>();
+            const deferred = $q.defer<SiteInfoService>();
 
             SiteInfoProvider.siteInfo.xdLocalStorage = xdLocalStorage;
             
