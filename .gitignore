@@ -4,3 +4,5 @@ node_modules
 .tscache
 App_Data/
 *.publishproj
+/dist/
+/sync-site.ps1

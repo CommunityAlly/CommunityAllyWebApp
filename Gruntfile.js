@@ -206,6 +206,36 @@ grunt.initConfig({
             },
             src: ['Website/ngApp/**/*.ts']
         }
+    },
+
+    copy: {
+        dist: {
+            files: [
+                {expand: true, cwd: 'website/', src: ["404.html",
+                    "error-page.html",
+                    "favicon.ico",
+                    "index.html",
+                    "ngTemplates.min.js",
+                    "PrivacyPolicy.html",
+                    "robots.txt",
+                    "sitemap.xml",
+                    "TermsOfService.html",
+                    "js/AllyLibBottom.min.js",
+                    "js/AllyLibTop.min.js",
+                    "js/AllyLibBottom.min.js",
+                    "assets/compiled.min.css",
+                    "assets/images/*",
+                    "ngApp/ally-app-bundle.min.js",
+                    "third-party-css/fontawesome-webfont.woff",
+                    "third-party-css/fontawesome-webfont.ttf"], dest: 'dist/'},
+
+                {expand: true, src: ['path/*'], dest: 'dest/', filter: 'isFile'}
+            ]
+        }
+    },
+
+    clean: {
+        dist: ['dist']
     }
 });
 
@@ -217,6 +247,8 @@ grunt.initConfig({
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-ts');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-clean');
 
     // Build the Angular templates, app code, and CSS
     grunt.registerTask('default', ['ngtemplates','concat','uglify:allyAppBundleMin','uglify:templates','sass', 'cssmin']);
@@ -225,11 +257,13 @@ grunt.initConfig({
     grunt.registerTask('css-only', ['sass', 'cssmin']);
 
     // Only build the app code file
-    grunt.registerTask('ally-app-bundle', ['concat:allyAppBundle']);
+    grunt.registerTask('ally-app-bundle', ['ts','concat:allyAppBundle','uglify:allyAppBundleMin']);
 
     // Only build the top and bottom file
     grunt.registerTask('js-lib', ['uglify:allyLibTop','uglify:allyLibBottom']);
 
     // Build everything, including the full JS libraries
     grunt.registerTask('full', ['ngtemplates','concat','uglify','sass', 'cssmin']);
+
+    grunt.registerTask('make-dist', ['clean:dist', 'copy:dist']);
 };
