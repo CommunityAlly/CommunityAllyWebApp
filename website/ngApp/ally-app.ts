@@ -248,7 +248,8 @@ CA.angularApp.config(
             request: function( reqConfig: ng.IRequestConfig ): ng.IRequestConfig
             {
                 // If we're talking to the Community Ally API server
-                if( HtmlUtil.startsWith( reqConfig.url, "/api/" ) )
+                const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" ) || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.mycommunityally.org/api/" ) || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.communityally.org/api/" );
+                if( isMakingApiRequest ) 
                 {
                     //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
 
@@ -318,11 +319,9 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
 
         xdLocalStorage.init(
             {
-                /* required */
-                iframeUrl: "https://communityally.org/xd-local-storage.html"
+                iframeUrl: "https://www.communityally.org/xd-local-storage.html"
             } ).then( function()
             {
-                //an option function to be called once the iframe was loaded and ready for action
                 //console.log( 'Got xdomain iframe ready' );
             } );
         

@@ -516,7 +516,7 @@ var Ally;
             }
             // Map the UI entry of units to the type expected on the server
             if (!this.editUser.showAdvancedHomePicker)
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: null }];
+                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
             this.isSavingUser = true;
             var innerThis = this;
             var onSave = function (response) {
@@ -547,7 +547,7 @@ var Ally;
             else {
                 isAddingNew = false;
                 analytics.track("editResident");
-                this.$http.put("/api/Residents", this.editUser).then(onSave, onError);
+                this.$http.put("/api/Residents/UpdateUser", this.editUser).then(onSave, onError);
             }
             // Update the fellow residents page next time we're there
             this.fellowResidents.clearResidentCache();
@@ -849,7 +849,7 @@ var Ally;
                 return;
             this.isLoading = true;
             var innerThis = this;
-            this.$http.put("/api/Residents?userId&action=launchsite", null).success(function (data) {
+            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).success(function (data) {
                 innerThis.isLoading = false;
                 innerThis.sentWelcomeEmail = true;
                 innerThis.allEmailsSent = true;

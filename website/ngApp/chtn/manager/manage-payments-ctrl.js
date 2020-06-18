@@ -243,7 +243,7 @@ var Ally;
         ManagePaymentsController.prototype.onWithdrawalClick = function () {
             var _this = this;
             this.message = "";
-            this.$http.get("/api/OnlinePayment?action=withdrawal").then(function (httpResponse) {
+            this.$http.get("/api/OnlinePayment/PerformAction?action=withdrawal").then(function (httpResponse) {
                 var withdrawalInfo = httpResponse.data;
                 if (withdrawalInfo.redirectUri)
                     window.location.href = withdrawalInfo.redirectUri;

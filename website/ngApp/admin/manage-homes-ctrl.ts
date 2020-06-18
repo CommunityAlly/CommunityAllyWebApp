@@ -231,7 +231,7 @@
 
             this.isLoading = true;
 
-            this.$http.get( "/api/Unit?deleteAction=all" ).then( () =>
+            this.$http.delete( "/api/Unit/DeleteAll?deleteAction=all" ).then( () =>
             {
                 this.isLoading = false;
                 this.refresh();

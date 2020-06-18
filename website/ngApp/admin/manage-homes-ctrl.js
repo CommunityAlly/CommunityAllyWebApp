@@ -160,7 +160,7 @@ var Ally;
             if (!confirm("This will delete every unit! This should only be used for new sites!"))
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Unit?deleteAction=all").then(function () {
+            this.$http.delete("/api/Unit/DeleteAll?deleteAction=all").then(function () {
                 _this.isLoading = false;
                 _this.refresh();
             }, function (response) {

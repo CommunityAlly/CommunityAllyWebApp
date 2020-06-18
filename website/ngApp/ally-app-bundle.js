@@ -519,7 +519,7 @@ var Ally;
             if (!confirm("This will delete every unit! This should only be used for new sites!"))
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Unit?deleteAction=all").then(function () {
+            this.$http.delete("/api/Unit/DeleteAll?deleteAction=all").then(function () {
                 _this.isLoading = false;
                 _this.refresh();
             }, function (response) {
@@ -954,14 +954,16 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                 return {
                     request: function (reqConfig) {
                         // If we're talking to the Community Ally API server
-                        if (HtmlUtil.startsWith(reqConfig.url, "/api/")) {
+                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/") || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.mycommunityally.org/api/") || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.communityally.org/api/");
+                        if (isMakingApiRequest) {
                             //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
+                            var AppType_Home = 2;
                             if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
                                 reqConfig.url = OverrideBaseApiPath + reqConfig.url;
                             }
-                            //else if( siteInfo.publicSiteInfo.baseApiUrl )
-                            //    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
+                            else if (siteInfo.publicSiteInfo.baseApiUrl && (siteInfo.publicSiteInfo.shortName === "qa" || siteInfo.publicSiteInfo.appType === AppType_Home))
+                                reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
                         }
@@ -1000,10 +1002,8 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             }
         }
         xdLocalStorage.init({
-            /* required */
-            iframeUrl: "https://communityally.org/xd-local-storage.html"
+            iframeUrl: "https://www.communityally.org/xd-local-storage.html"
         }).then(function () {
-            //an option function to be called once the iframe was loaded and ready for action
             //console.log( 'Got xdomain iframe ready' );
         });
         // Clear all local information about the logged-in user
@@ -2296,7 +2296,7 @@ var Ally;
         ManagePaymentsController.prototype.onWithdrawalClick = function () {
             var _this = this;
             this.message = "";
-            this.$http.get("/api/OnlinePayment?action=withdrawal").then(function (httpResponse) {
+            this.$http.get("/api/OnlinePayment/PerformAction?action=withdrawal").then(function (httpResponse) {
                 var withdrawalInfo = httpResponse.data;
                 if (withdrawalInfo.redirectUri)
                     window.location.href = withdrawalInfo.redirectUri;
@@ -3263,7 +3263,7 @@ var Ally;
             }
             // Map the UI entry of units to the type expected on the server
             if (!this.editUser.showAdvancedHomePicker)
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: null }];
+                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
             this.isSavingUser = true;
             var innerThis = this;
             var onSave = function (response) {
@@ -3294,7 +3294,7 @@ var Ally;
             else {
                 isAddingNew = false;
                 analytics.track("editResident");
-                this.$http.put("/api/Residents", this.editUser).then(onSave, onError);
+                this.$http.put("/api/Residents/UpdateUser", this.editUser).then(onSave, onError);
             }
             // Update the fellow residents page next time we're there
             this.fellowResidents.clearResidentCache();
@@ -3596,7 +3596,7 @@ var Ally;
                 return;
             this.isLoading = true;
             var innerThis = this;
-            this.$http.put("/api/Residents?userId&action=launchsite", null).success(function (data) {
+            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).success(function (data) {
                 innerThis.isLoading = false;
                 innerThis.sentWelcomeEmail = true;
                 innerThis.allEmailsSent = true;
@@ -4638,6 +4638,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.isLoading = true;
             this.emailLists = [];
+            this.customEmailLists = [];
             this.unitPrefix = "Unit ";
             this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
@@ -4747,8 +4748,8 @@ var Ally;
                         $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
                     }, 300);
                 }
-                // Populate the e-mail name lists
-                _this.setupGroupEmails();
+                // Populate the e-mail name lists, delayed to help the page render faster
+                setTimeout(function () { return _this.loadGroupEmails(); }, 500);
             }, function (httpErrorResponse) {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
             });
@@ -4775,12 +4776,13 @@ var Ally;
             //    element.style.display = disp;
             //}, 50 );
         };
-        GroupMembersController.prototype.setupGroupEmails = function () {
+        GroupMembersController.prototype.loadGroupEmails = function () {
             var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             var innerThis = this;
-            this.fellowResidents.getGroupEmailObject().then(function (emailLists) {
-                _this.emailLists = emailLists;
+            this.fellowResidents.getAllGroupEmails().then(function (emailGroups) {
+                _this.emailLists = emailGroups.standardGroups;
+                _this.customEmailLists = emailGroups.customGroups;
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");
@@ -5080,7 +5082,7 @@ var Ally;
                 logbookDeferred.resolve();
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
-                this.$http.get("/api/Poll?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
+                this.$http.get("/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
                     _this.isLoadingPolls = false;
                     _.each(data, function (entry) {
@@ -7006,6 +7008,7 @@ var Ally;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
                 this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+            this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
@@ -7063,7 +7066,7 @@ var Ally;
                 if (this.committee)
                     this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
             }
-            this.$http.get(this.getUri, { cache: true }).then(function (httpResponse) {
+            this.$http.get(this.getUri, { cache: this.faqsHttpCache }).then(function (httpResponse) {
                 _this.isLoadingInfo = false;
                 _this.infoItems = httpResponse.data;
                 // Make <a> links open in new tabs
@@ -7099,6 +7102,7 @@ var Ally;
         // Occurs when the user wants to add a new info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.onSubmitItem = function () {
+            var _this = this;
             this.editingInfoItem.body = $("#editor").html();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
             var validateable = $("#info-item-edit-form");
@@ -7108,16 +7112,18 @@ var Ally;
             if (this.committee)
                 this.editingInfoItem.committeeId = this.committee.committeeId;
             this.isLoadingInfo = true;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoadingInfo = false;
+                _this.isLoadingInfo = false;
                 $("#editor").html("");
-                innerThis.editingInfoItem = new InfoItem();
-                innerThis.$cacheFactory.get('$http').remove(innerThis.getUri);
-                innerThis.retrieveInfo();
+                _this.editingInfoItem = new InfoItem();
+                // Switched to removeAll because when we switched to the new back-end, the cache
+                // key is the full request URI, not just the "/api/InfoItem" form
+                //this.faqsHttpCache.remove( this.getUri );
+                _this.faqsHttpCache.removeAll();
+                _this.retrieveInfo();
             };
             var onError = function () {
-                innerThis.isLoadingInfo = false;
+                _this.isLoadingInfo = false;
                 alert("Failed to save your information. Please try again and if this happens again contact support.");
             };
             // If we're editing an existing info item
@@ -7136,7 +7142,7 @@ var Ally;
             this.isLoadingInfo = true;
             this.$http.delete("/api/InfoItem/" + infoItem.infoItemId).then(function () {
                 _this.isLoadingInfo = false;
-                _this.$cacheFactory.get('$http').remove(_this.getUri);
+                _this.faqsHttpCache.removeAll();
                 _this.retrieveInfo();
             });
         };
@@ -7655,6 +7661,7 @@ var Ally;
             this.getDocsUri = "/api/ManageDocuments";
             this.showPopUpWarning = false;
             this.shouldShowSubdirectories = true;
+            this.docsHttpCache = this.$cacheFactory.get("docs-http-cache") || this.$cacheFactory("docs-http-cache");
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
             if (!this.fileSortType)
                 this.fileSortType = "title";
@@ -7671,51 +7678,54 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         DocumentsController.prototype.$onInit = function () {
+            var _this = this;
             this.apiAuthToken = this.$rootScope.authToken;
             this.Refresh();
             var innerThis = this;
             var hookUpFileUpload = function () {
-                $(function () {
-                    var uploader = $('#JQDocsFileUploader');
-                    uploader.fileupload({
-                        autoUpload: true,
-                        add: function (e, data) {
-                            //var scopeElement = document.getElementById( 'documents-area' );
-                            //var scope = angular.element( scopeElement ).scope();
-                            //innerThis.$scope.$apply( function() { innerThis.isLoading = false; });
-                            var MaxFileSize = 1024 * 1024 * 50;
-                            if (data.files[0].size > MaxFileSize) {
-                                var fileMB = Math.round(data.files[0].size / (1024 * 1024)) + 1;
-                                alert("The selected file is too large (" + fileMB + "MB). The maximum file size allowed is 50MB.");
-                                return;
-                            }
-                            var dirPath = innerThis.getSelectedDirectoryPath();
-                            $("#FileUploadProgressContainer").show();
-                            data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
-                            var xhr = data.submit();
-                            xhr.done(function (result) {
-                                // Clear the document cache
-                                innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
-                                $("#FileUploadProgressContainer").hide();
-                                innerThis.Refresh();
-                            });
-                        },
-                        beforeSend: function (xhr) {
-                            xhr.setRequestHeader("ApiAuthToken", innerThis.apiAuthToken);
-                        },
-                        progressall: function (e, data) {
-                            var progress = parseInt((data.loaded / data.total * 100).toString(), 10);
-                            $('#FileUploadProgressBar').css('width', progress + '%');
-                            if (progress === 100)
-                                $("#FileUploadProgressLabel").text("Finalizing Upload...");
-                            else
-                                $("#FileUploadProgressLabel").text(progress + "%");
-                        },
-                        fail: function (xhr) {
-                            $("#FileUploadProgressContainer").hide();
-                            alert("Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again.");
+                var uploader = $('#JQDocsFileUploader');
+                uploader.fileupload({
+                    autoUpload: true,
+                    add: function (e, data) {
+                        //var scopeElement = document.getElementById( 'documents-area' );
+                        //var scope = angular.element( scopeElement ).scope();
+                        //this.$scope.$apply( () => this.isLoading = false );
+                        var MaxFileSize = 1024 * 1024 * 50;
+                        if (data.files[0].size > MaxFileSize) {
+                            var fileMB = Math.round(data.files[0].size / (1024 * 1024)) + 1;
+                            alert("The selected file is too large (" + fileMB + "MB). The maximum file size allowed is 50MB.");
+                            return;
                         }
-                    });
+                        var dirPath = _this.getSelectedDirectoryPath();
+                        $("#FileUploadProgressContainer").show();
+                        data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
+                        var xhr = data.submit();
+                        xhr.done(function (result) {
+                            _this.docsHttpCache.removeAll();
+                            $("#FileUploadProgressContainer").hide();
+                            _this.Refresh();
+                        });
+                    },
+                    beforeSend: function (xhr) {
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + _this.apiAuthToken);
+                        else
+                            xhr.setRequestHeader("ApiAuthToken", _this.apiAuthToken);
+                    },
+                    progressall: function (e, data) {
+                        var progress = parseInt((data.loaded / data.total * 100).toString(), 10);
+                        $('#FileUploadProgressBar').css('width', progress + '%');
+                        if (progress === 100)
+                            $("#FileUploadProgressLabel").text("Finalizing Upload...");
+                        else
+                            $("#FileUploadProgressLabel").text(progress + "%");
+                    },
+                    fail: function (xhr) {
+                        $("#FileUploadProgressContainer").hide();
+                        alert("Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again.");
+                    }
                 });
             };
             setTimeout(hookUpFileUpload, 100);
@@ -7848,6 +7858,7 @@ var Ally;
         };
         // Make it so the user can drag and drop files between folders
         DocumentsController.prototype.hookUpFileDragging = function () {
+            var _this = this;
             // If the user can't manage the association then do nothing
             if (!this.canManage)
                 return;
@@ -7857,28 +7868,26 @@ var Ally;
                 var droppables = $(".droppable");
                 droppables.droppable({
                     drop: function (event, ui) {
-                        var selectedDirectoryPath = innerThis.getSelectedDirectoryPath();
+                        var selectedDirectoryPath = _this.getSelectedDirectoryPath();
                         var uiDraggable = $(ui.draggable);
                         uiDraggable.draggable("option", "revert", "false");
-                        var destFolderName = $(this).attr("data-folder-path").trim();
-                        innerThis.$scope.$apply(function () {
+                        var destFolderName = $(event.target).attr("data-folder-path").trim();
+                        _this.$scope.$apply(function () {
                             // Display the loading image
-                            innerThis.isLoading = true;
+                            _this.isLoading = true;
                             var fileAction = {
-                                relativeS3Path: innerThis.selectedFile.relativeS3Path,
+                                relativeS3Path: _this.selectedFile.relativeS3Path,
                                 action: "move",
                                 newFileName: "",
                                 sourceFolderPath: selectedDirectoryPath,
                                 destinationFolderPath: destFolderName
                             };
-                            //innerThis.selectedDirectory = null;
-                            innerThis.selectedFile = null;
+                            _this.selectedFile = null;
                             // Tell the server
-                            innerThis.$http.put("/api/ManageDocuments/MoveFile", fileAction).then(function () {
-                                innerThis.isLoading = false;
-                                // Clear the document cache
-                                innerThis.$cacheFactory.get('$http').remove(innerThis.getDocsUri);
-                                innerThis.Refresh();
+                            _this.$http.put("/api/ManageDocuments/MoveFile", fileAction).then(function () {
+                                _this.isLoading = false;
+                                _this.docsHttpCache.removeAll();
+                                _this.Refresh();
                                 //innerThis.documentTree = httpResponse.data;
                                 //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
                                 //// Hook up parent directories
@@ -7891,7 +7900,7 @@ var Ally;
                                 //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
                                 //innerThis.SortFiles();
                             }, function (data) {
-                                innerThis.isLoading = false;
+                                _this.isLoading = false;
                                 var message = data.exceptionMessage || data.message || data;
                                 alert("Failed to move file: " + message);
                             });
@@ -7905,12 +7914,12 @@ var Ally;
                     distance: 10,
                     revert: true,
                     helper: "clone",
-                    opacity: 0.7,
+                    opacity: 1,
                     containment: "document",
                     appendTo: "body",
                     start: function (event, ui) {
                         // Get the index of the file being dragged (ID is formatted like "File_12")
-                        var fileIndexString = $(this).attr("id").substring("File_".length);
+                        var fileIndexString = $(event.target).attr("id").substring("File_".length);
                         var fileIndex = parseInt(fileIndexString);
                         innerThis.$scope.$apply(function () {
                             var fileInfo = innerThis.selectedDirectory.files[fileIndex];
@@ -7994,8 +8003,7 @@ var Ally;
             if (this.createUnderParentDirName)
                 putUri += encodeURIComponent(this.createUnderParentDirName);
             this.$http.put(putUri, null).then(function () {
-                // Clear the document cache
-                _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                _this.docsHttpCache.removeAll();
                 _this.newDirectoryName = "";
                 _this.Refresh();
                 _this.shouldShowCreateFolderModal = false;
@@ -8039,8 +8047,7 @@ var Ally;
                 destinationFolderPath: ""
             };
             this.$http.put("/api/ManageDocuments/RenameFile", fileAction).then(function () {
-                // Clear the local document cache
-                _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                _this.docsHttpCache.removeAll();
                 _this.Refresh();
             }, function (response) {
                 _this.isLoading = false;
@@ -8057,8 +8064,7 @@ var Ally;
                 // Display the loading image
                 this.isLoading = true;
                 this.$http.delete("/api/ManageDocuments?docPath=" + document.relativeS3Path).then(function () {
-                    // Clear the document cache
-                    _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                    _this.docsHttpCache.removeAll();
                     _this.Refresh();
                 }, function (response) {
                     _this.isLoading = false;
@@ -8084,8 +8090,7 @@ var Ally;
             var oldDirectoryPath = encodeURIComponent(this.getSelectedDirectoryPath());
             var newDirectoryNameQS = encodeURIComponent(newDirectoryName);
             this.$http.put("/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null).then(function () {
-                // Clear the document cache
-                _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                _this.docsHttpCache.removeAll();
                 // Update the selected directory name so we can reselect it
                 _this.selectedDirectory.name = newDirectoryName;
                 _this.Refresh();
@@ -8110,8 +8115,7 @@ var Ally;
                 this.isLoading = true;
                 var dirPath = this.getSelectedDirectoryPath();
                 this.$http.delete("/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent(dirPath)).then(function () {
-                    // Clear the document cache
-                    _this.$cacheFactory.get('$http').remove(_this.getDocsUri);
+                    _this.docsHttpCache.removeAll();
                     _this.Refresh();
                 }, function (httpResult) {
                     _this.isLoading = false;
@@ -8170,6 +8174,7 @@ var Ally;
         // Refresh the file tree
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.Refresh = function () {
+            var _this = this;
             // Store the name of the directory we have selected so we can re-select it after refreshing
             // the data
             var selectedDirectoryPath = null;
@@ -8182,14 +8187,13 @@ var Ally;
             this.getDocsUri = "/api/ManageDocuments";
             if (this.committee)
                 this.getDocsUri += "/Committee/" + this.committee.committeeId;
-            var innerThis = this;
-            this.$http.get(this.getDocsUri, { cache: true }).then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.documentTree = httpResponse.data;
-                innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
+            this.$http.get(this.getDocsUri, { cache: this.docsHttpCache }).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.documentTree = httpResponse.data;
+                _this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
                 // Hook up parent directories
-                innerThis.documentTree.subdirectories.forEach(function (dir) {
-                    innerThis.hookupParentDirs(dir);
+                _this.documentTree.subdirectories.forEach(function (dir) {
+                    _this.hookupParentDirs(dir);
                 });
                 // Build an array of all local files
                 var allFiles = [];
@@ -8201,18 +8205,18 @@ var Ally;
                     Array.prototype.push.apply(allFiles, subdir.files);
                     _.each(subdir.subdirectories, processDir);
                 };
-                processDir(innerThis.documentTree);
-                innerThis.fullSearchFileList = allFiles;
-                if (innerThis.fullSearchFileList.length > 0)
-                    innerThis.getDownloadZipVid();
+                processDir(_this.documentTree);
+                _this.fullSearchFileList = allFiles;
+                if (_this.fullSearchFileList.length > 0 && !_this.downloadZipUrl)
+                    _this.getDownloadZipVid();
                 // Find the directory we had selected before the refresh
                 if (selectedDirectoryPath) {
-                    innerThis.selectedDirectory = innerThis.FindDirectoryByPath(selectedDirectoryPath);
-                    innerThis.SortFiles();
+                    _this.selectedDirectory = _this.FindDirectoryByPath(selectedDirectoryPath);
+                    _this.SortFiles();
                 }
-                innerThis.hookUpFileDragging();
+                _this.hookUpFileDragging();
             }, function (response) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 //$( "#FileTreePanel" ).hide();
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });
@@ -11676,6 +11680,12 @@ var Ally;
         return GroupEmailInfo;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
+    var GroupEmailGroups = /** @class */ (function () {
+        function GroupEmailGroups() {
+        }
+        return GroupEmailGroups;
+    }());
+    Ally.GroupEmailGroups = GroupEmailGroups;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -11782,6 +11792,24 @@ var Ally;
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
+        };
+        /**
+         * Get the object describing the available group e-mail addresses
+         */
+        FellowResidentsService.prototype.getAllGroupEmails = function () {
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -12787,8 +12815,8 @@ var Ally;
                 deferred.reject();
             };
             // Retrieve information for the current association
-            var GetInfoUri = "/api/GroupSite";
-            //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
+            //const GetInfoUri = "/api/GroupSite";
+            var GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get(GetInfoUri).then(function (httpResponse) {
                 // If we received data but the user isn't logged-in

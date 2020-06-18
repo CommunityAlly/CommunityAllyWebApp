@@ -358,7 +358,7 @@ namespace Ally
         {
             this.message = "";
 
-            this.$http.get( "/api/OnlinePayment?action=withdrawal" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/OnlinePayment/PerformAction?action=withdrawal" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 var withdrawalInfo = httpResponse.data;
 
