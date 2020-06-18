@@ -43,15 +43,6 @@ function WatchMembersCtrl( $rootScope, $resource, SiteInfo )
     vm.mapCenter = SiteInfo.privateSiteInfo.gpsPosition;
     vm.groupBounds = SiteInfo.publicSiteInfo.gpsBounds;
 
-    // These keys have been disabled 11/3/19
-    //var debugKey = "AIzaSyD5fTq9-A3iDFpPSUtRR0Qr38l-xl694b0";
-    //var releaseKey = "AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI";
-
-    //var script = document.createElement( 'script' );
-    //script.type = 'text/javascript';
-    //script.src = "https://maps.googleapis.com/maps/api/js?sensor=false&key=" + debugKey + "&callback=WelcomeJS.onMapApiLoaded";
-    //document.body.appendChild( script );
-
     vm.refreshData();
 }
 
