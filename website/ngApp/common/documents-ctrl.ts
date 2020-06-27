@@ -91,7 +91,12 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $cacheFactory: ng.ICacheFactoryService, private $scope: ng.IScope, private siteInfo: SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private $http: ng.IHttpService,
+            private $rootScope: ng.IRootScopeService,
+            private $cacheFactory: ng.ICacheFactoryService,
+            private $scope: ng.IScope,
+            private siteInfo: SiteInfoService,
+            private fellowResidents: Ally.FellowResidentsService )
         {
             this.docsHttpCache = this.$cacheFactory.get( "docs-http-cache" ) || this.$cacheFactory( "docs-http-cache" );
 

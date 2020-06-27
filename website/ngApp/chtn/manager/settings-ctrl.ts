@@ -31,7 +31,7 @@ namespace Ally
      */
     export class ChtnSettingsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+        static $inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
 
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
@@ -47,7 +47,11 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService, private $scope: ng.IScope )
+        constructor( private $http: ng.IHttpService,
+            private siteInfo: Ally.SiteInfoService,
+            private $timeout: ng.ITimeoutService,
+            private $scope: ng.IScope,
+            private $rootScope: ng.IRootScopeService )
         {
         }
 
@@ -101,16 +105,15 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/Settings/ClearLoginImage" ).then( function()
+            this.$http.get( "/api/Settings/ClearLoginImage" ).then( () =>
             {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.publicSiteInfo.loginImageUrl = "";
-                innerThis.loginImageUrl = "";                
+                this.isLoading = false;
+                this.siteInfo.publicSiteInfo.loginImageUrl = "";
+                this.loginImageUrl = "";                
 
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
                 alert( "Failed to remove loading image: " + httpResponse.data.exceptionMessage );
             } );
         }
@@ -156,14 +159,13 @@ namespace Ally
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
 
-            var innerThis = this;
-            this.$http.put( "/api/Settings", { BGImageFileName: this.settings.bgImageFileName } ).then( function()
+            this.$http.put( "/api/Settings", { BGImageFileName: this.settings.bgImageFileName } ).then( () =>
             {
                 $( ".test-bg-image" ).removeClass( "test-bg-image-selected" );
 
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
 
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
@@ -201,42 +203,49 @@ namespace Ally
 
 
         /**
-         * Hooked up the login image JQuery upload control
+         * Initialize the login image JQuery upload control
          */
         hookUpLoginImageUpload()
         {
-            var innerThis = this;
-
-            $( function()
+            $( () =>
             {
                 $( '#JQLoginImageFileUploader' ).fileupload( {
                     autoUpload: true,
-                    add: function( e: any, data: any )
+                    add: ( e: any, data: any ) =>
                     {
-                        innerThis.$scope.$apply( function()
+                        this.$scope.$apply( () =>
                         {
-                            innerThis.isLoading = true;
+                            this.isLoading = true;
                         } );
 
                         analytics.track( "setLoginImage" );
 
                         $( "#FileUploadProgressContainer" ).show();
-                        data.url = "api/DocumentUpload/LoginImage?ApiAuthToken=" + innerThis.siteInfo.authToken;
+                        data.url = "api/DocumentUpload/LoginImage";
+                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
+                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
 
                         var xhr = data.submit();
-                        xhr.done( function( result: any )
+                        xhr.done( ( result: any ) =>
                         {
-                            innerThis.$scope.$apply( function()
+                            this.$scope.$apply( () =>
                             {
-                                innerThis.isLoading = false;
-                                innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = innerThis.loginImageUrl;
+                                this.isLoading = false;
+                                this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
+                                this.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
                             } );
 
                             $( "#FileUploadProgressContainer" ).hide();
                         } );
                     },
-                    progressall: function( e: any, data: any )
+                    beforeSend: ( xhr: any ) =>
+                    {
+                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
+                            xhr.setRequestHeader( "Authorization", "Bearer " + this.$rootScope.authToken );
+                        else
+                            xhr.setRequestHeader( "ApiAuthToken", this.$rootScope.authToken );
+                    },
+                    progressall: ( e: any, data: any ) =>
                     {
                         var progress = Math.floor(( data.loaded * 100 ) / data.total );
                         $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );

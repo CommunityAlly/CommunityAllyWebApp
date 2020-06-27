@@ -52,6 +52,10 @@
             if( HtmlUtil.GetQueryStringParameter( "s" ) === "1" )
                 this.isDemoSite = false;
 
+            //const welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
+            //welcomeImageElem.addEventListener( "load", () => this.onWelcomeImageLoaded() );
+            //welcomeImageElem.addEventListener( "error", () => this.onWelcomeImageError() );
+
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
 
             this.sectionStyle = {
@@ -65,14 +69,14 @@
 
                 // Pre-size the welcome image container to avoid jumping around
                 var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
-                if( savedWelcomeImageWidth )
+                if( savedWelcomeImageWidth && savedWelcomeImageWidth != "0" && !HtmlUtil.isNullOrWhitespace( this.loginImageUrl ) )
                 {
                     this.welcomeImageContainerStyle["width"] = savedWelcomeImageWidth + "px";
                     this.welcomeImageContainerStyle["height"] = window.localStorage["welcomeImage_height"] + "px";
                 }
                 //this.sectionStyle["left"] = "50%";
 
-                if( this.loginImageUrl )
+                if( !HtmlUtil.isNullOrWhitespace( this.loginImageUrl ) )
                 {
                     this.sectionStyle["max-width"] = "760px";
 
@@ -112,9 +116,9 @@
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image loads
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onWelcomeImageLoaded()
+        onWelcomeImageLoaded( event: any )
         {
-            var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
+            const welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
 
             window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;

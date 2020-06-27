@@ -76,13 +76,13 @@ var Ally;
         }
         // Retrieve the basic information for the current site
         SiteInfoService.prototype.refreshSiteInfo = function ($rootScope, $http, $q) {
+            var _this = this;
             this._rootScope = $rootScope;
             var deferred = $q.defer();
             $rootScope.isLoadingSite = true;
-            var innerThis = this;
             var onSiteInfoReceived = function (siteInfo) {
                 $rootScope.isLoadingSite = false;
-                innerThis.handleSiteInfo(siteInfo, $rootScope);
+                _this.handleSiteInfo(siteInfo, $rootScope);
                 deferred.resolve();
             };
             var onRequestFailed = function () {
@@ -90,18 +90,18 @@ var Ally;
                 deferred.reject();
             };
             // Retrieve information for the current association
-            var GetInfoUri = "/api/GroupSite";
+            //const GetInfoUri = "/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
-            //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
+            var GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get(GetInfoUri).then(function (httpResponse) {
                 // If we received data but the user isn't logged-in
                 if (httpResponse.data && !httpResponse.data.userInfo) {
                     // Check the cross-domain localStorage for an auth token
-                    innerThis.xdLocalStorage.getItem("allyApiAuthToken").then(function (response) {
+                    _this.xdLocalStorage.getItem("allyApiAuthToken").then(function (response) {
                         // If we received an auth token then retry accessing the group data
                         if (response && HtmlUtil.isValidString(response.value)) {
                             //console.log( "Received cross domain token:" + response.value );
-                            innerThis.setAuthToken(response.value);
+                            _this.setAuthToken(response.value);
                             $http.get(GetInfoUri).then(function (httpResponse) {
                                 onSiteInfoReceived(httpResponse.data);
                             }, onRequestFailed);

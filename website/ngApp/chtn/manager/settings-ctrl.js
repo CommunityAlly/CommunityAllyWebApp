@@ -34,11 +34,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnSettingsController($http, siteInfo, $timeout, $scope) {
+        function ChtnSettingsController($http, siteInfo, $timeout, $scope, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.$rootScope = $rootScope;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
             this.showRightColumnSetting = true;
@@ -76,15 +77,15 @@ var Ally;
          * Clear the login image
          */
         ChtnSettingsController.prototype.removeLoginImage = function () {
+            var _this = this;
             analytics.track("clearLoginImage");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/Settings/ClearLoginImage").then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.publicSiteInfo.loginImageUrl = "";
-                innerThis.loginImageUrl = "";
+                _this.isLoading = false;
+                _this.siteInfo.publicSiteInfo.loginImageUrl = "";
+                _this.loginImageUrl = "";
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
             });
         };
@@ -117,11 +118,10 @@ var Ally;
             var _this = this;
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
-            var innerThis = this;
             this.$http.put("/api/Settings", { BGImageFileName: this.settings.bgImageFileName }).then(function () {
                 $(".test-bg-image").removeClass("test-bg-image-selected");
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to save: " + response.data);
@@ -144,29 +144,37 @@ var Ally;
             });
         };
         /**
-         * Hooked up the login image JQuery upload control
+         * Initialize the login image JQuery upload control
          */
         ChtnSettingsController.prototype.hookUpLoginImageUpload = function () {
-            var innerThis = this;
+            var _this = this;
             $(function () {
                 $('#JQLoginImageFileUploader').fileupload({
                     autoUpload: true,
                     add: function (e, data) {
-                        innerThis.$scope.$apply(function () {
-                            innerThis.isLoading = true;
+                        _this.$scope.$apply(function () {
+                            _this.isLoading = true;
                         });
                         analytics.track("setLoginImage");
                         $("#FileUploadProgressContainer").show();
-                        data.url = "api/DocumentUpload/LoginImage?ApiAuthToken=" + innerThis.siteInfo.authToken;
+                        data.url = "api/DocumentUpload/LoginImage";
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
                         var xhr = data.submit();
                         xhr.done(function (result) {
-                            innerThis.$scope.$apply(function () {
-                                innerThis.isLoading = false;
-                                innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = innerThis.loginImageUrl;
+                            _this.$scope.$apply(function () {
+                                _this.isLoading = false;
+                                _this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
+                                _this.siteInfo.publicSiteInfo.loginImageUrl = _this.loginImageUrl;
                             });
                             $("#FileUploadProgressContainer").hide();
                         });
+                    },
+                    beforeSend: function (xhr) {
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + _this.$rootScope.authToken);
+                        else
+                            xhr.setRequestHeader("ApiAuthToken", _this.$rootScope.authToken);
                     },
                     progressall: function (e, data) {
                         var progress = Math.floor((data.loaded * 100) / data.total);
@@ -179,7 +187,7 @@ var Ally;
                 });
             });
         };
-        ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+        ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return ChtnSettingsController;
     }());
     Ally.ChtnSettingsController = ChtnSettingsController;

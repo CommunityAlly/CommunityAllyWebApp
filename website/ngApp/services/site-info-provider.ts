@@ -166,16 +166,16 @@ namespace Ally
             };
 
             // Retrieve information for the current association
-            const GetInfoUri = "/api/GroupSite";
+            //const GetInfoUri = "/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
-            //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
+            const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get( GetInfoUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 // If we received data but the user isn't logged-in
                 if( httpResponse.data && !httpResponse.data.userInfo )
                 {
                     // Check the cross-domain localStorage for an auth token
-                    this.xdLocalStorage.getItem("allyApiAuthToken").then( function( response:any )
+                    this.xdLocalStorage.getItem("allyApiAuthToken").then( ( response:any ) =>
                     {
                         // If we received an auth token then retry accessing the group data
                         if( response && HtmlUtil.isValidString( response.value ) )
@@ -192,7 +192,7 @@ namespace Ally
                         else
                             onSiteInfoReceived( httpResponse.data );
 
-                    }, function()
+                    }, () =>
                     {
                         // We failed to get a cross domain token so continue on with what we received
                         onSiteInfoReceived( httpResponse.data );
@@ -362,7 +362,7 @@ namespace Ally
 
             this._rootScope.authToken = authToken;
 
-            this.xdLocalStorage.setItem( "allyApiAuthToken", authToken ).then( function( response: any )
+            this.xdLocalStorage.setItem( "allyApiAuthToken", authToken ).then( ( response: any ) =>
             {
                 //console.log( "Set cross domain auth token" );
             } );
@@ -388,7 +388,7 @@ namespace Ally
             }
             else
             {
-                SiteInfoProvider.siteInfo.refreshSiteInfo( $rootScope, $http, $q ).then( function()
+                SiteInfoProvider.siteInfo.refreshSiteInfo( $rootScope, $http, $q ).then( () =>
                 {
                     SiteInfoProvider.isSiteInfoLoaded = true;
 
@@ -406,7 +406,7 @@ namespace Ally
                     //$rootScope.siteTitleText = $rootScope.publicSiteInfo.siteTitleText;
 
                     // Occurs when the user saves changes to the site title
-                    $rootScope.onUpdateSiteTitleText = function()
+                    $rootScope.onUpdateSiteTitleText = () =>
                     {
                         analytics.track( "updateSiteTitle" );
 

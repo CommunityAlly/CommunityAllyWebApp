@@ -22,9 +22,9 @@ angular.module( "CondoAlly" ).directive( "ngEnter", function()
 
 angular.module( "CondoAlly" ).directive( "ngEscape", function()
 {
-    return function( scope, element, attrs )
+    return function( scope: ng.IScope, element: any, attrs: any )
     {
-        element.bind( "keydown keypress", function( event )
+        element.bind( "keydown keypress", function( event: any )
         {
             var EscapeKeyCode = 27;
             if( event.which === EscapeKeyCode )
@@ -44,9 +44,9 @@ angular.module( "CondoAlly" ).directive( "imageonload", function()
 {
     return {
         restrict: "A",
-        link: function( scope, element, attrs )
+        link: function( scope: ng.IScope, element: any, attrs: any )
         {
-            element.bind( "load", function()
+            element.bind( "load", function( evt: any )
             {
                 if( attrs.imageonload )
                     scope.$apply( attrs.imageonload );
@@ -59,12 +59,12 @@ angular.module( "CondoAlly" ).directive( "imageonerror", function()
 {
     return {
         restrict: "A",
-        link: function( scope, element, attrs )
+        link: function( scope: ng.IScope, element: any, attrs: any )
         {
-            element.bind( "error", function()
+            element.bind( "error", function( evt: any )
             {
-                if( attrs.imageonload )
-                    scope.$apply( attrs.imageonload );
+                if( attrs.imageonerror )
+                    scope.$apply( attrs.imageonerror );
             } );
         }
     };
