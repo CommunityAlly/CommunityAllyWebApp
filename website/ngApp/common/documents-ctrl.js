@@ -145,11 +145,15 @@ var Ally;
                     this.showPopUpWarning = true;
                 }
                 else
-                    viewDocWindow.document.write('Loading document...');
+                    viewDocWindow.document.write('Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)');
             }
-            this.$http.get("/api/DocumentLink/" + curFile.docId).then(function (response) {
+            var viewUri = "/api/DocumentLink/" + curFile.docId;
+            this.$http.get(viewUri).then(function (response) {
                 _this.isLoading = false;
                 var fileUri = curFile.url + "?vid=" + encodeURIComponent(response.data.vid);
+                if (HtmlUtil.startsWith(fileUri, "/api/"))
+                    fileUri = fileUri.substr("/api/".length);
+                fileUri = _this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
                 if (isForDownload) {
                     var link = document.createElement('a');
                     link.setAttribute("type", "hidden"); // make it hidden if needed

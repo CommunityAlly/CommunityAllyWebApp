@@ -84,13 +84,11 @@ namespace Ally
             {
                 var uploader: any = $( '#JQFileUploader' );
                 uploader.fileupload( {
-                    beforeSend: ( xhr: any, data: any ) =>
-                    {
-                        xhr.setRequestHeader( "Authorization", "Bearer " + this.siteInfo.authToken );
-                    },
                     add: ( e: any, data: any ) =>
                     {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + this.siteInfo.authToken;
+                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
+                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
 
                         this.$scope.$apply( () => this.isLoading = true );
 
@@ -103,6 +101,13 @@ namespace Ally
                                 window.location.reload();
                             } );
                         } );
+                    },
+                    beforeSend: ( xhr: any ) =>
+                    {
+                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
+                            xhr.setRequestHeader( "Authorization", "Bearer " + this.$rootScope.authToken );
+                        else
+                            xhr.setRequestHeader( "ApiAuthToken", this.$rootScope.authToken );
                     },
                     fail: ( e: any, data: any ) =>
                     {

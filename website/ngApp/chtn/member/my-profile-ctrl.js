@@ -69,11 +69,10 @@ var Ally;
             var hookUpPhotoFileUpload = function () {
                 var uploader = $('#JQFileUploader');
                 uploader.fileupload({
-                    beforeSend: function (xhr, data) {
-                        xhr.setRequestHeader("Authorization", "Bearer " + _this.siteInfo.authToken);
-                    },
                     add: function (e, data) {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + _this.siteInfo.authToken;
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
                         _this.$scope.$apply(function () { return _this.isLoading = true; });
                         var xhr = data.submit();
                         xhr.done(function (result) {
@@ -82,6 +81,12 @@ var Ally;
                                 window.location.reload();
                             });
                         });
+                    },
+                    beforeSend: function (xhr) {
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + _this.$rootScope.authToken);
+                        else
+                            xhr.setRequestHeader("ApiAuthToken", _this.$rootScope.authToken);
                     },
                     fail: function (e, data) {
                         _this.$scope.$apply(function () {

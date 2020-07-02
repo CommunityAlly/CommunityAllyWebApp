@@ -228,15 +228,19 @@ namespace Ally
                     this.showPopUpWarning = true;
                 }
                 else
-                    viewDocWindow.document.write( 'Loading document...' );
+                    viewDocWindow.document.write( 'Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)' );
             }
 
-            this.$http.get( "/api/DocumentLink/" + curFile.docId ).then(
+            const viewUri = "/api/DocumentLink/" + curFile.docId;
+            this.$http.get( viewUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
                 {
                     this.isLoading = false;
 
-                    let fileUri = `${curFile.url}?vid=${encodeURIComponent(response.data.vid)}`;
+                    let fileUri = `${curFile.url}?vid=${encodeURIComponent( response.data.vid )}`;
+                    if( HtmlUtil.startsWith( fileUri, "/api/" ) )
+                        fileUri = fileUri.substr( "/api/".length );
+                    fileUri = this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
 
                     if( isForDownload )
                     {
