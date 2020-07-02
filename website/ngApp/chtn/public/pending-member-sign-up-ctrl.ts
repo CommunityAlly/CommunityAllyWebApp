@@ -60,23 +60,23 @@ namespace Ally
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
 
-            if( this.siteInfo.publicSiteInfo.googleGpsPosition )
-            {
-                // Also mask phone numbers for US phones
-                var phoneFields: any = $( ".mask-phone" );
-                phoneFields.mask( "(999) 999-9999? x999", { autoclear: false } );
+            //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
+            //{
+            //    // Also mask phone numbers for US phones
+            //    var phoneFields: any = $( ".mask-phone" );
+            //    phoneFields.mask( "(999) 999-9999? x999", { autoclear: false } );
 
-                const TwentyFiveMilesInMeters = 40234;
+            //    const TwentyFiveMilesInMeters = 40234;
 
-                var circle = new google.maps.Circle( {
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
-                    radius: TwentyFiveMilesInMeters
-                } );
+            //    var circle = new google.maps.Circle( {
+            //        center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+            //        radius: TwentyFiveMilesInMeters
+            //    } );
 
-                autocompleteOptions = {
-                    bounds: circle.getBounds()
-                };
-            }
+            //    autocompleteOptions = {
+            //        bounds: circle.getBounds()
+            //    };
+            //}
 
             var addressInput = document.getElementById( "member-home-address-text-box" ) as HTMLInputElement;
             this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput, autocompleteOptions );

@@ -22,7 +22,7 @@
     LocalNewsResource.query( {
         clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
         chicagoWard: SiteInfo.publicSiteInfo.chicagoWard,
-        zipCode: SiteInfo.publicSiteInfo.zipCode,
+        zipCode: SiteInfo.privateSiteInfo.zipCode,
         cityNeighborhood: SiteInfo.publicSiteInfo.localNewsNeighborhoodQuery
     }, function ( localNews )
     {

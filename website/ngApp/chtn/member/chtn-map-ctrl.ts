@@ -47,7 +47,7 @@ namespace Ally
             
             // If we know our group's position, let's tighten the 
             var autocompleteOptions = undefined;
-            if( this.siteInfo.publicSiteInfo.googleGpsPosition )
+            if( this.siteInfo.privateSiteInfo.googleGpsPosition )
             {
                 var TwentyFiveMilesInMeters = 40234;
 
@@ -56,7 +56,7 @@ namespace Ally
                     lng: -73.633228
                 };
                 var circle = new google.maps.Circle( {
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 } );
 
@@ -407,8 +407,8 @@ class MapCtrlMapMgr
             return;
 
         // Store our home position
-        MapCtrlMapMgr._homeGpsPos = siteInfo.publicSiteInfo.googleGpsPosition;
-        MapCtrlMapMgr._groupGpsBounds = siteInfo.publicSiteInfo.gpsBounds;
+        MapCtrlMapMgr._homeGpsPos = siteInfo.privateSiteInfo.googleGpsPosition;
+        MapCtrlMapMgr._groupGpsBounds = siteInfo.privateSiteInfo.gpsBounds;
 
         // Create the map centered at our home
         var myOptions = {

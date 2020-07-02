@@ -40,19 +40,19 @@
             {
                 var autocompleteOptions: any = undefined;
 
-                if( this.siteInfo.publicSiteInfo.googleGpsPosition )
-                {
-                    var TwentyFiveMilesInMeters = 40234;
+                //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
+                //{
+                //    var TwentyFiveMilesInMeters = 40234;
 
-                    var circle = new google.maps.Circle( {
-                        center: this.siteInfo.publicSiteInfo.googleGpsPosition,
-                        radius: TwentyFiveMilesInMeters
-                    } );
+                //    var circle = new google.maps.Circle( {
+                //        center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                //        radius: TwentyFiveMilesInMeters
+                //    } );
 
-                    autocompleteOptions = {
-                        bounds: circle.getBounds()
-                    };
-                }
+                //    autocompleteOptions = {
+                //        bounds: circle.getBounds()
+                //    };
+                //}
 
                 var addressInput = <HTMLInputElement>document.getElementById( "address-text-box" );
                 new google.maps.places.Autocomplete( addressInput, autocompleteOptions );

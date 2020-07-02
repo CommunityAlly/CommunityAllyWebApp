@@ -40,9 +40,9 @@ var Ally;
                 localNewsUri = "https://localnewsally.azurewebsites.net/api/LocalNews";
                 queryParams = {
                     clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                    chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
-                    zipCode: this.siteInfo.publicSiteInfo.zipCode,
-                    cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery,
+                    chicagoWard: this.siteInfo.privateSiteInfo.chicagoWard,
+                    zipCode: this.siteInfo.privateSiteInfo.zipCode,
+                    cityNeighborhood: this.siteInfo.privateSiteInfo.localNewsNeighborhoodQuery,
                     city: this.siteInfo.privateSiteInfo.groupAddress.city,
                     state2Char: this.siteInfo.privateSiteInfo.groupAddress.state
                 };

@@ -71,17 +71,9 @@ namespace Ally
         baseUrl: string;
         siteLogo: string;
         siteTitleText: string;
-        chicagoWard: number;
-        zipCode: string;
-        localNewsNeighborhoodQuery: string;
-        gpsBounds: GpsPolygon;
-        gpsPosition: GpsPoint;
         loginImageUrl: string;
         baseApiUrl: string;
         appType: number;
-
-        // Not from the server
-        googleGpsPosition: google.maps.LatLng;
     }
 
 
@@ -91,15 +83,23 @@ namespace Ally
      */
     export class PrivateSiteInfo
     {
+        zipCode: string;
         /** The "ISO Alpha-2" 2 character country code */
         country: string;
         groupAddress: FullAddress;
+        gpsPosition: GpsPoint;
+        gpsBounds: GpsPolygon;
+        chicagoWard: number;
+        localNewsNeighborhoodQuery: string;
         creationDate: Date;
         welcomeMessage: string;
         canHideContactInfo: boolean;
         maintenanceTodoListId: number;
         whoCanCreateDiscussionThreads: string;
         isDiscussionEmailGroupEnabled: boolean;
+
+        // Not from the server
+        googleGpsPosition: google.maps.LatLng;
     }
 
 
@@ -167,8 +167,8 @@ namespace Ally
 
             // Retrieve information for the current association
             //const GetInfoUri = "/api/GroupSite";
-            //const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
-            const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
+            const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
+            //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get( GetInfoUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 // If we received data but the user isn't logged-in
@@ -266,16 +266,16 @@ namespace Ally
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
 
-            // Store the Google lat/lon object to make life easier later
-            if( this.publicSiteInfo.gpsPosition && typeof ( google ) !== "undefined" )
-                this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng( this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon );
-
             // Handle private (logged-in only) info
             let privateSiteInfo = siteInfo.privateSiteInfo;
             if( !privateSiteInfo )
                 privateSiteInfo = {};
             
             this.privateSiteInfo = privateSiteInfo;
+
+            // Store the Google lat/lon object to make life easier later
+            if( this.privateSiteInfo.gpsPosition && typeof ( google ) !== "undefined" )
+                this.privateSiteInfo.googleGpsPosition = new google.maps.LatLng( this.privateSiteInfo.gpsPosition.lat, this.privateSiteInfo.gpsPosition.lon );
 
             // Set the site title
             document.title = this.publicSiteInfo.fullName;

@@ -95,12 +95,12 @@ namespace Ally
 
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
-            if( this.siteInfo.publicSiteInfo.googleGpsPosition )
+            if( this.siteInfo.privateSiteInfo.googleGpsPosition )
             {
                 const TwentyFiveMilesInMeters = 40234;
 
                 var circle = new google.maps.Circle( {
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 } );
 

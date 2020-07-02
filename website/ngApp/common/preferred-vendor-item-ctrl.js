@@ -44,10 +44,10 @@ var Ally;
             }
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;
-            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {
