@@ -74,7 +74,7 @@
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Association/adminList" ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/Association/AdminList" ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 innerThis.isLoading = false;
                 innerThis.groups = response.data;
@@ -174,7 +174,7 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
+            this.$http.get( "/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
             {
                 this.isLoading = false;
                 this.foundUserAssociations = response.data;
@@ -324,12 +324,12 @@
 
         onTestException()
         {
-            this.makeHelperRequest( "/api/Association/testException" );
+            this.makeHelperRequest( "/api/AdminHelper/TestException" );
         }
 
         onClearElmahLogs()
         {
-            this.makeHelperRequest( "/api/Admin/clearElmah" );
+            this.makeHelperRequest( "/api/AdminHelper/ClearElmah" );
         }
 
         onClearAppGroupCache()

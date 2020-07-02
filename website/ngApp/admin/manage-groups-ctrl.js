@@ -35,7 +35,7 @@ var Ally;
             this.retrieveGroups = function () {
                 this.isLoading = true;
                 var innerThis = this;
-                this.$http.get("/api/Association/adminList").then(function (response) {
+                this.$http.get("/api/Association/AdminList").then(function (response) {
                     innerThis.isLoading = false;
                     innerThis.groups = response.data;
                     // Add the app type string
@@ -114,7 +114,7 @@ var Ally;
         ManageGroupsController.prototype.findAssociationsForUser = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
+            this.$http.get("/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
                 _this.isLoading = false;
                 _this.foundUserAssociations = response.data;
                 _.forEach(_this.foundUserAssociations, function (g) {
@@ -211,10 +211,10 @@ var Ally;
             request.then(function () { return innerThis.isLoadingHelper = false; }, function () { innerThis.isLoadingHelper = false; alert("Failed"); });
         };
         ManageGroupsController.prototype.onTestException = function () {
-            this.makeHelperRequest("/api/Association/testException");
+            this.makeHelperRequest("/api/AdminHelper/TestException");
         };
         ManageGroupsController.prototype.onClearElmahLogs = function () {
-            this.makeHelperRequest("/api/Admin/clearElmah");
+            this.makeHelperRequest("/api/AdminHelper/ClearElmah");
         };
         ManageGroupsController.prototype.onClearAppGroupCache = function () {
             this.makeHelperRequest("/api/AdminHelper/ClearGroupCache");
