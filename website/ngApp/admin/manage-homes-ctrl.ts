@@ -90,7 +90,7 @@
             if( this.isEdit )
                 this.$http.put( "/api/Unit", this.unitToEdit ).then( onSave, onError );
             else
-                this.$http.post( "/api/Unit", this.unitToEdit ).then( onSave, onError );
+                this.$http.post( "/api/Unit/AddSingle", this.unitToEdit ).then( onSave, onError );
         }
 
 
@@ -182,7 +182,7 @@
 
             this.isLoading = true;
 
-            this.$http.post( "/api/Unit?onePerLine=1", postData ).then( () =>
+            this.$http.post( "/api/Unit/Multiline", postData ).then( () =>
             {
                 this.isLoading = false;
                 this.refresh();
