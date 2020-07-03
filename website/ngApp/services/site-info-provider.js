@@ -80,6 +80,12 @@ var Ally;
             this._rootScope = $rootScope;
             var deferred = $q.defer();
             $rootScope.isLoadingSite = true;
+            if (HtmlUtil.getSubdomain() === "login") {
+                $rootScope.isLoadingSite = false;
+                this.handleSiteInfo(null, $rootScope);
+                deferred.resolve();
+                return deferred.promise;
+            }
             var onSiteInfoReceived = function (siteInfo) {
                 $rootScope.isLoadingSite = false;
                 _this.handleSiteInfo(siteInfo, $rootScope);
@@ -214,7 +220,7 @@ var Ally;
                         return;
                     }
                     else
-                        GlobalRedirect(AppConfig.baseUrl + LoginPath);
+                        GlobalRedirect("https://login." + AppConfig.baseTld + LoginPath);
                 }
             }
             // If we need to redirect from the login subdomain

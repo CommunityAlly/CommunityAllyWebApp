@@ -149,6 +149,16 @@ namespace Ally
 
             $rootScope.isLoadingSite = true;
 
+            if( HtmlUtil.getSubdomain() === "login" )
+            {
+                $rootScope.isLoadingSite = false;
+
+                this.handleSiteInfo( null, $rootScope );
+
+                deferred.resolve();
+                return deferred.promise;
+            }
+
             const onSiteInfoReceived = ( siteInfo: any ) =>
             {
                 $rootScope.isLoadingSite = false;
@@ -162,7 +172,6 @@ namespace Ally
             {
                 $rootScope.isLoadingSite = false;
                 deferred.reject();
-
             };
 
             // Retrieve information for the current association
@@ -339,7 +348,7 @@ namespace Ally
                         return;
                     }
                     else
-                        GlobalRedirect( AppConfig.baseUrl + LoginPath );
+                        GlobalRedirect( "https://login." + AppConfig.baseTld + LoginPath );
                 }
             }
 
