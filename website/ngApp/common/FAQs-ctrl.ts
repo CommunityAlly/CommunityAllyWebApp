@@ -37,7 +37,11 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $cacheFactory: ng.ICacheFactoryService, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private $http: ng.IHttpService,
+            private $rootScope: ng.IRootScopeService,
+            private siteInfo: SiteInfoService,
+            private $cacheFactory: ng.ICacheFactoryService,
+            private fellowResidents: Ally.FellowResidentsService )
         {
             this.editingInfoItem = new InfoItem();
             if( AppConfig.appShortName === "home" )
