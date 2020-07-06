@@ -144,7 +144,7 @@ var Ally;
             if (!this.authToken && $rootScope.authToken)
                 this.setAuthToken($rootScope.authToken);
             // If we're at an unknown subdomain
-            if (siteInfo === null || siteInfo === "null") {
+            if (siteInfo === null || siteInfo === "null" || siteInfo === "") {
                 // Allow the user to log-in with no subdomain, create a temp site info object
                 var isNeutralSubdomain = subdomain === null || subdomain === "www" || subdomain === "login";
                 var isNeutralPage = this.testIfIsNeutralPage(window.location.hash);
@@ -156,7 +156,8 @@ var Ally;
                             bgImagePath: "",
                             fullName: AppConfig.appName,
                             //siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to <a style='color:#a3e0ff; text-decoration: underline;' href='https://" + AppConfig.baseTld + "'>" + AppConfig.appName + "</a></span>"
-                            siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "</span>"
+                            siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "</span>",
+                            baseApiUrl: "https://0.webappapi.communityally.org/api/"
                         };
                 }
                 else {
