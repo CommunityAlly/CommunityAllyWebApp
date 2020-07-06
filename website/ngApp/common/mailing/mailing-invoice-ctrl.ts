@@ -354,8 +354,7 @@ namespace Ally
             {
                 this.isLoading = false;
 
-                let getUri = "/api/Mailing/Preview/Invoice/" + response.data.previewId;
-                getUri += "?ApiAuthToken=" + this.authToken;
+                let getUri = this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
 
                 let newWindow = window.open( getUri, "_blank" );
                 entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";

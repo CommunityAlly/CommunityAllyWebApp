@@ -246,8 +246,7 @@ var Ally;
             entry.wasPopUpBlocked = false;
             this.$http.post("/api/Mailing/Preview/Invoice", previewPostInfo).then(function (response) {
                 _this.isLoading = false;
-                var getUri = "/api/Mailing/Preview/Invoice/" + response.data.previewId;
-                getUri += "?ApiAuthToken=" + _this.authToken;
+                var getUri = _this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
                 var newWindow = window.open(getUri, "_blank");
                 entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
             }, function (response) {
