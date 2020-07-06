@@ -163,15 +163,18 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 return {
                     request: function (reqConfig) {
-                        // If we're talking to the Community Ally API server
-                        if (HtmlUtil.startsWith(reqConfig.url, "/api/")) {
+                        // If we're talking to the Community Ally API server, then we need to complete the
+                        // relative URL and add the auth token
+                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/")
+                            || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.mycommunityally.org/api/")
+                            || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.communityally.org/api/");
+                        if (isMakingApiRequest) {
                             //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
-                            if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
+                            if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
                                 reqConfig.url = OverrideBaseApiPath + reqConfig.url;
-                            }
-                            //else if( siteInfo.publicSiteInfo.baseApiUrl )
-                            //    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
+                            else if (siteInfo.publicSiteInfo.baseApiUrl)
+                                reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
                         }
@@ -210,10 +213,8 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             }
         }
         xdLocalStorage.init({
-            /* required */
-            iframeUrl: "https://communityally.org/xd-local-storage.html"
+            iframeUrl: "https://www.communityally.org/xd-local-storage.html"
         }).then(function () {
-            //an option function to be called once the iframe was loaded and ready for action
             //console.log( 'Got xdomain iframe ready' );
         });
         // Clear all local information about the logged-in user

@@ -11,8 +11,12 @@ declare var Role_Manager: string;
 declare var Role_Admin: string;
 
 CA.angularApp.config(
-['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
-    function( $routeProvider: ng.route.IRouteProvider, $httpProvider: ng.IHttpProvider, $provide: ng.auto.IProvideService, siteInfoProvider: Ally.SiteInfoProvider, $locationProvider: ng.ILocationProvider )
+    ['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
+    function( $routeProvider: ng.route.IRouteProvider,
+        $httpProvider: ng.IHttpProvider,
+        $provide: ng.auto.IProvideService,
+        siteInfoProvider: Ally.SiteInfoProvider,
+        $locationProvider: ng.ILocationProvider )
 {
     $locationProvider.hashPrefix( '!' );
 
@@ -247,19 +251,21 @@ CA.angularApp.config(
         return {
             request: function( reqConfig: ng.IRequestConfig ): ng.IRequestConfig
             {
-                // If we're talking to the Community Ally API server
-                const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" ) || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.mycommunityally.org/api/" ) || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.communityally.org/api/" );
+                // If we're talking to the Community Ally API server, then we need to complete the
+                // relative URL and add the auth token
+                const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" )
+                    || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.mycommunityally.org/api/" )
+                    || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.communityally.org/api/" );
+
                 if( isMakingApiRequest ) 
                 {
                     //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
 
                     // If we have an overridden URL to use for API requests
                     if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
-                    {
                         reqConfig.url = OverrideBaseApiPath + reqConfig.url;
-                    }
-                    //else if( siteInfo.publicSiteInfo.baseApiUrl )
-                    //    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
+                    else if( siteInfo.publicSiteInfo.baseApiUrl )
+                        reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
 
                     // Add the auth token
                     reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
