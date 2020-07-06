@@ -82,6 +82,6 @@
 
 
 CA.angularApp.component( "helpForm", {
-    templateUrl: "/ngApp/chtn/member/Help.html",
+    templateUrl: "/ngApp/chtn/member/help.html",
     controller: Ally.HelpFormController
 } );
