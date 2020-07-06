@@ -548,6 +548,7 @@ var Ally;
                 analytics.track("addNewResident");
                 this.$http.post("/api/Residents", this.editUser).then(onSave, onError);
             }
+            // Otherwise we're editing an existing resident
             else {
                 isAddingNew = false;
                 analytics.track("editResident");

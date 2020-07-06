@@ -159,9 +159,11 @@ var Ally;
                     if (signUpResult.stepIndex >= 0)
                         innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
+                // Or if the user created an active signUpResult
                 else if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                     window.location.href = signUpResult.createUrl;
                 }
+                // Otherwise the user needs to confirm sign-up via e-mail
                 else {
                     innerThis.hideWizard = true;
                     innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";

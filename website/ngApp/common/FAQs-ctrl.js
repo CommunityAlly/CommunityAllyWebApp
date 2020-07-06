@@ -159,6 +159,7 @@ var Ally;
             // If we're editing an existing info item
             if (typeof (this.editingInfoItem.infoItemId) == "number")
                 this.$http.put("/api/InfoItem", this.editingInfoItem).then(onSave);
+            // Otherwise create a new one
             else
                 this.$http.post("/api/InfoItem", this.editingInfoItem).then(onSave);
         };

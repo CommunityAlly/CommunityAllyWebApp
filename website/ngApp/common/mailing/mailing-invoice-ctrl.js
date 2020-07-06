@@ -158,6 +158,7 @@ var Ally;
                     // For long lists of homes, make sure the user is brought to the top
                     window.setTimeout(function () { return document.getElementById("delivery-method-header").scrollIntoView(true); }, 50);
                 }
+                // Or if we moved to the last step
                 else if (_this.activeStepIndex === 3) {
                     _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
                     _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
@@ -346,6 +347,7 @@ var Ally;
                         this.selectedEntries[i].shouldSendEmail = shouldSetTo;
                 }
             }
+            // Otherwise the user toggled sending for paper mail
             else {
                 var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
                 for (var i = 0; i < this.selectedEntries.length; ++i) {
@@ -359,6 +361,7 @@ var Ally;
                     _.each(this.selectedEntries, function (e) { return e.isValidMailingAddress = e.validationMessage = null; });
                     this.numInvalidMailingAddresses = 0;
                 }
+                // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
                     var validateAllStep = function () {

@@ -76,6 +76,7 @@ var Ally;
                 else
                     this.loginResult = "You are not authorized to perform that action. Please contact an admin.";
             }
+            // Or if we got sent here for a 401
             else if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn401) === "true")
                 this.loginResult = "Please login first.";
             // Focus on the e-mail text box

@@ -270,6 +270,10 @@ if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
 if (lowerDomain.indexOf("condoally") !== -1
     || lowerDomain.indexOf("hellocondo") !== -1)
     AppConfig = CondoAllyAppConfig;
+//else if( lowerDomain.indexOf( "watchally" ) !== -1 )
+//    AppConfig = WatchAppConfig;
+//else if( lowerDomain.indexOf( "serviceally" ) !== -1 )
+//    AppConfig = ServiceAppConfig;
 else if (lowerDomain.indexOf("homeally") !== -1
     || lowerDomain.indexOf("helloathome") !== -1)
     AppConfig = HomeAppConfig;

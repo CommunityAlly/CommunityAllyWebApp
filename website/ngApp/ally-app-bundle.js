@@ -812,6 +812,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                 deferred.reject();
                 $location.path('/Login');
             }
+            // The user does not need to login
             else
                 deferred.resolve();
             return deferred.promise;
@@ -1351,6 +1352,10 @@ if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
 if (lowerDomain.indexOf("condoally") !== -1
     || lowerDomain.indexOf("hellocondo") !== -1)
     AppConfig = CondoAllyAppConfig;
+//else if( lowerDomain.indexOf( "watchally" ) !== -1 )
+//    AppConfig = WatchAppConfig;
+//else if( lowerDomain.indexOf( "serviceally" ) !== -1 )
+//    AppConfig = ServiceAppConfig;
 else if (lowerDomain.indexOf("homeally") !== -1
     || lowerDomain.indexOf("helloathome") !== -1)
     AppConfig = HomeAppConfig;
@@ -2665,6 +2670,7 @@ var Ally;
                 analytics.track("editPoll");
                 this.$http.put("/api/Poll", this.editingItem).then(onSave, onFailure);
             }
+            // Otherwise create a new one
             else {
                 analytics.track("addPoll");
                 this.$http.post("/api/Poll", this.editingItem).then(onSave, onFailure);
@@ -3296,6 +3302,7 @@ var Ally;
                 analytics.track("addNewResident");
                 this.$http.post("/api/Residents", this.editUser).then(onSave, onError);
             }
+            // Otherwise we're editing an existing resident
             else {
                 isAddingNew = false;
                 analytics.track("editResident");
@@ -4293,6 +4300,7 @@ var Ally;
             // If we're editing an existing item
             if (this.editingTip.itemId)
                 this.$http.put("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
+            // Otherwise create a new one
             else
                 this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
         };
@@ -5377,6 +5385,7 @@ var Ally;
                 else
                     this.loginResult = "You are not authorized to perform that action. Please contact an admin.";
             }
+            // Or if we got sent here for a 401
             else if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn401) === "true")
                 this.loginResult = "Please login first.";
             // Focus on the e-mail text box
@@ -5913,6 +5922,7 @@ var Ally;
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
                     innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
+                // Otherwise create succeeded
                 else {
                     if (typeof (window.analytics) !== "undefined")
                         window.analytics.track("condoSignUpComplete", {
@@ -5926,6 +5936,7 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
+                    // Otherwise the user needs to confirm sign-up via e-mail
                     else {
                         innerThis.hideWizard = true;
                         innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
@@ -6296,6 +6307,7 @@ var Ally;
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
                     innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
+                // Otherwise create succeeded
                 else {
                     if (typeof (window.analytics) !== "undefined")
                         window.analytics.track("condoSignUpComplete");
@@ -6308,6 +6320,7 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
+                    // Otherwise the user needs to confirm sign-up via e-mail
                     else {
                         innerThis.hideWizard = true;
                         innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
@@ -6630,6 +6643,7 @@ var Ally;
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
                     innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
+                // Otherwise create succeeded
                 else {
                     if (typeof (window.analytics) !== "undefined")
                         window.analytics.track("condoSignUpComplete");
@@ -6640,6 +6654,7 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
+                    // Otherwise the user needs to confirm sign-up via e-mail
                     else {
                         innerThis.hideWizard = true;
                         innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
@@ -6989,197 +7004,6 @@ var Ally;
 CA.angularApp.component("committeeParent", {
     templateUrl: "/ngApp/committee/committee-parent.html",
     controller: Ally.CommitteeParentController
-});
-
-/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../Services/html-util.ts" />
-var Ally;
-(function (Ally) {
-    var InfoItem = /** @class */ (function () {
-        function InfoItem() {
-        }
-        return InfoItem;
-    }());
-    Ally.InfoItem = InfoItem;
-    /**
-     * The controller for the frequently asked questions widget
-     */
-    var FAQsController = /** @class */ (function () {
-        /**
-         * The constructor for the class
-         */
-        function FAQsController($http, $rootScope, siteInfo, $cacheFactory, fellowResidents) {
-            this.$http = $http;
-            this.$rootScope = $rootScope;
-            this.siteInfo = siteInfo;
-            this.$cacheFactory = $cacheFactory;
-            this.fellowResidents = fellowResidents;
-            this.isBodyMissing = false;
-            this.canManage = false;
-            this.headerText = "Information and Frequently Asked Questions (FAQs)";
-            this.editingInfoItem = new InfoItem();
-            if (AppConfig.appShortName === "home")
-                this.headerText = "Home Notes";
-        }
-        /**
-        * Called on each controller after all the controllers on an element have been constructed
-        */
-        FAQsController.prototype.$onInit = function () {
-            var _this = this;
-            this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
-            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
-            // Make sure committee members can manage their data
-            if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
-            this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
-            this.retrieveInfo();
-            // Hook up the rich text editor
-            window.setTimeout(function () {
-                var showErrorAlert = function (reason, detail) {
-                    var msg = "";
-                    if (reason === "unsupported-file-type")
-                        msg = "Unsupported format " + detail;
-                    else
-                        console.log("error uploading file", reason, detail);
-                    $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                        '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
-                };
-                function initToolbarBootstrapBindings() {
-                    var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
-                        'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
-                        'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
-                    $.each(fonts, function (idx, fontName) {
-                        fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
-                    });
-                    var tooltipper = $('a[title]');
-                    tooltipper.tooltip({ container: 'body' });
-                    $('.dropdown-menu input')
-                        .click(function () { return false; })
-                        .change(function () {
-                        var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
-                        drops.dropdown('toggle');
-                    })
-                        .keydown('esc', function () { this.value = ''; $(this).change(); });
-                    $('[data-role=magic-overlay]').each(function () {
-                        var overlay = $(this), target = $(overlay.data('target'));
-                        overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
-                    });
-                    if ("onwebkitspeechchange" in document.createElement("input")) {
-                        var editorOffset = $('#editor').offset();
-                        $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
-                    }
-                    else {
-                        $('#voiceBtn').hide();
-                    }
-                }
-                ;
-                initToolbarBootstrapBindings();
-                var editorElem = $('#editor');
-                editorElem.wysiwyg({ fileUploadError: showErrorAlert });
-            }, 10);
-        };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Populate the info section
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.retrieveInfo = function () {
-            var _this = this;
-            this.isLoadingInfo = true;
-            if (!this.getUri) {
-                this.getUri = "/api/InfoItem";
-                if (this.committee)
-                    this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
-            }
-            this.$http.get(this.getUri, { cache: this.faqsHttpCache }).then(function (httpResponse) {
-                _this.isLoadingInfo = false;
-                _this.infoItems = httpResponse.data;
-                // Make <a> links open in new tabs
-                setTimeout(function () {
-                    for (var i = 0; i < _this.infoItems.length; ++i) {
-                        $("a", "#info-item-body-" + i).each(function () {
-                            $(this).attr('target', '_blank');
-                        });
-                    }
-                }, 500);
-            });
-        };
-        ;
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Scroll to an info item
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.scrollToInfo = function (infoItemIndex) {
-            document.getElementById("info-item-title-" + infoItemIndex).scrollIntoView();
-        };
-        ;
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user edits an info item
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.onStartEditInfoItem = function (infoItem) {
-            // Clone the object
-            this.editingInfoItem = jQuery.extend({}, infoItem);
-            $("#editor").html(this.editingInfoItem.body);
-            // Scroll down to the editor
-            window.scrollTo(0, document.body.scrollHeight);
-        };
-        ;
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user wants to add a new info item
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.onSubmitItem = function () {
-            var _this = this;
-            this.editingInfoItem.body = $("#editor").html();
-            this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
-            var validateable = $("#info-item-edit-form");
-            validateable.validate();
-            if (!validateable.valid() || this.isBodyMissing)
-                return;
-            if (this.committee)
-                this.editingInfoItem.committeeId = this.committee.committeeId;
-            this.isLoadingInfo = true;
-            var onSave = function () {
-                _this.isLoadingInfo = false;
-                $("#editor").html("");
-                _this.editingInfoItem = new InfoItem();
-                // Switched to removeAll because when we switched to the new back-end, the cache
-                // key is the full request URI, not just the "/api/InfoItem" form
-                //this.faqsHttpCache.remove( this.getUri );
-                _this.faqsHttpCache.removeAll();
-                _this.retrieveInfo();
-            };
-            var onError = function () {
-                _this.isLoadingInfo = false;
-                alert("Failed to save your information. Please try again and if this happens again contact support.");
-            };
-            // If we're editing an existing info item
-            if (typeof (this.editingInfoItem.infoItemId) == "number")
-                this.$http.put("/api/InfoItem", this.editingInfoItem).then(onSave);
-            else
-                this.$http.post("/api/InfoItem", this.editingInfoItem).then(onSave);
-        };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user wants to delete an info item
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        FAQsController.prototype.onDeleteInfoItem = function (infoItem) {
-            var _this = this;
-            if (!confirm('Are you sure you want to delete this information?'))
-                return;
-            this.isLoadingInfo = true;
-            this.$http.delete("/api/InfoItem/" + infoItem.infoItemId).then(function () {
-                _this.isLoadingInfo = false;
-                _this.faqsHttpCache.removeAll();
-                _this.retrieveInfo();
-            });
-        };
-        FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
-        return FAQsController;
-    }());
-    Ally.FAQsController = FAQsController;
-})(Ally || (Ally = {}));
-CA.angularApp.component("faqs", {
-    bindings: {
-        committee: "<?"
-    },
-    templateUrl: "/ngApp/common/FAQs.html",
-    controller: Ally.FAQsController
 });
 
 var Ally;
@@ -8264,6 +8088,198 @@ CA.angularApp.component("documents", {
     controller: Ally.DocumentsController
 });
 
+/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
+/// <reference path="../Services/html-util.ts" />
+var Ally;
+(function (Ally) {
+    var InfoItem = /** @class */ (function () {
+        function InfoItem() {
+        }
+        return InfoItem;
+    }());
+    Ally.InfoItem = InfoItem;
+    /**
+     * The controller for the frequently asked questions widget
+     */
+    var FAQsController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function FAQsController($http, $rootScope, siteInfo, $cacheFactory, fellowResidents) {
+            this.$http = $http;
+            this.$rootScope = $rootScope;
+            this.siteInfo = siteInfo;
+            this.$cacheFactory = $cacheFactory;
+            this.fellowResidents = fellowResidents;
+            this.isBodyMissing = false;
+            this.canManage = false;
+            this.headerText = "Information and Frequently Asked Questions (FAQs)";
+            this.editingInfoItem = new InfoItem();
+            if (AppConfig.appShortName === "home")
+                this.headerText = "Home Notes";
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        FAQsController.prototype.$onInit = function () {
+            var _this = this;
+            this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+            this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
+            this.retrieveInfo();
+            // Hook up the rich text editor
+            window.setTimeout(function () {
+                var showErrorAlert = function (reason, detail) {
+                    var msg = "";
+                    if (reason === "unsupported-file-type")
+                        msg = "Unsupported format " + detail;
+                    else
+                        console.log("error uploading file", reason, detail);
+                    $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                        '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
+                };
+                function initToolbarBootstrapBindings() {
+                    var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
+                        'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
+                        'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
+                    $.each(fonts, function (idx, fontName) {
+                        fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
+                    });
+                    var tooltipper = $('a[title]');
+                    tooltipper.tooltip({ container: 'body' });
+                    $('.dropdown-menu input')
+                        .click(function () { return false; })
+                        .change(function () {
+                        var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
+                        drops.dropdown('toggle');
+                    })
+                        .keydown('esc', function () { this.value = ''; $(this).change(); });
+                    $('[data-role=magic-overlay]').each(function () {
+                        var overlay = $(this), target = $(overlay.data('target'));
+                        overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
+                    });
+                    if ("onwebkitspeechchange" in document.createElement("input")) {
+                        var editorOffset = $('#editor').offset();
+                        $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
+                    }
+                    else {
+                        $('#voiceBtn').hide();
+                    }
+                }
+                ;
+                initToolbarBootstrapBindings();
+                var editorElem = $('#editor');
+                editorElem.wysiwyg({ fileUploadError: showErrorAlert });
+            }, 10);
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Populate the info section
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.retrieveInfo = function () {
+            var _this = this;
+            this.isLoadingInfo = true;
+            if (!this.getUri) {
+                this.getUri = "/api/InfoItem";
+                if (this.committee)
+                    this.getUri = "/api/InfoItem/Committee/" + this.committee.committeeId;
+            }
+            this.$http.get(this.getUri, { cache: this.faqsHttpCache }).then(function (httpResponse) {
+                _this.isLoadingInfo = false;
+                _this.infoItems = httpResponse.data;
+                // Make <a> links open in new tabs
+                setTimeout(function () {
+                    for (var i = 0; i < _this.infoItems.length; ++i) {
+                        $("a", "#info-item-body-" + i).each(function () {
+                            $(this).attr('target', '_blank');
+                        });
+                    }
+                }, 500);
+            });
+        };
+        ;
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Scroll to an info item
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.scrollToInfo = function (infoItemIndex) {
+            document.getElementById("info-item-title-" + infoItemIndex).scrollIntoView();
+        };
+        ;
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user edits an info item
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.onStartEditInfoItem = function (infoItem) {
+            // Clone the object
+            this.editingInfoItem = jQuery.extend({}, infoItem);
+            $("#editor").html(this.editingInfoItem.body);
+            // Scroll down to the editor
+            window.scrollTo(0, document.body.scrollHeight);
+        };
+        ;
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user wants to add a new info item
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.onSubmitItem = function () {
+            var _this = this;
+            this.editingInfoItem.body = $("#editor").html();
+            this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
+            var validateable = $("#info-item-edit-form");
+            validateable.validate();
+            if (!validateable.valid() || this.isBodyMissing)
+                return;
+            if (this.committee)
+                this.editingInfoItem.committeeId = this.committee.committeeId;
+            this.isLoadingInfo = true;
+            var onSave = function () {
+                _this.isLoadingInfo = false;
+                $("#editor").html("");
+                _this.editingInfoItem = new InfoItem();
+                // Switched to removeAll because when we switched to the new back-end, the cache
+                // key is the full request URI, not just the "/api/InfoItem" form
+                //this.faqsHttpCache.remove( this.getUri );
+                _this.faqsHttpCache.removeAll();
+                _this.retrieveInfo();
+            };
+            var onError = function () {
+                _this.isLoadingInfo = false;
+                alert("Failed to save your information. Please try again and if this happens again contact support.");
+            };
+            // If we're editing an existing info item
+            if (typeof (this.editingInfoItem.infoItemId) == "number")
+                this.$http.put("/api/InfoItem", this.editingInfoItem).then(onSave);
+            // Otherwise create a new one
+            else
+                this.$http.post("/api/InfoItem", this.editingInfoItem).then(onSave);
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user wants to delete an info item
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.onDeleteInfoItem = function (infoItem) {
+            var _this = this;
+            if (!confirm('Are you sure you want to delete this information?'))
+                return;
+            this.isLoadingInfo = true;
+            this.$http.delete("/api/InfoItem/" + infoItem.infoItemId).then(function () {
+                _this.isLoadingInfo = false;
+                _this.faqsHttpCache.removeAll();
+                _this.retrieveInfo();
+            });
+        };
+        FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
+        return FAQsController;
+    }());
+    Ally.FAQsController = FAQsController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("faqs", {
+    bindings: {
+        committee: "<?"
+    },
+    templateUrl: "/ngApp/common/FAQs.html",
+    controller: Ally.FAQsController
+});
+
 var Ally;
 (function (Ally) {
     /**
@@ -8913,6 +8929,7 @@ var Ally;
                     // For long lists of homes, make sure the user is brought to the top
                     window.setTimeout(function () { return document.getElementById("delivery-method-header").scrollIntoView(true); }, 50);
                 }
+                // Or if we moved to the last step
                 else if (_this.activeStepIndex === 3) {
                     _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
                     _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
@@ -9101,6 +9118,7 @@ var Ally;
                         this.selectedEntries[i].shouldSendEmail = shouldSetTo;
                 }
             }
+            // Otherwise the user toggled sending for paper mail
             else {
                 var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
                 for (var i = 0; i < this.selectedEntries.length; ++i) {
@@ -9114,6 +9132,7 @@ var Ally;
                     _.each(this.selectedEntries, function (e) { return e.isValidMailingAddress = e.validationMessage = null; });
                     this.numInvalidMailingAddresses = 0;
                 }
+                // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
                     var validateAllStep = function () {
@@ -10826,9 +10845,11 @@ var Ally;
                     if (signUpResult.stepIndex >= 0)
                         innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
+                // Or if the user created an active signUpResult
                 else if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                     window.location.href = signUpResult.createUrl;
                 }
+                // Otherwise the user needs to confirm sign-up via e-mail
                 else {
                     innerThis.hideWizard = true;
                     innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
@@ -11049,6 +11070,351 @@ function ServiceJobsCtrl( $http )
     var vm = this;
 }
 ServiceJobsCtrl.$inject = ["$http"];
+
+var AppCacheService = /** @class */ (function () {
+    function AppCacheService() {
+        // The key for when the user gets redirect for a 401, but is logged in
+        this.Key_WasLoggedIn403 = "wasLoggedIn403";
+        this.Key_WasLoggedIn401 = "wasLoggedIn401";
+        this.Key_AfterLoginRedirect = "afterLoginRedirect";
+        this.KeyPrefix = "AppCacheService_";
+    }
+    AppCacheService.prototype.set = function (key, value) { window.sessionStorage[this.KeyPrefix + key] = value; };
+    AppCacheService.prototype.get = function (key) { return window.sessionStorage[this.KeyPrefix + key]; };
+    AppCacheService.prototype.clear = function (key) {
+        window.sessionStorage[this.KeyPrefix + key] = void 0;
+        delete window.sessionStorage[this.KeyPrefix + key];
+    };
+    AppCacheService.prototype.getAndClear = function (key) {
+        var result;
+        result = this.get(key);
+        this.clear(key);
+        return result;
+    };
+    return AppCacheService;
+}());
+angular.module("CondoAlly").service("appCacheService", [AppCacheService]);
+
+var Ally;
+(function (Ally) {
+    /**
+     * Represents a column in a CSV spreadsheet
+     */
+    var CsvColumnDescriptor = /** @class */ (function () {
+        function CsvColumnDescriptor() {
+        }
+        return CsvColumnDescriptor;
+    }());
+    Ally.CsvColumnDescriptor = CsvColumnDescriptor;
+    function ValueToCsvValue(valueObj) {
+        if (!valueObj)
+            return "";
+        var value = valueObj.toString();
+        if (HtmlUtil.isNullOrWhitespace(value))
+            return "";
+        var needsEscaping = value.indexOf('"') !== -1
+            || value.indexOf(',') !== -1
+            || value.indexOf('\r') !== -1
+            || value.indexOf('\n') !== -1;
+        if (needsEscaping) {
+            // Double the double quotes
+            value = value.replace("\"", "\"\"");
+            // Wrap the whole thing in quotes
+            value = "\"" + value + "\"";
+        }
+        return value;
+    }
+    Ally.ValueToCsvValue = ValueToCsvValue;
+    /**
+     * Generate a CSV for client-side download
+     */
+    function createCsvString(itemArray, descriptorArray) {
+        var csvText = "";
+        // Write the header
+        for (var i = 0; i < descriptorArray.length; ++i) {
+            if (i > 0)
+                csvText += ",";
+            csvText += ValueToCsvValue(descriptorArray[i].headerText);
+        }
+        // Write the rows
+        for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
+            csvText += "\n";
+            var curRow = itemArray[rowIndex];
+            for (var columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex) {
+                if (columnIndex > 0)
+                    csvText += ",";
+                var curColumn = descriptorArray[columnIndex];
+                var columnValue = curRow[curColumn.fieldName];
+                if (curColumn.dataMapper)
+                    columnValue = curColumn.dataMapper(columnValue);
+                csvText += ValueToCsvValue(columnValue);
+            }
+        }
+        return csvText;
+    }
+    Ally.createCsvString = createCsvString;
+})(Ally || (Ally = {}));
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Ally;
+(function (Ally) {
+    /**
+     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     */
+    var GroupEmailInfo = /** @class */ (function () {
+        function GroupEmailInfo() {
+        }
+        return GroupEmailInfo;
+    }());
+    Ally.GroupEmailInfo = GroupEmailInfo;
+    var GroupEmailGroups = /** @class */ (function () {
+        function GroupEmailGroups() {
+        }
+        return GroupEmailGroups;
+    }());
+    Ally.GroupEmailGroups = GroupEmailGroups;
+    var HomeEntry = /** @class */ (function () {
+        function HomeEntry() {
+        }
+        return HomeEntry;
+    }());
+    /**
+     * Represents a member of a CHTN group
+     */
+    var FellowChtnResident = /** @class */ (function (_super) {
+        __extends(FellowChtnResident, _super);
+        function FellowChtnResident() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return FellowChtnResident;
+    }(Ally.SimpleUserEntry));
+    Ally.FellowChtnResident = FellowChtnResident;
+    var CommitteeListingInfo = /** @class */ (function () {
+        function CommitteeListingInfo() {
+        }
+        return CommitteeListingInfo;
+    }());
+    Ally.CommitteeListingInfo = CommitteeListingInfo;
+    var UnitListing = /** @class */ (function () {
+        function UnitListing() {
+        }
+        return UnitListing;
+    }());
+    Ally.UnitListing = UnitListing;
+    var FellowResidents = /** @class */ (function () {
+        function FellowResidents() {
+        }
+        return FellowResidents;
+    }());
+    Ally.FellowResidents = FellowResidents;
+    /**
+     * Provides methods to accessing group member and home information
+     */
+    var FellowResidentsService = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function FellowResidentsService($http, $q, $cacheFactory) {
+            this.$http = $http;
+            this.$q = $q;
+            this.$cacheFactory = $cacheFactory;
+        }
+        /**
+         * Get the residents for the current group
+         */
+        FellowResidentsService.prototype.getResidents = function () {
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data.residents;
+            }, function (httpResponse) {
+                return innerThis.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Get the members for a committee
+         */
+        FellowResidentsService.prototype.getCommitteeMembers = function (committeeId) {
+            return this.$http.get("/api/Committee/" + committeeId + "/Members").then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Determine if a user is a committee member
+         */
+        FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
+            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Get the residents for an association, broken down by unit for easy display
+         */
+        FellowResidentsService.prototype.getByUnits = function () {
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data.byUnit;
+            }, function (httpResponse) {
+                return innerThis.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Get a list of residents and homes
+         */
+        FellowResidentsService.prototype.getByUnitsAndResidents = function () {
+            var _this = this;
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return _this.$q.reject(httpResponse);
+            });
+        };
+        /**
+         * Get the object describing the available group e-mail addresses
+         */
+        FellowResidentsService.prototype.getGroupEmailObject = function () {
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
+        };
+        /**
+         * Get the object describing the available group e-mail addresses
+         */
+        FellowResidentsService.prototype.getAllGroupEmails = function () {
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
+        };
+        /**
+         * Populate the lists of group e-mails
+         */
+        FellowResidentsService.prototype._setupGroupEmailObject = function (allResidents, unitList) {
+            var emailLists = {};
+            emailLists = {
+                everyone: [],
+                owners: [],
+                renters: [],
+                board: [],
+                residentOwners: [],
+                nonResidentOwners: [],
+                residentOwnersAndRenters: [],
+                propertyManagers: [],
+                discussion: []
+            };
+            // Go through each resident and add them to each e-mail group they belong to
+            for (var i = 0; i < allResidents.length; ++i) {
+                var r = allResidents[i];
+                var displayName = r.fullName + (r.hasEmail ? "" : "*");
+                emailLists.everyone.push(displayName);
+                var BoardPos_None = 0;
+                var BoardPos_PropertyManager = 32;
+                if (r.boardPosition !== BoardPos_None && r.boardPosition !== BoardPos_PropertyManager)
+                    emailLists.board.push(displayName);
+                if (r.boardPosition === BoardPos_PropertyManager)
+                    emailLists.propertyManagers.push(displayName);
+                if (r.includeInDiscussionEmail)
+                    emailLists.discussion.push(displayName);
+                var isOwner = false;
+                var isRenter = false;
+                var unitIsRented = false;
+                for (var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
+                    var simpleHome = r.homes[unitIndex];
+                    if (!simpleHome.isRenter) {
+                        isOwner = true;
+                        var unit = _.find(unitList, function (u) { return u.unitId === simpleHome.unitId; });
+                        unitIsRented = unit.renters.length > 0;
+                    }
+                    if (simpleHome.isRenter)
+                        isRenter = true;
+                }
+                if (isOwner) {
+                    emailLists.owners.push(displayName);
+                    if (unitIsRented)
+                        emailLists.nonResidentOwners.push(displayName);
+                    else {
+                        emailLists.residentOwners.push(displayName);
+                        emailLists.residentOwnersAndRenters.push(displayName);
+                    }
+                }
+                if (isRenter) {
+                    emailLists.renters.push(displayName);
+                    emailLists.residentOwnersAndRenters.push(displayName);
+                }
+            }
+            // If there are no renters then there are no non-residents so hide those lists
+            if (emailLists.renters.length === 0) {
+                emailLists.residentOwners = [];
+                emailLists.residentOwnersAndRenters = [];
+                emailLists.nonResidentOwners = [];
+            }
+            return emailLists;
+        };
+        /**
+         * Send an e-mail message to another user
+         */
+        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject) {
+            var postData = {
+                recipientUserId: recipientUserId,
+                messageBody: messageBody,
+                messageSubject: messageSubject
+            };
+            return this.$http.post("/api/BuildingResidents/SendMessage", postData);
+        };
+        /**
+         * Clear cached values, such as when the user changes values in Manage -> Residents
+         */
+        FellowResidentsService.prototype.clearResidentCache = function () {
+            this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
+            this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
+        };
+        FellowResidentsService.BoardPositionNames = [
+            { id: 0, name: "None" },
+            { id: 1, name: "President" },
+            { id: 2, name: "Treasurer" },
+            { id: 4, name: "Secretary" },
+            { id: 8, name: "Director/Member at Large" },
+            { id: 16, name: "Vice President" },
+            { id: 32, name: "Property Manager" },
+            { id: 64, name: "Secretary + Treasurer" }
+        ];
+        return FellowResidentsService;
+    }());
+    Ally.FellowResidentsService = FellowResidentsService;
+})(Ally || (Ally = {}));
+angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);
 
 CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
 {
@@ -11446,435 +11812,6 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
         link: linkFunction
     };
 }] );
-// Allow conditional inline values
-// From http://stackoverflow.com/questions/14164371/inline-conditionals-in-angular-js
-CA.angularApp.filter( 'iif', function()
-{
-    return function( input, trueValue, falseValue )
-    {
-        return input ? trueValue : falseValue;
-    };
-} );
-
-
-CA.angularApp.filter( 'tel', function()
-{
-    return function( tel )
-    {
-        if( !tel ) { return ''; }
-
-        var value = tel.toString().trim().replace( /^\+/, '' );
-
-        if( value.match( /[^0-9]/ ) )
-        {
-            return tel;
-        }
-
-        var country, city, number;
-
-        switch( value.length )
-        {
-            case 7: // ####### -> ###-####
-                country = 1;
-                city = "";
-                number = value;
-                break;
-
-            case 10: // +1PPP####### -> C (PPP) ###-####
-                country = 1;
-                city = value.slice( 0, 3 );
-                number = value.slice( 3 );
-                break;
-
-            case 11: // +CPPP####### -> CCC (PP) ###-####
-                country = value[0];
-                city = value.slice( 1, 4 );
-                number = value.slice( 4 );
-                break;
-
-            case 12: // +CCCPP####### -> CCC (PP) ###-####
-                country = value.slice( 0, 3 );
-                city = value.slice( 3, 5 );
-                number = value.slice( 5 );
-                break;
-
-            default:
-                city = "";
-                return tel;
-        }
-
-        // Ignore USA
-        if( country === 1 )
-            country = "";
-
-        number = number.slice( 0, 3 ) + '-' + number.slice( 3 );
-
-        if( city.length > 0 )
-            city = "(" + city + ")";
-
-        return ( country + " " + city + " " + number ).trim();
-    };
-} );
-
-/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
-var Ally;
-(function (Ally) {
-    /**
-     * Represents an exception returned from an API endpoint
-     */
-    var ExceptionResult = /** @class */ (function () {
-        function ExceptionResult() {
-        }
-        return ExceptionResult;
-    }());
-    Ally.ExceptionResult = ExceptionResult;
-})(Ally || (Ally = {}));
-
-var AppCacheService = /** @class */ (function () {
-    function AppCacheService() {
-        // The key for when the user gets redirect for a 401, but is logged in
-        this.Key_WasLoggedIn403 = "wasLoggedIn403";
-        this.Key_WasLoggedIn401 = "wasLoggedIn401";
-        this.Key_AfterLoginRedirect = "afterLoginRedirect";
-        this.KeyPrefix = "AppCacheService_";
-    }
-    AppCacheService.prototype.set = function (key, value) { window.sessionStorage[this.KeyPrefix + key] = value; };
-    AppCacheService.prototype.get = function (key) { return window.sessionStorage[this.KeyPrefix + key]; };
-    AppCacheService.prototype.clear = function (key) {
-        window.sessionStorage[this.KeyPrefix + key] = void 0;
-        delete window.sessionStorage[this.KeyPrefix + key];
-    };
-    AppCacheService.prototype.getAndClear = function (key) {
-        var result;
-        result = this.get(key);
-        this.clear(key);
-        return result;
-    };
-    return AppCacheService;
-}());
-angular.module("CondoAlly").service("appCacheService", [AppCacheService]);
-
-var Ally;
-(function (Ally) {
-    /**
-     * Represents a column in a CSV spreadsheet
-     */
-    var CsvColumnDescriptor = /** @class */ (function () {
-        function CsvColumnDescriptor() {
-        }
-        return CsvColumnDescriptor;
-    }());
-    Ally.CsvColumnDescriptor = CsvColumnDescriptor;
-    function ValueToCsvValue(valueObj) {
-        if (!valueObj)
-            return "";
-        var value = valueObj.toString();
-        if (HtmlUtil.isNullOrWhitespace(value))
-            return "";
-        var needsEscaping = value.indexOf('"') !== -1
-            || value.indexOf(',') !== -1
-            || value.indexOf('\r') !== -1
-            || value.indexOf('\n') !== -1;
-        if (needsEscaping) {
-            // Double the double quotes
-            value = value.replace("\"", "\"\"");
-            // Wrap the whole thing in quotes
-            value = "\"" + value + "\"";
-        }
-        return value;
-    }
-    Ally.ValueToCsvValue = ValueToCsvValue;
-    /**
-     * Generate a CSV for client-side download
-     */
-    function createCsvString(itemArray, descriptorArray) {
-        var csvText = "";
-        // Write the header
-        for (var i = 0; i < descriptorArray.length; ++i) {
-            if (i > 0)
-                csvText += ",";
-            csvText += ValueToCsvValue(descriptorArray[i].headerText);
-        }
-        // Write the rows
-        for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
-            csvText += "\n";
-            var curRow = itemArray[rowIndex];
-            for (var columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex) {
-                if (columnIndex > 0)
-                    csvText += ",";
-                var curColumn = descriptorArray[columnIndex];
-                var columnValue = curRow[curColumn.fieldName];
-                if (curColumn.dataMapper)
-                    columnValue = curColumn.dataMapper(columnValue);
-                csvText += ValueToCsvValue(columnValue);
-            }
-        }
-        return csvText;
-    }
-    Ally.createCsvString = createCsvString;
-})(Ally || (Ally = {}));
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var Ally;
-(function (Ally) {
-    /**
-     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
-     */
-    var GroupEmailInfo = /** @class */ (function () {
-        function GroupEmailInfo() {
-        }
-        return GroupEmailInfo;
-    }());
-    Ally.GroupEmailInfo = GroupEmailInfo;
-    var GroupEmailGroups = /** @class */ (function () {
-        function GroupEmailGroups() {
-        }
-        return GroupEmailGroups;
-    }());
-    Ally.GroupEmailGroups = GroupEmailGroups;
-    var HomeEntry = /** @class */ (function () {
-        function HomeEntry() {
-        }
-        return HomeEntry;
-    }());
-    /**
-     * Represents a member of a CHTN group
-     */
-    var FellowChtnResident = /** @class */ (function (_super) {
-        __extends(FellowChtnResident, _super);
-        function FellowChtnResident() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return FellowChtnResident;
-    }(Ally.SimpleUserEntry));
-    Ally.FellowChtnResident = FellowChtnResident;
-    var CommitteeListingInfo = /** @class */ (function () {
-        function CommitteeListingInfo() {
-        }
-        return CommitteeListingInfo;
-    }());
-    Ally.CommitteeListingInfo = CommitteeListingInfo;
-    var UnitListing = /** @class */ (function () {
-        function UnitListing() {
-        }
-        return UnitListing;
-    }());
-    Ally.UnitListing = UnitListing;
-    var FellowResidents = /** @class */ (function () {
-        function FellowResidents() {
-        }
-        return FellowResidents;
-    }());
-    Ally.FellowResidents = FellowResidents;
-    /**
-     * Provides methods to accessing group member and home information
-     */
-    var FellowResidentsService = /** @class */ (function () {
-        /**
-         * The constructor for the class
-         */
-        function FellowResidentsService($http, $q, $cacheFactory) {
-            this.$http = $http;
-            this.$q = $q;
-            this.$cacheFactory = $cacheFactory;
-        }
-        /**
-         * Get the residents for the current group
-         */
-        FellowResidentsService.prototype.getResidents = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data.residents;
-            }, function (httpResponse) {
-                return innerThis.$q.reject(httpResponse);
-            });
-        };
-        /**
-         * Get the members for a committee
-         */
-        FellowResidentsService.prototype.getCommitteeMembers = function (committeeId) {
-            return this.$http.get("/api/Committee/" + committeeId + "/Members").then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
-            });
-        };
-        /**
-         * Determine if a user is a committee member
-         */
-        FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
-            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
-            });
-        };
-        /**
-         * Get the residents for an association, broken down by unit for easy display
-         */
-        FellowResidentsService.prototype.getByUnits = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data.byUnit;
-            }, function (httpResponse) {
-                return innerThis.$q.reject(httpResponse);
-            });
-        };
-        /**
-         * Get a list of residents and homes
-         */
-        FellowResidentsService.prototype.getByUnitsAndResidents = function () {
-            var _this = this;
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return _this.$q.reject(httpResponse);
-            });
-        };
-        /**
-         * Get the object describing the available group e-mail addresses
-         */
-        FellowResidentsService.prototype.getGroupEmailObject = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
-            });
-            //var innerThis = this;
-            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
-            //{
-            //    var unitList = unitsAndResidents.byUnit;
-            //    var allResidents = unitsAndResidents.residents;
-            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
-            //} );
-        };
-        /**
-         * Get the object describing the available group e-mail addresses
-         */
-        FellowResidentsService.prototype.getAllGroupEmails = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
-            });
-            //var innerThis = this;
-            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
-            //{
-            //    var unitList = unitsAndResidents.byUnit;
-            //    var allResidents = unitsAndResidents.residents;
-            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
-            //} );
-        };
-        /**
-         * Populate the lists of group e-mails
-         */
-        FellowResidentsService.prototype._setupGroupEmailObject = function (allResidents, unitList) {
-            var emailLists = {};
-            emailLists = {
-                everyone: [],
-                owners: [],
-                renters: [],
-                board: [],
-                residentOwners: [],
-                nonResidentOwners: [],
-                residentOwnersAndRenters: [],
-                propertyManagers: [],
-                discussion: []
-            };
-            // Go through each resident and add them to each e-mail group they belong to
-            for (var i = 0; i < allResidents.length; ++i) {
-                var r = allResidents[i];
-                var displayName = r.fullName + (r.hasEmail ? "" : "*");
-                emailLists.everyone.push(displayName);
-                var BoardPos_None = 0;
-                var BoardPos_PropertyManager = 32;
-                if (r.boardPosition !== BoardPos_None && r.boardPosition !== BoardPos_PropertyManager)
-                    emailLists.board.push(displayName);
-                if (r.boardPosition === BoardPos_PropertyManager)
-                    emailLists.propertyManagers.push(displayName);
-                if (r.includeInDiscussionEmail)
-                    emailLists.discussion.push(displayName);
-                var isOwner = false;
-                var isRenter = false;
-                var unitIsRented = false;
-                for (var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
-                    var simpleHome = r.homes[unitIndex];
-                    if (!simpleHome.isRenter) {
-                        isOwner = true;
-                        var unit = _.find(unitList, function (u) { return u.unitId === simpleHome.unitId; });
-                        unitIsRented = unit.renters.length > 0;
-                    }
-                    if (simpleHome.isRenter)
-                        isRenter = true;
-                }
-                if (isOwner) {
-                    emailLists.owners.push(displayName);
-                    if (unitIsRented)
-                        emailLists.nonResidentOwners.push(displayName);
-                    else {
-                        emailLists.residentOwners.push(displayName);
-                        emailLists.residentOwnersAndRenters.push(displayName);
-                    }
-                }
-                if (isRenter) {
-                    emailLists.renters.push(displayName);
-                    emailLists.residentOwnersAndRenters.push(displayName);
-                }
-            }
-            // If there are no renters then there are no non-residents so hide those lists
-            if (emailLists.renters.length === 0) {
-                emailLists.residentOwners = [];
-                emailLists.residentOwnersAndRenters = [];
-                emailLists.nonResidentOwners = [];
-            }
-            return emailLists;
-        };
-        /**
-         * Send an e-mail message to another user
-         */
-        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject) {
-            var postData = {
-                recipientUserId: recipientUserId,
-                messageBody: messageBody,
-                messageSubject: messageSubject
-            };
-            return this.$http.post("/api/BuildingResidents/SendMessage", postData);
-        };
-        /**
-         * Clear cached values, such as when the user changes values in Manage -> Residents
-         */
-        FellowResidentsService.prototype.clearResidentCache = function () {
-            this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
-            this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
-        };
-        FellowResidentsService.BoardPositionNames = [
-            { id: 0, name: "None" },
-            { id: 1, name: "President" },
-            { id: 2, name: "Treasurer" },
-            { id: 4, name: "Secretary" },
-            { id: 8, name: "Director/Member at Large" },
-            { id: 16, name: "Vice President" },
-            { id: 32, name: "Property Manager" },
-            { id: 64, name: "Secretary + Treasurer" }
-        ];
-        return FellowResidentsService;
-    }());
-    Ally.FellowResidentsService = FellowResidentsService;
-})(Ally || (Ally = {}));
-angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);
-
 var Ally;
 (function (Ally) {
     var ReplyComment = /** @class */ (function () {
@@ -12729,6 +12666,76 @@ angular.module("CondoAlly").directive("imageonerror", function () {
     };
 });
 
+// Allow conditional inline values
+// From http://stackoverflow.com/questions/14164371/inline-conditionals-in-angular-js
+CA.angularApp.filter( 'iif', function()
+{
+    return function( input, trueValue, falseValue )
+    {
+        return input ? trueValue : falseValue;
+    };
+} );
+
+
+CA.angularApp.filter( 'tel', function()
+{
+    return function( tel )
+    {
+        if( !tel ) { return ''; }
+
+        var value = tel.toString().trim().replace( /^\+/, '' );
+
+        if( value.match( /[^0-9]/ ) )
+        {
+            return tel;
+        }
+
+        var country, city, number;
+
+        switch( value.length )
+        {
+            case 7: // ####### -> ###-####
+                country = 1;
+                city = "";
+                number = value;
+                break;
+
+            case 10: // +1PPP####### -> C (PPP) ###-####
+                country = 1;
+                city = value.slice( 0, 3 );
+                number = value.slice( 3 );
+                break;
+
+            case 11: // +CPPP####### -> CCC (PP) ###-####
+                country = value[0];
+                city = value.slice( 1, 4 );
+                number = value.slice( 4 );
+                break;
+
+            case 12: // +CCCPP####### -> CCC (PP) ###-####
+                country = value.slice( 0, 3 );
+                city = value.slice( 3, 5 );
+                number = value.slice( 5 );
+                break;
+
+            default:
+                city = "";
+                return tel;
+        }
+
+        // Ignore USA
+        if( country === 1 )
+            country = "";
+
+        number = number.slice( 0, 3 ) + '-' + number.slice( 3 );
+
+        if( city.length > 0 )
+            city = "(" + city + ")";
+
+        return ( country + " " + city + " " + number ).trim();
+    };
+} );
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -12843,6 +12850,7 @@ var Ally;
                                 onSiteInfoReceived(httpResponse.data);
                             }, onRequestFailed);
                         }
+                        // Otherwise just handle what we received
                         else
                             onSiteInfoReceived(httpResponse.data);
                     }, function () {
@@ -12891,6 +12899,7 @@ var Ally;
                             baseApiUrl: "https://0.webappapi.communityally.org/api/"
                         };
                 }
+                // Otherwise we are at an unknown, non-neutral subdomain so get back to safety!
                 else {
                     // Go to generic login                
                     GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
@@ -12937,6 +12946,7 @@ var Ally;
                     });
                 }
             }
+            // Otherwise the user is not logged-in
             else {
                 $rootScope.userInfo = null;
                 // If we're not at the log-in page, the get us there
@@ -13220,6 +13230,20 @@ CA.angularApp.component("todoList", {
     templateUrl: "/ngApp/services/todo-list.html",
     controller: Ally.TodoListCtrl
 });
+
+/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
+var Ally;
+(function (Ally) {
+    /**
+     * Represents an exception returned from an API endpoint
+     */
+    var ExceptionResult = /** @class */ (function () {
+        function ExceptionResult() {
+        }
+        return ExceptionResult;
+    }());
+    Ally.ExceptionResult = ExceptionResult;
+})(Ally || (Ally = {}));
 
 function ManageMembersCtrl( $scope, $http, $rootScope, $interval, $http )
 {

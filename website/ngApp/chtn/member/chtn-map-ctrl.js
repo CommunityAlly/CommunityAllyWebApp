@@ -138,6 +138,7 @@ var Ally;
             // If we're editing an existing item
             if (this.editingTip.itemId)
                 this.$http.put("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
+            // Otherwise create a new one
             else
                 this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
         };

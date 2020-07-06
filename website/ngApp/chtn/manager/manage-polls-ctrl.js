@@ -112,6 +112,7 @@ var Ally;
                 analytics.track("editPoll");
                 this.$http.put("/api/Poll", this.editingItem).then(onSave, onFailure);
             }
+            // Otherwise create a new one
             else {
                 analytics.track("addPoll");
                 this.$http.post("/api/Poll", this.editingItem).then(onSave, onFailure);

@@ -22,6 +22,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                 deferred.reject();
                 $location.path('/Login');
             }
+            // The user does not need to login
             else
                 deferred.resolve();
             return deferred.promise;

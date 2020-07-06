@@ -112,6 +112,7 @@ var Ally;
                                 onSiteInfoReceived(httpResponse.data);
                             }, onRequestFailed);
                         }
+                        // Otherwise just handle what we received
                         else
                             onSiteInfoReceived(httpResponse.data);
                     }, function () {
@@ -160,6 +161,7 @@ var Ally;
                             baseApiUrl: "https://0.webappapi.communityally.org/api/"
                         };
                 }
+                // Otherwise we are at an unknown, non-neutral subdomain so get back to safety!
                 else {
                     // Go to generic login                
                     GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
@@ -206,6 +208,7 @@ var Ally;
                     });
                 }
             }
+            // Otherwise the user is not logged-in
             else {
                 $rootScope.userInfo = null;
                 // If we're not at the log-in page, the get us there
