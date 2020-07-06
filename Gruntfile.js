@@ -1,3 +1,5 @@
+const sass = require('node-sass');
+
 module.exports = function(grunt) {
 
 // Project configuration.
@@ -132,6 +134,10 @@ grunt.initConfig({
 
     // Compile SASS files into CSS
     sass: {
+        options: {
+            implementation: sass,
+            sourceMap: false
+        },
         dist: {
             files: {
                 'Website/assets/compiled-css/style.css': 'Website/assets/scss/style.scss'
