@@ -26,12 +26,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
-    <!--<link rel="stylesheet" href="/assets/compiled.min.css" />-->
-    <link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=50" />
+    <link rel="stylesheet" href="/assets/compiled.min.css" />
+    <!--<link rel="stylesheet" href="https://dcqedt6xzf0g6.cloudfront.net/assets/compiled.min.css?cssVer=50" />-->
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
-    <!--<script type="text/javascript" src="/js/AllyLibTop.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibTop.min.js?libVer=39"></script>
+    <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=39"></script>
+    <!--<script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibTop.min.js?libVer=39"></script>-->
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
     <script>
@@ -46,6 +46,7 @@
             "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
 
         // Clear the template cache based on the JS file version
+        var appVer=525;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -53,10 +54,10 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=510" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=525" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=510" );
+                    localStorage.setItem( Key_JSVersion, "appVer=525" );
                 }
             }
         };
@@ -64,11 +65,11 @@
 
 
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
-    <!--<script type="text/javascript" src="/ngApp/ally-app-bundle.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.js?appVer=510"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=525"></script>
+    <!--<script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngApp/ally-app-bundle.min.js?appVer=525"></script>-->
     <!-- DEVLOCAL - Uncomment the line below and comment the line below that -->
-    <!--<script type="text/javascript" src="/ngTemplates.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=510"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=525"></script>
+    <!--<script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/ngTemplates.min.js?appVer=525"></script>-->
 
 
     <!--Start of Zopim Live Chat Script-->
@@ -136,7 +137,7 @@
         }
     </script>
     <!-- Fonts -->
-    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700&display=swap' rel='stylesheet' type='text/css'>
 
     <meta name="application-name" content="Condo Ally">
     <meta name="apple-mobile-web-app-title" content="Condo Ally">
@@ -242,8 +243,7 @@
         </div>
     </footer>
 
-    <!--<script type="text/javascript" src="/js/AllyLibBottom.min.js"></script>-->
-    <script type="text/javascript" src="https://dcqedt6xzf0g6.cloudfront.net/js/AllyLibBottom.min.js?libVer=38b"></script>
+    <script type="text/javascript" src="/js/AllyLibBottom.min.js?libVer=39"></script>
         
     <script>
         // Remove the need for iOS users to double-tap links

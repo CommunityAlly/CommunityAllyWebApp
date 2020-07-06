@@ -195,7 +195,7 @@ var Ally;
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
             var innerThis = this;
-            this.$http.post("https://0.webappapi.communityally.org/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
+            this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
                 innerThis.isLoading = false;
                 var signUpResult = httpResponse.data;
                 // If the was an error creating the site

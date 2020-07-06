@@ -146,7 +146,7 @@ var Ally;
             this.retrieveGroups = function () {
                 this.isLoading = true;
                 var innerThis = this;
-                this.$http.get("/api/Association/adminList").then(function (response) {
+                this.$http.get("/api/Association/AdminList").then(function (response) {
                     innerThis.isLoading = false;
                     innerThis.groups = response.data;
                     // Add the app type string
@@ -225,7 +225,7 @@ var Ally;
         ManageGroupsController.prototype.findAssociationsForUser = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Admin/findAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
+            this.$http.get("/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
                 _this.isLoading = false;
                 _this.foundUserAssociations = response.data;
                 _.forEach(_this.foundUserAssociations, function (g) {
@@ -322,10 +322,10 @@ var Ally;
             request.then(function () { return innerThis.isLoadingHelper = false; }, function () { innerThis.isLoadingHelper = false; alert("Failed"); });
         };
         ManageGroupsController.prototype.onTestException = function () {
-            this.makeHelperRequest("/api/Association/testException");
+            this.makeHelperRequest("/api/AdminHelper/TestException");
         };
         ManageGroupsController.prototype.onClearElmahLogs = function () {
-            this.makeHelperRequest("/api/Admin/clearElmah");
+            this.makeHelperRequest("/api/AdminHelper/ClearElmah");
         };
         ManageGroupsController.prototype.onClearAppGroupCache = function () {
             this.makeHelperRequest("/api/AdminHelper/ClearGroupCache");
@@ -420,7 +420,7 @@ var Ally;
             if (this.isEdit)
                 this.$http.put("/api/Unit", this.unitToEdit).then(onSave, onError);
             else
-                this.$http.post("/api/Unit", this.unitToEdit).then(onSave, onError);
+                this.$http.post("/api/Unit/AddSingle", this.unitToEdit).then(onSave, onError);
         };
         /**
          * Occurs when the user presses the button to edit a unit
@@ -484,7 +484,7 @@ var Ally;
                 lines: this.unitNamePerLine
             };
             this.isLoading = true;
-            this.$http.post("/api/Unit?onePerLine=1", postData).then(function () {
+            this.$http.post("/api/Unit/Multiline", postData).then(function () {
                 _this.isLoading = false;
                 _this.refresh();
             }, function () {
@@ -953,16 +953,17 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 return {
                     request: function (reqConfig) {
-                        // If we're talking to the Community Ally API server
-                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/") || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.mycommunityally.org/api/") || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.communityally.org/api/");
+                        // If we're talking to the Community Ally API server, then we need to complete the
+                        // relative URL and add the auth token
+                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/")
+                            || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.mycommunityally.org/api/")
+                            || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.communityally.org/api/");
                         if (isMakingApiRequest) {
                             //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
-                            var AppType_Home = 2;
-                            if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
+                            if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
                                 reqConfig.url = OverrideBaseApiPath + reqConfig.url;
-                            }
-                            else if (siteInfo.publicSiteInfo.baseApiUrl && (siteInfo.publicSiteInfo.shortName === "qa" || siteInfo.publicSiteInfo.appType === AppType_Home))
+                            else if (siteInfo.publicSiteInfo.baseApiUrl)
                                 reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
@@ -3262,8 +3263,12 @@ var Ally;
                 }
             }
             // Map the UI entry of units to the type expected on the server
-            if (!this.editUser.showAdvancedHomePicker)
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
+            if (!this.editUser.showAdvancedHomePicker) {
+                if (!this.editUser.singleUnitId)
+                    this.editUser.units = [];
+                else
+                    this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
+            }
             this.isSavingUser = true;
             var innerThis = this;
             var onSave = function (response) {
@@ -3821,11 +3826,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnSettingsController($http, siteInfo, $timeout, $scope) {
+        function ChtnSettingsController($http, siteInfo, $timeout, $scope, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.$rootScope = $rootScope;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
             this.showRightColumnSetting = true;
@@ -3837,6 +3843,7 @@ var Ally;
          */
         ChtnSettingsController.prototype.$onInit = function () {
             var _this = this;
+            this.frontEndVersion = appVer.toString();
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
@@ -3863,15 +3870,15 @@ var Ally;
          * Clear the login image
          */
         ChtnSettingsController.prototype.removeLoginImage = function () {
+            var _this = this;
             analytics.track("clearLoginImage");
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/Settings/ClearLoginImage").then(function () {
-                innerThis.isLoading = false;
-                innerThis.siteInfo.publicSiteInfo.loginImageUrl = "";
-                innerThis.loginImageUrl = "";
+                _this.isLoading = false;
+                _this.siteInfo.publicSiteInfo.loginImageUrl = "";
+                _this.loginImageUrl = "";
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
             });
         };
@@ -3904,11 +3911,10 @@ var Ally;
             var _this = this;
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
-            var innerThis = this;
             this.$http.put("/api/Settings", { BGImageFileName: this.settings.bgImageFileName }).then(function () {
                 $(".test-bg-image").removeClass("test-bg-image-selected");
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to save: " + response.data);
@@ -3931,29 +3937,37 @@ var Ally;
             });
         };
         /**
-         * Hooked up the login image JQuery upload control
+         * Initialize the login image JQuery upload control
          */
         ChtnSettingsController.prototype.hookUpLoginImageUpload = function () {
-            var innerThis = this;
+            var _this = this;
             $(function () {
                 $('#JQLoginImageFileUploader').fileupload({
                     autoUpload: true,
                     add: function (e, data) {
-                        innerThis.$scope.$apply(function () {
-                            innerThis.isLoading = true;
+                        _this.$scope.$apply(function () {
+                            _this.isLoading = true;
                         });
                         analytics.track("setLoginImage");
                         $("#FileUploadProgressContainer").show();
-                        data.url = "api/DocumentUpload/LoginImage?ApiAuthToken=" + innerThis.siteInfo.authToken;
+                        data.url = "api/DocumentUpload/LoginImage";
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
                         var xhr = data.submit();
                         xhr.done(function (result) {
-                            innerThis.$scope.$apply(function () {
-                                innerThis.isLoading = false;
-                                innerThis.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                innerThis.siteInfo.publicSiteInfo.loginImageUrl = innerThis.loginImageUrl;
+                            _this.$scope.$apply(function () {
+                                _this.isLoading = false;
+                                _this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
+                                _this.siteInfo.publicSiteInfo.loginImageUrl = _this.loginImageUrl;
                             });
                             $("#FileUploadProgressContainer").hide();
                         });
+                    },
+                    beforeSend: function (xhr) {
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + _this.$rootScope.authToken);
+                        else
+                            xhr.setRequestHeader("ApiAuthToken", _this.$rootScope.authToken);
                     },
                     progressall: function (e, data) {
                         var progress = Math.floor((data.loaded * 100) / data.total);
@@ -3966,7 +3980,7 @@ var Ally;
                 });
             });
         };
-        ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+        ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return ChtnSettingsController;
     }());
     Ally.ChtnSettingsController = ChtnSettingsController;
@@ -4171,14 +4185,14 @@ var Ally;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             // If we know our group's position, let's tighten the 
             var autocompleteOptions = undefined;
-            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var latLon = {
                     lat: 41.142248,
                     lng: -73.633228
                 };
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {
@@ -4385,8 +4399,8 @@ var MapCtrlMapMgr = /** @class */ (function () {
         if (typeof (google) === "undefined")
             return;
         // Store our home position
-        MapCtrlMapMgr._homeGpsPos = siteInfo.publicSiteInfo.googleGpsPosition;
-        MapCtrlMapMgr._groupGpsBounds = siteInfo.publicSiteInfo.gpsBounds;
+        MapCtrlMapMgr._homeGpsPos = siteInfo.privateSiteInfo.googleGpsPosition;
+        MapCtrlMapMgr._groupGpsBounds = siteInfo.privateSiteInfo.gpsBounds;
         // Create the map centered at our home
         var myOptions = {
             center: MapCtrlMapMgr._homeGpsPos,
@@ -4867,7 +4881,7 @@ var Ally;
     Ally.HelpFormController = HelpFormController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("helpForm", {
-    templateUrl: "/ngApp/chtn/member/Help.html",
+    templateUrl: "/ngApp/chtn/member/help.html",
     controller: Ally.HelpFormController
 });
 
@@ -5327,6 +5341,9 @@ var Ally;
             // Allow admin to login if needed
             if (HtmlUtil.GetQueryStringParameter("s") === "1")
                 this.isDemoSite = false;
+            //const welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
+            //welcomeImageElem.addEventListener( "load", () => this.onWelcomeImageLoaded() );
+            //welcomeImageElem.addEventListener( "error", () => this.onWelcomeImageError() );
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.sectionStyle = {
                 position: "relative"
@@ -5336,12 +5353,12 @@ var Ally;
                 this.welcomeImageContainerStyle["margin-bottom"] = "21px";
                 // Pre-size the welcome image container to avoid jumping around
                 var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
-                if (savedWelcomeImageWidth) {
+                if (savedWelcomeImageWidth && savedWelcomeImageWidth != "0" && !HtmlUtil.isNullOrWhitespace(this.loginImageUrl)) {
                     this.welcomeImageContainerStyle["width"] = savedWelcomeImageWidth + "px";
                     this.welcomeImageContainerStyle["height"] = window.localStorage["welcomeImage_height"] + "px";
                 }
                 //this.sectionStyle["left"] = "50%";
-                if (this.loginImageUrl) {
+                if (!HtmlUtil.isNullOrWhitespace(this.loginImageUrl)) {
                     this.sectionStyle["max-width"] = "760px";
                     //this.sectionStyle["margin-left"] = "-380px";
                 }
@@ -5370,7 +5387,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image loads
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.onWelcomeImageLoaded = function () {
+        LoginController.prototype.onWelcomeImageLoaded = function (event) {
             var welcomeImageElem = document.getElementById("welcome-image");
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
             window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;
@@ -5520,11 +5537,10 @@ var Ally;
             var hookUpPhotoFileUpload = function () {
                 var uploader = $('#JQFileUploader');
                 uploader.fileupload({
-                    beforeSend: function (xhr, data) {
-                        xhr.setRequestHeader("Authorization", "Bearer " + _this.siteInfo.authToken);
-                    },
                     add: function (e, data) {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + _this.siteInfo.authToken;
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
                         _this.$scope.$apply(function () { return _this.isLoading = true; });
                         var xhr = data.submit();
                         xhr.done(function (result) {
@@ -5533,6 +5549,12 @@ var Ally;
                                 window.location.reload();
                             });
                         });
+                    },
+                    beforeSend: function (xhr) {
+                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + _this.$rootScope.authToken);
+                        else
+                            xhr.setRequestHeader("ApiAuthToken", _this.$rootScope.authToken);
                     },
                     fail: function (e, data) {
                         _this.$scope.$apply(function () {
@@ -6349,20 +6371,20 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         NeighborSignUpController.prototype.$onInit = function () {
-            var _this = this;
             // Hook up address auto-complete, after the page has loaded
             setTimeout(function () {
                 var autocompleteOptions = undefined;
-                if (_this.siteInfo.publicSiteInfo.googleGpsPosition) {
-                    var TwentyFiveMilesInMeters = 40234;
-                    var circle = new google.maps.Circle({
-                        center: _this.siteInfo.publicSiteInfo.googleGpsPosition,
-                        radius: TwentyFiveMilesInMeters
-                    });
-                    autocompleteOptions = {
-                        bounds: circle.getBounds()
-                    };
-                }
+                //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
+                //{
+                //    var TwentyFiveMilesInMeters = 40234;
+                //    var circle = new google.maps.Circle( {
+                //        center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                //        radius: TwentyFiveMilesInMeters
+                //    } );
+                //    autocompleteOptions = {
+                //        bounds: circle.getBounds()
+                //    };
+                //}
                 var addressInput = document.getElementById("address-text-box");
                 new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
             }, 750);
@@ -6679,19 +6701,20 @@ var Ally;
         PendingMemberSignUpController.prototype.hookupAddressAutocomplete = function () {
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;
-            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
-                // Also mask phone numbers for US phones
-                var phoneFields = $(".mask-phone");
-                phoneFields.mask("(999) 999-9999? x999", { autoclear: false });
-                var TwentyFiveMilesInMeters = 40234;
-                var circle = new google.maps.Circle({
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
-                    radius: TwentyFiveMilesInMeters
-                });
-                autocompleteOptions = {
-                    bounds: circle.getBounds()
-                };
-            }
+            //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
+            //{
+            //    // Also mask phone numbers for US phones
+            //    var phoneFields: any = $( ".mask-phone" );
+            //    phoneFields.mask( "(999) 999-9999? x999", { autoclear: false } );
+            //    const TwentyFiveMilesInMeters = 40234;
+            //    var circle = new google.maps.Circle( {
+            //        center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+            //        radius: TwentyFiveMilesInMeters
+            //    } );
+            //    autocompleteOptions = {
+            //        bounds: circle.getBounds()
+            //    };
+            //}
             var addressInput = document.getElementById("member-home-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
             var innerThis = this;
@@ -7755,11 +7778,15 @@ var Ally;
                     this.showPopUpWarning = true;
                 }
                 else
-                    viewDocWindow.document.write('Loading document...');
+                    viewDocWindow.document.write('Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)');
             }
-            this.$http.get("/api/DocumentLink/" + curFile.docId).then(function (response) {
+            var viewUri = "/api/DocumentLink/" + curFile.docId;
+            this.$http.get(viewUri).then(function (response) {
                 _this.isLoading = false;
                 var fileUri = curFile.url + "?vid=" + encodeURIComponent(response.data.vid);
+                if (HtmlUtil.startsWith(fileUri, "/api/"))
+                    fileUri = fileUri.substr("/api/".length);
+                fileUri = _this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
                 if (isForDownload) {
                     var link = document.createElement('a');
                     link.setAttribute("type", "hidden"); // make it hidden if needed
@@ -8491,9 +8518,9 @@ var Ally;
                 localNewsUri = "https://localnewsally.azurewebsites.net/api/LocalNews";
                 queryParams = {
                     clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                    chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
-                    zipCode: this.siteInfo.publicSiteInfo.zipCode,
-                    cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery,
+                    chicagoWard: this.siteInfo.privateSiteInfo.chicagoWard,
+                    zipCode: this.siteInfo.privateSiteInfo.zipCode,
+                    cityNeighborhood: this.siteInfo.privateSiteInfo.localNewsNeighborhoodQuery,
                     city: this.siteInfo.privateSiteInfo.groupAddress.city,
                     state2Char: this.siteInfo.privateSiteInfo.groupAddress.state
                 };
@@ -8974,8 +9001,7 @@ var Ally;
             entry.wasPopUpBlocked = false;
             this.$http.post("/api/Mailing/Preview/Invoice", previewPostInfo).then(function (response) {
                 _this.isLoading = false;
-                var getUri = "/api/Mailing/Preview/Invoice/" + response.data.previewId;
-                getUri += "?ApiAuthToken=" + _this.authToken;
+                var getUri = _this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
                 var newWindow = window.open(getUri, "_blank");
                 entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
             }, function (response) {
@@ -9986,10 +10012,10 @@ var Ally;
             }
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;
-            if (this.siteInfo.publicSiteInfo.googleGpsPosition) {
+            if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
                 var TwentyFiveMilesInMeters = 40234;
                 var circle = new google.maps.Circle({
-                    center: this.siteInfo.publicSiteInfo.googleGpsPosition,
+                    center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
                 autocompleteOptions = {
@@ -10522,9 +10548,9 @@ var Ally;
                     localNewsUri = "https://localnewsally.azurewebsites.net/api/LocalNews";
                     queryParams = {
                         clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
-                        chicagoWard: this.siteInfo.publicSiteInfo.chicagoWard,
-                        zipCode: this.siteInfo.publicSiteInfo.zipCode,
-                        cityNeighborhood: this.siteInfo.publicSiteInfo.localNewsNeighborhoodQuery
+                        chicagoWard: this.siteInfo.privateSiteInfo.chicagoWard,
+                        zipCode: this.siteInfo.privateSiteInfo.zipCode,
+                        cityNeighborhood: this.siteInfo.privateSiteInfo.localNewsNeighborhoodQuery
                     };
                 }
                 else {
@@ -11420,77 +11446,6 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
         link: linkFunction
     };
 }] );
-// Allow enter key event
-// From http://stackoverflow.com/questions/15417125/submit-form-on-pressing-enter-with-angularjs
-angular.module( "CondoAlly" ).directive( "ngEnter", function()
-{
-    return function( scope, element, attrs )
-    {
-        element.bind( "keydown keypress", function( event )
-        {
-            var EnterKeyCode = 13;
-            if( event.which === EnterKeyCode )
-            {
-                scope.$apply( function()
-                {
-                    scope.$eval( attrs.ngEnter, { 'event': event } );
-                } );
-
-                event.preventDefault();
-            }
-        } );
-    };
-} );
-
-angular.module( "CondoAlly" ).directive( "ngEscape", function()
-{
-    return function( scope, element, attrs )
-    {
-        element.bind( "keydown keypress", function( event )
-        {
-            var EscapeKeyCode = 27;
-            if( event.which === EscapeKeyCode )
-            {
-                scope.$apply( function()
-                {
-                    scope.$eval( attrs.ngEscape, { 'event': event } );
-                } );
-
-                event.preventDefault();
-            }
-        } );
-    };
-} );
-
-angular.module( "CondoAlly" ).directive( "imageonload", function()
-{
-    return {
-        restrict: "A",
-        link: function( scope, element, attrs )
-        {
-            element.bind( "load", function()
-            {
-                if( attrs.imageonload )
-                    scope.$apply( attrs.imageonload );
-            } );
-        }
-    };
-} );
-
-angular.module( "CondoAlly" ).directive( "imageonerror", function()
-{
-    return {
-        restrict: "A",
-        link: function( scope, element, attrs )
-        {
-            element.bind( "error", function()
-            {
-                if( attrs.imageonload )
-                    scope.$apply( attrs.imageonload );
-            } );
-        }
-    };
-} );
 // Allow conditional inline values
 // From http://stackoverflow.com/questions/14164371/inline-conditionals-in-angular-js
 CA.angularApp.filter( 'iif', function()
@@ -12723,6 +12678,57 @@ CA.angularApp.component("sendMessage", {
     controller: Ally.SendMessageController
 });
 
+// Allow enter key event
+// From http://stackoverflow.com/questions/15417125/submit-form-on-pressing-enter-with-angularjs
+angular.module("CondoAlly").directive("ngEnter", function () {
+    return function (scope, element, attrs) {
+        element.bind("keydown keypress", function (event) {
+            var EnterKeyCode = 13;
+            if (event.which === EnterKeyCode) {
+                scope.$apply(function () {
+                    scope.$eval(attrs.ngEnter, { 'event': event });
+                });
+                event.preventDefault();
+            }
+        });
+    };
+});
+angular.module("CondoAlly").directive("ngEscape", function () {
+    return function (scope, element, attrs) {
+        element.bind("keydown keypress", function (event) {
+            var EscapeKeyCode = 27;
+            if (event.which === EscapeKeyCode) {
+                scope.$apply(function () {
+                    scope.$eval(attrs.ngEscape, { 'event': event });
+                });
+                event.preventDefault();
+            }
+        });
+    };
+});
+angular.module("CondoAlly").directive("imageonload", function () {
+    return {
+        restrict: "A",
+        link: function (scope, element, attrs) {
+            element.bind("load", function (evt) {
+                if (attrs.imageonload)
+                    scope.$apply(attrs.imageonload);
+            });
+        }
+    };
+});
+angular.module("CondoAlly").directive("imageonerror", function () {
+    return {
+        restrict: "A",
+        link: function (scope, element, attrs) {
+            element.bind("error", function (evt) {
+                if (attrs.imageonerror)
+                    scope.$apply(attrs.imageonerror);
+            });
+        }
+    };
+});
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -12801,13 +12807,19 @@ var Ally;
         }
         // Retrieve the basic information for the current site
         SiteInfoService.prototype.refreshSiteInfo = function ($rootScope, $http, $q) {
+            var _this = this;
             this._rootScope = $rootScope;
             var deferred = $q.defer();
             $rootScope.isLoadingSite = true;
-            var innerThis = this;
+            if (HtmlUtil.getSubdomain() === "login") {
+                $rootScope.isLoadingSite = false;
+                this.handleSiteInfo(null, $rootScope);
+                deferred.resolve();
+                return deferred.promise;
+            }
             var onSiteInfoReceived = function (siteInfo) {
                 $rootScope.isLoadingSite = false;
-                innerThis.handleSiteInfo(siteInfo, $rootScope);
+                _this.handleSiteInfo(siteInfo, $rootScope);
                 deferred.resolve();
             };
             var onRequestFailed = function () {
@@ -12822,11 +12834,11 @@ var Ally;
                 // If we received data but the user isn't logged-in
                 if (httpResponse.data && !httpResponse.data.userInfo) {
                     // Check the cross-domain localStorage for an auth token
-                    innerThis.xdLocalStorage.getItem("allyApiAuthToken").then(function (response) {
+                    _this.xdLocalStorage.getItem("allyApiAuthToken").then(function (response) {
                         // If we received an auth token then retry accessing the group data
                         if (response && HtmlUtil.isValidString(response.value)) {
                             //console.log( "Received cross domain token:" + response.value );
-                            innerThis.setAuthToken(response.value);
+                            _this.setAuthToken(response.value);
                             $http.get(GetInfoUri).then(function (httpResponse) {
                                 onSiteInfoReceived(httpResponse.data);
                             }, onRequestFailed);
@@ -12863,7 +12875,7 @@ var Ally;
             if (!this.authToken && $rootScope.authToken)
                 this.setAuthToken($rootScope.authToken);
             // If we're at an unknown subdomain
-            if (siteInfo === null || siteInfo === "null") {
+            if (siteInfo === null || siteInfo === "null" || siteInfo === "") {
                 // Allow the user to log-in with no subdomain, create a temp site info object
                 var isNeutralSubdomain = subdomain === null || subdomain === "www" || subdomain === "login";
                 var isNeutralPage = this.testIfIsNeutralPage(window.location.hash);
@@ -12875,7 +12887,8 @@ var Ally;
                             bgImagePath: "",
                             fullName: AppConfig.appName,
                             //siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to <a style='color:#a3e0ff; text-decoration: underline;' href='https://" + AppConfig.baseTld + "'>" + AppConfig.appName + "</a></span>"
-                            siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "</span>"
+                            siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "</span>",
+                            baseApiUrl: "https://0.webappapi.communityally.org/api/"
                         };
                 }
                 else {
@@ -12887,14 +12900,14 @@ var Ally;
             // Store the site info to the root scope for access by the app module
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
-            // Store the Google lat/lon object to make life easier later
-            if (this.publicSiteInfo.gpsPosition && typeof (google) !== "undefined")
-                this.publicSiteInfo.googleGpsPosition = new google.maps.LatLng(this.publicSiteInfo.gpsPosition.lat, this.publicSiteInfo.gpsPosition.lon);
             // Handle private (logged-in only) info
             var privateSiteInfo = siteInfo.privateSiteInfo;
             if (!privateSiteInfo)
                 privateSiteInfo = {};
             this.privateSiteInfo = privateSiteInfo;
+            // Store the Google lat/lon object to make life easier later
+            if (this.privateSiteInfo.gpsPosition && typeof (google) !== "undefined")
+                this.privateSiteInfo.googleGpsPosition = new google.maps.LatLng(this.privateSiteInfo.gpsPosition.lat, this.privateSiteInfo.gpsPosition.lon);
             // Set the site title
             document.title = this.publicSiteInfo.fullName;
             this.userInfo = siteInfo.userInfo;
@@ -12939,7 +12952,7 @@ var Ally;
                         return;
                     }
                     else
-                        GlobalRedirect(AppConfig.baseUrl + LoginPath);
+                        GlobalRedirect("https://login." + AppConfig.baseTld + LoginPath);
                 }
             }
             // If we need to redirect from the login subdomain
@@ -13816,7 +13829,7 @@ function WatchHomeCtrl($rootScope, $resource, SiteInfo)
     LocalNewsResource.query( {
         clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
         chicagoWard: SiteInfo.publicSiteInfo.chicagoWard,
-        zipCode: SiteInfo.publicSiteInfo.zipCode,
+        zipCode: SiteInfo.privateSiteInfo.zipCode,
         cityNeighborhood: SiteInfo.publicSiteInfo.localNewsNeighborhoodQuery
     }, function ( localNews )
     {
@@ -13871,15 +13884,6 @@ function WatchMembersCtrl( $rootScope, $resource, SiteInfo )
 
     vm.mapCenter = SiteInfo.privateSiteInfo.gpsPosition;
     vm.groupBounds = SiteInfo.publicSiteInfo.gpsBounds;
-
-    // These keys have been disabled 11/3/19
-    //var debugKey = "AIzaSyD5fTq9-A3iDFpPSUtRR0Qr38l-xl694b0";
-    //var releaseKey = "AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI";
-
-    //var script = document.createElement( 'script' );
-    //script.type = 'text/javascript';
-    //script.src = "https://maps.googleapis.com/maps/api/js?sensor=false&key=" + debugKey + "&callback=WelcomeJS.onMapApiLoaded";
-    //document.body.appendChild( script );
 
     vm.refreshData();
 }

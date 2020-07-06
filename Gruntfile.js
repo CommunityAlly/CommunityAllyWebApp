@@ -172,7 +172,7 @@ grunt.initConfig({
     watch: {
         ts:{
             files: ['**/*.ts'],
-            tasks: ['ts','ally-app-bundle', 'uglify:allyAppBundleMin']
+            tasks: ['ts','ally-app-bundle-task', 'uglify:allyAppBundleMin']
         },
         
         templates:{
@@ -224,10 +224,13 @@ grunt.initConfig({
                     "js/AllyLibTop.min.js",
                     "js/AllyLibBottom.min.js",
                     "assets/compiled.min.css",
-                    "assets/images/*",
+                    "assets/images/**",
+                    "ngApp/ally-app-bundle.js",
                     "ngApp/ally-app-bundle.min.js",
                     "third-party-css/fontawesome-webfont.woff",
-                    "third-party-css/fontawesome-webfont.ttf"], dest: 'dist/'},
+                    "third-party-css/fontawesome-webfont.ttf",
+                    "js/lib/ui-grid/ui-grid.woff",
+                    "js/lib/ui-grid/ui-grid.ttf"], dest: 'dist/'},
 
                 {expand: true, src: ['path/*'], dest: 'dest/', filter: 'isFile'}
             ]
@@ -257,7 +260,7 @@ grunt.initConfig({
     grunt.registerTask('css-only', ['sass', 'cssmin']);
 
     // Only build the app code file
-    grunt.registerTask('ally-app-bundle', ['ts','concat:allyAppBundle','uglify:allyAppBundleMin']);
+    grunt.registerTask('ally-app-bundle-task', ['ts','concat:allyAppBundle','uglify:allyAppBundleMin']);
 
     // Only build the top and bottom file
     grunt.registerTask('js-lib', ['uglify:allyLibTop','uglify:allyLibBottom']);
