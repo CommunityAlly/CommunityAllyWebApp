@@ -515,8 +515,12 @@ var Ally;
                 }
             }
             // Map the UI entry of units to the type expected on the server
-            if (!this.editUser.showAdvancedHomePicker)
-                this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
+            if (!this.editUser.showAdvancedHomePicker) {
+                if (!this.editUser.singleUnitId)
+                    this.editUser.units = [];
+                else
+                    this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
+            }
             this.isSavingUser = true;
             var innerThis = this;
             var onSave = function (response) {
