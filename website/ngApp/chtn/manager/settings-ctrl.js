@@ -51,6 +51,7 @@ var Ally;
          */
         ChtnSettingsController.prototype.$onInit = function () {
             var _this = this;
+            this.frontEndVersion = appVer.toString();
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;

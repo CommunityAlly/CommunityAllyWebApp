@@ -1,3 +1,6 @@
+declare var appVer: number;
+
+
 namespace Ally
 {
     export class BaseSiteSettings
@@ -42,6 +45,7 @@ namespace Ally
         showRightColumnSetting: boolean = true;
         showLocalNewsSetting: boolean = false;
         isPta: boolean = false;
+        frontEndVersion: string;
 
 
         /**
@@ -61,6 +65,8 @@ namespace Ally
          */
         $onInit()
         {
+            this.frontEndVersion = appVer.toString();
+
             this.defaultBGImage = $( document.documentElement ).css( "background-image" );
 
             this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
