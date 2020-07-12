@@ -42,10 +42,16 @@ var Ally;
             this.$rootScope = $rootScope;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
+            this.isLoading = false;
+            this.isLoadingPremiumPlanInfo = false;
             this.showRightColumnSetting = true;
             this.showLocalNewsSetting = false;
             this.isPta = false;
+            this.shouldShowPremiumPlanSection = true;
+            this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
         }
+        ;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
@@ -63,6 +69,69 @@ var Ally;
             this.refreshData();
         };
         /**
+         * Occurs when the user clicks the button to cancel the premium plan auto-renewal
+         */
+        ChtnSettingsController.prototype.cancelPremiumAutoRenew = function () {
+            var _this = this;
+            this.isLoadingPremiumPlanInfo = true;
+            this.$http.put("/api/Settings/CancelPremium", null).then(function (response) {
+                _this.isLoadingPremiumPlanInfo = false;
+                _this.settings.premiumPlanIsAutoRenewed = false;
+            }, function () {
+                _this.isLoadingPremiumPlanInfo = false;
+                alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to enable premium plan auto-renewal
+         */
+        ChtnSettingsController.prototype.activatePremiumRenewal = function () {
+            //if( this.numPaperLettersToSend === 0 )
+            //{
+            //    if( this.numEmailsToSend === 0 )
+            //        alert( "No e-mails or paper letters selected to send." );
+            //    else
+            //        this.submitFullMailingAfterCharge();
+            var _this = this;
+            //    return;
+            //}
+            this.isLoadingPremiumPlanInfo = true;
+            this.$http.put("/api/Settings/ActivatePremium", null).then(function (response) {
+                _this.isLoadingPremiumPlanInfo = false;
+                _this.settings.premiumPlanIsAutoRenewed = true;
+            }, function () {
+                _this.isLoadingPremiumPlanInfo = false;
+                alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
+            });
+            return;
+            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+            var stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
+            var checkoutHandler = StripeCheckout.configure({
+                key: stripeKey,
+                image: '/assets/images/icons/Icon-144.png',
+                locale: 'auto',
+                email: this.siteInfo.userInfo.emailAddress,
+                token: function (token) {
+                    // You can access the token ID with `token.id`.
+                    // Get the token ID to your server-side code for use.
+                    //this.fullMailingInfo.stripeToken = token.id;
+                    //this.submitFullMailingAfterCharge();
+                }
+            });
+            this.isLoadingPremiumPlanInfo = true;
+            // Open Checkout with further options:
+            checkoutHandler.open({
+                name: 'Community Ally',
+                description: "Premium Plan",
+                zipCode: true,
+                amount: this.settings.premiumPlanCostDollars * 100 // Stripe uses cents
+            });
+            // Close Checkout on page navigation:
+            window.addEventListener('popstate', function () {
+                checkoutHandler.close();
+            });
+        };
+        /**
          * Populate the page from the server
          */
         ChtnSettingsController.prototype.refreshData = function () {
@@ -72,6 +141,9 @@ var Ally;
                 _this.isLoading = false;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
+                _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+                _this.premiumPlanRenewDate = new Date();
+                _this.premiumPlanRenewDate.setDate(_this.settings.premiumPlanExpirationDate.getDate() + 1);
             });
         };
         /**
@@ -187,6 +259,12 @@ var Ally;
                     }
                 });
             });
+        };
+        /**
+         * Occurs when the user clicks the link to force refresh the page
+         */
+        ChtnSettingsController.prototype.forceRefresh = function () {
+            window.location.reload(true);
         };
         ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return ChtnSettingsController;
