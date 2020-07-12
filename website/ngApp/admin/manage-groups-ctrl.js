@@ -236,6 +236,17 @@ var Ally;
                 alert("Failed to perform login: " + response.data.exceptionMessage);
             }).finally(function () { return _this.isLoading = false; });
         };
+        ManageGroupsController.prototype.populateEmptyDocumentUsage = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10").then(function (response) {
+                _this.isLoading = false;
+                alert("Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
         ManageGroupsController.$inject = ["$timeout", "$http", "SiteInfo"];
         return ManageGroupsController;
     }());

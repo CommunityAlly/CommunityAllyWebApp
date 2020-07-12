@@ -350,17 +350,37 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/AdminHelper/LogInAs?email=" + this.logInAsEmail ).then((response: ng.IHttpPromiseCallbackArg<string>) =>
-            {
-                this.siteInfo.setAuthToken( response.data );
-                window.location.href = "/#!/Home";
-                window.location.reload( false );
-                
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult>) =>
-            {
-                alert( "Failed to perform login: " + response.data.exceptionMessage );
+            this.$http.get( "/api/AdminHelper/LogInAs?email=" + this.logInAsEmail ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.siteInfo.setAuthToken( response.data );
+                    window.location.href = "/#!/Home";
+                    window.location.reload( false );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    alert( "Failed to perform login: " + response.data.exceptionMessage );
 
-            } ).finally(() => this.isLoading = false );
+                }
+            ).finally( () => this.isLoading = false );
+        }
+
+        populateEmptyDocumentUsage()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Succeeded: " + response.data );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }
