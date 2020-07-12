@@ -184,10 +184,10 @@ var Ally;
             setTimeout(function () {
                 _this.$http.get("/api/DocumentLink/0").then(function (response) {
                     if (_this.committee)
-                        _this.downloadZipUrl = "/api/DocumentUpload/GetCommitteeFullZip/" + _this.committee.committeeId + "?vid=" + response.data.vid;
+                        _this.downloadZipUrl = "DocumentUpload/GetCommitteeFullZip/" + _this.committee.committeeId + "?vid=" + response.data.vid;
                     else
-                        _this.downloadZipUrl = "/api/DocumentUpload/GetFullZip?vid=" + response.data.vid;
-                    ///api/DocumentUpload/GetFullZip?vid={{$ctrl.downloadZipUrl}}
+                        _this.downloadZipUrl = "DocumentUpload/GetFullZip?vid=" + response.data.vid;
+                    _this.downloadZipUrl = _this.siteInfo.publicSiteInfo.baseApiUrl + _this.downloadZipUrl;
                 }, function (response) {
                     console.log("Failed to get zip link: " + response.data.exceptionMessage);
                 });

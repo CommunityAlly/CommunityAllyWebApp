@@ -283,11 +283,11 @@ namespace Ally
                     ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
                     {
                         if( this.committee )
-                            this.downloadZipUrl = `/api/DocumentUpload/GetCommitteeFullZip/${this.committee.committeeId}?vid=` + response.data.vid;
+                            this.downloadZipUrl = `DocumentUpload/GetCommitteeFullZip/${this.committee.committeeId}?vid=` + response.data.vid;
                         else
-                            this.downloadZipUrl = "/api/DocumentUpload/GetFullZip?vid=" + response.data.vid;
+                            this.downloadZipUrl = "DocumentUpload/GetFullZip?vid=" + response.data.vid;
 
-                        ///api/DocumentUpload/GetFullZip?vid={{$ctrl.downloadZipUrl}}
+                        this.downloadZipUrl = this.siteInfo.publicSiteInfo.baseApiUrl + this.downloadZipUrl;
                     },
                     ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                     {
