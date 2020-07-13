@@ -47,9 +47,6 @@ var Ally;
             this.showRightColumnSetting = true;
             this.showLocalNewsSetting = false;
             this.isPta = false;
-            this.shouldShowPremiumPlanSection = true;
-            this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
         }
         ;
         /**
@@ -141,9 +138,6 @@ var Ally;
                 _this.isLoading = false;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
-                _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-                _this.premiumPlanRenewDate = new Date();
-                _this.premiumPlanRenewDate.setDate(_this.settings.premiumPlanExpirationDate.getDate() + 1);
             });
         };
         /**
@@ -271,7 +265,7 @@ var Ally;
     }());
     Ally.ChtnSettingsController = ChtnSettingsController;
 })(Ally || (Ally = {}));
-CA.angularApp.component("chtnSettings", {
-    templateUrl: "/ngApp/chtn/manager/settings.html",
+CA.angularApp.component("chtnSiteSettings", {
+    templateUrl: "/ngApp/chtn/manager/settings/site-settings.html",
     controller: Ally.ChtnSettingsController
 });

@@ -51,10 +51,6 @@ namespace Ally
         showLocalNewsSetting: boolean = false;
         isPta: boolean = false;
         frontEndVersion: string;
-        shouldShowPremiumPlanSection: boolean = true;
-        homeNamePlural: string;
-        isPremiumPlanActive: boolean;
-        premiumPlanRenewDate: Date;
 
 
         /**
@@ -66,8 +62,6 @@ namespace Ally
             private $scope: ng.IScope,
             private $rootScope: ng.IRootScopeService )
         {
-            this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
         }
 
 
@@ -198,10 +192,6 @@ namespace Ally
                 this.isLoading = false;
                 this.settings = response.data;
                 this.originalSettings = _.clone( response.data );
-
-                this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-                this.premiumPlanRenewDate = new Date();
-                this.premiumPlanRenewDate.setDate( this.settings.premiumPlanExpirationDate.getDate() + 1 );
             } );
         }
 
@@ -381,7 +371,7 @@ namespace Ally
 }
 
 
-CA.angularApp.component( "chtnSettings", {
-    templateUrl: "/ngApp/chtn/manager/settings.html",
+CA.angularApp.component( "chtnSiteSettings", {
+    templateUrl: "/ngApp/chtn/manager/settings/site-settings.html",
     controller: Ally.ChtnSettingsController
 } );

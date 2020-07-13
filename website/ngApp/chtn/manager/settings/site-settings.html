@@ -134,41 +134,6 @@
     <button id="qa-delete-site-button" data-ng-if="$ctrl.showQaButton" data-ng-click="$ctrl.onQaDeleteSite()">d</button>
 </div>
 
-<div class="page" data-ng-if="$ctrl.shouldShowPremiumPlanSection">
-    <div class="loading-overlay" data-ng-show="$ctrl.isLoading || $ctrl.isLoadingPremiumPlanInfo"></div>
-    <h2>Premium Plan</h2>
-
-    <div>
-        Thank you and your association for being premium members!
-        <br />
-        <br />
-        Premium Plan Cost: <span style="font-weight: bold; color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</span>
-        <br />
-        <span class="note-text">The cost is based on the number of {{$ctrl.homeNamePlural}} in your association, according to the home listing. If that cost is incorrect, please reach out to support (use tech support form in bottom right) and we will adjust.</span>
-        <br />
-        <br />
-
-        <div data-ng-if="$ctrl.settings.premiumPlanIsAutoRenewed">
-            Your premium membership will auto-renew on <span style="font-weight: bold; color: green;">{{ $ctrl.premiumPlanRenewDate | date:'shortDate' }}</span>.
-            <br />
-            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.cancelPremiumAutoRenew()">Cancel Auto-Renew</button>
-        </div>
-
-        <div data-ng-if="!$ctrl.settings.premiumPlanIsAutoRenewed">
-            Premium Plan Expires On: <span style="font-weight: bold; color: red;">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
-            <br />
-            <div data-ng-if="$ctrl.isPremiumPlanActive">
-                <span style="color: red;">You're membership will not auto-renew.</span> After that date you will be downgraded to the free plan.
-            </div>
-            <div data-ng-if="!$ctrl.isPremiumPlanActive">
-                You're currently on the free plan.
-            </div>
-            <br />
-            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()">Reactivate the Premium Plan</button>
-        </div>
-    </div>
-</div>
-
 <div class="page">
     <div class="note-text">
         Web App Build <span style="font-weight: bold;">{{$ctrl.frontEndVersion}}</span>. Sometimes tech support will ask for this number. If you're asked to force refresh

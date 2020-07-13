@@ -97,6 +97,7 @@ namespace Ally
         maintenanceTodoListId: number;
         whoCanCreateDiscussionThreads: string;
         isDiscussionEmailGroupEnabled: boolean;
+        isPremiumPlanActive: boolean;
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;
