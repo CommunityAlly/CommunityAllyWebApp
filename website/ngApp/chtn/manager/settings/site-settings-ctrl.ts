@@ -141,42 +141,6 @@ namespace Ally
                     alert( "Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists." );
                 }
             );
-
-            return;
-
-            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-            let stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
-
-            let checkoutHandler = StripeCheckout.configure( {
-                key: stripeKey,
-                image: '/assets/images/icons/Icon-144.png',
-                locale: 'auto',
-                email: this.siteInfo.userInfo.emailAddress,
-                token: ( token: any ) =>
-                {
-                    // You can access the token ID with `token.id`.
-                    // Get the token ID to your server-side code for use.
-                    //this.fullMailingInfo.stripeToken = token.id;
-
-                    //this.submitFullMailingAfterCharge();
-                }
-            } );
-
-            this.isLoadingPremiumPlanInfo = true;
-
-            // Open Checkout with further options:
-            checkoutHandler.open( {
-                name: 'Community Ally',
-                description: `Premium Plan`,
-                zipCode: true,
-                amount: this.settings.premiumPlanCostDollars * 100 // Stripe uses cents
-            } );
-
-            // Close Checkout on page navigation:
-            window.addEventListener( 'popstate', function ()
-            {
-                checkoutHandler.close();
-            } );
         }
 
 

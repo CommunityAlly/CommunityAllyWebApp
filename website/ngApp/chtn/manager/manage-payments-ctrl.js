@@ -53,7 +53,7 @@ var Ally;
                 this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             // Allow a single HOA to try WePay
-            var exemptGroupShortNames = ["tigertrace", "7mthope"];
+            var exemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
             this.allowNewWePaySignUp = exemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
             this.payments = [
                 {

@@ -3,8 +3,7 @@
     <h2>Premium Plan</h2>
 
     <div>
-        Thank you and your association for being premium members!
-        <br />
+        <div data-ng-if="$ctrl.isPremiumPlanActive">Thank you and your association for being premium members!</div>
         <br />
         Premium Plan Cost: <span style="font-weight: bold; color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</span>
         <br />
@@ -21,18 +20,61 @@
         <div data-ng-if="!$ctrl.settings.premiumPlanIsAutoRenewed">
             Premium Plan Expires On: <span style="font-weight: bold; color: red;">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
             <br />
-            <div data-ng-if="$ctrl.isPremiumPlanActive">
+            <div data-ng-if="$ctrl.isPremiumPlanActive" class="container">
                 <span style="color: red;">You're membership will not auto-renew.</span> After that date you will be downgraded to the free plan.
             </div>
             <div data-ng-if="!$ctrl.isPremiumPlanActive">
                 You're currently on the free plan.
             </div>
             <br />
-            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()">Reactivate the Premium Plan</button>
+            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">Enable Premium Plan Auto-Renewal</button>
+        </div>
+        <br />
+        <br />
+
+        <div class="card-deck w-50 mx-auto" data-ng-if="$ctrl.shouldShowPaymentForm">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Pay Monthly</h3>
+                    <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</h2>
+                    <p>
+                        <button href="#" data-ng-class="{'btn-outline-primary':$ctrl.isActivatingAnnual,'btn-primary':!$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = false; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Select" : "Selected"}}</button>
+                    </p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Pay Annually</h3>
+                    <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars * 11}}</h2>
+                    <p>
+                        <button href="#" data-ng-class="{'btn-outline-primary':!$ctrl.isActivatingAnnual,'btn-primary':$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = true; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Selected" : "Select"}}</button>
+                    </p>
+                    <p class="card-text">Get 1 month free! Comes out to ${{$ctrl.settings.premiumPlanCostDollars * 0.92 | number:2}}/mo.</p>
+                </div>
+            </div>
         </div>
 
-        <div data-ng-if="$ctrl.showPaymentForm">
-
+        <div data-ng-if="$ctrl.shouldShowPaymentForm" class="card w-50 mt-4" style="margin: 0 auto;">
+            <div class="card-body">
+                <h5 class="card-title">Enter Credit Card Info</h5>
+                <p class="card-text">
+                    <div id="stripe-card-element" class="border"></div>
+                </p>
+                <p>
+                    <div id="card-errors" class="text-error" role="alert"></div>
+                <p>{{$ctrl.checkoutDescription}}</p>
+                <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
+                </p>
+            </div>
         </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
