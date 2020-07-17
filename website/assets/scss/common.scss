@@ -318,3 +318,9 @@ input[type=number].ui-grid-pager-control-input::-webkit-outer-spin-button
 {
     max-width: 100%;
 }
+
+/* Make sure the calendar doesn't have scroll bars */
+.fc-day-grid-container
+{
+    overflow: hidden !important;
+}

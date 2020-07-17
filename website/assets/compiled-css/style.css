@@ -459,6 +459,10 @@ input[type=number].ui-grid-pager-control-input::-webkit-outer-spin-button {
 .info-item-body img {
   max-width: 100%; }
 
+/* Make sure the calendar doesn't have scroll bars */
+.fc-day-grid-container {
+  overflow: hidden !important; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;
