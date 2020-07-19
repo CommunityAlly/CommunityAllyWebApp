@@ -24,6 +24,10 @@ namespace Ally
         isActivatingAnnual: boolean = false;
         checkoutDescription: string;
         payButtonText: string;
+        emailUsageChartData: number[][] = [];
+        emailUsageChartLabels: string[] = [];
+        emailUsageChartOptions: any = {};
+        meteredUsage: MeteredFeaturesUsage;
 
 
         /**
@@ -377,6 +381,53 @@ namespace Ally
 
 
         /**
+         * Retrieve the email usage from the server
+         */
+        refreshMeteredUsage()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/Settings/MeteredFeaturesUsage" ).then( ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
+            {
+                this.isLoading = false;
+                this.meteredUsage = response.data;
+                
+                this.emailUsageChartLabels = [];
+                const chartData: number[] = []
+                for( let i = 0; i < response.data.months.length; ++i )
+                {
+                    const curMonth = response.data.months[i];
+
+                    const monthName = moment( [curMonth.year, curMonth.month - 1, 1] ).format( "MMMM" );
+                    this.emailUsageChartLabels.push( monthName );
+
+                    chartData.push( curMonth.numEmailsSent );
+                }
+                this.emailUsageChartData = [chartData];
+            } );
+
+            
+            this.emailUsageChartOptions = {
+                scales: {
+                    yAxes: [
+                        {
+                            id: 'y-axis-1',
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+                                // OR //
+                                beginAtZero: true   // minimum value will be 0.
+                            }
+                        }
+                    ]
+                }
+            };
+        }
+
+
+        /**
          * Populate the page from the server
          */
         refreshData()
@@ -392,8 +443,18 @@ namespace Ally
                 this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 this.premiumPlanRenewDate = new Date();
                 this.premiumPlanRenewDate = moment( this.settings.premiumPlanExpirationDate ).add( 1, "days" ).toDate();
+
+                this.refreshMeteredUsage();
             } );
         }
+    }
+
+
+    export class GroupMonthEmails
+    {
+        month: number;
+        year: number;
+        numEmailsSent: number;
     }
 }
 
@@ -411,4 +472,13 @@ class StripePayNeedsCustomer
     priceId: any;
     paymentMethodId: any;
     isRetry: any;
+}
+
+
+class MeteredFeaturesUsage
+{
+    months: Ally.GroupMonthEmails[]
+    numEmailsSentThisMonth: number;
+    totalNumDocuments: number;
+    totalDocumentsBytesUsed: number;
 }

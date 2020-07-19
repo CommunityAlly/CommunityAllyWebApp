@@ -21,6 +21,9 @@ var Ally;
             this.stripeApi = null;
             this.stripeCardElement = null;
             this.isActivatingAnnual = false;
+            this.emailUsageChartData = [];
+            this.emailUsageChartLabels = [];
+            this.emailUsageChartOptions = {};
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             var StripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
@@ -271,6 +274,43 @@ var Ally;
             }
         };
         /**
+         * Retrieve the email usage from the server
+         */
+        PremiumPlanSettingsController.prototype.refreshMeteredUsage = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
+                _this.isLoading = false;
+                _this.meteredUsage = response.data;
+                _this.emailUsageChartLabels = [];
+                var chartData = [];
+                for (var i = 0; i < response.data.months.length; ++i) {
+                    var curMonth = response.data.months[i];
+                    var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
+                    _this.emailUsageChartLabels.push(monthName);
+                    chartData.push(curMonth.numEmailsSent);
+                }
+                _this.emailUsageChartData = [chartData];
+            });
+            this.emailUsageChartOptions = {
+                scales: {
+                    yAxes: [
+                        {
+                            id: 'y-axis-1',
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                suggestedMin: 0,
+                                // OR //
+                                beginAtZero: true // minimum value will be 0.
+                            }
+                        }
+                    ]
+                }
+            };
+        };
+        /**
          * Populate the page from the server
          */
         PremiumPlanSettingsController.prototype.refreshData = function () {
@@ -283,12 +323,19 @@ var Ally;
                 _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 _this.premiumPlanRenewDate = new Date();
                 _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
+                _this.refreshMeteredUsage();
             });
         };
         PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return PremiumPlanSettingsController;
     }());
     Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;
+    var GroupMonthEmails = /** @class */ (function () {
+        function GroupMonthEmails() {
+        }
+        return GroupMonthEmails;
+    }());
+    Ally.GroupMonthEmails = GroupMonthEmails;
 })(Ally || (Ally = {}));
 CA.angularApp.component("premiumPlanSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/premium-plan-settings.html",
@@ -298,4 +345,9 @@ var StripePayNeedsCustomer = /** @class */ (function () {
     function StripePayNeedsCustomer() {
     }
     return StripePayNeedsCustomer;
+}());
+var MeteredFeaturesUsage = /** @class */ (function () {
+    function MeteredFeaturesUsage() {
+    }
+    return MeteredFeaturesUsage;
 }());

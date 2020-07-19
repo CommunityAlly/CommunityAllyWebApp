@@ -71,7 +71,19 @@
         <div class="container">
             <div class="row">
                 <div class="col-6">
+                    <h4>E-mail Usage</h4>
+                    <div>
+                        Number e-mails sent this month: <span style="font-weight: bold;">{{ $ctrl.meteredUsage.numEmailsSentThisMonth }}</span>
+                    </div>
+                    <canvas id="email-usage-chart" style="width: 100%; height: 250px;" class="chart chart-line" data-chart-data="$ctrl.emailUsageChartData" data-chart-labels="$ctrl.emailUsageChartLabels" data-chart-options="$ctrl.emailUsageChartOptions" legend="true"></canvas>
 
+                </div>
+
+                <div class="col-6">
+                    <h4>Document Storage Usage</h4>
+                    <div>
+                        Your association is storing {{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024)}}MB across {{$ctrl.totalNumDocuments}} files.
+                    </div>
                 </div>
             </div>
         </div>
