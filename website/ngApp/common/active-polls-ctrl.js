@@ -77,7 +77,7 @@ var Ally;
          */
         ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer, writeInAnswer) {
             this.isLoading = true;
-            var putUri = "/api/PollResponse?pollId=" + poll.pollId + "&answerId=" + (pollAnswer ? pollAnswer.pollAnswerId : "") + "&writeInAnswer=" + writeInAnswer;
+            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerId=" + (pollAnswer ? pollAnswer.pollAnswerId : "") + "&writeInAnswer=" + writeInAnswer;
             var innerThis = this;
             this.$http.put(putUri, null).
                 then(function (httpResponse) {
