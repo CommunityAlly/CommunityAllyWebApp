@@ -463,6 +463,25 @@ input[type=number].ui-grid-pager-control-input::-webkit-outer-spin-button {
 .fc-day-grid-container {
   overflow: hidden !important; }
 
+section.header-pill-menu-section {
+  background-color: #60a2c8;
+  border-radius: 10px;
+  padding: 9px 17px;
+  color: white; }
+
+section.header-pill-menu-section nav a {
+  color: white;
+  font-size: 1.2em; }
+
+section.header-pill-menu-section nav a.nav-link {
+  padding-left: 28px;
+  padding-right: 28px; }
+
+section.header-pill-menu-section nav a.nav-link.active {
+  background-color: inherit;
+  font-weight: bold;
+  text-decoration: underline; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;

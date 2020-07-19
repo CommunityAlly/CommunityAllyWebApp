@@ -1,10 +1,10 @@
 ﻿<div class="page-documents">
-    <section class="padding white-bg padding margin-vertical box-shadow">
+    <section class="padding white-bg padding margin-vertical box-shadow header-pill-menu-section">
         <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
         <span data-ng-if="$ctrl.committee.isPrivate" class="note-text" style="float: right; max-width: 320px;">This is a private committee, only members can view the contents.</span>
         <span data-ng-if="!$ctrl.committee.isPrivate" class="note-text" style="float: right; max-width: 320px;">This is an open committee, all association residents can view the contents, but only members can modify data.</span>
-        <h1 data-ng-if="!$ctrl.canManage">{{ $ctrl.committee.name }}</h1>
-        <h1 data-ng-if="$ctrl.canManage" class="can-edit-inline" data-onaftersave="$ctrl.onUpdateCommitteeName();" data-editable-text="$ctrl.committee.name">{{ $ctrl.committee.name }}</h1>
+        <h1 data-ng-if="!$ctrl.canManage" style="color: white;">{{ $ctrl.committee.name }}</h1>
+        <h1 data-ng-if="$ctrl.canManage" style="color: white;" class="can-edit-inline" data-onaftersave="$ctrl.onUpdateCommitteeName();" data-editable-text="$ctrl.committee.name">{{ $ctrl.committee.name }}</h1>
         <br />
         <br />
 

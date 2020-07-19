@@ -1,7 +1,6 @@
 <div class="page-documents">
-    <section class="padding white-bg padding margin-vertical box-shadow" data-ng-if="$ctrl.shouldShowPremiumPlanSection">
+    <section class="padding white-bg padding margin-vertical box-shadow header-pill-menu-section" data-ng-if="$ctrl.shouldShowPremiumPlanSection">
         <nav class="nav nav-pills justify-content-center">
-
             <a class="nav-item nav-link" data-ng-href="#!/Settings/SiteSettings"
                data-ng-class="{'active':$ctrl.selectedView==='SiteSettings'}" data-ng-click="$ctrl.selectedView='SiteSettings'">
                 Site Settings
@@ -11,7 +10,6 @@
                data-ng-class="{'active':$ctrl.selectedView==='PremiumPlan'}" data-ng-click="$ctrl.selectedView='PremiumPlan'">
                 Premium Plan
             </a>
-
         </nav>
     </section>
 
