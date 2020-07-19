@@ -79,6 +79,14 @@ namespace Ally
         menu: Ally.RoutePath_v3[];
         isPublicRoute?: ( path:string ) => boolean;
     }
+
+
+    export class PeriodicPaymentFrequency
+    {
+        name: string;
+        intervalName: string;
+        id: number;
+    }
 }
 
 
@@ -89,7 +97,7 @@ var Role_Admin = "admin";
 
 
 // The names need to match the PeriodicPaymentFrequency enum
-var PeriodicPaymentFrequencies: any[] = [
+var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[] = [
     { name: "Monthly", intervalName: "month", id: 50 },
     { name: "Quarterly", intervalName: "quarter", id: 51 },
     { name: "Semiannually", intervalName: "half-year", id: 52 },

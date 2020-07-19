@@ -48,7 +48,7 @@ namespace Ally
         static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         
         PaymentHistory: any[] = [];
-        message = "";
+        errorMessage = "";
         showPaymentPage: boolean = true; //AppConfig.appShortName === "condo";
         highlightWePayCheckoutId: string;
         highlightPaymentsInfoId: number;
@@ -71,7 +71,7 @@ namespace Ally
         assessmentSum: number;
         adjustedAssessmentSum: number;
         signUpStep: number;
-        signUpInfo: any;
+        signUpInfo: PaymentBasicInfo;
         viewingWePayCheckoutId: number;
         viewingPayPalCheckoutId: string;
         viewingParagonReferenceNumber: string;
@@ -126,9 +126,10 @@ namespace Ally
             this.signUpInfo =
             {
                 hasAssessments: null,
-                assessmentFrequency: 0,
+                assessmentFrequency: PeriodicPaymentFrequencies[0].name,
+                frequencyIndex: 0,
                 allPayTheSame: true,
-                allPayTheSameAmount: null,
+                allPayTheSameAmount: 0,
                 units: []
             };
 
@@ -356,7 +357,7 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onWithdrawalClick()
         {
-            this.message = "";
+            this.errorMessage = "";
 
             this.$http.get( "/api/OnlinePayment/PerformAction?action=withdrawal" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
@@ -365,12 +366,12 @@ namespace Ally
                 if( withdrawalInfo.redirectUri )
                     window.location.href = withdrawalInfo.redirectUri;
                 else
-                    this.message = withdrawalInfo.message;
+                    this.errorMessage = withdrawalInfo.message;
 
             }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    this.message = httpResponse.data.exceptionMessage;
+                    this.errorMessage = httpResponse.data.exceptionMessage;
             } );
         }
 
@@ -473,12 +474,12 @@ namespace Ally
          */
         getSignUpSum()
         {
-            return _.reduce( this.signUpInfo.units, function( memo:number, u:any ) { return memo + parseFloat( u.assessment ); }, 0 );
+            return _.reduce( this.signUpInfo.units, function( memo: number, u: PaymentBasicInfoUnitAssessment ) { return memo + parseFloat( <any>u.assessment ); }, 0 );
         }
 
 
         /**
-         * Occurs when the user changes where the WePay fee payment comes from
+         * Occurs when the user clicks the link to indicate if they have regular assessments or not
          */
         signUp_HasAssessments( hasAssessments: boolean )
         {
@@ -659,7 +660,7 @@ namespace Ally
                 this.isLoading = false;
 
                 if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    this.message = httpResponse.data.exceptionMessage;
+                    this.errorMessage = httpResponse.data.exceptionMessage;
             } );
         }
 
@@ -721,3 +722,22 @@ CA.angularApp.component( "managePayments", {
     templateUrl: "/ngApp/chtn/manager/manage-payments.html",
     controller: Ally.ManagePaymentsController
 } );
+
+
+class PaymentBasicInfoUnitAssessment
+{
+    unitId: number;
+    name: string;
+    assessment: number;
+}
+
+
+class PaymentBasicInfo
+{
+    hasAssessments: boolean;
+    assessmentFrequency: string;
+    frequencyIndex: number;
+    allPayTheSame: boolean;
+    allPayTheSameAmount: number;
+    units: PaymentBasicInfoUnitAssessment[];
+}

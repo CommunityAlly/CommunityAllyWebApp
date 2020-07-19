@@ -7,7 +7,7 @@
     <div data-ng-if="$ctrl.showPaymentPage">
         <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
 
-        <div style="color:#00F; font-size:large;">{{ $ctrl.message }}</div>
+        <div class="error-text">{{ $ctrl.errorMessage }}</div>
 
         <div data-ng-if="$ctrl.hasLoadedPage" class="row">
 

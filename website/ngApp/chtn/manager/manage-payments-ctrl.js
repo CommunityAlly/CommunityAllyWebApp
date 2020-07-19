@@ -28,7 +28,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
             this.PaymentHistory = [];
-            this.message = "";
+            this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
             this.PeriodicPaymentFrequencies = PeriodicPaymentFrequencies;
             this.AssociationPaysAch = true;
@@ -71,9 +71,10 @@ var Ally;
             this.signUpInfo =
                 {
                     hasAssessments: null,
-                    assessmentFrequency: 0,
+                    assessmentFrequency: PeriodicPaymentFrequencies[0].name,
+                    frequencyIndex: 0,
                     allPayTheSame: true,
-                    allPayTheSameAmount: null,
+                    allPayTheSameAmount: 0,
                     units: []
                 };
             this.paymentsGridOptions =
@@ -242,16 +243,16 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         ManagePaymentsController.prototype.onWithdrawalClick = function () {
             var _this = this;
-            this.message = "";
+            this.errorMessage = "";
             this.$http.get("/api/OnlinePayment/PerformAction?action=withdrawal").then(function (httpResponse) {
                 var withdrawalInfo = httpResponse.data;
                 if (withdrawalInfo.redirectUri)
                     window.location.href = withdrawalInfo.redirectUri;
                 else
-                    _this.message = withdrawalInfo.message;
+                    _this.errorMessage = withdrawalInfo.message;
             }, function (httpResponse) {
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    _this.message = httpResponse.data.exceptionMessage;
+                    _this.errorMessage = httpResponse.data.exceptionMessage;
             });
         };
         /**
@@ -327,7 +328,7 @@ var Ally;
             return _.reduce(this.signUpInfo.units, function (memo, u) { return memo + parseFloat(u.assessment); }, 0);
         };
         /**
-         * Occurs when the user changes where the WePay fee payment comes from
+         * Occurs when the user clicks the link to indicate if they have regular assessments or not
          */
         ManagePaymentsController.prototype.signUp_HasAssessments = function (hasAssessments) {
             var _this = this;
@@ -450,7 +451,7 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    _this.message = httpResponse.data.exceptionMessage;
+                    _this.errorMessage = httpResponse.data.exceptionMessage;
             });
         };
         /**
@@ -496,3 +497,13 @@ CA.angularApp.component("managePayments", {
     templateUrl: "/ngApp/chtn/manager/manage-payments.html",
     controller: Ally.ManagePaymentsController
 });
+var PaymentBasicInfoUnitAssessment = /** @class */ (function () {
+    function PaymentBasicInfoUnitAssessment() {
+    }
+    return PaymentBasicInfoUnitAssessment;
+}());
+var PaymentBasicInfo = /** @class */ (function () {
+    function PaymentBasicInfo() {
+    }
+    return PaymentBasicInfo;
+}());

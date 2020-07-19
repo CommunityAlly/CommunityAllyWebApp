@@ -1,4 +1,4 @@
-﻿declare var PeriodicPaymentFrequencies: any[];
+﻿declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 declare var $zopim: any;
 declare var analytics: any;
 declare var OverrideBaseApiPath: string;

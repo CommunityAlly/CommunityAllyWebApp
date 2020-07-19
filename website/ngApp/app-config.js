@@ -49,6 +49,12 @@ var Ally;
         return AppConfigInfo;
     }());
     Ally.AppConfigInfo = AppConfigInfo;
+    var PeriodicPaymentFrequency = /** @class */ (function () {
+        function PeriodicPaymentFrequency() {
+        }
+        return PeriodicPaymentFrequency;
+    }());
+    Ally.PeriodicPaymentFrequency = PeriodicPaymentFrequency;
 })(Ally || (Ally = {}));
 var Role_Authorized = "authorized";
 var Role_All = "all";
