@@ -6,7 +6,7 @@
     <div class="portlet-body spinner-effect min100vh">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
         <article data-ng-repeat="news in $ctrl.localNewStories">
-            <h4><a data-ng-href='{{ news.fullStoryUri }}' target="_blank">{{ news.title }}</a></h4>
+            <h5><a data-ng-href='{{ news.fullStoryUri }}' target="_blank">{{ news.title }}</a></h5>
             <p class="date note-text">{{ news.date | date:'short' }}</p>
             <p><photo photo-src="news.bodySnippet" /> {{news.bodySnippetText}}</p>
             <p><a data-ng-href='{{ news.fullStoryUri }}' target="_blank" class="more">Read more </a></p>
