@@ -20,21 +20,20 @@ var Ally;
             this.shouldShowPaymentForm = false;
             this.stripeApi = null;
             this.stripeCardElement = null;
-            this.isActivatingAnnual = false;
+            this.isActivatingAnnual = true;
+            this.monthlyDisabled = false;
             this.emailUsageChartData = [];
             this.emailUsageChartLabels = [];
             this.emailUsageChartOptions = {};
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
-            var StripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-            //const StripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
-            this.stripeApi = Stripe(StripeKey);
+            this.stripeApi = Stripe(StripeApiKey);
         }
-        ;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         PremiumPlanSettingsController.prototype.$onInit = function () {
+            this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
         };
         /**
@@ -106,16 +105,16 @@ var Ally;
                 else {
                     var activateInfo = {
                         stripePaymentMethodId: result.paymentMethod.id,
-                        shouldPayAnnually: false
+                        shouldPayAnnually: _this.isActivatingAnnual
                     };
                     _this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function (response) {
                         _this.isLoading = false;
                         _this.settings.premiumPlanIsAutoRenewed = true;
                         _this.shouldShowPaymentForm = false;
                         _this.refreshData();
-                    }, function () {
+                    }, function (errorResponse) {
                         _this.isLoading = false;
-                        alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists.");
+                        alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
                     });
                     //this.createSubscription( result.paymentMethod.id );
                 }
@@ -282,12 +281,16 @@ var Ally;
             this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
                 _this.isLoading = false;
                 _this.meteredUsage = response.data;
+                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + m.month; });
                 _this.emailUsageChartLabels = [];
                 var chartData = [];
                 for (var i = 0; i < response.data.months.length; ++i) {
                     var curMonth = response.data.months[i];
                     var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
-                    _this.emailUsageChartLabels.push(monthName);
+                    if (i === 0 || i === _this.meteredUsage.months.length - 1)
+                        _this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
+                    else
+                        _this.emailUsageChartLabels.push(monthName);
                     chartData.push(curMonth.numEmailsSent);
                 }
                 _this.emailUsageChartData = [chartData];

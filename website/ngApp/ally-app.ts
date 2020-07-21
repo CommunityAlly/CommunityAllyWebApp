@@ -3,6 +3,8 @@
 var OverrideBaseApiPath: string = null;
 // For example: var OverrideBaseApiPath: string = "https://123fake.condoally.com";
 
+//const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 
 // Values defined in app-config.js, used in generating the site menu
 declare var Role_All: string;

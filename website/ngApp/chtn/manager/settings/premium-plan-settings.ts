@@ -13,7 +13,7 @@ namespace Ally
 
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
-        isLoading: boolean = false;;
+        isLoading: boolean = false;
         shouldShowPremiumPlanSection: boolean = true;
         homeNamePlural: string;
         isPremiumPlanActive: boolean;
@@ -21,7 +21,8 @@ namespace Ally
         shouldShowPaymentForm: boolean = false;
         stripeApi: any = null;
         stripeCardElement: any = null;
-        isActivatingAnnual: boolean = false;
+        isActivatingAnnual: boolean = true;
+        monthlyDisabled: boolean = false;
         checkoutDescription: string;
         payButtonText: string;
         emailUsageChartData: number[][] = [];
@@ -42,9 +43,7 @@ namespace Ally
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
 
-            const StripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-            //const StripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
-            this.stripeApi = Stripe( StripeKey );
+            this.stripeApi = Stripe( StripeApiKey );
         }
 
 
@@ -53,6 +52,7 @@ namespace Ally
          */
         $onInit()
         {
+            this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
         }
 
@@ -151,7 +151,7 @@ namespace Ally
                 {
                     const activateInfo = {
                         stripePaymentMethodId: result.paymentMethod.id,
-                        shouldPayAnnually: false
+                        shouldPayAnnually: this.isActivatingAnnual
                     };
 
                     this.$http.put( "/api/Settings/ActivatePremium", activateInfo ).then(
@@ -162,10 +162,10 @@ namespace Ally
                             this.shouldShowPaymentForm = false;
                             this.refreshData();
                         },
-                        () =>
+                        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                         {
                             this.isLoading = false;
-                            alert( "Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists." );
+                            alert( "Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
                         }
                     );
 
@@ -392,6 +392,8 @@ namespace Ally
                 this.isLoading = false;
                 this.meteredUsage = response.data;
                 
+                this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + m.month );
+
                 this.emailUsageChartLabels = [];
                 const chartData: number[] = []
                 for( let i = 0; i < response.data.months.length; ++i )
@@ -399,7 +401,11 @@ namespace Ally
                     const curMonth = response.data.months[i];
 
                     const monthName = moment( [curMonth.year, curMonth.month - 1, 1] ).format( "MMMM" );
-                    this.emailUsageChartLabels.push( monthName );
+
+                    if( i === 0 || i === this.meteredUsage.months.length - 1 )
+                        this.emailUsageChartLabels.push( monthName + " " + curMonth.year );
+                    else
+                        this.emailUsageChartLabels.push( monthName );
 
                     chartData.push( curMonth.numEmailsSent );
                 }

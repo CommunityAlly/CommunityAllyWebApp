@@ -20,11 +20,11 @@
         <div data-ng-if="!$ctrl.settings.premiumPlanIsAutoRenewed">
             Premium Plan Expires On: <span style="font-weight: bold; color: red;">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
             <br />
-            <div data-ng-if="$ctrl.isPremiumPlanActive" class="container">
-                <span style="color: red;">You're membership will not auto-renew.</span> After that date you will be downgraded to the free plan.
+            <div data-ng-if="$ctrl.isPremiumPlanActive">
+                <span style="color: red;">You're membership will not auto-renew.</span> After that date you will be downgraded to the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <div data-ng-if="!$ctrl.isPremiumPlanActive">
-                You're currently on the free plan.
+                You're currently on the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <br />
             <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">Enable Premium Plan Auto-Renewal</button>
@@ -37,9 +37,10 @@
                 <div class="card-body">
                     <h3 class="card-title">Pay Monthly</h3>
                     <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</h2>
-                    <p>
+                    <p data-ng-if="!$ctrl.monthlyDisabled">
                         <button href="#" data-ng-class="{'btn-outline-primary':$ctrl.isActivatingAnnual,'btn-primary':!$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = false; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Select" : "Selected"}}</button>
                     </p>
+                    <p data-ng-if="$ctrl.monthlyDisabled" style="color: red;">Due to your association having 10 or fewer homes, you must pay annually. Sorry! You can <a href="https://help.communityally.org/why-go-premium/" target="_blank">learn more here</a>.</p>
                 </div>
             </div>
             <div class="card">
@@ -81,8 +82,11 @@
 
                 <div class="col-6">
                     <h4>Document Storage Usage</h4>
-                    <div>
-                        Your association is storing {{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024)}}MB across {{$ctrl.totalNumDocuments}} files.
+                    <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments > 0">
+                        Your association is storing <span class="font-weight-bold">{{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024) | number : 2}}</span> MB across <span class="font-weight-bold">{{$ctrl.meteredUsage.totalNumDocuments}}</span> file{{$ctrl.meteredUsage.totalNumDocuments === 1 ? '' : 's'}}.
+                    </div>
+                    <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments === 0">
+                        Your association is not storing any documents.
                     </div>
                 </div>
             </div>

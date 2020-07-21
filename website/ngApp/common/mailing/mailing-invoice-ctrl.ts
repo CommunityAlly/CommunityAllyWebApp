@@ -383,11 +383,8 @@ namespace Ally
                 return;
             }
 
-            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-            let stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
-
             let checkoutHandler = StripeCheckout.configure( {
-                key: stripeKey,
+                key: StripeApiKey,
                 image: '/assets/images/icons/Icon-144.png',
                 locale: 'auto',
                 email: this.siteInfo.userInfo.emailAddress,

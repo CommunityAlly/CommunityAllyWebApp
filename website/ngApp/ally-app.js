@@ -1,6 +1,9 @@
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally. 
 var OverrideBaseApiPath = null;
+// For example: var OverrideBaseApiPath: string = "https://123fake.condoally.com";
+//const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
         $locationProvider.hashPrefix('!');
