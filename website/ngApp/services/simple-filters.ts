@@ -2,7 +2,7 @@
 // From http://stackoverflow.com/questions/14164371/inline-conditionals-in-angular-js
 CA.angularApp.filter( 'iif', function()
 {
-    return function( input, trueValue, falseValue )
+    return function( input: boolean, trueValue: any, falseValue: any )
     {
         return input ? trueValue : falseValue;
     };
@@ -11,7 +11,7 @@ CA.angularApp.filter( 'iif', function()
 
 CA.angularApp.filter( 'tel', function()
 {
-    return function( tel )
+    return function( tel: string )
     {
         if( !tel ) { return ''; }
 
@@ -65,5 +65,37 @@ CA.angularApp.filter( 'tel', function()
             city = "(" + city + ")";
 
         return ( country + " " + city + " " + number ).trim();
+    };
+} );
+
+
+CA.angularApp.filter( "filesize", function()
+{
+    return function( size: number )
+    {
+        if( isNaN( size ) )
+            size = 0;
+
+        if( size < 1024 )
+            return size + " bytes";
+
+        size /= 1024;
+
+        if( size < 1024 )
+            return size.toFixed( 2 ) + " KB";
+
+        size /= 1024;
+
+        if( size < 1024 )
+            return size.toFixed( 2 ) + " MB";
+
+        size /= 1024;
+
+        if( size < 1024 )
+            return size.toFixed( 2 ) + " GB";
+
+        size /= 1024;
+
+        return size.toFixed( 2 ) + " TB";
     };
 } );

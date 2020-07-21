@@ -76,7 +76,7 @@
                                 <label id="file-name-{{ $index }}" class="file-name">{{ curFile.title }}</label>
                                 <div class="row">
                                     <div class="col-md-6 uploader">
-                                        Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span>
+                                        Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span> - <span>{{ curFile.fileSizeBytes | filesize }}</span>
                                     </div>
                                     <div class="col-md-6 text-md-right padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>

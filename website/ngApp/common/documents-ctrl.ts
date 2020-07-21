@@ -15,6 +15,7 @@ namespace Ally
         posterUserId: string;
         fileName: string;
         url: string;
+        fileSizeBytes: number;
         uploaderFullName: string;
 
         // Not from server
