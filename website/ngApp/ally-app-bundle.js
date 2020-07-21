@@ -802,6 +802,9 @@ CA.angularApp.component("viewResearch", {
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally. 
 var OverrideBaseApiPath = null;
+// For example: var OverrideBaseApiPath: string = "https://123fake.condoally.com";
+//const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
         $locationProvider.hashPrefix('!');
@@ -3848,18 +3851,20 @@ var Ally;
             this.shouldShowPaymentForm = false;
             this.stripeApi = null;
             this.stripeCardElement = null;
-            this.isActivatingAnnual = false;
+            this.isActivatingAnnual = true;
+            this.monthlyDisabled = false;
+            this.emailUsageChartData = [];
+            this.emailUsageChartLabels = [];
+            this.emailUsageChartOptions = {};
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
-            var StripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-            //const StripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
-            this.stripeApi = Stripe(StripeKey);
+            this.stripeApi = Stripe(StripeApiKey);
         }
-        ;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         PremiumPlanSettingsController.prototype.$onInit = function () {
+            this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
         };
         /**
@@ -3931,16 +3936,16 @@ var Ally;
                 else {
                     var activateInfo = {
                         stripePaymentMethodId: result.paymentMethod.id,
-                        shouldPayAnnually: false
+                        shouldPayAnnually: _this.isActivatingAnnual
                     };
                     _this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function (response) {
                         _this.isLoading = false;
                         _this.settings.premiumPlanIsAutoRenewed = true;
                         _this.shouldShowPaymentForm = false;
                         _this.refreshData();
-                    }, function () {
+                    }, function (errorResponse) {
                         _this.isLoading = false;
-                        alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists.");
+                        alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
                     });
                     //this.createSubscription( result.paymentMethod.id );
                 }
@@ -4099,6 +4104,47 @@ var Ally;
             }
         };
         /**
+         * Retrieve the email usage from the server
+         */
+        PremiumPlanSettingsController.prototype.refreshMeteredUsage = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
+                _this.isLoading = false;
+                _this.meteredUsage = response.data;
+                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + m.month; });
+                _this.emailUsageChartLabels = [];
+                var chartData = [];
+                for (var i = 0; i < response.data.months.length; ++i) {
+                    var curMonth = response.data.months[i];
+                    var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
+                    if (i === 0 || i === _this.meteredUsage.months.length - 1)
+                        _this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
+                    else
+                        _this.emailUsageChartLabels.push(monthName);
+                    chartData.push(curMonth.numEmailsSent);
+                }
+                _this.emailUsageChartData = [chartData];
+            });
+            this.emailUsageChartOptions = {
+                scales: {
+                    yAxes: [
+                        {
+                            id: 'y-axis-1',
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                suggestedMin: 0,
+                                // OR //
+                                beginAtZero: true // minimum value will be 0.
+                            }
+                        }
+                    ]
+                }
+            };
+        };
+        /**
          * Populate the page from the server
          */
         PremiumPlanSettingsController.prototype.refreshData = function () {
@@ -4111,12 +4157,19 @@ var Ally;
                 _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 _this.premiumPlanRenewDate = new Date();
                 _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
+                _this.refreshMeteredUsage();
             });
         };
         PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return PremiumPlanSettingsController;
     }());
     Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;
+    var GroupMonthEmails = /** @class */ (function () {
+        function GroupMonthEmails() {
+        }
+        return GroupMonthEmails;
+    }());
+    Ally.GroupMonthEmails = GroupMonthEmails;
 })(Ally || (Ally = {}));
 CA.angularApp.component("premiumPlanSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/premium-plan-settings.html",
@@ -4126,6 +4179,11 @@ var StripePayNeedsCustomer = /** @class */ (function () {
     function StripePayNeedsCustomer() {
     }
     return StripePayNeedsCustomer;
+}());
+var MeteredFeaturesUsage = /** @class */ (function () {
+    function MeteredFeaturesUsage() {
+    }
+    return MeteredFeaturesUsage;
 }());
 
 var Ally;
@@ -7495,7 +7553,7 @@ var Ally;
          */
         ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer, writeInAnswer) {
             this.isLoading = true;
-            var putUri = "/api/PollResponse?pollId=" + poll.pollId + "&answerId=" + (pollAnswer ? pollAnswer.pollAnswerId : "") + "&writeInAnswer=" + writeInAnswer;
+            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerId=" + (pollAnswer ? pollAnswer.pollAnswerId : "") + "&writeInAnswer=" + writeInAnswer;
             var innerThis = this;
             this.$http.put(putUri, null).
                 then(function (httpResponse) {
@@ -9447,10 +9505,8 @@ var Ally;
                     this.submitFullMailingAfterCharge();
                 return;
             }
-            //let stripeKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-            var stripeKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
             var checkoutHandler = StripeCheckout.configure({
-                key: stripeKey,
+                key: StripeApiKey,
                 image: '/assets/images/icons/Icon-144.png',
                 locale: 'auto',
                 email: this.siteInfo.userInfo.emailAddress,
@@ -13078,73 +13134,74 @@ angular.module("CondoAlly").directive("imageonerror", function () {
 
 // Allow conditional inline values
 // From http://stackoverflow.com/questions/14164371/inline-conditionals-in-angular-js
-CA.angularApp.filter( 'iif', function()
-{
-    return function( input, trueValue, falseValue )
-    {
+CA.angularApp.filter('iif', function () {
+    return function (input, trueValue, falseValue) {
         return input ? trueValue : falseValue;
     };
-} );
-
-
-CA.angularApp.filter( 'tel', function()
-{
-    return function( tel )
-    {
-        if( !tel ) { return ''; }
-
-        var value = tel.toString().trim().replace( /^\+/, '' );
-
-        if( value.match( /[^0-9]/ ) )
-        {
+});
+CA.angularApp.filter('tel', function () {
+    return function (tel) {
+        if (!tel) {
+            return '';
+        }
+        var value = tel.toString().trim().replace(/^\+/, '');
+        if (value.match(/[^0-9]/)) {
             return tel;
         }
-
         var country, city, number;
-
-        switch( value.length )
-        {
+        switch (value.length) {
             case 7: // ####### -> ###-####
                 country = 1;
                 city = "";
                 number = value;
                 break;
-
             case 10: // +1PPP####### -> C (PPP) ###-####
                 country = 1;
-                city = value.slice( 0, 3 );
-                number = value.slice( 3 );
+                city = value.slice(0, 3);
+                number = value.slice(3);
                 break;
-
             case 11: // +CPPP####### -> CCC (PP) ###-####
                 country = value[0];
-                city = value.slice( 1, 4 );
-                number = value.slice( 4 );
+                city = value.slice(1, 4);
+                number = value.slice(4);
                 break;
-
             case 12: // +CCCPP####### -> CCC (PP) ###-####
-                country = value.slice( 0, 3 );
-                city = value.slice( 3, 5 );
-                number = value.slice( 5 );
+                country = value.slice(0, 3);
+                city = value.slice(3, 5);
+                number = value.slice(5);
                 break;
-
             default:
                 city = "";
                 return tel;
         }
-
         // Ignore USA
-        if( country === 1 )
+        if (country === 1)
             country = "";
-
-        number = number.slice( 0, 3 ) + '-' + number.slice( 3 );
-
-        if( city.length > 0 )
+        number = number.slice(0, 3) + '-' + number.slice(3);
+        if (city.length > 0)
             city = "(" + city + ")";
-
-        return ( country + " " + city + " " + number ).trim();
+        return (country + " " + city + " " + number).trim();
     };
-} );
+});
+CA.angularApp.filter("filesize", function () {
+    return function (size) {
+        if (isNaN(size))
+            size = 0;
+        if (size < 1024)
+            return size + " bytes";
+        size /= 1024;
+        if (size < 1024)
+            return size.toFixed(2) + " KB";
+        size /= 1024;
+        if (size < 1024)
+            return size.toFixed(2) + " MB";
+        size /= 1024;
+        if (size < 1024)
+            return size.toFixed(2) + " GB";
+        size /= 1024;
+        return size.toFixed(2) + " TB";
+    };
+});
 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
