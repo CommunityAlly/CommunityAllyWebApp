@@ -14,14 +14,14 @@
                         <img data-ng-src='{{ $ctrl.getMarkerIconUrl( location.markerNumber ) }}' />
                     </div>
                     <div class="media-body">
-                        <h2>
+                        <h4>
                             {{ location.name }}
-                            <div class="toolbar" data-ng-show="$ctrl.isSiteManager">
+                            <div class="toolbar ml-2" data-ng-show="$ctrl.isSiteManager">
                                 <span class="text-button" data-ng-click="$ctrl.onEditTip( location );">Edit</span>
                                 <span class="text-button" data-ng-click="$ctrl.onDeleteTip( location );">Delete</span>
                                 <span class="text-button" data-ng-click="$ctrl.onMoveMarker( location );">Move Marker</span>
                             </div>
-                        </h2>
+                        </h4>
                         <div class="note-text margin-top-15">{{ location.address }}</div>
                     </div>
                 </div>
