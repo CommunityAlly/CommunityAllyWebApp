@@ -1,6 +1,6 @@
 ﻿<div class="send_email portlet-box white margin-vertical" id="send-email-panel" data-ng-if="$ctrl.availableEmailGroups.length > 0">
     <div class="portlet-header">
-        <h3 class="title">Send E-mail</h3>
+        <h3 class="title">Send Email</h3>
     </div>
 
     <div class="portlet-body">
@@ -18,19 +18,19 @@
                     </div>
 
                     <div data-ng-if="$ctrl.showRestrictedGroupWarning" style="color: blue; font-weight: bold;">
-                        This e-mail group is a restricted group meaning replies will be sent only to you and not the entire
+                        This email group is a restricted group meaning replies will be sent only to you and not the entire
                         group.
                     </div>
 
                     <div data-ng-if="$ctrl.showDiscussionEveryoneWarning" style="color: red; font-weight: bold;">
-                        In general, sending an e-mail to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" e-mails should be
+                        In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
                         sent to the "discussion" group. The discussion group allows residents to unsubscribe from
-                        individual threads, thus residents are more engaged in the threads in which they participate and complain less about e-mail.
+                        individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
                     <div data-ng-if="$ctrl.showDiscussionLargeWarning" style="color: red; font-weight: bold;">
-                        Sending an e-mail to this receipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
-                        individual threads. This way, residents are more engaged in the threads in which they participate and complain less about e-mail.
+                        Sending an email to this receipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
+                        individual threads. This way, residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
                     <div>
@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="form-group" data-ng-if="$ctrl.committee">
-                    This will send an e-mail to the members of this committee. If you'd prefer to send a message from your own e-mail client, send
+                    This will send an email to the members of this committee. If you'd prefer to send a message from your own email client, send
                     to this address:<br />
                     <a href="mailto:committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@{{ $ctrl.groupEmailDomain }}">committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@{{ $ctrl.groupEmailDomain }}</a>
                 </div>
@@ -51,12 +51,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label>E-mail Contents:</label>
+                    <label>Email Contents:</label>
                     <textarea class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
                 </div>
                 <a class="note-text" target="_blank" href="https://help.communityally.org/how-to-send-an-e-mail-with-an-attachment/">Want to add an attachment or use advanced formatting?</a>
                 <p class="text-right">
-                    <input class="btn btn-primary" value="Send E-mail" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmail()" />
+                    <input class="btn btn-primary" value="Send Email" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmail()" />
                 </p>
             </form>
         </div>
@@ -65,7 +65,7 @@
             <span class="text-button" data-ng-click="$ctrl.showSendEmail = true; $ctrl.showSendConfirmation = false;">Send Another</span>
         </div>
         <div data-ng-show="$ctrl.showEmailForbidden">
-            You do not have permission to send e-mail.
+            You do not have permission to send email.
         </div>
     </div>
 </div>

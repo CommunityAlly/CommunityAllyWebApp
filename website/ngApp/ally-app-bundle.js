@@ -288,6 +288,11 @@ var Ally;
         ManageGroupsController.prototype.onSendTaylorTestEmail = function () {
             this.makeHelperRequest("/api/AdminHelper/SendFromTaylorEmail?testEmailRecipient=" + encodeURIComponent(this.testTaylorEmailRecipient));
         };
+        ManageGroupsController.prototype.onSendTaylorBulkUpdateEmail = function () {
+            if (!confirm("Are you sure you want to SEND TO EVERYONE?!?!"))
+                return;
+            this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail");
+        };
         ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
             this.isLoading = true;
             var innerThis = this;
@@ -319,7 +324,11 @@ var Ally;
             else
                 request = this.$http.get(apiPath);
             var innerThis = this;
-            request.then(function () { return innerThis.isLoadingHelper = false; }, function () { innerThis.isLoadingHelper = false; alert("Failed"); });
+            request.then(function () { return innerThis.isLoadingHelper = false; }, function (response) {
+                innerThis.isLoadingHelper = false;
+                var msg = response.data ? response.data.exceptionMessage : "";
+                alert("Failed: " + msg);
+            });
         };
         ManageGroupsController.prototype.onTestException = function () {
             this.makeHelperRequest("/api/AdminHelper/TestException");
@@ -3856,9 +3865,16 @@ var Ally;
             this.emailUsageChartData = [];
             this.emailUsageChartLabels = [];
             this.emailUsageChartOptions = {};
+            this.emailUsageAverageNumMonths = 0;
+            this.emailUsageAverageSent = 0;
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
-            this.stripeApi = Stripe(StripeApiKey);
+            try {
+                this.stripeApi = Stripe(StripeApiKey);
+            }
+            catch (err) {
+                console.log(err);
+            }
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -4115,6 +4131,7 @@ var Ally;
                 _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + m.month; });
                 _this.emailUsageChartLabels = [];
                 var chartData = [];
+                var totalSent = 0;
                 for (var i = 0; i < response.data.months.length; ++i) {
                     var curMonth = response.data.months[i];
                     var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
@@ -4123,8 +4140,12 @@ var Ally;
                     else
                         _this.emailUsageChartLabels.push(monthName);
                     chartData.push(curMonth.numEmailsSent);
+                    totalSent += curMonth.numEmailsSent;
                 }
                 _this.emailUsageChartData = [chartData];
+                _this.emailUsageAverageNumMonths = response.data.months.length;
+                if (_this.emailUsageAverageNumMonths > 1)
+                    _this.emailUsageAverageSent = Math.round(totalSent / _this.emailUsageAverageNumMonths);
             });
             this.emailUsageChartOptions = {
                 scales: {

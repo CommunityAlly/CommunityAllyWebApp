@@ -2,7 +2,7 @@
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <p class="margin-bottom-10 text-12" style="display: none;">
-        Are your neighbors not receiving e-mails from this site? If so, make sure they add "sender@condoally.com" to their list of trusted e-mail senders.
+        Are your neighbors not receiving emails from this site? If so, make sure they add "sender@condoally.com" to their list of trusted email senders.
     </p>
 
     <p data-ng-if="$ctrl.showIsRenter">
@@ -14,13 +14,13 @@
     </p>
 
     <ul data-ng-if="$ctrl.showIsRenter">
-        <li>Renters can only view site data, no editing or payments. You can choose if renters can view documents and send e-mails with the settings below.</li>
+        <li>Renters can only view site data, no editing or payments. You can choose if renters can view documents and send emails with the settings below.</li>
         <li>Owners can view all site data, view documents, and make payments. They cannot modify anything.</li>
         <li>Admin users have complete control over the site and only they can see the "Manage" menu.</li>
     </ul>
 
     <div id="MissingEmailsLabel" data-ng-show="$ctrl.badEmailsExist" class="margin-top-10 margin-bottom-10 text-error">
-        Some neighbors are missing their e-mail address. In order for your neighbors to log-in, you must set their e-mail address then send them a welcome e-mail.
+        Some neighbors are missing their email address. In order for your neighbors to log-in, you must set their email address then send them a welcome email.
     </div>
 
     <div class="text-error" data-ng-if="$ctrl.hasOneAdmin">
@@ -106,10 +106,10 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">E-mail:</label>
+                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" />
-                            <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">E-mail address was reported undeliverable.</div>
+                            <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">Email address was reported undeliverable.</div>
                         </div>
                     </div>
                 </div>
@@ -217,20 +217,20 @@
                 <div class="col-sm-6">
                     <div data-ng-show="$ctrl.editUser.userId.length > 0">
                         <div data-ng-hide="$ctrl.sentWelcomeEmail">
-                            <input class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$dirty" type="button" value="Send Welcome E-mail" data-ng-click="$ctrl.onSendWelcome();" />
+                            <input class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$dirty" type="button" value="Send Welcome Email" data-ng-click="$ctrl.onSendWelcome();" />
                             <div data-ng-show="$ctrl.editUserForm.$dirty" class="note-text">
-                                Save your changes then come back to send a welcome e-mail.
+                                Save your changes then come back to send a welcome email.
                             </div>
                             <div data-ng-hide="$ctrl.editUserForm.$dirty" class="note-text">
                                 This will send login instructions with a new password.
                             </div>
                         </div>
                         <div data-ng-show="$ctrl.sentWelcomeEmail" data-ng-click="$ctrl.setEdit( null )" style="color: blue;">
-                            Welcome e-mail has been sent!
+                            Welcome email has been sent!
                         </div>
                     </div>
                     <div class="text-sm-center" data-ng-show="!$ctrl.editUser.userId">
-                        <input id="send-welcome-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.shouldSendWelcomeEmail">&nbsp;<label style="display:inline-block;" for="send-welcome-checkbox">Send Welcome E-mail with Login Info</label>
+                        <input id="send-welcome-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.shouldSendWelcomeEmail">&nbsp;<label style="display:inline-block;" for="send-welcome-checkbox">Send Welcome Email with Login Info</label>
                     </div>
                 </div>
 
@@ -260,18 +260,18 @@
         <div data-ng-show="!$ctrl.siteLaunchedDateUtc">
             Is your site new and are you ready to share it with your fellow residents?<br />
             <input type="button" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent" value="Launch Site" />
-            <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All e-mails sent!</span>
+            <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All emails sent!</span>
             <br>
             <span>
-                This will send all of the residents an e-mail with log-in instructions and basic site information. This will not send
-                an e-mail to you or anyone else who has already logged-in.
+                This will send all of the residents an email with log-in instructions and basic site information. This will not send
+                an email to you or anyone else who has already logged-in.
             </span>
         </div>
 
         <div data-ng-show="$ctrl.siteLaunchedDateUtc !== null" class="note-text">
             Looking for the "Launch Site" button?<br />
             This site has already been successfully launched. If you need to send login instructions to users, click on their name above, then click
-            the "Send Welcome E-mail" button. If needed, you can <span class="text-link" data-ng-click="$ctrl.siteLaunchedDateUtc = null">show the launch site button</span> again.
+            the "Send Welcome Email" button. If needed, you can <span class="text-link" data-ng-click="$ctrl.siteLaunchedDateUtc = null">show the launch site button</span> again.
         </div>
     </div>
 
@@ -283,23 +283,23 @@
 
         <div data-ng-if="$ctrl.showEmailSettings">
             <div data-ng-if="$ctrl.hasMemberNotOwnerRenter">
-                <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow members to send group e-mails</label>
+                <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow members to send group emails</label>
             </div>
             <div data-ng-if="!$ctrl.hasMemberNotOwnerRenter">
-                <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow owners to send group e-mails</label><br />
-                <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowRentersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow renters to send group e-mails</label><br />
+                <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowOwnersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow owners to send group emails</label><br />
+                <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.allowRentersToSendEmail" data-ng-change="$ctrl.saveResidentSettings();" />Allow renters to send group emails</label><br />
             </div>
 
             <span class="note-text">
-                When disabled, residents, who are neither board-members nor admin, can only send to the "Board", "Discussion", and "Property Managers" group e-mail addresses. Only board members can send to the entire association.
-                When enabled, all residents can send e-mails to all groups. If you find too many e-mails being sent around, uncheck this box. You can find more about group e-mails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page.
+                When disabled, residents, who are neither board-members nor admin, can only send to the "Board", "Discussion", and "Property Managers" group email addresses. Only board members can send to the entire association.
+                When enabled, all residents can send emails to all groups. If you find too many emails being sent around, uncheck this box. You can find more about group emails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page.
             </span><br />
             <br />
         </div>
-        <span class="text-link" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} E-mail History</span>
+        <span class="text-link" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} Email History</span>
         <div data-ng-if="$ctrl.showEmailHistory">
-            <h4>Group E-mail History</h4>
-            <span class="note-text">Here you can view group e-mails sent in the last 6 months.</span>
+            <h4>Group Email History</h4>
+            <span class="note-text">Here you can view group emails sent in the last 6 months.</span>
             <div data-ui-grid="$ctrl.emailHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
             <br />
         </div>
@@ -308,7 +308,7 @@
             <div class="modal-overlay" data-ng-click="$ctrl.closeViewingEmail()"></div>
             <div class="ca-modal-dialog modal-lg" data-ng-click="$ctrl.closeViewingEmail()">
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeViewingEmail()">&times;</span>
-                <h3>E-mail Message</h3>
+                <h3>Email Message</h3>
                 <p style="white-space: pre-wrap;">
                     {{ $ctrl.viewingRecentEmailBody }}
                 </p>
@@ -323,18 +323,18 @@
         <div class="mt-4" data-ng-if="!$ctrl.hasMemberNotOwnerRenter">
             <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.canHideContactInfo" data-ng-change="$ctrl.saveResidentSettings()" />Residents can hide their contact info on the <a href="#!/BuildingResidents">Residents</a> page.</label><br />
             <span class="note-text">
-                Residents' phone and e-mail address can be shown on the Residents page. If you check this box, residents have the option in <a href="#!/MyProfile">their profile page</a> to hide
+                Residents' phone and email address can be shown on the Residents page. If you check this box, residents have the option in <a href="#!/MyProfile">their profile page</a> to hide
                 their contact info from other non-admin users. We believe in sharing contact info to promote collaboration and transparency, but we understand
                 the world is not perfect and sometimes privacy is more important.
             </span>
         </div>
 
         <div class="mt-4">
-            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.isDiscussionEmailGroupEnabled" data-ng-change="$ctrl.saveResidentSettings()" />Enable the discussion group e-mail</label><br />
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.isDiscussionEmailGroupEnabled" data-ng-change="$ctrl.saveResidentSettings()" />Enable the discussion group email</label><br />
             <span class="note-text">
-                The discussion group e-mails works like the other group e-mails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page, except users can unsubscribe from specific
-                discussions. We've since decided that the home page discussion threads are a better option for discussions and the discussion group e-mail should not be used, but leave it here for
-                groups that prefer e-mail.
+                The discussion group emails works like the other group emails at the bottom of the <a href="/#!/BuildingResidents">Residents</a> page, except users can unsubscribe from specific
+                discussions. We've since decided that the home page discussion threads are a better option for discussions and the discussion group email should not be used, but leave it here for
+                groups that prefer email.
             </span>
         </div>
 
@@ -350,7 +350,7 @@
         <br />
         For Admins only.<br />
         <div style="border:1px solid #000;">
-            E-mail: <input type="text" data-ng-model="$ctrl.adminSetPass_Username" /><br />
+            Email: <input type="text" data-ng-model="$ctrl.adminSetPass_Username" /><br />
             Password: <input type="text" data-ng-model="$ctrl.adminSetPass_Password" /><br />
             <input type="button" value="Set Password" data-ng-click="$ctrl.OnAdminSetPassword();" />
         </div>
@@ -403,7 +403,7 @@
         <fieldset>
             <legend>Parse CSV</legend>
             <p>
-                CSV text columns must go in order: unit name, e-mail address, first name, last name, phone number, is renter, is admin, alternate mailing address, alternate phone, notes.
+                CSV text columns must go in order: unit name, email address, first name, last name, phone number, is renter, is admin, alternate mailing address, alternate phone, notes.
                 Specify any text for is renter/admin, an empty value means false.
             </p>
             <textarea style="width: 90%;" data-ng-model="$ctrl.bulkImportCsv" rows="10"></textarea>
