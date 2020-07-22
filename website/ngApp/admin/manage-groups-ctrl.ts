@@ -273,6 +273,15 @@
         }
 
 
+        onSendTaylorBulkUpdateEmail()
+        {
+            if( !confirm( "Are you sure you want to SEND TO EVERYONE?!?!" ) )
+                return;
+
+            this.makeHelperRequest( "/api/AdminHelper/SendBulkTaylorEmail" );
+        }
+
+
         onSendTestPostmarkEmail()
         {
             this.isLoading = true;
@@ -318,8 +327,16 @@
                 request = this.$http.get( apiPath );
 
             var innerThis = this;
-            request.then( () => innerThis.isLoadingHelper = false,
-                () => { innerThis.isLoadingHelper = false; alert( "Failed" ); } );
+            request.then(
+                () => innerThis.isLoadingHelper = false,
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    innerThis.isLoadingHelper = false;
+
+                    const msg = response.data ? response.data.exceptionMessage : "";
+                    alert( "Failed: " + msg );
+                }
+            );
         }
 
         onTestException()

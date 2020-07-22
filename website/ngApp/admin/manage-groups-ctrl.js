@@ -177,6 +177,11 @@ var Ally;
         ManageGroupsController.prototype.onSendTaylorTestEmail = function () {
             this.makeHelperRequest("/api/AdminHelper/SendFromTaylorEmail?testEmailRecipient=" + encodeURIComponent(this.testTaylorEmailRecipient));
         };
+        ManageGroupsController.prototype.onSendTaylorBulkUpdateEmail = function () {
+            if (!confirm("Are you sure you want to SEND TO EVERYONE?!?!"))
+                return;
+            this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail");
+        };
         ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
             this.isLoading = true;
             var innerThis = this;
@@ -208,7 +213,11 @@ var Ally;
             else
                 request = this.$http.get(apiPath);
             var innerThis = this;
-            request.then(function () { return innerThis.isLoadingHelper = false; }, function () { innerThis.isLoadingHelper = false; alert("Failed"); });
+            request.then(function () { return innerThis.isLoadingHelper = false; }, function (response) {
+                innerThis.isLoadingHelper = false;
+                var msg = response.data ? response.data.exceptionMessage : "";
+                alert("Failed: " + msg);
+            });
         };
         ManageGroupsController.prototype.onTestException = function () {
             this.makeHelperRequest("/api/AdminHelper/TestException");
