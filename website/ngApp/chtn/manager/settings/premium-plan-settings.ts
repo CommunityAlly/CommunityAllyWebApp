@@ -28,6 +28,8 @@ namespace Ally
         emailUsageChartData: number[][] = [];
         emailUsageChartLabels: string[] = [];
         emailUsageChartOptions: any = {};
+        emailUsageAverageNumMonths: number = 0;
+        emailUsageAverageSent: number = 0;
         meteredUsage: MeteredFeaturesUsage;
 
 
@@ -43,7 +45,14 @@ namespace Ally
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
 
-            this.stripeApi = Stripe( StripeApiKey );
+            try
+            {
+                this.stripeApi = Stripe( StripeApiKey );
+            }
+            catch(err)
+            {
+                console.log( err );
+            }
         }
 
 
@@ -395,7 +404,8 @@ namespace Ally
                 this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + m.month );
 
                 this.emailUsageChartLabels = [];
-                const chartData: number[] = []
+                const chartData: number[] = [];
+                let totalSent = 0;
                 for( let i = 0; i < response.data.months.length; ++i )
                 {
                     const curMonth = response.data.months[i];
@@ -408,8 +418,14 @@ namespace Ally
                         this.emailUsageChartLabels.push( monthName );
 
                     chartData.push( curMonth.numEmailsSent );
+                    totalSent += curMonth.numEmailsSent;
                 }
+
                 this.emailUsageChartData = [chartData];
+
+                this.emailUsageAverageNumMonths = response.data.months.length;
+                if( this.emailUsageAverageNumMonths > 1 )
+                    this.emailUsageAverageSent = Math.round( totalSent / this.emailUsageAverageNumMonths );
             } );
 
             
