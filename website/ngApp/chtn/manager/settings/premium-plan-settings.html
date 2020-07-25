@@ -27,7 +27,7 @@
                 You're currently on the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <br />
-            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">Enable Premium Plan Auto-Renewal</button>
+            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">View Premium Plan Renewal Options</button>
         </div>
         <br />
         <br />
@@ -63,9 +63,14 @@
                 </p>
                 <p>
                     <div id="card-errors" class="text-error" role="alert"></div>
+                </p>
                 <p>{{$ctrl.checkoutDescription}}</p>
                 <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
-                </p>
+                <div data-ng-if="$ctrl.showInvoiceSection">
+                    <p class="mt-4">Or you can generate an invoice and pay with an alternate method</p>
+                    <span data-ng-if="!$ctrl.isActivatingAnnual">You must pay annually to use the invoice feature.</span>
+                    <button data-ng-if="$ctrl.isActivatingAnnual" class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice()">Generate Invoice</button>
+                </div>
             </div>
         </div>
 

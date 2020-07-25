@@ -15,6 +15,7 @@ var Ally;
         }
         return DocLinkInfo;
     }());
+    Ally.DocLinkInfo = DocLinkInfo;
     var DocumentDirectory = /** @class */ (function () {
         function DocumentDirectory() {
         }

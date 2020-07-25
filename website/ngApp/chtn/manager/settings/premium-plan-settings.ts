@@ -31,6 +31,8 @@ namespace Ally
         emailUsageAverageNumMonths: number = 0;
         emailUsageAverageSent: number = 0;
         meteredUsage: MeteredFeaturesUsage;
+        viewPremiumInvoiceViewId: string;
+        showInvoiceSection: boolean = false;
 
 
         /**
@@ -44,6 +46,7 @@ namespace Ally
         {
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
+            this.showInvoiceSection = siteInfo.userInfo.isAdmin;
 
             try
             {
@@ -63,6 +66,10 @@ namespace Ally
         {
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
+
+            // Get a view token to view the premium plan invoice should one be generated
+            if( this.showInvoiceSection )
+                this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid );
         }
 
 
@@ -184,6 +191,44 @@ namespace Ally
             } );
         }
 
+
+        /**
+         * Occurs when the user clicks the button to generate an invoice PDF
+         */
+        viewPremiumInvoice()
+        {
+            this.isLoading = true;
+            
+            this.$http.get( "/api/Settings/ViewPremiumInvoice" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
+                {
+                    this.isLoading = false;
+                    this.settings.premiumPlanIsAutoRenewed = false;
+                    this.shouldShowPaymentForm = false;
+                    this.refreshData();
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Occurs when the user clicks the button to generate a Stripe invoice
+         */
+        generateStripeInvoice()
+        {
+            window.open( this.siteInfo.publicSiteInfo.baseApiUrl + "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId, "_blank" );
+
+            window.setTimeout( () =>
+            {
+                // Refresh the view token in case the user clicks again
+                this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid );
+            }, 500 );
+        }
 
 
         /**

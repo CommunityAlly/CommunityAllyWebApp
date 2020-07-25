@@ -27,8 +27,10 @@ var Ally;
             this.emailUsageChartOptions = {};
             this.emailUsageAverageNumMonths = 0;
             this.emailUsageAverageSent = 0;
+            this.showInvoiceSection = false;
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
+            this.showInvoiceSection = siteInfo.userInfo.isAdmin;
             try {
                 this.stripeApi = Stripe(StripeApiKey);
             }
@@ -40,8 +42,12 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         PremiumPlanSettingsController.prototype.$onInit = function () {
+            var _this = this;
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
+            // Get a view token to view the premium plan invoice should one be generated
+            if (this.showInvoiceSection)
+                this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -126,6 +132,33 @@ var Ally;
                     //this.createSubscription( result.paymentMethod.id );
                 }
             });
+        };
+        /**
+         * Occurs when the user clicks the button to generate an invoice PDF
+         */
+        PremiumPlanSettingsController.prototype.viewPremiumInvoice = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Settings/ViewPremiumInvoice").then(function (response) {
+                _this.isLoading = false;
+                _this.settings.premiumPlanIsAutoRenewed = false;
+                _this.shouldShowPaymentForm = false;
+                _this.refreshData();
+            }, function (errorResponse) {
+                _this.isLoading = false;
+                alert("Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to generate a Stripe invoice
+         */
+        PremiumPlanSettingsController.prototype.generateStripeInvoice = function () {
+            var _this = this;
+            window.open(this.siteInfo.publicSiteInfo.baseApiUrl + "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId, "_blank");
+            window.setTimeout(function () {
+                // Refresh the view token in case the user clicks again
+                _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
+            }, 500);
         };
         /**
          * Occurs when the user clicks the button to enable premium plan auto-renewal

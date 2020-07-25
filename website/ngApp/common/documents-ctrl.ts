@@ -24,7 +24,7 @@ namespace Ally
     }
 
 
-    class DocLinkInfo
+    export class DocLinkInfo
     {
         vid: string;
     }
