@@ -33,12 +33,14 @@ var Ally;
     // For use with the newer Angular component objects
     var RoutePath_v3 = /** @class */ (function () {
         function RoutePath_v3(routeOptions) {
+            this.reloadOnSearch = true;
             if (routeOptions.path[0] !== '/')
                 routeOptions.path = "/" + routeOptions.path;
             this.path = routeOptions.path;
             this.templateHtml = routeOptions.templateHtml;
             this.menuTitle = routeOptions.menuTitle;
             this.role = routeOptions.role || Role_Authorized;
+            this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
         }
         return RoutePath_v3;
     }());
@@ -84,7 +86,7 @@ var CondoAllyAppConfig = {
     memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
-        new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info", reloadOnSearch: false }),
         new Ally.RoutePath_v3({ path: "Info/:viewName", templateHtml: "<association-info></association-info>" }),
         new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
         new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),

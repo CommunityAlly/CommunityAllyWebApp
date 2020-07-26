@@ -60,7 +60,7 @@ namespace Ally
      */
     export class DocumentsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents"];
+        static $inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents", "$location"];
 
         static LocalStorageKey_SortType = "DocsInfo_FileSortType";
         static LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
@@ -97,7 +97,8 @@ namespace Ally
             private $cacheFactory: ng.ICacheFactoryService,
             private $scope: ng.IScope,
             private siteInfo: SiteInfoService,
-            private fellowResidents: Ally.FellowResidentsService )
+            private fellowResidents: Ally.FellowResidentsService,
+            private $location: ng.ILocationService )
         {
             this.docsHttpCache = this.$cacheFactory.get( "docs-http-cache" ) || this.$cacheFactory( "docs-http-cache" );
 
@@ -501,6 +502,14 @@ namespace Ally
             this.hookUpFileDragging();
 
             this.SortFiles();
+
+            if( this.committee )
+            {
+                const committeePrefix = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/";
+                this.$location.search( "directory", dir.fullDirectoryPath.substring( committeePrefix.length ) );
+            }
+            else
+                this.$location.search( "directory", dir.fullDirectoryPath );
         }
 
 
@@ -850,6 +859,13 @@ namespace Ally
             let selectedDirectoryPath: string = null;
             if( this.selectedDirectory )
                 selectedDirectoryPath = this.getSelectedDirectoryPath();
+            else if( !HtmlUtil.isNullOrWhitespace( this.$location.search().directory ) )
+            {
+                if( this.committee )
+                    selectedDirectoryPath = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.$location.search().directory;
+                else
+                    selectedDirectoryPath = this.$location.search().directory;
+            }
 
             // Display the loading image
             this.isLoading = true;

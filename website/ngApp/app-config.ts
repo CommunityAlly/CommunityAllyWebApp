@@ -36,6 +36,7 @@ namespace Ally
         templateHtml?: string;
         menuTitle?: string;
         role?: string;
+        reloadOnSearch?: boolean;
     }
 
     // For use with the newer Angular component objects
@@ -45,12 +46,13 @@ namespace Ally
         templateHtml: string;
         menuTitle: string;
         role: string;
+        reloadOnSearch: boolean = true;
 
         // Old, unused members
         controller?: any;
         templateUrl: string;
         controllerAs: string;
-
+        
         constructor( routeOptions: RouteOptions_v3 )
         {
             if( routeOptions.path[0] !== '/' )
@@ -60,6 +62,7 @@ namespace Ally
             this.templateHtml = routeOptions.templateHtml;
             this.menuTitle = routeOptions.menuTitle;
             this.role = routeOptions.role || Role_Authorized;
+            this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
         }
     }
 
@@ -125,7 +128,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
     memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" } ),
-        new Ally.RoutePath_v3( { path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" } ),
+        new Ally.RoutePath_v3( { path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info", reloadOnSearch: false } ),
         new Ally.RoutePath_v3( { path: "Info/:viewName", templateHtml: "<association-info></association-info>" } ),
         new Ally.RoutePath_v3( { path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" } ),
         new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),

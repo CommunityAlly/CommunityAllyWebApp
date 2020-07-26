@@ -72,6 +72,8 @@ namespace Ally
         siteLogo: string;
         siteTitleText: string;
         loginImageUrl: string;
+
+        /** The root URI for this group's API, looks like "https://0.webappapi.communityally.org/api/" */
         baseApiUrl: string;
         appType: number;
     }

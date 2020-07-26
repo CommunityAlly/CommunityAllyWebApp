@@ -868,7 +868,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
             var menuItem = AppConfig.menu[i];
             var routeObject = {
                 controller: menuItem.controller,
-                allyRole: menuItem.role
+                allyRole: menuItem.role,
+                reloadOnSearch: menuItem.reloadOnSearch
             };
             if (menuItem.templateUrl)
                 routeObject.templateUrl = menuItem.templateUrl;
@@ -1138,12 +1139,14 @@ var Ally;
     // For use with the newer Angular component objects
     var RoutePath_v3 = /** @class */ (function () {
         function RoutePath_v3(routeOptions) {
+            this.reloadOnSearch = true;
             if (routeOptions.path[0] !== '/')
                 routeOptions.path = "/" + routeOptions.path;
             this.path = routeOptions.path;
             this.templateHtml = routeOptions.templateHtml;
             this.menuTitle = routeOptions.menuTitle;
             this.role = routeOptions.role || Role_Authorized;
+            this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
         }
         return RoutePath_v3;
     }());
@@ -1189,7 +1192,7 @@ var CondoAllyAppConfig = {
     memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
-        new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
+        new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info", reloadOnSearch: false }),
         new Ally.RoutePath_v3({ path: "Info/:viewName", templateHtml: "<association-info></association-info>" }),
         new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
         new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),
@@ -3867,8 +3870,10 @@ var Ally;
             this.emailUsageChartOptions = {};
             this.emailUsageAverageNumMonths = 0;
             this.emailUsageAverageSent = 0;
+            this.showInvoiceSection = false;
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
+            this.showInvoiceSection = siteInfo.userInfo.isAdmin;
             try {
                 this.stripeApi = Stripe(StripeApiKey);
             }
@@ -3880,8 +3885,12 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         PremiumPlanSettingsController.prototype.$onInit = function () {
+            var _this = this;
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
+            // Get a view token to view the premium plan invoice should one be generated
+            if (this.showInvoiceSection)
+                this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -3966,6 +3975,33 @@ var Ally;
                     //this.createSubscription( result.paymentMethod.id );
                 }
             });
+        };
+        /**
+         * Occurs when the user clicks the button to generate an invoice PDF
+         */
+        PremiumPlanSettingsController.prototype.viewPremiumInvoice = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Settings/ViewPremiumInvoice").then(function (response) {
+                _this.isLoading = false;
+                _this.settings.premiumPlanIsAutoRenewed = false;
+                _this.shouldShowPaymentForm = false;
+                _this.refreshData();
+            }, function (errorResponse) {
+                _this.isLoading = false;
+                alert("Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to generate a Stripe invoice
+         */
+        PremiumPlanSettingsController.prototype.generateStripeInvoice = function () {
+            var _this = this;
+            window.open(this.siteInfo.publicSiteInfo.baseApiUrl + "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId, "_blank");
+            window.setTimeout(function () {
+                // Refresh the view token in case the user clicks again
+                _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
+            }, 500);
         };
         /**
          * Occurs when the user clicks the button to enable premium plan auto-renewal
@@ -7961,6 +7997,7 @@ var Ally;
         }
         return DocLinkInfo;
     }());
+    Ally.DocLinkInfo = DocLinkInfo;
     var DocumentDirectory = /** @class */ (function () {
         function DocumentDirectory() {
         }
@@ -7983,7 +8020,7 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents) {
+        function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents, $location) {
             var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
@@ -7991,6 +8028,7 @@ var Ally;
             this.$scope = $scope;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
+            this.$location = $location;
             this.isLoading = false;
             this.filesSortDescend = false;
             this.title = "Documents";
@@ -8284,6 +8322,12 @@ var Ally;
             this.fileSearch.all = null;
             this.hookUpFileDragging();
             this.SortFiles();
+            if (this.committee) {
+                var committeePrefix = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/";
+                this.$location.search("directory", dir.fullDirectoryPath.substring(committeePrefix.length));
+            }
+            else
+                this.$location.search("directory", dir.fullDirectoryPath);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
@@ -8520,6 +8564,12 @@ var Ally;
             var selectedDirectoryPath = null;
             if (this.selectedDirectory)
                 selectedDirectoryPath = this.getSelectedDirectoryPath();
+            else if (!HtmlUtil.isNullOrWhitespace(this.$location.search().directory)) {
+                if (this.committee)
+                    selectedDirectoryPath = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.$location.search().directory;
+                else
+                    selectedDirectoryPath = this.$location.search().directory;
+            }
             // Display the loading image
             this.isLoading = true;
             this.selectedDirectory = null;
@@ -8561,7 +8611,7 @@ var Ally;
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });
         };
-        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents"];
+        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents", "$location"];
         DocumentsController.LocalStorageKey_SortType = "DocsInfo_FileSortType";
         DocumentsController.LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         DocumentsController.DirName_Committees = "Committees_Root";

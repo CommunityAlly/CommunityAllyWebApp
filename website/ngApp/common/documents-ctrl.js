@@ -38,7 +38,7 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents) {
+        function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents, $location) {
             var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
@@ -46,6 +46,7 @@ var Ally;
             this.$scope = $scope;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
+            this.$location = $location;
             this.isLoading = false;
             this.filesSortDescend = false;
             this.title = "Documents";
@@ -339,6 +340,12 @@ var Ally;
             this.fileSearch.all = null;
             this.hookUpFileDragging();
             this.SortFiles();
+            if (this.committee) {
+                var committeePrefix = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/";
+                this.$location.search("directory", dir.fullDirectoryPath.substring(committeePrefix.length));
+            }
+            else
+                this.$location.search("directory", dir.fullDirectoryPath);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
@@ -575,6 +582,12 @@ var Ally;
             var selectedDirectoryPath = null;
             if (this.selectedDirectory)
                 selectedDirectoryPath = this.getSelectedDirectoryPath();
+            else if (!HtmlUtil.isNullOrWhitespace(this.$location.search().directory)) {
+                if (this.committee)
+                    selectedDirectoryPath = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.$location.search().directory;
+                else
+                    selectedDirectoryPath = this.$location.search().directory;
+            }
             // Display the loading image
             this.isLoading = true;
             this.selectedDirectory = null;
@@ -616,7 +629,7 @@ var Ally;
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });
         };
-        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents"];
+        DocumentsController.$inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents", "$location"];
         DocumentsController.LocalStorageKey_SortType = "DocsInfo_FileSortType";
         DocumentsController.LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         DocumentsController.DirName_Committees = "Committees_Root";

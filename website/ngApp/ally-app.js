@@ -58,7 +58,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
             var menuItem = AppConfig.menu[i];
             var routeObject = {
                 controller: menuItem.controller,
-                allyRole: menuItem.role
+                allyRole: menuItem.role,
+                reloadOnSearch: menuItem.reloadOnSearch
             };
             if (menuItem.templateUrl)
                 routeObject.templateUrl = menuItem.templateUrl;

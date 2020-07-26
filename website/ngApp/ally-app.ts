@@ -92,7 +92,8 @@ CA.angularApp.config(
 
         var routeObject: any = {
             controller: menuItem.controller,
-            allyRole: menuItem.role
+            allyRole: menuItem.role,
+            reloadOnSearch: menuItem.reloadOnSearch
         };
 
         if( menuItem.templateUrl )
