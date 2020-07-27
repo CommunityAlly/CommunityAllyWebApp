@@ -5882,8 +5882,10 @@ var Ally;
                 position: "relative"
             };
             if (!this.isDemoSite) {
-                this.welcomeImageContainerStyle = {};
-                this.welcomeImageContainerStyle["margin-bottom"] = "21px";
+                this.welcomeImageContainerStyle = {
+                    "margin-bottom": "21px",
+                    "max-width": "100%"
+                };
                 // Pre-size the welcome image container to avoid jumping around
                 var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
                 if (savedWelcomeImageWidth && savedWelcomeImageWidth != "0" && !HtmlUtil.isNullOrWhitespace(this.loginImageUrl)) {
@@ -5927,7 +5929,7 @@ var Ally;
             window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;
             window.localStorage["welcomeImage_height"] = welcomeImageElem.naturalHeight;
             this.welcomeImageContainerStyle["width"] = welcomeImageElem.naturalWidth + "px";
-            this.welcomeImageContainerStyle["height"] = welcomeImageElem.naturalHeight + "px";
+            this.welcomeImageContainerStyle["height"] = "auto";
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image fails to load
