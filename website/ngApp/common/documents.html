@@ -107,10 +107,10 @@
                                         Uploaded <span ng-bind-html="curFile.uploadDateString | highlight:$ctrl.fileSearch.all"></span> <span data-ng-if="curFile.uploaderFullName"> by <span ng-bind-html="curFile.uploaderFullName | highlight:fileSearch.all"></span></span>
                                     </div>
                                     <div class="col-md-6 text-md-right padding-right">
-                                        <a href="{{curFile.url}}" target="_blank">View</a>
-                                        <a href="{{curFile.url}}" target="_blank" download="{{curFile.fileName}}">Download</a>
-                                        <a id="rename-document-button-{{ $index }}" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a>
-                                        <a id="delete-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a>
+                                        <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
+                                        - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
                                     </div>
                                 </div>
                             </div>
