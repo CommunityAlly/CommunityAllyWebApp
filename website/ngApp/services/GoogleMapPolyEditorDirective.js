@@ -390,7 +390,7 @@
         },
         restrict: 'E',
         replace: 'true',
-        templateUrl: '/ngApp/Services/GoogleMapPolyEditorTemplate.html',
+        templateUrl: '/ngApp/services/GoogleMapPolyEditorTemplate.html',
         link: linkFunction
     };
 }] );
