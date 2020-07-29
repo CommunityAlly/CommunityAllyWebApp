@@ -7,11 +7,9 @@
         {{ $ctrl.resultMessage }}
     </div>
 
-    <div class="alert alert-info">
-        <strong>Hold up!</strong> We appreciate you being here, but we have temporarily disabled new sign-ups. We're very happy with the number
-        of associations we're currently helping so we are pausing new sign-ups. There are many, many great options out there for HOA software
-        so please go take a moment to search around a bit. If you search around and are not happy with your options, you may put your e-mail
-        address here and you'll be notified if sign-ups reopen.
+    <div data-ng-if="false" class="alert alert-info">
+        <strong>Welcome!</strong> We appreciate you being here and will be happy to help set you up with a site. Fill out the information
+        below and we'll reach out soon.
         <div class="mt-3" data-ng-if="!$ctrl.didSignUpForHoaAlert">
             <div class="form-group">
                 <label for="numHomesField">Number of homes in your HOA</label>
@@ -32,11 +30,11 @@
         </div>
     </div>
 
-    <div class="alert alert-info" data-ng-if="$ctrl.hoaAlertNumHomes > 1 && $ctrl.hoaAlertNumHomes < 41">
+    <div data-ng-if="false" class="alert alert-info" data-ng-if="$ctrl.hoaAlertNumHomes > 1 && $ctrl.hoaAlertNumHomes < 41">
         Are you a condo association rather than an HOA? If so, you'd probably prefer to <a href="https://condoally.com/">sign-up for Condo Ally</a> instead.
     </div>
 
-    <wizard data-ng-if="false" data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
+    <wizard data-ng-hide="$ctrl.hideWizard" on-finish="$ctrl.onFinishedWizard()">
         <wz-step title="Name">
 
             <h2 class="StepTitle"></h2>
