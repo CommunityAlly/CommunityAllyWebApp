@@ -429,7 +429,7 @@ namespace Ally
                     
                     needsFullRefresh = true;
 
-                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay cancelled and they will be informed by e-mail:\n";
+                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
 
                     _.each( usersAffected, ( u:any ) => message += u.ownerName + "\n" );
 

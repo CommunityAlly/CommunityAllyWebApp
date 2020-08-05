@@ -294,7 +294,7 @@ var Ally;
                     // the user does not have auto-pay enabled
                     needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
-                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay cancelled and they will be informed by e-mail:\n";
+                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
                     _.each(usersAffected, function (u) { return message += u.ownerName + "\n"; });
                     message += "\nDo you want to continue?";
                     if (!confirm(message)) {
