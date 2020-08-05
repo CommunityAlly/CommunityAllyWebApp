@@ -1,4 +1,4 @@
-declare var appVer: number;
+declare var appVer: number; // Defined in index.html
 
 
 namespace Ally

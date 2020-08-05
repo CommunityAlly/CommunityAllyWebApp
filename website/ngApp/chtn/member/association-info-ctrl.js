@@ -17,6 +17,7 @@ var Ally;
             this.faqMenuText = "Info/FAQs";
             if (AppConfig.appShortName === "home")
                 this.faqMenuText = "Notes";
+            this.frontEndVersion = appVer.toString();
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -34,6 +35,12 @@ var Ally;
                 this.selectedView = "Docs";
             if (HtmlUtil.isValidString(this.$routeParams.viewName))
                 this.selectedView = this.$routeParams.viewName;
+        };
+        /**
+        * Occurs when the user clicks the link to force refresh the page
+        */
+        AssociationInfoController.prototype.forceRefresh = function () {
+            window.location.reload(true);
         };
         AssociationInfoController.$inject = ["SiteInfo", "$routeParams"];
         return AssociationInfoController;

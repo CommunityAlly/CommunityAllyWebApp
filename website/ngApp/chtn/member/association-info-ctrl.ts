@@ -1,4 +1,7 @@
-﻿namespace Ally
+﻿declare var appVer: number; // Defined in index.html
+
+
+namespace Ally
 {
     interface IGroupInfoRouteParams extends ng.route.IRouteParamsService
     {
@@ -19,6 +22,7 @@
         showMaintenance: boolean = false;
         showVendors: boolean = true;
         faqMenuText: string = "Info/FAQs";
+        frontEndVersion: string;
 
 
         /**
@@ -28,6 +32,8 @@
         {
             if( AppConfig.appShortName === "home" )
                 this.faqMenuText = "Notes";
+
+            this.frontEndVersion = appVer.toString();
         }
 
 
@@ -50,6 +56,15 @@
 
             if( HtmlUtil.isValidString( this.$routeParams.viewName ) )
                 this.selectedView = this.$routeParams.viewName;
+        }
+
+
+        /**
+        * Occurs when the user clicks the link to force refresh the page
+        */
+        forceRefresh()
+        {
+            window.location.reload( true );
         }
     }
 }

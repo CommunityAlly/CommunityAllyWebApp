@@ -2386,7 +2386,7 @@ var Ally;
                     // the user does not have auto-pay enabled
                     needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
-                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay cancelled and they will be informed by e-mail:\n";
+                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
                     _.each(usersAffected, function (u) { return message += u.ownerName + "\n"; });
                     message += "\nDo you want to continue?";
                     if (!confirm(message)) {
@@ -4541,6 +4541,7 @@ var Ally;
             this.faqMenuText = "Info/FAQs";
             if (AppConfig.appShortName === "home")
                 this.faqMenuText = "Notes";
+            this.frontEndVersion = appVer.toString();
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -4558,6 +4559,12 @@ var Ally;
                 this.selectedView = "Docs";
             if (HtmlUtil.isValidString(this.$routeParams.viewName))
                 this.selectedView = this.$routeParams.viewName;
+        };
+        /**
+        * Occurs when the user clicks the link to force refresh the page
+        */
+        AssociationInfoController.prototype.forceRefresh = function () {
+            window.location.reload(true);
         };
         AssociationInfoController.$inject = ["SiteInfo", "$routeParams"];
         return AssociationInfoController;
@@ -12347,7 +12354,7 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
         },
         restrict: 'E',
         replace: 'true',
-        templateUrl: '/ngApp/Services/GoogleMapPolyEditorTemplate.html',
+        templateUrl: '/ngApp/services/GoogleMapPolyEditorTemplate.html',
         link: linkFunction
     };
 }] );

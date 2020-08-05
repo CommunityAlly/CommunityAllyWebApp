@@ -45,6 +45,12 @@
         <!--<div ng-switch-when="todo">
             <todos></todos>
         </div>-->
-
+    </div>
+</div>
+<div class="page" data-ng-if="$ctrl.selectedView === 'Info'">
+    <div class="note-text">
+        Web App Build <span style="font-weight: bold;">{{$ctrl.frontEndVersion}}</span>. Sometimes tech support will ask for this number. If you're asked to force refresh
+        the site then you can <span class="text-link" data-ng-click="$ctrl.forceRefresh()">try clicking here</span>, pressing CTRL+F5, or holding SHIFT while clicking your browser's
+        refresh button.
     </div>
 </div>
