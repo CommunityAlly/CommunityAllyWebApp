@@ -2897,13 +2897,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageResidentsController($http, $rootScope, $interval, fellowResidents, uiGridConstants, siteInfo) {
+        function ManageResidentsController($http, $rootScope, fellowResidents, uiGridConstants, siteInfo, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
-            this.$interval = $interval;
             this.fellowResidents = fellowResidents;
             this.uiGridConstants = uiGridConstants;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isAdmin = false;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
@@ -3095,6 +3095,10 @@ var Ally;
             this.refreshResidents()
                 .then(function () { return _this.loadSettings(); })
                 .then(function () {
+                if (_this.appCacheService.getAndClear("goToEmailHistory") === "true") {
+                    document.getElementById("toggle-email-history-link").scrollIntoView();
+                    _this.toggleEmailHistoryVisible();
+                }
                 if (_this.showPendingMembers)
                     _this.loadPendingMembers();
             });
@@ -3831,7 +3835,7 @@ var Ally;
                 });
             }
         };
-        ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
+        ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
         return ManageResidentsController;
     }());
     Ally.ManageResidentsController = ManageResidentsController;
@@ -3850,12 +3854,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function PremiumPlanSettingsController($http, siteInfo, $timeout, $scope, $rootScope) {
+        function PremiumPlanSettingsController($http, siteInfo, appCacheService) {
             this.$http = $http;
             this.siteInfo = siteInfo;
-            this.$timeout = $timeout;
-            this.$scope = $scope;
-            this.$rootScope = $rootScope;
+            this.appCacheService = appCacheService;
             this.settings = new Ally.ChtnSiteSettings();
             this.originalSettings = new Ally.ChtnSiteSettings();
             this.isLoading = false;
@@ -4217,7 +4219,15 @@ var Ally;
                 _this.refreshMeteredUsage();
             });
         };
-        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
+        /**
+         * Bring the user to view their email history
+         */
+        PremiumPlanSettingsController.prototype.goToEmailHistory = function () {
+            this.appCacheService.set("goToEmailHistory", "true");
+            window.location.hash = "#!/ManageResidents";
+            return true;
+        };
+        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService"];
         return PremiumPlanSettingsController;
     }());
     Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;

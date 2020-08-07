@@ -99,13 +99,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageResidentsController($http, $rootScope, $interval, fellowResidents, uiGridConstants, siteInfo) {
+        function ManageResidentsController($http, $rootScope, fellowResidents, uiGridConstants, siteInfo, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
-            this.$interval = $interval;
             this.fellowResidents = fellowResidents;
             this.uiGridConstants = uiGridConstants;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isAdmin = false;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
@@ -297,6 +297,10 @@ var Ally;
             this.refreshResidents()
                 .then(function () { return _this.loadSettings(); })
                 .then(function () {
+                if (_this.appCacheService.getAndClear("goToEmailHistory") === "true") {
+                    document.getElementById("toggle-email-history-link").scrollIntoView();
+                    _this.toggleEmailHistoryVisible();
+                }
                 if (_this.showPendingMembers)
                     _this.loadPendingMembers();
             });
@@ -1033,7 +1037,7 @@ var Ally;
                 });
             }
         };
-        ManageResidentsController.$inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
+        ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
         return ManageResidentsController;
     }());
     Ally.ManageResidentsController = ManageResidentsController;

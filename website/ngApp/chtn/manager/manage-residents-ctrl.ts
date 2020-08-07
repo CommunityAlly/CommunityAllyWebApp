@@ -153,7 +153,7 @@ namespace Ally
      */
     export class ManageResidentsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "$interval", "fellowResidents", "uiGridConstants", "SiteInfo"];
+        static $inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
         
         isAdmin: boolean = false;
         siteLaunchedDateUtc: Date;
@@ -206,7 +206,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $interval: ng.IIntervalService, private fellowResidents: Ally.FellowResidentsService, private uiGridConstants: uiGrid.IUiGridConstants, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private fellowResidents: Ally.FellowResidentsService, private uiGridConstants: uiGrid.IUiGridConstants, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
         {
         }
 
@@ -430,6 +430,12 @@ namespace Ally
                 .then( () => this.loadSettings() )
                 .then( () =>
                 {
+                    if( this.appCacheService.getAndClear( "goToEmailHistory" ) === "true" )
+                    {
+                        document.getElementById( "toggle-email-history-link" ).scrollIntoView();
+                        this.toggleEmailHistoryVisible();
+                    }
+
                     if( this.showPendingMembers )
                         this.loadPendingMembers();
                 } );

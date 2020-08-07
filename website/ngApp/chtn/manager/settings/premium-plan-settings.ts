@@ -9,7 +9,7 @@ namespace Ally
      */
     export class PremiumPlanSettingsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
+        static $inject = ["$http", "SiteInfo", "appCacheService"];
 
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
@@ -40,9 +40,7 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService,
             private siteInfo: Ally.SiteInfoService,
-            private $timeout: ng.ITimeoutService,
-            private $scope: ng.IScope,
-            private $rootScope: ng.IRootScopeService )
+            private appCacheService: AppCacheService )
         {
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
@@ -52,7 +50,7 @@ namespace Ally
             {
                 this.stripeApi = Stripe( StripeApiKey );
             }
-            catch(err)
+            catch( err )
             {
                 console.log( err );
             }
@@ -155,40 +153,40 @@ namespace Ally
                 type: 'card',
                 card: this.stripeCardElement,
             } )
-            .then( ( result: any ) =>
-            {
-                if( result.error )
+                .then( ( result: any ) =>
                 {
-                    this.isLoading = false;
+                    if( result.error )
+                    {
+                        this.isLoading = false;
 
-                    this.showStripeError( result.error );
-                }
-                else
-                {
-                    const activateInfo = {
-                        stripePaymentMethodId: result.paymentMethod.id,
-                        shouldPayAnnually: this.isActivatingAnnual
-                    };
+                        this.showStripeError( result.error );
+                    }
+                    else
+                    {
+                        const activateInfo = {
+                            stripePaymentMethodId: result.paymentMethod.id,
+                            shouldPayAnnually: this.isActivatingAnnual
+                        };
 
-                    this.$http.put( "/api/Settings/ActivatePremium", activateInfo ).then(
-                        ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-                        {
-                            this.isLoading = false;
-                            this.settings.premiumPlanIsAutoRenewed = true;
-                            this.shouldShowPaymentForm = false;
-                            this.refreshData();
-                        },
-                        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                        {
-                            this.isLoading = false;
-                            alert( "Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
-                        }
-                    );
+                        this.$http.put( "/api/Settings/ActivatePremium", activateInfo ).then(
+                            ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                            {
+                                this.isLoading = false;
+                                this.settings.premiumPlanIsAutoRenewed = true;
+                                this.shouldShowPaymentForm = false;
+                                this.refreshData();
+                            },
+                            ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                            {
+                                this.isLoading = false;
+                                alert( "Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
+                            }
+                        );
 
 
-                    //this.createSubscription( result.paymentMethod.id );
-                }
-            } );
+                        //this.createSubscription( result.paymentMethod.id );
+                    }
+                } );
         }
 
 
@@ -198,7 +196,7 @@ namespace Ally
         viewPremiumInvoice()
         {
             this.isLoading = true;
-            
+
             this.$http.get( "/api/Settings/ViewPremiumInvoice" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
                 {
@@ -290,55 +288,55 @@ namespace Ally
                         paymentMethodId: paymentMethodId
                     } ),
                 } )
-                .then( ( response ) =>
-                {
-                    return response.json();
-                } )
-                // If the card is declined, display an error to the user.
-                .then( ( result ) =>
-                {
-                    if( result.error )
+                    .then( ( response ) =>
                     {
-                        // The card had an error when trying to attach it to a customer.
-                        throw result;
-                    }
+                        return response.json();
+                    } )
+                    // If the card is declined, display an error to the user.
+                    .then( ( result ) =>
+                    {
+                        if( result.error )
+                        {
+                            // The card had an error when trying to attach it to a customer.
+                            throw result;
+                        }
 
-                    return result;
-                } )
-                // Normalize the result to contain the object returned by Stripe.
-                // Add the addional details we need.
-                .then( ( result: any ) =>
-                {
-                    return {
-                        paymentMethodId: result.paymentMethodId,
-                        priceId: result.priceId,
-                        subscription: result.subscription,
-                    };
-                } )
-                // Some payment methods require a customer to be on session
-                // to complete the payment process. Check the status of the
-                // payment intent to handle these actions.
-                //.then( ( result: any ) => this.handlePaymentThatRequiresCustomerAction( result ) )
-                // If attaching this card to a Customer object succeeds,
-                // but attempts to charge the customer fail, you
-                // get a requires_payment_method error.
-                //.then( ( result: any ) => this.handleRequiresPaymentMethod( result ) )
-                // No more actions required. Provision your service for the user.
-                //.then( () =>
-                //{
-                //    //onSubscriptionComplete
-                //    this.isLoading = true;
+                        return result;
+                    } )
+                    // Normalize the result to contain the object returned by Stripe.
+                    // Add the addional details we need.
+                    .then( ( result: any ) =>
+                    {
+                        return {
+                            paymentMethodId: result.paymentMethodId,
+                            priceId: result.priceId,
+                            subscription: result.subscription,
+                        };
+                    } )
+                    // Some payment methods require a customer to be on session
+                    // to complete the payment process. Check the status of the
+                    // payment intent to handle these actions.
+                    //.then( ( result: any ) => this.handlePaymentThatRequiresCustomerAction( result ) )
+                    // If attaching this card to a Customer object succeeds,
+                    // but attempts to charge the customer fail, you
+                    // get a requires_payment_method error.
+                    //.then( ( result: any ) => this.handleRequiresPaymentMethod( result ) )
+                    // No more actions required. Provision your service for the user.
+                    //.then( () =>
+                    //{
+                    //    //onSubscriptionComplete
+                    //    this.isLoading = true;
 
-                //    const paymentInfo = {
-                //        paymentId: 1
-                //    };
-                //} )
-                .catch( ( error ) =>
-                {
-                    // An error has happened. Display the failure to the user here.
-                    // We utilize the HTML element we created.
-                    this.showStripeError( error );
-                } )
+                    //    const paymentInfo = {
+                    //        paymentId: 1
+                    //    };
+                    //} )
+                    .catch( ( error ) =>
+                    {
+                        // An error has happened. Display the failure to the user here.
+                        // We utilize the HTML element we created.
+                        this.showStripeError( error );
+                    } )
             );
         }
 
@@ -445,7 +443,7 @@ namespace Ally
             {
                 this.isLoading = false;
                 this.meteredUsage = response.data;
-                
+
                 this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + m.month );
 
                 this.emailUsageChartLabels = [];
@@ -473,7 +471,7 @@ namespace Ally
                     this.emailUsageAverageSent = Math.round( totalSent / this.emailUsageAverageNumMonths );
             } );
 
-            
+
             this.emailUsageChartOptions = {
                 scales: {
                     yAxes: [
@@ -513,6 +511,17 @@ namespace Ally
 
                 this.refreshMeteredUsage();
             } );
+        }
+
+
+        /**
+         * Bring the user to view their email history
+         */
+        goToEmailHistory()
+        {
+            this.appCacheService.set( "goToEmailHistory", "true" );
+            window.location.hash = "#!/ManageResidents";
+            return true;
         }
     }
 
