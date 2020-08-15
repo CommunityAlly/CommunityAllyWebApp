@@ -25,11 +25,16 @@ namespace Ally
         monthlyDisabled: boolean = false;
         checkoutDescription: string;
         payButtonText: string;
+
+        groupEmailChartData: number[][] = [];
+        groupEmailAverage: number = 0;
+
         emailUsageChartData: number[][] = [];
         emailUsageChartLabels: string[] = [];
         emailUsageChartOptions: any = {};
         emailUsageAverageNumMonths: number = 0;
         emailUsageAverageSent: number = 0;
+
         meteredUsage: MeteredFeaturesUsage;
         viewPremiumInvoiceViewId: string;
         showInvoiceSection: boolean = false;
@@ -447,8 +452,10 @@ namespace Ally
                 this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + m.month );
 
                 this.emailUsageChartLabels = [];
-                const chartData: number[] = [];
-                let totalSent = 0;
+                const emailsSentChartData: number[] = [];
+                const groupEmailChartData: number[] = [];
+                let totalEmailsSent = 0;
+                let totalGroupEmailProcessed = 0;
                 for( let i = 0; i < response.data.months.length; ++i )
                 {
                     const curMonth = response.data.months[i];
@@ -460,15 +467,22 @@ namespace Ally
                     else
                         this.emailUsageChartLabels.push( monthName );
 
-                    chartData.push( curMonth.numEmailsSent );
-                    totalSent += curMonth.numEmailsSent;
+                    emailsSentChartData.push( curMonth.numEmailsSent );
+                    groupEmailChartData.push( curMonth.numGroupEmailsProcessed );
+
+                    totalEmailsSent += curMonth.numEmailsSent;
+                    totalGroupEmailProcessed += curMonth.numGroupEmailsProcessed;
                 }
 
-                this.emailUsageChartData = [chartData];
+                this.emailUsageChartData = [emailsSentChartData];
+                this.groupEmailChartData = [groupEmailChartData];
 
                 this.emailUsageAverageNumMonths = response.data.months.length;
                 if( this.emailUsageAverageNumMonths > 1 )
-                    this.emailUsageAverageSent = Math.round( totalSent / this.emailUsageAverageNumMonths );
+                {
+                    this.emailUsageAverageSent = Math.round( totalEmailsSent / this.emailUsageAverageNumMonths );
+                    this.groupEmailAverage = Math.round( totalGroupEmailProcessed / this.emailUsageAverageNumMonths );
+                }                
             } );
 
 
@@ -530,6 +544,7 @@ namespace Ally
     {
         month: number;
         year: number;
+        numGroupEmailsProcessed: number;
         numEmailsSent: number;
     }
 }
@@ -555,6 +570,7 @@ class MeteredFeaturesUsage
 {
     months: Ally.GroupMonthEmails[]
     numEmailsSentThisMonth: number;
+    numGroupEmailsProcessedThisMonth: number;
     totalNumDocuments: number;
     totalDocumentsBytesUsed: number;
 }

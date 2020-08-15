@@ -38,7 +38,7 @@
                     <h3 class="card-title">Pay Monthly</h3>
                     <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</h2>
                     <p data-ng-if="!$ctrl.monthlyDisabled">
-                        <button href="#" data-ng-class="{'btn-outline-primary':$ctrl.isActivatingAnnual,'btn-primary':!$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = false; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Select" : "Selected"}}</button>
+                        <button data-ng-class="{'btn-outline-primary':$ctrl.isActivatingAnnual,'btn-primary':!$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = false; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Select" : "Selected"}}</button>
                     </p>
                     <p data-ng-if="$ctrl.monthlyDisabled" style="color: red;">Due to your association having 10 or fewer homes, you must pay annually. Sorry! You can <a href="https://help.communityally.org/why-go-premium/" target="_blank">learn more here</a>.</p>
                 </div>
@@ -48,7 +48,7 @@
                     <h3 class="card-title">Pay Annually</h3>
                     <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars * 11}}</h2>
                     <p>
-                        <button href="#" data-ng-class="{'btn-outline-primary':!$ctrl.isActivatingAnnual,'btn-primary':$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = true; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Selected" : "Select"}}</button>
+                        <button data-ng-class="{'btn-outline-primary':!$ctrl.isActivatingAnnual,'btn-primary':$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = true; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Selected" : "Select"}}</button>
                     </p>
                     <p class="card-text">Get 1 month free! Comes out to ${{$ctrl.settings.premiumPlanCostDollars * 0.92 | number:2}}/mo.</p>
                 </div>
@@ -85,19 +85,32 @@
             <div class="row">
                 <div class="col-6">
                     <h4>Email Usage</h4>
-                    <div>
-                        Number emails sent this month: <span style="font-weight: bold;">{{$ctrl.meteredUsage.numEmailsSentThisMonth}}</span>
+
+                    <div data-ng-if="$ctrl.emailUsageAverageNumMonths > 1" class="mb-4">
+                        <h6 style="text-decoration: underline;">Group Emails Processed</h6>
+                        <div class="note-text mb-2">
+                            The number of incoming group emails processed. Group emails can be found at the bottom of the <a href="#!/BuildingResidents">Residents page</a>.
+                        </div>
+                        <canvas id="email-usage-chart" style="width: 100%; height: 250px;" class="chart chart-line" data-chart-data="$ctrl.groupEmailChartData" data-chart-labels="$ctrl.emailUsageChartLabels" data-chart-options="$ctrl.emailUsageChartOptions" legend="true"></canvas>
+                        <div>Number of group emails processed this month: <span style="font-weight: bold;">{{$ctrl.meteredUsage.numGroupEmailsProcessedThisMonth}}</span></div>
+                        <div data-ng-if="$ctrl.emailUsageAverageSent > 0">Average over last {{$ctrl.emailUsageAverageNumMonths}} months: <span class="font-weight-bold">{{$ctrl.groupEmailAverage | number}}</span></div>
                     </div>
-                    <br />
+
                     <div data-ng-if="$ctrl.emailUsageAverageNumMonths > 1">
-                        <h5>Email usage for last {{$ctrl.emailUsageAverageNumMonths}} months</h5>
+                        <h6 style="text-decoration: underline;">Total Emails Delivered</h6>
+                        <div class="note-text mb-2">
+                            The number of emails delivered to your residents. These numbers include group emails and individual-to-individual emails.
+                        </div>
                         <canvas id="email-usage-chart" style="width: 100%; height: 250px;" class="chart chart-line" data-chart-data="$ctrl.emailUsageChartData" data-chart-labels="$ctrl.emailUsageChartLabels" data-chart-options="$ctrl.emailUsageChartOptions" legend="true"></canvas>
+                        <div>Number of emails delivered this month: <span style="font-weight: bold;">{{$ctrl.meteredUsage.numEmailsSentThisMonth}}</span></div>
                         <div data-ng-if="$ctrl.emailUsageAverageSent > 0">Average over last {{$ctrl.emailUsageAverageNumMonths}} months: <span class="font-weight-bold">{{$ctrl.emailUsageAverageSent | number}}</span></div>
-                        <span data-ng-click="$ctrl.goToEmailHistory()" class="text-link">View your email history</span> below the residents grid.
                     </div>
+
                     <div data-ng-if="$ctrl.emailUsageAverageNumMonths <= 1">
                         Once you have more than a month of email usage to show, you'll see a chart here.
                     </div>
+                    <br />
+                    <div>You can <span data-ng-click="$ctrl.goToEmailHistory()" class="text-link">view your email history</span> below the residents grid.</div>
                 </div>
 
                 <div class="col-6">

@@ -3867,6 +3867,8 @@ var Ally;
             this.stripeCardElement = null;
             this.isActivatingAnnual = true;
             this.monthlyDisabled = false;
+            this.groupEmailChartData = [];
+            this.groupEmailAverage = 0;
             this.emailUsageChartData = [];
             this.emailUsageChartLabels = [];
             this.emailUsageChartOptions = {};
@@ -4168,8 +4170,10 @@ var Ally;
                 _this.meteredUsage = response.data;
                 _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + m.month; });
                 _this.emailUsageChartLabels = [];
-                var chartData = [];
-                var totalSent = 0;
+                var emailsSentChartData = [];
+                var groupEmailChartData = [];
+                var totalEmailsSent = 0;
+                var totalGroupEmailProcessed = 0;
                 for (var i = 0; i < response.data.months.length; ++i) {
                     var curMonth = response.data.months[i];
                     var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
@@ -4177,13 +4181,18 @@ var Ally;
                         _this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
                     else
                         _this.emailUsageChartLabels.push(monthName);
-                    chartData.push(curMonth.numEmailsSent);
-                    totalSent += curMonth.numEmailsSent;
+                    emailsSentChartData.push(curMonth.numEmailsSent);
+                    groupEmailChartData.push(curMonth.numGroupEmailsProcessed);
+                    totalEmailsSent += curMonth.numEmailsSent;
+                    totalGroupEmailProcessed += curMonth.numGroupEmailsProcessed;
                 }
-                _this.emailUsageChartData = [chartData];
+                _this.emailUsageChartData = [emailsSentChartData];
+                _this.groupEmailChartData = [groupEmailChartData];
                 _this.emailUsageAverageNumMonths = response.data.months.length;
-                if (_this.emailUsageAverageNumMonths > 1)
-                    _this.emailUsageAverageSent = Math.round(totalSent / _this.emailUsageAverageNumMonths);
+                if (_this.emailUsageAverageNumMonths > 1) {
+                    _this.emailUsageAverageSent = Math.round(totalEmailsSent / _this.emailUsageAverageNumMonths);
+                    _this.groupEmailAverage = Math.round(totalGroupEmailProcessed / _this.emailUsageAverageNumMonths);
+                }
             });
             this.emailUsageChartOptions = {
                 scales: {
