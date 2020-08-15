@@ -178,7 +178,7 @@ grunt.initConfig({
     watch: {
         ts:{
             files: ['**/*.ts'],
-            tasks: ['ts','ally-app-bundle-task', 'uglify:allyAppBundleMin']
+            tasks: ['ally-app-bundle-task']
         },
         
         templates:{
