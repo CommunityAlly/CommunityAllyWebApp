@@ -1,7 +1,7 @@
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally.
-//var OverrideBaseApiPath: string = ""; // Should be something like "https://1234.webappapi.communityally.org/api/"
-//var OverrideOriginalUrl: string = ""; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
+var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
