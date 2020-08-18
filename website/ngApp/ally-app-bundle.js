@@ -809,9 +809,9 @@ CA.angularApp.component("viewResearch", {
 });
 
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
-// of the local URL. This is useful when developing locally. 
-var OverrideBaseApiPath = null;
-// For example: var OverrideBaseApiPath: string = "https://123fake.condoally.com";
+// of the local URL. This is useful when developing locally.
+//var OverrideBaseApiPath: string = ""; // Should be something like "https://1234.webappapi.communityally.org/api/"
+//var OverrideOriginalUrl: string = ""; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -978,20 +978,32 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 return {
                     request: function (reqConfig) {
+                        var BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
+                        var BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
+                        var isMakingGenericApiRequest = HtmlUtil.startsWith(reqConfig.url, BaseGenericUri)
+                            || HtmlUtil.startsWith(reqConfig.url, BaseLocalGenericUri);
                         // If we're talking to the Community Ally API server, then we need to complete the
                         // relative URL and add the auth token
-                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/")
-                            || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.mycommunityally.org/api/")
-                            || HtmlUtil.startsWith(reqConfig.url, "https://0.webappapi.communityally.org/api/");
+                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/") || isMakingGenericApiRequest;
                         if (isMakingApiRequest) {
                             //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
-                            if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
-                                reqConfig.url = OverrideBaseApiPath + reqConfig.url;
-                            else if (siteInfo.publicSiteInfo.baseApiUrl)
-                                reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
+                            if (!HtmlUtil.startsWith(reqConfig.url, "http")) {
+                                if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr("/api/".length);
+                                else if (siteInfo.publicSiteInfo.baseApiUrl)
+                                    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
+                            }
+                            else if (isMakingGenericApiRequest && !HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
+                                if (HtmlUtil.startsWith(reqConfig.url, BaseGenericUri))
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr(BaseGenericUri.length);
+                                else if (HtmlUtil.startsWith(reqConfig.url, BaseLocalGenericUri))
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr(BaseLocalGenericUri.length);
+                            }
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
+                            if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl))
+                                reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl;
                         }
                         return reqConfig;
                     }
@@ -1380,10 +1392,9 @@ PtaAppConfig.menu = [
 ];
 var AppConfig = null;
 var lowerDomain = document.domain.toLowerCase();
-if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
-    lowerDomain = OverrideBaseApiPath.toLowerCase();
-if (lowerDomain.indexOf("condoally") !== -1
-    || lowerDomain.indexOf("hellocondo") !== -1)
+if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl))
+    lowerDomain = OverrideOriginalUrl;
+if (lowerDomain.indexOf("condo") !== -1)
     AppConfig = CondoAllyAppConfig;
 //else if( lowerDomain.indexOf( "watchally" ) !== -1 )
 //    AppConfig = WatchAppConfig;
@@ -1392,8 +1403,7 @@ if (lowerDomain.indexOf("condoally") !== -1
 else if (lowerDomain.indexOf("homeally") !== -1
     || lowerDomain.indexOf("helloathome") !== -1)
     AppConfig = HomeAppConfig;
-else if (lowerDomain.indexOf("hoaally") !== -1
-    || lowerDomain.indexOf("hellohoa") !== -1)
+else if (lowerDomain.indexOf("hoa") !== -1)
     AppConfig = HOAAppConfig;
 else if (lowerDomain.indexOf("neighborhoodally") !== -1
     || lowerDomain.indexOf("helloneighborhood") !== -1)

@@ -1,4 +1,7 @@
-﻿function RoutePath( path: string, templateUrl: string, controller: any, menuTitle: string, role: string = null )
+﻿declare var OverrideOriginalUrl: string;
+
+
+function RoutePath( path: string, templateUrl: string, controller: any, menuTitle: string, role: string = null )
 {
     if( path[0] !== '/' )
         path = "/" + path;
@@ -357,11 +360,10 @@ PtaAppConfig.menu = [
 var AppConfig:Ally.AppConfigInfo = null;
 
 let lowerDomain = document.domain.toLowerCase();
-if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
-    lowerDomain = OverrideBaseApiPath.toLowerCase();
+if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
+    lowerDomain = OverrideOriginalUrl;
 
-if( lowerDomain.indexOf( "condoally" ) !== -1
-    || lowerDomain.indexOf( "hellocondo" ) !== -1)
+if( lowerDomain.indexOf( "condo" ) !== -1 )
     AppConfig = CondoAllyAppConfig;
 //else if( lowerDomain.indexOf( "watchally" ) !== -1 )
 //    AppConfig = WatchAppConfig;
@@ -370,8 +372,7 @@ if( lowerDomain.indexOf( "condoally" ) !== -1
 else if( lowerDomain.indexOf( "homeally" ) !== -1
     || lowerDomain.indexOf( "helloathome" ) !== -1)
     AppConfig = HomeAppConfig;
-else if( lowerDomain.indexOf( "hoaally" ) !== -1
-    || lowerDomain.indexOf( "hellohoa" ) !== -1)
+else if( lowerDomain.indexOf( "hoa" ) !== -1 )
     AppConfig = HOAAppConfig;
 else if( lowerDomain.indexOf( "neighborhoodally" ) !== -1
     || lowerDomain.indexOf( "helloneighborhood" ) !== -1)

@@ -1,7 +1,7 @@
 ﻿// DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
-// of the local URL. This is useful when developing locally. 
-var OverrideBaseApiPath: string = null;
-// For example: var OverrideBaseApiPath: string = "https://123fake.condoally.com";
+// of the local URL. This is useful when developing locally.
+//var OverrideBaseApiPath: string = ""; // Should be something like "https://1234.webappapi.communityally.org/api/"
+//var OverrideOriginalUrl: string = ""; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
@@ -254,24 +254,41 @@ CA.angularApp.config(
         return {
             request: function( reqConfig: ng.IRequestConfig ): ng.IRequestConfig
             {
+                const BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
+                const BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
+
+                const isMakingGenericApiRequest = HtmlUtil.startsWith( reqConfig.url, BaseGenericUri )
+                    || HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri );
+
                 // If we're talking to the Community Ally API server, then we need to complete the
                 // relative URL and add the auth token
-                const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" )
-                    || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.mycommunityally.org/api/" )
-                    || HtmlUtil.startsWith( reqConfig.url, "https://0.webappapi.communityally.org/api/" );
+                const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" ) || isMakingGenericApiRequest;
 
                 if( isMakingApiRequest ) 
                 {
                     //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
 
                     // If we have an overridden URL to use for API requests
-                    if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
-                        reqConfig.url = OverrideBaseApiPath + reqConfig.url;
-                    else if( siteInfo.publicSiteInfo.baseApiUrl )
-                        reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );                        
+                    if( !HtmlUtil.startsWith( reqConfig.url, "http" ) )
+                    {
+                        if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
+                            reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr( "/api/".length );
+                        else if( siteInfo.publicSiteInfo.baseApiUrl )
+                            reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );
+                    }
+                    else if( isMakingGenericApiRequest && !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
+                    {
+                        if( HtmlUtil.startsWith( reqConfig.url, BaseGenericUri ) )
+                            reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr( BaseGenericUri.length );
+                        else if( HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri ) )
+                            reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr( BaseLocalGenericUri.length );
+                    }
 
                     // Add the auth token
                     reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
+
+                    if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
+                        reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl;
                 }
 
                 return reqConfig;
