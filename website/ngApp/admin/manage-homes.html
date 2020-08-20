@@ -8,69 +8,97 @@
         than happy to manage your homes for you for free. If you feel the need to manage your own home data, know that if you seriously mess up
         your home data you will be charged an hourly fee for the time it takes to correct the issue.
     </div>
+    <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#addEditUnit">
+  NEW
+</button> <br />
+
+<!-- Modal -->
+<div class="modal fade" id="addEditUnit" tabindex="-1" role="dialog" aria-labelledby="addEditUnitLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">{{$ctrl.isEdit == false | iif : "Add New" : "Edit"}} {{$ctrl.homeName}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="AddUnitForm">
+          <div class="form-group row">
+              <label for="homeLabel" class="col-lg-2 col-md-3 col-sm-12 col-form-label">{{$ctrl.homeName}} Label</label>
+              <div class="col-lg-10 col-md-9 col-sm-12">
+                <input id="unit-name-text-box" class="form-control" name="homeLabel" type="text" data-ng-model="$ctrl.unitToEdit.name" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true">
+              </div>
+          </div>
+          <div class="form-group row">
+              <label for="percentOwner" class="col-lg-2 col-md-3 col-sm-12 col-form-label">&#37; Ownership</label>
+              <div class="col-lg-10 col-md-9 col-sm-12">
+                <input  id="unit-ownership-text-box" class="form-control" name="percentOwner" type="text" data-ng-model="$ctrl.unitToEdit.percentageInterest" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true">
+              </div>
+          </div>
+          <div class="form-group row">
+              <label for="streetAddr" class="col-lg-2 col-md-3 col-sm-12 col-form-label">Street Address</label>
+              <div class="col-lg-10 col-md-9 col-sm-12">
+                <input  id="unit-address-text-box" class="form-control" name="streetAddr" type="text" data-ng-model="$ctrl.unitToEdit.streetAddress" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true">
+              </div>
+          </div>
+          <div class="form-group row">
+              <label for="homeNotes" class="col-lg-2 col-md-3 col-sm-12 col-form-label">Notes</label>
+              <div class="col-lg-10 col-md-9 col-sm-12">
+                <input type="text" id="unit-notes-text-box" class="form-control" data-ng-model="$ctrl.unitToEdit.notes" maxlength="1024" data-ng-enter="$ctrl.onCreateUnitClick()">
+              </div>
+          </div>
+          <div class="float-right">
+              <!-- <input class="btn btn-primary" id="add-update-unit-button" type="button" value="{{ $ctrl.isEdit == false | iif : ('CREATE') : 'UPDATE'}}" data-ng-click="$ctrl.onCreateUnitClick()" /> -->
+              <!-- <input class="btn btn-light" type="button" data-ng-show="$ctrl.isEdit" value="CANCEL" data-ng-click="$ctrl.isEdit = false; $ctrl.unitToEdit = {}; $ctrl.isLoading = false;" /> -->
+              <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary"  data-ng-click="$ctrl.isEdit = false; $ctrl.unitToEdit = {}; $ctrl.isLoading = false;" data-dismiss="modal">CANCEL</button>
+        <button type="button" class="btn btn-primary" id="add-update-unit-button" value="" data-ng-click="$ctrl.onCreateUnitClick()">{{ $ctrl.isEdit == false | iif : ('CREATE') : 'UPDATE'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span><br />
 
     <div style="position:relative;">
-        <table border="1">
+        <table class="table table-hover">
             <thead>
                 <tr>
-                    <th></th>
-                    <th>Name</th>
-                    <th>% Interest</th>
-                    <th data-ng-if="$ctrl.isAdmin">Unit ID</th>
-                    <th data-ng-if="$ctrl.isAdmin">Address ID</th>
-                    <th>Street Address</th>
-                    <th>Notes</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">% Interest</th>
+                  <th scope="col" data-ng-if="$ctrl.isAdmin">Unit ID</th>
+                  <th scope="col" data-ng-if="$ctrl.isAdmin">Address ID</th>
+                  <th scope="col">Street Address</th>
+                  <th scope="col">Notes</th>
+                  <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr data-ng-repeat="unit in $ctrl.units">
-                    <td>
-                        <span class="text-button" data-ng-click="$ctrl.onEditUnitClick( unit );">Edit</span>
-                        - <span class="text-button" data-ng-click="$ctrl.onDeleteUnitClick( unit );">Delete</span>
-                        <span data-ng-if="$ctrl.isAdmin">- <span class="text-button" data-ng-click="$ctrl.onRefreshUnitFromGoogle( unit );">Goog Refresh</span></span>
-                    </td>
-                    <td>{{unit.name}}</td>
-                    <td>{{unit.percentageInterest}}</td>
-                    <td data-ng-if="$ctrl.isAdmin">{{unit.unitId}}</td>
-                    <td data-ng-if="$ctrl.isAdmin">{{unit.addressId}}</td>
-                    <td>{{unit.fullAddress.oneLiner}}</td>
-                    <td>{{unit.notes}}</td>
-                </tr>
+              <tr data-ng-repeat="unit in $ctrl.units">
+                <td>{{unit.name}}</td>
+                <td>{{unit.percentageInterest}}</td>
+                <td data-ng-if="$ctrl.isAdmin">{{unit.unitId}}</td>
+                <td data-ng-if="$ctrl.isAdmin">{{unit.addressId}}</td>
+                <td>{{unit.fullAddress.oneLiner}}</td>
+                <td>{{unit.notes}}</td>
+                <td>
+                  <span type="button" class="btn btn-primary" data-ng-click="$ctrl.onEditUnitClick( unit );" data-toggle="modal" data-target="#addEditUnit"><i class="icon-pencil"></i></span>
+                   <span type="button" class="btn btn-danger" data-ng-click="$ctrl.onDeleteUnitClick( unit );"><i class="icon-remove"></i></span>
+                  <span data-ng-if="$ctrl.isAdmin">- <span class="text-button" data-ng-click="$ctrl.onRefreshUnitFromGoogle( unit );">Goog Refresh</span></span>
+                </td>
+            </tr>
             </tbody>
-        </table>
+          </table>
     </div>
     <br />
-    <fieldset id="unit-edit-panel">
-        <legend>{{$ctrl.isEdit == false | iif : "Add New" : "Edit"}} {{$ctrl.homeName}}</legend>
-        <form id="AddUnitForm">
-            <table>
-                <tr>
-                    <td class="text-right">{{$ctrl.homeName}} Label:</td>
-                    <td style="width: 500px;"><input id="unit-name-text-box" type="text" style="width: 50%;" data-ng-model="$ctrl.unitToEdit.name" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="text-right">Percent Ownership:</td>
-                    <td><input id="unit-ownership-text-box" type="text" style="width: 50%;" data-ng-model="$ctrl.unitToEdit.percentageInterest" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="text-right">Street Address:</td>
-                    <td><input id="unit-address-text-box" type="text" style="width: 100%;" data-ng-model="$ctrl.unitToEdit.streetAddress" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="text-right">Notes:</td>
-                    <td><input id="unit-notes-text-box" type="text" style="width: 100%;" data-ng-model="$ctrl.unitToEdit.notes" maxlength="1024" data-ng-enter="$ctrl.onCreateUnitClick()" /></td>
-                </tr>
-                <tr>
-                    <td colspan="2" class="text-right">
-                        <input id="add-update-unit-button" type="button" value="{{ $ctrl.isEdit == false | iif : ('Add New ' + $ctrl.homeName) : 'Save Changes'}}" data-ng-click="$ctrl.onCreateUnitClick()" />
-                        <input type="button" data-ng-show="$ctrl.isEdit" value="Cancel" data-ng-click="$ctrl.isEdit = false; $ctrl.unitToEdit = {}; $ctrl.isLoading = false;" />
-                    </td>
-                </tr>
-            </table>
-        </form>
-    </fieldset>
+    
+    
 
     <div>
         <br />

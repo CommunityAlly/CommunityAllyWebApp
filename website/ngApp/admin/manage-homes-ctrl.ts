@@ -17,6 +17,10 @@
         homeName: string;
         isHoaAlly: boolean = false;
         isCondoAlly: boolean = false;
+        pageList = new Array();
+        currentPage = 1;
+        numberPerPage = 10;
+        numberOfPages = 0;
 
 
         /**
@@ -37,12 +41,18 @@
             this.isCondoAlly = AppConfig.appShortName === "condo";
 
             this.refresh();
+
+            this.numberOfPages = this.getNumberOfPages();
+            this.loadList()
+            console.log()
+
         }
 
 
         /**
          * Populate the page
          */
+
         refresh()
         {
             this.isLoading = true;
@@ -59,6 +69,38 @@
             } );
         }
 
+        getNumberOfPages() {
+            return Math.ceil(this.units.length / this.numberPerPage);
+        }
+
+        nextPage() {
+            this.currentPage += 1;
+            this.loadList();
+        }
+
+        loadList() {
+            var begin = ((this.currentPage - 1) * this.numberPerPage);
+            var end = begin + this.numberPerPage;
+        
+            this.pageList = this.units.slice(begin, end);
+            this.drawList();
+            this.check();
+        }
+
+        drawList() {
+            document.getElementById("list").innerHTML = "";
+            let r;
+            for(r = 0; r < this.pageList.length; r++) {
+                document.getElementById("list").innerHTML += this.pageList[r] + "<br/>";
+            }
+        }
+
+        check() {
+            $("#next").disabled = this.currentPage == this.numberOfPages ? true : false;
+            $("#previous").disabled = this.currentPage == 1 ? true : false;
+            $("#first").disabled = this.currentPage == 1 ? true : false;
+            $("#last").disabled = this.currentPage == this.numberOfPages ? true : false;
+        }
 
         /**
          * Occurs when the user presses the button to create a new unit

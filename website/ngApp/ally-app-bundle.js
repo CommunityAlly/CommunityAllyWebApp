@@ -394,6 +394,10 @@ var Ally;
             this.isEdit = false;
             this.isHoaAlly = false;
             this.isCondoAlly = false;
+            this.pageList = new Array();
+            this.currentPage = 1;
+            this.numberPerPage = 10;
+            this.numberOfPages = 0;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -403,6 +407,9 @@ var Ally;
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
             this.refresh();
+            this.numberOfPages = this.getNumberOfPages();
+            this.loadList();
+            console.log();
         };
         /**
          * Populate the page
@@ -417,6 +424,33 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to load homes: " + response.data.exceptionMessage);
             });
+        };
+        ManageHomesController.prototype.getNumberOfPages = function () {
+            return Math.ceil(this.units.length / this.numberPerPage);
+        };
+        ManageHomesController.prototype.nextPage = function () {
+            this.currentPage += 1;
+            this.loadList();
+        };
+        ManageHomesController.prototype.loadList = function () {
+            var begin = ((this.currentPage - 1) * this.numberPerPage);
+            var end = begin + this.numberPerPage;
+            this.pageList = this.units.slice(begin, end);
+            this.drawList();
+            this.check();
+        };
+        ManageHomesController.prototype.drawList = function () {
+            document.getElementById("list").innerHTML = "";
+            var r;
+            for (r = 0; r < this.pageList.length; r++) {
+                document.getElementById("list").innerHTML += this.pageList[r] + "<br/>";
+            }
+        };
+        ManageHomesController.prototype.check = function () {
+            $("#next").disabled = this.currentPage == this.numberOfPages ? true : false;
+            $("#previous").disabled = this.currentPage == 1 ? true : false;
+            $("#first").disabled = this.currentPage == 1 ? true : false;
+            $("#last").disabled = this.currentPage == this.numberOfPages ? true : false;
         };
         /**
          * Occurs when the user presses the button to create a new unit
@@ -810,8 +844,8 @@ CA.angularApp.component("viewResearch", {
 
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally.
-var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
-var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+var OverrideBaseApiPath = "https://6908.webappapi.communityally.org/api/"; // Will look something like "https://1234.webappapi.communityally.org/api/"
+var OverrideOriginalUrl = "https://rcsa.hoaally.org/"; // Can be "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -5221,7 +5255,6 @@ var Ally;
             this.appCacheService = appCacheService;
             this.isLoading = true;
             this.emailLists = [];
-            this.customEmailLists = [];
             this.unitPrefix = "Unit ";
             this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
@@ -5331,8 +5364,8 @@ var Ally;
                         $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
                     }, 300);
                 }
-                // Populate the e-mail name lists, delayed to help the page render faster
-                setTimeout(function () { return _this.loadGroupEmails(); }, 500);
+                // Populate the e-mail name lists
+                _this.setupGroupEmails();
             }, function (httpErrorResponse) {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
             });
@@ -5359,13 +5392,12 @@ var Ally;
             //    element.style.display = disp;
             //}, 50 );
         };
-        GroupMembersController.prototype.loadGroupEmails = function () {
+        GroupMembersController.prototype.setupGroupEmails = function () {
             var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             var innerThis = this;
-            this.fellowResidents.getAllGroupEmails().then(function (emailGroups) {
-                _this.emailLists = emailGroups.standardGroups;
-                _this.customEmailLists = emailGroups.customGroups;
+            this.fellowResidents.getGroupEmailObject().then(function (emailLists) {
+                _this.emailLists = emailLists;
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");
@@ -11751,12 +11783,6 @@ var Ally;
         return GroupEmailInfo;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
-    var GroupEmailGroups = /** @class */ (function () {
-        function GroupEmailGroups() {
-        }
-        return GroupEmailGroups;
-    }());
-    Ally.GroupEmailGroups = GroupEmailGroups;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -11863,24 +11889,6 @@ var Ally;
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
-            });
-            //var innerThis = this;
-            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
-            //{
-            //    var unitList = unitsAndResidents.byUnit;
-            //    var allResidents = unitsAndResidents.residents;
-            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
-            //} );
-        };
-        /**
-         * Get the object describing the available group e-mail addresses
-         */
-        FellowResidentsService.prototype.getAllGroupEmails = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);

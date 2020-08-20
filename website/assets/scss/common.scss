@@ -152,7 +152,7 @@ a {
     font-style: italic;
 }
 .validation-label {
-    color: #f00;
+    color: #dc3545;
     font-weight: normal;
     font-size: 0.9em;
 }
@@ -218,7 +218,7 @@ fieldset {
         font-size: 16px;
         font-weight: 600;
     }
-    @media screen and (min-width: 620px) {
+    @media screen and (min-width: 768px) {
         label {
             text-align: right;
         }
@@ -256,10 +256,12 @@ ol, ul {
 {
     color: #fff !important;
 }
-
+.validation-error {
+    color: #dc3545;
+}
 .text-error
 {
-    color: red;
+    color: #dc3545;
     font-weight: bold;
     font-size: large;
 }
