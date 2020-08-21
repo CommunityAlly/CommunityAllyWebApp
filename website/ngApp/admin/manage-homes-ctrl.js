@@ -13,8 +13,12 @@ var Ally;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
+            this.units = [];
             this.isHoaAlly = false;
             this.isCondoAlly = false;
+            this.unitList = [];
+            this.pageSize = 10;
+            this.pageSizeOptions = [5, 10, 20, 50, 100];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed

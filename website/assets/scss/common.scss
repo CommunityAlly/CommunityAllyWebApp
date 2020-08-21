@@ -152,7 +152,7 @@ a {
     font-style: italic;
 }
 .validation-label {
-    color: #f00;
+    color: #dc3545;
     font-weight: normal;
     font-size: 0.9em;
 }
@@ -218,7 +218,7 @@ fieldset {
         font-size: 16px;
         font-weight: 600;
     }
-    @media screen and (min-width: 620px) {
+    @media screen and (min-width: 768px) {
         label {
             text-align: right;
         }
@@ -252,14 +252,23 @@ ol, ul {
     }
 }
 
+ul.pagination {
+    padding-left: 0px;
+    li.page-item {
+        padding-left: 0px;
+    }
+}
+
 .fc-event
 {
     color: #fff !important;
 }
-
+.validation-error {
+    color: #dc3545;
+}
 .text-error
 {
-    color: red;
+    color: #dc3545;
     font-weight: bold;
     font-size: large;
 }
@@ -285,6 +294,15 @@ img.file-thumbnail
     line-height: 16px;
     margin-left: 3em;
     font-family: verdana,tahoma,helvetica;
+}
+
+/* Table Styles */
+td {
+    width: auto;
+}
+td.action-col {
+    width: 1%;
+    white-space: nowrap;
 }
 
 /* Fix the pager footer overlapping the grid */

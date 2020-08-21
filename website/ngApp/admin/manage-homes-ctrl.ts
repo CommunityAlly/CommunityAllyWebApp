@@ -9,7 +9,7 @@
         isLoading: boolean = false;
         unitToEdit: Unit = new Unit();
         isEdit: boolean = false;
-        units: Unit[];
+        units: Unit[] = [];
         unitNamePerLine: string;
         unitAddressPerLine: string;
         lastFastAddName: string;
@@ -17,7 +17,9 @@
         homeName: string;
         isHoaAlly: boolean = false;
         isCondoAlly: boolean = false;
-
+        unitList: Unit[] = [];
+        pageSize = 10;
+        pageSizeOptions = [5, 10, 20, 50, 100]
 
         /**
          * The constructor for the class
@@ -36,13 +38,14 @@
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
 
-            this.refresh();
+            this.refresh()
         }
 
 
         /**
          * Populate the page
          */
+
         refresh()
         {
             this.isLoading = true;
@@ -57,8 +60,7 @@
                 this.isLoading = false;
                 alert( "Failed to load homes: " + response.data.exceptionMessage );
             } );
-        }
-
+        }      
 
         /**
          * Occurs when the user presses the button to create a new unit

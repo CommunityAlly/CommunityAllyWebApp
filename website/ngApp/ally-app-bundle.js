@@ -392,8 +392,12 @@ var Ally;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
+            this.units = [];
             this.isHoaAlly = false;
             this.isCondoAlly = false;
+            this.unitList = [];
+            this.pageSize = 10;
+            this.pageSizeOptions = [5, 10, 20, 50, 100];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -5221,7 +5225,6 @@ var Ally;
             this.appCacheService = appCacheService;
             this.isLoading = true;
             this.emailLists = [];
-            this.customEmailLists = [];
             this.unitPrefix = "Unit ";
             this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
@@ -5331,8 +5334,8 @@ var Ally;
                         $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
                     }, 300);
                 }
-                // Populate the e-mail name lists, delayed to help the page render faster
-                setTimeout(function () { return _this.loadGroupEmails(); }, 500);
+                // Populate the e-mail name lists
+                _this.setupGroupEmails();
             }, function (httpErrorResponse) {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
             });
@@ -5359,13 +5362,12 @@ var Ally;
             //    element.style.display = disp;
             //}, 50 );
         };
-        GroupMembersController.prototype.loadGroupEmails = function () {
+        GroupMembersController.prototype.setupGroupEmails = function () {
             var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             var innerThis = this;
-            this.fellowResidents.getAllGroupEmails().then(function (emailGroups) {
-                _this.emailLists = emailGroups.standardGroups;
-                _this.customEmailLists = emailGroups.customGroups;
+            this.fellowResidents.getGroupEmailObject().then(function (emailLists) {
+                _this.emailLists = emailLists;
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");
@@ -11751,12 +11753,6 @@ var Ally;
         return GroupEmailInfo;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
-    var GroupEmailGroups = /** @class */ (function () {
-        function GroupEmailGroups() {
-        }
-        return GroupEmailGroups;
-    }());
-    Ally.GroupEmailGroups = GroupEmailGroups;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -11863,24 +11859,6 @@ var Ally;
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
-            });
-            //var innerThis = this;
-            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
-            //{
-            //    var unitList = unitsAndResidents.byUnit;
-            //    var allResidents = unitsAndResidents.residents;
-            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
-            //} );
-        };
-        /**
-         * Get the object describing the available group e-mail addresses
-         */
-        FellowResidentsService.prototype.getAllGroupEmails = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
