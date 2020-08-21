@@ -89,7 +89,8 @@ grunt.initConfig({
                     'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
                     'Website/js/design_v2/bootstrap-wysiwyg.js',
                     'Website/js/design_v2/main.js',
-                    'Website/js/lib/jquery/jquery-ui-1.11.2.min.js'
+                    'Website/js/lib/jquery/jquery-ui-1.11.2.min.js',
+                    'Website/js/lib/other/dirPagination/dirPagination.js'
                 ]
             }
         },
@@ -120,8 +121,7 @@ grunt.initConfig({
                     'Website/js/lib/other/popper.min.js',
                     'Website/js/lib/other/tether.min.js',
                     'Website/js/lib/other/bootstrap.js',
-                    'Website/js/lib/other/md5.js'
-                ]
+                    'Website/js/lib/other/md5.js'                ]
             }
         },
 

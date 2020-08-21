@@ -252,6 +252,13 @@ ol, ul {
     }
 }
 
+ul.pagination {
+    padding-left: 0px;
+    li.page-item {
+        padding-left: 0px;
+    }
+}
+
 .fc-event
 {
     color: #fff !important;
@@ -287,6 +294,15 @@ img.file-thumbnail
     line-height: 16px;
     margin-left: 3em;
     font-family: verdana,tahoma,helvetica;
+}
+
+/* Table Styles */
+td {
+    width: auto;
+}
+td.action-col {
+    width: 1%;
+    white-space: nowrap;
 }
 
 /* Fix the pager footer overlapping the grid */

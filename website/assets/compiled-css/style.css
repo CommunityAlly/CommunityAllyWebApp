@@ -411,6 +411,11 @@ ol, ul {
   ol li, ul li {
     padding-left: 5px; }
 
+ul.pagination {
+  padding-left: 0px; }
+  ul.pagination li.page-item {
+    padding-left: 0px; }
+
 .fc-event {
   color: #fff !important; }
 
@@ -439,6 +444,14 @@ img.file-thumbnail {
   line-height: 16px;
   margin-left: 3em;
   font-family: verdana,tahoma,helvetica; }
+
+/* Table Styles */
+td {
+  width: auto; }
+
+td.action-col {
+  width: 1%;
+  white-space: nowrap; }
 
 /* Fix the pager footer overlapping the grid */
 .ui-grid-pager-panel {

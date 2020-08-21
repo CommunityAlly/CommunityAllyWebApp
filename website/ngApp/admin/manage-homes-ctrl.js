@@ -13,12 +13,12 @@ var Ally;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
+            this.units = [];
             this.isHoaAlly = false;
             this.isCondoAlly = false;
-            this.pageList = new Array();
-            this.currentPage = 1;
-            this.numberPerPage = 10;
-            this.numberOfPages = 0;
+            this.unitList = [];
+            this.pageSize = 10;
+            this.pageSizeOptions = [5, 10, 20, 50, 100];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -28,9 +28,6 @@ var Ally;
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
             this.refresh();
-            this.numberOfPages = this.getNumberOfPages();
-            this.loadList();
-            console.log();
         };
         /**
          * Populate the page
@@ -45,33 +42,6 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to load homes: " + response.data.exceptionMessage);
             });
-        };
-        ManageHomesController.prototype.getNumberOfPages = function () {
-            return Math.ceil(this.units.length / this.numberPerPage);
-        };
-        ManageHomesController.prototype.nextPage = function () {
-            this.currentPage += 1;
-            this.loadList();
-        };
-        ManageHomesController.prototype.loadList = function () {
-            var begin = ((this.currentPage - 1) * this.numberPerPage);
-            var end = begin + this.numberPerPage;
-            this.pageList = this.units.slice(begin, end);
-            this.drawList();
-            this.check();
-        };
-        ManageHomesController.prototype.drawList = function () {
-            document.getElementById("list").innerHTML = "";
-            var r;
-            for (r = 0; r < this.pageList.length; r++) {
-                document.getElementById("list").innerHTML += this.pageList[r] + "<br/>";
-            }
-        };
-        ManageHomesController.prototype.check = function () {
-            $("#next").disabled = this.currentPage == this.numberOfPages ? true : false;
-            $("#previous").disabled = this.currentPage == 1 ? true : false;
-            $("#first").disabled = this.currentPage == 1 ? true : false;
-            $("#last").disabled = this.currentPage == this.numberOfPages ? true : false;
         };
         /**
          * Occurs when the user presses the button to create a new unit

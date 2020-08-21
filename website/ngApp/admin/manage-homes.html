@@ -8,10 +8,6 @@
         than happy to manage your homes for you for free. If you feel the need to manage your own home data, know that if you seriously mess up
         your home data you will be charged an hourly fee for the time it takes to correct the issue.
     </div>
-    <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#addEditUnit">
-  NEW
-</button> <br />
 
 <!-- Modal -->
 <div class="modal fade" id="addEditUnit" tabindex="-1" role="dialog" aria-labelledby="addEditUnitLabel" aria-hidden="true">
@@ -63,8 +59,25 @@
     </div>
   </div>
 </div>
-
-    <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span><br />
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4">
+          <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span>
+        </div>
+        <div class="col-sm-4">
+          <div class="row">
+            <div class="col-sm-6"><label for="search">items per page:</label></div>
+            <div class="col-sm-6"><input type="number" min="1" max="100" class="form-control" ng-model="$ctrl.pageSize"></div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#addEditUnit">
+            NEW
+          </button>
+        </div>
+      </div>
+    </div><br />
 
     <div style="position:relative;">
         <table class="table table-hover">
@@ -80,14 +93,14 @@
                 </tr>
             </thead>
             <tbody>
-              <tr data-ng-repeat="unit in $ctrl.units">
+              <tr dir-paginate="unit in $ctrl.units | itemsPerPage: $ctrl.pageSize">
                 <td>{{unit.name}}</td>
                 <td>{{unit.percentageInterest}}</td>
                 <td data-ng-if="$ctrl.isAdmin">{{unit.unitId}}</td>
                 <td data-ng-if="$ctrl.isAdmin">{{unit.addressId}}</td>
                 <td>{{unit.fullAddress.oneLiner}}</td>
                 <td>{{unit.notes}}</td>
-                <td>
+                <td class="action-col">
                   <span type="button" class="btn btn-primary" data-ng-click="$ctrl.onEditUnitClick( unit );" data-toggle="modal" data-target="#addEditUnit"><i class="icon-pencil"></i></span>
                    <span type="button" class="btn btn-danger" data-ng-click="$ctrl.onDeleteUnitClick( unit );"><i class="icon-remove"></i></span>
                   <span data-ng-if="$ctrl.isAdmin">- <span class="text-button" data-ng-click="$ctrl.onRefreshUnitFromGoogle( unit );">Goog Refresh</span></span>
@@ -95,10 +108,9 @@
             </tr>
             </tbody>
           </table>
+          <dir-pagination-controls template-url="../../../ngApp/admin/dirPagination.tpl.html"></dir-pagination-controls>
     </div>
     <br />
-    
-    
 
     <div>
         <br />
