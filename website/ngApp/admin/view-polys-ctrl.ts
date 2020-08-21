@@ -76,7 +76,7 @@
             this.neighborhoodPolys = [];
 
             var innerThis = this;
-            this.$http.get( "/api/Neighborhood" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/Neighborhood/GetAll" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 innerThis.isLoading = false;
 

@@ -187,7 +187,7 @@ namespace Ally
                 this.isLoadingNews = true;
 
                 var innerThis = this;
-                this.$http.get( "/api/News?startDate=" + firstDay + "&endDate=" + lastDay ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+                this.$http.get( "/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
                 {
                     var data = <any[]>httpResponse.data;
 
