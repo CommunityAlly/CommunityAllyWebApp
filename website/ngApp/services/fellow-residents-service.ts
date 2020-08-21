@@ -13,6 +13,13 @@
     }
 
 
+    export class GroupEmailGroups
+    {
+        standardGroups: GroupEmailInfo[];
+        customGroups: GroupEmailInfo[];
+    }
+
+
     class HomeEntry
     {
         memberHomeId: number;
@@ -183,6 +190,32 @@
                 return httpResponse.data;
 
             }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            {
+                return this.$q.reject( httpResponse );
+            } );
+
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
+        }
+
+
+        /**
+         * Get the object describing the available group e-mail addresses
+         */
+        getAllGroupEmails(): ng.IPromise<GroupEmailGroups>
+        {
+            var innerThis = this;
+            return this.$http.get( "/api/BuildingResidents/AllEmailGroups", { cache: true } ).then( function ( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailGroups> )
+            {
+                return httpResponse.data;
+
+            }, function ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
             {
                 return this.$q.reject( httpResponse );
             } );

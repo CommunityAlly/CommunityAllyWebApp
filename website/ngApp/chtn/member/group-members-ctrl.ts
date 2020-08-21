@@ -15,6 +15,7 @@ namespace Ally
         groupShortName: string;
         showMemberList: boolean;
         emailLists: GroupEmailInfo[] = [];
+        customEmailLists: GroupEmailInfo[] = [];
         allResidents: FellowChtnResident[];
         unitList: UnitListing[];
         memberSearchTerm: string;
@@ -175,8 +176,8 @@ namespace Ally
                     }, 300 );
                 }
 
-                // Populate the e-mail name lists
-                this.setupGroupEmails();
+                // Populate the e-mail name lists, delayed to help the page render faster
+                setTimeout( () => this.loadGroupEmails(), 500 );
             }, ( httpErrorResponse ) =>
             {
                 alert( "Failed to retrieve group members. Please let tech support know via the contact form in the bottom right." );
@@ -214,14 +215,15 @@ namespace Ally
         }
 
 
-        setupGroupEmails()
+        loadGroupEmails()
         {
             this.hasMissingEmails = _.some( this.allResidents, function( r ) { return !r.hasEmail; } );
 
             var innerThis = this;
-            this.fellowResidents.getGroupEmailObject().then( (emailLists:GroupEmailInfo[]) =>
+            this.fellowResidents.getAllGroupEmails().then( ( emailGroups: GroupEmailGroups ) =>
             {
-                this.emailLists = emailLists;
+                this.emailLists = emailGroups.standardGroups;
+                this.customEmailLists = emailGroups.customGroups;
 
                 // Hook up the address copy link
                 setTimeout( function()

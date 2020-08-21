@@ -19,6 +19,12 @@ var Ally;
         return GroupEmailInfo;
     }());
     Ally.GroupEmailInfo = GroupEmailInfo;
+    var GroupEmailGroups = /** @class */ (function () {
+        function GroupEmailGroups() {
+        }
+        return GroupEmailGroups;
+    }());
+    Ally.GroupEmailGroups = GroupEmailGroups;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -125,6 +131,24 @@ var Ally;
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+                return httpResponse.data;
+            }, function (httpResponse) {
+                return this.$q.reject(httpResponse);
+            });
+            //var innerThis = this;
+            //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
+            //{
+            //    var unitList = unitsAndResidents.byUnit;
+            //    var allResidents = unitsAndResidents.residents;
+            //    return innerThis.setupGroupEmailObject( allResidents, unitList, null );
+            //} );
+        };
+        /**
+         * Get the object describing the available group e-mail addresses
+         */
+        FellowResidentsService.prototype.getAllGroupEmails = function () {
+            var innerThis = this;
+            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);

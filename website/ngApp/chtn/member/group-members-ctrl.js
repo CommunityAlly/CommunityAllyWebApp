@@ -13,6 +13,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.isLoading = true;
             this.emailLists = [];
+            this.customEmailLists = [];
             this.unitPrefix = "Unit ";
             this.groupEmailDomain = "";
             this.allyAppName = AppConfig.appName;
@@ -122,8 +123,8 @@ var Ally;
                         $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
                     }, 300);
                 }
-                // Populate the e-mail name lists
-                _this.setupGroupEmails();
+                // Populate the e-mail name lists, delayed to help the page render faster
+                setTimeout(function () { return _this.loadGroupEmails(); }, 500);
             }, function (httpErrorResponse) {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
             });
@@ -150,12 +151,13 @@ var Ally;
             //    element.style.display = disp;
             //}, 50 );
         };
-        GroupMembersController.prototype.setupGroupEmails = function () {
+        GroupMembersController.prototype.loadGroupEmails = function () {
             var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             var innerThis = this;
-            this.fellowResidents.getGroupEmailObject().then(function (emailLists) {
-                _this.emailLists = emailLists;
+            this.fellowResidents.getAllGroupEmails().then(function (emailGroups) {
+                _this.emailLists = emailGroups.standardGroups;
+                _this.customEmailLists = emailGroups.customGroups;
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");

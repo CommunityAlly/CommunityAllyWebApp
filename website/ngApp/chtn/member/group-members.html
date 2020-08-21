@@ -92,12 +92,12 @@
             </div>
         </div>
         <br />
-        <div class="note-text" data-ng-if="$ctrl.hasMissingEmails">* Unable to send messages to this person because we don't have their e-mail address</div>
+        <div class="note-text" data-ng-if="$ctrl.hasMissingEmails">* Unable to send messages to this person because we don't have their email address</div>
     </div>
 
     <div data-ng-if="false">
         <h5>Owner Email Addresses</h5>
-        For easy copy-and-paste into your e-mail client.<br /><br />
+        For easy copy-and-paste into your email client.<br /><br />
         {{ $ctrl.allOwnerEmails[0] }}
         <span data-ng-repeat="curOwnerEmail in $ctrl.allOwnerEmails track by $index" ng-hide="$first">, {{ curOwnerEmail }}</span>
         <br />
@@ -105,46 +105,56 @@
 
     <div class="portlet-box white margin-top no-padding">
         <div class="portlet-header">
-            <div class="title">Group E-mail Addresses</div>
+            <div class="title">Group Email Addresses</div>
         </div>
 
         <div class="portlet-body">
             <p class="margin-bottom-10">
-                {{ $ctrl.allyAppName }} provides custom e-mail addresses that allow to easily send messages to certain groups within your association. Simply send
-                an e-mail to one of the addresses below how you would normally send any old e-mail, and it will be sent to the people listed.
+                {{ $ctrl.allyAppName }} provides custom email addresses that allow to easily send messages to certain groups within your association. Simply send
+                an email to one of the addresses below how you would normally send any old email, and it will be sent to the people listed.
             </p>
 
             <div data-ng-repeat="g in $ctrl.emailLists">
                 <div>
-                    Send an e-mail to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    Send an email to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
                     {{ g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
                 </div>
                 <div data-ng-if="g.isRestrictedGroup" class="note-text" style="color: blue; font-weight: bold;">
-                    This e-mail group is a restricted group meaning replies will be sent only to you and not the entire group.
+                    This email group is a restricted group meaning replies will be sent only to you and not the entire group.
                 </div>
                 <div data-ng-if="g.recipientType ==='Everyone'" class="note-text" style="color: red; font-weight: bold;">
-                    In general, sending an e-mail to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" e-mails should be
+                    In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
                     sent to the discussion group. The discussion group allows residents to unsubscribe from
-                    individual threads, thus residents are more engaged in the threads in which they participate and complain less about e-mail.<br />
+                    individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.<br />
                     <br />
                 </div>
                 <br />
             </div>
 
+            <div data-ng-repeat="g in $ctrl.customEmailLists">
+                <div>
+                    Send an email to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                </div>
+                <div class="note-text">
+                    {{ g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
+                </div>
+                <br />
+            </div>
+
             <div class="text-bold">
-                <u>How to Use Group E-mails</u>
+                <u>How to Use Group Emails</u>
             </div>
 
             <ol>
-                <li>Select the group e-mail address to which you want to send (Click and drag the address text)</li>
+                <li>Select the group email address to which you want to send (Click and drag the address text)</li>
                 <li>Copy the address (CTRL+C/CMD+C)</li>
-                <li>Go to your e-mail client or website</li>
-                <li>Compose a new e-mail</li>
+                <li>Go to your email client or website</li>
+                <li>Compose a new email</li>
                 <li>Paste the address in the TO field (CTRL+V/CMD+V)</li>
-                <li>Write your e-mail like you would any other e-mail</li>
-                <li>When you send, that e-mail will go to everyone listed for that group e-mail address</li>
+                <li>Write your email like you would any other email</li>
+                <li>When you send, that email will go to everyone listed for that group email address</li>
             </ol>
         </div>
     </div>
