@@ -46,7 +46,7 @@ var Ally;
             return this.getPolyInfo("/api/AdminMap/GetGroupBounds?filter=" + this.filterAddresses, "Group");
         };
         ManageAddressPolysController.prototype.getAddressPolys = function () {
-            return this.getPolyInfo("/api/AdminMap?filter=" + this.filterAddresses, "Address");
+            return this.getPolyInfo("/api/AdminMap/GetAll?filter=" + this.filterAddresses, "Address");
         };
         // Get the addresses that are missing bounding polys
         ManageAddressPolysController.prototype.refreshAddresses = function () {
@@ -67,7 +67,7 @@ var Ally;
         ManageAddressPolysController.prototype.onSavePoly = function () {
             this.isLoading = true;
             var serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
-            var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap?addressId=" + this.selectedAddress.addressId) : ("/api/AdminMap?groupId=" + this.selectedAddress.groupId);
+            var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
             var innerThis = this;
             this.$http.put(url, serverVerts).then(function () {
                 innerThis.isLoading = false;

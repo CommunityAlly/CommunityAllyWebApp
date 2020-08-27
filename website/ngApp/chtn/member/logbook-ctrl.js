@@ -158,7 +158,7 @@ var Ally;
             if (loadNewsToCalendar) {
                 this.isLoadingNews = true;
                 var innerThis = this;
-                this.$http.get("/api/News?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
+                this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
                     innerThis.isLoadingNews = false;
                     _.each(data, function (entry) {

@@ -50,7 +50,7 @@ var Ally;
             this.isLoading = true;
             this.neighborhoodPolys = [];
             var innerThis = this;
-            this.$http.get("/api/Neighborhood").then(function (httpResponse) {
+            this.$http.get("/api/Neighborhood/GetAll").then(function (httpResponse) {
                 innerThis.isLoading = false;
                 innerThis.neighborhoods = httpResponse.data;
                 innerThis.neighborhoodPolys = _.select(innerThis.neighborhoods, function (n) { return n.Bounds; });
