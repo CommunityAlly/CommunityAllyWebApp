@@ -46,7 +46,7 @@ var Ally;
             return this.getPolyInfo("/api/AdminMap/GetGroupBounds?filter=" + this.filterAddresses, "Group");
         };
         ManageAddressPolysController.prototype.getAddressPolys = function () {
-            return this.getPolyInfo("/api/AdminMap?filter=" + this.filterAddresses, "Address");
+            return this.getPolyInfo("/api/AdminMap/GetAll?filter=" + this.filterAddresses, "Address");
         };
         // Get the addresses that are missing bounding polys
         ManageAddressPolysController.prototype.refreshAddresses = function () {
@@ -67,7 +67,7 @@ var Ally;
         ManageAddressPolysController.prototype.onSavePoly = function () {
             this.isLoading = true;
             var serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
-            var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap?addressId=" + this.selectedAddress.addressId) : ("/api/AdminMap?groupId=" + this.selectedAddress.groupId);
+            var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
             var innerThis = this;
             this.$http.put(url, serverVerts).then(function () {
                 innerThis.isLoading = false;
@@ -660,7 +660,7 @@ var Ally;
             this.isLoading = true;
             this.neighborhoodPolys = [];
             var innerThis = this;
-            this.$http.get("/api/Neighborhood").then(function (httpResponse) {
+            this.$http.get("/api/Neighborhood/GetAll").then(function (httpResponse) {
                 innerThis.isLoading = false;
                 innerThis.neighborhoods = httpResponse.data;
                 innerThis.neighborhoodPolys = _.select(innerThis.neighborhoods, function (n) { return n.Bounds; });
@@ -5614,7 +5614,7 @@ var Ally;
             if (loadNewsToCalendar) {
                 this.isLoadingNews = true;
                 var innerThis = this;
-                this.$http.get("/api/News?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
+                this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
                     innerThis.isLoadingNews = false;
                     _.each(data, function (entry) {
@@ -10176,6 +10176,60 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
+        };
+        /**
+         * Export the maintenance records as a CSV (Ignores to-do items for simplicity's sake)
+         */
+        MaintenanceController.prototype.exportMaintenanceCsv = function () {
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportMaintenanceCsv');
+            var csvColumns = [
+                {
+                    headerText: "Title",
+                    fieldName: "title"
+                },
+                {
+                    headerText: "Start Date",
+                    fieldName: "startDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "End Date",
+                    fieldName: "endDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "descriptionText"
+                },
+                {
+                    headerText: "Cost",
+                    fieldName: "cost"
+                },
+                {
+                    headerText: "Vendor",
+                    fieldName: "vendorCompanyName"
+                },
+                {
+                    headerText: "Related Equipment",
+                    fieldName: "equipmentName"
+                },
+                {
+                    headerText: "Entered By",
+                    fieldName: "creatorFullName"
+                }
+            ];
+            var projects = _.map(_.filter(this.maintenanceEntries, function (e) { return !!e.project; }), function (e) { return e.project; });
+            var csvDataString = Ally.createCsvString(projects, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Maintenance.csv");
         };
         MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
         MaintenanceController.EquipmentId_AddNew = -5;

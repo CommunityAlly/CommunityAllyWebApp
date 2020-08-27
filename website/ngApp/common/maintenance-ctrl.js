@@ -397,6 +397,60 @@ var Ally;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
+        /**
+         * Export the maintenance records as a CSV (Ignores to-do items for simplicity's sake)
+         */
+        MaintenanceController.prototype.exportMaintenanceCsv = function () {
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportMaintenanceCsv');
+            var csvColumns = [
+                {
+                    headerText: "Title",
+                    fieldName: "title"
+                },
+                {
+                    headerText: "Start Date",
+                    fieldName: "startDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "End Date",
+                    fieldName: "endDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "descriptionText"
+                },
+                {
+                    headerText: "Cost",
+                    fieldName: "cost"
+                },
+                {
+                    headerText: "Vendor",
+                    fieldName: "vendorCompanyName"
+                },
+                {
+                    headerText: "Related Equipment",
+                    fieldName: "equipmentName"
+                },
+                {
+                    headerText: "Entered By",
+                    fieldName: "creatorFullName"
+                }
+            ];
+            var projects = _.map(_.filter(this.maintenanceEntries, function (e) { return !!e.project; }), function (e) { return e.project; });
+            var csvDataString = Ally.createCsvString(projects, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Maintenance.csv");
+        };
         MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
         MaintenanceController.EquipmentId_AddNew = -5;
         MaintenanceController.AutocompleteLocationOptions = [{ text: "Attic" },
