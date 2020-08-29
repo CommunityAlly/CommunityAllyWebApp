@@ -7,14 +7,16 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageHomesController($http, siteInfo) {
+        function ManageHomesController($http, siteInfo, uiGridConstants) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.uiGridConstants = uiGridConstants;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
             this.isHoaAlly = false;
             this.isCondoAlly = false;
+            this.HomesPageSize = 25;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -23,6 +25,28 @@ var Ally;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
+            this.homesGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'name', displayName: 'Name', width: 190, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'percentageInterest', displayName: '%Interest', width: 105 },
+                        { field: 'unitId', displayName: 'Unit ID', width: 90, type: 'number', visible: this.isAdmin },
+                        { field: 'addressId', displayName: 'Addr ID', width: 90, type: 'number', visible: this.isAdmin },
+                        { field: 'fullAddress.oneLiner', displayName: 'Street Address', width: '*', enableFiltering: true },
+                        { field: 'notes', displayName: 'Notes', width: 180, enableFiltering: true },
+                        { field: 'unitId', displayName: '', width: 135, enableFiltering: false, cellTemplate: '<div class="ui-grid-cell-contents note-text"><span class="text-link" data-ng-click="grid.appScope.$ctrl.onEditUnitClick( row.entity )">Edit</span> - <span class="text-link" data-ng-click="grid.appScope.$ctrl.onDeleteUnitClick( row.entity )">Delete</span> - <span class="text-link" data-ng-if="grid.appScope.$ctrl.isAdmin" data-ng-click="grid.appScope.$ctrl.onRefreshUnitFromGoogle( row.entity )">Goog</span></div>' }
+                    ],
+                    enableSorting: true,
+                    enableFiltering: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: this.HomesPageSize,
+                    paginationPageSizes: [this.HomesPageSize],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) { return HtmlUtil.uiGridFixScroll(); } // Fix the dumb scrolling bug
+                };
             this.refresh();
         };
         /**
@@ -34,6 +58,10 @@ var Ally;
             this.$http.get("/api/Unit?includeAddressData=true").then(function (response) {
                 _this.isLoading = false;
                 _this.units = response.data;
+                _this.homesGridOptions.data = _this.units;
+                _this.homesGridOptions.enablePaginationControls = _this.units.length > _this.HomesPageSize;
+                _this.homesGridOptions.minRowsToShow = Math.min(_this.units.length, _this.HomesPageSize);
+                _this.homesGridOptions.virtualizationThreshold = _this.homesGridOptions.minRowsToShow;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to load homes: " + response.data.exceptionMessage);
@@ -168,7 +196,7 @@ var Ally;
                 alert("Failed to delete units: " + response.data.exceptionMessage);
             });
         };
-        ManageHomesController.$inject = ["$http", "SiteInfo"];
+        ManageHomesController.$inject = ["$http", "SiteInfo", "uiGridConstants"];
         return ManageHomesController;
     }());
     Ally.ManageHomesController = ManageHomesController;

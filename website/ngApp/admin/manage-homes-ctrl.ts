@@ -5,7 +5,7 @@
      */
     export class ManageHomesController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "uiGridConstants"];
         isLoading: boolean = false;
         unitToEdit: Unit = new Unit();
         isEdit: boolean = false;
@@ -17,12 +17,14 @@
         homeName: string;
         isHoaAlly: boolean = false;
         isCondoAlly: boolean = false;
+        homesGridOptions: uiGrid.IGridOptionsOf<Unit>;
+        readonly HomesPageSize: number = 25;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private uiGridConstants: uiGrid.IUiGridConstants )
         {
         }
 
@@ -35,6 +37,30 @@
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
+
+            this.homesGridOptions =
+            {
+                columnDefs:
+                    [
+                        { field: 'name', displayName: 'Name', width: 190, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'percentageInterest', displayName: '%Interest', width: 105 },
+                        { field: 'unitId', displayName: 'Unit ID', width: 90, type: 'number', visible: this.isAdmin },
+                        { field: 'addressId', displayName: 'Addr ID', width: 90, type: 'number', visible: this.isAdmin },
+                        { field: 'fullAddress.oneLiner', displayName: 'Street Address', width: '*', enableFiltering: true },
+                        { field: 'notes', displayName: 'Notes', width: 180, enableFiltering: true },
+                        { field: 'unitId', displayName: '', width: 135, enableFiltering: false, cellTemplate: '<div class="ui-grid-cell-contents note-text"><span class="text-link" data-ng-click="grid.appScope.$ctrl.onEditUnitClick( row.entity )">Edit</span> - <span class="text-link" data-ng-click="grid.appScope.$ctrl.onDeleteUnitClick( row.entity )">Delete</span> - <span class="text-link" data-ng-if="grid.appScope.$ctrl.isAdmin" data-ng-click="grid.appScope.$ctrl.onRefreshUnitFromGoogle( row.entity )">Goog</span></div>' }
+                    ],
+                enableSorting: true,
+                enableFiltering: true,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableColumnMenus: false,
+                enablePaginationControls: true,
+                paginationPageSize: this.HomesPageSize,
+                paginationPageSizes: [this.HomesPageSize],
+                enableRowHeaderSelection: false,
+                onRegisterApi: ( gridApi ) => HtmlUtil.uiGridFixScroll() // Fix the dumb scrolling bug
+            };
 
             this.refresh();
         }
@@ -51,6 +77,12 @@
             {
                 this.isLoading = false;
                 this.units = response.data;
+
+                this.homesGridOptions.data = this.units;
+                this.homesGridOptions.enablePaginationControls = this.units.length > this.HomesPageSize;
+                this.homesGridOptions.minRowsToShow = Math.min( this.units.length, this.HomesPageSize );
+                this.homesGridOptions.virtualizationThreshold = this.homesGridOptions.minRowsToShow;
+
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
             {
