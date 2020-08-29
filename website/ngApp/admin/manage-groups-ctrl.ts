@@ -63,6 +63,10 @@
         */
         $onInit()
         {
+            // A little shortcut for updating
+            if( AppConfig.appShortName === "hoa" )
+                this.changeShortNameData.appName = "Hoa";
+            this.changeShortNameData.old = this.siteInfo.publicSiteInfo.shortName;
         }
 
 
