@@ -1,47 +1,48 @@
 <div class="page-documents">
-    <section class="padding white-bg padding margin-vertical box-shadow">
-        <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
-        <br />
-        <br />
+    <section class="padding white-bg padding margin-vertical box-shadow header-pill-menu-section">
+        <h3>Financials</h3>
 
         <nav class="nav nav-pills justify-content-center">
-
-            <a class="nav-item nav-link" data-ng-href="#!/Financial/Transactions"
-               data-ng-class="{'active':$ctrl.selectedView==='Transactions'}" data-ng-click="$ctrl.selectedView='Transactions'">
-                Transactions
+            <a class="nav-item nav-link" href="#!/Financials/OnlinePayments"
+               data-ng-class="{'active':$ctrl.selectedView==='OnlinePayments'}" data-ng-click="$ctrl.selectedView='OnlinePayments'">
+                Online Payments
+            </a>
+            
+            <a class="nav-item nav-link" data-ng-href="#!/Financials/Transactions"
+                   data-ng-class="{'active':$ctrl.selectedView==='Transactions'}" data-ng-click="$ctrl.selectedView='Transactions'">
+                Ledger
             </a>
 
-            <a class="nav-item nav-link" href="#!/Financial/AssessmentHistory"
+            <a class="nav-item nav-link" href="#!/Financials/AssessmentHistory"
                data-ng-class="{'active':$ctrl.selectedView==='AssessmentHistory'}" data-ng-click="$ctrl.selectedView='AssessmentHistory'">
                 Assessment History
             </a>
 
-            <a class="nav-item nav-link" href="#!/Financial/Reports"
-               data-ng-class="{'active':$ctrl.selectedView==='Reports'}" data-ng-click="$ctrl.selectedView='Reports'">
-                Reports
-            </a>
-
-            <a class="nav-item nav-link" href="#!/Financial/Budgets"
+            <a class="nav-item nav-link" href="#!/Financials/Budgets"
                data-ng-class="{'active':$ctrl.selectedView==='Budgets'}" data-ng-click="$ctrl.selectedView='Budgets'">
                 Budgets
             </a>
 
+            <a class="nav-item nav-link" href="#!/Financials/Reports"
+               data-ng-class="{'active':$ctrl.selectedView==='Reports'}" data-ng-click="$ctrl.selectedView='Reports'">
+                Reports
+            </a>
         </nav>
     </section>
 
     <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Transactions'">
-        Transactions Here
+        Coming soon! Keep track of your association's spending and automatically sync bank account activity.
     </div>
 
-    <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'AssessmentHistory'">
-        Assessment History Here
+    <manage-payments data-ng-if="$ctrl.selectedView === 'OnlinePayments'"></manage-payments>
+
+    <assessment-history data-ng-if="$ctrl.selectedView === 'AssessmentHistory'"></assessment-history>
+
+    <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Budgets'">
+        Coming soon! Easily and quickly create budgets from scratch, from previous years, or from spending activty.
     </div>
 
     <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Reports'">
-        Reports here
-    </div>
-
-    <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Budgets'">
-        Budget here
+        Coming soon! View helpful reports to get an idea where your association stands financially.
     </div>
 </div>

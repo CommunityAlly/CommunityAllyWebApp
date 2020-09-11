@@ -1226,12 +1226,14 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
-        new Ally.RoutePath_v3({ path: "ManagePayments", templateHtml: "<manage-payments></manage-payments>", menuTitle: "Online Payments", role: Role_Manager }),
-        new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Assessment History", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/:viewName", templateHtml: "<settings-parent></settings-parent>", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "Financials/OnlinePayments", templateHtml: "<financial-parent></financial-parent>", menuTitle: "Financials", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "Financials/:viewName", templateHtml: "<financial-parent></financial-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin }),
@@ -1968,12 +1970,15 @@ var Ally;
             this.initialView = "Home";
             this.selectedView = null;
             this.isLoading = false;
-            this.initialView = this.$routeParams.viewName || "Transactions";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         FinancialParentController.prototype.$onInit = function () {
+            if (HtmlUtil.isValidString(this.$routeParams.viewName))
+                this.selectedView = this.$routeParams.viewName;
+            else
+                this.selectedView = "OnlinePayments";
         };
         FinancialParentController.$inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
         return FinancialParentController;
@@ -1982,7 +1987,7 @@ var Ally;
 })(Ally || (Ally = {}));
 CA.angularApp.component("financialParent", {
     templateUrl: "/ngApp/chtn/manager/financial/financial-parent.html",
-    controller: Ally.CommitteeParentController
+    controller: Ally.FinancialParentController
 });
 
 /// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
@@ -6208,6 +6213,13 @@ var Ally;
         MyProfileController.prototype.onSaveInfo = function () {
             var _this = this;
             this.isLoading = true;
+            // If the user entered a password
+            if (!HtmlUtil.isNullOrWhitespace(this.profileInfo.password)) {
+                if (this.profileInfo.password.length < 8) {
+                    alert("Please enter a password that's at least 8 characters long.");
+                    return;
+                }
+            }
             this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
                 _this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login

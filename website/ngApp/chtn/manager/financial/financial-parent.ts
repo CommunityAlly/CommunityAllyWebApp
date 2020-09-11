@@ -23,7 +23,6 @@
         */
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $routeParams: IFinancialParentRouteParams, private $cacheFactory: ng.ICacheFactoryService, private $rootScope: ng.IRootScopeService )
         {
-            this.initialView = this.$routeParams.viewName || "Transactions";
         }
 
 
@@ -32,6 +31,10 @@
         */
         $onInit()
         {
+            if( HtmlUtil.isValidString( this.$routeParams.viewName ) )
+                this.selectedView = this.$routeParams.viewName;
+            else
+                this.selectedView = "OnlinePayments";
         }
     }
 }
@@ -39,5 +42,5 @@
 
 CA.angularApp.component( "financialParent", {
     templateUrl: "/ngApp/chtn/manager/financial/financial-parent.html",
-    controller: Ally.CommitteeParentController
+    controller: Ally.FinancialParentController
 } );
