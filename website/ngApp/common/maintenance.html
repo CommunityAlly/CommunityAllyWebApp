@@ -56,37 +56,6 @@
             </div>
         </div>
 
-        <div class="col-sm-6 ui-helper-hidden">
-            <div class="card">
-                <div class="card-body">
-                    <todo-list data-todo-list-id="$ctrl.maintenanceTodoListId"></todo-list>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item" id="maintenance-item-{{ $index }}" data-ng-repeat="project in $ctrl.projects">
-                        <h4 style="display: inline-block;" id="fmaintenance-item-title-{{ $index }}"> {{ project.title }}</h4>
-                        <div data-ng-show="$ctrl.isSiteManager" style="display: inline-block; font-size: small; margin-left: 9px;">
-                            <a href="javascript:void(0)" id="maintenance-item-edit-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.editProject( project );">Edit</a>
-                            <a href="javascript:void(0)" id="maintenance-item-delete-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.onDeleteProject( project );">Delete</a>
-                        </div>
-
-                        <div data-ng-if="project.startDate"><label style="font-weight:bold;">Project Date:</label>&nbsp;{{ project.startDate | date:'shortDate' }}<span data-ng-if="project.endDate && project.endDate.getTime() !== project.startDate.getTime()">&nbsp;- {{ project.endDate | date:'shortDate' }}</span></div>
-                        <div data-ng-if="project.cost"><label style="font-weight:bold;">Cost:</label>&nbsp;{{ project.cost | currency }}</div>
-                        <div data-ng-if="project.vendorCompanyName"><label style="font-weight:bold;">Vendor:</label>&nbsp;{{ project.vendorCompanyName }}</div>
-                        <div data-ng-if="project.equipmentName"><label style="font-weight:bold;">Equipment:</label>&nbsp;{{ project.equipmentName }}</div>
-                        <p id="maintenance-item-body-{{ $index }}" class="maintenance-item-body" style="white-space: pre-wrap;">
-                            {{ project.descriptionText }}
-                        </p>
-                        <br />
-                    </li>
-
-                    <li class="list-group-item" data-ng-if="$ctrl.projects.length === 0">
-                        There are no maintenance records to display.
-                    </li>
-                </ul>
-
-            </div>
-        </div>
-
     </div>
     <div class="text-right mt-2">
         <a href="javascript:void(0)" class="text-link" data-ng-click="$ctrl.exportMaintenanceCsv()">Export Maintenance Records To CSV</a>
