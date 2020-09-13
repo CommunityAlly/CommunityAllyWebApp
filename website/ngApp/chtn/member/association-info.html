@@ -2,22 +2,22 @@
     <section class="info-welcome padding white-bg padding margin-vertical box-shadow header-pill-menu-section">
         <nav class="nav nav-pills justify-content-center">
             <a class="nav-item nav-link" data-ng-href="#!/Info/Docs" id="info-sub-view-link-docs"
-               data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'active':$ctrl.selectedView=='Docs'}" data-ng-click="$ctrl.selectedView='Docs'">
+               data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'active':$ctrl.selectedView=='Docs'}">
                 Documents
             </a>
 
             <a class="nav-item nav-link" data-ng-href="#!/Info/Maintenance" id="info-sub-view-link-maintenance"
-               data-ng-class="{'active':$ctrl.selectedView=='Maintenance'}" data-ng-click="$ctrl.selectedView='Maintenance'">
+               data-ng-class="{'active':$ctrl.selectedView=='Maintenance'}">
                 Maintenance
             </a>
 
             <a class="nav-item nav-link" data-ng-href="#!/Info/Info" id="info-sub-view-link-info"
-               data-ng-class="{'active':$ctrl.selectedView=='Info'}" data-ng-click="$ctrl.selectedView='Info'">
+               data-ng-class="{'active':$ctrl.selectedView=='Info'}">
                 {{ $ctrl.faqMenuText }}
             </a>
 
             <a class="nav-item nav-link" data-ng-href="#!/Info/Vendor" id="info-sub-view-link-vendor"
-               data-ng-show="!$ctrl.hideVendors" data-ng-class="{'active':$ctrl.selectedView=='Vendor'}" data-ng-click="$ctrl.selectedView='Vendor'">
+               data-ng-show="!$ctrl.hideVendors" data-ng-class="{'active':$ctrl.selectedView=='Vendor'}">
                 Vendors
             </a>
         </nav>
