@@ -62,7 +62,7 @@ namespace Ally
                         //If it is a string of the expected form convert to date
                         var parsedDate;
                         if( HtmlUtil.endsWith( curPropName, "_UTC" )
-                            || HtmlUtil.endsWith( curPropName, "Utc" ))
+                            || HtmlUtil.endsWith( curPropName, "Utc" ) )
                         {
                             parsedDate = HtmlUtil2.serverUtcDateToLocal( value );
                         }
@@ -186,7 +186,7 @@ namespace Ally
 
                 downloadLink.click(); // This will download the file
 
-                setTimeout( function () { document.body.removeChild( downloadLink ); }, 500 );
+                setTimeout( function() { document.body.removeChild( downloadLink ); }, 500 );
             }
         }
 
@@ -209,6 +209,13 @@ namespace Ally
             testString = testString.substring( 0, firstWhitespaceIndex - 1 );
 
             return HtmlUtil.isNumericString( testString );
+        }
+
+
+        static isAndroid()
+        {
+            var ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf( "android" ) > -1;
         }
     }
 

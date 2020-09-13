@@ -166,11 +166,11 @@ var Ally;
                     link.remove();
                 }
                 else {
-                    //let newWindow = window.open( fileUri, '_blank' );
-                    viewDocWindow.location.href = fileUri;
-                    //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                    //if( wasPopUpBlocked )
-                    //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                    // Android doesn't open PDFs in the browser, so let Google Docs do it
+                    if (Ally.HtmlUtil2.isAndroid())
+                        viewDocWindow.location.href = "http://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(fileUri);
+                    else
+                        viewDocWindow.location.href = fileUri;
                 }
             }, function (response) {
                 _this.isLoading = false;

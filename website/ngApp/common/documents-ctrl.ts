@@ -256,12 +256,11 @@ namespace Ally
                     }
                     else
                     {
-                        //let newWindow = window.open( fileUri, '_blank' );
-                        viewDocWindow.location.href = fileUri;
-
-                        //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                        //if( wasPopUpBlocked )
-                        //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                        // Android doesn't open PDFs in the browser, so let Google Docs do it
+                        if( HtmlUtil2.isAndroid() )
+                            viewDocWindow.location.href = "http://docs.google.com/gview?embedded=true&url=" + encodeURIComponent( fileUri );
+                        else
+                            viewDocWindow.location.href = fileUri;
                     }
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -466,7 +465,7 @@ namespace Ally
                         helper: "clone",
                         opacity: 1,
                         containment: "document",
-                        appendTo: "body",                        
+                        appendTo: "body",
                         start: ( event: any, ui: any ) =>
                         {
                             // Get the index of the file being dragged (ID is formatted like "File_12")

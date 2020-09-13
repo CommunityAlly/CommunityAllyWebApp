@@ -1452,6 +1452,23 @@ $(document).ready(function () {
     $("header").css("background-image", "url(/assets/images/header-img-" + AppConfig.appShortName + ".jpg)");
 });
 
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to view membership dues payment history
+     */
+    var DuesHistoryController = /** @class */ (function () {
+        function DuesHistoryController() {
+        }
+        return DuesHistoryController;
+    }());
+    Ally.DuesHistoryController = DuesHistoryController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("duesHistory", {
+    templateUrl: "/ngApp/chtn/manager/dues-history.html",
+    controller: Ally.DuesHistoryController
+});
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -1931,25 +1948,8 @@ var Ally;
     Ally.AssessmentHistoryController = AssessmentHistoryController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("assessmentHistory", {
-    templateUrl: "/ngApp/chtn/manager/assessment-history.html",
+    templateUrl: "/ngApp/chtn/manager/financial/assessment-history.html",
     controller: Ally.AssessmentHistoryController
-});
-
-var Ally;
-(function (Ally) {
-    /**
-     * The controller for the page to view membership dues payment history
-     */
-    var DuesHistoryController = /** @class */ (function () {
-        function DuesHistoryController() {
-        }
-        return DuesHistoryController;
-    }());
-    Ally.DuesHistoryController = DuesHistoryController;
-})(Ally || (Ally = {}));
-CA.angularApp.component("duesHistory", {
-    templateUrl: "/ngApp/chtn/manager/dues-history.html",
-    controller: Ally.DuesHistoryController
 });
 
 var Ally;
@@ -1988,125 +1988,6 @@ var Ally;
 CA.angularApp.component("financialParent", {
     templateUrl: "/ngApp/chtn/manager/financial/financial-parent.html",
     controller: Ally.FinancialParentController
-});
-
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../../Scripts/typings/underscore/underscore.d.ts" />
-/// <reference path="../../Services/html-util.ts" />
-var Ally;
-(function (Ally) {
-    var Committee = /** @class */ (function () {
-        function Committee() {
-            this.isPrivate = false;
-        }
-        return Committee;
-    }());
-    Ally.Committee = Committee;
-    /**
-     * The controller for the page to add, edit, and delete committees
-     */
-    var ManageCommitteesController = /** @class */ (function () {
-        /**
-         * The constructor for the class
-         */
-        function ManageCommitteesController($http, siteInfo, $cacheFactory) {
-            this.$http = $http;
-            this.siteInfo = siteInfo;
-            this.$cacheFactory = $cacheFactory;
-            this.includeInactive = false;
-            this.activeCommittees = [];
-            this.inactiveCommittees = [];
-            this.showInactiveCommittees = false;
-            this.editCommittee = null;
-            this.isLoading = false;
-        }
-        /**
-        * Called on each controller after all the controllers on an element have been constructed
-        */
-        ManageCommitteesController.prototype.$onInit = function () {
-            this.retrieveCommittees();
-        };
-        /**
-        * Called when the user chooses to deactivate a committee
-        */
-        ManageCommitteesController.prototype.startEditCommittee = function (committee) {
-            this.editCommittee = committee;
-        };
-        /**
-        * Called when the user chooses to deactivate a committee
-        */
-        ManageCommitteesController.prototype.showCreateModal = function () {
-            this.editCommittee = new Committee();
-            this.editCommittee.committeeType = "Ongoing";
-        };
-        /**
-        * Called when the user chooses to deactivate a committee
-        */
-        ManageCommitteesController.prototype.toggleCommitteeActive = function (committee) {
-            this.isLoading = true;
-            var putUri = (committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/") + committee.committeeId;
-            var innerThis = this;
-            this.$http.put(putUri, null).success(function (committees) {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to retrieve the modify committee: " + exc.exceptionMessage);
-            });
-        };
-        /**
-        * Retrieve the list of available committees
-        */
-        ManageCommitteesController.prototype.retrieveCommittees = function () {
-            var _this = this;
-            this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
-                _this.isLoading = false;
-                _this.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
-                _this.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
-                _this.activeCommittees = _.sortBy(_this.activeCommittees, function (c) { return c.name.toLowerCase(); });
-                _this.inactiveCommittees = _.sortBy(_this.inactiveCommittees, function (c) { return c.name.toLowerCase(); });
-                // Convert the last login timestamps to local time
-                //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
-            }).error(function (exc) {
-                _this.isLoading = false;
-                alert("Failed to retrieve the committee listing");
-            });
-        };
-        /**
-        * Create a new committee
-        */
-        ManageCommitteesController.prototype.saveCommittee = function () {
-            var _this = this;
-            if (HtmlUtil.isNullOrWhitespace(this.editCommittee.name)) {
-                alert("Please enter a name for the new committee.");
-                return;
-            }
-            if (!this.editCommittee.committeeType) {
-                alert("Please select a type for the new committee.");
-                return;
-            }
-            this.isLoading = true;
-            var saveUri = "/api/Committee" + (this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "") + "?name=" + encodeURIComponent(this.editCommittee.name) + "&type=" + encodeURIComponent(this.editCommittee.committeeType) + "&isPrivate=" + this.editCommittee.isPrivate.toString();
-            var httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
-            httpFunc(saveUri, null).success(function () {
-                _this.isLoading = false;
-                _this.editCommittee = null;
-                _this.retrieveCommittees();
-            }).error(function (error) {
-                _this.isLoading = false;
-                alert("Failed to save the committee: " + error.exceptionMessage);
-            });
-        };
-        ManageCommitteesController.$inject = ["$http", "SiteInfo", "$cacheFactory"];
-        return ManageCommitteesController;
-    }());
-    Ally.ManageCommitteesController = ManageCommitteesController;
-})(Ally || (Ally = {}));
-CA.angularApp.component("manageCommittees", {
-    templateUrl: "/ngApp/chtn/manager/manage-committees.html",
-    controller: Ally.ManageCommitteesController
 });
 
 var Ally;
@@ -2605,7 +2486,7 @@ var Ally;
     }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePayments", {
-    templateUrl: "/ngApp/chtn/manager/manage-payments.html",
+    templateUrl: "/ngApp/chtn/manager/financial/manage-payments.html",
     controller: Ally.ManagePaymentsController
 });
 var PaymentBasicInfoUnitAssessment = /** @class */ (function () {
@@ -2618,6 +2499,125 @@ var PaymentBasicInfo = /** @class */ (function () {
     }
     return PaymentBasicInfo;
 }());
+
+/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
+/// <reference path="../../../Scripts/typings/underscore/underscore.d.ts" />
+/// <reference path="../../Services/html-util.ts" />
+var Ally;
+(function (Ally) {
+    var Committee = /** @class */ (function () {
+        function Committee() {
+            this.isPrivate = false;
+        }
+        return Committee;
+    }());
+    Ally.Committee = Committee;
+    /**
+     * The controller for the page to add, edit, and delete committees
+     */
+    var ManageCommitteesController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function ManageCommitteesController($http, siteInfo, $cacheFactory) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$cacheFactory = $cacheFactory;
+            this.includeInactive = false;
+            this.activeCommittees = [];
+            this.inactiveCommittees = [];
+            this.showInactiveCommittees = false;
+            this.editCommittee = null;
+            this.isLoading = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        ManageCommitteesController.prototype.$onInit = function () {
+            this.retrieveCommittees();
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.startEditCommittee = function (committee) {
+            this.editCommittee = committee;
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.showCreateModal = function () {
+            this.editCommittee = new Committee();
+            this.editCommittee.committeeType = "Ongoing";
+        };
+        /**
+        * Called when the user chooses to deactivate a committee
+        */
+        ManageCommitteesController.prototype.toggleCommitteeActive = function (committee) {
+            this.isLoading = true;
+            var putUri = (committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/") + committee.committeeId;
+            var innerThis = this;
+            this.$http.put(putUri, null).success(function (committees) {
+                innerThis.isLoading = false;
+                innerThis.retrieveCommittees();
+            }).error(function (exc) {
+                innerThis.isLoading = false;
+                alert("Failed to retrieve the modify committee: " + exc.exceptionMessage);
+            });
+        };
+        /**
+        * Retrieve the list of available committees
+        */
+        ManageCommitteesController.prototype.retrieveCommittees = function () {
+            var _this = this;
+            this.isLoading = true;
+            var innerThis = this;
+            this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
+                _this.isLoading = false;
+                _this.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
+                _this.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
+                _this.activeCommittees = _.sortBy(_this.activeCommittees, function (c) { return c.name.toLowerCase(); });
+                _this.inactiveCommittees = _.sortBy(_this.inactiveCommittees, function (c) { return c.name.toLowerCase(); });
+                // Convert the last login timestamps to local time
+                //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
+            }).error(function (exc) {
+                _this.isLoading = false;
+                alert("Failed to retrieve the committee listing");
+            });
+        };
+        /**
+        * Create a new committee
+        */
+        ManageCommitteesController.prototype.saveCommittee = function () {
+            var _this = this;
+            if (HtmlUtil.isNullOrWhitespace(this.editCommittee.name)) {
+                alert("Please enter a name for the new committee.");
+                return;
+            }
+            if (!this.editCommittee.committeeType) {
+                alert("Please select a type for the new committee.");
+                return;
+            }
+            this.isLoading = true;
+            var saveUri = "/api/Committee" + (this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "") + "?name=" + encodeURIComponent(this.editCommittee.name) + "&type=" + encodeURIComponent(this.editCommittee.committeeType) + "&isPrivate=" + this.editCommittee.isPrivate.toString();
+            var httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
+            httpFunc(saveUri, null).success(function () {
+                _this.isLoading = false;
+                _this.editCommittee = null;
+                _this.retrieveCommittees();
+            }).error(function (error) {
+                _this.isLoading = false;
+                alert("Failed to save the committee: " + error.exceptionMessage);
+            });
+        };
+        ManageCommitteesController.$inject = ["$http", "SiteInfo", "$cacheFactory"];
+        return ManageCommitteesController;
+    }());
+    Ally.ManageCommitteesController = ManageCommitteesController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("manageCommittees", {
+    templateUrl: "/ngApp/chtn/manager/manage-committees.html",
+    controller: Ally.ManageCommitteesController
+});
 
 var Ally;
 (function (Ally) {
@@ -8202,11 +8202,11 @@ var Ally;
                     link.remove();
                 }
                 else {
-                    //let newWindow = window.open( fileUri, '_blank' );
-                    viewDocWindow.location.href = fileUri;
-                    //let wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                    //if( wasPopUpBlocked )
-                    //    alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                    // Android doesn't open PDFs in the browser, so let Google Docs do it
+                    if (Ally.HtmlUtil2.isAndroid())
+                        viewDocWindow.location.href = "http://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(fileUri);
+                    else
+                        viewDocWindow.location.href = fileUri;
                 }
             }, function (response) {
                 _this.isLoading = false;
@@ -13107,6 +13107,10 @@ var Ally;
                 firstWhitespaceIndex = testString.length;
             testString = testString.substring(0, firstWhitespaceIndex - 1);
             return HtmlUtil.isNumericString(testString);
+        };
+        HtmlUtil2.isAndroid = function () {
+            var ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf("android") > -1;
         };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"

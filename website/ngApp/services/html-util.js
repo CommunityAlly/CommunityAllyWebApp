@@ -121,6 +121,10 @@ var Ally;
             testString = testString.substring(0, firstWhitespaceIndex - 1);
             return HtmlUtil.isNumericString(testString);
         };
+        HtmlUtil2.isAndroid = function () {
+            var ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf("android") > -1;
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
