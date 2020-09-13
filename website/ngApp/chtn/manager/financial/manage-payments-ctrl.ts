@@ -719,7 +719,7 @@ namespace Ally
 
 
 CA.angularApp.component( "managePayments", {
-    templateUrl: "/ngApp/chtn/manager/manage-payments.html",
+    templateUrl: "/ngApp/chtn/manager/financial/manage-payments.html",
     controller: Ally.ManagePaymentsController
 } );
 

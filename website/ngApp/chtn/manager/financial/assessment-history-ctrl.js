@@ -477,6 +477,6 @@ var Ally;
     Ally.AssessmentHistoryController = AssessmentHistoryController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("assessmentHistory", {
-    templateUrl: "/ngApp/chtn/manager/assessment-history.html",
+    templateUrl: "/ngApp/chtn/manager/financial/assessment-history.html",
     controller: Ally.AssessmentHistoryController
 });
