@@ -3,7 +3,7 @@
     <h2>Premium Plan</h2>
 
     <div>
-        <div data-ng-if="$ctrl.isPremiumPlanActive">Thank you and your association for being premium members!</div>
+        <div data-ng-if="$ctrl.isPremiumPlanActive">Thank you and your association for being premium plan members!</div>
         <br />
         Premium Plan Cost: <span style="font-weight: bold; color: green;">${{$ctrl.settings.premiumPlanCostDollars}}/month</span>
         <br />
@@ -12,16 +12,16 @@
         <br />
 
         <div data-ng-if="$ctrl.settings.premiumPlanIsAutoRenewed">
-            Your premium membership will auto-renew on <span style="font-weight: bold; color: green;">{{$ctrl.premiumPlanRenewDate | date:'shortDate'}}</span>.
+            Your premium plan will auto-renew on <span style="font-weight: bold; color: green;">{{$ctrl.premiumPlanRenewDate | date:'shortDate'}}</span>.
             <br />
             <button class="btn btn-primary" type="button" data-ng-click="$ctrl.cancelPremiumAutoRenew()">Cancel Auto-Renew</button>
         </div>
 
         <div data-ng-if="!$ctrl.settings.premiumPlanIsAutoRenewed">
-            Premium Plan Expires On: <span style="font-weight: bold; color: red;">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
+            Premium Plan Expires On: <span style="font-weight: bold;" data-ng-style="{'color':$ctrl.planExpirationColor}">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
             <br />
             <div data-ng-if="$ctrl.isPremiumPlanActive">
-                <span style="color: red;">You're membership will not auto-renew.</span> After that date you will be downgraded to the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
+                <span style="color: red;">Your premium plan will not auto-renew.</span> After that date you will be downgraded to the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <div data-ng-if="!$ctrl.isPremiumPlanActive">
                 You're currently on the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>

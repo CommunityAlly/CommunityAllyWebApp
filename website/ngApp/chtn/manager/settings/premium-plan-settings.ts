@@ -25,7 +25,7 @@ namespace Ally
         monthlyDisabled: boolean = false;
         checkoutDescription: string;
         payButtonText: string;
-
+        planExpirationColor: string = "red";
         groupEmailChartData: number[][] = [];
         groupEmailAverage: number = 0;
 
@@ -522,6 +522,17 @@ namespace Ally
                 this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 this.premiumPlanRenewDate = new Date();
                 this.premiumPlanRenewDate = moment( this.settings.premiumPlanExpirationDate ).add( 1, "days" ).toDate();
+
+                if( this.settings.premiumPlanIsAutoRenewed )
+                    this.planExpirationColor = "green";
+                else
+                {
+                    const twoMonthsBefore = moment( this.settings.premiumPlanExpirationDate ).add( -2, "months" );
+                    if( moment().isBefore( twoMonthsBefore ) )
+                        this.planExpirationColor = "green";
+                    else
+                        this.planExpirationColor = "red";
+                }
 
                 this.refreshMeteredUsage();
             } );

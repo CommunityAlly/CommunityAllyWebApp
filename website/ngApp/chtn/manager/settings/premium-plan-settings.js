@@ -20,6 +20,7 @@ var Ally;
             this.stripeCardElement = null;
             this.isActivatingAnnual = true;
             this.monthlyDisabled = false;
+            this.planExpirationColor = "red";
             this.groupEmailChartData = [];
             this.groupEmailAverage = 0;
             this.emailUsageChartData = [];
@@ -378,6 +379,15 @@ var Ally;
                 _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 _this.premiumPlanRenewDate = new Date();
                 _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
+                if (_this.settings.premiumPlanIsAutoRenewed)
+                    _this.planExpirationColor = "green";
+                else {
+                    var twoMonthsBefore = moment(_this.settings.premiumPlanExpirationDate).add(-2, "months");
+                    if (moment().isBefore(twoMonthsBefore))
+                        _this.planExpirationColor = "green";
+                    else
+                        _this.planExpirationColor = "red";
+                }
                 _this.refreshMeteredUsage();
             });
         };
