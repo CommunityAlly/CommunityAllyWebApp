@@ -27,10 +27,10 @@
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
     <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=52" />
-    
+
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=39"></script>
-    
+
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
     <script>
         var CA = CA || {};
@@ -63,7 +63,7 @@
 
     <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=557"></script>
     <script type="text/javascript" src="/ngTemplates.min.js?appVer=557"></script>
-    
+
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
         ( function()
@@ -103,28 +103,42 @@
 
         } )();
     </script>
-    <script type="text/javascript">
-        !function()
-        {
-            var analytics = window.analytics = window.analytics || []; if( !analytics.initialize ) if( analytics.invoked ) window.console && console.error && console.error( "Segment snippet included twice." ); else
-            {
-                analytics.invoked = !0; analytics.methods = ["trackSubmit", "trackClick", "trackLink", "trackForm", "pageview", "identify", "reset", "group", "track", "ready", "alias", "page", "once", "off", "on"]; analytics.factory = function( t ) { return function() { var e = Array.prototype.slice.call( arguments ); e.unshift( t ); analytics.push( e ); return analytics } }; for( var t = 0; t < analytics.methods.length; t++ ) { var e = analytics.methods[t]; analytics[e] = analytics.factory( e ) } analytics.load = function( t ) { var e = document.createElement( "script" ); e.type = "text/javascript"; e.async = !0; e.src = ( "https:" === document.location.protocol ? "https://" : "http://" ) + "cdn.segment.com/analytics.js/v1/" + t + "/analytics.min.js"; var n = document.getElementsByTagName( "script" )[0]; n.parentNode.insertBefore( e, n ) }; analytics.SNIPPET_VERSION = "3.1.0";
-                if( AppConfig.segmentWriteKey )
-                {
-                    analytics.load( AppConfig.segmentWriteKey );
-                    analytics.page();
-                }
-            }
-        }();
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-32323638-5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push( arguments ); }
+        gtag( 'js', new Date() );
+
+        gtag( 'config', 'UA-32323638-5' );
     </script>
     <script>
         // In case we disable Segment analytics, define "analytics" so the code still runs fine
         if( typeof ( analytics ) === "undefined" )
         {
-            analytics = {
-                identify: function() { },
-                page: function() { },
-                track: function() { }
+            if( typeof ( gtag ) === "function" )
+            {
+                analytics = {
+                    identify: function() { },
+                    page: function( pageInfo )
+                    {
+                        gtag( 'config', 'GOOGLE-ID', { 'page_path': pageInfo.path } );
+                        gtag( 'event', 'page_view' );
+                    },
+                    track: function(actionName)
+                    {
+                        gtag( 'event', actionName );
+                    }
+                }
+            }
+            else
+            {
+                // Just have a catch-all
+                analytics = {
+                    identify: function() { },
+                    page: function() { },
+                    track: function() { }
+                }
             }
         }
     </script>

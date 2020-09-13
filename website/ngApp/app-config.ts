@@ -126,7 +126,6 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
     baseTld: "condoally.com",
     baseUrl: "https://condoally.com/",
     isChtnSite: true,
-    segmentWriteKey: "GnlZNd8jKCpDgFqRKbA4nftkuFIaqKPQ",
     homeName: "Unit",
     memberTypeLabel: "Resident",
     menu: [
