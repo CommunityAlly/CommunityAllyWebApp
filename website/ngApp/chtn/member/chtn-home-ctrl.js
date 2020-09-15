@@ -7,12 +7,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope) {
+        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.$routeParams = $routeParams;
             this.showDiscussionThreads = false;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
@@ -23,8 +24,7 @@ var Ally;
         */
         ChtnHomeController.prototype.$onInit = function () {
             var _this = this;
-            this.testPay_ShouldShow = this.siteInfo.publicSiteInfo.shortName === "qa"
-                || this.siteInfo.publicSiteInfo.shortName === "localtest";
+            this.testPay_ShouldShow = false; //this.siteInfo.publicSiteInfo.shortName === "qa" || this.siteInfo.publicSiteInfo.shortName === "localtest";
             if (this.testPay_ShouldShow) {
                 this.testPay_ReturnUrl = window.location.href;
                 this.testPay_IpnUrl = this.siteInfo.publicSiteInfo.baseUrl + "/api/PayPalIpn";
@@ -49,6 +49,8 @@ var Ally;
                 this.showDiscussionThreads = this.homeRightColumnType.indexOf("chatwall") > -1;
                 this.showLocalNews = this.homeRightColumnType.indexOf("localnews") > -1;
             }
+            if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
+                this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
@@ -65,7 +67,7 @@ var Ally;
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
         };
-        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope"];
+        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams"];
         return ChtnHomeController;
     }());
     Ally.ChtnHomeController = ChtnHomeController;

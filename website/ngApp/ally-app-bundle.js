@@ -1207,12 +1207,14 @@ var CondoAllyAppConfig = {
     memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
+        new Ally.RoutePath_v3({ path: "Home/DiscussionThread/:discussionThreadId", templateHtml: "<chtn-home></chtn-home>" }),
         new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info", reloadOnSearch: false }),
         new Ally.RoutePath_v3({ path: "Info/:viewName", templateHtml: "<association-info></association-info>" }),
         new Ally.RoutePath_v3({ path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" }),
         new Ally.RoutePath_v3({ path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" }),
         new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" }),
         new Ally.RoutePath_v3({ path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>" }),
+        new Ally.RoutePath_v3({ path: "Committee/:committeeId/Home/DiscussionThread/:discussionThreadId", templateHtml: "<committee-parent></committee-parent>" }),
         new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
@@ -4671,12 +4673,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope) {
+        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.$routeParams = $routeParams;
             this.showDiscussionThreads = false;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
@@ -4687,8 +4690,7 @@ var Ally;
         */
         ChtnHomeController.prototype.$onInit = function () {
             var _this = this;
-            this.testPay_ShouldShow = this.siteInfo.publicSiteInfo.shortName === "qa"
-                || this.siteInfo.publicSiteInfo.shortName === "localtest";
+            this.testPay_ShouldShow = false; //this.siteInfo.publicSiteInfo.shortName === "qa" || this.siteInfo.publicSiteInfo.shortName === "localtest";
             if (this.testPay_ShouldShow) {
                 this.testPay_ReturnUrl = window.location.href;
                 this.testPay_IpnUrl = this.siteInfo.publicSiteInfo.baseUrl + "/api/PayPalIpn";
@@ -4713,6 +4715,8 @@ var Ally;
                 this.showDiscussionThreads = this.homeRightColumnType.indexOf("chatwall") > -1;
                 this.showLocalNews = this.homeRightColumnType.indexOf("localnews") > -1;
             }
+            if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
+                this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
@@ -4729,7 +4733,7 @@ var Ally;
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
         };
-        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope"];
+        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams"];
         return ChtnHomeController;
     }());
     Ally.ChtnHomeController = ChtnHomeController;
@@ -7364,9 +7368,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function CommitteeHomeController(siteInfo, fellowResidents) {
+        function CommitteeHomeController(siteInfo, fellowResidents, $routeParams) {
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
+            this.$routeParams = $routeParams;
             this.canManage = false;
         }
         /**
@@ -7378,8 +7383,10 @@ var Ally;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
                 this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+            if (this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
+                this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
         };
-        CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents"];
+        CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents", "$routeParams"];
         return CommitteeHomeController;
     }());
     Ally.CommitteeHomeController = CommitteeHomeController;
@@ -12703,12 +12710,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents) {
+        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents, $timeout) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.fellowResidents = fellowResidents;
+            this.$timeout = $timeout;
             this.isLoading = false;
             this.viewingThread = null;
             this.showCreateNewModal = false;
@@ -12813,25 +12821,34 @@ var Ally;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                response.data = _.sortBy(response.data, function (ct) { return ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract("years", 100).toDate(); }).reverse();
+                response.data = _.sortBy(response.data, function (ct) { return ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate(); }).reverse();
                 if (retrieveArchived)
                     _this.archivedThreads = response.data;
                 else {
                     _this.commentThreads = response.data;
                     _this.archivedThreads = null;
+                    // If we should automatically open a discussion thread
+                    if (_this.autoOpenThreadId) {
+                        var autoOpenThread_1 = _.find(_this.commentThreads, function (t) { return t.commentThreadId === _this.autoOpenThreadId; });
+                        if (autoOpenThread_1)
+                            _this.$timeout(function () { return _this.displayDiscussModal(autoOpenThread_1); }, 125);
+                        // Don't open again
+                        _this.autoOpenThreadId = null;
+                    }
                 }
             }, function (response) {
                 _this.isLoading = false;
             });
         };
-        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents"];
+        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents", "$timeout"];
         return GroupCommentThreadsController;
     }());
     Ally.GroupCommentThreadsController = GroupCommentThreadsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupCommentThreads", {
     bindings: {
-        committeeId: "<?"
+        committeeId: "<?",
+        autoOpenThreadId: "<?"
     },
     templateUrl: "/ngApp/services/group-comment-threads.html",
     controller: Ally.GroupCommentThreadsController

@@ -73,7 +73,7 @@
         </div><!--end/left side bar-->
         <!-- right sidebar -->
         <div class="col-md-6">
-            <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads"></group-comment-threads>
+            <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
             <local-news-feed data-ng-if="$ctrl.showLocalNews"></local-news-feed>
         </div>
     </div>

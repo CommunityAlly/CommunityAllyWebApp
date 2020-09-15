@@ -9,9 +9,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function CommitteeHomeController(siteInfo, fellowResidents) {
+        function CommitteeHomeController(siteInfo, fellowResidents, $routeParams) {
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
+            this.$routeParams = $routeParams;
             this.canManage = false;
         }
         /**
@@ -23,8 +24,10 @@ var Ally;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
                 this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+            if (this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
+                this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
         };
-        CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents"];
+        CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents", "$routeParams"];
         return CommitteeHomeController;
     }());
     Ally.CommitteeHomeController = CommitteeHomeController;

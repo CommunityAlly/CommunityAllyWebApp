@@ -1,11 +1,17 @@
 ﻿namespace Ally
 {
+    interface IHomeRouteParams extends ng.route.IRouteParamsService
+    {
+        discussionThreadId: string;
+    }
+
+
     /**
      * The controller for the group site home page
      */
     export class ChtnHomeController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams"];
 
         welcomeMessage: string;
         canMakePayment: boolean;
@@ -15,6 +21,7 @@
         allyAppName: string;
         homeRightColumnType: string;
         showDiscussionThreads: boolean = false;
+        autoOpenDiscussionThreadId: number;
         showLocalNews: boolean = false;
         shouldShowAlertSection: boolean;
         usersCommittees: Committee[];
@@ -31,7 +38,12 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService, private $scope:ng.IScope )
+        constructor( private $http: ng.IHttpService,
+            private $rootScope: ng.IRootScopeService,
+            private siteInfo: Ally.SiteInfoService,
+            private $timeout: ng.ITimeoutService,
+            private $scope: ng.IScope,
+            private $routeParams: IHomeRouteParams )
         {
         }
 
@@ -41,8 +53,7 @@
         */
         $onInit()
         {
-            this.testPay_ShouldShow = this.siteInfo.publicSiteInfo.shortName === "qa"
-                                    || this.siteInfo.publicSiteInfo.shortName === "localtest";
+            this.testPay_ShouldShow = false; //this.siteInfo.publicSiteInfo.shortName === "qa" || this.siteInfo.publicSiteInfo.shortName === "localtest";
             if( this.testPay_ShouldShow )
             {
                 this.testPay_ReturnUrl = window.location.href;
@@ -76,6 +87,9 @@
                 this.showDiscussionThreads = this.homeRightColumnType.indexOf( "chatwall" ) > -1;
                 this.showLocalNews = this.homeRightColumnType.indexOf( "localnews" ) > -1;
             }
+
+            if( this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
+                this.autoOpenDiscussionThreadId = parseInt( this.$routeParams.discussionThreadId );
 
             var subDomain = HtmlUtil.getSubdomain( window.location.host );
 

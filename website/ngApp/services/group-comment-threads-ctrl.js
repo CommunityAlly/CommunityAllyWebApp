@@ -13,12 +13,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents) {
+        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents, $timeout) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.fellowResidents = fellowResidents;
+            this.$timeout = $timeout;
             this.isLoading = false;
             this.viewingThread = null;
             this.showCreateNewModal = false;
@@ -123,25 +124,34 @@ var Ally;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                response.data = _.sortBy(response.data, function (ct) { return ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract("years", 100).toDate(); }).reverse();
+                response.data = _.sortBy(response.data, function (ct) { return ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate(); }).reverse();
                 if (retrieveArchived)
                     _this.archivedThreads = response.data;
                 else {
                     _this.commentThreads = response.data;
                     _this.archivedThreads = null;
+                    // If we should automatically open a discussion thread
+                    if (_this.autoOpenThreadId) {
+                        var autoOpenThread_1 = _.find(_this.commentThreads, function (t) { return t.commentThreadId === _this.autoOpenThreadId; });
+                        if (autoOpenThread_1)
+                            _this.$timeout(function () { return _this.displayDiscussModal(autoOpenThread_1); }, 125);
+                        // Don't open again
+                        _this.autoOpenThreadId = null;
+                    }
                 }
             }, function (response) {
                 _this.isLoading = false;
             });
         };
-        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents"];
+        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents", "$timeout"];
         return GroupCommentThreadsController;
     }());
     Ally.GroupCommentThreadsController = GroupCommentThreadsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupCommentThreads", {
     bindings: {
-        committeeId: "<?"
+        committeeId: "<?",
+        autoOpenThreadId: "<?"
     },
     templateUrl: "/ngApp/services/group-comment-threads.html",
     controller: Ally.GroupCommentThreadsController

@@ -21,7 +21,7 @@
      */
     export class GroupCommentThreadsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents", "$timeout"];
 
         isLoading: boolean = false;
         editComment: any;
@@ -36,6 +36,7 @@
         newThreadErrorMessage: string;
         showBoardOnly: boolean = false;
         committeeId: number;
+        autoOpenThreadId: number;
         archivedThreads: CommentThread[] = null;
         canCreateThreads: boolean = false;
         isDiscussionEmailEnabled: boolean = true;
@@ -44,7 +45,12 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: SiteInfoService, private $scope: ng.IScope, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private $http: ng.IHttpService,
+            private $rootScope: ng.IRootScopeService,
+            private siteInfo: SiteInfoService,
+            private $scope: ng.IScope,
+            private fellowResidents: Ally.FellowResidentsService,
+            private $timeout: ng.ITimeoutService )
         {
         }
 
@@ -185,7 +191,7 @@
                 this.isLoading = false;
 
                 // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( "years", 100 ).toDate() ).reverse();
+                response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
 
                 if( retrieveArchived )
                     this.archivedThreads = response.data;
@@ -193,6 +199,17 @@
                 {
                     this.commentThreads = response.data;
                     this.archivedThreads = null;
+
+                    // If we should automatically open a discussion thread
+                    if( this.autoOpenThreadId )
+                    {
+                        const autoOpenThread = _.find( this.commentThreads, t => t.commentThreadId === this.autoOpenThreadId );
+                        if( autoOpenThread )
+                            this.$timeout( () => this.displayDiscussModal( autoOpenThread ), 125 );
+
+                        // Don't open again
+                        this.autoOpenThreadId = null;
+                    }
                 }
                 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -206,7 +223,8 @@
 
 CA.angularApp.component( "groupCommentThreads", {
     bindings: {
-        committeeId: "<?"
+        committeeId: "<?",
+        autoOpenThreadId: "<?"
     },
     templateUrl: "/ngApp/services/group-comment-threads.html",
     controller: Ally.GroupCommentThreadsController

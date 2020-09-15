@@ -130,12 +130,14 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
     memberTypeLabel: "Resident",
     menu: [
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" } ),
+        new Ally.RoutePath_v3( { path: "Home/DiscussionThread/:discussionThreadId", templateHtml: "<chtn-home></chtn-home>" } ),
         new Ally.RoutePath_v3( { path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info", reloadOnSearch: false } ),
         new Ally.RoutePath_v3( { path: "Info/:viewName", templateHtml: "<association-info></association-info>" } ),
         new Ally.RoutePath_v3( { path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" } ),
         new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
         new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" } ),
         new Ally.RoutePath_v3( { path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>" } ),
+        new Ally.RoutePath_v3( { path: "Committee/:committeeId/Home/DiscussionThread/:discussionThreadId", templateHtml: "<committee-parent></committee-parent>" } ),
 
         new Ally.RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
         new Ally.RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),

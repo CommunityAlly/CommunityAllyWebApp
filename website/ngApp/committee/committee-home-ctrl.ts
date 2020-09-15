@@ -4,21 +4,28 @@
 
 namespace Ally
 {
+    interface ICommitteeHomeRouteParams extends ng.route.IRouteParamsService
+    {
+        discussionThreadId: string;
+    }
+
+
     /**
      * The controller for the committee home page
      */
     export class CommitteeHomeController implements ng.IController
     {
-        static $inject = ["SiteInfo", "fellowResidents"];
+        static $inject = ["SiteInfo", "fellowResidents", "$routeParams"];
 
         committee: Ally.Committee;
         canManage: boolean = false;
+        autoOpenDiscussionThreadId: number;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
+        constructor( private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService, private $routeParams: ICommitteeHomeRouteParams )
         {
         }
 
@@ -33,6 +40,9 @@ namespace Ally
             // Make sure committee members can manage their data
             if( this.committee && !this.canManage )
                 this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
+
+            if( this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
+                this.autoOpenDiscussionThreadId = parseInt( this.$routeParams.discussionThreadId );
         }
     }
 }
