@@ -104,14 +104,15 @@
         } )();
     </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-32323638-5"></script>
+    <!--<script async src="https://www.googletagmanager.com/gtag/js?id=UA-32323638-5"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push( arguments ); }
         gtag( 'js', new Date() );
 
         gtag( 'config', 'UA-32323638-5' );
-    </script>
+    </script>-->
+    <script src="https://stingray.communityally.org/script.js" site="SHLEWGEJ" defer></script>
     <script>
         // In case we disable Segment analytics, define "analytics" so the code still runs fine
         if( typeof ( analytics ) === "undefined" )
@@ -125,9 +126,22 @@
                         gtag( 'config', 'UA-32323638-5', { 'page_path': pageInfo.path } );
                         gtag( 'event', 'page_view' );
                     },
-                    track: function(actionName)
+                    track: function( actionName )
                     {
                         gtag( 'event', actionName );
+                    }
+                }
+            }
+            else if( typeof ( fathom ) === "object" )
+            {
+                analytics = {
+                    identify: function() { },
+                    page: function( pageInfo )
+                    {
+                        fathom.trackPageview();
+                    },
+                    track: function( actionName )
+                    {
                     }
                 }
             }

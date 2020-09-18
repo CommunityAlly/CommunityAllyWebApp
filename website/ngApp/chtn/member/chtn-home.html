@@ -43,13 +43,11 @@
 
             <assessment-payment-form data-ng-if="$ctrl.canMakePayment"></assessment-payment-form>
 
-            <div class="mt-5" data-ng-if="$ctrl.testPay_ShouldShow">
+            <!--<div class="mt-5" data-ng-if="$ctrl.testPay_ShouldShow">
                 <h2>Test PayPal Payment</h2>
                 Amount: $<input type="number" data-ng-model="$ctrl.testPay_Amt" data-ng-change="$ctrl.onTestPayAmtChange()" />
-                <!--<form data-ng-if="$ctrl.testPay_isValid" action="https://www.paypal.com/cgi-bin/webscr" method="post">-->
                 <form data-ng-if="$ctrl.testPay_isValid" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
                     <input type="hidden" name="cmd" value="_donations">
-                    <!--<input type="hidden" name="business" value="musicpix05@yahoo.com">-->
                     <input type="hidden" name="business" value="musicpix05-buyer@yahoo.com">
                     <input type="hidden" name="item_name" value="{{$ctrl.testPay_Description}}">
                     <input type="hidden" name="amount" value="{{$ctrl.testPay_Amt}}">
@@ -67,7 +65,7 @@
                     <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
                 </form>
                 <div class="text-error" data-ng-if="!$ctrl.testPay_isValid">Please enter a valid amount between 5 and 5000</div>
-            </div>
+            </div>-->
 
             <group-send-email></group-send-email>
         </div><!--end/left side bar-->
