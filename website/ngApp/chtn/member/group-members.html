@@ -127,8 +127,13 @@
                 <div data-ng-if="g.recipientType ==='Everyone'" class="note-text" style="color: red; font-weight: bold;">
                     In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
                     sent to the discussion group. The discussion group allows residents to unsubscribe from
-                    individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.<br />
+                    individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.
                     <br />
+                    <br />
+                </div>
+                <div data-ng-if="g.recipientType ==='Treasurer'" class="note-text" style="color: blue;">
+                    The "Treasurer" group will forward to the user or users that are marked as treasurer or secretary+treasurer. If no users are marked as treasurer then the whole
+                    board will receive messages sent to this group email address. Payment-related messages are automatically sent to this email address.
                 </div>
                 <br />
             </div>
