@@ -145,7 +145,7 @@ var Ally;
                     window.localStorage["rememberMe_Password"] = null;
                 }
                 // If the user hasn't accepted the terms yet then make them go to the profile page
-                if (data.siteInfo.userInfo.acceptedTermsDate === null && !innerThis.isDemoSite)
+                if (!data.siteInfo.userInfo.acceptedTermsDate && !innerThis.isDemoSite)
                     innerThis.$location.path("/MyProfile");
                 else {
                     if (!HtmlUtil.isValidString(redirectPath) && redirectPath !== "/Login")
