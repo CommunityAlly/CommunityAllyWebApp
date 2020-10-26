@@ -229,7 +229,10 @@ var Ally;
         ManageGroupsController.prototype.onClearElmahLogs = function () {
             this.makeHelperRequest("/api/AdminHelper/ClearElmah");
         };
-        ManageGroupsController.prototype.onClearAppGroupCache = function () {
+        ManageGroupsController.prototype.onClearCurrentAppGroupCache = function () {
+            this.makeHelperRequest("/api/AdminHelper/ClearCurrentGroupFromCache");
+        };
+        ManageGroupsController.prototype.onClearEntireAppGroupCache = function () {
             this.makeHelperRequest("/api/AdminHelper/ClearGroupCache");
         };
         ManageGroupsController.prototype.onSendInactiveGroupsMail = function () {

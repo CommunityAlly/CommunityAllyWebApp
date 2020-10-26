@@ -353,7 +353,12 @@
             this.makeHelperRequest( "/api/AdminHelper/ClearElmah" );
         }
 
-        onClearAppGroupCache()
+        onClearCurrentAppGroupCache()
+        {
+            this.makeHelperRequest( "/api/AdminHelper/ClearCurrentGroupFromCache" );
+        }
+
+        onClearEntireAppGroupCache()
         {
             this.makeHelperRequest( "/api/AdminHelper/ClearGroupCache" );
         }
@@ -381,7 +386,6 @@
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     alert( "Failed to perform login: " + response.data.exceptionMessage );
-
                 }
             ).finally( () => this.isLoading = false );
         }
