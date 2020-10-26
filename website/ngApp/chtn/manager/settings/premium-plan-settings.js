@@ -153,9 +153,10 @@ var Ally;
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        PremiumPlanSettingsController.prototype.generateStripeInvoice = function () {
+        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (isAnnual) {
             var _this = this;
-            window.open(this.siteInfo.publicSiteInfo.baseApiUrl + "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId, "_blank");
+            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&isAnnual=" + isAnnual;
+            window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
             window.setTimeout(function () {
                 // Refresh the view token in case the user clicks again
                 _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });

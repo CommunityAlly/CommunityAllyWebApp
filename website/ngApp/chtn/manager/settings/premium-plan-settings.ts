@@ -222,9 +222,10 @@ namespace Ally
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        generateStripeInvoice()
+        generateStripeInvoice( isAnnual: boolean )
         {
-            window.open( this.siteInfo.publicSiteInfo.baseApiUrl + "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId, "_blank" );
+            const getUri = `PublicSettings/ViewPremiumInvoice?vid=${this.viewPremiumInvoiceViewId}&isAnnual=${isAnnual}`;
+            window.open( this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank" );
 
             window.setTimeout( () =>
             {

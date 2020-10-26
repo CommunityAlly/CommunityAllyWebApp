@@ -76,7 +76,8 @@
                 <div data-ng-if="$ctrl.showInvoiceSection">
                     <p class="mt-4">Or you can generate an invoice and pay with an alternate method</p>
                     <span data-ng-if="!$ctrl.isActivatingAnnual">You must pay annually to use the invoice feature.</span>
-                    <button data-ng-if="$ctrl.isActivatingAnnual" class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice()">Generate Invoice</button>
+                    <button data-ng-if="$ctrl.isActivatingAnnual" class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice(true)">Generate Invoice</button>
+                    <button class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice(false)">Generate 1 Month Invoice</button>
                 </div>
             </div>
         </div>
