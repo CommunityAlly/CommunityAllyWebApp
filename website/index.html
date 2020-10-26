@@ -112,10 +112,14 @@
 
         gtag( 'config', 'UA-32323638-5' );
     </script>-->
-    <script src="https://stingray.communityally.org/script.js" site="SHLEWGEJ" defer></script>
+    <script src="https://stingray.communityally.org/script.js" site="SHLEWGEJ" auto="false" spa="hash" defer></script>
     <script>
-        // In case we disable Segment analytics, define "analytics" so the code still runs fine
-        if( typeof ( analytics ) === "undefined" )
+        analytics = {
+            identify: function() { },
+            page: function() { },
+            track: function() { }
+        }
+        function setupAnalytics()
         {
             if( typeof ( gtag ) === "function" )
             {
@@ -138,23 +142,15 @@
                     identify: function() { },
                     page: function( pageInfo )
                     {
-                        fathom.trackPageview();
+                        fathom.trackPageview( { url: pageInfo.path } );
                     },
                     track: function( actionName )
                     {
                     }
                 }
             }
-            else
-            {
-                // Just have a catch-all
-                analytics = {
-                    identify: function() { },
-                    page: function() { },
-                    track: function() { }
-                }
-            }
         }
+        window.setTimeout( setupAnalytics, 500 );
     </script>
     <!-- Fonts -->
     <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700&display=swap' rel='stylesheet' type='text/css'>
