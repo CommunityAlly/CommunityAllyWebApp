@@ -41,6 +41,9 @@ var Ally;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
             this.allowNewWePaySignUp = false;
+            this.shouldAllowDwollaSignUp = false;
+            this.shouldShowDwollaAddAccountModal = false;
+            this.shouldShowDwollaModalClose = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -53,8 +56,9 @@ var Ally;
                 this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             // Allow a single HOA to try WePay
-            var exemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
-            this.allowNewWePaySignUp = exemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            var wePayExemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
+            this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            this.shouldAllowDwollaSignUp = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
             this.payments = [
                 {
                     Date: "",
@@ -86,7 +90,7 @@ var Ally;
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
                         { field: 'notes', displayName: 'Notes' },
-                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span></div>' }
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span><span class="text-link" data-ng-if="row.entity.dwollaTransferUri" data-ng-click="grid.appScope.$ctrl.showDwollaTransferInfo( row.entity )">Dwolla Details</span></div>' }
                     ],
                     enableSorting: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -436,6 +440,41 @@ var Ally;
             });
         };
         /**
+         * Show the Dwolla info for a specific transaction
+         */
+        ManagePaymentsController.prototype.showDwollaTransferInfo = function (paymentEntry) {
+            var _this = this;
+            this.viewingDwollaEntry = paymentEntry;
+            if (!this.viewingDwollaEntry)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/OnlinePayment/DwollaCheckoutInfo/" + paymentEntry.paymentId).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Cancel a Dwolla transfer
+         */
+        ManagePaymentsController.prototype.cancelDwollaTransfer = function () {
+            var _this = this;
+            if (!this.viewingDwollaEntry)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/Dwolla/CancelTransfer/" + this.viewingDwollaEntry.paymentId).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to cancel transfer: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
          * Save the sign-up answers
          */
         ManagePaymentsController.prototype.signUp_Commit = function () {
@@ -483,6 +522,60 @@ var Ally;
         ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
             alert("TODO hook this up");
         };
+        /**
+         * Start the Dwolla IAV process
+         */
+        ManagePaymentsController.prototype.startDwollaSignUp = function () {
+            var _this = this;
+            this.shouldShowDwollaAddAccountModal = true;
+            this.shouldShowDwollaModalClose = false;
+            this.isLoading = true;
+            this.$http.get("/api/Dwolla/GroupIavToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                var iavToken = httpResponse.data.iavToken;
+                dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
+                dwolla.iav.start(iavToken, {
+                    container: 'dwolla-iav-container',
+                    stylesheets: [
+                        'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
+                    ],
+                    microDeposits: false,
+                    fallbackToMicroDeposits: false
+                }, function (err, res) {
+                    console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
+                    if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
+                        var fundingSourceUri = res._links["funding-source"].href;
+                        // Tell the server
+                        _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                            window.location.reload();
+                        }, function (httpResponse) {
+                            _this.isLoading = false;
+                            _this.shouldShowDwollaModalClose = true;
+                            alert("Failed to complete sign-up");
+                        });
+                    }
+                });
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                _this.shouldShowDwollaAddAccountModal = false;
+                alert("Failed to start instant account verification: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Disconnect the bank account from Dwolla
+         */
+        ManagePaymentsController.prototype.disconnectDwolla = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to disconnect the bank account? Residents will no longer be able to make payments."))
+                return;
+            this.isLoading = true;
+            this.$http.put("/api/Dwolla/DisconnectGroupFundingSource", null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
+            });
+        };
         ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         return ManagePaymentsController;
     }());
@@ -491,6 +584,11 @@ var Ally;
         function ParagonPaymentDetails() {
         }
         return ParagonPaymentDetails;
+    }());
+    var DwollaPaymentDetails = /** @class */ (function () {
+        function DwollaPaymentDetails() {
+        }
+        return DwollaPaymentDetails;
     }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePayments", {

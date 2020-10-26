@@ -43,6 +43,12 @@ var Ally;
         return PublicSiteInfo;
     }());
     Ally.PublicSiteInfo = PublicSiteInfo;
+    var RecentPayment = /** @class */ (function () {
+        function RecentPayment() {
+        }
+        return RecentPayment;
+    }());
+    Ally.RecentPayment = RecentPayment;
     /**
      * Represents the group descriptive information that can only be accessed by a member of the
      * group

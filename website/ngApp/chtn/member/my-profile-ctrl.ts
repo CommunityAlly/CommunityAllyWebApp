@@ -57,6 +57,7 @@ namespace Ally
         showPassword: boolean = false;
         shouldShowPassword: boolean = false;
         selectedProfileView: string = "Primary";
+        passwordComplexity: string = "short";
 
 
         /**
@@ -199,7 +200,7 @@ namespace Ally
                 this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
                 this.$rootScope.hideMenu = this.needsToAcceptTerms;
 
-                // Was used before, here for covenience
+                // Was used before, here for convenience
                 this.saveButtonStyle = {
                     width: "100px",
                     "font-size": "1em"
@@ -234,6 +235,30 @@ namespace Ally
 
                 alert( "Failed to save: " + httpResponse.data.exceptionMessage );
             } );
+        }
+
+
+        /**
+         * Occurs when the user modifies the password field
+         */
+        onPasswordChange()
+        {
+            if( !this.profileInfo.password || this.profileInfo.password.length < 6 )
+            {
+                this.passwordComplexity = "short";
+                return;
+            }
+
+            const hasLetter = !!this.profileInfo.password.match( /[a-z]+/i );
+            const hasNumber = !!this.profileInfo.password.match( /[0-9]+/ );
+            const hasSymbol = !!this.profileInfo.password.match( /[^a-z0-9]+/i );
+
+            const isComplex = this.profileInfo.password.length >= 12
+                && hasLetter
+                && hasNumber
+                && hasSymbol;
+
+            this.passwordComplexity = isComplex ? "complex" : "simple";
         }
     }
 }

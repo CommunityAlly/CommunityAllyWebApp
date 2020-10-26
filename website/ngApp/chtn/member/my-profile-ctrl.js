@@ -56,6 +56,7 @@ var Ally;
             this.showPassword = false;
             this.shouldShowPassword = false;
             this.selectedProfileView = "Primary";
+            this.passwordComplexity = "short";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -151,7 +152,7 @@ var Ally;
                 _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
                 _this.hasAcceptedTerms = !_this.needsToAcceptTerms; // Gets set by the checkbox
                 _this.$rootScope.hideMenu = _this.needsToAcceptTerms;
-                // Was used before, here for covenience
+                // Was used before, here for convenience
                 _this.saveButtonStyle = {
                     width: "100px",
                     "font-size": "1em"
@@ -176,6 +177,23 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
+        };
+        /**
+         * Occurs when the user modifies the password field
+         */
+        MyProfileController.prototype.onPasswordChange = function () {
+            if (!this.profileInfo.password || this.profileInfo.password.length < 6) {
+                this.passwordComplexity = "short";
+                return;
+            }
+            var hasLetter = !!this.profileInfo.password.match(/[a-z]+/i);
+            var hasNumber = !!this.profileInfo.password.match(/[0-9]+/);
+            var hasSymbol = !!this.profileInfo.password.match(/[^a-z0-9]+/i);
+            var isComplex = this.profileInfo.password.length >= 12
+                && hasLetter
+                && hasNumber
+                && hasSymbol;
+            this.passwordComplexity = isComplex ? "complex" : "simple";
         };
         MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
         return MyProfileController;

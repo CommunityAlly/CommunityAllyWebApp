@@ -62,7 +62,6 @@
                 </label>
                 <div class="col-8">
                     <input id="emailTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.email" type="text" />
-                    <br />
                     <span class="note-text">This is also used for login. Your e-mail address will never be used for anything other than communication with your condominium association and we will never give out your contact information.</span>
                 </div>
             </div>
@@ -72,9 +71,20 @@
                     Password:
                 </label>
                 <div class="col-8">
-                    <input id="passwordTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.password" type="password" />
-                    <br />
-                    <span class="note-text">Enter a value to change your password.</span><label style="font-size: small;" class="ml-2"><input type="checkbox" data-ng-model="$ctrl.shouldShowPassword" data-ng-change="$ctrl.onShowPassword()" /> Show password</label>
+                    <input id="passwordTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.password" data-ng-change="$ctrl.onPasswordChange()" type="password" maxlength="100" />
+                    <span class="note-text">
+                        Enter a value to change your password.
+                    </span>
+                    <label style="font-size: small;" class="ml-2"><input type="checkbox" data-ng-model="$ctrl.shouldShowPassword" data-ng-change="$ctrl.onShowPassword()" /> Show password</label>
+                    <div data-ng-if="$ctrl.profileInfo.password.length > 0" class="mb-2">
+                        <b>Password Strength:</b>
+                        <span class="status-pill red" data-ng-class="{'status-pill-selected':$ctrl.passwordComplexity === 'short'}">Too Short</span>
+                        <span class="status-pill green" data-ng-class="{'status-pill-selected':$ctrl.passwordComplexity === 'simple'}">Simple</span>
+                        <span class="status-pill green" data-ng-class="{'status-pill-selected':$ctrl.passwordComplexity === 'complex'}">Complex</span>
+                        <br />
+                        If you plan on using online payments, your password must be complex which means at least 12 characters and have at least one letter, number, and symbol. If not, a simple
+                        password that is at least 6 characters of any type will suffice.
+                    </div>
                 </div>
             </div>
 
@@ -84,7 +94,6 @@
                 </label>
                 <div class="col-8">
                     <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
-                    <br />
                     <span class="note-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association.</span>
                     <div data-ng-if="$ctrl.canHideContactInfo">
                         <br />
@@ -151,6 +160,7 @@
 
 <div class="page page-my-profile margin-vertical padding white-bg spinner-effect">
     <div id="my-profile" style="position:relative;">
+        <div class="loading-overlay" style="background-image:none;" data-ng-show="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms"></div>
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
         <h2>Profile Photo</h2>
         <div class="mb-3">

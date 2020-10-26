@@ -340,7 +340,10 @@ var Ally;
         ManageGroupsController.prototype.onClearElmahLogs = function () {
             this.makeHelperRequest("/api/AdminHelper/ClearElmah");
         };
-        ManageGroupsController.prototype.onClearAppGroupCache = function () {
+        ManageGroupsController.prototype.onClearCurrentAppGroupCache = function () {
+            this.makeHelperRequest("/api/AdminHelper/ClearCurrentGroupFromCache");
+        };
+        ManageGroupsController.prototype.onClearEntireAppGroupCache = function () {
             this.makeHelperRequest("/api/AdminHelper/ClearGroupCache");
         };
         ManageGroupsController.prototype.onSendInactiveGroupsMail = function () {
@@ -816,6 +819,12 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+//OverrideBaseApiPath = "https://7002.webappapi.communityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
+//OverrideOriginalUrl = "https://dwollademo.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+//OverrideBaseApiPath = "https://7003.webappapi.mycommunityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
+//OverrideOriginalUrl = "https://dwollademo1.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
+OverrideOriginalUrl = "https://qa.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -1170,6 +1179,8 @@ var Ally;
     var AppConfigInfo = /** @class */ (function () {
         function AppConfigInfo() {
         }
+        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1"];
+        AppConfigInfo.dwollaEnvironmentName = "sandbox";
         return AppConfigInfo;
     }());
     Ally.AppConfigInfo = AppConfigInfo;
@@ -1227,13 +1238,13 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "Financials/OnlinePayments", templateHtml: "<financial-parent></financial-parent>", menuTitle: "Financials", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/:viewName", templateHtml: "<settings-parent></settings-parent>", role: Role_Manager }),
-        new Ally.RoutePath_v3({ path: "Financials/OnlinePayments", templateHtml: "<financial-parent></financial-parent>", menuTitle: "Financials", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Financials/:viewName", templateHtml: "<financial-parent></financial-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin }),
@@ -1991,6 +2002,207 @@ CA.angularApp.component("financialParent", {
     controller: Ally.FinancialParentController
 });
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to view online payment information
+     */
+    var LedgerController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function LedgerController($http, siteInfo, appCacheService, uiGridConstants, $rootScope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
+            this.uiGridConstants = uiGridConstants;
+            this.$rootScope = $rootScope;
+            this.isLoading = false;
+            this.accounts = [];
+            this.categoryOptions = [];
+            this.shouldShowAddTransaction = false;
+            this.editingTransaction = null;
+            this.createAccountInfo = null;
+            this.HistoryPageSize = 50;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        LedgerController.prototype.$onInit = function () {
+            var _this = this;
+            this.categoryOptions = [
+                { name: "Bank Fees" },
+                { name: "Cash Advance" },
+                { name: "Community" },
+                { name: "Food and Drink" },
+                { name: "Healthcare" },
+                { name: "Interest" },
+                { name: "Payment" },
+                { name: "Recreation" },
+                { name: "Service" },
+                { name: "Shops" },
+                { name: "Tax" },
+                { name: "Transfer" },
+                { name: "Travel" }
+            ];
+            this.ledgerGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'" },
+                        { field: 'accountName', displayName: 'Account', enableCellEdit: false, width: 140 },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true },
+                        { field: 'category', displayName: 'Category', width: 170 },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency" },
+                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: this.HistoryPageSize,
+                    paginationPageSizes: [this.HistoryPageSize],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                        gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
+                            console.log('edited row id:' + rowEntity.amount + ' Column:' + colDef + ' newValue:' + newValue + ' oldValue:' + oldValue);
+                            _this.$http.put("/api/Ledger/UpdateEntry", rowEntity);
+                            //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
+                            //$scope.$apply();
+                        });
+                    }
+                };
+            // Populate the page
+            this.refresh();
+        };
+        /**
+         * Load all of the data on the page
+         */
+        LedgerController.prototype.refresh = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Ledger/PageInfo").then(function (httpResponse) {
+                _this.isLoading = false;
+                var pageInfo = httpResponse.data;
+                _this.accounts = pageInfo.accounts;
+                _this.ledgerGridOptions.data = pageInfo.entries;
+                _this.ledgerGridOptions.enablePaginationControls = pageInfo.entries.length > _this.HistoryPageSize;
+                _this.ledgerGridOptions.minRowsToShow = Math.min(pageInfo.entries.length, _this.HistoryPageSize);
+                _this.ledgerGridOptions.virtualizationThreshold = _this.ledgerGridOptions.minRowsToShow;
+            });
+        };
+        /**
+         * Occurs when the user clicks the button to add a new transaction
+         */
+        LedgerController.prototype.onAddTransaction = function () {
+            if (this.accounts.length === 0) {
+                alert("Please add at least one account first");
+                return;
+            }
+            this.editingTransaction = new LedgerEntry();
+            this.editingTransaction.accountId = this.accounts[0].ledgerAccountId;
+        };
+        LedgerController.prototype.showAddAccount = function () {
+            this.createAccountInfo = new CreateAccountInfo();
+            window.setTimeout(function () { return document.getElementById("new-account-name-field").focus(); }, 150);
+        };
+        /**
+         * Occurs when the user wants to edit a transaction
+         */
+        LedgerController.prototype.editEntry = function (entry) {
+            this.editingTransaction = _.clone(entry);
+        };
+        /**
+         * Occurs when the user clicks the button to save transaction details
+         */
+        LedgerController.prototype.onSaveEntry = function () {
+            var _this = this;
+            this.isLoading = true;
+            var onSave = function (httpResponse) {
+                _this.isLoading = false;
+                _this.editingTransaction = null;
+                _this.refresh();
+            };
+            var onError = function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+            };
+            if (this.editingTransaction.ledgerEntryId)
+                this.$http.put("/api/Ledger/UpdateEntry", this.editingTransaction).then(onSave, onError);
+            else
+                this.$http.post("/api/Ledger/NewManualEntry", this.editingTransaction).then(onSave, onError);
+        };
+        /**
+         * Occurs when the user clicks the button to add a new account
+         */
+        LedgerController.prototype.onSaveNewAccount = function () {
+            var _this = this;
+            this.isLoading = true;
+            var onSave = function (httpResponse) {
+                _this.isLoading = false;
+                _this.createAccountInfo = null;
+                _this.refresh();
+            };
+            var onError = function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+            };
+            this.$http.post("/api/Ledger/NewAccount", this.createAccountInfo).then(onSave, onError);
+        };
+        LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
+        return LedgerController;
+    }());
+    Ally.LedgerController = LedgerController;
+    var CategoryOption = /** @class */ (function () {
+        function CategoryOption() {
+        }
+        return CategoryOption;
+    }());
+    var CreateAccountInfo = /** @class */ (function () {
+        function CreateAccountInfo() {
+        }
+        return CreateAccountInfo;
+    }());
+    var LedgerAccount = /** @class */ (function () {
+        function LedgerAccount() {
+        }
+        return LedgerAccount;
+    }());
+    var LedgerEntry = /** @class */ (function () {
+        function LedgerEntry() {
+        }
+        return LedgerEntry;
+    }());
+    var LedgerListEntry = /** @class */ (function (_super) {
+        __extends(LedgerListEntry, _super);
+        function LedgerListEntry() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return LedgerListEntry;
+    }(LedgerEntry));
+    var LedgerPageInfo = /** @class */ (function () {
+        function LedgerPageInfo() {
+        }
+        return LedgerPageInfo;
+    }());
+})(Ally || (Ally = {}));
+CA.angularApp.component("ledger", {
+    templateUrl: "/ngApp/chtn/manager/financial/ledger.html",
+    controller: Ally.LedgerController
+});
+
 var Ally;
 (function (Ally) {
     var ElectronicPayment = /** @class */ (function () {
@@ -2034,6 +2246,9 @@ var Ally;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
             this.allowNewWePaySignUp = false;
+            this.shouldAllowDwollaSignUp = false;
+            this.shouldShowDwollaAddAccountModal = false;
+            this.shouldShowDwollaModalClose = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -2046,8 +2261,9 @@ var Ally;
                 this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             // Allow a single HOA to try WePay
-            var exemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
-            this.allowNewWePaySignUp = exemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            var wePayExemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
+            this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            this.shouldAllowDwollaSignUp = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
             this.payments = [
                 {
                     Date: "",
@@ -2079,7 +2295,7 @@ var Ally;
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
                         { field: 'notes', displayName: 'Notes' },
-                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span></div>' }
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span><span class="text-link" data-ng-if="row.entity.dwollaTransferUri" data-ng-click="grid.appScope.$ctrl.showDwollaTransferInfo( row.entity )">Dwolla Details</span></div>' }
                     ],
                     enableSorting: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -2429,6 +2645,41 @@ var Ally;
             });
         };
         /**
+         * Show the Dwolla info for a specific transaction
+         */
+        ManagePaymentsController.prototype.showDwollaTransferInfo = function (paymentEntry) {
+            var _this = this;
+            this.viewingDwollaEntry = paymentEntry;
+            if (!this.viewingDwollaEntry)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/OnlinePayment/DwollaCheckoutInfo/" + paymentEntry.paymentId).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Cancel a Dwolla transfer
+         */
+        ManagePaymentsController.prototype.cancelDwollaTransfer = function () {
+            var _this = this;
+            if (!this.viewingDwollaEntry)
+                return;
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+            this.$http.get("/api/Dwolla/CancelTransfer/" + this.viewingDwollaEntry.paymentId).then(function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                _this.checkoutInfo = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoadingCheckoutDetails = false;
+                alert("Failed to cancel transfer: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
          * Save the sign-up answers
          */
         ManagePaymentsController.prototype.signUp_Commit = function () {
@@ -2476,6 +2727,60 @@ var Ally;
         ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
             alert("TODO hook this up");
         };
+        /**
+         * Start the Dwolla IAV process
+         */
+        ManagePaymentsController.prototype.startDwollaSignUp = function () {
+            var _this = this;
+            this.shouldShowDwollaAddAccountModal = true;
+            this.shouldShowDwollaModalClose = false;
+            this.isLoading = true;
+            this.$http.get("/api/Dwolla/GroupIavToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                var iavToken = httpResponse.data.iavToken;
+                dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
+                dwolla.iav.start(iavToken, {
+                    container: 'dwolla-iav-container',
+                    stylesheets: [
+                        'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
+                    ],
+                    microDeposits: false,
+                    fallbackToMicroDeposits: false
+                }, function (err, res) {
+                    console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
+                    if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
+                        var fundingSourceUri = res._links["funding-source"].href;
+                        // Tell the server
+                        _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                            window.location.reload();
+                        }, function (httpResponse) {
+                            _this.isLoading = false;
+                            _this.shouldShowDwollaModalClose = true;
+                            alert("Failed to complete sign-up");
+                        });
+                    }
+                });
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                _this.shouldShowDwollaAddAccountModal = false;
+                alert("Failed to start instant account verification: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Disconnect the bank account from Dwolla
+         */
+        ManagePaymentsController.prototype.disconnectDwolla = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to disconnect the bank account? Residents will no longer be able to make payments."))
+                return;
+            this.isLoading = true;
+            this.$http.put("/api/Dwolla/DisconnectGroupFundingSource", null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
+            });
+        };
         ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         return ManagePaymentsController;
     }());
@@ -2484,6 +2789,11 @@ var Ally;
         function ParagonPaymentDetails() {
         }
         return ParagonPaymentDetails;
+    }());
+    var DwollaPaymentDetails = /** @class */ (function () {
+        function DwollaPaymentDetails() {
+        }
+        return DwollaPaymentDetails;
     }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePayments", {
@@ -4020,9 +4330,10 @@ var Ally;
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        PremiumPlanSettingsController.prototype.generateStripeInvoice = function () {
+        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (isAnnual) {
             var _this = this;
-            window.open(this.siteInfo.publicSiteInfo.baseApiUrl + "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId, "_blank");
+            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&isAnnual=" + isAnnual;
+            window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
             window.setTimeout(function () {
                 // Refresh the view token in case the user clicks again
                 _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
@@ -6037,7 +6348,7 @@ var Ally;
                     window.localStorage["rememberMe_Password"] = null;
                 }
                 // If the user hasn't accepted the terms yet then make them go to the profile page
-                if (data.siteInfo.userInfo.acceptedTermsDate === null && !innerThis.isDemoSite)
+                if (!data.siteInfo.userInfo.acceptedTermsDate && !innerThis.isDemoSite)
                     innerThis.$location.path("/MyProfile");
                 else {
                     if (!HtmlUtil.isValidString(redirectPath) && redirectPath !== "/Login")
@@ -6118,6 +6429,7 @@ var Ally;
             this.showPassword = false;
             this.shouldShowPassword = false;
             this.selectedProfileView = "Primary";
+            this.passwordComplexity = "short";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -6213,7 +6525,7 @@ var Ally;
                 _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
                 _this.hasAcceptedTerms = !_this.needsToAcceptTerms; // Gets set by the checkbox
                 _this.$rootScope.hideMenu = _this.needsToAcceptTerms;
-                // Was used before, here for covenience
+                // Was used before, here for convenience
                 _this.saveButtonStyle = {
                     width: "100px",
                     "font-size": "1em"
@@ -6226,13 +6538,6 @@ var Ally;
         MyProfileController.prototype.onSaveInfo = function () {
             var _this = this;
             this.isLoading = true;
-            // If the user entered a password
-            if (!HtmlUtil.isNullOrWhitespace(this.profileInfo.password)) {
-                if (this.profileInfo.password.length < 8) {
-                    alert("Please enter a password that's at least 8 characters long.");
-                    return;
-                }
-            }
             this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
                 _this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login
@@ -6245,6 +6550,23 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
+        };
+        /**
+         * Occurs when the user modifies the password field
+         */
+        MyProfileController.prototype.onPasswordChange = function () {
+            if (!this.profileInfo.password || this.profileInfo.password.length < 6) {
+                this.passwordComplexity = "short";
+                return;
+            }
+            var hasLetter = !!this.profileInfo.password.match(/[a-z]+/i);
+            var hasNumber = !!this.profileInfo.password.match(/[0-9]+/);
+            var hasSymbol = !!this.profileInfo.password.match(/[^a-z0-9]+/i);
+            var isComplex = this.profileInfo.password.length >= 12
+                && hasLetter
+                && hasNumber
+                && hasSymbol;
+            this.passwordComplexity = isComplex ? "complex" : "simple";
         };
         MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
         return MyProfileController;
@@ -7710,24 +8032,103 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function AssessmentPaymentFormController($http, siteInfo, $rootScope, $sce) {
+        function AssessmentPaymentFormController($http, siteInfo, $rootScope, $sce, $timeout, $q) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$rootScope = $rootScope;
             this.$sce = $sce;
+            this.$timeout = $timeout;
+            this.$q = $q;
             this.isLoading_Payment = false;
+            this.isLoadingDwolla = false;
             this.showParagon = false;
             this.showParagonCheckingSignUpModal = false;
             this.showParagonCreditSignUpModal = false;
+            this.dwollaSignUpInfo = {
+                dateOfBirth: "",
+                ssnLast4: "",
+                ssnFull: "",
+                streetAddress3: new Ally.FullAddress()
+            };
+            this.isWePayPaymentActive = false;
+            this.isDwollaPaymentActive = false;
+            this.shouldShowDwolla = false;
+            this.shouldShowDwollaAddAccountModal = false;
+            this.shouldShowDwollaModalClose = false;
+            this.hasComplexPassword = false;
+            this.didAgreeToDwollaTerms = false;
+            this.dwollaFeePercent = 0.5;
+            this.dwollaDocUploadType = "license";
+            this.dwollaDocUploadFile = null;
+            this.dwollaBalance = -1;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         AssessmentPaymentFormController.prototype.$onInit = function () {
+            var _this = this;
             this.showParagon = false; //this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
             this.paragonPaymentParams = "&BillingAddress1=" + encodeURIComponent("900 W Ainslie St") + "&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=" + encodeURIComponent(this.siteInfo.userInfo.firstName) + "&LastName=" + encodeURIComponent(this.siteInfo.userInfo.lastName);
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
+            this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
+            this.shouldShowDwolla = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
+            this.isDwollaAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+            if (this.isDwollaAccountVerified) {
+                this.dwollaUserStatus = "verified";
+                this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
+                if (!this.hasDwollaFundingSource) {
+                    this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
+                }
+                else {
+                    this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    if (this.isDwollaPaymentActive) {
+                        // Check the user's Dwolla balance, delayed since it's not important
+                        this.$timeout(function () {
+                            _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
+                        }, 1000);
+                    }
+                }
+                this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+            }
+            else {
+                this.dwollaUserStatus = "checking";
+                this.userFullName = this.siteInfo.userInfo.fullName;
+                this.userEmail = this.siteInfo.userInfo.emailAddress;
+                var getDwollaDocUploadToken = function () {
+                    _this.$http.get("/api/Dwolla/DocumentUploadToken").then(function (response) {
+                        var uploadToken = response.data;
+                        window.setTimeout(function () {
+                            dwolla.configure({
+                                environment: Ally.AppConfigInfo.dwollaEnvironmentName,
+                                styles: "/main.css",
+                                token: function () {
+                                    var deferred = _this.$q.defer();
+                                    deferred.resolve(uploadToken);
+                                    return deferred.promise;
+                                },
+                                //token: () => Promise.resolve( uploadToken ),
+                                success: function (res) { return alert(res); },
+                                error: function (err) { return alert(err); }
+                            });
+                        }, 200);
+                    }, function (errorResponse) {
+                        _this.dwollaUserStatus = "error";
+                    });
+                };
+                var checkDwollaStatus_1 = function () {
+                    _this.$http.get("/api/Dwolla/MyAccountStatus").then(function (response) {
+                        _this.dwollaUserStatus = response.data.status;
+                        _this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
+                        //if( this.dwollaUserStatus === "document" )
+                        //    getDwollaDocUploadToken();
+                    }, function (errorResponse) {
+                        _this.dwollaUserStatus = "error";
+                    });
+                };
+                this.$timeout(function () { return checkDwollaStatus_1(); }, 500);
+            }
             this.allyAppName = AppConfig.appName;
             this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
@@ -7753,9 +8154,11 @@ var Ally;
                     paymentType: "other",
                     amount: this.assessmentAmount,
                     note: "",
-                    fundingType: null
+                    fundingType: null,
+                    paysFor: []
                 };
-            var MaxNumRecentPayments = 6;
+            this.onPaymentAmountChange();
+            var MaxNumRecentPayments = 24;
             this.recentPayments = this.siteInfo.userInfo.recentPayments;
             if (this.recentPayments && this.recentPayments.length > 0) {
                 if (this.recentPayments.length > MaxNumRecentPayments)
@@ -7776,19 +8179,23 @@ var Ally;
                     this.updatePaymentText();
                 }
             }
-            setTimeout(function () {
-                $('#btn_view_pay_history').click(function () {
-                    $('#pm_info').collapse('hide');
-                    $('#payment_history').collapse('show');
-                });
-                $('#btn_view_pay_info').click(function () {
-                    $('#payment_history').collapse('hide');
-                    $('#pm_info').collapse('show');
-                });
-                $('.hide').click(function () {
-                    $(this).parent().hide('');
-                });
-            }, 400);
+            //setTimeout( () =>
+            //{
+            //    $( '#btn_view_pay_history' ).click( function()
+            //    {
+            //        $( '#pm_info' ).collapse( 'hide' );
+            //        $( '#payment_history' ).collapse( 'show' );
+            //    } );
+            //    $( '#btn_view_pay_info' ).click( function()
+            //    {
+            //        $( '#payment_history' ).collapse( 'hide' );
+            //        $( '#pm_info' ).collapse( 'show' );
+            //    } );
+            //    $( '.hide' ).click( function()
+            //    {
+            //        $( this ).parent().hide( '' );
+            //    } );
+            //}, 400 );
         };
         /**
          * Display the Paragon payment sign-up modal, with pre-population of data
@@ -7862,7 +8269,7 @@ var Ally;
             if (!confirm("This will submit payment."))
                 return;
             this.paragonPaymentMessage = null;
-            var paymentInfo = new ParagonNewPaymentInfo();
+            var paymentInfo = new ParagonPaymentRequest();
             paymentInfo.notes = this.paymentInfo.note;
             paymentInfo.paymentAmount = this.paymentInfo.amount;
             paymentInfo.paysFor = this.paymentInfo.paysFor;
@@ -7898,8 +8305,9 @@ var Ally;
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
             // Remove leading dollar signs
-            if (HtmlUtil.isValidString(this.paymentInfo.amount) && this.paymentInfo.amount[0] === '$')
-                this.paymentInfo.amount = this.paymentInfo.amount.substr(1);
+            var testAmount = this.paymentInfo.amount;
+            if (HtmlUtil.isValidString(testAmount) && testAmount[0] === '$')
+                this.paymentInfo.amount = parseFloat(testAmount.substr(1));
             analytics.track("makePayment", {
                 fundingType: fundingTypeName
             });
@@ -7958,6 +8366,7 @@ var Ally;
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
             this.updatePaymentText();
+            this.onPaymentAmountChange();
         };
         /**
          * Generate the friendly string describing to what the member's next payment applies
@@ -8027,10 +8436,163 @@ var Ally;
                     alert(httpResponse.data.exceptionMessage);
             });
         };
-        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce"];
+        /**
+         * Sign-up a user for Dwolla payments
+         */
+        AssessmentPaymentFormController.prototype.dwollaSignUp = function () {
+            var _this = this;
+            if (!this.didAgreeToDwollaTerms) {
+                alert("Please agree to Dwolla's terms and privacy policy");
+                return;
+            }
+            this.isLoading_Payment = true;
+            this.$http.post("/api/Dwolla/CreatePayer", this.dwollaSignUpInfo).then(function () {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                if (httpResponse.data && httpResponse.data.exceptionMessage)
+                    alert(httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Begin the Dwolla IAV (instant account verification) process
+         */
+        AssessmentPaymentFormController.prototype.dwollaStartIAV = function () {
+            var _this = this;
+            this.shouldShowDwollaAddAccountModal = true;
+            this.shouldShowDwollaModalClose = false;
+            this.isLoadingDwolla = true;
+            this.$http.get("/api/Dwolla/UserIavToken").then(function (httpResponse) {
+                _this.isLoadingDwolla = false;
+                var iavToken = httpResponse.data.iavToken;
+                dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
+                dwolla.iav.start(iavToken, {
+                    container: 'dwolla-iav-container',
+                    stylesheets: [
+                        'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
+                    ],
+                    microDeposits: false,
+                    fallbackToMicroDeposits: false
+                }, function (err, res) {
+                    console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
+                    if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
+                        var fundingSourceUri = res._links["funding-source"].href;
+                        // Tell the server
+                        _this.$http.put("/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                            window.location.reload();
+                        }, function (httpResponse) {
+                            _this.isLoadingDwolla = false;
+                            _this.shouldShowDwollaModalClose = true;
+                            alert("Failed to complete sign-up");
+                        });
+                    }
+                });
+            }, function (httpResponse) {
+                _this.isLoadingDwolla = false;
+                alert("Failed to start IAV: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Submit the user's Paragon bank account information
+         */
+        AssessmentPaymentFormController.prototype.submitDwollaPayment = function () {
+            //if( !confirm( "This will submit payment." ) )
+            //    return;
+            var _this = this;
+            this.dwollaPaymentMessage = null;
+            this.isLoading_Payment = true;
+            this.$http.post("/api/Dwolla/MakePayment", this.paymentInfo).then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.dwollaPaymentMessage = "Payment Successfully Processed";
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                _this.dwollaPaymentMessage = "Payment failed: " + errorResponse.data.exceptionMessage;
+            });
+        };
+        /**
+         * Unlink and remove a user's Dwolla funding source
+         */
+        AssessmentPaymentFormController.prototype.unlinkDwollaFundingSource = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to disconnect the bank account? You will no longer be able to make payments."))
+                return;
+            this.isLoading_Payment = true;
+            this.$http.put("/api/Dwolla/DisconnectUserFundingSource", null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the amount to pay changes
+         */
+        AssessmentPaymentFormController.prototype.onPaymentAmountChange = function () {
+            // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
+            // So we only need to divide by 100 to get our rounded fee
+            var feeAmount = Math.ceil(this.paymentInfo.amount * this.dwollaFeePercent) / 100;
+            this.dwollaFeeAmountString = "$" + feeAmount.toFixed(2);
+        };
+        /**
+         * Occurs when the user clicks the button to upload their Dwolla identification document
+         */
+        AssessmentPaymentFormController.prototype.uploadDwollaDoc = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.dwollaDocUploadMessage = null;
+            var formData = new FormData();
+            formData.append("DocumentFile", this.dwollaDocUploadFile);
+            formData.append("DocumentType", this.dwollaDocUploadType);
+            var postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            this.$http.post("/api/Dwolla/UploadCustomerDocument", formData, postHeaders).then(function (httpResponse) {
+                _this.isLoading_Payment = false;
+                _this.dwollaDocUploadFile = null;
+                _this.dwollaDocUploadMessage = "Your document has been successfully uploaded. You will be notified when it is reviewed.";
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to upload document: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user selects a file for upload to Dwolla
+         */
+        AssessmentPaymentFormController.prototype.onDwollaDocSelected = function (event) {
+            if (!event)
+                this.dwollaDocUploadFile = null;
+            else
+                this.dwollaDocUploadFile = event.target.files[0];
+        };
+        /**
+         * Occurs when the user clicks the button to withdraw their Dwolla balance
+         */
+        AssessmentPaymentFormController.prototype.withdrawDwollaBalance = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.dwollaBalanceMessage = null;
+            this.$http.get("/api/Dwolla/WithdrawDwollaBalance").then(function (httpResponse) {
+                _this.isLoading_Payment = false;
+                _this.dwollaBalanceMessage = "Balance withdraw successfully initiated. Expect the transfer to complete in 1-2 business days.";
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to initiate withdraw: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
         return AssessmentPaymentFormController;
     }());
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
+    var DwollaAccountStatusInfo = /** @class */ (function () {
+        function DwollaAccountStatusInfo() {
+        }
+        return DwollaAccountStatusInfo;
+    }());
+    var MakePaymentRequest = /** @class */ (function () {
+        function MakePaymentRequest() {
+        }
+        return MakePaymentRequest;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
@@ -8044,10 +8606,10 @@ var ParagonPayerSignUpInfo = /** @class */ (function () {
     }
     return ParagonPayerSignUpInfo;
 }());
-var ParagonNewPaymentInfo = /** @class */ (function () {
-    function ParagonNewPaymentInfo() {
+var ParagonPaymentRequest = /** @class */ (function () {
+    function ParagonPaymentRequest() {
     }
-    return ParagonNewPaymentInfo;
+    return ParagonPaymentRequest;
 }());
 
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
@@ -11123,16 +11685,6 @@ var Ally;
                 this.homeRightColumnType = "localnews";
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             this.allyAppName = AppConfig.appName;
-            var MaxNumRecentPayments = 6;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.recentPayments) {
-                if (this.recentPayments.length > MaxNumRecentPayments)
-                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
-                this.numRecentPayments = this.recentPayments.length;
-                // Fill up the list so there's always MaxNumRecentPayments
-                while (this.recentPayments.length < MaxNumRecentPayments)
-                    this.recentPayments.push({});
-            }
             // The object that contains a message if the user wants to send one out
             this.messageObject = {};
             // If the user lives in a unit and assessments are enabled
@@ -11617,16 +12169,6 @@ var Ally;
                 this.homeRightColumnType = "localnews";
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             this.allyAppName = AppConfig.appName;
-            var MaxNumRecentPayments = 6;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.recentPayments) {
-                if (this.recentPayments.length > MaxNumRecentPayments)
-                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
-                this.numRecentPayments = this.recentPayments.length;
-                // Fill up the list so there's always MaxNumRecentPayments
-                while (this.recentPayments.length < MaxNumRecentPayments)
-                    this.recentPayments.push({});
-            }
             // The object that contains a message if the user wants to send one out
             this.messageObject = {};
             // If the user lives in a unit and assessments are enabled
@@ -13062,6 +13604,14 @@ var Ally;
         HtmlUtil2.isString = function (value) {
             return Object.prototype.toString.call(value) === "[object String]";
         };
+        // Test if an object is a string, if it is not empty, and if it's not "null"
+        HtmlUtil2.isValidString = function (str) {
+            if (!str || typeof (str) !== "string")
+                return false;
+            if (str === "null")
+                return false;
+            return str.length > 0;
+        };
         // Convert a UTC date string from the server to a local date object
         HtmlUtil2.serverUtcDateToLocal = function (dbString) {
             if (typeof dbString !== "string")
@@ -13340,6 +13890,19 @@ angular.module("CondoAlly").directive("imageonerror", function () {
         }
     };
 });
+angular.module("CondoAlly").directive('onFileChange', function () {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            element.bind("change", function (event) {
+                scope.$apply(function () {
+                    scope.$eval(attrs.onFileChange, { '$event': event });
+                });
+                event.preventDefault();
+            });
+        }
+    };
+});
 
 // Allow conditional inline values
 // From http://stackoverflow.com/questions/14164371/inline-conditionals-in-angular-js
@@ -13457,6 +14020,12 @@ var Ally;
         return PublicSiteInfo;
     }());
     Ally.PublicSiteInfo = PublicSiteInfo;
+    var RecentPayment = /** @class */ (function () {
+        function RecentPayment() {
+        }
+        return RecentPayment;
+    }());
+    Ally.RecentPayment = RecentPayment;
     /**
      * Represents the group descriptive information that can only be accessed by a member of the
      * group

@@ -205,6 +205,7 @@ grunt.initConfig({
 
     ts: {
         default : {
+            tsconfig: './website/tsconfig.json',
             options: {
                 compiler: './node_modules/typescript/bin/tsc',
                 comments: true,

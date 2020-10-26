@@ -3,6 +3,7 @@
 
 declare class HtmlUtil
 {
+    //TODO Move all of these to HtmlUtil2 then rename HtmlUtil2 to HtmlUtil
     static isNullOrWhitespace( str: string ): boolean;
     static GetQueryStringParameter( parameterName: string ): string;
     // Get a substring up to the occurance of a character
@@ -102,6 +103,19 @@ namespace Ally
         static isString( value: any )
         {
             return Object.prototype.toString.call( value ) === "[object String]";
+        }
+
+
+        // Test if an object is a string, if it is not empty, and if it's not "null"
+        static isValidString( str: any )
+        {
+            if( !str || typeof ( str ) !== "string" )
+                return false;
+
+            if( str === "null" )
+                return false;
+
+            return str.length > 0;
         }
 
 

@@ -12,12 +12,14 @@ namespace Ally
         notes: string;
         fundingSource: string;
         paragonReferenceNumber: string;
+        dwollaTransferUri: string;
     }
 
 
     class PaymentPageInfo
     {
         isWePaySetup: boolean;
+        isDwollaSetup: boolean;
         areOnlinePaymentsAllowed: boolean;
         wePayLoginUri: string;
         payerPaysCCFee: boolean;
@@ -46,16 +48,16 @@ namespace Ally
     export class ManagePaymentsController implements ng.IController
     {
         static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
-        
+
         PaymentHistory: any[] = [];
         errorMessage = "";
         showPaymentPage: boolean = true; //AppConfig.appShortName === "condo";
         highlightWePayCheckoutId: string;
         highlightPaymentsInfoId: number;
-        PeriodicPaymentFrequencies:any[] = PeriodicPaymentFrequencies;
-        AssociationPaysAch:boolean = true;
-        AssociationPaysCC:boolean = false; // Payer pays credit card fees
-        lateFeeInfo:any = {};
+        PeriodicPaymentFrequencies: any[] = PeriodicPaymentFrequencies;
+        AssociationPaysAch: boolean = true;
+        AssociationPaysCC: boolean = false; // Payer pays credit card fees
+        lateFeeInfo: any = {};
         isAssessmentTrackingEnabled: boolean;
         payments: any[];
         testFee: any;
@@ -75,6 +77,7 @@ namespace Ally
         viewingWePayCheckoutId: number;
         viewingPayPalCheckoutId: string;
         viewingParagonReferenceNumber: string;
+        viewingDwollaEntry: ElectronicPayment;
         checkoutInfo: any;
         payPalSignUpClientId: string;
         payPalSignUpClientSecret: string;
@@ -82,12 +85,18 @@ namespace Ally
         isUpdatingPayPalCredentials: boolean;
         allowNewWePaySignUp: boolean = false;
         paymentsGridOptions: uiGrid.IGridOptionsOf<ElectronicPayment>;
+        shouldAllowDwollaSignUp: boolean = false;
+        shouldShowDwollaAddAccountModal: boolean = false;
+        shouldShowDwollaModalClose: boolean = false;
         readonly HistoryPageSize: number = 50;
 
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService, private uiGridConstants: uiGrid.IUiGridConstants )
+        constructor( private $http: ng.IHttpService,
+            private siteInfo: Ally.SiteInfoService,
+            private appCacheService: AppCacheService,
+            private uiGridConstants: uiGrid.IUiGridConstants )
         {
         }
 
@@ -105,9 +114,11 @@ namespace Ally
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
 
             // Allow a single HOA to try WePay
-            let exemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
-            this.allowNewWePaySignUp = exemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
-            
+            let wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
+            this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+
+            this.shouldAllowDwollaSignUp = AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+
             this.payments = [
                 {
                     Date: "",
@@ -143,7 +154,7 @@ namespace Ally
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
                         { field: 'notes', displayName: 'Notes' },
-                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span></div>' }
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span><span class="text-link" data-ng-if="row.entity.dwollaTransferUri" data-ng-click="grid.appScope.$ctrl.showDwollaTransferInfo( row.entity )">Dwolla Details</span></div>' }
                     ],
                 enableSorting: true,
                 enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -172,7 +183,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/OnlinePayment" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<PaymentPageInfo> ) =>
+            this.$http.get( "/api/OnlinePayment" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<PaymentPageInfo> ) =>
             {
                 this.isLoading = false;
                 this.hasLoadedPage = true;
@@ -187,10 +198,10 @@ namespace Ally
                 this.paymentsGridOptions.virtualizationThreshold = this.paymentsGridOptions.minRowsToShow;
 
                 this.lateFeeInfo =
-                    {
-                        lateFeeDayOfMonth: data.lateFeeDayOfMonth,
-                        lateFeeAmount: data.lateFeeAmount
-                    };
+                {
+                    lateFeeDayOfMonth: data.lateFeeDayOfMonth,
+                    lateFeeAmount: data.lateFeeAmount
+                };
 
                 // Prepend flat fee late fees with a $
                 if( !HtmlUtil.isNullOrWhitespace( this.lateFeeInfo.lateFeeAmount )
@@ -217,7 +228,7 @@ namespace Ally
             } );
         }
 
-        
+
         /**
          * Load all of the units on the page
          */
@@ -227,7 +238,7 @@ namespace Ally
             this.isLoadingUnits = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Unit" ).then(( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
+            this.$http.get( "/api/Unit" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
             {
                 innerThis.units = httpResponse.data;
 
@@ -301,7 +312,7 @@ namespace Ally
         saveAllowSetting()
         {
             this.isLoading = true;
-            
+
             this.$http.put( "/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 window.location.reload();
@@ -384,12 +395,12 @@ namespace Ally
             this.isLoadingUnits = true;
 
             var updateInfo: UpdateAssessmentInfo =
-                {
-                    unitId: unit.unitId,
-                    assessment: typeof ( unit.adjustedAssessment ) === "string" ? parseFloat( unit.adjustedAssessment ) : unit.adjustedAssessment,
-                    assessmentNote: unit.adjustedAssessmentReason
-                };
-            
+            {
+                unitId: unit.unitId,
+                assessment: typeof ( unit.adjustedAssessment ) === "string" ? parseFloat( unit.adjustedAssessment ) : unit.adjustedAssessment,
+                assessmentNote: unit.adjustedAssessmentReason
+            };
+
             var innerThis = this;
             this.$http.put( "/api/Unit/UpdateAssessment", updateInfo ).then( () =>
             {
@@ -414,11 +425,11 @@ namespace Ally
                 var AchDBString = "ACH";
                 var CreditDBString = "Credit Card";
 
-                var usersAffected:any[] = [];
+                var usersAffected: any[] = [];
                 if( payTypeUpdated === "ach" )
                     usersAffected = _.where( this.paymentInfo.usersWithAutoPay, ( u: any ) => u.wePayAutoPayFundingSource === AchDBString );
                 else if( payTypeUpdated === "cc" )
-                    usersAffected = _.where( this.paymentInfo.usersWithAutoPay, ( u:any ) => u.wePayAutoPayFundingSource === CreditDBString );
+                    usersAffected = _.where( this.paymentInfo.usersWithAutoPay, ( u: any ) => u.wePayAutoPayFundingSource === CreditDBString );
 
                 // If users will be affected then display an error message to the user
                 if( usersAffected.length > 0 )
@@ -426,12 +437,12 @@ namespace Ally
                     // We need to reload the site if the user is affected so the home page updates that
                     // the user does not have auto-pay enabled
                     needsReloadOfPage = _.find( usersAffected, ( u: any ) => u.userId === this.siteInfo.userInfo.userId ) !== undefined;
-                    
+
                     needsFullRefresh = true;
 
                     var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
 
-                    _.each( usersAffected, ( u:any ) => message += u.ownerName + "\n" );
+                    _.each( usersAffected, ( u: any ) => message += u.ownerName + "\n" );
 
                     message += "\nDo you want to continue?";
 
@@ -504,7 +515,7 @@ namespace Ally
         /**
          * Handle the assessment frequency
          */
-        signUp_AssessmentFrequency( frequencyIndex:number )
+        signUp_AssessmentFrequency( frequencyIndex: number )
         {
             this.signUpInfo.frequencyIndex = frequencyIndex;
             this.signUpInfo.assessmentFrequency = PeriodicPaymentFrequencies[frequencyIndex].name;
@@ -519,7 +530,7 @@ namespace Ally
         {
             this.isLoadingLateFee = true;
 
-            this.$http.put( "/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.put( "/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isLoadingLateFee = false;
 
@@ -544,7 +555,7 @@ namespace Ally
                         this.lateFeeInfo.lateFeeAmount = "" + this.lateFeeInfo.lateFeeAmount + "%";
                 }
 
-            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoadingLateFee = false;
 
@@ -584,7 +595,7 @@ namespace Ally
         /**
          * Show the WePay info for a specific transaction
          */
-        showWePayCheckoutInfo( wePayCheckoutId:number )
+        showWePayCheckoutInfo( wePayCheckoutId: number )
         {
             this.viewingWePayCheckoutId = wePayCheckoutId;
 
@@ -594,7 +605,7 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isLoadingCheckoutDetails = false;
 
@@ -636,14 +647,67 @@ namespace Ally
             } );
         }
 
-        
+
+        /**
+         * Show the Dwolla info for a specific transaction
+         */
+        showDwollaTransferInfo( paymentEntry: ElectronicPayment )
+        {
+            this.viewingDwollaEntry = paymentEntry;
+            if( !this.viewingDwollaEntry )
+                return;
+
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+
+            this.$http.get( "/api/OnlinePayment/DwollaCheckoutInfo/" + paymentEntry.paymentId ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<DwollaPaymentDetails> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                this.checkoutInfo = httpResponse.data;
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+            } );
+        }
+
+
+        /**
+         * Cancel a Dwolla transfer
+         */
+        cancelDwollaTransfer()
+        {
+            if( !this.viewingDwollaEntry )
+                return;
+
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+
+            this.$http.get( "/api/Dwolla/CancelTransfer/" + this.viewingDwollaEntry.paymentId ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<DwollaPaymentDetails> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                this.checkoutInfo = httpResponse.data;
+
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            {
+                this.isLoadingCheckoutDetails = false;
+
+                alert( "Failed to cancel transfer: " + httpResponse.data.exceptionMessage );
+            } );
+        }
+
+
         /**
          * Save the sign-up answers
          */
         signUp_Commit()
         {
             this.isLoading = true;
-            
+
             this.$http.post( "/api/OnlinePayment/BasicInfo", this.signUpInfo ).then( () =>
             {
                 this.isLoading = false;
@@ -655,7 +719,7 @@ namespace Ally
                 this.hasAssessments = this.signUpInfo.hasAssessments;
                 this.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
 
-            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoading = false;
 
@@ -704,6 +768,93 @@ namespace Ally
         {
             alert( "TODO hook this up" );
         }
+
+
+        /**
+         * Start the Dwolla IAV process
+         */
+        startDwollaSignUp()
+        {
+            this.shouldShowDwollaAddAccountModal = true;
+            this.shouldShowDwollaModalClose = false;
+            this.isLoading = true;
+
+            this.$http.get( "/api/Dwolla/GroupIavToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+
+                    var iavToken = httpResponse.data.iavToken;
+                    dwolla.configure( AppConfigInfo.dwollaEnvironmentName );
+
+                    dwolla.iav.start( iavToken,
+                        {
+                            container: 'dwolla-iav-container',
+                            stylesheets: [
+                                'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
+                            ],
+                            microDeposits: false,
+                            fallbackToMicroDeposits: false
+                        },
+                        ( err: any, res: any ) =>
+                        {
+                            console.log( 'Error: ' + JSON.stringify( err ) + ' -- Response: ' + JSON.stringify( res ) );
+
+                            if( res && res._links && res._links["funding-source"] && res._links["funding-source"].href )
+                            {
+                                const fundingSourceUri = res._links["funding-source"].href;
+
+                                // Tell the server
+                                this.$http.put( "/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri } ).then(
+                                    ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                    {
+                                        window.location.reload();
+                                    },
+                                    ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                                    {
+                                        this.isLoading = false;
+                                        this.shouldShowDwollaModalClose = true;
+                                        alert( "Failed to complete sign-up" )
+                                    }
+                                );
+                            }
+                        }
+                    );
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    this.shouldShowDwollaAddAccountModal = false;
+
+                    alert( "Failed to start instant account verification: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Disconnect the bank account from Dwolla
+         */
+        disconnectDwolla()
+        {
+            if( !confirm( "Are you sure you want to disconnect the bank account? Residents will no longer be able to make payments." ) )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.put( "/api/Dwolla/DisconnectGroupFundingSource", null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to disconnect account" + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
     }
 
 
@@ -714,6 +865,17 @@ namespace Ally
         date: string;
         payment_reference_number: string;
         result_message: string;
+    }
+
+    class DwollaPaymentDetails
+    {
+        dwollaTransferId: string;
+        status: string;
+        amountString: string;
+        feeAmountString: string;
+        createdDateUtc: Date;
+        clearingSource: string;
+        cancelUri: string;
     }
 }
 

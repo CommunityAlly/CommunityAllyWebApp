@@ -6,8 +6,95 @@
     <div class="portlet-body">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
 
-        <p class="single_p">{{ $ctrl.allyAppName }} uses <a target="_blank" href="https://www.wepay.com/"><img src="/assets/images/small_wepay_logo.png" alt="" /></a> to safely and securely handle payments. </p>
-        <form action="#">
+        <div id="dwolla-form" class="mb-4" data-ng-if="$ctrl.shouldShowDwolla">
+            <div ng-if="$ctrl.isDwollaAccountVerified && !$ctrl.hasDwollaFundingSource">
+                <div>
+                    Your Dwolla account is verified, you can now associate a bank account to make payments from:
+                    <br />
+                    <br />
+                    <div data-ng-if="$ctrl.hasComplexPassword">
+                        <input type="button" class="btn btn-primary" id="start" value="Add Bank Account" ng-click="$ctrl.dwollaStartIAV()" data-ng-if="!$ctrl.isLoadingDwolla" />
+                        <img src="/assets/images/spinner-large.gif" data-ng-if="$ctrl.isLoadingDwolla" />
+                    </div>
+                    <div data-ng-if="!$ctrl.hasComplexPassword" style="font-weight: bold;">
+                        In order to sign-up to make Dwolla payments you must use a complex password. Please visit <a href="#!/MyProfile">your profile</a> to update your password.
+                    </div>
+                </div>
+            </div>
+            <div ng-if="!$ctrl.isDwollaAccountVerified">
+                <div id="dwolla-sign-up" data-ng-if="$ctrl.dwollaUserStatus === 'checking'">
+                    <img src="/assets/images/spinner-large.gif" />
+                </div>
+                <div id="dwolla-sign-up" class="container" data-ng-if="$ctrl.dwollaUserStatus !== 'checking'">
+                    <div data-ng-if="$ctrl.dwollaUserStatus === 'new' || $ctrl.dwollaUserStatus === 'retry'">
+                        <div class="row mb-3" data-ng-if="$ctrl.dwollaUserStatus === 'retry'">
+                            <div class="col-12 text-error">
+                                The initial identity verification attempt failed because the information provided did not satisfy Dwolla’s verification check. Please try again by entering your full Social Security number and adjusting any fields that are incorrect.
+                            </div>
+                        </div>
+                        <div class="row mb-3" data-ng-if="$ctrl.dwollaUserStatus !== 'retry'">
+                            <div class="col-12">
+                                In order to make payments, Dwolla needs to verify your identity. Please enter the information below.
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <span class="font-weight-bold">Name:</span> <span>{{$ctrl.userFullName}}</span>
+                                <span class="font-weight-bold">Email:</span> <span>{{$ctrl.userEmail}}</span>
+                                <br />
+                                <span class="note-text">Edit this information in <a href="#!/MyProfile">your profile</a>.</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">Date of Birth: <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.dwollaSignUpInfo.dateOfBirth" data-ui-date="{changeYear: true, yearRange: '1900:+0'}" /></div>
+                            <div data-ng-if="$ctrl.dwollaUserStatus !== 'retry'" class="col-6">Last 4 of SSN: <input type="password" class="form-control form-control-sm" maxlength="4" data-ng-model="$ctrl.dwollaSignUpInfo.ssnLast4" /></div>
+                            <div data-ng-if="$ctrl.dwollaUserStatus === 'retry'" class="col-6">Full SSN: <input type="password" class="form-control form-control-sm" maxlength="11" data-ng-model="$ctrl.dwollaSignUpInfo.ssnFull" /></div>
+                        </div>
+                        <div class="row mb-3" data-ng-if="!$ctrl.editDwollaSignUpAddress">
+                            <div class="col-12"><span class="font-weight-bold">Home Address:</span> <span>{{$ctrl.dwollaSignUpInfo.streetAddress.oneLiner}}</span> <span class="note-text text-link" data-ng-click="$ctrl.editDwollaSignUpAddress = true">edit</span></div>
+                        </div>
+                        <street-address-form data-ng-if="$ctrl.editDwollaSignUpAddress" data-street-address="$ctrl.dwollaSignUpInfo.streetAddress" should-hide-name="true"></street-address-form>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <label><input type="checkbox" data-ng-model="$ctrl.didAgreeToDwollaTerms" /> By checking this box you agree to <a target="_blank" href="https://login.condoally.com/TermsOfService.html">Our Terms of Service</a> and <a target="_blank" href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>, as well as our partner <a target="_blank" href="https://www.dwolla.com/legal/tos/">Dwolla's Terms of Service</a> and <a target="_blank" href="https://www.dwolla.com/legal/privacy/">Privacy Policy</a>.</label>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.dwollaSignUp();">Agree and Sign-up for Payments</button>
+                    </div>
+
+                    <div data-ng-if="$ctrl.dwollaUserStatus === 'document'">
+                        <div data-ng-if="$ctrl.dwollaDocUploadMessage">
+                            {{$ctrl.dwollaDocUploadMessage}}
+                        </div>
+                        <div data-ng-if="!$ctrl.dwollaDocUploadMessage">
+                            In order for Dwolla to complete your identity verification, you need to upload a document confirming your identify. The image needs to be color and sharp, not blurry. If you have already done this, please
+                            give Dwolla up to 2 full days to hear a response before contacting support.
+                            <div class="mt-3">
+                                <label>
+                                    <b>Document Type:</b>
+                                    <select data-ng-model="$ctrl.dwollaDocUploadType">
+                                        <option value="license">State-Issued Driver's License</option>
+                                        <option value="passport">Passport</option>
+                                        <option value="idCard">Government-Issued ID Card</option>
+                                    </select>
+                                </label>
+                                <br />
+                                <input type="file" on-file-change="$ctrl.onDwollaDocSelected($event)" />
+                                <br />
+                                <br />
+                                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.uploadDwollaDoc()">Upload Document</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-ng-if="$ctrl.dwollaUserStatus === 'suspended'" class="text-error">
+                        It appears your account verification has failed. Please contact tech support using the message form in the bottom right of using <a href="#!/Help">this form</a>.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form data-ng-if="$ctrl.isWePayPaymentActive || $ctrl.isDwollaPaymentActive">
             <div class="pay_for">
                 <div class="text-16 font-600">I am paying for</div>
 
@@ -28,7 +115,7 @@
             <div class="amount_field row">
                 <div class="col-sm-4 pay_check">
                     <label>Amount</label>
-                    <input class="form-control grey" type="text" value="" data-ng-disabled="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-model="$ctrl.paymentInfo.amount" />
+                    <input class="form-control grey" type="text" value="" data-ng-disabled="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-model="$ctrl.paymentInfo.amount" data-ng-change="$ctrl.onPaymentAmountChange()" />
                 </div>
                 <div class="col-sm-8 memo">
                     <label>Memo</label>
@@ -38,23 +125,51 @@
                 <i class="error" ng-show="$ctrl.paymentError">{{$ctrl.paymentErrorMessage}}</i>
             </div>
 
-            <p class="buttons margin-top-30">
-                <span class="text-center d-inline-block">
-                    <input type="button" class="btn btn-primary" data-ng-click="$ctrl.makePayment('ach');" value="Pay with E-Check">
-                    <br />
-                    {{ $ctrl.assessmentAchFeeLabel }}
-                </span>
-                <span class="text-center d-inline-block">
-                    <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.makePayment('cc');" value="Pay with Debit/Credit Card">
-                    <br />
-                    {{ $ctrl.assessmentCreditCardFeeLabel }}
-                </span>
-            </p>
+            <div data-ng-if="$ctrl.isWePayPaymentActive">
+                <p class="margin-top-30" style="margin-bottom: 0;">You can use <a target="_blank" href="https://www.wepay.com/">WePay</a> to safely and securely handle payments.</p>
+                <p class="buttons">
+                    <span class="text-center d-inline-block">
+                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.makePayment('ach');" value="Pay with E-Check">
+                        <br />
+                        {{ $ctrl.assessmentAchFeeLabel }}
+                    </span>
+                    <span class="text-center d-inline-block">
+                        <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.makePayment('cc');" value="Pay with Debit/Credit Card">
+                        <br />
+                        {{ $ctrl.assessmentCreditCardFeeLabel }}
+                    </span>
+                </p>
+            </div>
+
+            <div class="buttons margin-top-30 text-center" ng-if="$ctrl.isDwollaAccountVerified && $ctrl.hasDwollaFundingSource && $ctrl.isDwollaPaymentActive">
+                <p class="text-left margin-top-30" style="margin-bottom: 0;">You can use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely handle payments.</p>
+
+                <div class="text-center d-inline-block">
+                    <div data-ng-if="$ctrl.dwollaPaymentMessage">
+                        <span style="font-size: x-large; color: blue;">{{ $ctrl.dwollaPaymentMessage }}</span>
+                        <div class="mt-2">
+                            (<span class="text-link note-text" data-ng-click="$ctrl.dwollaPaymentMessage = null">OK</span>)
+                        </div>
+                    </div>
+                    <div data-ng-if="!$ctrl.dwollaPaymentMessage">
+                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitDwollaPayment()" value="Submit Payment">
+                        <br />
+                        Clicking this button will submit payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}) applies.
+                    </div>
+                </div>
+                <div class="mt-3 text-right">
+                    <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
+                </div>
+            </div>
             <br />
             <br />
-            <br />
+
             <div class="buttons margin-top-30 text-center" data-ng-if="$ctrl.showParagon">
-                <p class="single_p text-left">{{ $ctrl.allyAppName }} uses <a target="_blank" href="https://paragonsolutions.com/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments. </p>
+                <p class="single_p text-left">
+                    {{
+ $ctrl.allyAppName
+                    }} uses <a target="_blank" href="https://paragonsolutions.com/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments.
+                </p>
 
                 <div class="text-center d-inline-block" data-ng-if="$ctrl.paragonCheckingLast4 || $ctrl.paragonCardLast4">
                     <!--<a id="paragon-pay-button" onclick="if( $ctrl.paymentInfo.amount < 1 ) return false; $( this ).hide(); $( '#paragon-spinner' ).show(); return true;" data-ng-href="https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" class="btn btn-info" role="button">Pay Now</a>-->
@@ -159,6 +274,20 @@
                 </div>
             </div>
 
+            <div class="modal-container" data-ng-show="$ctrl.shouldShowDwollaAddAccountModal">
+                <div class="modal-overlay" data-ng-click=""></div>
+                <div class="ca-modal-dialog modal-lg">
+                    <div class="loading-overlay" data-ng-show="$ctrl.isLoadingDwolla"></div>
+                    <span style="float: right;" class="close-x" data-ng-click="$ctrl.showParagonCheckingSignUpModal = false">&times;</span>
+                    <h2>Add Bank Account</h2>
+                    <span class="note-text">
+                        Note: For an extra layer of security, the account addition process takes place through Dwolla's servers only. The information you enter below does not
+                        interact with Community Ally's server.
+                    </span>
+                    <div id="dwolla-iav-container"></div>
+                </div>
+            </div>
+
             <div class="modal-container" data-ng-show="$ctrl.showParagonCreditSignUpModal">
                 <div class="modal-overlay"></div>
                 <div class="ca-modal-dialog modal-lg">
@@ -171,7 +300,7 @@
                         {{ $ctrl.paragonCardTokenizationMessage }}
                     </div>
                     <iframe data-ng-if="$ctrl.paragonCardTokenizedUrl" style="width: 100%; height: 600px;" ng-src="{{$ctrl.paragonCardTokenizedUrl}}"></iframe>
-                    </div>
+                </div>
             </div>
 
             <fieldset data-ng-style="{'display': $ctrl.isAutoPayActive ? 'block':'none'}">
@@ -213,26 +342,40 @@
             </fieldset>
         </form>
 
+        <div class="mb-2 mt-2" data-ng-if="$ctrl.dwollaBalance > 0 && !$ctrl.dwollaBalanceMessage">
+            Dwolla Balance:
+            <span class="font-weight-bold">{{$ctrl.dwollaBalance | currency}}</span>
+            <span class="ml-3 text-link" data-ng-click="$ctrl.withdrawDwollaBalance()">Withdrawal</span>
+        </div>
+
+        <div class="mb-2 mt-2" data-ng-if="$ctrl.dwollaBalanceMessage">
+            {{$ctrl.dwollaBalanceMessage}}
+        </div>
+
         <div class="margin-top-20">
             <div class="manage_pannel text-right">
-                <a href="javascript:void(0)" id="btn_view_pay_history">View Payment History </a>
-                <a href="javascript:void(0)" id="btn_view_pay_info">View Payment Information</a>
+                <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">View Payment History</span>
+                <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">View Payment Information</span>
             </div>
 
             <div class="mt-4">
-                <div id="payment_history" class="collapse">
+                <div id="payment_history" data-ng-if="$ctrl.showExtraInfo === 'payment-history'">
                     <h4>Payment History</h4>
-                    <span class="hide note-text text-link">hide</span>
-                    <div data-ng-if="$ctrl.recentPayments.length > 0">
-                        <p data-ng-repeat="payment in $ctrl.recentPayments">{{ payment.date | date:'shortDate' }}   <strong>{{ payment.amount | currency }}</strong></p>
+                    <div data-ng-if="$ctrl.recentPayments.length > 0" class="row">
+                        <div class="col-6" data-ng-repeat="payment in $ctrl.recentPayments">
+                            {{ payment.date | date:'shortDate' }}
+                            <strong>{{ payment.amount | currency }}</strong>
+                            <span class="note-text" data-ng-if="payment.electronic">{{payment.electronic.status}}</span>
+                        </div>
                     </div>
                     <p data-ng-if="!$ctrl.recentPayments.length">You have no payment history.</p>
                 </div>
 
-                <div id="pm_info" class="collapse">
+                <div id="pm_info" data-ng-if="$ctrl.showExtraInfo === 'payment-info'">
                     <h4>Payment Information</h4>
-                    <span class="hide note-text text-link">hide</span>
-                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called WePay to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and WePay use the same security used by major banks to secure all information and data transfer. <a href="https://support.wepay.com/entries/23064032-Security" target="_blank">Learn more about WePay's security</a>. </p>
+                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called Dwolla to process payment. There is a 1% processing fee if your association is using the {{ $ctrl.allyAppName }} free plan, or 0.5% if on the premium plan. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and Dwolla use the same security used by major banks to secure all information and data transfer. <a href="https://www.dwolla.com/security/" target="_blank">Learn more about Dwolla's security</a>. </p>
+
+                    <!--<p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called WePay to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and WePay use the same security used by major banks to secure all information and data transfer. <a href="https://support.wepay.com/entries/23064032-Security" target="_blank">Learn more about WePay's security</a>. </p>-->
 
                     <p><!--You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called Paragon to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and Paragon use the same security used by major banks to secure all information and data transfer. <a href="https://paragonsolutions.com/compliance-security/" target="_blank">Learn more about Paragon's security</a>.--> </p>
 

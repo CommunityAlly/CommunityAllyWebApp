@@ -69,3 +69,22 @@ angular.module( "CondoAlly" ).directive( "imageonerror", function()
         }
     };
 } );
+
+angular.module( "CondoAlly" ).directive( 'onFileChange', function()
+{
+    return {
+        restrict: 'A',
+        link: function( scope: ng.IScope, element: any, attrs: any )
+        {
+            element.bind( "change", function( event: any )
+            {
+                scope.$apply( function()
+                {
+                    scope.$eval( attrs.onFileChange, { '$event': event } );
+                } );
+
+                event.preventDefault();
+            } );
+        }
+    };
+} );

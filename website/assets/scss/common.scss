@@ -347,3 +347,25 @@ section.header-pill-menu-section nav a.nav-link.active {
     font-weight: bold;
     text-decoration: underline;
 }
+
+.status-pill, .status-pill-selected {
+    border: 1px solid black;
+    border-radius: 12px;
+    padding: 2px 6px;
+    margin: 0 5px;
+}
+
+.status-pill-selected {
+    background-color: #007bff;
+    color: white;
+}
+
+.status-pill-selected.green {
+    background-color: #40ee40;
+    color: black;
+}
+
+.status-pill-selected.red {
+    background-color: #ee4040;
+    color: white;
+}

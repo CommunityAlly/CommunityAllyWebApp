@@ -73,7 +73,22 @@
 
             <div id="signed-up-panel" data-ng-if="$ctrl.hasAssessments != null">
 
-                <div data-ng-hide="$ctrl.paymentInfo.isWePaySetup">
+                <div data-ng-if="$ctrl.shouldAllowDwollaSignUp && !$ctrl.paymentInfo.isDwollaSetup">
+                    We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to securely handle all of our payment transactions to offer you
+                    an incredible layer of security. To start receiving payments from your residents you need to associate a bank account
+                    for your association via Dwolla. Payments will be automatically sent to this account once a Dwolla payment has cleared. Payment
+                    notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">the bottom of your residents
+                    page</a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
+                    <a href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>.
+                    <br>
+                    <br>
+                    Payers pay a 0.5% payment fee when your association is on the premium plan, 1% when on the free plan. For example, $0.50 on a $100 payment, $1 on $200, an $1.50 on $300.
+                    <br />
+                    <br />
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startDwollaSignUp()">Sign up Now</button>
+                </div>
+
+                <div data-ng-if="!$ctrl.paymentInfo.isWePaySetup">
 
                     <div data-ng-if="$ctrl.allowNewWePaySignUp">
                         We use WePay to securely handle all of our payment transactions to offer you
@@ -91,14 +106,18 @@
                         <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Sign up Now</a>
                     </div>
 
-                    <div data-ng-if="!$ctrl.allowNewWePaySignUp">
+                    <!--<div data-ng-if="!$ctrl.allowNewWePaySignUp">
                         We are in the process of changing our payment provider so sign-up is currently disabled. If you would like to sign-up anyway, please
                         contact support.
-                    </div>
+                    </div>-->
 
                 </div>
 
-                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId">
+                <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2">
+                    <span class="text-link" data-ng-click="$ctrl.disconnectDwolla()">Unlink Dwolla bank account</span>
+                </div>
+
+                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || $ctrl.paymentInfo.isDwollaSetup">
                     <div class="form-group row">
                         <label for="allow-payments-checkbox" class="col-xs-6 col-sm-4">Allow Online Payments:</label>
                         <div class="col-xs-6 col-sm-8">
@@ -163,33 +182,33 @@
                     </div>
 
                     <!--<table class="table table-bordered" data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Unit</th>
-                                <th>Resident</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Notes</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr data-ng-repeat="payment in $ctrl.paymentInfo.electronicPayments" data-ng-class="{ 'highlight': (payment.wePayCheckoutId == $ctrl.highlightWePayCheckoutId) }">
-                                <td>{{ payment.submitDateUtc | date }}</td>
-                                <td>{{ payment.unitName }}</td>
-                                <td>{{ payment.resident }}</td>
-                                <td>{{ payment.amount | currency }}</td>
-                                <td>{{ payment.status }}</td>
-                                <td>{{ payment.notes }}</td>
-                                <td>
-                                    <span class="text-link" data-ng-if="payment.wePayCheckoutId" data-ng-click="$ctrl.showWePayCheckoutInfo( payment.wePayCheckoutId )">WePay Details</span>
-                                    <span class="text-link" data-ng-if="payment.payPalCheckoutId" data-ng-click="$ctrl.showPayPalCheckoutInfo( payment.payPalCheckoutId )">PayPal Details</span>
-                                    <span class="text-link" data-ng-if="payment.paragonReferenceNumber" data-ng-click="$ctrl.showParagonCheckoutInfo( payment.paragonReferenceNumber )">Paragon Details</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>-->
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Unit</th>
+                            <th>Resident</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-ng-repeat="payment in $ctrl.paymentInfo.electronicPayments" data-ng-class="{ 'highlight': (payment.wePayCheckoutId == $ctrl.highlightWePayCheckoutId) }">
+                            <td>{{ payment.submitDateUtc | date }}</td>
+                            <td>{{ payment.unitName }}</td>
+                            <td>{{ payment.resident }}</td>
+                            <td>{{ payment.amount | currency }}</td>
+                            <td>{{ payment.status }}</td>
+                            <td>{{ payment.notes }}</td>
+                            <td>
+                                <span class="text-link" data-ng-if="payment.wePayCheckoutId" data-ng-click="$ctrl.showWePayCheckoutInfo( payment.wePayCheckoutId )">WePay Details</span>
+                                <span class="text-link" data-ng-if="payment.payPalCheckoutId" data-ng-click="$ctrl.showPayPalCheckoutInfo( payment.payPalCheckoutId )">PayPal Details</span>
+                                <span class="text-link" data-ng-if="payment.paragonReferenceNumber" data-ng-click="$ctrl.showParagonCheckoutInfo( payment.paragonReferenceNumber )">Paragon Details</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>-->
 
                     <div data-ui-grid="$ctrl.paymentsGridOptions" ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
                     <div style="height: 20px;"></div>
@@ -435,6 +454,44 @@
                 <br />
                 <br />
                 <p class="note-text text-right">(Click anywhere outside this window to close)</p>
+            </div>
+        </div>
+
+        <div data-ng-if="$ctrl.viewingDwollaEntry" class="modal-container" data-ng-escape="$ctrl.showDwollaTransferInfo( null )">
+            <div class="modal-overlay" data-ng-click="$ctrl.showDwollaTransferInfo( null )"></div>
+            <div class="ca-modal-dialog modal-sm">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCheckoutDetails"></div>
+                <table>
+                    <tbody>
+                        <tr><td class="AlignRightBold">Transfer ID: </td><td>{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
+                        <tr><td class="AlignRightBold">Status: </td><td>{{ $ctrl.checkoutInfo.status }}</td></tr>
+                        <tr><td class="AlignRightBold">Amount: </td><td>{{ $ctrl.checkoutInfo.amountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="AlignRightBold">Fees: </td><td>{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr><td class="AlignRightBold">Created : </td><td>{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
+                        <tr><td class="AlignRightBold">Clearing: </td><td>{{ $ctrl.checkoutInfo.clearingSource }}</td></tr>
+                        <tr><td class="AlignRightBold">Cancel: </td><td><span class="text-link" data-ng-if="$ctrl.checkoutInfo.cancelUri" data-ng-click="$ctrl.cancelDwollaTransfer()">Cancel</span><span data-ng-if="$ctrl.checkoutInfo.dwollaTransferId && !$ctrl.checkoutInfo.cancelUri">No longer available</span></td></tr>
+                    </tbody>
+                </table>
+                <br />
+                <br />
+                <a href="https://developers.dwolla.com/concepts/transfer-processing-times#transfer-processing-times" target="_blank">Learn about Dwolla processing times</a>
+                <br />
+                <br />
+                <p class="note-text text-right">(Click anywhere outside this window to close)</p>
+            </div>
+        </div>
+
+        <div class="modal-container" data-ng-show="$ctrl.shouldShowDwollaAddAccountModal">
+            <div class="modal-overlay" data-ng-click=""></div>
+            <div class="ca-modal-dialog modal-lg">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowDwollaAddAccountModal = false">&times;</span>
+                <h2>Add Bank Account</h2>
+                <span class="note-text">
+                    Note: For an extra layer of security, the account addition process takes place through Dwolla's servers only. The information you enter below does not
+                    interact with Community Ally's server.
+                </span>
+                <div id="dwolla-iav-container"></div>
             </div>
         </div>
 

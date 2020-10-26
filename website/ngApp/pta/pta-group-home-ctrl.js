@@ -27,16 +27,6 @@ var Ally;
                 this.homeRightColumnType = "localnews";
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             this.allyAppName = AppConfig.appName;
-            var MaxNumRecentPayments = 6;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.recentPayments) {
-                if (this.recentPayments.length > MaxNumRecentPayments)
-                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
-                this.numRecentPayments = this.recentPayments.length;
-                // Fill up the list so there's always MaxNumRecentPayments
-                while (this.recentPayments.length < MaxNumRecentPayments)
-                    this.recentPayments.push({});
-            }
             // The object that contains a message if the user wants to send one out
             this.messageObject = {};
             // If the user lives in a unit and assessments are enabled

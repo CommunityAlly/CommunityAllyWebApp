@@ -48,13 +48,15 @@ namespace Ally
         isParagonPaymentSetup: boolean;
         paragonCheckingLast4: string;
         paragonCardLast4: string;
+        isDwollaAccountVerified: boolean;
+        dwollaFundingSourceName: string;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];
         assessmentAmount: number;
         isRenter: boolean;
         usersUnits: UsersHome[];
-        recentPayments: any[];
+        recentPayments: RecentPayment[];
         isAutoPayActive: boolean;
         nextAutoPayText: string;
     }
@@ -76,6 +78,15 @@ namespace Ally
         /** The root URI for this group's API, looks like "https://0.webappapi.communityally.org/api/" */
         baseApiUrl: string;
         appType: number;
+    }
+
+
+    export class RecentPayment
+    {
+        electronic: any;
+        Periodic: any;
+        date: Date;
+        amount: number;
     }
 
 
@@ -114,6 +125,8 @@ namespace Ally
         isPaymentEnabled: boolean;
         payerPaysAchFee: boolean;
         payerPaysCCFee: string;
+        isWePayPaymentActive: boolean;
+        isDwollaPaymentActive: boolean;
         numUnits: number;
         isEmailSendingRestricted: boolean;
         hasAssessments: boolean;

@@ -49,6 +49,14 @@ var Ally;
         HtmlUtil2.isString = function (value) {
             return Object.prototype.toString.call(value) === "[object String]";
         };
+        // Test if an object is a string, if it is not empty, and if it's not "null"
+        HtmlUtil2.isValidString = function (str) {
+            if (!str || typeof (str) !== "string")
+                return false;
+            if (str === "null")
+                return false;
+            return str.length > 0;
+        };
         // Convert a UTC date string from the server to a local date object
         HtmlUtil2.serverUtcDateToLocal = function (dbString) {
             if (typeof dbString !== "string")

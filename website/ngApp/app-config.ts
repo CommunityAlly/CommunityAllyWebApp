@@ -83,7 +83,10 @@ namespace Ally
         /// The label for a user in this group, starting with an upper-case letter
         memberTypeLabel: string;
         menu: Ally.RoutePath_v3[];
-        isPublicRoute?: ( path:string ) => boolean;
+        isPublicRoute?: ( path: string ) => boolean;
+
+        static dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1"];
+        static dwollaEnvironmentName = "sandbox";
     }
 
 
