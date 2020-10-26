@@ -1,0 +1,115 @@
+﻿<div class="page page-manage-payments" style="min-height: 100px;">
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+    <h1>Association Ledger</h1>
+    <p>
+        Here you can track, categorize, and notate your association's spending and income. You can connect your bank account so that transactions are
+        synchronized automatically.
+    </p>
+    <div class="container">
+        <div class="row">
+            <div class="col-10 pl-0">
+                <fieldset style="width: 100%;">
+                    <legend style="font-size: 1em;">Bank Accounts</legend>
+                    <span class="text-link mr-2" data-ng-repeat="curAccount in $ctrl.accounts">{{curAccount.name}}</span>
+                    <button class="btn btn-primary btn-sm" data-ng-click="$ctrl.showAddAccount()" type="button">Add Account</button>
+
+                </fieldset>
+            </div>
+            <div class="col-2 text-right">
+                <button class="btn btn-primary" type="button" data-ng-click="$ctrl.onAddTransaction()">Add Transaction</button>
+            </div>
+        </div>
+    </div>
+    <h4 class="m-3" data-ng-if="$ctrl.accounts.length === 0">
+        You don't have any accounts yet. Get started by adding an account using the button above.
+    </h4>
+
+    <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-edit ui-grid-cellNav class="gridStyle margin-top-20"></div>
+    <div style="height: 20px;"></div> <!-- Need to do because of the ui-grid footer floats -->
+
+    <div data-ng-if="$ctrl.editingTransaction" class="modal-container">
+        <div class="modal-overlay" data-ng-click="$ctrl.editingTransaction = null"></div>
+        <div class="ca-modal-dialog modal-lg container">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+            <h2>Transaction Details</h2>
+            <div class="row">
+
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Date:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input type="text" class="form-control form-control-sm" data-ui-date data-ng-model="$ctrl.editingTransaction.transactionDate" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Amount:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input type="number" class="form-control form-control-sm" step=".01" pattern="^\d+(?:\.\d{1,2})?$" data-ng-model="$ctrl.editingTransaction.amount" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-2 col-xs-12">Description:</label>
+                        <div class="col-sm-10 col-xs-12">
+                            <input type="text" class="form-control form-control-sm" data-ng-enter="$ctrl.onSaveEntry()" data-ng-model="$ctrl.editingTransaction.description" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Category:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <select class="form-control form-control-sm" data-ng-options="c.name as c.name for c in $ctrl.categoryOptions" data-ng-model="$ctrl.editingTransaction.category">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Account:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <select class="form-control form-control-sm" data-ng-options="a.ledgerAccountId as a.name for a in $ctrl.accounts" data-ng-model="$ctrl.editingTransaction.accountId"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 text-right">
+                    <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSaveEntry()">Save</button>
+                    <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editingTransaction = null">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-ng-if="$ctrl.createAccountInfo" class="modal-container">
+        <div class="modal-overlay" data-ng-click="$ctrl.createAccountInfo = null"></div>
+        <div class="ca-modal-dialog modal-lg container">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+            <h2>Create Account</h2>
+            <div class="row">
+
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Name:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <input id="new-account-name-field" type="text" class="form-control form-control-sm" data-ng-enter="$ctrl.onSaveNewAccount()" data-ng-model="$ctrl.createAccountInfo.name" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 text-right">
+                    <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSaveNewAccount()">Save</button>
+                    <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.createAccountInfo = null">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

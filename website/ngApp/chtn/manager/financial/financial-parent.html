@@ -7,9 +7,9 @@
                data-ng-class="{'active':$ctrl.selectedView==='OnlinePayments'}">
                 Online Payments
             </a>
-            
-            <a class="nav-item nav-link" data-ng-href="#!/Financials/Transactions"
-                   data-ng-class="{'active':$ctrl.selectedView==='Transactions'}">
+
+            <a class="nav-item nav-link" data-ng-href="#!/Financials/Ledger"
+               data-ng-class="{'active':$ctrl.selectedView==='Ledger'}">
                 Ledger
             </a>
 
@@ -30,16 +30,14 @@
         </nav>
     </section>
 
-    <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Transactions'">
-        Coming soon! Keep track of your association's spending and automatically sync bank account activity.
-    </div>
-
     <manage-payments data-ng-if="$ctrl.selectedView === 'OnlinePayments'"></manage-payments>
 
     <assessment-history data-ng-if="$ctrl.selectedView === 'AssessmentHistory'"></assessment-history>
 
+    <ledger data-ng-if="$ctrl.selectedView === 'Ledger'"></ledger>
+
     <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Budgets'">
-        Coming soon! Easily and quickly create budgets from scratch, from previous years, or from spending activty.
+        Coming soon! Easily and quickly create budgets from scratch, from previous years, or from spending activity.
     </div>
 
     <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Reports'">
