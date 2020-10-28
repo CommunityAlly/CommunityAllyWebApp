@@ -71,7 +71,12 @@
                 </div>
             </div>
 
-            <div id="signed-up-panel" data-ng-if="$ctrl.hasAssessments != null">
+            <div data-ng-if="$ctrl.hasAssessments != null">
+
+                <div data-ng-if="!$ctrl.shouldAllowDwollaSignUp && !$ctrl.paymentInfo.isDwollaSetup">
+                    We are currently beta testing our new payment provider. If you're interested in trying it out, reach
+                    out to support.
+                </div>
 
                 <div data-ng-if="$ctrl.shouldAllowDwollaSignUp && !$ctrl.paymentInfo.isDwollaSetup">
                     We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to securely handle all of our payment transactions to offer you
