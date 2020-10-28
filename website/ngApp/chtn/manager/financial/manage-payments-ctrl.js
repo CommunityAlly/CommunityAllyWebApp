@@ -143,6 +143,8 @@ var Ally;
                             _this.showWePayCheckoutInfo(payment[0].wePayCheckoutId);
                         else if (payment[0].paragonReferenceNumber)
                             _this.showParagonCheckoutInfo(payment[0].paragonReferenceNumber);
+                        else if (payment[0].dwollaTransferUri)
+                            _this.showDwollaTransferInfo(payment[0]);
                     }
                     _this.highlightPaymentsInfoId = null;
                 }

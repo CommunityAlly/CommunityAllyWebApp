@@ -223,6 +223,8 @@ namespace Ally
                             this.showWePayCheckoutInfo( payment[0].wePayCheckoutId );
                         else if( payment[0].paragonReferenceNumber )
                             this.showParagonCheckoutInfo( payment[0].paragonReferenceNumber );
+                        else if( payment[0].dwollaTransferUri )
+                            this.showDwollaTransferInfo( payment[0] );
                     }
 
                     this.highlightPaymentsInfoId = null;

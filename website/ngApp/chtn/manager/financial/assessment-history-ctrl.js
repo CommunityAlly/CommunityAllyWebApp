@@ -274,11 +274,11 @@ var Ally;
         };
         AssessmentHistoryController.prototype.viewWePayDetails = function (wePayCheckoutId) {
             this.appCacheService.set("hwpid", wePayCheckoutId);
-            this.$location.path("/ManagePayments");
+            this.$location.path("/Financials/OnlinePayments");
         };
         AssessmentHistoryController.prototype.viewOnlinePaymentDetails = function (paymentsInfoId) {
             this.appCacheService.set("onpayid", paymentsInfoId.toString());
-            this.$location.path("/ManagePayments");
+            this.$location.path("/Financials/OnlinePayments");
         };
         /**
          * Create a special assessment entry

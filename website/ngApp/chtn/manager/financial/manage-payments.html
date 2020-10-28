@@ -75,7 +75,7 @@
 
                 <div data-ng-if="$ctrl.shouldAllowDwollaSignUp && !$ctrl.paymentInfo.isDwollaSetup">
                     We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to securely handle all of our payment transactions to offer you
-                    an incredible layer of security. To start receiving payments from your residents you need to associate a bank account
+                    an incredible layer of security. To start receiving payments you need to associate a bank account
                     for your association via Dwolla. Payments will be automatically sent to this account once a Dwolla payment has cleared. Payment
                     notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">the bottom of your residents
                     page</a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
@@ -467,7 +467,7 @@
                         <tr><td class="AlignRightBold">Transfer ID: </td><td>{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
                         <tr><td class="AlignRightBold">Status: </td><td>{{ $ctrl.checkoutInfo.status }}</td></tr>
                         <tr><td class="AlignRightBold">Amount: </td><td>{{ $ctrl.checkoutInfo.amountString }}</td></tr>
-                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="AlignRightBold">Fees: </td><td>{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="AlignRightBold">Payer Fee: </td><td>{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
                         <tr><td class="AlignRightBold">Created : </td><td>{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
                         <tr><td class="AlignRightBold">Clearing: </td><td>{{ $ctrl.checkoutInfo.clearingSource }}</td></tr>
                         <tr><td class="AlignRightBold">Cancel: </td><td><span class="text-link" data-ng-if="$ctrl.checkoutInfo.cancelUri" data-ng-click="$ctrl.cancelDwollaTransfer()">Cancel</span><span data-ng-if="$ctrl.checkoutInfo.dwollaTransferId && !$ctrl.checkoutInfo.cancelUri">No longer available</span></td></tr>

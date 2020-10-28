@@ -353,14 +353,14 @@
         viewWePayDetails( wePayCheckoutId: string )
         {
             this.appCacheService.set( "hwpid", wePayCheckoutId );
-            this.$location.path( "/ManagePayments" );
+            this.$location.path( "/Financials/OnlinePayments" );
         }
 
 
         viewOnlinePaymentDetails( paymentsInfoId: number )
         {
             this.appCacheService.set( "onpayid", paymentsInfoId.toString() );
-            this.$location.path( "/ManagePayments" );
+            this.$location.path( "/Financials/OnlinePayments" );
         }
 
 
