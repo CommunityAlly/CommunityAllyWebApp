@@ -18,12 +18,14 @@
         </div>
 
         <div data-ng-if="!$ctrl.settings.premiumPlanIsAutoRenewed">
-            Premium Plan Expires On: <span style="font-weight: bold;" data-ng-style="{'color':$ctrl.planExpirationColor}">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
-            <br />
             <div data-ng-if="$ctrl.isPremiumPlanActive">
+                Premium Plan Expires On: <span style="font-weight: bold;" data-ng-style="{'color':$ctrl.planExpirationColor}">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
+                <br />
                 <span style="color: red;">Your premium plan will not auto-renew.</span> After that date you will be downgraded to the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <div data-ng-if="!$ctrl.isPremiumPlanActive">
+                Premium Plan Expired On: <span style="font-weight: bold;" data-ng-style="{'color':$ctrl.planExpirationColor}">{{$ctrl.settings.premiumPlanExpirationDate | date:'shortDate'}}</span>
+                <br />
                 You're currently on the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <br />
