@@ -438,9 +438,7 @@ var Ally;
             this.shouldShowDwollaAddAccountModal = true;
             this.shouldShowDwollaModalClose = false;
             this.isLoadingDwolla = true;
-            this.$http.get("/api/Dwolla/UserIavToken").then(function (httpResponse) {
-                _this.isLoadingDwolla = false;
-                var iavToken = httpResponse.data.iavToken;
+            var startIav = function (iavToken) {
                 dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
                 dwolla.iav.start(iavToken, {
                     container: 'dwolla-iav-container',
@@ -463,6 +461,10 @@ var Ally;
                         });
                     }
                 });
+            };
+            this.$http.get("/api/Dwolla/UserIavToken").then(function (httpResponse) {
+                _this.isLoadingDwolla = false;
+                window.setTimeout(function () { return startIav(httpResponse.data.iavToken); }, 150);
             }, function (httpResponse) {
                 _this.isLoadingDwolla = false;
                 alert("Failed to start IAV: " + httpResponse.data.exceptionMessage);

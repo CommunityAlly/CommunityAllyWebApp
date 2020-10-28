@@ -155,13 +155,13 @@
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitDwollaPayment()" value="Submit Payment">
                         <br />
                         Clicking this button will submit payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}) applies.
+                        <div class="note-text mt-2">
+                            Auto-recurring payments are coming Q1 2020!
+                        </div>
+                        <div class="mt-3 text-right">
+                            Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
+                        </div>
                     </div>
-                </div>
-                <div class="note-text">
-                    Auto-recurring payments are coming Q1 2020!
-                </div>
-                <div class="mt-3 text-right">
-                    Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
                 </div>
             </div>
 
@@ -275,20 +275,6 @@
                 </div>
             </div>
 
-            <div class="modal-container" data-ng-show="$ctrl.shouldShowDwollaAddAccountModal">
-                <div class="modal-overlay" data-ng-click=""></div>
-                <div class="ca-modal-dialog modal-lg">
-                    <div class="loading-overlay" data-ng-show="$ctrl.isLoadingDwolla"></div>
-                    <span style="float: right;" class="close-x" data-ng-click="$ctrl.showParagonCheckingSignUpModal = false">&times;</span>
-                    <h2>Add Bank Account</h2>
-                    <span class="note-text">
-                        Note: For an extra layer of security, the account addition process takes place through Dwolla's servers only. The information you enter below does not
-                        interact with Community Ally's server.
-                    </span>
-                    <div id="dwolla-iav-container"></div>
-                </div>
-            </div>
-
             <div class="modal-container" data-ng-show="$ctrl.showParagonCreditSignUpModal">
                 <div class="modal-overlay"></div>
                 <div class="ca-modal-dialog modal-lg">
@@ -374,7 +360,7 @@
 
                 <div id="pm_info" data-ng-if="$ctrl.showExtraInfo === 'payment-info'">
                     <h4>Payment Information</h4>
-                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called Dwolla to process payment. There is a 1% processing fee if your association is using the {{ $ctrl.allyAppName }} free plan, or 0.5% if on the premium plan. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and Dwolla use the same security used by major banks to secure all information and data transfer. <a href="https://www.dwolla.com/security/" target="_blank">Learn more about Dwolla's security</a>. </p>
+                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called Dwolla to process payment. There is a 1% processing fee if your association is using the {{ $ctrl.allyAppName }} free plan, or 0.5% if on the premium plan. We donot store your payment information at any time. Both {{ $ctrl.allyAppName }} and Dwolla use the same security used by major banks to secure all information and data transfer. <a href="https://www.dwolla.com/security/" target="_blank">Learn more about Dwolla's security</a>. </p>
 
                     <!--<p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called WePay to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and WePay use the same security used by major banks to secure all information and data transfer. <a href="https://support.wepay.com/entries/23064032-Security" target="_blank">Learn more about WePay's security</a>. </p>-->
 
@@ -388,6 +374,20 @@
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.unenrollParagonAccount('card')" value="Un-enroll your credit card account">
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="modal-container" data-ng-show="$ctrl.shouldShowDwollaAddAccountModal">
+            <div class="modal-overlay" data-ng-click=""></div>
+            <div class="ca-modal-dialog modal-lg">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoadingDwolla"></div>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowDwollaAddAccountModal = false">&times;</span>
+                <h2>Add Bank Account</h2>
+                <span class="note-text">
+                    Note: For an extra layer of security, the account addition process takes place through Dwolla's servers only. The information you enter below does not
+                    interact with Community Ally's server.
+                </span>
+                <div id="dwolla-iav-container"></div>
             </div>
         </div>
     </div>

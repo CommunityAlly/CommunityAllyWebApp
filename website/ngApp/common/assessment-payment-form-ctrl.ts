@@ -120,9 +120,9 @@ namespace Ally
                             );
                         }, 1000 );
                     }
-                    
+
                 }
-                    this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             }
             else
             {
@@ -652,11 +652,8 @@ namespace Ally
             this.shouldShowDwollaModalClose = false;
             this.isLoadingDwolla = true;
 
-            this.$http.get( "/api/Dwolla/UserIavToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            const startIav = ( iavToken: string) =>
             {
-                this.isLoadingDwolla = false;
-
-                var iavToken = httpResponse.data.iavToken;
                 dwolla.configure( AppConfigInfo.dwollaEnvironmentName );
 
                 dwolla.iav.start( iavToken,
@@ -692,13 +689,22 @@ namespace Ally
                         }
                     }
                 );
+            };
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingDwolla = false;
+            this.$http.get( "/api/Dwolla/UserIavToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoadingDwolla = false;
 
-                alert( "Failed to start IAV: " + httpResponse.data.exceptionMessage );
-            } );
+                    window.setTimeout( () => startIav( httpResponse.data.iavToken ), 150 );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingDwolla = false;
+
+                    alert( "Failed to start IAV: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -776,7 +782,7 @@ namespace Ally
             formData.append( "DocumentFile", this.dwollaDocUploadFile );
             formData.append( "DocumentType", this.dwollaDocUploadType );
 
-            const postHeaders:ng.IRequestShortcutConfig = {
+            const postHeaders: ng.IRequestShortcutConfig = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
 
