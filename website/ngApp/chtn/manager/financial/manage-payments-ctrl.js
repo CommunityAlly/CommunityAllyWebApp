@@ -264,9 +264,11 @@ var Ally;
          */
         ManagePaymentsController.prototype.onUnitAssessmentChanged = function (unit) {
             this.isLoadingUnits = true;
+            if (typeof (unit.adjustedAssessment) === "string")
+                unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
             var updateInfo = {
                 unitId: unit.unitId,
-                assessment: typeof (unit.adjustedAssessment) === "string" ? parseFloat(unit.adjustedAssessment) : unit.adjustedAssessment,
+                assessment: unit.adjustedAssessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
             var innerThis = this;

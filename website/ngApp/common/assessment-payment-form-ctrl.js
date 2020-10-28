@@ -57,6 +57,7 @@ var Ally;
                     this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
                 }
                 else {
+                    this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
                     this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
                     if (this.isDwollaPaymentActive) {
                         // Check the user's Dwolla balance, delayed since it's not important

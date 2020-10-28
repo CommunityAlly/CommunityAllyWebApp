@@ -32,7 +32,7 @@
 
     &.modal-lg {
         width: 900px;
-        left: 40%;
+        margin-left: -450px;
 
         @media screen and (max-width: 900px) {
             left: 5% !important;

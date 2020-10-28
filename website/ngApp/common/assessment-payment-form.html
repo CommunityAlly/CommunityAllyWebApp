@@ -157,12 +157,13 @@
                         Clicking this button will submit payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}) applies.
                     </div>
                 </div>
+                <div class="note-text">
+                    Auto-recurring payments are coming Q1 2020!
+                </div>
                 <div class="mt-3 text-right">
-                    <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
+                    Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
                 </div>
             </div>
-            <br />
-            <br />
 
             <div class="buttons margin-top-30 text-center" data-ng-if="$ctrl.showParagon">
                 <p class="single_p text-left">
@@ -352,7 +353,7 @@
             {{$ctrl.dwollaBalanceMessage}}
         </div>
 
-        <div class="margin-top-20">
+        <div class="mt-3">
             <div class="manage_pannel text-right">
                 <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">View Payment History</span>
                 <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">View Payment Information</span>

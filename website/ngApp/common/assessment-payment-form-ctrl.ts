@@ -56,6 +56,7 @@ namespace Ally
         dwollaPaymentMessage: string;
         hasComplexPassword: boolean = false;
         didAgreeToDwollaTerms: boolean = false;
+        dwollaFundingSourceName: string;
         dwollaFeePercent: number = 0.5;
         dwollaFeeAmountString: string;
         dwollaDocUploadType: string = "license";
@@ -106,6 +107,7 @@ namespace Ally
                 }
                 else
                 {
+                    this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
                     this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
 
                     if( this.isDwollaPaymentActive )

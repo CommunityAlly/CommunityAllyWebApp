@@ -31,6 +31,8 @@ namespace Ally
         electronicPayments: ElectronicPayment[];
         unitAssessments: any[];
         usersWithAutoPay: any[];
+        groupDwollaFundingSourceName: string;
+        dwollaFundingSourceType: string;
     }
 
 
@@ -189,7 +191,7 @@ namespace Ally
                 this.hasLoadedPage = true;
 
                 this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
-
+                
                 var data = httpResponse.data;
                 this.paymentInfo = data;
                 this.paymentsGridOptions.data = this.paymentInfo.electronicPayments;
@@ -394,10 +396,13 @@ namespace Ally
         {
             this.isLoadingUnits = true;
 
+            if( typeof ( unit.adjustedAssessment ) === "string" )
+                unit.adjustedAssessment = parseFloat( unit.adjustedAssessment )
+
             var updateInfo: UpdateAssessmentInfo =
             {
                 unitId: unit.unitId,
-                assessment: typeof ( unit.adjustedAssessment ) === "string" ? parseFloat( unit.adjustedAssessment ) : unit.adjustedAssessment,
+                assessment: unit.adjustedAssessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
 

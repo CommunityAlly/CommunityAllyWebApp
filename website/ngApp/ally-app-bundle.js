@@ -819,12 +819,6 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://7002.webappapi.communityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
-//OverrideOriginalUrl = "https://dwollademo.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://7003.webappapi.mycommunityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
-//OverrideOriginalUrl = "https://dwollademo1.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
-OverrideOriginalUrl = "https://qa.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -1982,11 +1976,13 @@ var Ally;
             this.initialView = "Home";
             this.selectedView = null;
             this.isLoading = false;
+            this.allowLedger = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         FinancialParentController.prototype.$onInit = function () {
+            this.allowLedger = this.siteInfo.publicSiteInfo.shortName === "qa";
             if (HtmlUtil.isValidString(this.$routeParams.viewName))
                 this.selectedView = this.$routeParams.viewName;
             else
@@ -2034,6 +2030,7 @@ var Ally;
             this.editingTransaction = null;
             this.createAccountInfo = null;
             this.HistoryPageSize = 50;
+            this.plaidHandler = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2114,9 +2111,34 @@ var Ally;
             this.editingTransaction = new LedgerEntry();
             this.editingTransaction.accountId = this.accounts[0].ledgerAccountId;
         };
+        LedgerController.prototype.completePlaidSync = function (accessToken) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/Plaid/ProcessAccessToken", { accessToken: accessToken }).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.newPlaidAccounts = httpResponse.data;
+            });
+        };
         LedgerController.prototype.showAddAccount = function () {
+            var _this = this;
             this.createAccountInfo = new CreateAccountInfo();
-            window.setTimeout(function () { return document.getElementById("new-account-name-field").focus(); }, 150);
+            this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
+            //window.setTimeout( () => document.getElementById( "new-account-name-field" ).focus(), 150 );
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.plaidHandler = Plaid.create({
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid onSuccess");
+                        _this.completePlaidSync(public_token);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                });
+            });
         };
         /**
          * Occurs when the user wants to edit a transaction
@@ -2160,6 +2182,27 @@ var Ally;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             };
             this.$http.post("/api/Ledger/NewAccount", this.createAccountInfo).then(onSave, onError);
+        };
+        LedgerController.prototype.startPlaidFlow = function () {
+            this.createAccountInfo.type = 'plaid';
+            this.plaidHandler.open();
+            //this.isLoading = true;
+            //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+            //{
+            //    this.isLoading = false;
+            //    const handler = Plaid.create( {
+            //        token: httpResponse.data,
+            //        onSuccess: ( public_token: string, metadata: any ) =>
+            //        {
+            //            console.log( "onSuccess" );
+            //        },
+            //        onLoad: () => { },
+            //        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
+            //        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
+            //        receivedRedirectUri: null,
+            //    } );
+            //    handler.open();
+            //} );
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
         return LedgerController;
@@ -2469,9 +2512,11 @@ var Ally;
          */
         ManagePaymentsController.prototype.onUnitAssessmentChanged = function (unit) {
             this.isLoadingUnits = true;
+            if (typeof (unit.adjustedAssessment) === "string")
+                unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
             var updateInfo = {
                 unitId: unit.unitId,
-                assessment: typeof (unit.adjustedAssessment) === "string" ? parseFloat(unit.adjustedAssessment) : unit.adjustedAssessment,
+                assessment: unit.adjustedAssessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
             var innerThis = this;
@@ -8082,6 +8127,7 @@ var Ally;
                     this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
                 }
                 else {
+                    this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
                     this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
                     if (this.isDwollaPaymentActive) {
                         // Check the user's Dwolla balance, delayed since it's not important
@@ -8713,6 +8759,10 @@ var Ally;
                             $("#FileUploadProgressContainer").hide();
                             _this.Refresh();
                         });
+                        xhr.error(function (jqXHR, textStatus) {
+                            alert("Upload failed: " + jqXHR.responseJSON.exceptionMessage);
+                            //console.log( "fail", jqXHR, textStatus, errorThrown );
+                        });
                     },
                     beforeSend: function (xhr) {
                         if (_this.siteInfo.publicSiteInfo.baseApiUrl)
@@ -8728,9 +8778,9 @@ var Ally;
                         else
                             $("#FileUploadProgressLabel").text(progress + "%");
                     },
-                    fail: function (xhr) {
+                    fail: function (e, xhr) {
                         $("#FileUploadProgressContainer").hide();
-                        alert("Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again.");
+                        //alert( "Failed to upload document: " + xhr. );
                     }
                 });
             };

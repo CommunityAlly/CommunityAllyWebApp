@@ -114,6 +114,7 @@
                 </div>
 
                 <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2">
+                    <div>Linked Account: <span class="font-weight-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span> ({{$ctrl.paymentInfo.dwollaFundingSourceType}})</div>
                     <span class="text-link" data-ng-click="$ctrl.disconnectDwolla()">Unlink Dwolla bank account</span>
                 </div>
 
