@@ -99,6 +99,10 @@ var Ally;
                             $("#FileUploadProgressContainer").hide();
                             _this.Refresh();
                         });
+                        xhr.error(function (jqXHR, textStatus) {
+                            alert("Upload failed: " + jqXHR.responseJSON.exceptionMessage);
+                            //console.log( "fail", jqXHR, textStatus, errorThrown );
+                        });
                     },
                     beforeSend: function (xhr) {
                         if (_this.siteInfo.publicSiteInfo.baseApiUrl)
@@ -114,9 +118,9 @@ var Ally;
                         else
                             $("#FileUploadProgressLabel").text(progress + "%");
                     },
-                    fail: function (xhr) {
+                    fail: function (e, xhr) {
                         $("#FileUploadProgressContainer").hide();
-                        alert("Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again.");
+                        //alert( "Failed to upload document: " + xhr. );
                     }
                 });
             };

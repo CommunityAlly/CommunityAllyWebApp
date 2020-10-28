@@ -166,6 +166,12 @@ namespace Ally
                             $( "#FileUploadProgressContainer" ).hide();
                             this.Refresh();
                         } );
+
+                        xhr.error( ( jqXHR: any, textStatus: string) =>
+                        {
+                            alert( "Upload failed: " + jqXHR.responseJSON.exceptionMessage );
+                            //console.log( "fail", jqXHR, textStatus, errorThrown );
+                        } );
                     },
                     beforeSend: ( xhr: any ) =>
                     {
@@ -184,10 +190,10 @@ namespace Ally
                         else
                             $( "#FileUploadProgressLabel" ).text( progress + "%" );
                     },
-                    fail: ( xhr: any ) =>
+                    fail: ( e: any, xhr: any ) =>
                     {
                         $( "#FileUploadProgressContainer" ).hide();
-                        alert( "Failed to upload document due led to upload document due to unexpected server error. Please re-log-in and try again." );
+                        //alert( "Failed to upload document: " + xhr. );
                     }
                 } );
             };
