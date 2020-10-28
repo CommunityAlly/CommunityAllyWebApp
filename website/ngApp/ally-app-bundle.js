@@ -1173,8 +1173,8 @@ var Ally;
     var AppConfigInfo = /** @class */ (function () {
         function AppConfigInfo() {
         }
-        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1"];
-        AppConfigInfo.dwollaEnvironmentName = "sandbox";
+        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie"];
+        AppConfigInfo.dwollaEnvironmentName = "prod";
         return AppConfigInfo;
     }());
     Ally.AppConfigInfo = AppConfigInfo;
@@ -1233,8 +1233,8 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Financials/OnlinePayments", templateHtml: "<financial-parent></financial-parent>", menuTitle: "Financials", role: Role_Manager }),
-        new Ally.RoutePath_v3({ path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager }),
-        new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager }),
+        //new Ally.RoutePath_v3( { path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager } ),
+        //new Ally.RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager } ),
         new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
@@ -1751,11 +1751,11 @@ var Ally;
         };
         AssessmentHistoryController.prototype.viewWePayDetails = function (wePayCheckoutId) {
             this.appCacheService.set("hwpid", wePayCheckoutId);
-            this.$location.path("/ManagePayments");
+            this.$location.path("/Financials/OnlinePayments");
         };
         AssessmentHistoryController.prototype.viewOnlinePaymentDetails = function (paymentsInfoId) {
             this.appCacheService.set("onpayid", paymentsInfoId.toString());
-            this.$location.path("/ManagePayments");
+            this.$location.path("/Financials/OnlinePayments");
         };
         /**
          * Create a special assessment entry
@@ -2011,7 +2011,7 @@ var __extends = (this && this.__extends) || (function () {
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the page to view online payment information
+     * The controller for the page to track group spending
      */
     var LedgerController = /** @class */ (function () {
         /**
@@ -2391,6 +2391,8 @@ var Ally;
                             _this.showWePayCheckoutInfo(payment[0].wePayCheckoutId);
                         else if (payment[0].paragonReferenceNumber)
                             _this.showParagonCheckoutInfo(payment[0].paragonReferenceNumber);
+                        else if (payment[0].dwollaTransferUri)
+                            _this.showDwollaTransferInfo(payment[0]);
                     }
                     _this.highlightPaymentsInfoId = null;
                 }
@@ -8508,9 +8510,7 @@ var Ally;
             this.shouldShowDwollaAddAccountModal = true;
             this.shouldShowDwollaModalClose = false;
             this.isLoadingDwolla = true;
-            this.$http.get("/api/Dwolla/UserIavToken").then(function (httpResponse) {
-                _this.isLoadingDwolla = false;
-                var iavToken = httpResponse.data.iavToken;
+            var startIav = function (iavToken) {
                 dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
                 dwolla.iav.start(iavToken, {
                     container: 'dwolla-iav-container',
@@ -8533,6 +8533,10 @@ var Ally;
                         });
                     }
                 });
+            };
+            this.$http.get("/api/Dwolla/UserIavToken").then(function (httpResponse) {
+                _this.isLoadingDwolla = false;
+                window.setTimeout(function () { return startIav(httpResponse.data.iavToken); }, 150);
             }, function (httpResponse) {
                 _this.isLoadingDwolla = false;
                 alert("Failed to start IAV: " + httpResponse.data.exceptionMessage);
