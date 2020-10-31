@@ -282,7 +282,7 @@
             if( !confirm( "Are you sure you want to SEND TO EVERYONE?!?!" ) )
                 return;
 
-            this.makeHelperRequest( "/api/AdminHelper/SendBulkTaylorEmail" );
+            this.makeHelperRequest( "/api/AdminHelper/SendBulkTaylorEmail2" );
         }
 
 
