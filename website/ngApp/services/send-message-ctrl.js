@@ -10,18 +10,21 @@ var Ally;
         function SendMessageController($rootScope, fellowResidents, siteInfo) {
             this.$rootScope = $rootScope;
             this.fellowResidents = fellowResidents;
+            this.siteInfo = siteInfo;
             this.shouldShowSendModal = false;
             this.shouldShowButtons = false;
             this.isSending = false;
             this.messageBody = "";
             this.messageSubject = "";
             this.sendResultIsError = false;
+            this.isPremiumPlanActive = false;
             this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         SendMessageController.prototype.$onInit = function () {
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
         };
         // Display the send modal
         SendMessageController.prototype.showSendModal = function () {
@@ -29,7 +32,8 @@ var Ally;
             this.sendResultMessage = "";
             this.shouldShowButtons = true;
             // Focus on the message box once displayed
-            setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 50);
+            if (this.isPremiumPlanActive)
+                setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 100);
         };
         // Hide the send modal
         SendMessageController.prototype.hideModal = function () {

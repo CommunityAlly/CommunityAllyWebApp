@@ -14,12 +14,13 @@
         messageSubject: string = "";
         sendResultIsError: boolean = false;
         recipientInfo: SimpleUserEntry;
+        isPremiumPlanActive: boolean = false;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $rootScope: ng.IRootScopeService, private fellowResidents: FellowResidentsService, siteInfo: SiteInfoService )
+        constructor( private $rootScope: ng.IRootScopeService, private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService )
         {
             this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${ AppConfig.appName } site`;
         }
@@ -30,6 +31,7 @@
         */
         $onInit()
         {
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
         }
 
 
@@ -41,7 +43,8 @@
             this.shouldShowButtons = true;
 
             // Focus on the message box once displayed
-            setTimeout( () => document.getElementById( "message-text-box" ).focus(), 50 );
+            if( this.isPremiumPlanActive )
+                setTimeout( () => document.getElementById( "message-text-box" ).focus(), 100 );
         }
 
 
