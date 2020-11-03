@@ -128,7 +128,7 @@ var Ally;
                     _this.showEmailForbidden = true;
                 }
                 else
-                    alert("Unable to send e-mail, please contact technical support.");
+                    alert("Unable to send e-mail: " + httpResponse.data.exceptionMessage);
             });
         };
         /**

@@ -57,7 +57,7 @@
         {
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
-            
+
             this.showSendEmail = true;
 
             if( this.committee )
@@ -99,7 +99,7 @@
             {
                 innerThis.isLoadingEmail = false;
                 innerThis.availableEmailGroups = emailList;
-                
+
                 if( innerThis.availableEmailGroups.length > 0 )
                 {
                     innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
@@ -141,7 +141,7 @@
          */
         onSendEmail()
         {
-            $( "#message-form" ).validate(); 
+            $( "#message-form" ).validate();
             if( !$( "#message-form" ).valid() )
                 return;
 
@@ -154,33 +154,36 @@
                 recipientId: this.messageObject.recipientType
             } );
 
-            this.$http.post( "/api/Email/v2", this.messageObject ).then( () =>
-            {
-                this.$rootScope.dontHandle403 = false;
-                this.isLoadingEmail = false;
-
-                this.messageObject = new HomeEmailMessage();
-                this.messageObject.recipientType = this.defaultMessageRecipient;
-                this.messageObject.subject = this.defaultSubject;
-
-                if( this.committee )
-                    this.messageObject.committeeId = this.committee.committeeId;
-
-                this.showSendConfirmation = true;
-                this.showSendEmail = false;
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoadingEmail = false;
-                this.$rootScope.dontHandle403 = false;
-
-                if( httpResponse.status === 403 )
+            this.$http.post( "/api/Email/v2", this.messageObject ).then(
+                () =>
                 {
-                    this.showEmailForbidden = true;
+                    this.$rootScope.dontHandle403 = false;
+                    this.isLoadingEmail = false;
+
+                    this.messageObject = new HomeEmailMessage();
+                    this.messageObject.recipientType = this.defaultMessageRecipient;
+                    this.messageObject.subject = this.defaultSubject;
+
+                    if( this.committee )
+                        this.messageObject.committeeId = this.committee.committeeId;
+
+                    this.showSendConfirmation = true;
+                    this.showSendEmail = false;
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingEmail = false;
+                    this.$rootScope.dontHandle403 = false;
+
+                    if( httpResponse.status === 403 )
+                    {
+                        this.showEmailForbidden = true;
+                    }
+                    else
+                        alert( "Unable to send e-mail: " + httpResponse.data.exceptionMessage );
                 }
-                else
-                    alert( "Unable to send e-mail, please contact technical support." );
-            } );
+            );
         }
 
 
@@ -196,7 +199,7 @@
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
 
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf( "owners" ) !== -1;
-            
+
             if( !this.showDiscussionEveryoneWarning
                 && isSendingToOwners
                 && this.siteInfo.privateSiteInfo.numUnits > 30 )
