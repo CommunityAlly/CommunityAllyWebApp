@@ -1,5 +1,8 @@
 ﻿<div class="page margin-vertical padding white-bg spinner-effect">
     <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
+    <div>
+        <label><input type="checkbox" data-ng-change="$ctrl.onHideLoginAndEmailMessagesChange()" data-ng-model="$ctrl.shouldHideLoginAndEmailMessages" />Hide Login and Group Email Messages</label>
+    </div>
     <table border="1">
         <thead>
             <tr>
@@ -12,7 +15,7 @@
             </tr>
         </thead>
         <tbody style="font-size:small;">
-            <tr data-ng-repeat="entry in $ctrl.logEntries">
+            <tr data-ng-repeat="entry in $ctrl.filteredLogEntries">
                 <td>{{ entry.userName }}</td>
                 <td>{{ entry.postDate | date:'short' }}</td>
                 <td>{{ entry.activityMessage }}</td>
