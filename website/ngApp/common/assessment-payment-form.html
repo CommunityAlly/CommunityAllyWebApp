@@ -6,22 +6,22 @@
     <div class="portlet-body">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
 
-        <div id="dwolla-form" class="mb-4" data-ng-if="$ctrl.shouldShowDwolla">
-            <div ng-if="$ctrl.isDwollaAccountVerified && !$ctrl.hasDwollaFundingSource">
+        <div id="dwolla-form" class="mb-4" data-ng-if="$ctrl.isDwollaEnabledOnGroup">
+            <div ng-if="$ctrl.isDwollaUserAccountVerified && !$ctrl.hasDwollaFundingSource">
                 <div>
-                    Your Dwolla account is verified, you can now associate a bank account to make payments from:
+                    Your Dwolla account is verified, you can now associate a bank account to make payments:
                     <br />
                     <br />
                     <div data-ng-if="$ctrl.hasComplexPassword">
                         <input type="button" class="btn btn-primary" id="start" value="Add Bank Account" ng-click="$ctrl.dwollaStartIAV()" data-ng-if="!$ctrl.isLoadingDwolla" />
                         <img src="/assets/images/spinner-large.gif" data-ng-if="$ctrl.isLoadingDwolla" />
                     </div>
-                    <div data-ng-if="!$ctrl.hasComplexPassword" style="font-weight: bold;">
+                    <div data-ng-if="!$ctrl.hasComplexPassword" style="font-weight: bold; color: red;">
                         In order to sign-up to make Dwolla payments you must use a complex password. Please visit <a href="#!/MyProfile">your profile</a> to update your password.
                     </div>
                 </div>
             </div>
-            <div ng-if="!$ctrl.isDwollaAccountVerified">
+            <div ng-if="!$ctrl.isDwollaUserAccountVerified">
                 <div id="dwolla-sign-up" data-ng-if="$ctrl.dwollaUserStatus === 'checking'">
                     <img src="/assets/images/spinner-large.gif" />
                 </div>
@@ -50,10 +50,10 @@
                             <div data-ng-if="$ctrl.dwollaUserStatus !== 'retry'" class="col-6">Last 4 of SSN: <input type="password" class="form-control form-control-sm" maxlength="4" data-ng-model="$ctrl.dwollaSignUpInfo.ssnLast4" /></div>
                             <div data-ng-if="$ctrl.dwollaUserStatus === 'retry'" class="col-6">Full SSN: <input type="password" class="form-control form-control-sm" maxlength="11" data-ng-model="$ctrl.dwollaSignUpInfo.ssnFull" /></div>
                         </div>
-                        <div class="row mb-3" data-ng-if="!$ctrl.editDwollaSignUpAddress">
+                        <div class="row mb-3" data-ng-if="!$ctrl.editDwollaSignUpAddress && !$ctrl.dwollaUserStatus === 'retry'">
                             <div class="col-12"><span class="font-weight-bold">Home Address:</span> <span>{{$ctrl.dwollaSignUpInfo.streetAddress.oneLiner}}</span> <span class="note-text text-link" data-ng-click="$ctrl.editDwollaSignUpAddress = true">edit</span></div>
                         </div>
-                        <street-address-form data-ng-if="$ctrl.editDwollaSignUpAddress" data-street-address="$ctrl.dwollaSignUpInfo.streetAddress" should-hide-name="true"></street-address-form>
+                        <street-address-form data-ng-if="$ctrl.editDwollaSignUpAddress || $ctrl.dwollaUserStatus === 'retry'" data-street-address="$ctrl.dwollaSignUpInfo.streetAddress" should-hide-name="true"></street-address-form>
                         <div class="row mb-2">
                             <div class="col-12">
                                 <label><input type="checkbox" data-ng-model="$ctrl.didAgreeToDwollaTerms" /> By checking this box you agree to <a target="_blank" href="https://login.condoally.com/TermsOfService.html">Our Terms of Service</a> and <a target="_blank" href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>, as well as our partner <a target="_blank" href="https://www.dwolla.com/legal/tos/">Dwolla's Terms of Service</a> and <a target="_blank" href="https://www.dwolla.com/legal/privacy/">Privacy Policy</a>.</label>
@@ -68,7 +68,9 @@
                         </div>
                         <div data-ng-if="!$ctrl.dwollaDocUploadMessage">
                             In order for Dwolla to complete your identity verification, you need to upload a document confirming your identify. The image needs to be color and sharp, not blurry. If you have already done this, please
-                            give Dwolla up to 2 full days to hear a response before contacting support.
+                            give Dwolla up to 2 full days to hear a response before contacting support. You can find more guidance on capturing the image here:
+                            <br />
+                            <a href="https://help.communityally.org/dwolla-identity-documentation-guidance/" target="_blank">https://help.communityally.org/dwolla-identity-documentation-guidance/</a>
                             <div class="mt-3">
                                 <label>
                                     <b>Document Type:</b>
@@ -94,7 +96,7 @@
             </div>
         </div>
 
-        <form data-ng-if="$ctrl.isWePayPaymentActive || $ctrl.isDwollaPaymentActive">
+        <form data-ng-if="$ctrl.isWePayPaymentActive || $ctrl.isDwollaReadyForPayment">
             <div class="pay_for">
                 <div class="text-16 font-600">I am paying for</div>
 
@@ -141,7 +143,7 @@
                 </p>
             </div>
 
-            <div class="buttons margin-top-30 text-center" ng-if="$ctrl.isDwollaAccountVerified && $ctrl.hasDwollaFundingSource && $ctrl.isDwollaPaymentActive">
+            <div class="buttons margin-top-30 text-center" ng-if="$ctrl.isDwollaReadyForPayment">
                 <p class="text-left margin-top-30" style="margin-bottom: 0;">You can use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely handle payments.</p>
 
                 <div class="text-center d-inline-block">

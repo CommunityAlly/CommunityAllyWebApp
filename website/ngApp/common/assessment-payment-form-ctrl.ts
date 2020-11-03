@@ -44,9 +44,9 @@ namespace Ally
             streetAddress3: new FullAddress()
         };
         isWePayPaymentActive: boolean = false;
-        isDwollaPaymentActive: boolean = false;
-        shouldShowDwolla: boolean = false;
-        isDwollaAccountVerified: boolean;
+        isDwollaEnabledOnGroup: boolean = false;
+        isDwollaReadyForPayment: boolean = false;
+        isDwollaUserAccountVerified: boolean;
         hasDwollaFundingSource: boolean;
         dwollaUserStatus: string;
         userFullName: string;
@@ -90,11 +90,13 @@ namespace Ally
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
 
             this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-            this.shouldShowDwolla = AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+            const shouldShowDwolla = AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+            if( shouldShowDwolla )
+                this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
 
-            this.isDwollaAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
-            if( this.isDwollaAccountVerified )
+            this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+            if( this.isDwollaUserAccountVerified )
             {
                 this.dwollaUserStatus = "verified";
                 this.hasDwollaFundingSource = HtmlUtil2.isValidString( this.siteInfo.userInfo.dwollaFundingSourceName );
@@ -108,9 +110,9 @@ namespace Ally
                 else
                 {
                     this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
 
-                    if( this.isDwollaPaymentActive )
+                    if( this.isDwollaReadyForPayment )
                     {
                         // Check the user's Dwolla balance, delayed since it's not important
                         this.$timeout( () =>
@@ -122,7 +124,6 @@ namespace Ally
                     }
 
                 }
-                this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             }
             else
             {

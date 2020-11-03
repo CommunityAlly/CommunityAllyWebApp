@@ -26,8 +26,8 @@ var Ally;
                 streetAddress3: new Ally.FullAddress()
             };
             this.isWePayPaymentActive = false;
-            this.isDwollaPaymentActive = false;
-            this.shouldShowDwolla = false;
+            this.isDwollaEnabledOnGroup = false;
+            this.isDwollaReadyForPayment = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
             this.hasComplexPassword = false;
@@ -47,10 +47,12 @@ var Ally;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
             this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-            this.shouldShowDwolla = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            var shouldShowDwolla = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            if (shouldShowDwolla)
+                this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
-            this.isDwollaAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
-            if (this.isDwollaAccountVerified) {
+            this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+            if (this.isDwollaUserAccountVerified) {
                 this.dwollaUserStatus = "verified";
                 this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
                 if (!this.hasDwollaFundingSource) {
@@ -58,15 +60,14 @@ var Ally;
                 }
                 else {
                     this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
-                    if (this.isDwollaPaymentActive) {
+                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    if (this.isDwollaReadyForPayment) {
                         // Check the user's Dwolla balance, delayed since it's not important
                         this.$timeout(function () {
                             _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
                         }, 1000);
                     }
                 }
-                this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             }
             else {
                 this.dwollaUserStatus = "checking";
