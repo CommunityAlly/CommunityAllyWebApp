@@ -34,52 +34,64 @@
         <br />
         <br />
 
-        <div class="card-deck w-50 mx-auto" data-ng-if="$ctrl.shouldShowPaymentForm">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">Pay Monthly</h3>
-                    <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</h2>
-                    <p data-ng-if="!$ctrl.monthlyDisabled">
-                        <button data-ng-class="{'btn-outline-primary':$ctrl.isActivatingAnnual,'btn-primary':!$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = false; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Select" : "Selected"}}</button>
-                    </p>
-                    <p data-ng-if="$ctrl.monthlyDisabled" style="color: red;">Due to your association having 10 or fewer homes, you must pay annually. Sorry! You can <a href="https://help.communityally.org/why-go-premium/" target="_blank">learn more here</a>.</p>
+        <div class="row">
+            <div class="card-deck col-sm-12 col-md-6 mx-auto" data-ng-if="$ctrl.shouldShowPaymentForm">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Pay Monthly</h3>
+                        <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</h2>
+                        <p data-ng-if="!$ctrl.monthlyDisabled">
+                            <button data-ng-class="{'btn-outline-primary':$ctrl.isActivatingAnnual,'btn-primary':!$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = false; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Select" : "Selected"}}</button>
+                        </p>
+                        <p data-ng-if="$ctrl.monthlyDisabled" style="color: red;">Due to your association having 10 or fewer homes, you must pay annually. Sorry! You can <a href="https://help.communityally.org/why-go-premium/" target="_blank">learn more here</a>.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">Pay Annually</h3>
-                    <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars * 11}}</h2>
-                    <p>
-                        <button data-ng-class="{'btn-outline-primary':!$ctrl.isActivatingAnnual,'btn-primary':$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = true; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Selected" : "Select"}}</button>
-                    </p>
-                    <p class="card-text">Get 1 month free! Comes out to ${{$ctrl.settings.premiumPlanCostDollars * 0.92 | number:2}}/mo.</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Pay Annually</h3>
+                        <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars * 11}}</h2>
+                        <p>
+                            <button data-ng-class="{'btn-outline-primary':!$ctrl.isActivatingAnnual,'btn-primary':$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = true; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Selected" : "Select"}}</button>
+                        </p>
+                        <p class="card-text">Get 1 month free! Comes out to ${{$ctrl.settings.premiumPlanCostDollars * 0.92 | number:2}}/mo.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div data-ng-if="$ctrl.shouldShowPaymentForm" class="card w-50 mt-4" style="margin: 0 auto;">
-            <div class="card-body">
-                <h5 class="card-title">Payment Options</h5>
-                <p class="card-text">
-                    You can pay via a credit card below. We also accept other methods such as check or wire transfer. If
-                    you'd prefer this, let us know using the chat box in the lower right of the page. We can send an invoice
-                    for your records with any payment method.
-                </p>
+        <div class="row mt-4">
+            <div data-ng-if="$ctrl.shouldShowPaymentForm" class="card col-sm-12 col-md-6" style="margin: 0 auto;">
+                <div class="card-body">
+                    <h5 class="card-title">Payment Options</h5>
+                    <p class="card-text">
+                        You can pay via a credit card below. We also accept other methods such as check or wire transfer. If
+                        you'd prefer this, let us know using the chat box in the lower right of the page. We can send an invoice
+                        for your records with any payment method.
+                    </p>
 
-                <h5 class="card-title">Enter Credit Card Info</h5>
-                <p class="card-text">
-                    <div id="stripe-card-element" class="border"></div>
-                </p>
-                <p>
-                    <div id="card-errors" class="text-error" role="alert"></div>
-                </p>
-                <p>{{$ctrl.checkoutDescription}}</p>
-                <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
-                <div data-ng-if="$ctrl.showInvoiceSection">
-                    <p class="mt-4">Or you can generate an invoice and pay with an alternate method</p>
-                    <span data-ng-if="!$ctrl.isActivatingAnnual">You must pay annually to use the invoice feature.</span>
-                    <button data-ng-if="$ctrl.isActivatingAnnual" class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice(true)">Generate Invoice</button>
-                    <button class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice(false)">Generate 1 Month Invoice</button>
+                    <h5 class="card-title">Enter Credit Card Info</h5>
+                    <p class="card-text">
+                        Credit Card Number:
+                        <br />
+                        <div id="stripe-card-element" class="border"></div>
+                    </p>
+                    <p>
+                        <div id="card-errors" class="text-error" role="alert"></div>
+                    </p>
+                    <p>{{$ctrl.checkoutDescription}}</p>
+                    <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
+                    <div data-ng-if="$ctrl.showInvoiceSection">
+                        <p class="mt-4">Or you can generate an invoice and pay with an alternate method</p>
+                        <span data-ng-if="!$ctrl.isActivatingAnnual">You must pay annually to use the invoice feature.</span>
+                        <button data-ng-if="$ctrl.isActivatingAnnual" class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice(12, $ctrl.genInvoiceShouldIncludeWireInfo)">Generate Invoice</button>
+                        <br />
+                        <br />
+                        Num Months: <input type="number" data-ng-model="$ctrl.genInvoiceNumMonths" min="1" max="10" />
+                        <br />
+                        <label><input type="checkbox" data-ng-model="$ctrl.genInvoiceShouldIncludeWireInfo" />Include Wire Info</label>
+                        <br />
+                        <button class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice($ctrl.genInvoiceNumMonths, $ctrl.genInvoiceShouldIncludeWireInfo)">Generate {{$ctrl.genInvoiceNumMonths}} Month Invoice</button>
+                    </div>
                 </div>
             </div>
         </div>

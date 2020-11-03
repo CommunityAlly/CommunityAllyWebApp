@@ -23,6 +23,8 @@ var Ally;
             this.planExpirationColor = "red";
             this.groupEmailChartData = [];
             this.groupEmailAverage = 0;
+            this.genInvoiceNumMonths = 1;
+            this.genInvoiceShouldIncludeWireInfo = false;
             this.emailUsageChartData = [];
             this.emailUsageChartLabels = [];
             this.emailUsageChartOptions = {};
@@ -135,27 +137,32 @@ var Ally;
             });
         };
         /**
-         * Occurs when the user clicks the button to generate an invoice PDF
+         * Occurs when the user clicks the button to generate an annual invoice PDF
          */
-        PremiumPlanSettingsController.prototype.viewPremiumInvoice = function () {
-            var _this = this;
-            this.isLoading = true;
-            this.$http.get("/api/Settings/ViewPremiumInvoice").then(function (response) {
-                _this.isLoading = false;
-                _this.settings.premiumPlanIsAutoRenewed = false;
-                _this.shouldShowPaymentForm = false;
-                _this.refreshData();
-            }, function (errorResponse) {
-                _this.isLoading = false;
-                alert("Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
-            });
-        };
+        //viewPremiumInvoice()
+        //{
+        //    this.isLoading = true;
+        //    this.$http.get( "/api/Settings/ViewPremiumInvoice" ).then(
+        //        ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            this.settings.premiumPlanIsAutoRenewed = false;
+        //            this.shouldShowPaymentForm = false;
+        //            this.refreshData();
+        //        },
+        //        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            alert( "Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
+        //        }
+        //    );
+        //}
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (isAnnual) {
+        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (numMonths, shouldIncludeWireInfo) {
             var _this = this;
-            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&isAnnual=" + isAnnual;
+            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&numMonths=" + numMonths + "&shouldIncludeWireInfo=" + shouldIncludeWireInfo;
             window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
             window.setTimeout(function () {
                 // Refresh the view token in case the user clicks again
@@ -323,7 +330,7 @@ var Ally;
             this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
                 _this.isLoading = false;
                 _this.meteredUsage = response.data;
-                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + m.month; });
+                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + (m.month > 9 ? "" : "0") + m.month; });
                 _this.emailUsageChartLabels = [];
                 var emailsSentChartData = [];
                 var groupEmailChartData = [];

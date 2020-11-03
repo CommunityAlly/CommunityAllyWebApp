@@ -28,7 +28,8 @@ namespace Ally
         planExpirationColor: string = "red";
         groupEmailChartData: number[][] = [];
         groupEmailAverage: number = 0;
-
+        genInvoiceNumMonths: number = 1;
+        genInvoiceShouldIncludeWireInfo: boolean = false;
         emailUsageChartData: number[][] = [];
         emailUsageChartLabels: string[] = [];
         emailUsageChartOptions: any = {};
@@ -196,35 +197,35 @@ namespace Ally
 
 
         /**
-         * Occurs when the user clicks the button to generate an invoice PDF
+         * Occurs when the user clicks the button to generate an annual invoice PDF
          */
-        viewPremiumInvoice()
-        {
-            this.isLoading = true;
+        //viewPremiumInvoice()
+        //{
+        //    this.isLoading = true;
 
-            this.$http.get( "/api/Settings/ViewPremiumInvoice" ).then(
-                ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
-                {
-                    this.isLoading = false;
-                    this.settings.premiumPlanIsAutoRenewed = false;
-                    this.shouldShowPaymentForm = false;
-                    this.refreshData();
-                },
-                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
-                    alert( "Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
-                }
-            );
-        }
+        //    this.$http.get( "/api/Settings/ViewPremiumInvoice" ).then(
+        //        ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            this.settings.premiumPlanIsAutoRenewed = false;
+        //            this.shouldShowPaymentForm = false;
+        //            this.refreshData();
+        //        },
+        //        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            alert( "Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
+        //        }
+        //    );
+        //}
 
 
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        generateStripeInvoice( isAnnual: boolean )
+        generateStripeInvoice( numMonths: number, shouldIncludeWireInfo: boolean )
         {
-            const getUri = `PublicSettings/ViewPremiumInvoice?vid=${this.viewPremiumInvoiceViewId}&isAnnual=${isAnnual}`;
+            const getUri = `PublicSettings/ViewPremiumInvoice?vid=${this.viewPremiumInvoiceViewId}&numMonths=${numMonths}&shouldIncludeWireInfo=${shouldIncludeWireInfo}`;
             window.open( this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank" );
 
             window.setTimeout( () =>
@@ -450,7 +451,7 @@ namespace Ally
                 this.isLoading = false;
                 this.meteredUsage = response.data;
 
-                this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + m.month );
+                this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + ( m.month > 9 ? "" : "0" ) + m.month );
 
                 this.emailUsageChartLabels = [];
                 const emailsSentChartData: number[] = [];
