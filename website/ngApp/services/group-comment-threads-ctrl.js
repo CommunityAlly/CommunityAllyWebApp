@@ -27,12 +27,14 @@ var Ally;
             this.archivedThreads = null;
             this.canCreateThreads = false;
             this.isDiscussionEmailEnabled = true;
+            this.isPremiumPlanActive = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadsController.prototype.$onInit = function () {
             var _this = this;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if (!this.canCreateThreads) {
                 if (this.committeeId) {
@@ -47,7 +49,6 @@ var Ally;
                 }
             }
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
-            this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
             this.editComment = {
                 commentText: "",
                 replyToCommentId: null

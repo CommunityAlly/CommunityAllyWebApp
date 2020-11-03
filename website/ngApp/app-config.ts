@@ -85,7 +85,7 @@ namespace Ally
         menu: Ally.RoutePath_v3[];
         isPublicRoute?: ( path: string ) => boolean;
 
-        static dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie"];
+        static dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
         static dwollaEnvironmentName = "prod";
     }
 

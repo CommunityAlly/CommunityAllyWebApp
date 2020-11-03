@@ -295,7 +295,7 @@ var Ally;
         ManageGroupsController.prototype.onSendTaylorBulkUpdateEmail = function () {
             if (!confirm("Are you sure you want to SEND TO EVERYONE?!?!"))
                 return;
-            this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail");
+            this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail3");
         };
         ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
             this.isLoading = true;
@@ -581,29 +581,48 @@ var Ally;
         function ViewActivityLogController($http) {
             this.$http = $http;
             this.isLoading = false;
+            this.shouldHideLoginAndEmailMessages = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ViewActivityLogController.prototype.$onInit = function () {
+            this.shouldHideLoginAndEmailMessages = window.localStorage["activityLog_hideLoginAndEmailMessages"] === "true";
             // Initialize the UI
             this.retrieveEntries();
+        };
+        /**
+         * Occurs when the users toggles the login/email filter checkbox
+         */
+        ViewActivityLogController.prototype.onHideLoginAndEmailMessagesChange = function () {
+            window.localStorage["activityLog_hideLoginAndEmailMessages"] = this.shouldHideLoginAndEmailMessages;
+            this.filterMessages();
         };
         /**
          * Load the activity log data
          */
         ViewActivityLogController.prototype.retrieveEntries = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/ActivityLog").then(function (logResponse) {
-                innerThis.isLoading = false;
-                innerThis.logEntries = logResponse.data;
+                _this.isLoading = false;
+                _this.allLogEntries = logResponse.data;
                 // The date comes down as a string so let's convert it to a Date object for the local time zone
-                _.each(innerThis.logEntries, function (e) { return e.postDate = moment(e.postDate).toDate(); });
+                _.each(_this.allLogEntries, function (e) { return e.postDate = moment(e.postDate).toDate(); });
+                _this.filterMessages();
             }, function (errorResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to load activity log: " + errorResponse.data.exceptionMessage);
             });
+        };
+        /**
+         * Update the visible messages based on filter criteria
+         */
+        ViewActivityLogController.prototype.filterMessages = function () {
+            if (this.shouldHideLoginAndEmailMessages)
+                this.filteredLogEntries = _.filter(this.allLogEntries, function (e) { return e.activityMessage !== "Logged in" && e.activityMessage.indexOf("Group email sent") !== 0; });
+            else
+                this.filteredLogEntries = this.allLogEntries;
         };
         ViewActivityLogController.$inject = ["$http"];
         return ViewActivityLogController;
@@ -1173,7 +1192,7 @@ var Ally;
     var AppConfigInfo = /** @class */ (function () {
         function AppConfigInfo() {
         }
-        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie"];
+        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
         AppConfigInfo.dwollaEnvironmentName = "prod";
         return AppConfigInfo;
     }());
@@ -4247,6 +4266,8 @@ var Ally;
             this.planExpirationColor = "red";
             this.groupEmailChartData = [];
             this.groupEmailAverage = 0;
+            this.genInvoiceNumMonths = 1;
+            this.genInvoiceShouldIncludeWireInfo = false;
             this.emailUsageChartData = [];
             this.emailUsageChartLabels = [];
             this.emailUsageChartOptions = {};
@@ -4359,27 +4380,32 @@ var Ally;
             });
         };
         /**
-         * Occurs when the user clicks the button to generate an invoice PDF
+         * Occurs when the user clicks the button to generate an annual invoice PDF
          */
-        PremiumPlanSettingsController.prototype.viewPremiumInvoice = function () {
-            var _this = this;
-            this.isLoading = true;
-            this.$http.get("/api/Settings/ViewPremiumInvoice").then(function (response) {
-                _this.isLoading = false;
-                _this.settings.premiumPlanIsAutoRenewed = false;
-                _this.shouldShowPaymentForm = false;
-                _this.refreshData();
-            }, function (errorResponse) {
-                _this.isLoading = false;
-                alert("Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
-            });
-        };
+        //viewPremiumInvoice()
+        //{
+        //    this.isLoading = true;
+        //    this.$http.get( "/api/Settings/ViewPremiumInvoice" ).then(
+        //        ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            this.settings.premiumPlanIsAutoRenewed = false;
+        //            this.shouldShowPaymentForm = false;
+        //            this.refreshData();
+        //        },
+        //        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            alert( "Failed to create invoice. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
+        //        }
+        //    );
+        //}
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (isAnnual) {
+        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (numMonths, shouldIncludeWireInfo) {
             var _this = this;
-            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&isAnnual=" + isAnnual;
+            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&numMonths=" + numMonths + "&shouldIncludeWireInfo=" + shouldIncludeWireInfo;
             window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
             window.setTimeout(function () {
                 // Refresh the view token in case the user clicks again
@@ -4547,7 +4573,7 @@ var Ally;
             this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
                 _this.isLoading = false;
                 _this.meteredUsage = response.data;
-                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + m.month; });
+                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + (m.month > 9 ? "" : "0") + m.month; });
                 _this.emailUsageChartLabels = [];
                 var emailsSentChartData = [];
                 var groupEmailChartData = [];
@@ -8098,8 +8124,8 @@ var Ally;
                 streetAddress3: new Ally.FullAddress()
             };
             this.isWePayPaymentActive = false;
-            this.isDwollaPaymentActive = false;
-            this.shouldShowDwolla = false;
+            this.isDwollaEnabledOnGroup = false;
+            this.isDwollaReadyForPayment = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
             this.hasComplexPassword = false;
@@ -8119,10 +8145,12 @@ var Ally;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
             this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-            this.shouldShowDwolla = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            var shouldShowDwolla = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            if (shouldShowDwolla)
+                this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
-            this.isDwollaAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
-            if (this.isDwollaAccountVerified) {
+            this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+            if (this.isDwollaUserAccountVerified) {
                 this.dwollaUserStatus = "verified";
                 this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
                 if (!this.hasDwollaFundingSource) {
@@ -8130,15 +8158,14 @@ var Ally;
                 }
                 else {
                     this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
-                    if (this.isDwollaPaymentActive) {
+                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    if (this.isDwollaReadyForPayment) {
                         // Check the user's Dwolla balance, delayed since it's not important
                         this.$timeout(function () {
                             _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
                         }, 1000);
                     }
                 }
-                this.isDwollaPaymentActive = this.isDwollaAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             }
             else {
                 this.dwollaUserStatus = "checking";
@@ -9676,7 +9703,7 @@ var Ally;
                     _this.showEmailForbidden = true;
                 }
                 else
-                    alert("Unable to send e-mail, please contact technical support.");
+                    alert("Unable to send e-mail: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -13320,12 +13347,14 @@ var Ally;
             this.archivedThreads = null;
             this.canCreateThreads = false;
             this.isDiscussionEmailEnabled = true;
+            this.isPremiumPlanActive = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadsController.prototype.$onInit = function () {
             var _this = this;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if (!this.canCreateThreads) {
                 if (this.committeeId) {
@@ -13340,7 +13369,6 @@ var Ally;
                 }
             }
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
-            this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
             this.editComment = {
                 commentText: "",
                 replyToCommentId: null
@@ -13836,18 +13864,21 @@ var Ally;
         function SendMessageController($rootScope, fellowResidents, siteInfo) {
             this.$rootScope = $rootScope;
             this.fellowResidents = fellowResidents;
+            this.siteInfo = siteInfo;
             this.shouldShowSendModal = false;
             this.shouldShowButtons = false;
             this.isSending = false;
             this.messageBody = "";
             this.messageSubject = "";
             this.sendResultIsError = false;
+            this.isPremiumPlanActive = false;
             this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         SendMessageController.prototype.$onInit = function () {
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
         };
         // Display the send modal
         SendMessageController.prototype.showSendModal = function () {
@@ -13855,7 +13886,8 @@ var Ally;
             this.sendResultMessage = "";
             this.shouldShowButtons = true;
             // Focus on the message box once displayed
-            setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 50);
+            if (this.isPremiumPlanActive)
+                setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 100);
         };
         // Hide the send modal
         SendMessageController.prototype.hideModal = function () {

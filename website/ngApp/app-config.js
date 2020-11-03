@@ -48,7 +48,7 @@ var Ally;
     var AppConfigInfo = /** @class */ (function () {
         function AppConfigInfo() {
         }
-        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie"];
+        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
         AppConfigInfo.dwollaEnvironmentName = "prod";
         return AppConfigInfo;
     }());

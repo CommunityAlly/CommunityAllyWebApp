@@ -184,7 +184,7 @@ var Ally;
         ManageGroupsController.prototype.onSendTaylorBulkUpdateEmail = function () {
             if (!confirm("Are you sure you want to SEND TO EVERYONE?!?!"))
                 return;
-            this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail2");
+            this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail3");
         };
         ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
             this.isLoading = true;

@@ -40,6 +40,7 @@
         archivedThreads: CommentThread[] = null;
         canCreateThreads: boolean = false;
         isDiscussionEmailEnabled: boolean = true;
+        isPremiumPlanActive: boolean = false;
 
 
         /**
@@ -60,6 +61,7 @@
         */
         $onInit()
         {
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
 
             if( !this.canCreateThreads )
@@ -79,8 +81,7 @@
             }
 
             this.showBoardOnly = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
-            this.isDiscussionEmailEnabled = this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled;
-
+            
             this.editComment = {
                 commentText: "",
                 replyToCommentId: null

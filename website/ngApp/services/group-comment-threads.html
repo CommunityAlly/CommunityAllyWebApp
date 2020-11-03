@@ -111,11 +111,12 @@
                     <span class="note-text">Enable this to create threads that act more like notices and do not allow discussion.</span>
                 </div>
 
-                <div class="form-group" data-ng-if="$ctrl.isDiscussionEmailEnabled">
+                <div class="form-group">
                     <label for="send-notice-check-box">Send Out E-mail Notice:</label>
                     <input id="send-notice-check-box" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
                     <br />
                     <span class="note-text">An e-mail will be send out to the discussion group telling them about your new thread.</span>
+                    <!--<span data-ng-if="!$ctrl.isPremiumPlanActive" class="text-error">Email notifications cannot be sent out while on the free plan.</span>-->
                 </div>
 
                 <div style="text-align: center;">
