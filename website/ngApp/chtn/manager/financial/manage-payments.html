@@ -82,12 +82,14 @@
                     We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to securely handle all of our payment transactions to offer you
                     an incredible layer of security. To start receiving payments you need to associate a bank account
                     for your association via Dwolla. Payments will be automatically sent to this account once a Dwolla payment has cleared. Payment
-                    notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">the bottom of your residents
-                    page</a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
+                    notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">
+                        the bottom of your residents
+                        page
+                    </a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
                     <a href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>.
                     <br>
                     <br>
-                    Payers pay a 0.5% payment fee when your association is on the premium plan, 1% when on the free plan. For example, 0.5% is $0.50 on a $100 payment, $1 on $200, an $1.50 on $300.
+                    Dwolla is completely free for the association. Payers pay a 0.5% payment fee when your association is on the premium plan, 1% when on the free plan. For example, 0.5% is $0.50 on a $100 payment, $1 on $200, an $1.50 on $300.
                     <br />
                     <br />
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startDwollaSignUp()">Sign up Now</button>
@@ -112,14 +114,19 @@
                     </div>
 
                     <!--<div data-ng-if="!$ctrl.allowNewWePaySignUp">
-                        We are in the process of changing our payment provider so sign-up is currently disabled. If you would like to sign-up anyway, please
-                        contact support.
-                    </div>-->
+                    We are in the process of changing our payment provider so sign-up is currently disabled. If you would like to sign-up anyway, please
+                    contact support.
+                </div>-->
 
                 </div>
 
                 <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2">
                     <div>Linked Account: <span class="font-weight-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span> ({{$ctrl.paymentInfo.dwollaFundingSourceType}})</div>
+                    <div data-ng-if="!$ctrl.paymentInfo.dwollaFundingIsVerified" class="font-weight-bold mt-4 mb-4">
+                        Your bank account is still pending micro-deposit verification.
+                        <br />
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showMicroDepositModal()">Enter Micro-Deposit Amounts</button>
+                    </div>
                     <span class="text-link" data-ng-click="$ctrl.disconnectDwolla()">Unlink Dwolla bank account</span>
                 </div>
 
@@ -182,7 +189,9 @@
             </div>-->
 
                 <h3 class="margin-top">Electronic Payment History</h3>
+                
                 <div class="wide_tble_wrap">
+                    
                     <div data-ng-if="!$ctrl.paymentInfo.electronicPayments || $ctrl.paymentInfo.electronicPayments.length === 0">
                         No electronic payments have yet been made.
                     </div>
@@ -491,13 +500,40 @@
             <div class="modal-overlay" data-ng-click=""></div>
             <div class="ca-modal-dialog modal-lg">
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
-                <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowDwollaAddAccountModal = false">&times;</span>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.hideDwollaAddAccountModal()">&times;</span>
                 <h2>Add Bank Account</h2>
                 <span class="note-text">
                     Note: For an extra layer of security, the account addition process takes place through Dwolla's servers only. The information you enter below does not
                     interact with Community Ally's server.
                 </span>
                 <div id="dwolla-iav-container"></div>
+                <div class="text-center" data-ng-if="$ctrl.isDwollaIavDone">
+                    <button type="button" data-ng-click="$ctrl.hideDwollaAddAccountModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-container" data-ng-if="$ctrl.shouldShowMicroDepositModal">
+            <div class="modal-overlay" data-ng-click="$ctrl.shouldShowMicroDepositModal = false"></div>
+            <div class="ca-modal-dialog modal-sm">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowMicroDepositModal = false">&times;</span>
+                <h2>Enter Micro-Deposit Amounts</h2>
+                <div class="row m-1">
+                    <div class="col-sm-12 col-md-6">
+                        <h3>Amount 1</h3>
+                        <input type="text" data-ng-model="$ctrl.dwollaMicroDepositAmount1String" />
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <h3>Amount 2</h3>
+                        <input type="text" data-ng-model="$ctrl.dwollaMicroDepositAmount2String" />
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="note-text">Order of amounts entered does not matter</span>
+                    <br />
+                    <button type="button" class="btn btn-primary mt-3" data-ng-click="$ctrl.submitDwollaMicroDepositAmounts()">Submit</button>
+                </div>
             </div>
         </div>
 

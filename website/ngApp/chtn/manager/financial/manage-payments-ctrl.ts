@@ -33,6 +33,7 @@ namespace Ally
         usersWithAutoPay: any[];
         groupDwollaFundingSourceName: string;
         dwollaFundingSourceType: string;
+        dwollaFundingIsVerified: boolean;
     }
 
 
@@ -90,7 +91,12 @@ namespace Ally
         shouldAllowDwollaSignUp: boolean = false;
         shouldShowDwollaAddAccountModal: boolean = false;
         shouldShowDwollaModalClose: boolean = false;
+        isDwollaIavDone: boolean = false;
+        shouldShowMicroDepositModal: boolean = false;
+        dwollaMicroDepositAmount1String: string;
+        dwollaMicroDepositAmount2String: string;
         readonly HistoryPageSize: number = 50;
+
 
         /**
         * The constructor for the class
@@ -185,51 +191,58 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/OnlinePayment" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<PaymentPageInfo> ) =>
-            {
-                this.isLoading = false;
-                this.hasLoadedPage = true;
-
-                this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
-                
-                var data = httpResponse.data;
-                this.paymentInfo = data;
-                this.paymentsGridOptions.data = this.paymentInfo.electronicPayments;
-                this.paymentsGridOptions.enablePaginationControls = this.paymentInfo.electronicPayments.length > this.HistoryPageSize;
-                this.paymentsGridOptions.minRowsToShow = Math.min( this.paymentInfo.electronicPayments.length, this.HistoryPageSize );
-                this.paymentsGridOptions.virtualizationThreshold = this.paymentsGridOptions.minRowsToShow;
-
-                this.lateFeeInfo =
+            this.$http.get( "/api/OnlinePayment" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<PaymentPageInfo> ) =>
                 {
-                    lateFeeDayOfMonth: data.lateFeeDayOfMonth,
-                    lateFeeAmount: data.lateFeeAmount
-                };
+                    this.isLoading = false;
+                    this.hasLoadedPage = true;
 
-                // Prepend flat fee late fees with a $
-                if( !HtmlUtil.isNullOrWhitespace( this.lateFeeInfo.lateFeeAmount )
-                    && !HtmlUtil.endsWith( this.lateFeeInfo.lateFeeAmount, "%" ) )
-                    this.lateFeeInfo.lateFeeAmount = "$" + this.lateFeeInfo.lateFeeAmount;
+                    this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
 
-                this.refreshUnits();
-                this.updateTestFee();
+                    var data = httpResponse.data;
+                    this.paymentInfo = data;
+                    this.paymentsGridOptions.data = this.paymentInfo.electronicPayments;
+                    this.paymentsGridOptions.enablePaginationControls = this.paymentInfo.electronicPayments.length > this.HistoryPageSize;
+                    this.paymentsGridOptions.minRowsToShow = Math.min( this.paymentInfo.electronicPayments.length, this.HistoryPageSize );
+                    this.paymentsGridOptions.virtualizationThreshold = this.paymentsGridOptions.minRowsToShow;
 
-                // If we were sent here to pre-open a transaction's details
-                if( this.highlightPaymentsInfoId )
-                {
-                    const payment = data.electronicPayments.filter( e => e.paymentId === this.highlightPaymentsInfoId );
-                    if( payment && payment.length > 0 )
+                    this.lateFeeInfo =
                     {
-                        if( payment[0].wePayCheckoutId )
-                            this.showWePayCheckoutInfo( payment[0].wePayCheckoutId );
-                        else if( payment[0].paragonReferenceNumber )
-                            this.showParagonCheckoutInfo( payment[0].paragonReferenceNumber );
-                        else if( payment[0].dwollaTransferUri )
-                            this.showDwollaTransferInfo( payment[0] );
-                    }
+                        lateFeeDayOfMonth: data.lateFeeDayOfMonth,
+                        lateFeeAmount: data.lateFeeAmount
+                    };
 
-                    this.highlightPaymentsInfoId = null;
+                    // Prepend flat fee late fees with a $
+                    if( !HtmlUtil.isNullOrWhitespace( this.lateFeeInfo.lateFeeAmount )
+                        && !HtmlUtil.endsWith( this.lateFeeInfo.lateFeeAmount, "%" ) )
+                        this.lateFeeInfo.lateFeeAmount = "$" + this.lateFeeInfo.lateFeeAmount;
+
+                    this.refreshUnits();
+                    this.updateTestFee();
+
+                    // If we were sent here to pre-open a transaction's details
+                    if( this.highlightPaymentsInfoId )
+                    {
+                        const payment = data.electronicPayments.filter( e => e.paymentId === this.highlightPaymentsInfoId );
+                        if( payment && payment.length > 0 )
+                        {
+                            if( payment[0].wePayCheckoutId )
+                                this.showWePayCheckoutInfo( payment[0].wePayCheckoutId );
+                            else if( payment[0].paragonReferenceNumber )
+                                this.showParagonCheckoutInfo( payment[0].paragonReferenceNumber );
+                            else if( payment[0].dwollaTransferUri )
+                                this.showDwollaTransferInfo( payment[0] );
+                        }
+
+                        this.highlightPaymentsInfoId = null;
+                    }
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( `Failed to load page, please contact technical support. (${httpResponse.data.exceptionMessage})` );
                 }
-            } );
+            );
         }
 
 
@@ -242,17 +255,24 @@ namespace Ally
             this.isLoadingUnits = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Unit" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
-            {
-                innerThis.units = httpResponse.data;
+            this.$http.get( "/api/Unit" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
+                {
+                    innerThis.units = httpResponse.data;
 
-                _.each( innerThis.units, function( u: any ) { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
+                    _.each( innerThis.units, function( u: any ) { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
 
-                innerThis.assessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
-                innerThis.adjustedAssessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
+                    innerThis.assessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
+                    innerThis.adjustedAssessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
 
-                innerThis.isLoadingUnits = false;
-            } );
+                    innerThis.isLoadingUnits = false;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
+                }
+            );
         }
 
 
@@ -317,15 +337,18 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.put( "/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                window.location.reload();
+            this.$http.put( "/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to save: " + httpResponse.data.exceptionMessage );
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -374,20 +397,23 @@ namespace Ally
         {
             this.errorMessage = "";
 
-            this.$http.get( "/api/OnlinePayment/PerformAction?action=withdrawal" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                var withdrawalInfo = httpResponse.data;
+            this.$http.get( "/api/OnlinePayment/PerformAction?action=withdrawal" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    var withdrawalInfo = httpResponse.data;
 
-                if( withdrawalInfo.redirectUri )
-                    window.location.href = withdrawalInfo.redirectUri;
-                else
-                    this.errorMessage = withdrawalInfo.message;
+                    if( withdrawalInfo.redirectUri )
+                        window.location.href = withdrawalInfo.redirectUri;
+                    else
+                        this.errorMessage = withdrawalInfo.message;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    this.errorMessage = httpResponse.data.exceptionMessage;
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    if( httpResponse.data && httpResponse.data.exceptionMessage )
+                        this.errorMessage = httpResponse.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -537,38 +563,41 @@ namespace Ally
         {
             this.isLoadingLateFee = true;
 
-            this.$http.put( "/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoadingLateFee = false;
-
-                var lateFeeResult = httpResponse.data;
-
-                if( !lateFeeResult || !lateFeeResult.feeAmount || lateFeeResult.feeType === 0 )
+            this.$http.put( "/api/OnlinePayment/LateFee?dayOfMonth=" + this.lateFeeInfo.lateFeeDayOfMonth + "&lateFeeAmount=" + this.lateFeeInfo.lateFeeAmount, null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    if( this.lateFeeInfo.lateFeeDayOfMonth !== "" )
-                        alert( "Failed to save the late fee. Please enter only a number for the date (ex. 5) and an amount (ex. 12.34) or percent (ex. 5%) for the fee. To disable late fees, clear the date field and hit save." );
+                    this.isLoadingLateFee = false;
 
-                    this.lateFeeInfo.lateFeeDayOfMonth = "";
-                    this.lateFeeInfo.lateFeeAmount = null;
-                }
-                else
+                    var lateFeeResult = httpResponse.data;
+
+                    if( !lateFeeResult || !lateFeeResult.feeAmount || lateFeeResult.feeType === 0 )
+                    {
+                        if( this.lateFeeInfo.lateFeeDayOfMonth !== "" )
+                            alert( "Failed to save the late fee. Please enter only a number for the date (ex. 5) and an amount (ex. 12.34) or percent (ex. 5%) for the fee. To disable late fees, clear the date field and hit save." );
+
+                        this.lateFeeInfo.lateFeeDayOfMonth = "";
+                        this.lateFeeInfo.lateFeeAmount = null;
+                    }
+                    else
+                    {
+                        this.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
+
+                        // feeType of 2 is percent, 1 is flat, and 0 is invalid
+                        if( lateFeeResult.feeType === 1 )
+                            this.lateFeeInfo.lateFeeAmount = "$" + this.lateFeeInfo.lateFeeAmount;
+                        else if( lateFeeResult.feeType === 2 )
+                            this.lateFeeInfo.lateFeeAmount = "" + this.lateFeeInfo.lateFeeAmount + "%";
+                    }
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
-                    this.lateFeeInfo.lateFeeAmount = lateFeeResult.feeAmount;
+                    this.isLoadingLateFee = false;
 
-                    // feeType of 2 is percent, 1 is flat, and 0 is invalid
-                    if( lateFeeResult.feeType === 1 )
-                        this.lateFeeInfo.lateFeeAmount = "$" + this.lateFeeInfo.lateFeeAmount;
-                    else if( lateFeeResult.feeType === 2 )
-                        this.lateFeeInfo.lateFeeAmount = "" + this.lateFeeInfo.lateFeeAmount + "%";
+                    var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    alert( "Failed to update late fee: " + errorMessage );
                 }
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingLateFee = false;
-
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to update late fee: " + errorMessage );
-            } );
+            );
         }
 
         /**
@@ -584,18 +613,21 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/OnlinePayment/PayPalCheckoutInfo?checkoutId=" + payPalCheckoutId, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+            this.$http.get( "/api/OnlinePayment/PayPalCheckoutInfo?checkoutId=" + payPalCheckoutId, { cache: true } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo = httpResponse.data;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
-            } );
+                    alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -612,18 +644,21 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+            this.$http.get( "/api/OnlinePayment/WePayCheckoutInfo?checkoutId=" + wePayCheckoutId, { cache: true } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo = httpResponse.data;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
-            } );
+                    alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -640,18 +675,20 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/OnlinePayment/ParagonCheckoutInfo?paymentReferenceNumber=" + paragonReferenceNumber, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<ParagonPaymentDetails> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+            this.$http.get( "/api/OnlinePayment/ParagonCheckoutInfo?paymentReferenceNumber=" + paragonReferenceNumber, { cache: true } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ParagonPaymentDetails> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo = httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
-
-                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
-            } );
+                    alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -784,7 +821,47 @@ namespace Ally
         {
             this.shouldShowDwollaAddAccountModal = true;
             this.shouldShowDwollaModalClose = false;
+            this.isDwollaIavDone = false;
             this.isLoading = true;
+
+            const startDwollaIav = ( iavToken: string ) =>
+            {
+                dwolla.configure( AppConfigInfo.dwollaEnvironmentName );
+
+                dwolla.iav.start( iavToken,
+                    {
+                        container: 'dwolla-iav-container',
+                        stylesheets: [
+                            'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
+                        ],
+                        microDeposits: true,
+                        fallbackToMicroDeposits: true
+                    },
+                    ( err: any, res: any ) =>
+                    {
+                        console.log( 'Error: ' + JSON.stringify( err ) + ' -- Response: ' + JSON.stringify( res ) );
+
+                        if( res && res._links && res._links["funding-source"] && res._links["funding-source"].href )
+                        {
+                            const fundingSourceUri = res._links["funding-source"].href;
+
+                            // Tell the server
+                            this.$http.put( "/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri } ).then(
+                                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                {
+                                    this.isDwollaIavDone = true;
+                                },
+                                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                                {
+                                    this.isLoading = false;
+                                    this.shouldShowDwollaModalClose = true;
+                                    alert( "Failed to complete sign-up" )
+                                }
+                            );
+                        }
+                    }
+                );
+            };
 
             this.$http.get( "/api/Dwolla/GroupIavToken" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
@@ -792,42 +869,7 @@ namespace Ally
                     this.isLoading = false;
 
                     var iavToken = httpResponse.data.iavToken;
-                    dwolla.configure( AppConfigInfo.dwollaEnvironmentName );
-
-                    dwolla.iav.start( iavToken,
-                        {
-                            container: 'dwolla-iav-container',
-                            stylesheets: [
-                                'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
-                            ],
-                            microDeposits: false,
-                            fallbackToMicroDeposits: false
-                        },
-                        ( err: any, res: any ) =>
-                        {
-                            console.log( 'Error: ' + JSON.stringify( err ) + ' -- Response: ' + JSON.stringify( res ) );
-
-                            if( res && res._links && res._links["funding-source"] && res._links["funding-source"].href )
-                            {
-                                const fundingSourceUri = res._links["funding-source"].href;
-
-                                // Tell the server
-                                this.$http.put( "/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri } ).then(
-                                    ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-                                    {
-                                        window.location.reload();
-                                    },
-                                    ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                                    {
-                                        this.isLoading = false;
-                                        this.shouldShowDwollaModalClose = true;
-                                        alert( "Failed to complete sign-up" )
-                                    }
-                                );
-                            }
-                        }
-                    );
-
+                    startDwollaIav( iavToken );
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -837,6 +879,18 @@ namespace Ally
                     alert( "Failed to start instant account verification: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        hideDwollaAddAccountModal()
+        {
+            this.shouldShowDwollaAddAccountModal = false;
+
+            if( this.isDwollaIavDone )
+            {
+                this.isLoading = true;
+                window.location.reload();
+            }
         }
 
 
@@ -861,6 +915,36 @@ namespace Ally
                     alert( "Failed to disconnect account" + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+        showMicroDepositModal()
+        {
+            this.shouldShowMicroDepositModal = true;
+            this.dwollaMicroDepositAmount1String = "0.01";
+            this.dwollaMicroDepositAmount2String = "0.01";
+        }
+
+        submitDwollaMicroDepositAmounts()
+        {
+            this.isLoading = true;
+
+            const postData = {
+                amount1String: this.dwollaMicroDepositAmount1String,
+                amount2String: this.dwollaMicroDepositAmount2String,
+                isForGroup: true
+            };
+
+            this.$http.post( "/api/Dwolla/VerifyMicroDeposit", postData ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to verify: " + httpResponse.data.exceptionMessage );
+                }
+            )
         }
     }
 
