@@ -57,6 +57,7 @@ namespace Ally
         hasComplexPassword: boolean = false;
         didAgreeToDwollaTerms: boolean = false;
         dwollaFundingSourceName: string;
+        dwollaFundingSourceIsVerified: boolean;
         dwollaFeePercent: number = 0.5;
         dwollaFeeAmountString: string;
         dwollaDocUploadType: string = "license";
@@ -64,6 +65,10 @@ namespace Ally
         dwollaDocUploadMessage: string;
         dwollaBalance: number = -1;
         dwollaBalanceMessage: string;
+        isDwollaIavDone: boolean = false;
+        shouldShowMicroDepositModal: boolean = false;
+        dwollaMicroDepositAmount1String: string = "0.01";
+        dwollaMicroDepositAmount2String: string = "0.01";
 
 
         /**
@@ -110,7 +115,8 @@ namespace Ally
                 else
                 {
                     this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
+                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
 
                     if( this.isDwollaReadyForPayment )
                     {
@@ -651,6 +657,7 @@ namespace Ally
         {
             this.shouldShowDwollaAddAccountModal = true;
             this.shouldShowDwollaModalClose = false;
+            this.isDwollaIavDone = false;
             this.isLoadingDwolla = true;
 
             const startIav = ( iavToken: string) =>
@@ -663,8 +670,8 @@ namespace Ally
                         stylesheets: [
                             'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
                         ],
-                        microDeposits: false,
-                        fallbackToMicroDeposits: false
+                        microDeposits: true,
+                        fallbackToMicroDeposits: true
                     },
                     ( err: any, res: any ) =>
                     {
@@ -678,7 +685,7 @@ namespace Ally
                             this.$http.put( "/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri } ).then(
                                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                                 {
-                                    window.location.reload();
+                                    this.isDwollaIavDone = true;
                                 },
                                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                                 {
@@ -706,6 +713,18 @@ namespace Ally
                     alert( "Failed to start IAV: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        hideDwollaAddAccountModal()
+        {
+            this.shouldShowDwollaAddAccountModal = false;
+
+            if( this.isDwollaIavDone )
+            {
+                this.isLoading_Payment = true;
+                window.location.reload();
+            }
         }
 
 
@@ -835,6 +854,29 @@ namespace Ally
                     alert( "Failed to initiate withdraw: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+        submitDwollaMicroDepositAmounts()
+        {
+            this.isLoading_Payment = true;
+
+            const postData = {
+                amount1String: this.dwollaMicroDepositAmount1String,
+                amount2String: this.dwollaMicroDepositAmount2String,
+                isForGroup: false
+            };
+
+            this.$http.post( "/api/Dwolla/VerifyMicroDeposit", postData ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to verify: " + httpResponse.data.exceptionMessage );
+                }
+            )
         }
     }
 

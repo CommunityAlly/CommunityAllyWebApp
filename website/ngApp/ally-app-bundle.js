@@ -2311,6 +2311,8 @@ var Ally;
             this.shouldAllowDwollaSignUp = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
+            this.isDwollaIavDone = false;
+            this.shouldShowMicroDepositModal = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -2415,12 +2417,16 @@ var Ally;
                     }
                     _this.highlightPaymentsInfoId = null;
                 }
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to load page, please contact technical support. (" + httpResponse.data.exceptionMessage + ")");
             });
         };
         /**
          * Load all of the units on the page
          */
         ManagePaymentsController.prototype.refreshUnits = function () {
+            var _this = this;
             // Load the units and assessments
             this.isLoadingUnits = true;
             var innerThis = this;
@@ -2432,6 +2438,9 @@ var Ally;
                 innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
                 innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
                 innerThis.isLoadingUnits = false;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to load units, please contact technical support. (" + httpResponse.data.exceptionMessage + ")");
             });
         };
         ManagePaymentsController.prototype.getLateFeeDateSuper = function () {
@@ -2800,25 +2809,24 @@ var Ally;
             var _this = this;
             this.shouldShowDwollaAddAccountModal = true;
             this.shouldShowDwollaModalClose = false;
+            this.isDwollaIavDone = false;
             this.isLoading = true;
-            this.$http.get("/api/Dwolla/GroupIavToken").then(function (httpResponse) {
-                _this.isLoading = false;
-                var iavToken = httpResponse.data.iavToken;
+            var startDwollaIav = function (iavToken) {
                 dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
                 dwolla.iav.start(iavToken, {
                     container: 'dwolla-iav-container',
                     stylesheets: [
                         'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
                     ],
-                    microDeposits: false,
-                    fallbackToMicroDeposits: false
+                    microDeposits: true,
+                    fallbackToMicroDeposits: true
                 }, function (err, res) {
                     console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server
                         _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
-                            window.location.reload();
+                            _this.isDwollaIavDone = true;
                         }, function (httpResponse) {
                             _this.isLoading = false;
                             _this.shouldShowDwollaModalClose = true;
@@ -2826,11 +2834,23 @@ var Ally;
                         });
                     }
                 });
+            };
+            this.$http.get("/api/Dwolla/GroupIavToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                var iavToken = httpResponse.data.iavToken;
+                startDwollaIav(iavToken);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 _this.shouldShowDwollaAddAccountModal = false;
                 alert("Failed to start instant account verification: " + httpResponse.data.exceptionMessage);
             });
+        };
+        ManagePaymentsController.prototype.hideDwollaAddAccountModal = function () {
+            this.shouldShowDwollaAddAccountModal = false;
+            if (this.isDwollaIavDone) {
+                this.isLoading = true;
+                window.location.reload();
+            }
         };
         /**
          * Disconnect the bank account from Dwolla
@@ -2845,6 +2865,26 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
+            });
+        };
+        ManagePaymentsController.prototype.showMicroDepositModal = function () {
+            this.shouldShowMicroDepositModal = true;
+            this.dwollaMicroDepositAmount1String = "0.01";
+            this.dwollaMicroDepositAmount2String = "0.01";
+        };
+        ManagePaymentsController.prototype.submitDwollaMicroDepositAmounts = function () {
+            var _this = this;
+            this.isLoading = true;
+            var postData = {
+                amount1String: this.dwollaMicroDepositAmount1String,
+                amount2String: this.dwollaMicroDepositAmount2String,
+                isForGroup: true
+            };
+            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to verify: " + httpResponse.data.exceptionMessage);
             });
         };
         ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
@@ -8134,6 +8174,10 @@ var Ally;
             this.dwollaDocUploadType = "license";
             this.dwollaDocUploadFile = null;
             this.dwollaBalance = -1;
+            this.isDwollaIavDone = false;
+            this.shouldShowMicroDepositModal = false;
+            this.dwollaMicroDepositAmount1String = "0.01";
+            this.dwollaMicroDepositAmount2String = "0.01";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -8158,7 +8202,8 @@ var Ally;
                 }
                 else {
                     this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.hasDwollaFundingSource && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
+                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
                     if (this.isDwollaReadyForPayment) {
                         // Check the user's Dwolla balance, delayed since it's not important
                         this.$timeout(function () {
@@ -8536,6 +8581,7 @@ var Ally;
             var _this = this;
             this.shouldShowDwollaAddAccountModal = true;
             this.shouldShowDwollaModalClose = false;
+            this.isDwollaIavDone = false;
             this.isLoadingDwolla = true;
             var startIav = function (iavToken) {
                 dwolla.configure(Ally.AppConfigInfo.dwollaEnvironmentName);
@@ -8544,15 +8590,15 @@ var Ally;
                     stylesheets: [
                         'https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext'
                     ],
-                    microDeposits: false,
-                    fallbackToMicroDeposits: false
+                    microDeposits: true,
+                    fallbackToMicroDeposits: true
                 }, function (err, res) {
                     console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server
                         _this.$http.put("/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
-                            window.location.reload();
+                            _this.isDwollaIavDone = true;
                         }, function (httpResponse) {
                             _this.isLoadingDwolla = false;
                             _this.shouldShowDwollaModalClose = true;
@@ -8568,6 +8614,13 @@ var Ally;
                 _this.isLoadingDwolla = false;
                 alert("Failed to start IAV: " + httpResponse.data.exceptionMessage);
             });
+        };
+        AssessmentPaymentFormController.prototype.hideDwollaAddAccountModal = function () {
+            this.shouldShowDwollaAddAccountModal = false;
+            if (this.isDwollaIavDone) {
+                this.isLoading_Payment = true;
+                window.location.reload();
+            }
         };
         /**
          * Submit the user's Paragon bank account information
@@ -8654,6 +8707,21 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
                 alert("Failed to initiate withdraw: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.prototype.submitDwollaMicroDepositAmounts = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            var postData = {
+                amount1String: this.dwollaMicroDepositAmount1String,
+                amount2String: this.dwollaMicroDepositAmount2String,
+                isForGroup: false
+            };
+            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to verify: " + httpResponse.data.exceptionMessage);
             });
         };
         AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];

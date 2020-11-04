@@ -50,6 +50,7 @@ namespace Ally
         paragonCardLast4: string;
         isDwollaAccountVerified: boolean;
         dwollaFundingSourceName: string;
+        dwollaFundingSourceIsVerified: boolean;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];
