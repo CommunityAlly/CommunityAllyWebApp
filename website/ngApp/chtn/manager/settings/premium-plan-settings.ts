@@ -35,7 +35,7 @@ namespace Ally
         emailUsageChartOptions: any = {};
         emailUsageAverageNumMonths: number = 0;
         emailUsageAverageSent: number = 0;
-
+        stripePortalUrl: string;
         meteredUsage: MeteredFeaturesUsage;
         viewPremiumInvoiceViewId: string;
         showInvoiceSection: boolean = false;
@@ -526,7 +526,10 @@ namespace Ally
                 this.premiumPlanRenewDate = moment( this.settings.premiumPlanExpirationDate ).add( 1, "days" ).toDate();
 
                 if( this.settings.premiumPlanIsAutoRenewed )
+                {
                     this.planExpirationColor = "green";
+                    this.$http.get( "/api/Settings/StripeBillingPortal" ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) => this.stripePortalUrl = response.data.portalUrl );
+                }
                 else
                 {
                     const twoMonthsBefore = moment( this.settings.premiumPlanExpirationDate ).add( -2, "months" );

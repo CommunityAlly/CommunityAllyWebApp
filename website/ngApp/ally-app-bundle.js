@@ -4670,8 +4670,10 @@ var Ally;
                 _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 _this.premiumPlanRenewDate = new Date();
                 _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
-                if (_this.settings.premiumPlanIsAutoRenewed)
+                if (_this.settings.premiumPlanIsAutoRenewed) {
                     _this.planExpirationColor = "green";
+                    _this.$http.get("/api/Settings/StripeBillingPortal").then(function (response) { return _this.stripePortalUrl = response.data.portalUrl; });
+                }
                 else {
                     var twoMonthsBefore = moment(_this.settings.premiumPlanExpirationDate).add(-2, "months");
                     if (moment().isBefore(twoMonthsBefore))
@@ -8593,7 +8595,7 @@ var Ally;
                     microDeposits: true,
                     fallbackToMicroDeposits: true
                 }, function (err, res) {
-                    console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
+                    //console.log( 'Error: ' + JSON.stringify( err ) + ' -- Response: ' + JSON.stringify( res ) );
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server

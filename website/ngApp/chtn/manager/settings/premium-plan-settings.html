@@ -15,6 +15,7 @@
             Your premium plan will auto-renew on <span style="font-weight: bold; color: green;">{{$ctrl.premiumPlanRenewDate | date:'shortDate'}}</span>.
             <br />
             <button class="btn btn-primary" type="button" data-ng-click="$ctrl.cancelPremiumAutoRenew()">Cancel Auto-Renew</button>
+            <a class="btn ml-3" data-ng-if="$ctrl.stripePortalUrl" data-ng-href="{{$ctrl.stripePortalUrl}}">View Stripe Billing Portal</a>
         </div>
 
         <div data-ng-if="!$ctrl.settings.premiumPlanIsAutoRenewed">
