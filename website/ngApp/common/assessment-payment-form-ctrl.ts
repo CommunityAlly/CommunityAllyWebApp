@@ -675,7 +675,7 @@ namespace Ally
                     },
                     ( err: any, res: any ) =>
                     {
-                        console.log( 'Error: ' + JSON.stringify( err ) + ' -- Response: ' + JSON.stringify( res ) );
+                        //console.log( 'Error: ' + JSON.stringify( err ) + ' -- Response: ' + JSON.stringify( res ) );
 
                         if( res && res._links && res._links["funding-source"] && res._links["funding-source"].href )
                         {
