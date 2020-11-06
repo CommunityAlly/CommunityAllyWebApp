@@ -15,6 +15,7 @@
         sendResultIsError: boolean = false;
         recipientInfo: SimpleUserEntry;
         isPremiumPlanActive: boolean = false;
+        isSendingToSelf: boolean = false;
 
 
         /**
@@ -22,7 +23,7 @@
          */
         constructor( private $rootScope: ng.IRootScopeService, private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService )
         {
-            this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${ AppConfig.appName } site`;
+            this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }
 
 
@@ -32,6 +33,7 @@
         $onInit()
         {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
         }
 
 
@@ -62,25 +64,28 @@
             this.isSending = true;
             this.sendResultMessage = "";
 
-            this.fellowResidents.sendMessage( this.recipientInfo.userId, this.messageBody, this.messageSubject ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isSending = false;
-                this.sendResultIsError = false;
-                this.messageBody = "";
-                this.sendResultMessage = "Message sent successfully!";
+            this.fellowResidents.sendMessage( this.recipientInfo.userId, this.messageBody, this.messageSubject ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isSending = false;
+                    this.sendResultIsError = false;
+                    this.messageBody = "";
+                    this.sendResultMessage = "Message sent successfully!";
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.shouldShowButtons = true;
-                this.isSending = false;
-                this.sendResultIsError = true;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.shouldShowButtons = true;
+                    this.isSending = false;
+                    this.sendResultIsError = true;
 
-                this.sendResultMessage = "Failed to send: " + response.data.exceptionMessage;
-            } );
+                    this.sendResultMessage = "Failed to send: " + response.data.exceptionMessage;
+                }
+            );
         };
     }
 }
-    
+
 
 CA.angularApp.component( "sendMessage", {
     bindings: {

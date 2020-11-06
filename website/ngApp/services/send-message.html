@@ -8,7 +8,7 @@
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.hideModal()">&times;</span>
             <h2>Send Message</h2>
 
-            <div data-ng-if="$ctrl.isPremiumPlanActive">
+            <div data-ng-if="$ctrl.isPremiumPlanActive && !$ctrl.isSendingToSelf">
                 <div data-ng-hide="$ctrl.sendResultMessage && !$ctrl.sendResultIsError">
 
                     <div class="form-group row">
@@ -48,9 +48,13 @@
                 </div>
             </div>
 
-            <div data-ng-if="!$ctrl.isPremiumPlanActive">
+            <div data-ng-if="!$ctrl.isPremiumPlanActive && !$ctrl.isSendingToSelf">
                 Your association is currently on our free plan which doesn't support message sending. Please consider upgrading to our
                 premium plan to unlock unlimited messages/emails and support improvements to your site!
+            </div>
+
+            <div data-ng-if="$ctrl.isSendingToSelf">
+                You cannot send yourself messages. If you're lonely, reach out to a neighbor!
             </div>
         </form>
     </div>

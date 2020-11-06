@@ -18,6 +18,7 @@ var Ally;
             this.messageSubject = "";
             this.sendResultIsError = false;
             this.isPremiumPlanActive = false;
+            this.isSendingToSelf = false;
             this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
         }
         /**
@@ -25,6 +26,7 @@ var Ally;
         */
         SendMessageController.prototype.$onInit = function () {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
         };
         // Display the send modal
         SendMessageController.prototype.showSendModal = function () {
