@@ -182,7 +182,7 @@ namespace Ally
 
                 this.handleSiteInfo( siteInfo, $rootScope );
 
-                deferred.resolve();
+                deferred.resolve( siteInfo );
             };
 
             const onRequestFailed = () =>
@@ -306,6 +306,8 @@ namespace Ally
 
             // Set the site title
             document.title = this.publicSiteInfo.fullName;
+
+            $rootScope.isPremiumPlanActive = this.privateSiteInfo.isPremiumPlanActive;
 
             this.userInfo = siteInfo.userInfo;
             $rootScope.userInfo = siteInfo.userInfo;

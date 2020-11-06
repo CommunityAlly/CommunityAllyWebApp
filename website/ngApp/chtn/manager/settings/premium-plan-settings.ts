@@ -464,6 +464,7 @@ namespace Ally
 
                     const monthName = moment( [curMonth.year, curMonth.month - 1, 1] ).format( "MMMM" );
 
+                    // Add the year to the first and last entries
                     if( i === 0 || i === this.meteredUsage.months.length - 1 )
                         this.emailUsageChartLabels.push( monthName + " " + curMonth.year );
                     else

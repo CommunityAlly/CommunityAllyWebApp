@@ -523,14 +523,19 @@ header {
     border-bottom: 12px solid #83c476;
     min-height: 170px;
     padding: 30px 0px 10px 0px; }
-    header .logo-container h3, header .logo-container h4 {
-      width: 63%;
-      color: white;
-      font-weight: 400; }
     header .logo-container h3 {
-      font-size: 23px; }
+      color: white;
+      font-weight: 400;
+      font-size: 23px;
+      display: inline-block; }
     header .logo-container h4 {
       font-size: 46px; }
+    header .logo-container .premium-plan-label {
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 1px 1px 4px grey;
+      margin-left: 15px;
+      font-size: 1.15em; }
   header nav {
     /*padding: 14px 0px !important;
         flex-direction: row !important;

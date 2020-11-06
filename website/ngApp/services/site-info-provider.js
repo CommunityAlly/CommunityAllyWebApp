@@ -95,7 +95,7 @@ var Ally;
             var onSiteInfoReceived = function (siteInfo) {
                 $rootScope.isLoadingSite = false;
                 _this.handleSiteInfo(siteInfo, $rootScope);
-                deferred.resolve();
+                deferred.resolve(siteInfo);
             };
             var onRequestFailed = function () {
                 $rootScope.isLoadingSite = false;
@@ -187,6 +187,7 @@ var Ally;
                 this.privateSiteInfo.googleGpsPosition = new google.maps.LatLng(this.privateSiteInfo.gpsPosition.lat, this.privateSiteInfo.gpsPosition.lon);
             // Set the site title
             document.title = this.publicSiteInfo.fullName;
+            $rootScope.isPremiumPlanActive = this.privateSiteInfo.isPremiumPlanActive;
             this.userInfo = siteInfo.userInfo;
             $rootScope.userInfo = siteInfo.userInfo;
             if (HtmlUtil.isLocalStorageAllowed())

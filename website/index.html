@@ -178,6 +178,7 @@
         <div class="container-fluid logo-container">
             <div class="container">
                 <h3 data-ng-if="!siteTitle.logoHtml">Hello, Neighbor!</h3>
+                <span class="premium-plan-label" data-ng-if="isPremiumPlanActive" title="Thank you for being a premium plan association!">Premium</span>
                 <div ng-cloak>
                     <h1 data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
                     <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText();" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>

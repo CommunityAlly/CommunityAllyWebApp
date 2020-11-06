@@ -339,6 +339,7 @@ var Ally;
                 for (var i = 0; i < response.data.months.length; ++i) {
                     var curMonth = response.data.months[i];
                     var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
+                    // Add the year to the first and last entries
                     if (i === 0 || i === _this.meteredUsage.months.length - 1)
                         _this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
                     else
