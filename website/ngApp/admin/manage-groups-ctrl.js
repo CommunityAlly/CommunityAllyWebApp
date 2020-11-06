@@ -255,7 +255,10 @@ var Ally;
         ManageGroupsController.prototype.populateEmptyDocumentUsage = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10").then(function (response) {
+            var getUri = "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10";
+            if (this.populateDocUsageGroupId)
+                getUri += "&groupId=" + this.populateDocUsageGroupId;
+            this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 alert("Succeeded: " + response.data);
             }, function (response) {

@@ -48,6 +48,7 @@
             body: ""
         };
         changeShortNameResult: string;
+        populateDocUsageGroupId: number;
 
 
         /**
@@ -394,7 +395,11 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10" ).then(
+            let getUri = "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10";
+            if( this.populateDocUsageGroupId )
+                getUri += "&groupId=" + this.populateDocUsageGroupId;
+
+            this.$http.get( getUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading = false;
