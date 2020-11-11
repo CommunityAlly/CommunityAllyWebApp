@@ -159,8 +159,8 @@
   color: black; }
 
 .bold-underline {
-  font-weight: bold;
-  text-decoration: underline; }
+  font-weight: bold !important;
+  text-decoration: underline !important; }
 
 .btn-sign-up-wiz {
   background-color: #ff8824;

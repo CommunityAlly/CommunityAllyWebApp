@@ -21,7 +21,16 @@
 
     <div class="row">
         <div class="col-12 mt-5">
-            <h3>Recent Activity</h3>
+            <h3>Entries</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            Sort By:
+            <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'entryDate'}" data-ng-click="$ctrl.updateEntriesSort('entryDate')">Entry Date</span>
+            - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'status'}" data-ng-click="$ctrl.updateEntriesSort('status')">Status</span>
+            - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'startDate'}" data-ng-click="$ctrl.updateEntriesSort('startDate')">Start Date</span>
         </div>
     </div>
 
@@ -49,6 +58,8 @@
                         <div data-ng-if="entry.project.cost"><label style="font-weight:bold;">Cost:</label>&nbsp;{{ entry.project.cost | currency }}</div>
                         <div data-ng-if="entry.project.vendorCompanyName"><label style="font-weight:bold;">Vendor:</label>&nbsp;{{ entry.project.vendorCompanyName }}</div>
                         <div data-ng-if="entry.project.equipmentName"><label style="font-weight:bold;">Equipment:</label>&nbsp;{{ entry.project.equipmentName }}</div>
+                        <div data-ng-if="entry.project.status"><label style="font-weight:bold;">Status:</label>&nbsp;{{ entry.project.status }}</div>
+                        <div data-ng-if="entry.project.assignedTo"><label style="font-weight:bold;">Assigned To:</label>&nbsp;{{ entry.project.assignedTo }}</div>
                         <p id="maintenance-item-body-{{ $index }}" data-ng-if="entry.project.descriptionText" class="maintenance-item-body" style="white-space: pre-wrap;" ng-bind-html="entry.project.descriptionText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}">
                         </p>
                     </div>
@@ -111,6 +122,26 @@
                     <label class="col-sm-3 col-xs-12">Notes:</label>
                     <div class="col-sm-9 col-xs-12">
                         <textarea data-ng-model="$ctrl.editingProject.descriptionText" class="form-control" rows="4"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-3 col-xs-12">Status:</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <select data-ng-model="$ctrl.editingProject.status" class="form-control">
+                            <option></option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="Active">Active</option>
+                            <option value="Complete">Complete</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-3 col-xs-12">Assigned To:</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input class="form-control" type="text" data-ng-model="$ctrl.editingProject.assignedTo" />
                     </div>
                 </div>
 

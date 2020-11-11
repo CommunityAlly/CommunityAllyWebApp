@@ -14,7 +14,9 @@
         createDateUtc: Date;
         deletedDateUtc: Date;
         creatorUserId: string;
-
+        status: string;
+        assignedTo: string;
+        
         vendorCompanyName: string;
         equipmentName: string;
         creatorFullName: string;
@@ -79,6 +81,8 @@
         maintenanceEntries: MaintenanceEntry[] = [];
         assigneeOptions: FellowChtnResident[] = [];
         selectedAssignee: FellowChtnResident[];
+        entriesSortField: string;
+        entriesSortAscending: boolean = true;
 
         static EquipmentId_AddNew: number = -5;
 
@@ -151,6 +155,15 @@
 
             this.fellowResidents.getResidents().then( residents => this.assigneeOptions = _.clone( residents ) ); // Cloned so we can edit locally
 
+            this.entriesSortField = window.localStorage["maintenance_entriesSortField"];
+            if( !this.entriesSortField )
+            {
+                this.entriesSortField = "entryDate";
+                this.entriesSortAscending = true;
+            }
+            else
+                this.entriesSortAscending = window.localStorage["maintenance_entriesSortAscending"] === "true";
+
             this.loadEquipment()
                 .then( () => this.loadVendors() )
                 .then( () => this.loadProjects() )
@@ -180,7 +193,7 @@
                 this.maintenanceEntries.push( newEntry );
             } );
 
-            this.maintenanceEntries = _.sortBy( this.maintenanceEntries, e => e.getCreatedDate() ).reverse();
+            this.sortEntries();
         }
 
 
@@ -662,6 +675,53 @@
             var csvDataString = Ally.createCsvString( projects, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Maintenance.csv" );
+        }
+
+
+        /**
+         * Sort the entries by a certain field
+         */
+        sortEntries()
+        {
+            const sortEntry = ( e: MaintenanceEntry ) =>
+            {
+                if( this.entriesSortField === "status" )
+                    return e.project ? e.project.status : "ZZZZZ";
+                else if( this.entriesSortField === "startDate" )
+                    return e.project ? e.project.startDate : new Date(1001,12,30);
+                else
+                    return e.getCreatedDate();
+            };
+
+            console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
+            this.maintenanceEntries = _.sortBy( this.maintenanceEntries, sortEntry );
+
+            const shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
+            if( shouldReverse )
+                this.maintenanceEntries.reverse();
+        }
+
+
+        /**
+         * Sort the entries by a certain field
+         */
+        updateEntriesSort( fieldName: string )
+        {
+            if( !fieldName )
+                fieldName = "entryDate";
+
+            if( this.entriesSortField === fieldName )
+                this.entriesSortAscending = !this.entriesSortAscending;
+            else
+            {
+                this.entriesSortField = fieldName;
+                this.entriesSortAscending = false;
+            }
+
+            window.localStorage["maintenance_entriesSortField"] = this.entriesSortField;
+            window.localStorage["maintenance_entriesSortAscending"] = this.entriesSortAscending;
+
+            this.sortEntries();
         }
     }
 }

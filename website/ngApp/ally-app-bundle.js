@@ -366,7 +366,10 @@ var Ally;
         ManageGroupsController.prototype.populateEmptyDocumentUsage = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10").then(function (response) {
+            var getUri = "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10";
+            if (this.populateDocUsageGroupId)
+                getUri += "&groupId=" + this.populateDocUsageGroupId;
+            this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
                 alert("Succeeded: " + response.data);
             }, function (response) {
@@ -4622,6 +4625,7 @@ var Ally;
                 for (var i = 0; i < response.data.months.length; ++i) {
                     var curMonth = response.data.months[i];
                     var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
+                    // Add the year to the first and last entries
                     if (i === 0 || i === _this.meteredUsage.months.length - 1)
                         _this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
                     else
@@ -10562,6 +10566,7 @@ var Ally;
             this.shouldShowManageEquipmentModal = false;
             this.maintenanceEntries = [];
             this.assigneeOptions = [];
+            this.entriesSortAscending = true;
             this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, function (o) { return o.text; });
             this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, function (o) { return o.text; });
             this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
@@ -10599,6 +10604,13 @@ var Ally;
                 };
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.fellowResidents.getResidents().then(function (residents) { return _this.assigneeOptions = _.clone(residents); }); // Cloned so we can edit locally
+            this.entriesSortField = window.localStorage["maintenance_entriesSortField"];
+            if (!this.entriesSortField) {
+                this.entriesSortField = "entryDate";
+                this.entriesSortAscending = true;
+            }
+            else
+                this.entriesSortAscending = window.localStorage["maintenance_entriesSortAscending"] === "true";
             this.loadEquipment()
                 .then(function () { return _this.loadVendors(); })
                 .then(function () { return _this.loadProjects(); })
@@ -10621,7 +10633,7 @@ var Ally;
                 newEntry.todo = t;
                 _this.maintenanceEntries.push(newEntry);
             });
-            this.maintenanceEntries = _.sortBy(this.maintenanceEntries, function (e) { return e.getCreatedDate(); }).reverse();
+            this.sortEntries();
         };
         /**
         * Retrieve the equipment available for this group
@@ -10975,6 +10987,41 @@ var Ally;
             var projects = _.map(_.filter(this.maintenanceEntries, function (e) { return !!e.project; }), function (e) { return e.project; });
             var csvDataString = Ally.createCsvString(projects, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Maintenance.csv");
+        };
+        /**
+         * Sort the entries by a certain field
+         */
+        MaintenanceController.prototype.sortEntries = function () {
+            var _this = this;
+            var sortEntry = function (e) {
+                if (_this.entriesSortField === "status")
+                    return e.project ? e.project.status : "ZZZZZ";
+                else if (_this.entriesSortField === "startDate")
+                    return e.project ? e.project.startDate : new Date(1001, 12, 30);
+                else
+                    return e.getCreatedDate();
+            };
+            console.log("Sort by " + this.entriesSortField + ", dir " + this.entriesSortAscending);
+            this.maintenanceEntries = _.sortBy(this.maintenanceEntries, sortEntry);
+            var shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
+            if (shouldReverse)
+                this.maintenanceEntries.reverse();
+        };
+        /**
+         * Sort the entries by a certain field
+         */
+        MaintenanceController.prototype.updateEntriesSort = function (fieldName) {
+            if (!fieldName)
+                fieldName = "entryDate";
+            if (this.entriesSortField === fieldName)
+                this.entriesSortAscending = !this.entriesSortAscending;
+            else {
+                this.entriesSortField = fieldName;
+                this.entriesSortAscending = false;
+            }
+            window.localStorage["maintenance_entriesSortField"] = this.entriesSortField;
+            window.localStorage["maintenance_entriesSortAscending"] = this.entriesSortAscending;
+            this.sortEntries();
         };
         MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
         MaintenanceController.EquipmentId_AddNew = -5;
@@ -13942,6 +13989,7 @@ var Ally;
             this.messageSubject = "";
             this.sendResultIsError = false;
             this.isPremiumPlanActive = false;
+            this.isSendingToSelf = false;
             this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
         }
         /**
@@ -13949,6 +13997,7 @@ var Ally;
         */
         SendMessageController.prototype.$onInit = function () {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
         };
         // Display the send modal
         SendMessageController.prototype.showSendModal = function () {
@@ -14228,7 +14277,7 @@ var Ally;
             var onSiteInfoReceived = function (siteInfo) {
                 $rootScope.isLoadingSite = false;
                 _this.handleSiteInfo(siteInfo, $rootScope);
-                deferred.resolve();
+                deferred.resolve(siteInfo);
             };
             var onRequestFailed = function () {
                 $rootScope.isLoadingSite = false;
@@ -14320,6 +14369,7 @@ var Ally;
                 this.privateSiteInfo.googleGpsPosition = new google.maps.LatLng(this.privateSiteInfo.gpsPosition.lat, this.privateSiteInfo.gpsPosition.lon);
             // Set the site title
             document.title = this.publicSiteInfo.fullName;
+            $rootScope.isPremiumPlanActive = this.privateSiteInfo.isPremiumPlanActive;
             this.userInfo = siteInfo.userInfo;
             $rootScope.userInfo = siteInfo.userInfo;
             if (HtmlUtil.isLocalStorageAllowed())
