@@ -13,13 +13,21 @@
         </label>
     </div>
 
-    <div class="row mt-5">
-        <div class="col-md-6 col-sm-12 mt-5" data-ng-repeat="vendor in $ctrl.filteredVendors">
-            <preferred-vendor-item class="stacking-cells"  vendor-item="vendor" on-parent-data-needs-refresh="$ctrl.retrieveVendors();"></preferred-vendor-item>
+    <div class="row mt-2">
+        <div class="col-12">
+            Sort By:
+            <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'entryDate'}" data-ng-click="$ctrl.updateEntriesSort('entryDate')">Added Date</span>
+            - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'name'}" data-ng-click="$ctrl.updateEntriesSort('name')">Name</span>
         </div>
     </div>
-    <br/>
-    
+
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mt-sm-5 mt-md-3" data-ng-repeat="vendor in $ctrl.filteredVendors">
+            <preferred-vendor-item class="stacking-cells" vendor-item="vendor" on-parent-data-needs-refresh="$ctrl.retrieveVendors();"></preferred-vendor-item>
+        </div>
+    </div>
+    <br />
+
     <div data-ng-if="$ctrl.filteredVendors.length === 0">
         There are no vendors currently listed for your group. Please add a few using the form below.
     </div>
@@ -27,7 +35,7 @@
     <div class="text-right">
         <a href="javascript:void(0)" class="text-link" data-ng-click="$ctrl.exportVendorCsv()">Export To CSV</a>
     </div>
-    <hr/>
+    <hr />
     <div data-ng-show="$ctrl.isSiteManager" class="margin-top bt">
         <div>
             <h4 class="margin-bottom-10">Add a New Vendor</h4>

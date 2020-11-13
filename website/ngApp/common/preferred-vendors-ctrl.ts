@@ -48,6 +48,10 @@ namespace Ally
         isSiteManager = false;
         usedServiceTags: string[] = [];
         filterTags: string[] = [];
+        entriesSortField: string;
+        entriesSortAscending: boolean = true;
+        static StorageKey_SortField = "vendors_entriesSortField";
+        static StorageKey_SortDir = "vendors_entriesSortAscending";
 
 
         /**
@@ -64,6 +68,16 @@ namespace Ally
         $onInit()
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+
+            this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
+            if( !this.entriesSortField )
+            {
+                this.entriesSortField = "name";
+                this.entriesSortAscending = true;
+            }
+            else
+                this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
+
             this.retrieveVendors();
         }
 
@@ -75,30 +89,30 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.get( "/api/PreferredVendors" ).success(( vendors: PreferredVendor[] ) =>
             {
-                innerThis.isLoading = false;
-                innerThis.allVendors = vendors;
-                innerThis.filteredVendors = vendors;
+                this.isLoading = false;
+                this.allVendors = vendors;
+                this.filteredVendors = vendors;
+                this.sortEntries();
 
                 // Process the tags into an array for the ng-tag-input control, build the list of
                 // all used tags, and convert the add dates to local time
-                innerThis.usedServiceTags = [];
-                _.each( innerThis.allVendors, ( v: PreferredVendor ) =>
+                this.usedServiceTags = [];
+                _.each( this.allVendors, ( v: PreferredVendor ) =>
                 {
                     v.servicesTagArray = [];
                     _.each( v.servicesProvidedSplit, ( ss ) => v.servicesTagArray.push( { text: ss } ) );
 
-                    innerThis.usedServiceTags = innerThis.usedServiceTags.concat( v.servicesProvidedSplit );
+                    this.usedServiceTags = this.usedServiceTags.concat( v.servicesProvidedSplit );
 
                     // Convert the added timestamps to local time
                     v.addedDateUtc = moment.utc( v.addedDateUtc ).toDate();
                 } );
 
                 // Remove any duplicate tags
-                innerThis.usedServiceTags = _.uniq( innerThis.usedServiceTags );
-                innerThis.usedServiceTags.sort();
+                this.usedServiceTags = _.uniq( this.usedServiceTags );
+                this.usedServiceTags.sort();
             } );
         }
 
@@ -206,6 +220,49 @@ namespace Ally
         onAddedNewVendor()
         {
             this.retrieveVendors();
+        }
+
+
+        /**
+         * Sort the entries by a certain field
+         */
+        sortEntries()
+        {
+            const sortEntry = ( pv: PreferredVendor ) =>
+            {
+                if( this.entriesSortField === "name" )
+                    return pv.companyName;
+                else
+                    return pv.addedDateUtc;
+            };
+
+            this.filteredVendors = _.sortBy( this.filteredVendors, sortEntry );
+
+            if( this.entriesSortAscending )
+                this.filteredVendors.reverse();
+        }
+
+
+        /**
+         * Sort the entries by a certain field
+         */
+        updateEntriesSort( fieldName: string )
+        {
+            if( !fieldName )
+                fieldName = "entryDate";
+
+            if( this.entriesSortField === fieldName )
+                this.entriesSortAscending = !this.entriesSortAscending;
+            else
+            {
+                this.entriesSortField = fieldName;
+                this.entriesSortAscending = false;
+            }
+
+            window.localStorage[PreferredVendorsController.StorageKey_SortField] = this.entriesSortField;
+            window.localStorage[PreferredVendorsController.StorageKey_SortDir] = this.entriesSortAscending;
+
+            this.sortEntries();
         }
     }
 }

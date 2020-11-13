@@ -83,6 +83,8 @@
         selectedAssignee: FellowChtnResident[];
         entriesSortField: string;
         entriesSortAscending: boolean = true;
+        static StorageKey_SortField = "maintenance_entriesSortField";
+        static StorageKey_SortDir = "maintenance_entriesSortAscending";
 
         static EquipmentId_AddNew: number = -5;
 
@@ -155,14 +157,14 @@
 
             this.fellowResidents.getResidents().then( residents => this.assigneeOptions = _.clone( residents ) ); // Cloned so we can edit locally
 
-            this.entriesSortField = window.localStorage["maintenance_entriesSortField"];
+            this.entriesSortField = window.localStorage[MaintenanceController.StorageKey_SortField];
             if( !this.entriesSortField )
             {
                 this.entriesSortField = "entryDate";
                 this.entriesSortAscending = true;
             }
             else
-                this.entriesSortAscending = window.localStorage["maintenance_entriesSortAscending"] === "true";
+                this.entriesSortAscending = window.localStorage[MaintenanceController.StorageKey_SortDir] === "true";
 
             this.loadEquipment()
                 .then( () => this.loadVendors() )
@@ -718,8 +720,8 @@
                 this.entriesSortAscending = false;
             }
 
-            window.localStorage["maintenance_entriesSortField"] = this.entriesSortField;
-            window.localStorage["maintenance_entriesSortAscending"] = this.entriesSortAscending;
+            window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
+            window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
 
             this.sortEntries();
         }

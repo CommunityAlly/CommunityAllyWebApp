@@ -28,37 +28,46 @@ var Ally;
             this.isSiteManager = false;
             this.usedServiceTags = [];
             this.filterTags = [];
+            this.entriesSortAscending = true;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         PreferredVendorsController.prototype.$onInit = function () {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
+            if (!this.entriesSortField) {
+                this.entriesSortField = "name";
+                this.entriesSortAscending = true;
+            }
+            else
+                this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
             this.retrieveVendors();
         };
         /**
          * Populate the vendors
          */
         PreferredVendorsController.prototype.retrieveVendors = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/PreferredVendors").success(function (vendors) {
-                innerThis.isLoading = false;
-                innerThis.allVendors = vendors;
-                innerThis.filteredVendors = vendors;
+                _this.isLoading = false;
+                _this.allVendors = vendors;
+                _this.filteredVendors = vendors;
+                _this.sortEntries();
                 // Process the tags into an array for the ng-tag-input control, build the list of
                 // all used tags, and convert the add dates to local time
-                innerThis.usedServiceTags = [];
-                _.each(innerThis.allVendors, function (v) {
+                _this.usedServiceTags = [];
+                _.each(_this.allVendors, function (v) {
                     v.servicesTagArray = [];
                     _.each(v.servicesProvidedSplit, function (ss) { return v.servicesTagArray.push({ text: ss }); });
-                    innerThis.usedServiceTags = innerThis.usedServiceTags.concat(v.servicesProvidedSplit);
+                    _this.usedServiceTags = _this.usedServiceTags.concat(v.servicesProvidedSplit);
                     // Convert the added timestamps to local time
                     v.addedDateUtc = moment.utc(v.addedDateUtc).toDate();
                 });
                 // Remove any duplicate tags
-                innerThis.usedServiceTags = _.uniq(innerThis.usedServiceTags);
-                innerThis.usedServiceTags.sort();
+                _this.usedServiceTags = _.uniq(_this.usedServiceTags);
+                _this.usedServiceTags.sort();
             });
         };
         /**
@@ -144,7 +153,40 @@ var Ally;
         PreferredVendorsController.prototype.onAddedNewVendor = function () {
             this.retrieveVendors();
         };
+        /**
+         * Sort the entries by a certain field
+         */
+        PreferredVendorsController.prototype.sortEntries = function () {
+            var _this = this;
+            var sortEntry = function (pv) {
+                if (_this.entriesSortField === "name")
+                    return pv.companyName;
+                else
+                    return pv.addedDateUtc;
+            };
+            this.filteredVendors = _.sortBy(this.filteredVendors, sortEntry);
+            if (this.entriesSortAscending)
+                this.filteredVendors.reverse();
+        };
+        /**
+         * Sort the entries by a certain field
+         */
+        PreferredVendorsController.prototype.updateEntriesSort = function (fieldName) {
+            if (!fieldName)
+                fieldName = "entryDate";
+            if (this.entriesSortField === fieldName)
+                this.entriesSortAscending = !this.entriesSortAscending;
+            else {
+                this.entriesSortField = fieldName;
+                this.entriesSortAscending = false;
+            }
+            window.localStorage[PreferredVendorsController.StorageKey_SortField] = this.entriesSortField;
+            window.localStorage[PreferredVendorsController.StorageKey_SortDir] = this.entriesSortAscending;
+            this.sortEntries();
+        };
         PreferredVendorsController.$inject = ["$http", "SiteInfo"];
+        PreferredVendorsController.StorageKey_SortField = "vendors_entriesSortField";
+        PreferredVendorsController.StorageKey_SortDir = "vendors_entriesSortAscending";
         return PreferredVendorsController;
     }());
     Ally.PreferredVendorsController = PreferredVendorsController;

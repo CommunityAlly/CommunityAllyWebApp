@@ -75,13 +75,13 @@ var Ally;
                 };
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.fellowResidents.getResidents().then(function (residents) { return _this.assigneeOptions = _.clone(residents); }); // Cloned so we can edit locally
-            this.entriesSortField = window.localStorage["maintenance_entriesSortField"];
+            this.entriesSortField = window.localStorage[MaintenanceController.StorageKey_SortField];
             if (!this.entriesSortField) {
                 this.entriesSortField = "entryDate";
                 this.entriesSortAscending = true;
             }
             else
-                this.entriesSortAscending = window.localStorage["maintenance_entriesSortAscending"] === "true";
+                this.entriesSortAscending = window.localStorage[MaintenanceController.StorageKey_SortDir] === "true";
             this.loadEquipment()
                 .then(function () { return _this.loadVendors(); })
                 .then(function () { return _this.loadProjects(); })
@@ -490,11 +490,13 @@ var Ally;
                 this.entriesSortField = fieldName;
                 this.entriesSortAscending = false;
             }
-            window.localStorage["maintenance_entriesSortField"] = this.entriesSortField;
-            window.localStorage["maintenance_entriesSortAscending"] = this.entriesSortAscending;
+            window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
+            window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
             this.sortEntries();
         };
         MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
+        MaintenanceController.StorageKey_SortField = "maintenance_entriesSortField";
+        MaintenanceController.StorageKey_SortDir = "maintenance_entriesSortAscending";
         MaintenanceController.EquipmentId_AddNew = -5;
         MaintenanceController.AutocompleteLocationOptions = [{ text: "Attic" },
             { text: "Back Yard" },
