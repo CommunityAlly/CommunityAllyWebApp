@@ -31,13 +31,16 @@ var Ally;
     /**
      * Generate a CSV for client-side download
      */
-    function createCsvString(itemArray, descriptorArray) {
+    function createCsvString(itemArray, descriptorArray, includeHeader) {
+        if (includeHeader === void 0) { includeHeader = true; }
         var csvText = "";
         // Write the header
-        for (var i = 0; i < descriptorArray.length; ++i) {
-            if (i > 0)
-                csvText += ",";
-            csvText += ValueToCsvValue(descriptorArray[i].headerText);
+        if (includeHeader) {
+            for (var i = 0; i < descriptorArray.length; ++i) {
+                if (i > 0)
+                    csvText += ",";
+                csvText += ValueToCsvValue(descriptorArray[i].headerText);
+            }
         }
         // Write the rows
         for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {

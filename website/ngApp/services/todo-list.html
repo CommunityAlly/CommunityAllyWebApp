@@ -15,16 +15,17 @@
                     <!--<div class="text-link note-text" data-onaftersave="$ctrl.onAddItem( curList.todoListId )" data-editable-text="$ctrl.newItemDescription">
                 Add New To-Do Item
             </div>-->
-                    <div class="text-link note-text mt-2" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.addNewItem( curList.todoListId )">
-                        Add To-Do
-                    </div>
+                    <div class="text-link note-text mt-2" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.addNewItem( curList.todoListId )">Add To-Do</div>
                 </div>
                 <hr style="margin-top: 20px; margin-bottom: 20px;" />
             </div>
             <div data-ng-if="$ctrl.canManage">
-                <div class="note-text text-link" style="border-bottom-style: none !important;" data-onaftersave="$ctrl.onAddList()" data-editable-text="$ctrl.newListName">
+                <span class="note-text text-link" style="border-bottom-style: none !important;" data-onaftersave="$ctrl.onAddList()" data-editable-text="$ctrl.newListName">
                     Add New To-Do List
-                </div>
+                </span>
+                <span class="note-text text-link float-right" data-ng-click="$ctrl.exportAllToCsv()">
+                    Export to CSV
+                </span>
             </div>
             <div data-ng-if="!$ctrl.canManage">
                 There are no to-do lists to view.

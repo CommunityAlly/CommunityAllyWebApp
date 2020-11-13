@@ -175,6 +175,61 @@ var Ally;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
         };
+        /**
+         * Export the lists to CSV
+         */
+        TodoListCtrl.prototype.exportAllToCsv = function () {
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportTodoListCsv');
+            var a = this.todoLists[0].todoItems;
+            a[0].completedByFullName;
+            var csvColumns = [
+                {
+                    headerText: "List",
+                    fieldName: "owningTodoListName"
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Due Date",
+                    fieldName: "dueDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Added On",
+                    fieldName: "addedDateUtc"
+                },
+                {
+                    headerText: "Added By",
+                    fieldName: "addedByFullName"
+                },
+                {
+                    headerText: "Completed On",
+                    fieldName: "completedDateUtc"
+                },
+                {
+                    headerText: "Completed By",
+                    fieldName: "completedByFullName"
+                }
+            ];
+            var csvDataString = "";
+            for (var listIndex = 0; listIndex < this.todoLists.length; ++listIndex) {
+                var curList = this.todoLists[listIndex];
+                for (var i = 0; i < curList.todoItems.length; ++i)
+                    curList.todoItems[i].owningTodoListName = curList.name;
+                csvDataString += Ally.createCsvString(curList.todoItems, csvColumns, listIndex === 0);
+            }
+            var filename = "ToDos.csv";
+            if (this.committee)
+                filename = this.committee.name.replace(/\W/g, '') + "_" + filename;
+            Ally.HtmlUtil2.downloadCsv(csvDataString, filename);
+        };
         TodoListCtrl.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return TodoListCtrl;
     }());

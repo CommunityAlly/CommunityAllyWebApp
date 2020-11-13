@@ -19,6 +19,7 @@
         addedByFullName: string;
         completedByFullName: string;
         assignedToFullName: string;
+        owningTodoListName: string;
     }
 
 
@@ -29,7 +30,7 @@
         addedByUserId: string;
         addedDateUtc: Date;
         deletedDateUtc: Date;
-        mame: string;
+        name: string;
         todoItems: TodoItem[];
         committeeId: number;
 }
@@ -259,6 +260,73 @@
                 this.isLoading = false;
                 alert( "Failed to delete: " + response.data.exceptionMessage );
             } );
+        }
+
+
+        /**
+         * Export the lists to CSV
+         */
+        exportAllToCsv()
+        {
+            if( typeof ( analytics ) !== "undefined" )
+                analytics.track( 'exportTodoListCsv' );
+
+            const a = this.todoLists[0].todoItems;
+            a[0].completedByFullName
+
+            const csvColumns = [
+                {
+                    headerText: "List",
+                    fieldName: "owningTodoListName"
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Due Date",
+                    fieldName: "dueDate",
+                    dataMapper: function( value: Date )
+                    {
+                        if( !value )
+                            return "";
+
+                        return moment( value ).format( "YYYY-MM-DD" );
+                    }
+                },
+                {
+                    headerText: "Added On",
+                    fieldName: "addedDateUtc"
+                },
+                {
+                    headerText: "Added By",
+                    fieldName: "addedByFullName"
+                },
+                {
+                    headerText: "Completed On",
+                    fieldName: "completedDateUtc"
+                },
+                {
+                    headerText: "Completed By",
+                    fieldName: "completedByFullName"
+                }
+            ];
+
+            let csvDataString = "";
+            for( let listIndex = 0; listIndex < this.todoLists.length; ++listIndex )
+            {
+                const curList = this.todoLists[listIndex];
+
+                for( let i = 0; i < curList.todoItems.length; ++i )
+                    curList.todoItems[i].owningTodoListName = curList.name;
+
+                csvDataString += Ally.createCsvString( curList.todoItems, csvColumns, listIndex === 0 );
+            }
+
+            let filename = "ToDos.csv";
+            if( this.committee )
+                filename = this.committee.name.replace( /\W/g, '' ) + "_" + filename;
+            HtmlUtil2.downloadCsv( csvDataString, filename );
         }
     }
 }

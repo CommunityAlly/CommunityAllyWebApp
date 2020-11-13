@@ -40,17 +40,20 @@
     /**
      * Generate a CSV for client-side download
      */
-    export function createCsvString( itemArray: any[], descriptorArray: CsvColumnDescriptor[] )
+    export function createCsvString( itemArray: any[], descriptorArray: CsvColumnDescriptor[], includeHeader: boolean = true )
     {
         var csvText = "";
 
         // Write the header
-        for( let i = 0; i < descriptorArray.length; ++i )
+        if( includeHeader )
         {
-            if( i > 0 )
-                csvText += ",";
+            for( let i = 0; i < descriptorArray.length; ++i )
+            {
+                if( i > 0 )
+                    csvText += ",";
 
-            csvText += ValueToCsvValue( descriptorArray[i].headerText );
+                csvText += ValueToCsvValue( descriptorArray[i].headerText );
+            }
         }
 
         // Write the rows
