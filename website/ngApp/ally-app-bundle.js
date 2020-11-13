@@ -10604,13 +10604,13 @@ var Ally;
                 };
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.fellowResidents.getResidents().then(function (residents) { return _this.assigneeOptions = _.clone(residents); }); // Cloned so we can edit locally
-            this.entriesSortField = window.localStorage["maintenance_entriesSortField"];
+            this.entriesSortField = window.localStorage[MaintenanceController.StorageKey_SortField];
             if (!this.entriesSortField) {
                 this.entriesSortField = "entryDate";
                 this.entriesSortAscending = true;
             }
             else
-                this.entriesSortAscending = window.localStorage["maintenance_entriesSortAscending"] === "true";
+                this.entriesSortAscending = window.localStorage[MaintenanceController.StorageKey_SortDir] === "true";
             this.loadEquipment()
                 .then(function () { return _this.loadVendors(); })
                 .then(function () { return _this.loadProjects(); })
@@ -11019,11 +11019,13 @@ var Ally;
                 this.entriesSortField = fieldName;
                 this.entriesSortAscending = false;
             }
-            window.localStorage["maintenance_entriesSortField"] = this.entriesSortField;
-            window.localStorage["maintenance_entriesSortAscending"] = this.entriesSortAscending;
+            window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
+            window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
             this.sortEntries();
         };
         MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
+        MaintenanceController.StorageKey_SortField = "maintenance_entriesSortField";
+        MaintenanceController.StorageKey_SortDir = "maintenance_entriesSortAscending";
         MaintenanceController.EquipmentId_AddNew = -5;
         MaintenanceController.AutocompleteLocationOptions = [{ text: "Attic" },
             { text: "Back Yard" },
@@ -11613,37 +11615,46 @@ var Ally;
             this.isSiteManager = false;
             this.usedServiceTags = [];
             this.filterTags = [];
+            this.entriesSortAscending = true;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         PreferredVendorsController.prototype.$onInit = function () {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
+            if (!this.entriesSortField) {
+                this.entriesSortField = "name";
+                this.entriesSortAscending = false;
+            }
+            else
+                this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
             this.retrieveVendors();
         };
         /**
          * Populate the vendors
          */
         PreferredVendorsController.prototype.retrieveVendors = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/PreferredVendors").success(function (vendors) {
-                innerThis.isLoading = false;
-                innerThis.allVendors = vendors;
-                innerThis.filteredVendors = vendors;
+                _this.isLoading = false;
+                _this.allVendors = vendors;
+                _this.filteredVendors = vendors;
+                _this.sortEntries();
                 // Process the tags into an array for the ng-tag-input control, build the list of
                 // all used tags, and convert the add dates to local time
-                innerThis.usedServiceTags = [];
-                _.each(innerThis.allVendors, function (v) {
+                _this.usedServiceTags = [];
+                _.each(_this.allVendors, function (v) {
                     v.servicesTagArray = [];
                     _.each(v.servicesProvidedSplit, function (ss) { return v.servicesTagArray.push({ text: ss }); });
-                    innerThis.usedServiceTags = innerThis.usedServiceTags.concat(v.servicesProvidedSplit);
+                    _this.usedServiceTags = _this.usedServiceTags.concat(v.servicesProvidedSplit);
                     // Convert the added timestamps to local time
                     v.addedDateUtc = moment.utc(v.addedDateUtc).toDate();
                 });
                 // Remove any duplicate tags
-                innerThis.usedServiceTags = _.uniq(innerThis.usedServiceTags);
-                innerThis.usedServiceTags.sort();
+                _this.usedServiceTags = _.uniq(_this.usedServiceTags);
+                _this.usedServiceTags.sort();
             });
         };
         /**
@@ -11729,7 +11740,40 @@ var Ally;
         PreferredVendorsController.prototype.onAddedNewVendor = function () {
             this.retrieveVendors();
         };
+        /**
+         * Sort the entries by a certain field
+         */
+        PreferredVendorsController.prototype.sortEntries = function () {
+            var _this = this;
+            var sortEntry = function (pv) {
+                if (_this.entriesSortField === "name")
+                    return pv.companyName.trim().toLocaleUpperCase();
+                else
+                    return pv.addedDateUtc;
+            };
+            this.filteredVendors = _.sortBy(this.filteredVendors, sortEntry);
+            if (this.entriesSortAscending)
+                this.filteredVendors.reverse();
+        };
+        /**
+         * Sort the entries by a certain field
+         */
+        PreferredVendorsController.prototype.updateEntriesSort = function (fieldName) {
+            if (!fieldName)
+                fieldName = "entryDate";
+            if (this.entriesSortField === fieldName)
+                this.entriesSortAscending = !this.entriesSortAscending;
+            else {
+                this.entriesSortField = fieldName;
+                this.entriesSortAscending = false;
+            }
+            window.localStorage[PreferredVendorsController.StorageKey_SortField] = this.entriesSortField;
+            window.localStorage[PreferredVendorsController.StorageKey_SortDir] = this.entriesSortAscending;
+            this.sortEntries();
+        };
         PreferredVendorsController.$inject = ["$http", "SiteInfo"];
+        PreferredVendorsController.StorageKey_SortField = "vendors_entriesSortField";
+        PreferredVendorsController.StorageKey_SortDir = "vendors_entriesSortAscending";
         return PreferredVendorsController;
     }());
     Ally.PreferredVendorsController = PreferredVendorsController;
@@ -12529,13 +12573,16 @@ var Ally;
     /**
      * Generate a CSV for client-side download
      */
-    function createCsvString(itemArray, descriptorArray) {
+    function createCsvString(itemArray, descriptorArray, includeHeader) {
+        if (includeHeader === void 0) { includeHeader = true; }
         var csvText = "";
         // Write the header
-        for (var i = 0; i < descriptorArray.length; ++i) {
-            if (i > 0)
-                csvText += ",";
-            csvText += ValueToCsvValue(descriptorArray[i].headerText);
+        if (includeHeader) {
+            for (var i = 0; i < descriptorArray.length; ++i) {
+                if (i > 0)
+                    csvText += ",";
+                csvText += ValueToCsvValue(descriptorArray[i].headerText);
+            }
         }
         // Write the rows
         for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
@@ -14667,6 +14714,61 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
+        };
+        /**
+         * Export the lists to CSV
+         */
+        TodoListCtrl.prototype.exportAllToCsv = function () {
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportTodoListCsv');
+            var a = this.todoLists[0].todoItems;
+            a[0].completedByFullName;
+            var csvColumns = [
+                {
+                    headerText: "List",
+                    fieldName: "owningTodoListName"
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Due Date",
+                    fieldName: "dueDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Added On",
+                    fieldName: "addedDateUtc"
+                },
+                {
+                    headerText: "Added By",
+                    fieldName: "addedByFullName"
+                },
+                {
+                    headerText: "Completed On",
+                    fieldName: "completedDateUtc"
+                },
+                {
+                    headerText: "Completed By",
+                    fieldName: "completedByFullName"
+                }
+            ];
+            var csvDataString = "";
+            for (var listIndex = 0; listIndex < this.todoLists.length; ++listIndex) {
+                var curList = this.todoLists[listIndex];
+                for (var i = 0; i < curList.todoItems.length; ++i)
+                    curList.todoItems[i].owningTodoListName = curList.name;
+                csvDataString += Ally.createCsvString(curList.todoItems, csvColumns, listIndex === 0);
+            }
+            var filename = "ToDos.csv";
+            if (this.committee)
+                filename = this.committee.name.replace(/\W/g, '') + "_" + filename;
+            Ally.HtmlUtil2.downloadCsv(csvDataString, filename);
         };
         TodoListCtrl.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return TodoListCtrl;

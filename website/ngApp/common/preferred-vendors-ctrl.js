@@ -38,7 +38,7 @@ var Ally;
             this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
             if (!this.entriesSortField) {
                 this.entriesSortField = "name";
-                this.entriesSortAscending = true;
+                this.entriesSortAscending = false;
             }
             else
                 this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
@@ -160,7 +160,7 @@ var Ally;
             var _this = this;
             var sortEntry = function (pv) {
                 if (_this.entriesSortField === "name")
-                    return pv.companyName;
+                    return pv.companyName.trim().toLocaleUpperCase();
                 else
                     return pv.addedDateUtc;
             };

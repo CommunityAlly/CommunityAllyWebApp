@@ -73,7 +73,7 @@ namespace Ally
             if( !this.entriesSortField )
             {
                 this.entriesSortField = "name";
-                this.entriesSortAscending = true;
+                this.entriesSortAscending = false;
             }
             else
                 this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
@@ -231,7 +231,7 @@ namespace Ally
             const sortEntry = ( pv: PreferredVendor ) =>
             {
                 if( this.entriesSortField === "name" )
-                    return pv.companyName;
+                    return pv.companyName.trim().toLocaleUpperCase();
                 else
                     return pv.addedDateUtc;
             };
