@@ -308,7 +308,8 @@ namespace Ally
             document.title = this.publicSiteInfo.fullName;
 
             $rootScope.isPremiumPlanActive = this.privateSiteInfo.isPremiumPlanActive;
-
+            $rootScope.isPremiumPlanTrial = moment().isBefore( moment( this.privateSiteInfo.creationDate ).add( 3, "months" ) );
+            
             this.userInfo = siteInfo.userInfo;
             $rootScope.userInfo = siteInfo.userInfo;
 

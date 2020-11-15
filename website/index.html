@@ -44,7 +44,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "isteven-multi-select", "ngTagsInput", "xdLocalStorage"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=587;
+        var appVer=588;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -52,17 +52,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=587" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=588" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=587" );
+                    localStorage.setItem( Key_JSVersion, "appVer=588" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=587"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=587"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=588"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=588"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -178,7 +178,7 @@
         <div class="container-fluid logo-container">
             <div class="container">
                 <h3 data-ng-if="!siteTitle.logoHtml">Hello, Neighbor!</h3>
-                <span class="premium-plan-label" data-ng-if="isPremiumPlanActive" title="Thank you for being a premium plan association!">Premium</span>
+                <span class="premium-plan-label" data-ng-if="isPremiumPlanActive" title="Thank you for being a premium plan association!">Premium<span data-ng-if="isPremiumPlanTrial"> Trial</span></span>
                 <div ng-cloak>
                     <h1 data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
                     <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText();" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
