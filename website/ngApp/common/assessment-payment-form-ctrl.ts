@@ -95,7 +95,7 @@ namespace Ally
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
 
             this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-            const shouldShowDwolla = AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+            const shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if( shouldShowDwolla )
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;

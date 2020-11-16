@@ -125,7 +125,7 @@ namespace Ally
             let wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
             this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
 
-            this.shouldAllowDwollaSignUp = AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+            this.shouldAllowDwollaSignUp = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
 
             this.payments = [
                 {

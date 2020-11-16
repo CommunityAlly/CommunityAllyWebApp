@@ -2330,7 +2330,7 @@ var Ally;
             // Allow a single HOA to try WePay
             var wePayExemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
             this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
-            this.shouldAllowDwollaSignUp = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            this.shouldAllowDwollaSignUp = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             this.payments = [
                 {
                     Date: "",
@@ -8201,7 +8201,7 @@ var Ally;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
             this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-            var shouldShowDwolla = Ally.AppConfigInfo.dwollaPreviewShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            var shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if (shouldShowDwolla)
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
