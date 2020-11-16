@@ -18,6 +18,7 @@ namespace Ally
         isResident: boolean = true;
         signerUpInfo: HoaSignerUpInfo = new HoaSignerUpInfo();
         boundsGpsVertices: any[];
+        referralSource: string = "";
     }
 
 
@@ -43,7 +44,7 @@ namespace Ally
         hoaAlertEmail: string;
         hoaAlertNumHomes: string;
         didSignUpForHoaAlert: boolean = false;
-
+        
         // The default sign-up info object
         signUpInfo = new Ally.HoaSignUpInfo();
 
@@ -61,6 +62,12 @@ namespace Ally
         */
         $onInit()
         {
+            this.signUpInfo.referralSource = HtmlUtil.GetQueryStringParameter( "utm_sourcecapterra" );
+
+            // Normalize anything invalid to null
+            if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.referralSource ) )
+                this.signUpInfo.referralSource = null;
+
             this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
                 if( args.index === 1 )
@@ -278,18 +285,17 @@ namespace Ally
 
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
 
-            var innerThis = this;
-            this.$http.post( "/api/SignUpWizard/Hoa", this.signUpInfo ).then( function( httpResponse )
+            this.$http.post( "/api/SignUpWizard/Hoa", this.signUpInfo ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
-                var signUpResult: any = httpResponse.data;
+                const signUpResult: any = httpResponse.data;
 
                 // If the was an error creating the site
                 if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
                 {
                     alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
-                    innerThis.WizardHandler.wizard().goTo( signUpResult.stepIndex );
+                    this.WizardHandler.wizard().goTo( signUpResult.stepIndex );
                 }
                 // Otherwise create succeeded
                 else
@@ -301,26 +307,27 @@ namespace Ally
                     if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
                         ( <any>window ).goog_report_conversion();
 
-                    if( typeof ( ( <any>window ).capterra_report_conversion ) !== "undefined" )
-                        ( <any>window ).capterra_report_conversion();
+                    if( this.signUpInfo.referralSource && typeof ( ( <any>window ).capterra_trackingListener_v2 ) !== "undefined" )
+                        ( <any>window ).capterra_trackingListener_v2();
 
                     // Or if the user created an active signUpResult
                     if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
                     {
-                        window.location.href = signUpResult.createUrl;
+                        // Delay just a bit to let the Capterra tracking log, if needed
+                        window.setTimeout( () => window.location.href = signUpResult.createUrl, 50 );
                     }
                     // Otherwise the user needs to confirm sign-up via e-mail
                     else
                     {
-                        innerThis.hideWizard = true;
+                        this.hideWizard = true;
 
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
                     }
                 }
 
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
                 alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
             } );

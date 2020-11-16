@@ -14,6 +14,7 @@ var Ally;
             this.streetAddress = "";
             this.isResident = true;
             this.signerUpInfo = new HoaSignerUpInfo();
+            this.referralSource = "";
         }
         return HoaSignUpInfo;
     }());
@@ -48,6 +49,10 @@ var Ally;
         */
         HoaSignUpWizardController.prototype.$onInit = function () {
             var _this = this;
+            this.signUpInfo.referralSource = HtmlUtil.GetQueryStringParameter("utm_sourcecapterra");
+            // Normalize anything invalid to null
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.referralSource))
+                this.signUpInfo.referralSource = null;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
                     _this.$timeout(function () { return _this.showMap = true; }, 50);
@@ -193,16 +198,16 @@ var Ally;
          * Called when the user press the button to complete the sign-up process
          */
         HoaSignUpWizardController.prototype.onFinishedWizard = function () {
+            var _this = this;
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
-            var innerThis = this;
             this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var signUpResult = httpResponse.data;
                 // If the was an error creating the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
-                    innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    _this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
                 // Otherwise create succeeded
                 else {
@@ -211,20 +216,21 @@ var Ally;
                     // Log this as a conversion
                     if (typeof (window.goog_report_conversion) !== "undefined")
                         window.goog_report_conversion();
-                    if (typeof (window.capterra_report_conversion) !== "undefined")
-                        window.capterra_report_conversion();
+                    if (_this.signUpInfo.referralSource && typeof (window.capterra_trackingListener_v2) !== "undefined")
+                        window.capterra_trackingListener_v2();
                     // Or if the user created an active signUpResult
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
-                        window.location.href = signUpResult.createUrl;
+                        // Delay just a bit to let the Capterra tracking log, if needed
+                        window.setTimeout(function () { return window.location.href = signUpResult.createUrl; }, 50);
                     }
                     // Otherwise the user needs to confirm sign-up via e-mail
                     else {
-                        innerThis.hideWizard = true;
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.hideWizard = true;
+                        _this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
             });
         };

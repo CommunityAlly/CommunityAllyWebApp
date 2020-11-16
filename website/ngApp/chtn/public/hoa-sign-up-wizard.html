@@ -157,16 +157,22 @@
 
 <!-- Capterra conversion tracking -->
 <script type="text/javascript">
-    var capterra_vkey = 'd0f2e6030433d41b304f0962f72723f9',
-        capterra_vid = '2122598',
-        capterra_prefix = ( ( 'https:' == document.location.protocol ) ? 'https://ct.capterra.com' : 'http://ct.capterra.com' );
-
-    function capterra_report_conversion()
+    function capterra_trackingListener_v2()
     {
-        var ct = document.createElement( 'script' ); ct.type = 'text/javascript'; ct.async = true;
-        ct.src = capterra_prefix + '/capterra_tracker.js?vid=' + capterra_vid + '&vkey=' + capterra_vkey;
-        var s = document.getElementsByTagName( 'script' )[0]; s.parentNode.insertBefore( ct, s );
-    }
+        var capterra_vkey = '4b5b6a2f403b0f0f57dcd2a2b3784593',
+            capterra_vid = '2149057',
+            capterra_prefix = ( ( 'https:' == document.location.protocol )
+                ? 'https://ct.capterra.com' : 'http://ct.capterra.com' );
+
+        var ct = document.createElement( 'script' );
+        ct.type = 'text/javascript';
+        ct.async = true;
+        ct.src = capterra_prefix + '/capterra_tracker.js?vid='
+            + capterra_vid + '&vkey=' + capterra_vkey;
+
+        var s = document.getElementsByTagName( 'script' )[0];
+        s.parentNode.insertBefore( ct, s );
+    };
 </script>
 
 <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion_async.js"></script>

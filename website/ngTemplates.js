@@ -327,25 +327,37 @@ angular.module('CondoAlly').run(['$templateCache', function($templateCache) {
     "\n" +
     "        }\r" +
     "\n" +
-    "    }</script><script>var capterra_vkey = 'd0f2e6030433d41b304f0962f72723f9',\r" +
-    "\n" +
-    "        capterra_vid = '2122598',\r" +
-    "\n" +
-    "        capterra_prefix = ( ( 'https:' == document.location.protocol ) ? 'https://ct.capterra.com' : 'http://ct.capterra.com' );\r" +
-    "\n" +
-    "\r" +
-    "\n" +
-    "    function capterra_report_conversion()\r" +
+    "    }</script><script>function capterra_trackingListener_v2()\r" +
     "\n" +
     "    {\r" +
     "\n" +
-    "        var ct = document.createElement( 'script' ); ct.type = 'text/javascript'; ct.async = true;\r" +
+    "        var capterra_vkey = '4b5b6a2f403b0f0f57dcd2a2b3784593',\r" +
     "\n" +
-    "        ct.src = capterra_prefix + '/capterra_tracker.js?vid=' + capterra_vid + '&vkey=' + capterra_vkey;\r" +
+    "            capterra_vid = '2149057',\r" +
     "\n" +
-    "        var s = document.getElementsByTagName( 'script' )[0]; s.parentNode.insertBefore( ct, s );\r" +
+    "            capterra_prefix = ( ( 'https:' == document.location.protocol )\r" +
     "\n" +
-    "    }</script><script src=\"//www.googleadservices.com/pagead/conversion_async.js\"></script>"
+    "                ? 'https://ct.capterra.com' : 'http://ct.capterra.com' );\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "        var ct = document.createElement( 'script' );\r" +
+    "\n" +
+    "        ct.type = 'text/javascript';\r" +
+    "\n" +
+    "        ct.async = true;\r" +
+    "\n" +
+    "        ct.src = capterra_prefix + '/capterra_tracker.js?vid='\r" +
+    "\n" +
+    "            + capterra_vid + '&vkey=' + capterra_vkey;\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "        var s = document.getElementsByTagName( 'script' )[0];\r" +
+    "\n" +
+    "        s.parentNode.insertBefore( ct, s );\r" +
+    "\n" +
+    "    };</script><script src=\"//www.googleadservices.com/pagead/conversion_async.js\"></script>"
   );
 
 
