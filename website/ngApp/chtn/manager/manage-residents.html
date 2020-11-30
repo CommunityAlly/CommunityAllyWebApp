@@ -335,13 +335,12 @@
 
         <div id="view-email-body-container" class="modal-container" data-ng-if="$ctrl.viewingRecentEmailBody" data-ng-escape="$ctrl.closeViewingEmail()">
             <div class="modal-overlay" data-ng-click="$ctrl.closeViewingEmail()"></div>
-            <div class="ca-modal-dialog modal-lg" data-ng-click="$ctrl.closeViewingEmail()">
+            <div class="ca-modal-dialog modal-lg">
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeViewingEmail()">&times;</span>
                 <h3>Email Message</h3>
                 <p style="white-space: pre-wrap;">
                     {{ $ctrl.viewingRecentEmailBody }}
                 </p>
-                <div class="note-text text-right mt-2">Click anywhere to close</div>
             </div>
         </div>
     </div>
