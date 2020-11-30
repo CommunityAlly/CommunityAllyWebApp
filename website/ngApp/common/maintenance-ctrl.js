@@ -453,6 +453,14 @@ var Ally;
                 {
                     headerText: "Entered By",
                     fieldName: "creatorFullName"
+                },
+                {
+                    headerText: "Status",
+                    fieldName: "status"
+                },
+                {
+                    headerText: "Assigned To",
+                    fieldName: "assignedTo"
                 }
             ];
             var projects = _.map(_.filter(this.maintenanceEntries, function (e) { return !!e.project; }), function (e) { return e.project; });

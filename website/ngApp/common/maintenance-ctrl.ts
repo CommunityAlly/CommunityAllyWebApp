@@ -669,11 +669,19 @@
                 {
                     headerText: "Entered By",
                     fieldName: "creatorFullName"
+                },
+                {
+                    headerText: "Status",
+                    fieldName: "status"
+                },
+                {
+                    headerText: "Assigned To",
+                    fieldName: "assignedTo"
                 }
             ];
 
             const projects = _.map( _.filter( this.maintenanceEntries, e => !!e.project ), e => e.project );
-
+            
             var csvDataString = Ally.createCsvString( projects, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Maintenance.csv" );
