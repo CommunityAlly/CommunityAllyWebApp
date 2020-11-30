@@ -7,6 +7,8 @@
         <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeModal(false)">&times;</span>
 
         <h2 style="margin-bottom: 0;">{{ $ctrl.thread.title }}</h2>
+        <a style="float: right;" data-ng-href="{{$ctrl.threadUrl}}" class="note-text" data-ng-click="$ctrl.copyThreadLink($event)">Copy thread link to clipboard</a>
+
         <div data-ng-if="$ctrl.shouldShowAdminControls">
             <span data-ng-if="!$ctrl.thread.archiveDateUtc" class="note-text text-link" data-ng-click="$ctrl.archiveThread(true)">Archive Thread</span>
             <span data-ng-if="$ctrl.thread.archiveDateUtc" class="note-text text-link" data-ng-click="$ctrl.archiveThread(false)">Unarchive Thread</span>

@@ -30,6 +30,7 @@ var Ally;
         */
         GroupCommentThreadViewController.prototype.$onInit = function () {
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
+            this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.retrieveComments();
         };
         /**
@@ -205,6 +206,15 @@ var Ally;
         GroupCommentThreadViewController.prototype.closeModal = function (isFromOverlayClick) {
             if (this.onClosed)
                 this.onClosed();
+        };
+        GroupCommentThreadViewController.prototype.copyThreadLink = function ($event) {
+            $event.stopPropagation();
+            $event.preventDefault();
+            if (Ally.HtmlUtil2.copyTextToClipboard(this.threadUrl))
+                Ally.HtmlUtil2.showTooltip($event.target, "Copied!");
+            else
+                Ally.HtmlUtil2.showTooltip($event.target, "Auto-copy failed, right-click and copy link address");
+            return false;
         };
         GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return GroupCommentThreadViewController;

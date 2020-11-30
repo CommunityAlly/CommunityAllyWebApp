@@ -33,6 +33,7 @@
         editCommentText: string;
         shouldShowAdminControls: boolean = false;
         digestFrequency: string = null;
+        threadUrl: string;
 
 
         /**
@@ -49,6 +50,7 @@
         $onInit()
         {
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
+            this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
 
             this.retrieveComments();
         }
@@ -88,7 +90,7 @@
             {
                 this.isLoading = false;
 
-            }, (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;
                 alert( "Failed to change: " + response.data.exceptionMessage );
@@ -103,7 +105,7 @@
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/CommentThread/${this.thread.commentThreadId}/Comments` ).then( ( response: ng.IHttpPromiseCallbackArg<CommentsState>) =>
+            this.$http.get( `/api/CommentThread/${this.thread.commentThreadId}/Comments` ).then( ( response: ng.IHttpPromiseCallbackArg<CommentsState> ) =>
             {
                 this.isLoading = false;
                 this.commentsState = response.data;
@@ -135,7 +137,7 @@
             this.replyToCommentId = comment.commentId;
             this.replyCommentText = "";
 
-            setTimeout( () => $(".reply-to-textarea").focus(), 150 );
+            setTimeout( () => $( ".reply-to-textarea" ).focus(), 150 );
         }
 
 
@@ -205,7 +207,7 @@
                 this.$rootScope.$broadcast( "refreshCommentThreadList" );
 
                 this.closeModal( false );
-                
+
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;
@@ -295,10 +297,24 @@
         }
 
 
-        closeModal(isFromOverlayClick: boolean)
+        closeModal( isFromOverlayClick: boolean )
         {
             if( this.onClosed )
                 this.onClosed();
+        }
+
+
+        copyThreadLink( $event: any )
+        {
+            $event.stopPropagation();
+            $event.preventDefault();
+
+            if( HtmlUtil2.copyTextToClipboard( this.threadUrl ) )
+                Ally.HtmlUtil2.showTooltip( $event.target, "Copied!" );
+            else
+                Ally.HtmlUtil2.showTooltip( $event.target, "Auto-copy failed, right-click and copy link address" );
+
+            return false;
         }
     }
 }
