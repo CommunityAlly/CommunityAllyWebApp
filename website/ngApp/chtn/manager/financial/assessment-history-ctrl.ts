@@ -107,7 +107,7 @@
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        $onInit()
+        $onInit(): void
         {
             this.isForMemberGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
 
@@ -129,25 +129,25 @@
                 console.log( "Unhandled app type for payment history: " + AppConfig.appShortName );
 
             // Example
-            var payment =
-            {
-                paymentId: 0,
-                year: 2014,
-                period: 1, // 1 = January
-                isPaid: false,
-                amount: 1.23,
-                paymentDate: "1/2/14",
-                checkNumber: "123",
-                unitId: 1
-            };
+            //var payment =
+            //{
+            //    paymentId: 0,
+            //    year: 2014,
+            //    period: 1, // 1 = January
+            //    isPaid: false,
+            //    amount: 1.23,
+            //    paymentDate: "1/2/14",
+            //    checkNumber: "123",
+            //    unitId: 1
+            //};
 
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
             this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
 
-            var PeriodicPaymentFrequency_Monthly = 50;
-            var PeriodicPaymentFrequency_Quarterly = 51;
-            var PeriodicPaymentFrequency_Semiannually = 52;
-            var PeriodicPaymentFrequency_Annually = 53;
+            const PeriodicPaymentFrequency_Monthly = 50;
+            const PeriodicPaymentFrequency_Quarterly = 51;
+            const PeriodicPaymentFrequency_Semiannually = 52;
+            const PeriodicPaymentFrequency_Annually = 53;
 
             this.assessmentFrequency = <PeriodicPaymentFrequency>this.siteInfo.privateSiteInfo.assessmentFrequency;
             if( this.isForMemberGroup )
@@ -174,11 +174,11 @@
 
             // Set the label values
             this.monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            var shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            var quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
-            var shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
-            var semiannualNames = ["First Half", "Second Half"];
-            var shortSemiannualNames = ["1st Half", "2nd Half"];
+            const shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
+            const shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
+            const semiannualNames = ["First Half", "Second Half"];
+            const shortSemiannualNames = ["1st Half", "2nd Half"];
 
             this.periodNames = this.monthNames;
             this.shortPeriodNames = shortMonthNames;
@@ -227,7 +227,7 @@
         }
 
 
-        onChangePeriodicPaymentTracking()
+        onChangePeriodicPaymentTracking(): void
         {
             if( this.isPeriodicPaymentTrackingEnabled === this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled )
                 return;
@@ -263,12 +263,12 @@
          */
         fillInEmptyPaymentsForUnit( unit: any )
         {
-            var defaultOwnerUserId = ( unit.owners !== null && unit.owners.length > 0 ) ? unit.owners[0].userId : null;
+            const defaultOwnerUserId = ( unit.owners !== null && unit.owners.length > 0 ) ? unit.owners[0].userId : null;
 
-            var sortedPayments = [];
-            var curPeriod = this.startPeriodValue;
-            var curYearValue = this.startYearValue;
-            for( var periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
+            const sortedPayments = [];
+            let curPeriod = this.startPeriodValue;
+            let curYearValue = this.startYearValue;
+            for( let periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
             {
                 if( curPeriod < 1 )
                 {
@@ -276,7 +276,7 @@
                     --curYearValue;
                 }
 
-                var curPeriodPayment = _.find( unit.allPayments, ( p: any ) => p.period === curPeriod && p.year === curYearValue );
+                let curPeriodPayment = _.find( unit.allPayments, ( p: any ) => p.period === curPeriod && p.year === curYearValue );
 
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
@@ -304,12 +304,12 @@
         /**
          * Add in entries to the payments array so every period has an entry
          */
-        fillInEmptyPaymentsForMember( member: PayerInfo )
+        fillInEmptyPaymentsForMember( member: PayerInfo ): PeriodicPayment[]
         {
-            var sortedPayments = [];
-            var curPeriod = this.startPeriodValue;
-            var curYearValue = this.startYearValue;
-            for( var periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
+            const sortedPayments: PeriodicPayment[] = [];
+            let curPeriod = this.startPeriodValue;
+            let curYearValue = this.startYearValue;
+            for( let periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
             {
                 if( curPeriod < 1 )
                 {
@@ -317,7 +317,7 @@
                     --curYearValue;
                 }
 
-                var curPeriodPayment: PeriodicPayment = _.find( member.enteredPayments, p => p.period === curPeriod && p.year === curYearValue );
+                let curPeriodPayment: PeriodicPayment = _.find( member.enteredPayments, p => p.period === curPeriod && p.year === curYearValue );
 
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
@@ -350,14 +350,14 @@
         }
 
 
-        viewWePayDetails( wePayCheckoutId: string )
+        viewWePayDetails( wePayCheckoutId: string ): void
         {
             this.appCacheService.set( "hwpid", wePayCheckoutId );
             this.$location.path( "/Financials/OnlinePayments" );
         }
 
 
-        viewOnlinePaymentDetails( paymentsInfoId: number )
+        viewOnlinePaymentDetails( paymentsInfoId: number ): void
         {
             this.appCacheService.set( "onpayid", paymentsInfoId.toString() );
             this.$location.path( "/Financials/OnlinePayments" );
@@ -367,7 +367,7 @@
         /**
          * Create a special assessment entry
          */
-        addSpecialAssessment()
+        addSpecialAssessment(): void
         {
             // JS is 0 based month plus Angular uses strings so move to 1-based integer for the server
             this.createSpecialAssessment = parseInt( this.createSpecialAssessment ) + 1;
@@ -386,7 +386,7 @@
             {
                 this.isLoading = false;
 
-                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert( "Failed to add special assessment: " + errorMessage );
             } );
         }
@@ -395,7 +395,7 @@
         /**
          * Display the modal to create special assessments
          */
-        showCreateSpecialAssessment()
+        showCreateSpecialAssessment(): void
         {
             this.shouldShowCreateSpecialAssessment = true;
 
@@ -411,7 +411,7 @@
         /**
          * Go back a few pay periods
          */
-        browsePast()
+        public browsePast(): void
         {
             this.startPeriodValue = this.startPeriodValue - 6;
 
@@ -428,7 +428,7 @@
         /**
          * Go ahead a few pay periods
          */
-        browseFuture()
+        browseFuture(): void
         {
             this.startPeriodValue = this.startPeriodValue + 6;
 
@@ -445,16 +445,16 @@
         /**
          * Populate the display for a date range
          */
-        displayPaymentsForRange( startYear: number, startPeriod: number )
+        displayPaymentsForRange( startYear: number, startPeriod: number ): void
         {
             this.startYearValue = startYear;
             this.startPeriodValue = startPeriod;
 
             this.visiblePeriodNames = [];
-            var year = this.startYearValue;
+            let year = this.startYearValue;
 
-            var currentPeriod = this.startPeriodValue;
-            for( var columnIndex = 0; columnIndex < this.NumPeriodsVisible; ++columnIndex )
+            let currentPeriod = this.startPeriodValue;
+            for( let columnIndex = 0; columnIndex < this.NumPeriodsVisible; ++columnIndex )
             {
                 if( currentPeriod < 1 )
                 {
@@ -462,7 +462,7 @@
                     --year;
                 }
 
-                var headerName = this.shortPeriodNames[currentPeriod - 1];
+                let headerName = this.shortPeriodNames[currentPeriod - 1];
                 if( currentPeriod === 1 || currentPeriod === this.maxPeriodRange )
                     headerName += " " + year;
 
@@ -490,13 +490,13 @@
         /**
          * Populate the payment grid
          */
-        retrievePaymentHistory()
+        retrievePaymentHistory(): void
         {
             this.isLoading = true;
 
             this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
             {
-                var paymentInfo = httpResponse.data;
+                const paymentInfo = httpResponse.data;
 
                 // Build the map of unit ID to unit information
                 this.unitPayments = {};
@@ -535,8 +535,8 @@
                 } );
 
                 // Sort the units by name
-                var sortedUnits = [];
-                for( var key in this.unitPayments )
+                const sortedUnits = [];
+                for( const key in this.unitPayments )
                     sortedUnits.push( this.unitPayments[key] );
                 this.unitPayments = _.sortBy( sortedUnits, unit => unit.name );
 
@@ -556,19 +556,19 @@
         /**
          * Get the amount paid by all units in a pay period
          */
-        getPaymentSumForPayPeriod( periodIndex: number )
+        getPaymentSumForPayPeriod( periodIndex: number ): number
         {
             let sum = 0;
 
             if( AppConfig.isChtnSite )
             {
-                let unitIds: string[] = _.keys( this.unitPayments );
+                const unitIds: string[] = _.keys( this.unitPayments );
 
                 for( let i = 0; i < unitIds.length; ++i )
                 {
-                    let unitId = unitIds[i];
+                    const unitId = unitIds[i];
 
-                    let paymentInfo = this.unitPayments[unitId].payments[periodIndex];
+                    const paymentInfo = this.unitPayments[unitId].payments[periodIndex];
                     if( paymentInfo && paymentInfo.isPaid )
                         sum += paymentInfo.amount;
                 }
@@ -577,7 +577,7 @@
             {
                 for( let i = 0; i < this.payers.length; ++i )
                 {
-                    let paymentInfo = this.payers[i].displayPayments[periodIndex];
+                    const paymentInfo = this.payers[i].displayPayments[periodIndex];
                     if( paymentInfo && paymentInfo.isPaid )
                         sum += paymentInfo.amount;
                 }
@@ -590,7 +590,7 @@
         /**
          * Occurs when the user toggles whether or not to show payment info
          */
-        onshowPaymentInfo()
+        onshowPaymentInfo(): void
         {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
             window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
@@ -600,7 +600,7 @@
         /**
          * Occurs when the user clicks a date cell
          */
-        onUnitPaymentCellClick( unit: any, periodPayment: any )
+        onUnitPaymentCellClick( unit: any, periodPayment: any ): void
         {
             periodPayment.unitId = unit.unitId;
 
@@ -608,7 +608,7 @@
                 unit: unit,
                 payment: _.clone( periodPayment ), // Make a copy of the object so we can edit it without editing the grid
                 periodName: this.periodNames[periodPayment.period - 1],
-                filteredPayers: _.filter( this.payers, ( payer: any ) =>
+                filteredPayers: _.filter( this.payers, ( payer ) =>
                 {
                     return !_.some( unit.owners, ( owner: any ) => owner.userId === payer.userId );
                 } )
@@ -621,7 +621,7 @@
         /**
          * Occurs when the user clicks a date cell
          */
-        onMemberPaymentCellClick( payer: PayerInfo, periodPayment: PeriodicPayment )
+        onMemberPaymentCellClick( payer: PayerInfo, periodPayment: PeriodicPayment ): void
         {
             periodPayment.payerUserId = payer.userId;
 
@@ -636,9 +636,9 @@
         }
 
 
-        onSavePayment = () =>
+        onSavePayment(): void
         {
-            var onSave = () =>
+            const onSave = () =>
             {
                 this.isSavingPayment = false;
 
@@ -646,7 +646,7 @@
                 this.retrievePaymentHistory();
             };
 
-            var onError = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            const onError = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isSavingPayment = false;
 

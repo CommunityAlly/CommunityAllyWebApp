@@ -49,7 +49,6 @@ var Ally;
         * The constructor for the class
         */
         function AssessmentHistoryController($http, $location, siteInfo, appCacheService) {
-            var _this = this;
             this.$http = $http;
             this.$location = $location;
             this.siteInfo = siteInfo;
@@ -64,27 +63,6 @@ var Ally;
             this.isForMemberGroup = false;
             this.isSavingPayment = false;
             this.shouldColorCodePayments = false;
-            this.onSavePayment = function () {
-                var onSave = function () {
-                    _this.isSavingPayment = false;
-                    _this.editPayment = null;
-                    _this.retrievePaymentHistory();
-                };
-                var onError = function (httpResponse) {
-                    _this.isSavingPayment = false;
-                    alert(httpResponse.data.message);
-                    _this.editPayment = null;
-                };
-                _this.isSavingPayment = true;
-                if (_this.editPayment.payment.paymentId) {
-                    analytics.track("editAssessmentHistoryPayment");
-                    _this.$http.put("/api/PaymentHistory", _this.editPayment.payment).then(onSave, onError);
-                }
-                else {
-                    analytics.track("addAssessmentHistoryPayment");
-                    _this.$http.post("/api/PaymentHistory", _this.editPayment.payment).then(onSave, onError);
-                }
-            };
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -105,16 +83,17 @@ var Ally;
             else
                 console.log("Unhandled app type for payment history: " + AppConfig.appShortName);
             // Example
-            var payment = {
-                paymentId: 0,
-                year: 2014,
-                period: 1,
-                isPaid: false,
-                amount: 1.23,
-                paymentDate: "1/2/14",
-                checkNumber: "123",
-                unitId: 1
-            };
+            //var payment =
+            //{
+            //    paymentId: 0,
+            //    year: 2014,
+            //    period: 1, // 1 = January
+            //    isPaid: false,
+            //    amount: 1.23,
+            //    paymentDate: "1/2/14",
+            //    checkNumber: "123",
+            //    unitId: 1
+            //};
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
             this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
             var PeriodicPaymentFrequency_Monthly = 50;
@@ -470,6 +449,28 @@ var Ally;
                 filteredPayers: null
             };
             setTimeout(function () { $("#paid-amount-textbox").focus(); }, 10);
+        };
+        AssessmentHistoryController.prototype.onSavePayment = function () {
+            var _this = this;
+            var onSave = function () {
+                _this.isSavingPayment = false;
+                _this.editPayment = null;
+                _this.retrievePaymentHistory();
+            };
+            var onError = function (httpResponse) {
+                _this.isSavingPayment = false;
+                alert(httpResponse.data.message);
+                _this.editPayment = null;
+            };
+            this.isSavingPayment = true;
+            if (this.editPayment.payment.paymentId) {
+                analytics.track("editAssessmentHistoryPayment");
+                this.$http.put("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+            }
+            else {
+                analytics.track("addAssessmentHistoryPayment");
+                this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+            }
         };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         return AssessmentHistoryController;
