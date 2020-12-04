@@ -84,30 +84,8 @@ var Ally;
                 _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                if (_this.unitList && _this.unitList.length > 0) {
-                    // If all homes have a numeric name then lets sort numerically
-                    var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
-                    if (useNumericNames)
-                        _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
-                    else {
-                        // If all homes share the same suffix then sort by only the first part, if numeric
-                        var firstSuffix = _this.unitList[0].name.substr(_this.unitList[0].name.indexOf(" "));
-                        var allHaveNumericPrefix = _.every(_this.unitList, function (u) { return Ally.HtmlUtil2.startsWithNumber(u.name); });
-                        var allHaveSameSuffix = _.every(_this.unitList, function (u) { return HtmlUtil.endsWith(u.name, firstSuffix); });
-                        if (allHaveNumericPrefix && allHaveSameSuffix) {
-                            _this.unitList = _.sortBy(_this.unitList, function (u) { return parseInt(u.name.substr(0, u.name.indexOf(" "))); });
-                        }
-                        else {
-                            // If all units start with a number and end with a string (Like,
-                            // 123 Elm St) then first sort by the street, then number
-                            if (allHaveNumericPrefix) {
-                                var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
-                                _this.unitList = _.sortBy(_this.unitList, function (u) { return [getAfterNumber_1(u.name), parseInt(u.name.substr(0, u.name.search(/\s/)))]; });
-                                //this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.search( /\s/ ) ) ) );
-                            }
-                        }
-                    }
-                }
+                if (_this.unitList && _this.unitList.length > 0)
+                    _this.unitList = Ally.HtmlUtil2.smartSortStreetAddresses(_this.unitList, "name");
                 if (_this.committees) {
                     // Only show committees with a contact person
                     //TWC - 10/19/18 - Show committees even without a contact person

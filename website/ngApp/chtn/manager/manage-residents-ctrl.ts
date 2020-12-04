@@ -37,6 +37,13 @@ namespace Ally
         owners: PayerInfo[];
     }
 
+    export class UnitWithPayment extends UnitWithOwner
+    {
+        owners: PayerInfo[];
+        displayOwners: any[];
+        payments: any[];
+    }
+
     export class HomeEntry
     {
         memberHomeId: number;

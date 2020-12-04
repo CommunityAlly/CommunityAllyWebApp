@@ -31,6 +31,14 @@ var Ally;
         return UnitWithOwner;
     }(Unit));
     Ally.UnitWithOwner = UnitWithOwner;
+    var UnitWithPayment = /** @class */ (function (_super) {
+        __extends(UnitWithPayment, _super);
+        function UnitWithPayment() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return UnitWithPayment;
+    }(UnitWithOwner));
+    Ally.UnitWithPayment = UnitWithPayment;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }

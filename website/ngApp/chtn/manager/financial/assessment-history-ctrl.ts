@@ -543,7 +543,7 @@
                 const sortedUnits: UnitWithPayment[] = [];
                 for( const key in this.unitPayments )
                     sortedUnits.push( this.unitPayments[key] );
-                this.unitPayments = _.sortBy( sortedUnits, unit => unit.name );
+                this.unitPayments = HtmlUtil2.smartSortStreetAddresses( sortedUnits, "name" );
 
                 this.payers = _.sortBy( paymentInfo.payers, payer => payer.name );
 

@@ -20,7 +20,7 @@ var Ally;
                     }
                     else if (HtmlUtil2.isString(value) && value.length > 10 && HtmlUtil2.dotNetTimeRegEx2.test(value)) {
                         //If it is a string of the expected form convert to date
-                        var parsedDate;
+                        var parsedDate = void 0;
                         if (HtmlUtil.endsWith(curPropName, "_UTC")
                             || HtmlUtil.endsWith(curPropName, "Utc")) {
                             parsedDate = HtmlUtil2.serverUtcDateToLocal(value);
@@ -183,6 +183,40 @@ var Ally;
             }
             document.body.removeChild(textArea);
             return didCopy;
+        };
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
+        HtmlUtil2.smartSortStreetAddresses = function (homeList, namePropName) {
+            if (!homeList || homeList.length === 0)
+                return homeList;
+            // If all homes have a numeric name then lets sort numerically
+            var shouldUseNumericNames = _.every(homeList, function (u) { return HtmlUtil.isNumericString(u[namePropName]); });
+            if (shouldUseNumericNames)
+                return _.sortBy(homeList, function (u) { return +u[namePropName]; });
+            // If all homes share the same suffix then sort by only the first part, if numeric
+            var firstSuffix = homeList[0][namePropName].substr(homeList[0][namePropName].indexOf(" "));
+            var allHaveNumericPrefix = _.every(homeList, function (u) { return HtmlUtil2.startsWithNumber(u[namePropName]); });
+            var allHaveSameSuffix = _.every(homeList, function (u) { return HtmlUtil.endsWith(u[namePropName], firstSuffix); });
+            if (allHaveNumericPrefix && allHaveSameSuffix)
+                return _.sortBy(homeList, function (u) { return parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))); });
+            // If all units start with a number and end with a string (Like,
+            // 123 Elm St) then first sort by the street, then number
+            if (allHaveNumericPrefix) {
+                var sortByStreet_1 = function (s1, s2) {
+                    var suffix1 = getAfterNumber_1(s1);
+                    var suffix2 = getAfterNumber_1(s2);
+                    if (suffix1 === suffix2) {
+                        var num1 = parseInt(s1.substr(0, s1.search(/\s/)));
+                        var num2 = parseInt(s2.substr(0, s2.search(/\s/)));
+                        return num1 - num2;
+                    }
+                    return suffix1.localeCompare(suffix2);
+                };
+                var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
+                return homeList.sort(function (h1, h2) { return sortByStreet_1(h1[namePropName], h2[namePropName]); });
+                //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
+                return;
+            }
+            return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"

@@ -387,7 +387,7 @@ var Ally;
                 var sortedUnits = [];
                 for (var key in _this.unitPayments)
                     sortedUnits.push(_this.unitPayments[key]);
-                _this.unitPayments = _.sortBy(sortedUnits, function (unit) { return unit.name; });
+                _this.unitPayments = Ally.HtmlUtil2.smartSortStreetAddresses(sortedUnits, "name");
                 _this.payers = _.sortBy(paymentInfo.payers, function (payer) { return payer.name; });
                 _this.displayPaymentsForRange(_this.startYearValue, _this.startPeriodValue);
                 _this.isLoading = false;

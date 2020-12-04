@@ -125,35 +125,7 @@ namespace Ally
                 this.allOwnerEmails = _.reduce( this.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
 
                 if( this.unitList && this.unitList.length > 0 )
-                {
-                    // If all homes have a numeric name then lets sort numerically
-                    var useNumericNames = _.every( this.unitList, u => HtmlUtil.isNumericString( u.name ) );
-                    if( useNumericNames )
-                        this.unitList = _.sortBy( this.unitList, u => +u.name );
-                    else
-                    {
-                        // If all homes share the same suffix then sort by only the first part, if numeric
-                        var firstSuffix = this.unitList[0].name.substr( this.unitList[0].name.indexOf( " " ) );
-                        const allHaveNumericPrefix = _.every( this.unitList, u => HtmlUtil2.startsWithNumber( u.name ) );
-                        const allHaveSameSuffix = _.every( this.unitList, u => HtmlUtil.endsWith( u.name, firstSuffix ) );
-                        if( allHaveNumericPrefix && allHaveSameSuffix )
-                        {
-                            this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.indexOf( " " ) ) ) );
-                        }
-                        else
-                        {
-                            // If all units start with a number and end with a string (Like,
-                            // 123 Elm St) then first sort by the street, then number
-                            if( allHaveNumericPrefix )
-                            {
-                                const getAfterNumber = ( str: string ) => str.substring( str.search( /\s/ ) + 1 );
-
-                                this.unitList = _.sortBy( this.unitList, u => [ getAfterNumber( u.name ), parseInt( u.name.substr( 0, u.name.search( /\s/ ) ) ) ] );
-                                //this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.search( /\s/ ) ) ) );
-                            }
-                        }
-                    }
-                }
+                    this.unitList = HtmlUtil2.smartSortStreetAddresses( this.unitList, "name" );
                 
                 if( this.committees )
                 {

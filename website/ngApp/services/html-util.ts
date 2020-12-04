@@ -297,6 +297,55 @@ namespace Ally
             return didCopy;
         }
 
+
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
+        static smartSortStreetAddresses( homeList: any[], namePropName: string ): any[]
+        {
+            if( !homeList || homeList.length === 0 )
+                return homeList;
+
+            // If all homes have a numeric name then lets sort numerically
+            const shouldUseNumericNames = _.every( homeList, u => HtmlUtil.isNumericString( u[namePropName] ) );
+            if( shouldUseNumericNames )
+                return _.sortBy( homeList, u => +u[namePropName] );
+
+            // If all homes share the same suffix then sort by only the first part, if numeric
+            const firstSuffix = homeList[0][namePropName].substr( homeList[0][namePropName].indexOf( " " ) );
+            const allHaveNumericPrefix = _.every( homeList, u => HtmlUtil2.startsWithNumber( u[namePropName] ) );
+            const allHaveSameSuffix = _.every( homeList, u => HtmlUtil.endsWith( u[namePropName], firstSuffix ) );
+
+            if( allHaveNumericPrefix && allHaveSameSuffix )
+                return _.sortBy( homeList, u => parseInt( u[namePropName].substr( 0, u[namePropName].indexOf( " " ) ) ) );
+
+            // If all units start with a number and end with a string (Like,
+            // 123 Elm St) then first sort by the street, then number
+            if( allHaveNumericPrefix )
+            {
+                const sortByStreet = ( s1: string, s2: string ): number =>
+                {
+                    const suffix1 = getAfterNumber( s1 );
+                    const suffix2 = getAfterNumber( s2 );
+
+                    if( suffix1 === suffix2 )
+                    {
+                        const num1 = parseInt( s1.substr( 0, s1.search( /\s/ ) ) );
+                        const num2 = parseInt( s2.substr( 0, s2.search( /\s/ ) ) );
+
+                        return num1 - num2;
+                    }
+
+                    return suffix1.localeCompare( suffix2 );
+                };
+
+                const getAfterNumber = ( str: string ) => str.substring( str.search( /\s/ ) + 1 );
+
+                return homeList.sort( ( h1, h2 ) => sortByStreet( h1[namePropName], h2[namePropName] ) );
+                //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
+                return 
+            }
+
+            return _.sortBy( homeList, u => u[namePropName] );
+        }
     }
 
 
