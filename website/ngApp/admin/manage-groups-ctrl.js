@@ -152,14 +152,14 @@ var Ally;
          * Add an address to full address
          */
         ManageGroupsController.prototype.addAddress = function () {
+            var _this = this;
             this.newAddressId = null;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/AdminHelper/AddAddress?address=" + encodeURIComponent(this.newAddress), null).success(function (response) {
-                innerThis.isLoading = false;
-                innerThis.newAddressId = response.data.newAddressId;
-            }).error(function (response) {
-                innerThis.isLoading = false;
+            this.$http.post("/api/AdminHelper/AddAddress?address=" + encodeURIComponent(this.newAddress), null).then(function (response) {
+                _this.isLoading = false;
+                _this.newAddressId = response.data.newAddressId;
+            }, function (response) {
+                _this.isLoading = false;
                 alert("Failed to add address: " + response.data.exceptionMessage);
             });
         };

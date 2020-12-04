@@ -233,17 +233,18 @@
             this.newAddressId = null;
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/AdminHelper/AddAddress?address=" + encodeURIComponent( this.newAddress ), null ).success( function( response: ng.IHttpPromiseCallbackArg<any> )
-            {
-                innerThis.isLoading = false;
-                innerThis.newAddressId = response.data.newAddressId;
-
-            } ).error( function( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to add address: " + response.data.exceptionMessage );
-            } );
+            this.$http.post( "/api/AdminHelper/AddAddress?address=" + encodeURIComponent( this.newAddress ), null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.newAddressId = response.data.newAddressId;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to add address: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
