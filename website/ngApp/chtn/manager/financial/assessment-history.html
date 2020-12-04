@@ -13,6 +13,13 @@
         <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
         <button class="btn btn-primary" style="display: none;" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
     </p>
+    <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
+        Since your site is new you can speed things up by marking all homes as paid back to a certain date.<br />
+        <br />
+        Set all homes paid for period:
+        <select data-ng-model="$ctrl.selectedFillInPeriod" data-ng-options="p as p.name for p in $ctrl.visiblePeriodNames"></select>
+        <button type="button" data-ng-click="$ctrl.populatePaidForPeriod()" class="btn btn-primary">Mark As Paid</button>
+    </div>
     <div class="margin-top-10 spinner-effect">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
@@ -25,7 +32,7 @@
             <thead>
                 <tr>
                     <th class="text-right" style="width: 15%;">
-                        
+
                     </th>
                     <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : ''}">
                         {{ period.name }}
@@ -202,4 +209,5 @@
             </table>
         </form>
     </div>
+
 </div>

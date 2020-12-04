@@ -63,6 +63,8 @@ var Ally;
             this.isForMemberGroup = false;
             this.isSavingPayment = false;
             this.shouldColorCodePayments = false;
+            this.shouldShowFillInSection = false;
+            this.selectedFillInPeriod = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -354,15 +356,17 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/PaymentHistory?oldestDate=").then(function (httpResponse) {
                 var paymentInfo = httpResponse.data;
+                _this.shouldShowFillInSection = _this.siteInfo.userInfo.isAdmin || (paymentInfo.payments.length < 2 && paymentInfo.units.length > 3);
                 // Build the map of unit ID to unit information
                 _this.unitPayments = {};
                 _.each(paymentInfo.units, function (unit) {
                     _this.unitPayments[unit.unitId] = unit;
+                    var curEntry = _this.unitPayments[unit.unitId];
                     // Only take the first two owners for now
-                    _this.unitPayments[unit.unitId].displayOwners = _.first(unit.owners, 2);
-                    while (_this.unitPayments[unit.unitId].displayOwners.length < 2)
-                        _this.unitPayments[unit.unitId].displayOwners.push({ name: "" });
-                    _this.unitPayments[unit.unitId].payments = [];
+                    curEntry.displayOwners = _.first(unit.owners, 2);
+                    while (curEntry.displayOwners.length < 2)
+                        curEntry.displayOwners.push({ name: "" });
+                    curEntry.payments = [];
                 });
                 // Add the payment information to the members
                 if (_this.isForMemberGroup && httpResponse.data.payers) {
@@ -472,10 +476,52 @@ var Ally;
                 this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
             }
         };
+        AssessmentHistoryController.prototype.populatePaidForPeriod = function () {
+            var _this = this;
+            if (!this.selectedFillInPeriod)
+                return;
+            var unitIds = _.keys(this.unitPayments);
+            this.isLoading = true;
+            var numPosts = 0;
+            var _loop_1 = function (i) {
+                var unitPayment = this_1.unitPayments[unitIds[i]];
+                var paymentEntry = _.find(unitPayment.payments, function (p) { return p.year === _this.selectedFillInPeriod.year && p.period === _this.selectedFillInPeriod.periodIndex; });
+                if (paymentEntry) {
+                    if (paymentEntry.isPaid)
+                        return "continue";
+                }
+                var postData = {
+                    Year: this_1.selectedFillInPeriod.year,
+                    Period: this_1.selectedFillInPeriod.periodIndex,
+                    IsPaid: true,
+                    Amount: unitPayment.assessment || 0,
+                    PaymentDate: new Date(),
+                    PayerUserId: this_1.siteInfo.userInfo.userId,
+                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name,
+                    unitId: unitPayment.unitId
+                };
+                ++numPosts;
+                // Poor man's async for-loop
+                window.setTimeout(function () { return _this.$http.post("/api/PaymentHistory", postData); }, numPosts * 350);
+            };
+            var this_1 = this;
+            for (var i = 0; i < unitIds.length; ++i) {
+                _loop_1(i);
+            }
+            window.setTimeout(function () {
+                _this.isLoading = false;
+                _this.retrievePaymentHistory();
+            }, (numPosts + 1) * 350);
+        };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         return AssessmentHistoryController;
     }());
     Ally.AssessmentHistoryController = AssessmentHistoryController;
+    var PeriodEntry = /** @class */ (function () {
+        function PeriodEntry() {
+        }
+        return PeriodEntry;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("assessmentHistory", {
     templateUrl: "/ngApp/chtn/manager/financial/assessment-history.html",

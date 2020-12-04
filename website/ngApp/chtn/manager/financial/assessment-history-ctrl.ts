@@ -86,7 +86,7 @@
         isLoading: boolean;
         shouldShowCreateSpecialAssessment: boolean = false;
         createSpecialAssessment: any;
-        visiblePeriodNames: any[];
+        visiblePeriodNames: PeriodEntry[];
         unitPayments: any = {};
         payers: PayerInfo[];
         editPayment: any;
@@ -94,6 +94,8 @@
         isForMemberGroup: boolean = false;
         isSavingPayment: boolean = false;
         shouldColorCodePayments: boolean = false;
+        shouldShowFillInSection: boolean = false;
+        selectedFillInPeriod: PeriodEntry = null;
 
 
         /**
@@ -483,7 +485,7 @@
             if( this.isForMemberGroup )
                 _.each( this.payers, payer => payer.displayPayments = this.fillInEmptyPaymentsForMember( payer ) );
             else
-                _.each( this.unitPayments, ( unit: any ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
+                _.each( this.unitPayments, ( unit: UnitWithPayment ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
         }
 
 
@@ -498,18 +500,21 @@
             {
                 const paymentInfo = httpResponse.data;
 
+                this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || ( paymentInfo.payments.length < 2 && paymentInfo.units.length > 3 );
+
                 // Build the map of unit ID to unit information
                 this.unitPayments = {};
                 _.each( paymentInfo.units, ( unit: UnitWithOwner ) =>
                 {
                     this.unitPayments[unit.unitId] = unit;
+                    const curEntry: UnitWithPayment = this.unitPayments[unit.unitId];
 
                     // Only take the first two owners for now
-                    this.unitPayments[unit.unitId].displayOwners = _.first( unit.owners, 2 );
-                    while( this.unitPayments[unit.unitId].displayOwners.length < 2 )
-                        this.unitPayments[unit.unitId].displayOwners.push( { name: "" } );
+                    curEntry.displayOwners = _.first( unit.owners, 2 );
+                    while( curEntry.displayOwners.length < 2 )
+                        curEntry.displayOwners.push( { name: "" } );
 
-                    this.unitPayments[unit.unitId].payments = [];
+                    curEntry.payments = [];
                 } );
 
                 // Add the payment information to the members
@@ -535,7 +540,7 @@
                 } );
 
                 // Sort the units by name
-                const sortedUnits = [];
+                const sortedUnits: UnitWithPayment[] = [];
                 for( const key in this.unitPayments )
                     sortedUnits.push( this.unitPayments[key] );
                 this.unitPayments = _.sortBy( sortedUnits, unit => unit.name );
@@ -667,6 +672,62 @@
                 this.$http.post( "/api/PaymentHistory", this.editPayment.payment ).then( onSave, onError );
             }
         }
+
+
+        populatePaidForPeriod(): void
+        {
+            if( !this.selectedFillInPeriod )
+                return;
+
+            const unitIds: string[] = _.keys( this.unitPayments );
+
+            this.isLoading = true;
+
+
+            let numPosts = 0;
+            for( let i = 0; i < unitIds.length; ++i )
+            {
+                const unitPayment: UnitWithPayment = this.unitPayments[unitIds[i]];
+
+                const paymentEntry = _.find( unitPayment.payments, p => p.year === this.selectedFillInPeriod.year && p.period === this.selectedFillInPeriod.periodIndex );
+                if( paymentEntry )
+                {
+                    if( paymentEntry.isPaid )
+                        continue;
+                }
+
+                const postData = {
+                    Year: this.selectedFillInPeriod.year,
+                    Period: this.selectedFillInPeriod.periodIndex,
+                    IsPaid: true,
+                    Amount: unitPayment.assessment || 0,
+                    PaymentDate: new Date(),
+                    PayerUserId: this.siteInfo.userInfo.userId,
+                    Notes: "Auto-marking all entries for " + this.selectedFillInPeriod.name,
+                    unitId: unitPayment.unitId
+                };
+
+                ++numPosts;
+
+                // Poor man's async for-loop
+                window.setTimeout( () => this.$http.post( "/api/PaymentHistory", postData ), numPosts * 350 );
+            }
+
+            window.setTimeout( () =>
+            {
+                this.isLoading = false;
+                this.retrievePaymentHistory();
+            }, ( numPosts + 1 ) * 350 );
+        }
+    }
+
+
+    class PeriodEntry
+    {
+        name: string;
+        periodIndex: number;
+        arrayIndex: number;
+        year: number;
     }
 }
 
