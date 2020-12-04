@@ -35,20 +35,19 @@ namespace Ally
         // regex is needed for the dates that come down
         static dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
 
-        static convertStringsToDates( obj: any )
+        static convertStringsToDates( obj: any ): void
         {
             if( $.isArray( obj ) )
             {
                 HtmlUtil2.convertDatesFromArray( obj );
             }
 
-
             if( HtmlUtil2.isObject( obj ) )
             {
                 // Recursively evaluate nested objects
-                for( var curPropName in obj )
+                for( const curPropName in obj )
                 {
-                    var value = obj[curPropName];
+                    const value = obj[curPropName];
 
                     if( HtmlUtil2.isObject( value ) )
                     {
@@ -61,7 +60,7 @@ namespace Ally
                     else if( HtmlUtil2.isString( value ) && value.length > 10 && HtmlUtil2.dotNetTimeRegEx2.test( value ) )
                     {
                         //If it is a string of the expected form convert to date
-                        var parsedDate;
+                        let parsedDate;
                         if( HtmlUtil.endsWith( curPropName, "_UTC" )
                             || HtmlUtil.endsWith( curPropName, "Utc" ) )
                         {
@@ -76,11 +75,11 @@ namespace Ally
             }
         }
 
-        static convertDatesFromArray( array: any[] )
+        static convertDatesFromArray( array: any[] ): void
         {
-            for( var i = 0; i < array.length; i++ )
+            for( let i = 0; i < array.length; i++ )
             {
-                var value = array[i];
+                const value = array[i];
 
                 if( HtmlUtil2.isObject( value ) )
                 {
@@ -94,20 +93,20 @@ namespace Ally
         }
 
 
-        static isObject( value: any )
+        static isObject( value: any ): boolean
         {
             return Object.prototype.toString.call( value ) === "[object Object]";
         }
 
 
-        static isString( value: any )
+        static isString( value: any ): boolean
         {
             return Object.prototype.toString.call( value ) === "[object String]";
         }
 
 
         // Test if an object is a string, if it is not empty, and if it's not "null"
-        static isValidString( str: any )
+        static isValidString( str: any ): boolean
         {
             if( !str || typeof ( str ) !== "string" )
                 return false;
@@ -120,7 +119,7 @@ namespace Ally
 
 
         // Convert a UTC date string from the server to a local date object
-        static serverUtcDateToLocal( dbString: any )
+        static serverUtcDateToLocal( dbString: any ): Date
         {
             if( typeof dbString !== "string" )
                 return dbString;
@@ -132,7 +131,7 @@ namespace Ally
         }
 
 
-        static showTooltip( element: any, text: string )
+        static showTooltip( element: any, text: string ): void
         {
             $( element ).qtip( {
                 style: {
@@ -156,30 +155,30 @@ namespace Ally
 
 
         /** Download a CSV string as a file */
-        static downloadCsv( csvText: string, downloadFileName: string )
+        static downloadCsv( csvText: string, downloadFileName: string ): void
         {
             HtmlUtil2.downloadFile( csvText, downloadFileName, "text/csv" );
         }
 
 
         /** Download a XML string as a file */
-        static downloadXml( xmlText: string, downloadFileName: string )
+        static downloadXml( xmlText: string, downloadFileName: string ): void
         {
             HtmlUtil2.downloadFile( xmlText, downloadFileName, "text/xml" );
         }
 
 
         /** Download a string as a file */
-        static downloadFile( fileContents: string, downloadFileName: string, contentType: string )
+        static downloadFile( fileContents: string, downloadFileName: string, contentType: string ): void
         {
             if( typeof ( Blob ) !== "undefined" )
             {
-                let a = document.createElement( "a" );
+                const a = document.createElement( "a" );
                 document.body.appendChild( a );
                 a.style.display = "none";
 
-                let blob = new Blob( [fileContents], { type: contentType } );
-                let url = window.URL.createObjectURL( blob );
+                const blob = new Blob( [fileContents], { type: contentType } );
+                const url = window.URL.createObjectURL( blob );
 
                 a.href = url;
                 a.download = downloadFileName;
@@ -189,11 +188,11 @@ namespace Ally
             else
             {
 
-                let wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
+                const wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
 
-                let encodedFileDataUri = encodeURI( wrappedFileDataString );
+                const encodedFileDataUri = encodeURI( wrappedFileDataString );
 
-                let downloadLink = document.createElement( "a" );
+                const downloadLink = document.createElement( "a" );
                 downloadLink.setAttribute( "href", encodedFileDataUri );
                 downloadLink.setAttribute( "download", downloadFileName );
                 document.body.appendChild( downloadLink );
@@ -226,16 +225,16 @@ namespace Ally
         }
 
 
-        static isAndroid()
+        static isAndroid(): boolean
         {
-            var ua = navigator.userAgent.toLowerCase();
+            const ua = navigator.userAgent.toLowerCase();
             return ua.indexOf( "android" ) > -1;
         }
 
         // From https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-        static copyTextToClipboard( text: string )
+        static copyTextToClipboard( text: string ): boolean
         {
-            var textArea = document.createElement( "textarea" );
+            const textArea = document.createElement( "textarea" );
 
             //
             // *** This styling is an extra step which is likely not required. ***
@@ -283,8 +282,8 @@ namespace Ally
             let didCopy = false;
             try
             {
-                var successful = document.execCommand( "copy" );
-                var msg = successful ? "successful" : "unsuccessful";
+                const successful = document.execCommand( "copy" );
+                const msg = successful ? "successful" : "unsuccessful";
                 console.log( "Copying text command was " + msg );
 
                 didCopy = successful;
