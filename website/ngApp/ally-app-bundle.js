@@ -2281,7 +2281,7 @@ var Ally;
         */
         LedgerController.prototype.$onInit = function () {
             var _this = this;
-            this.isPremiumPlanActive = false; ///this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.ledgerGridOptions =
                 {
                     columnDefs: [

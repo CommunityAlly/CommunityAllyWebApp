@@ -50,7 +50,7 @@ namespace Ally
         */
         $onInit()
         {
-            this.isPremiumPlanActive = false;///this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             this.ledgerGridOptions =
             {
