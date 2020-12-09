@@ -28,6 +28,11 @@
         to make every board member an admin.
     </div>
 
+    <div data-ng-if="$ctrl.showAddHomeLink" class="mt-2 mb-2 alert alert-info">
+        Since you're a new site, you can still adjust your unit/home listing manually if you need to:<br />
+        <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">How to Add or Edit Homes</a>
+    </div>
+
     <div class="clearfix">
         <button class="btn btn-primary pull-right" data-ng-click="$ctrl.setEdit( {boardPosition:0, shouldSendWelcomeEmail: false} );">Add New {{ $ctrl.showIsRenter ? 'Resident' : 'Member' }}</button>
     </div>
@@ -249,11 +254,6 @@
             </div>
 
         </form>
-    </div>
-
-    <div data-ng-if="$ctrl.showAddHomeLink" class="mt-2 mb-2 alert alert-info">
-        Since you're a new site, you can still adjust your unit/home listing manually if you need to:<br />
-        <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">How to Add or Edit Homes</a>
     </div>
 
     <div data-ng-if="$ctrl.showLaunchSite" class="mt-4 mb-4">
