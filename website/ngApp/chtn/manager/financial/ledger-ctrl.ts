@@ -30,7 +30,8 @@ namespace Ally
         isPremiumPlanActive: boolean = false;
         readonly ManageCategoriesDropId = -15;
         shouldShowCategoryEditModal: boolean = false;
-
+        spendingChartData: number[]|null = null;
+        spendingChartLabels: string[] | null = null;
 
         /**
         * The constructor for the class
@@ -138,8 +139,7 @@ namespace Ally
                     this.hasPlaidAccounts = _.any( this.ledgerAccounts, a => a.syncType === 'plaid' );
 
                     this.allEntries = pageInfo.entries;
-                    this.updateLocalFilter();
-
+                    
                     this.flatCategoryList = [];
                     const visitNode = ( curNode: FinancialCategory, depth: number ) =>
                     {
@@ -162,6 +162,8 @@ namespace Ally
                         }
                     };
                     visitNode( pageInfo.rootFinancialCategory, 0 );
+
+                    this.updateLocalFilter();
 
                     const uiGridCategoryDropDown = [];
                     for( let i = 0; i < this.flatCategoryList.length; ++i )
@@ -210,6 +212,72 @@ namespace Ally
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
             this.ledgerGridOptions.minRowsToShow = Math.min( filteredList.length, this.HistoryPageSize );
             this.ledgerGridOptions.virtualizationThreshold = this.ledgerGridOptions.minRowsToShow;
+
+            this.regenerateDateDonutChart();
+        }
+
+
+        /**
+         * Rebuild the data needed to populate the donut chart
+         */
+        regenerateDateDonutChart()
+        {
+            this.spendingChartData = null;
+            if( this.allEntries.length === 0 )
+                return;
+
+            const getParentCategoryId = ( financialCategoryId: number | null ): number =>
+            {
+                const cat = this.flatCategoryList.filter( c => c.financialCategoryId === financialCategoryId );
+                if( cat && cat.length > 0 )
+                {
+                    if( !cat[0].parentFinancialCategoryId )
+                        return cat[0].financialCategoryId;
+
+                    return getParentCategoryId( cat[0].parentFinancialCategoryId );
+                }
+
+                return 0;
+            };
+
+            const entriesByParentCat = _.groupBy( this.allEntries, e => getParentCategoryId( e.financialCategoryId ) );
+
+            let spendingChartEntries: SpendingChartEntry[] = [];
+
+            const parentCatIds = _.keys( entriesByParentCat );
+            for( let i = 0; i < parentCatIds.length; ++i )
+            {
+                const parentCategoryId = +parentCatIds[i];
+                const entries = entriesByParentCat[parentCategoryId];
+                const cats = this.flatCategoryList.filter( c => c.financialCategoryId === +parentCategoryId );
+                let parentCategory: FinancialCategory = null;
+                if( cats && cats.length > 0 )
+                    parentCategory = cats[0];
+
+                let sumTotal = 0;
+                for( let entryIndex = 0; entryIndex < entries.length; ++entryIndex )
+                    sumTotal += entries[entryIndex].amount;
+
+                const newEntry: SpendingChartEntry = {
+                    parentCategoryId,
+                    parentCategoryDisplayName: parentCategory ? parentCategory.displayName : "Uncategorized",
+                    sumTotal: Math.abs( sumTotal ),
+                    numLedgerEntries: entries.length
+                };
+
+                spendingChartEntries.push( newEntry );
+            }
+
+            spendingChartEntries = _.sortBy( spendingChartEntries, e => e.sumTotal ).reverse();
+
+            this.spendingChartData = [];
+            this.spendingChartLabels = [];
+
+            for( let i = 0; i < spendingChartEntries.length; ++i )
+            {
+                this.spendingChartData.push( spendingChartEntries[i].sumTotal );
+                this.spendingChartLabels.push( spendingChartEntries[i].parentCategoryDisplayName );
+            }
         }
 
 
@@ -488,6 +556,14 @@ namespace Ally
         type: string;
     }
 
+    class SpendingChartEntry
+    {
+        parentCategoryId: number;
+        parentCategoryDisplayName: string;
+        sumTotal: number;
+        numLedgerEntries: number;
+    }
+
     class LedgerAccount
     {
         ledgerAccountId: number;
@@ -543,7 +619,7 @@ namespace Ally
     {
         financialCategoryId: number;
         displayName: string;
-        parentFinancialCategoryId: number;
+        parentFinancialCategoryId: number|null;
         plaidCategoryIdMatchRegEx: string;
         childCategories: FinancialCategory[];
         dropDownLabel: string;

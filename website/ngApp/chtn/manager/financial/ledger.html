@@ -48,6 +48,15 @@
                             <input type="text" data-ng-model="$ctrl.filter.endDate" data-ui-date style="width: 100px;" data-ng-change="$ctrl.refreshEntries()" />
                         </span>
                         <span class="ui-helper-hidden">Category: <select><option>Test</option></select></span>
+
+                        <div data-ng-if="$ctrl.spendingChartData" style="width: 400px; height: 150px; display: inline-block; float: right;">
+                            <div style="width: 200px; height: 150px; display: inline-block;">
+                                <canvas width="200" height="150" class="chart chart-doughnut" data-chart-data="$ctrl.spendingChartData" data-chart-labels="$ctrl.spendingChartLabels" legend="true"></canvas>
+                            </div>
+                            <div style="display: inline-block; width: 200px;">
+                                <div data-ng-repeat="curEntry in $ctrl.spendingChartLabels">{{$index + 1}}. {{curEntry}} {{$ctrl.spendingChartData[$index] | currency}}</div>
+                            </div>
+                        </div>
                     </div>
                 </fieldset>
             </div>
