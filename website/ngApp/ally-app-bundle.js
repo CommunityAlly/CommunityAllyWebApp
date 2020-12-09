@@ -263,14 +263,14 @@ var Ally;
          * Add an address to full address
          */
         ManageGroupsController.prototype.addAddress = function () {
+            var _this = this;
             this.newAddressId = null;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/AdminHelper/AddAddress?address=" + encodeURIComponent(this.newAddress), null).success(function (response) {
-                innerThis.isLoading = false;
-                innerThis.newAddressId = response.data.newAddressId;
-            }).error(function (response) {
-                innerThis.isLoading = false;
+            this.$http.post("/api/AdminHelper/AddAddress?address=" + encodeURIComponent(this.newAddress), null).then(function (response) {
+                _this.isLoading = false;
+                _this.newAddressId = response.data.newAddressId;
+            }, function (response) {
+                _this.isLoading = false;
                 alert("Failed to add address: " + response.data.exceptionMessage);
             });
         };
@@ -841,6 +841,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
+OverrideOriginalUrl = "https://qa.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -1548,7 +1550,6 @@ var Ally;
         * The constructor for the class
         */
         function AssessmentHistoryController($http, $location, siteInfo, appCacheService) {
-            var _this = this;
             this.$http = $http;
             this.$location = $location;
             this.siteInfo = siteInfo;
@@ -1563,27 +1564,8 @@ var Ally;
             this.isForMemberGroup = false;
             this.isSavingPayment = false;
             this.shouldColorCodePayments = false;
-            this.onSavePayment = function () {
-                var onSave = function () {
-                    _this.isSavingPayment = false;
-                    _this.editPayment = null;
-                    _this.retrievePaymentHistory();
-                };
-                var onError = function (httpResponse) {
-                    _this.isSavingPayment = false;
-                    alert(httpResponse.data.message);
-                    _this.editPayment = null;
-                };
-                _this.isSavingPayment = true;
-                if (_this.editPayment.payment.paymentId) {
-                    analytics.track("editAssessmentHistoryPayment");
-                    _this.$http.put("/api/PaymentHistory", _this.editPayment.payment).then(onSave, onError);
-                }
-                else {
-                    analytics.track("addAssessmentHistoryPayment");
-                    _this.$http.post("/api/PaymentHistory", _this.editPayment.payment).then(onSave, onError);
-                }
-            };
+            this.shouldShowFillInSection = false;
+            this.selectedFillInPeriod = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -1604,16 +1586,17 @@ var Ally;
             else
                 console.log("Unhandled app type for payment history: " + AppConfig.appShortName);
             // Example
-            var payment = {
-                paymentId: 0,
-                year: 2014,
-                period: 1,
-                isPaid: false,
-                amount: 1.23,
-                paymentDate: "1/2/14",
-                checkNumber: "123",
-                unitId: 1
-            };
+            //var payment =
+            //{
+            //    paymentId: 0,
+            //    year: 2014,
+            //    period: 1, // 1 = January
+            //    isPaid: false,
+            //    amount: 1.23,
+            //    paymentDate: "1/2/14",
+            //    checkNumber: "123",
+            //    unitId: 1
+            //};
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
             this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
             var PeriodicPaymentFrequency_Monthly = 50;
@@ -1874,15 +1857,17 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/PaymentHistory?oldestDate=").then(function (httpResponse) {
                 var paymentInfo = httpResponse.data;
+                _this.shouldShowFillInSection = _this.siteInfo.userInfo.isAdmin || (paymentInfo.payments.length < 2 && paymentInfo.units.length > 3);
                 // Build the map of unit ID to unit information
                 _this.unitPayments = {};
                 _.each(paymentInfo.units, function (unit) {
                     _this.unitPayments[unit.unitId] = unit;
+                    var curEntry = _this.unitPayments[unit.unitId];
                     // Only take the first two owners for now
-                    _this.unitPayments[unit.unitId].displayOwners = _.first(unit.owners, 2);
-                    while (_this.unitPayments[unit.unitId].displayOwners.length < 2)
-                        _this.unitPayments[unit.unitId].displayOwners.push({ name: "" });
-                    _this.unitPayments[unit.unitId].payments = [];
+                    curEntry.displayOwners = _.first(unit.owners, 2);
+                    while (curEntry.displayOwners.length < 2)
+                        curEntry.displayOwners.push({ name: "" });
+                    curEntry.payments = [];
                 });
                 // Add the payment information to the members
                 if (_this.isForMemberGroup && httpResponse.data.payers) {
@@ -1903,7 +1888,7 @@ var Ally;
                 var sortedUnits = [];
                 for (var key in _this.unitPayments)
                     sortedUnits.push(_this.unitPayments[key]);
-                _this.unitPayments = _.sortBy(sortedUnits, function (unit) { return unit.name; });
+                _this.unitPayments = Ally.HtmlUtil2.smartSortStreetAddresses(sortedUnits, "name");
                 _this.payers = _.sortBy(paymentInfo.payers, function (payer) { return payer.name; });
                 _this.displayPaymentsForRange(_this.startYearValue, _this.startPeriodValue);
                 _this.isLoading = false;
@@ -1970,10 +1955,74 @@ var Ally;
             };
             setTimeout(function () { $("#paid-amount-textbox").focus(); }, 10);
         };
+        AssessmentHistoryController.prototype.onSavePayment = function () {
+            var _this = this;
+            var onSave = function () {
+                _this.isSavingPayment = false;
+                _this.editPayment = null;
+                _this.retrievePaymentHistory();
+            };
+            var onError = function (httpResponse) {
+                _this.isSavingPayment = false;
+                alert(httpResponse.data.message);
+                _this.editPayment = null;
+            };
+            this.isSavingPayment = true;
+            if (this.editPayment.payment.paymentId) {
+                analytics.track("editAssessmentHistoryPayment");
+                this.$http.put("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+            }
+            else {
+                analytics.track("addAssessmentHistoryPayment");
+                this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+            }
+        };
+        AssessmentHistoryController.prototype.populatePaidForPeriod = function () {
+            var _this = this;
+            if (!this.selectedFillInPeriod)
+                return;
+            var unitIds = _.keys(this.unitPayments);
+            this.isLoading = true;
+            var numPosts = 0;
+            var _loop_1 = function (i) {
+                var unitPayment = this_1.unitPayments[unitIds[i]];
+                var paymentEntry = _.find(unitPayment.payments, function (p) { return p.year === _this.selectedFillInPeriod.year && p.period === _this.selectedFillInPeriod.periodIndex; });
+                if (paymentEntry) {
+                    if (paymentEntry.isPaid)
+                        return "continue";
+                }
+                var postData = {
+                    Year: this_1.selectedFillInPeriod.year,
+                    Period: this_1.selectedFillInPeriod.periodIndex,
+                    IsPaid: true,
+                    Amount: unitPayment.assessment || 0,
+                    PaymentDate: new Date(),
+                    PayerUserId: this_1.siteInfo.userInfo.userId,
+                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name,
+                    unitId: unitPayment.unitId
+                };
+                ++numPosts;
+                // Poor man's async for-loop
+                window.setTimeout(function () { return _this.$http.post("/api/PaymentHistory", postData); }, numPosts * 350);
+            };
+            var this_1 = this;
+            for (var i = 0; i < unitIds.length; ++i) {
+                _loop_1(i);
+            }
+            window.setTimeout(function () {
+                _this.isLoading = false;
+                _this.retrievePaymentHistory();
+            }, (numPosts + 1) * 350);
+        };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         return AssessmentHistoryController;
     }());
     Ally.AssessmentHistoryController = AssessmentHistoryController;
+    var PeriodEntry = /** @class */ (function () {
+        function PeriodEntry() {
+        }
+        return PeriodEntry;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("assessmentHistory", {
     templateUrl: "/ngApp/chtn/manager/financial/assessment-history.html",
@@ -1998,13 +2047,11 @@ var Ally;
             this.initialView = "Home";
             this.selectedView = null;
             this.isLoading = false;
-            this.allowLedger = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         FinancialParentController.prototype.$onInit = function () {
-            this.allowLedger = this.siteInfo.publicSiteInfo.shortName === "qa";
             if (HtmlUtil.isValidString(this.$routeParams.viewName))
                 this.selectedView = this.$routeParams.viewName;
             else
@@ -2046,44 +2093,43 @@ var Ally;
             this.uiGridConstants = uiGridConstants;
             this.$rootScope = $rootScope;
             this.isLoading = false;
-            this.accounts = [];
+            this.isLoadingEntries = false;
+            this.ledgerAccounts = [];
             this.categoryOptions = [];
             this.shouldShowAddTransaction = false;
+            this.editAccount = null;
             this.editingTransaction = null;
             this.createAccountInfo = null;
             this.HistoryPageSize = 50;
             this.plaidHandler = null;
+            this.newPlaidAccounts = [];
+            this.hasPlaidAccounts = false;
+            this.filter = new FilterCriteria();
+            this.isPremiumPlanActive = false;
+            this.ManageCategoriesDropId = -15;
+            this.shouldShowCategoryEditModal = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         LedgerController.prototype.$onInit = function () {
             var _this = this;
-            this.categoryOptions = [
-                { name: "Bank Fees" },
-                { name: "Cash Advance" },
-                { name: "Community" },
-                { name: "Food and Drink" },
-                { name: "Healthcare" },
-                { name: "Interest" },
-                { name: "Payment" },
-                { name: "Recreation" },
-                { name: "Service" },
-                { name: "Shops" },
-                { name: "Tax" },
-                { name: "Transfer" },
-                { name: "Travel" }
-            ];
+            this.isPremiumPlanActive = false; ///this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.ledgerGridOptions =
                 {
                     columnDefs: [
-                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'" },
-                        { field: 'accountName', displayName: 'Account', enableCellEdit: false, width: 140 },
-                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true },
-                        { field: 'category', displayName: 'Category', width: 170 },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency" },
-                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        { field: 'accountName', filter: {
+                                type: this.uiGridConstants.filter.SELECT,
+                                selectOptions: []
+                            }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                        },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true },
+                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true },
+                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
                     ],
+                    enableFiltering: true,
                     enableSorting: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -2097,6 +2143,17 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                         gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
                             console.log('edited row id:' + rowEntity.amount + ' Column:' + colDef + ' newValue:' + newValue + ' oldValue:' + oldValue);
+                            // Ignore no changes
+                            if (oldValue === newValue)
+                                return;
+                            if (colDef.field === "categoryDisplayName" && rowEntity.financialCategoryId === _this.ManageCategoriesDropId) {
+                                rowEntity.financialCategoryId = oldValue;
+                                _this.shouldShowCategoryEditModal = true;
+                                return;
+                            }
+                            var catEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
+                            if (catEntry && catEntry.length > 0)
+                                rowEntity.categoryDisplayName = catEntry[0].displayName;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity);
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
@@ -2104,34 +2161,88 @@ var Ally;
                     }
                 };
             // Populate the page
-            this.refresh();
+            this.filterPresetDateRange = "thisMonth";
+            this.selectPresetDateRange(true);
+            this.fullRefresh();
         };
         /**
          * Load all of the data on the page
          */
-        LedgerController.prototype.refresh = function () {
+        LedgerController.prototype.fullRefresh = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Ledger/PageInfo").then(function (httpResponse) {
+            var getUri = "/api/Ledger/PageInfo?startDate=" + encodeURIComponent(this.filter.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.filter.endDate.toISOString());
+            if (this.filter.description.length > 3)
+                getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
+            this.$http.get(getUri).then(function (httpResponse) {
                 _this.isLoading = false;
                 var pageInfo = httpResponse.data;
-                _this.accounts = pageInfo.accounts;
-                _this.ledgerGridOptions.data = pageInfo.entries;
-                _this.ledgerGridOptions.enablePaginationControls = pageInfo.entries.length > _this.HistoryPageSize;
-                _this.ledgerGridOptions.minRowsToShow = Math.min(pageInfo.entries.length, _this.HistoryPageSize);
-                _this.ledgerGridOptions.virtualizationThreshold = _this.ledgerGridOptions.minRowsToShow;
+                _this.ledgerAccounts = pageInfo.accounts;
+                _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
+                var accountColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "accountName"; })[0];
+                accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
+                _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
+                _this.allEntries = pageInfo.entries;
+                _this.updateLocalFilter();
+                _this.flatCategoryList = [];
+                var visitNode = function (curNode, depth) {
+                    if (curNode.displayName) {
+                        var labelPrefix = "";
+                        if (depth > 1)
+                            labelPrefix = "|" + Array((depth - 1) * 3 + 1).join("-");
+                        curNode.dropDownLabel = labelPrefix + curNode.displayName;
+                        _this.flatCategoryList.push(curNode);
+                    }
+                    if (curNode.childCategories == null || curNode.childCategories.length == 0)
+                        return;
+                    for (var i = 0; i < curNode.childCategories.length; ++i) {
+                        visitNode(curNode.childCategories[i], depth + 1);
+                    }
+                };
+                visitNode(pageInfo.rootFinancialCategory, 0);
+                var uiGridCategoryDropDown = [];
+                for (var i = 0; i < _this.flatCategoryList.length; ++i) {
+                    uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
+                }
+                uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
+                var categoryColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "categoryDisplayName"; })[0];
+                categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
+        };
+        LedgerController.prototype.refreshEntries = function () {
+            var _this = this;
+            this.isLoadingEntries = true;
+            var getUri = "/api/Ledger/PageInfo?startDate=" + encodeURIComponent(this.filter.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.filter.endDate.toISOString());
+            if (this.filter.description.length > 3)
+                getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
+            this.$http.get(getUri).then(function (httpResponse) {
+                _this.isLoadingEntries = false;
+                _this.allEntries = httpResponse.data.entries;
+                _this.updateLocalFilter();
+            });
+        };
+        LedgerController.prototype.updateLocalFilter = function () {
+            var enabledAccountIds = this.ledgerAccounts.filter(function (a) { return a.shouldShowInGrid; }).map(function (a) { return a.ledgerAccountId; });
+            var filteredList = this.allEntries.filter(function (e) { return enabledAccountIds.indexOf(e.ledgerAccountId) > -1; });
+            this.ledgerGridOptions.data = filteredList;
+            this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
+            this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
+            this.ledgerGridOptions.virtualizationThreshold = this.ledgerGridOptions.minRowsToShow;
         };
         /**
          * Occurs when the user clicks the button to add a new transaction
          */
         LedgerController.prototype.onAddTransaction = function () {
-            if (this.accounts.length === 0) {
+            if (this.ledgerAccounts.length === 0) {
                 alert("Please add at least one account first");
                 return;
             }
             this.editingTransaction = new LedgerEntry();
-            this.editingTransaction.accountId = this.accounts[0].ledgerAccountId;
+            this.editingTransaction.ledgerAccountId = this.ledgerAccounts[0].ledgerAccountId;
+            this.editingTransaction.transactionDate = new Date();
         };
         LedgerController.prototype.completePlaidSync = function (accessToken) {
             var _this = this;
@@ -2139,16 +2250,22 @@ var Ally;
             this.$http.post("/api/Plaid/ProcessAccessToken", { accessToken: accessToken }).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.newPlaidAccounts = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to link: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.prototype.showAddAccount = function () {
             var _this = this;
             this.createAccountInfo = new CreateAccountInfo();
             this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-            //window.setTimeout( () => document.getElementById( "new-account-name-field" ).focus(), 150 );
+            if (!this.isPremiumPlanActive)
+                return;
             this.isLoading = true;
             this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
                 _this.isLoading = false;
+                if (!httpResponse.data)
+                    return;
                 _this.plaidHandler = Plaid.create({
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
@@ -2160,6 +2277,8 @@ var Ally;
                     onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
                 });
+            }, function (httpResponse) {
+                _this.isLoading = false;
             });
         };
         /**
@@ -2177,7 +2296,7 @@ var Ally;
             var onSave = function (httpResponse) {
                 _this.isLoading = false;
                 _this.editingTransaction = null;
-                _this.refresh();
+                _this.refreshEntries();
             };
             var onError = function (httpResponse) {
                 _this.isLoading = false;
@@ -2197,13 +2316,13 @@ var Ally;
             var onSave = function (httpResponse) {
                 _this.isLoading = false;
                 _this.createAccountInfo = null;
-                _this.refresh();
+                _this.fullRefresh();
             };
             var onError = function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             };
-            this.$http.post("/api/Ledger/NewAccount", this.createAccountInfo).then(onSave, onError);
+            this.$http.post("/api/Ledger/NewBankAccount", this.createAccountInfo).then(onSave, onError);
         };
         LedgerController.prototype.startPlaidFlow = function () {
             this.createAccountInfo.type = 'plaid';
@@ -2225,6 +2344,70 @@ var Ally;
             //    } );
             //    handler.open();
             //} );
+        };
+        LedgerController.prototype.openEditAccountModal = function (account) {
+            this.editAccount = _.clone(account);
+        };
+        LedgerController.prototype.closeAccountAndReload = function () {
+            this.createAccountInfo = null;
+            this.fullRefresh();
+        };
+        LedgerController.prototype.onEditAccount = function () {
+            var _this = this;
+            var putUri = "/api/Ledger/UpdateAccount/" + this.editAccount.ledgerAccountId + "?newName=" + encodeURIComponent(this.editAccount.accountName) + "&newType=" + encodeURIComponent(this.editAccount.accountType);
+            this.isLoading = true;
+            this.$http.put(putUri, null).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.editAccount = null;
+                _this.fullRefresh();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to update: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.syncPlaidAccounts = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/SyncRecentTransactions").then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.refreshEntries();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to sync: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.selectPresetDateRange = function (suppressRefresh) {
+            if (suppressRefresh === void 0) { suppressRefresh = false; }
+            if (this.filterPresetDateRange === "thisMonth") {
+                this.filter.startDate = moment().startOf('month').toDate();
+                this.filter.endDate = moment().endOf('month').toDate();
+            }
+            else if (this.filterPresetDateRange === "lastMonth") {
+                var lastMonth = moment().subtract(1, 'months');
+                this.filter.startDate = lastMonth.startOf('month').toDate();
+                this.filter.endDate = lastMonth.endOf('month').toDate();
+            }
+            else if (this.filterPresetDateRange === "thisYear") {
+                this.filter.startDate = moment().startOf('year').toDate();
+                this.filter.endDate = moment().endOf('year').toDate();
+            }
+            else if (this.filterPresetDateRange === "lastYear") {
+                var lastYear = moment().subtract(1, 'years');
+                this.filter.startDate = lastYear.startOf('year').toDate();
+                this.filter.endDate = lastYear.endOf('year').toDate();
+            }
+            else if (this.filterPresetDateRange === "oneYear") {
+                this.filter.startDate = moment().subtract(1, 'years').toDate();
+                this.filter.endDate = moment().toDate();
+            }
+            if (!suppressRefresh)
+                this.refreshEntries();
+        };
+        LedgerController.prototype.onFilterDescriptionChange = function () {
+            if (this.filter.description.length > 2 || this.filter.description.length == 0)
+                this.refreshEntries();
+        };
+        LedgerController.prototype.onEditTransactionCategoryChange = function () {
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
         return LedgerController;
@@ -2261,6 +2444,20 @@ var Ally;
         function LedgerPageInfo() {
         }
         return LedgerPageInfo;
+    }());
+    var FilterCriteria = /** @class */ (function () {
+        function FilterCriteria() {
+            this.description = "";
+            this.startDate = new Date();
+            this.endDate = new Date();
+            this.category = "";
+        }
+        return FilterCriteria;
+    }());
+    var FinancialCategory = /** @class */ (function () {
+        function FinancialCategory() {
+        }
+        return FinancialCategory;
     }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("ledger", {
@@ -3268,6 +3465,14 @@ var Ally;
         return UnitWithOwner;
     }(Unit));
     Ally.UnitWithOwner = UnitWithOwner;
+    var UnitWithPayment = /** @class */ (function (_super) {
+        __extends(UnitWithPayment, _super);
+        function UnitWithPayment() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return UnitWithPayment;
+    }(UnitWithOwner));
+    Ally.UnitWithPayment = UnitWithPayment;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -4335,8 +4540,8 @@ var Ally;
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
             // Get a view token to view the premium plan invoice should one be generated
-            if (this.showInvoiceSection)
-                this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
+            if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
+                window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -4453,7 +4658,7 @@ var Ally;
             window.setTimeout(function () {
                 // Refresh the view token in case the user clicks again
                 _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
-            }, 500);
+            }, 1250);
         };
         /**
          * Occurs when the user clicks the button to enable premium plan auto-renewal
@@ -5744,30 +5949,8 @@ var Ally;
                 _this.allOwnerEmails = _.reduce(_this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                if (_this.unitList && _this.unitList.length > 0) {
-                    // If all homes have a numeric name then lets sort numerically
-                    var useNumericNames = _.every(_this.unitList, function (u) { return HtmlUtil.isNumericString(u.name); });
-                    if (useNumericNames)
-                        _this.unitList = _.sortBy(_this.unitList, function (u) { return +u.name; });
-                    else {
-                        // If all homes share the same suffix then sort by only the first part, if numeric
-                        var firstSuffix = _this.unitList[0].name.substr(_this.unitList[0].name.indexOf(" "));
-                        var allHaveNumericPrefix = _.every(_this.unitList, function (u) { return Ally.HtmlUtil2.startsWithNumber(u.name); });
-                        var allHaveSameSuffix = _.every(_this.unitList, function (u) { return HtmlUtil.endsWith(u.name, firstSuffix); });
-                        if (allHaveNumericPrefix && allHaveSameSuffix) {
-                            _this.unitList = _.sortBy(_this.unitList, function (u) { return parseInt(u.name.substr(0, u.name.indexOf(" "))); });
-                        }
-                        else {
-                            // If all units start with a number and end with a string (Like,
-                            // 123 Elm St) then first sort by the street, then number
-                            if (allHaveNumericPrefix) {
-                                var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
-                                _this.unitList = _.sortBy(_this.unitList, function (u) { return [getAfterNumber_1(u.name), parseInt(u.name.substr(0, u.name.search(/\s/)))]; });
-                                //this.unitList = _.sortBy( this.unitList, u => parseInt( u.name.substr( 0, u.name.search( /\s/ ) ) ) );
-                            }
-                        }
-                    }
-                }
+                if (_this.unitList && _this.unitList.length > 0)
+                    _this.unitList = Ally.HtmlUtil2.smartSortStreetAddresses(_this.unitList, "name");
                 if (_this.committees) {
                     // Only show committees with a contact person
                     //TWC - 10/19/18 - Show committees even without a contact person
@@ -10988,6 +11171,14 @@ var Ally;
                 {
                     headerText: "Entered By",
                     fieldName: "creatorFullName"
+                },
+                {
+                    headerText: "Status",
+                    fieldName: "status"
+                },
+                {
+                    headerText: "Assigned To",
+                    fieldName: "assignedTo"
                 }
             ];
             var projects = _.map(_.filter(this.maintenanceEntries, function (e) { return !!e.project; }), function (e) { return e.project; });
@@ -13298,6 +13489,7 @@ var Ally;
         */
         GroupCommentThreadViewController.prototype.$onInit = function () {
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
+            this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.retrieveComments();
         };
         /**
@@ -13473,6 +13665,15 @@ var Ally;
         GroupCommentThreadViewController.prototype.closeModal = function (isFromOverlayClick) {
             if (this.onClosed)
                 this.onClosed();
+        };
+        GroupCommentThreadViewController.prototype.copyThreadLink = function ($event) {
+            $event.stopPropagation();
+            $event.preventDefault();
+            if (Ally.HtmlUtil2.copyTextToClipboard(this.threadUrl))
+                Ally.HtmlUtil2.showTooltip($event.target, "Copied!");
+            else
+                Ally.HtmlUtil2.showTooltip($event.target, "Auto-copy failed, right-click and copy link address");
+            return false;
         };
         GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return GroupCommentThreadViewController;
@@ -13827,7 +14028,7 @@ var Ally;
                     }
                     else if (HtmlUtil2.isString(value) && value.length > 10 && HtmlUtil2.dotNetTimeRegEx2.test(value)) {
                         //If it is a string of the expected form convert to date
-                        var parsedDate;
+                        var parsedDate = void 0;
                         if (HtmlUtil.endsWith(curPropName, "_UTC")
                             || HtmlUtil.endsWith(curPropName, "Utc")) {
                             parsedDate = HtmlUtil2.serverUtcDateToLocal(value);
@@ -13939,6 +14140,91 @@ var Ally;
         HtmlUtil2.isAndroid = function () {
             var ua = navigator.userAgent.toLowerCase();
             return ua.indexOf("android") > -1;
+        };
+        // From https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+        HtmlUtil2.copyTextToClipboard = function (text) {
+            var textArea = document.createElement("textarea");
+            //
+            // *** This styling is an extra step which is likely not required. ***
+            //
+            // Why is it here? To ensure:
+            // 1. the element is able to have focus and selection.
+            // 2. if the element was to flash render it has minimal visual impact.
+            // 3. less flakyness with selection and copying which **might** occur if
+            //    the textarea element is not visible.
+            //
+            // The likelihood is the element won't even render, not even a
+            // flash, so some of these are just precautions. However in
+            // Internet Explorer the element is visible whilst the popup
+            // box asking the user for permission for the web page to
+            // copy to the clipboard.
+            //
+            // Place in the top-left corner of screen regardless of scroll position.
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            // Ensure it has a small width and height. Setting to 1px / 1em
+            // doesn't work as this gives a negative w/h on some browsers.
+            textArea.style.width = "2em";
+            textArea.style.height = "2em";
+            // We don"t need padding, reducing the size if it does flash render.
+            textArea.style.padding = "0";
+            // Clean up any borders.
+            textArea.style.border = "none";
+            textArea.style.outline = "none";
+            textArea.style.boxShadow = "none";
+            // Avoid flash of the white box if rendered for any reason.
+            textArea.style.background = "transparent";
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            var didCopy = false;
+            try {
+                var successful = document.execCommand("copy");
+                var msg = successful ? "successful" : "unsuccessful";
+                console.log("Copying text command was " + msg);
+                didCopy = successful;
+            }
+            catch (err) {
+                console.log("Oops, unable to copy");
+            }
+            document.body.removeChild(textArea);
+            return didCopy;
+        };
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
+        HtmlUtil2.smartSortStreetAddresses = function (homeList, namePropName) {
+            if (!homeList || homeList.length === 0)
+                return homeList;
+            // If all homes have a numeric name then lets sort numerically
+            var shouldUseNumericNames = _.every(homeList, function (u) { return HtmlUtil.isNumericString(u[namePropName]); });
+            if (shouldUseNumericNames)
+                return _.sortBy(homeList, function (u) { return +u[namePropName]; });
+            // If all homes share the same suffix then sort by only the first part, if numeric
+            var firstSuffix = homeList[0][namePropName].substr(homeList[0][namePropName].indexOf(" "));
+            var allHaveNumericPrefix = _.every(homeList, function (u) { return HtmlUtil2.startsWithNumber(u[namePropName]); });
+            var allHaveSameSuffix = _.every(homeList, function (u) { return HtmlUtil.endsWith(u[namePropName], firstSuffix); });
+            if (allHaveNumericPrefix && allHaveSameSuffix)
+                return _.sortBy(homeList, function (u) { return parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))); });
+            // If all units start with a number and end with a string (Like,
+            // 123 Elm St) then first sort by the street, then number
+            if (allHaveNumericPrefix) {
+                var sortByStreet_1 = function (s1, s2) {
+                    var suffix1 = getAfterNumber_1(s1);
+                    var suffix2 = getAfterNumber_1(s2);
+                    if (suffix1 === suffix2) {
+                        var num1 = parseInt(s1.substr(0, s1.search(/\s/)));
+                        var num2 = parseInt(s2.substr(0, s2.search(/\s/)));
+                        return num1 - num2;
+                    }
+                    return suffix1.localeCompare(suffix2);
+                };
+                var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
+                return homeList.sort(function (h1, h2) { return sortByStreet_1(h1[namePropName], h2[namePropName]); });
+                //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
+                return;
+            }
+            return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"

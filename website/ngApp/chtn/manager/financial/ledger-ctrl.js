@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the page to view online payment information
+     * The controller for the page to track group spending
      */
     var LedgerController = /** @class */ (function () {
         /**
@@ -24,43 +24,43 @@ var Ally;
             this.uiGridConstants = uiGridConstants;
             this.$rootScope = $rootScope;
             this.isLoading = false;
-            this.accounts = [];
+            this.isLoadingEntries = false;
+            this.ledgerAccounts = [];
             this.categoryOptions = [];
             this.shouldShowAddTransaction = false;
+            this.editAccount = null;
             this.editingTransaction = null;
             this.createAccountInfo = null;
             this.HistoryPageSize = 50;
+            this.plaidHandler = null;
+            this.newPlaidAccounts = [];
+            this.hasPlaidAccounts = false;
+            this.filter = new FilterCriteria();
+            this.isPremiumPlanActive = false;
+            this.ManageCategoriesDropId = -15;
+            this.shouldShowCategoryEditModal = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         LedgerController.prototype.$onInit = function () {
             var _this = this;
-            this.categoryOptions = [
-                { name: "Bank Fees" },
-                { name: "Cash Advance" },
-                { name: "Community" },
-                { name: "Food and Drink" },
-                { name: "Healthcare" },
-                { name: "Interest" },
-                { name: "Payment" },
-                { name: "Recreation" },
-                { name: "Service" },
-                { name: "Shops" },
-                { name: "Tax" },
-                { name: "Transfer" },
-                { name: "Travel" }
-            ];
+            this.isPremiumPlanActive = false; ///this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.ledgerGridOptions =
                 {
                     columnDefs: [
-                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'" },
-                        { field: 'accountName', displayName: 'Account', enableCellEdit: false, width: 140 },
-                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true },
-                        { field: 'category', displayName: 'Category', width: 170 },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency" },
-                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        { field: 'accountName', filter: {
+                                type: this.uiGridConstants.filter.SELECT,
+                                selectOptions: []
+                            }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                        },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true },
+                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true },
+                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
                     ],
+                    enableFiltering: true,
                     enableSorting: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -74,6 +74,17 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                         gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
                             console.log('edited row id:' + rowEntity.amount + ' Column:' + colDef + ' newValue:' + newValue + ' oldValue:' + oldValue);
+                            // Ignore no changes
+                            if (oldValue === newValue)
+                                return;
+                            if (colDef.field === "categoryDisplayName" && rowEntity.financialCategoryId === _this.ManageCategoriesDropId) {
+                                rowEntity.financialCategoryId = oldValue;
+                                _this.shouldShowCategoryEditModal = true;
+                                return;
+                            }
+                            var catEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
+                            if (catEntry && catEntry.length > 0)
+                                rowEntity.categoryDisplayName = catEntry[0].displayName;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity);
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
@@ -81,38 +92,125 @@ var Ally;
                     }
                 };
             // Populate the page
-            this.refresh();
+            this.filterPresetDateRange = "thisMonth";
+            this.selectPresetDateRange(true);
+            this.fullRefresh();
         };
         /**
          * Load all of the data on the page
          */
-        LedgerController.prototype.refresh = function () {
+        LedgerController.prototype.fullRefresh = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Ledger/PageInfo").then(function (httpResponse) {
+            var getUri = "/api/Ledger/PageInfo?startDate=" + encodeURIComponent(this.filter.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.filter.endDate.toISOString());
+            if (this.filter.description.length > 3)
+                getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
+            this.$http.get(getUri).then(function (httpResponse) {
                 _this.isLoading = false;
                 var pageInfo = httpResponse.data;
-                _this.accounts = pageInfo.accounts;
-                _this.ledgerGridOptions.data = pageInfo.entries;
-                _this.ledgerGridOptions.enablePaginationControls = pageInfo.entries.length > _this.HistoryPageSize;
-                _this.ledgerGridOptions.minRowsToShow = Math.min(pageInfo.entries.length, _this.HistoryPageSize);
-                _this.ledgerGridOptions.virtualizationThreshold = _this.ledgerGridOptions.minRowsToShow;
+                _this.ledgerAccounts = pageInfo.accounts;
+                _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
+                var accountColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "accountName"; })[0];
+                accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
+                _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
+                _this.allEntries = pageInfo.entries;
+                _this.updateLocalFilter();
+                _this.flatCategoryList = [];
+                var visitNode = function (curNode, depth) {
+                    if (curNode.displayName) {
+                        var labelPrefix = "";
+                        if (depth > 1)
+                            labelPrefix = "|" + Array((depth - 1) * 3 + 1).join("-");
+                        curNode.dropDownLabel = labelPrefix + curNode.displayName;
+                        _this.flatCategoryList.push(curNode);
+                    }
+                    if (curNode.childCategories == null || curNode.childCategories.length == 0)
+                        return;
+                    for (var i = 0; i < curNode.childCategories.length; ++i) {
+                        visitNode(curNode.childCategories[i], depth + 1);
+                    }
+                };
+                visitNode(pageInfo.rootFinancialCategory, 0);
+                var uiGridCategoryDropDown = [];
+                for (var i = 0; i < _this.flatCategoryList.length; ++i) {
+                    uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
+                }
+                uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
+                var categoryColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "categoryDisplayName"; })[0];
+                categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
+        };
+        LedgerController.prototype.refreshEntries = function () {
+            var _this = this;
+            this.isLoadingEntries = true;
+            var getUri = "/api/Ledger/PageInfo?startDate=" + encodeURIComponent(this.filter.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.filter.endDate.toISOString());
+            if (this.filter.description.length > 3)
+                getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
+            this.$http.get(getUri).then(function (httpResponse) {
+                _this.isLoadingEntries = false;
+                _this.allEntries = httpResponse.data.entries;
+                _this.updateLocalFilter();
+            });
+        };
+        LedgerController.prototype.updateLocalFilter = function () {
+            var enabledAccountIds = this.ledgerAccounts.filter(function (a) { return a.shouldShowInGrid; }).map(function (a) { return a.ledgerAccountId; });
+            var filteredList = this.allEntries.filter(function (e) { return enabledAccountIds.indexOf(e.ledgerAccountId) > -1; });
+            this.ledgerGridOptions.data = filteredList;
+            this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
+            this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
+            this.ledgerGridOptions.virtualizationThreshold = this.ledgerGridOptions.minRowsToShow;
         };
         /**
          * Occurs when the user clicks the button to add a new transaction
          */
         LedgerController.prototype.onAddTransaction = function () {
-            if (this.accounts.length === 0) {
+            if (this.ledgerAccounts.length === 0) {
                 alert("Please add at least one account first");
                 return;
             }
             this.editingTransaction = new LedgerEntry();
-            this.editingTransaction.accountId = this.accounts[0].ledgerAccountId;
+            this.editingTransaction.ledgerAccountId = this.ledgerAccounts[0].ledgerAccountId;
+            this.editingTransaction.transactionDate = new Date();
+        };
+        LedgerController.prototype.completePlaidSync = function (accessToken) {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/Plaid/ProcessAccessToken", { accessToken: accessToken }).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.newPlaidAccounts = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to link: " + httpResponse.data.exceptionMessage);
+            });
         };
         LedgerController.prototype.showAddAccount = function () {
+            var _this = this;
             this.createAccountInfo = new CreateAccountInfo();
-            window.setTimeout(function () { return document.getElementById("new-account-name-field").focus(); }, 150);
+            this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
+            if (!this.isPremiumPlanActive)
+                return;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                if (!httpResponse.data)
+                    return;
+                _this.plaidHandler = Plaid.create({
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid onSuccess");
+                        _this.completePlaidSync(public_token);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                });
+            }, function (httpResponse) {
+                _this.isLoading = false;
+            });
         };
         /**
          * Occurs when the user wants to edit a transaction
@@ -129,7 +227,7 @@ var Ally;
             var onSave = function (httpResponse) {
                 _this.isLoading = false;
                 _this.editingTransaction = null;
-                _this.refresh();
+                _this.refreshEntries();
             };
             var onError = function (httpResponse) {
                 _this.isLoading = false;
@@ -149,13 +247,96 @@ var Ally;
             var onSave = function (httpResponse) {
                 _this.isLoading = false;
                 _this.createAccountInfo = null;
-                _this.refresh();
+                _this.fullRefresh();
             };
             var onError = function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             };
-            this.$http.post("/api/Ledger/NewAccount", this.createAccountInfo).then(onSave, onError);
+            this.$http.post("/api/Ledger/NewBankAccount", this.createAccountInfo).then(onSave, onError);
+        };
+        LedgerController.prototype.startPlaidFlow = function () {
+            this.createAccountInfo.type = 'plaid';
+            this.plaidHandler.open();
+            //this.isLoading = true;
+            //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+            //{
+            //    this.isLoading = false;
+            //    const handler = Plaid.create( {
+            //        token: httpResponse.data,
+            //        onSuccess: ( public_token: string, metadata: any ) =>
+            //        {
+            //            console.log( "onSuccess" );
+            //        },
+            //        onLoad: () => { },
+            //        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
+            //        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
+            //        receivedRedirectUri: null,
+            //    } );
+            //    handler.open();
+            //} );
+        };
+        LedgerController.prototype.openEditAccountModal = function (account) {
+            this.editAccount = _.clone(account);
+        };
+        LedgerController.prototype.closeAccountAndReload = function () {
+            this.createAccountInfo = null;
+            this.fullRefresh();
+        };
+        LedgerController.prototype.onEditAccount = function () {
+            var _this = this;
+            var putUri = "/api/Ledger/UpdateAccount/" + this.editAccount.ledgerAccountId + "?newName=" + encodeURIComponent(this.editAccount.accountName) + "&newType=" + encodeURIComponent(this.editAccount.accountType);
+            this.isLoading = true;
+            this.$http.put(putUri, null).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.editAccount = null;
+                _this.fullRefresh();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to update: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.syncPlaidAccounts = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/SyncRecentTransactions").then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.refreshEntries();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to sync: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.selectPresetDateRange = function (suppressRefresh) {
+            if (suppressRefresh === void 0) { suppressRefresh = false; }
+            if (this.filterPresetDateRange === "thisMonth") {
+                this.filter.startDate = moment().startOf('month').toDate();
+                this.filter.endDate = moment().endOf('month').toDate();
+            }
+            else if (this.filterPresetDateRange === "lastMonth") {
+                var lastMonth = moment().subtract(1, 'months');
+                this.filter.startDate = lastMonth.startOf('month').toDate();
+                this.filter.endDate = lastMonth.endOf('month').toDate();
+            }
+            else if (this.filterPresetDateRange === "thisYear") {
+                this.filter.startDate = moment().startOf('year').toDate();
+                this.filter.endDate = moment().endOf('year').toDate();
+            }
+            else if (this.filterPresetDateRange === "lastYear") {
+                var lastYear = moment().subtract(1, 'years');
+                this.filter.startDate = lastYear.startOf('year').toDate();
+                this.filter.endDate = lastYear.endOf('year').toDate();
+            }
+            else if (this.filterPresetDateRange === "oneYear") {
+                this.filter.startDate = moment().subtract(1, 'years').toDate();
+                this.filter.endDate = moment().toDate();
+            }
+            if (!suppressRefresh)
+                this.refreshEntries();
+        };
+        LedgerController.prototype.onFilterDescriptionChange = function () {
+            if (this.filter.description.length > 2 || this.filter.description.length == 0)
+                this.refreshEntries();
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
         return LedgerController;
@@ -192,6 +373,20 @@ var Ally;
         function LedgerPageInfo() {
         }
         return LedgerPageInfo;
+    }());
+    var FilterCriteria = /** @class */ (function () {
+        function FilterCriteria() {
+            this.description = "";
+            this.startDate = new Date();
+            this.endDate = new Date();
+            this.category = "";
+        }
+        return FilterCriteria;
+    }());
+    var FinancialCategory = /** @class */ (function () {
+        function FinancialCategory() {
+        }
+        return FinancialCategory;
     }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("ledger", {

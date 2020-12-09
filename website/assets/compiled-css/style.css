@@ -500,6 +500,9 @@ section.header-pill-menu-section nav a.nav-link.active {
   background-color: #ee4040;
   color: white; }
 
+.ui-grid, .ui-grid-viewport {
+  height: auto !important; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;
