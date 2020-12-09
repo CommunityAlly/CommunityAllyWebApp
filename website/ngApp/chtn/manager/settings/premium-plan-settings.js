@@ -49,8 +49,8 @@ var Ally;
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
             // Get a view token to view the premium plan invoice should one be generated
-            if (this.showInvoiceSection)
-                this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
+            if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
+                window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -167,7 +167,7 @@ var Ally;
             window.setTimeout(function () {
                 // Refresh the view token in case the user clicks again
                 _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
-            }, 500);
+            }, 1250);
         };
         /**
          * Occurs when the user clicks the button to enable premium plan auto-renewal

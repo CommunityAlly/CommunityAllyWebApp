@@ -72,8 +72,8 @@ namespace Ally
             this.refreshData();
 
             // Get a view token to view the premium plan invoice should one be generated
-            if( this.showInvoiceSection )
-                this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid );
+            if( this.showInvoiceSection ) // Add a slight delay to let the rest of the page load
+                window.setTimeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid ), 250 );
         }
 
 
@@ -232,7 +232,7 @@ namespace Ally
             {
                 // Refresh the view token in case the user clicks again
                 this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid );
-            }, 500 );
+            }, 1250 );
         }
 
 
