@@ -54,7 +54,7 @@
                                 <canvas width="200" height="150" class="chart chart-doughnut" data-chart-data="$ctrl.spendingChartData" data-chart-labels="$ctrl.spendingChartLabels" legend="true"></canvas>
                             </div>
                             <div style="display: inline-block; width: 200px;">
-                                <div data-ng-repeat="curEntry in $ctrl.spendingChartLabels">{{$index + 1}}. {{curEntry}} {{$ctrl.spendingChartData[$index] | currency}}</div>
+                                <div data-ng-repeat="curEntry in $ctrl.spendingChartLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.spendingChartData[$index] | currency}}</div>
                             </div>
                         </div>
                     </div>
@@ -121,7 +121,8 @@
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Account:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <select class="form-control form-control-sm" data-ng-options="a.ledgerAccountId as a.accountName for a in $ctrl.ledgerAccounts" data-ng-model="$ctrl.editingTransaction.ledgerAccountId"></select>
+                            <select data-ng-if="!$ctrl.editingTransaction.plaidTransactionId" class="form-control form-control-sm" data-ng-options="a.ledgerAccountId as a.accountName for a in $ctrl.ledgerAccounts" data-ng-model="$ctrl.editingTransaction.ledgerAccountId"></select>
+                            <span data-ng-if="$ctrl.editingTransaction.plaidTransactionId" class="note-text">This entry came from Plaid so cannot be changed.</span>
                         </div>
                     </div>
                 </div>

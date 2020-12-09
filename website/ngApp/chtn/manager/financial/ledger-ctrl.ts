@@ -100,7 +100,7 @@ namespace Ally
                         if( catEntry && catEntry.length > 0 )
                             rowEntity.categoryDisplayName = catEntry[0].displayName;
 
-                        this.$http.put( "/api/Ledger/UpdateEntry", rowEntity );
+                        this.$http.put( "/api/Ledger/UpdateEntry", rowEntity ).then( () => this.regenerateDateDonutChart() );
                         //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                         //$scope.$apply();
                     } );
@@ -591,6 +591,8 @@ namespace Ally
         financialCategoryId: number;
         tags: string;
         amount: number;
+        addedDateUtc: Date;
+        plaidTransactionId: string;
         accountName: string;
         categoryDisplayName: string;
     }

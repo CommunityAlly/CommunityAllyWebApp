@@ -841,8 +841,6 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"; // Should be something like "https://1234.webappapi.communityally.org/api/"
-OverrideOriginalUrl = "https://qa.condoally.com/"; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -2275,6 +2273,8 @@ var Ally;
             this.isPremiumPlanActive = false;
             this.ManageCategoriesDropId = -15;
             this.shouldShowCategoryEditModal = false;
+            this.spendingChartData = null;
+            this.spendingChartLabels = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2291,7 +2291,7 @@ var Ally;
                                 selectOptions: []
                             }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
                         },
-                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true },
                         { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
@@ -2321,7 +2321,7 @@ var Ally;
                             var catEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
                             if (catEntry && catEntry.length > 0)
                                 rowEntity.categoryDisplayName = catEntry[0].displayName;
-                            _this.$http.put("/api/Ledger/UpdateEntry", rowEntity);
+                            _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
                         });
@@ -2350,7 +2350,6 @@ var Ally;
                 accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
                 _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
                 _this.allEntries = pageInfo.entries;
-                _this.updateLocalFilter();
                 _this.flatCategoryList = [];
                 var visitNode = function (curNode, depth) {
                     if (curNode.displayName) {
@@ -2367,6 +2366,7 @@ var Ally;
                     }
                 };
                 visitNode(pageInfo.rootFinancialCategory, 0);
+                _this.updateLocalFilter();
                 var uiGridCategoryDropDown = [];
                 for (var i = 0; i < _this.flatCategoryList.length; ++i) {
                     uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
@@ -2398,6 +2398,57 @@ var Ally;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
             this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
             this.ledgerGridOptions.virtualizationThreshold = this.ledgerGridOptions.minRowsToShow;
+            this.regenerateDateDonutChart();
+        };
+        /**
+         * Rebuild the data needed to populate the donut chart
+         */
+        LedgerController.prototype.regenerateDateDonutChart = function () {
+            var _this = this;
+            this.spendingChartData = null;
+            if (this.allEntries.length === 0)
+                return;
+            var getParentCategoryId = function (financialCategoryId) {
+                var cat = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === financialCategoryId; });
+                if (cat && cat.length > 0) {
+                    if (!cat[0].parentFinancialCategoryId)
+                        return cat[0].financialCategoryId;
+                    return getParentCategoryId(cat[0].parentFinancialCategoryId);
+                }
+                return 0;
+            };
+            var entriesByParentCat = _.groupBy(this.allEntries, function (e) { return getParentCategoryId(e.financialCategoryId); });
+            var spendingChartEntries = [];
+            var parentCatIds = _.keys(entriesByParentCat);
+            var _loop_1 = function (i) {
+                var parentCategoryId = +parentCatIds[i];
+                var entries = entriesByParentCat[parentCategoryId];
+                var cats = this_1.flatCategoryList.filter(function (c) { return c.financialCategoryId === +parentCategoryId; });
+                var parentCategory = null;
+                if (cats && cats.length > 0)
+                    parentCategory = cats[0];
+                var sumTotal = 0;
+                for (var entryIndex = 0; entryIndex < entries.length; ++entryIndex)
+                    sumTotal += entries[entryIndex].amount;
+                var newEntry = {
+                    parentCategoryId: parentCategoryId,
+                    parentCategoryDisplayName: parentCategory ? parentCategory.displayName : "Uncategorized",
+                    sumTotal: Math.abs(sumTotal),
+                    numLedgerEntries: entries.length
+                };
+                spendingChartEntries.push(newEntry);
+            };
+            var this_1 = this;
+            for (var i = 0; i < parentCatIds.length; ++i) {
+                _loop_1(i);
+            }
+            spendingChartEntries = _.sortBy(spendingChartEntries, function (e) { return e.sumTotal; }).reverse();
+            this.spendingChartData = [];
+            this.spendingChartLabels = [];
+            for (var i = 0; i < spendingChartEntries.length; ++i) {
+                this.spendingChartData.push(spendingChartEntries[i].sumTotal);
+                this.spendingChartLabels.push(spendingChartEntries[i].parentCategoryDisplayName);
+            }
         };
         /**
          * Occurs when the user clicks the button to add a new transaction
@@ -2594,6 +2645,11 @@ var Ally;
         function CreateAccountInfo() {
         }
         return CreateAccountInfo;
+    }());
+    var SpendingChartEntry = /** @class */ (function () {
+        function SpendingChartEntry() {
+        }
+        return SpendingChartEntry;
     }());
     var LedgerAccount = /** @class */ (function () {
         function LedgerAccount() {

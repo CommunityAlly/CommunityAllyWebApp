@@ -87,7 +87,7 @@ var Ally;
                             var catEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
                             if (catEntry && catEntry.length > 0)
                                 rowEntity.categoryDisplayName = catEntry[0].displayName;
-                            _this.$http.put("/api/Ledger/UpdateEntry", rowEntity);
+                            _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
                         });
