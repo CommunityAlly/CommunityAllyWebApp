@@ -120,7 +120,7 @@ var Ally;
                     if (curNode.displayName) {
                         var labelPrefix = "";
                         if (depth > 1)
-                            labelPrefix = "|" + Array((depth - 1) * 3 + 1).join("-");
+                            labelPrefix = Array((depth - 2) * 4).join(String.fromCharCode(160)) + "|--";
                         curNode.dropDownLabel = labelPrefix + curNode.displayName;
                         _this.flatCategoryList.push(curNode);
                     }
@@ -338,6 +338,13 @@ var Ally;
             if (this.filter.description.length > 2 || this.filter.description.length == 0)
                 this.refreshEntries();
         };
+        LedgerController.prototype.onEditTransactionCategoryChange = function () {
+        };
+        LedgerController.prototype.onCategoryManagerClosed = function (didMakeChanges) {
+            this.shouldShowCategoryEditModal = false;
+            if (didMakeChanges)
+                this.fullRefresh();
+        };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
         return LedgerController;
     }());
@@ -388,6 +395,7 @@ var Ally;
         }
         return FinancialCategory;
     }());
+    Ally.FinancialCategory = FinancialCategory;
 })(Ally || (Ally = {}));
 CA.angularApp.component("ledger", {
     templateUrl: "/ngApp/chtn/manager/financial/ledger.html",

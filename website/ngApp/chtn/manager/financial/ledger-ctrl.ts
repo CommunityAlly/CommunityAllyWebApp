@@ -147,7 +147,7 @@ namespace Ally
                         {
                             let labelPrefix = "";
                             if( depth > 1 )
-                                labelPrefix = "|" + Array( ( depth - 1 ) * 3 + 1 ).join( "-" );
+                                labelPrefix = Array( ( depth - 2 ) * 4 ).join( String.fromCharCode( 160 ) ) + "|--";
                             curNode.dropDownLabel = labelPrefix + curNode.displayName;
 
                             this.flatCategoryList.push( curNode );
@@ -463,6 +463,18 @@ namespace Ally
             if( this.filter.description.length > 2 || this.filter.description.length == 0 )
                 this.refreshEntries();
         }
+
+        onEditTransactionCategoryChange()
+        {
+
+        }
+
+        onCategoryManagerClosed(didMakeChanges: boolean)
+        {
+            this.shouldShowCategoryEditModal = false;
+            if( didMakeChanges )
+                this.fullRefresh();
+        }
     }
 
     class CategoryOption
@@ -527,7 +539,7 @@ namespace Ally
         category: string = "";
     }
 
-    class FinancialCategory
+    export class FinancialCategory
     {
         financialCategoryId: number;
         displayName: string;

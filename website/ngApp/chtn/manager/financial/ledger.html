@@ -24,6 +24,8 @@
             </div>
             <div class="col-2 text-right">
                 <button class="btn btn-primary" type="button" data-ng-click="$ctrl.onAddTransaction()">Add Transaction</button>
+                <br />
+                <span class="note-text text-link" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
             </div>
         </div>
         <div class="row">
@@ -99,7 +101,7 @@
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Category:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <select class="form-control form-control-sm" data-ng-options="c.financialCategoryId as c.dropDownLabel for c in $ctrl.flatCategoryList" data-ng-model="$ctrl.editingTransaction.financialCategoryId">
+                            <select class="form-control form-control-sm" data-ng-options="c.financialCategoryId as c.dropDownLabel for c in $ctrl.flatCategoryList" data-ng-model="$ctrl.editingTransaction.financialCategoryId" data-ng-change="$ctrl.onEditTransactionCategoryChange()">
                                 <option></option>
                             </select>
                         </div>
@@ -117,7 +119,7 @@
 
                 <div class="col-sm-12 text-right">
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSaveEntry()">Save</button>
-                    <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editingTransaction = null">Cancel</button>
+                    <button id="cancel-entry-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.editingTransaction = null">Cancel</button>
                 </div>
             </div>
         </div>
@@ -243,21 +245,5 @@
         </div>
     </div>
 
-    <div data-ng-if="$ctrl.shouldShowCategoryEditModal" class="modal-container">
-        <div class="modal-overlay" data-ng-click="$ctrl.shouldShowCategoryEditModal = false"></div>
-        <div class="ca-modal-dialog modal-sm container">
-            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
-            <h2 class="mb-4">Edit Categories</h2>
-
-            <div class="row">
-                <div class="col-12">
-                    Coming very soon!
-
-                    <div class="col-sm-12 text-right">
-                        <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.shouldShowCategoryEditModal = false">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <financial-category-manager data-ng-if="$ctrl.shouldShowCategoryEditModal" data-on-closed="$ctrl.onCategoryManagerClosed(didMakeChanges)"></financial-category-manager>
 </div>
