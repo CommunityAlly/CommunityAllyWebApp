@@ -116,7 +116,7 @@ function ManageMembersCtrl( $scope, $http, $rootScope, $interval, $http )
     {
         $scope.isLoading = true;
 
-        $http.get( "/api/Member" ).then( function( httpResponse )
+        $http.get( "/api/Member/Watch" ).then( function( httpResponse )
         {
             $scope.members = httpResponse.data;
 

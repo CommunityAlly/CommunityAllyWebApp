@@ -2,6 +2,8 @@
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"
+//OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",

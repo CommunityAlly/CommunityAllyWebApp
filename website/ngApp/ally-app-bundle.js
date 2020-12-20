@@ -841,6 +841,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"
+//OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -4734,6 +4736,7 @@ var Ally;
             this.settings = new Ally.ChtnSiteSettings();
             this.originalSettings = new Ally.ChtnSiteSettings();
             this.isLoading = false;
+            this.isLoadingUsage = false;
             this.shouldShowPremiumPlanSection = true;
             this.shouldShowPaymentForm = false;
             this.stripeApi = null;
@@ -5046,9 +5049,9 @@ var Ally;
          */
         PremiumPlanSettingsController.prototype.refreshMeteredUsage = function () {
             var _this = this;
-            this.isLoading = true;
+            this.isLoadingUsage = true;
             this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
-                _this.isLoading = false;
+                _this.isLoadingUsage = false;
                 _this.meteredUsage = response.data;
                 _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + (m.month > 9 ? "" : "0") + m.month; });
                 _this.emailUsageChartLabels = [];
@@ -5235,7 +5238,6 @@ var Ally;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
             this.isLoading = false;
-            this.isLoadingPremiumPlanInfo = false;
             this.showRightColumnSetting = true;
             this.showLocalNewsSetting = false;
             this.isPta = false;
@@ -5256,42 +5258,6 @@ var Ally;
             // Hook up the file upload control after everything is loaded and setup
             this.$timeout(function () { return _this.hookUpLoginImageUpload(); }, 200);
             this.refreshData();
-        };
-        /**
-         * Occurs when the user clicks the button to cancel the premium plan auto-renewal
-         */
-        ChtnSettingsController.prototype.cancelPremiumAutoRenew = function () {
-            var _this = this;
-            this.isLoadingPremiumPlanInfo = true;
-            this.$http.put("/api/Settings/CancelPremium", null).then(function (response) {
-                _this.isLoadingPremiumPlanInfo = false;
-                _this.settings.premiumPlanIsAutoRenewed = false;
-            }, function () {
-                _this.isLoadingPremiumPlanInfo = false;
-                alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
-            });
-        };
-        /**
-         * Occurs when the user clicks the button to enable premium plan auto-renewal
-         */
-        ChtnSettingsController.prototype.activatePremiumRenewal = function () {
-            //if( this.numPaperLettersToSend === 0 )
-            //{
-            //    if( this.numEmailsToSend === 0 )
-            //        alert( "No e-mails or paper letters selected to send." );
-            //    else
-            //        this.submitFullMailingAfterCharge();
-            var _this = this;
-            //    return;
-            //}
-            this.isLoadingPremiumPlanInfo = true;
-            this.$http.put("/api/Settings/ActivatePremium", null).then(function (response) {
-                _this.isLoadingPremiumPlanInfo = false;
-                _this.settings.premiumPlanIsAutoRenewed = true;
-            }, function () {
-                _this.isLoadingPremiumPlanInfo = false;
-                alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
-            });
         };
         /**
          * Populate the page from the server
@@ -13717,6 +13683,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadViewController.prototype.$onInit = function () {
+            this.defaultDigestFrequency = this.siteInfo.userInfo.defaultDigestFrequency;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.retrieveComments();
@@ -15438,7 +15405,7 @@ function ManageMembersCtrl( $scope, $http, $rootScope, $interval, $http )
     {
         $scope.isLoading = true;
 
-        $http.get( "/api/Member" ).then( function( httpResponse )
+        $http.get( "/api/Member/Watch" ).then( function( httpResponse )
         {
             $scope.members = httpResponse.data;
 
