@@ -43,7 +43,6 @@ var Ally;
             this.settings = new ChtnSiteSettings();
             this.originalSettings = new ChtnSiteSettings();
             this.isLoading = false;
-            this.isLoadingPremiumPlanInfo = false;
             this.showRightColumnSetting = true;
             this.showLocalNewsSetting = false;
             this.isPta = false;
@@ -64,42 +63,6 @@ var Ally;
             // Hook up the file upload control after everything is loaded and setup
             this.$timeout(function () { return _this.hookUpLoginImageUpload(); }, 200);
             this.refreshData();
-        };
-        /**
-         * Occurs when the user clicks the button to cancel the premium plan auto-renewal
-         */
-        ChtnSettingsController.prototype.cancelPremiumAutoRenew = function () {
-            var _this = this;
-            this.isLoadingPremiumPlanInfo = true;
-            this.$http.put("/api/Settings/CancelPremium", null).then(function (response) {
-                _this.isLoadingPremiumPlanInfo = false;
-                _this.settings.premiumPlanIsAutoRenewed = false;
-            }, function () {
-                _this.isLoadingPremiumPlanInfo = false;
-                alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
-            });
-        };
-        /**
-         * Occurs when the user clicks the button to enable premium plan auto-renewal
-         */
-        ChtnSettingsController.prototype.activatePremiumRenewal = function () {
-            //if( this.numPaperLettersToSend === 0 )
-            //{
-            //    if( this.numEmailsToSend === 0 )
-            //        alert( "No e-mails or paper letters selected to send." );
-            //    else
-            //        this.submitFullMailingAfterCharge();
-            var _this = this;
-            //    return;
-            //}
-            this.isLoadingPremiumPlanInfo = true;
-            this.$http.put("/api/Settings/ActivatePremium", null).then(function (response) {
-                _this.isLoadingPremiumPlanInfo = false;
-                _this.settings.premiumPlanIsAutoRenewed = true;
-            }, function () {
-                _this.isLoadingPremiumPlanInfo = false;
-                alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
-            });
         };
         /**
          * Populate the page from the server

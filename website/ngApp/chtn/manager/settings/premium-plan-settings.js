@@ -14,6 +14,7 @@ var Ally;
             this.settings = new Ally.ChtnSiteSettings();
             this.originalSettings = new Ally.ChtnSiteSettings();
             this.isLoading = false;
+            this.isLoadingUsage = false;
             this.shouldShowPremiumPlanSection = true;
             this.shouldShowPaymentForm = false;
             this.stripeApi = null;
@@ -326,9 +327,9 @@ var Ally;
          */
         PremiumPlanSettingsController.prototype.refreshMeteredUsage = function () {
             var _this = this;
-            this.isLoading = true;
+            this.isLoadingUsage = true;
             this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
-                _this.isLoading = false;
+                _this.isLoadingUsage = false;
                 _this.meteredUsage = response.data;
                 _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + (m.month > 9 ? "" : "0") + m.month; });
                 _this.emailUsageChartLabels = [];

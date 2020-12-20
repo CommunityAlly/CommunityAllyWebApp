@@ -46,7 +46,6 @@ namespace Ally
         showQaButton: boolean;
         loginImageUrl: string;
         isLoading: boolean = false;;
-        isLoadingPremiumPlanInfo: boolean = false;
         showRightColumnSetting: boolean = true;
         showLocalNewsSetting: boolean = false;
         isPta: boolean = false;
@@ -87,60 +86,6 @@ namespace Ally
             this.$timeout( () => this.hookUpLoginImageUpload(), 200 );
 
             this.refreshData();
-        }
-
-
-        /**
-         * Occurs when the user clicks the button to cancel the premium plan auto-renewal
-         */
-        cancelPremiumAutoRenew()
-        {
-            this.isLoadingPremiumPlanInfo = true;
-
-            this.$http.put( "/api/Settings/CancelPremium", null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
-                {
-                    this.isLoadingPremiumPlanInfo = false;
-                    this.settings.premiumPlanIsAutoRenewed = false;
-                },
-                () =>
-                {
-                    this.isLoadingPremiumPlanInfo = false;
-                    alert( "Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists." );
-                }
-            );
-        }
-
-
-        /**
-         * Occurs when the user clicks the button to enable premium plan auto-renewal
-         */
-        activatePremiumRenewal()
-        {
-            //if( this.numPaperLettersToSend === 0 )
-            //{
-            //    if( this.numEmailsToSend === 0 )
-            //        alert( "No e-mails or paper letters selected to send." );
-            //    else
-            //        this.submitFullMailingAfterCharge();
-
-            //    return;
-            //}
-
-            this.isLoadingPremiumPlanInfo = true;
-
-            this.$http.put( "/api/Settings/ActivatePremium", null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
-                {
-                    this.isLoadingPremiumPlanInfo = false;
-                    this.settings.premiumPlanIsAutoRenewed = true;
-                },
-                () =>
-                {
-                    this.isLoadingPremiumPlanInfo = false;
-                    alert( "Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists." );
-                }
-            );
         }
 
 

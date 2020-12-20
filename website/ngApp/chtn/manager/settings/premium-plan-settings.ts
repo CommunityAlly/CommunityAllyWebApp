@@ -14,6 +14,7 @@ namespace Ally
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
         isLoading: boolean = false;
+        isLoadingUsage: boolean = false;
         shouldShowPremiumPlanSection: boolean = true;
         homeNamePlural: string;
         isPremiumPlanActive: boolean;
@@ -444,11 +445,11 @@ namespace Ally
          */
         refreshMeteredUsage()
         {
-            this.isLoading = true;
+            this.isLoadingUsage = true;
 
             this.$http.get( "/api/Settings/MeteredFeaturesUsage" ).then( ( response: ng.IHttpPromiseCallbackArg<MeteredFeaturesUsage> ) =>
             {
-                this.isLoading = false;
+                this.isLoadingUsage = false;
                 this.meteredUsage = response.data;
 
                 this.meteredUsage.months = _.sortBy( this.meteredUsage.months, m => m.year.toString() + "_" + ( m.month > 9 ? "" : "0" ) + m.month );
