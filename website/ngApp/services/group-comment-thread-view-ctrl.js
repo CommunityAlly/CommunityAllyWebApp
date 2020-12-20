@@ -29,6 +29,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         GroupCommentThreadViewController.prototype.$onInit = function () {
+            this.defaultDigestFrequency = this.siteInfo.userInfo.defaultDigestFrequency;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.retrieveComments();

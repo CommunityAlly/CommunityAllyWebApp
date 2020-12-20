@@ -34,6 +34,7 @@
         shouldShowAdminControls: boolean = false;
         digestFrequency: string = null;
         threadUrl: string;
+        defaultDigestFrequency: string;
 
 
         /**
@@ -49,6 +50,7 @@
         */
         $onInit()
         {
+            this.defaultDigestFrequency = this.siteInfo.userInfo.defaultDigestFrequency;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
 

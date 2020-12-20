@@ -28,6 +28,7 @@ namespace Ally
         includeInDiscussionEmail: boolean;
         alternatePhoneNumber: string;
         mailingAddressObject: FullAddress;
+        defaultDigestFrequency: string;
     }
 
     export class PtaMember extends SimpleUserEntry
@@ -81,9 +82,9 @@ namespace Ally
             this.retrieveProfileData();
 
 
-            let hookUpPhotoFileUpload = () =>
+            const hookUpPhotoFileUpload = () =>
             {
-                var uploader: any = $( '#JQFileUploader' );
+                const uploader: any = $( '#JQFileUploader' );
                 uploader.fileupload( {
                     add: ( e: any, data: any ) =>
                     {
@@ -93,7 +94,7 @@ namespace Ally
 
                         this.$scope.$apply( () => this.isLoading = true );
 
-                        var xhr = data.submit();
+                        const xhr = data.submit();
                         xhr.done( ( result: any ) =>
                         {
                             this.$scope.$apply( () =>
@@ -160,7 +161,7 @@ namespace Ally
          */
         onShowPassword()
         {
-            let passwordTextBox = <HTMLInputElement>document.getElementById( "passwordTextBox" );
+            const passwordTextBox = <HTMLInputElement>document.getElementById( "passwordTextBox" );
             passwordTextBox.type = this.shouldShowPassword ? "text" : "password";
         }
 
@@ -172,7 +173,7 @@ namespace Ally
         {
             this.isLoading = true;
             
-            this.$http.get( "/api/MyProfile" ).then(( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.get( "/api/MyProfile" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<ProfileUserInfo> ) =>
             {
                 this.isLoading = false;
                 this.profileInfo = httpResponse.data;

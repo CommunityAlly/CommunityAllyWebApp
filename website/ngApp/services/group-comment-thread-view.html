@@ -16,7 +16,8 @@
 
         <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc && !$ctrl.thread.isReadOnly">
             Get notified of new comments:
-            <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" data-ng-value="null" ng-checked="$ctrl.digestFrequency === null" name="digest-frequency" />Never</label>
+            <label style=""><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" data-ng-value="null" ng-checked="$ctrl.digestFrequency === null" name="digest-frequency" />Profile Default (<span class="note-text">{{$ctrl.defaultDigestFrequency}} - <a href="#!/MyProfile">edit</a></span>)</label>
+            <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="none" name="digest-frequency" />None</label>
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="instant" name="digest-frequency" />Immediately</label>
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="nightly" name="digest-frequency" />Nightly</label>
             <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.commentsState.digestFrequency" data-ng-change="$ctrl.onChangeDigestFrequency()" value="weekly" name="digest-frequency" />Weekly on Sunday</label>

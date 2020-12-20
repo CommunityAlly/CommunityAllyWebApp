@@ -51,6 +51,7 @@ namespace Ally
         isDwollaAccountVerified: boolean;
         dwollaFundingSourceName: string;
         dwollaFundingSourceIsVerified: boolean;
+        defaultDigestFrequency: string;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];
