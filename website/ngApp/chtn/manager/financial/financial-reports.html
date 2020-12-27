@@ -1,0 +1,57 @@
+﻿<div class="page page-manage-payments" style="min-height: 100px;">
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+    <h1 style="display: inline;">Financial Reports</h1>
+    <span class="ml-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
+    <p>
+        Here you can quickly see where your association's money is going and coming from.
+        <br />
+        <br />
+        <date-range-picker data-on-change="$ctrl.refreshData()" data-start-date="$ctrl.startDate" data-end-date="$ctrl.endDate"></date-range-picker>
+    </p>
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col-6">
+                <h4>Income by Category</h4>
+                <div data-ng-if="$ctrl.incomeByCategoryData" style="width: 400px; height: 150px; display: inline-block;">
+                    <div data-ng-if="$ctrl.incomeByCategoryData.length === 0">There is no income for the selected date range.</div>
+                    <div style="width: 200px; height: 150px; display: inline-block;">
+                        <canvas id="income-category-chart" width="200" height="150" class="chart chart-doughnut" chart-options="$ctrl.doughnutChartOptions" data-chart-data="$ctrl.incomeByCategoryData" data-chart-labels="$ctrl.incomeByCategoryLabels" legend="true"></canvas>
+                    </div>
+                    <div style="display: inline-block; width: 200px;">
+                        <div data-ng-repeat="curEntry in $ctrl.incomeByCategoryLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.incomeByCategoryData[$index] | currency}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <h4>Expense by Category</h4>
+                <div data-ng-if="$ctrl.expenseByCategoryData" style="width: 400px; height: 150px; display: inline-block;">
+                    <div data-ng-if="$ctrl.expenseByCategoryData.length === 0">There are no expenses for the selected date range.</div>
+                    <div style="width: 200px; height: 150px; display: inline-block;">
+                        <canvas id="expense-category-chart" width="200" height="150" class="chart chart-doughnut" chart-options="$ctrl.doughnutChartOptions" data-chart-data="$ctrl.expenseByCategoryData" data-chart-labels="$ctrl.expenseByCategoryLabels" legend="true"></canvas>
+                    </div>
+                    <div style="display: inline-block; width: 200px;">
+                        <div data-ng-repeat="curEntry in $ctrl.expenseByCategoryLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.expenseByCategoryData[$index] | currency}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4>Account Balances Over Time</h4>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6">
+                            You need at least 2 months of balance data to view this chart.
+                        </div>
+                        <div class="col-6">
+                            <h5>Current Balances</h5>
+                            <div data-ng-repeat="curBalance in $ctrl.reportData.currentAccountBalances">
+                                {{curBalance.ledgerAccountName}} {{curBalance.amount | currency}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -59,11 +59,12 @@ var Ally;
                         },
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
                         { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
+                    showColumnFooter: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false,
@@ -72,6 +73,7 @@ var Ally;
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
+                        _this.ledgerGridApi = gridApi;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                         gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
@@ -93,9 +95,20 @@ var Ally;
                         });
                     }
                 };
+            var preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
+            if (!isNaN(preselectStartMillis)) {
+                this.filter.startDate = new Date(preselectStartMillis);
+                var preselectEndMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_end"));
+                this.filter.endDate = new Date(preselectEndMillis);
+                this.preselectCategoryId = parseInt(this.appCacheService.getAndClear("ledger_preselect_categoryId"));
+                if (isNaN(this.preselectCategoryId))
+                    this.preselectCategoryId = undefined;
+            }
+            else {
+                this.filter.startDate = moment().startOf('month').toDate();
+                this.filter.endDate = moment().endOf('month').toDate();
+            }
             // Populate the page
-            this.filterPresetDateRange = "thisMonth";
-            this.selectPresetDateRange(true);
             this.fullRefresh();
         };
         /**
@@ -140,6 +153,16 @@ var Ally;
                 uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
                 var categoryColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "categoryDisplayName"; })[0];
                 categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
+                if (_this.preselectCategoryId) {
+                    window.setTimeout(function () {
+                        var selectedCatEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === _this.preselectCategoryId; })[0];
+                        _this.preselectCategoryId = undefined;
+                        var categoryColumn = _this.ledgerGridApi.grid.columns.filter(function (c) { return c.displayName === "Category"; })[0];
+                        categoryColumn.filters[0] = {
+                            term: selectedCatEntry.displayName
+                        };
+                    }, 100);
+                }
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
@@ -359,33 +382,6 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to sync: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.selectPresetDateRange = function (suppressRefresh) {
-            if (suppressRefresh === void 0) { suppressRefresh = false; }
-            if (this.filterPresetDateRange === "thisMonth") {
-                this.filter.startDate = moment().startOf('month').toDate();
-                this.filter.endDate = moment().endOf('month').toDate();
-            }
-            else if (this.filterPresetDateRange === "lastMonth") {
-                var lastMonth = moment().subtract(1, 'months');
-                this.filter.startDate = lastMonth.startOf('month').toDate();
-                this.filter.endDate = lastMonth.endOf('month').toDate();
-            }
-            else if (this.filterPresetDateRange === "thisYear") {
-                this.filter.startDate = moment().startOf('year').toDate();
-                this.filter.endDate = moment().endOf('year').toDate();
-            }
-            else if (this.filterPresetDateRange === "lastYear") {
-                var lastYear = moment().subtract(1, 'years');
-                this.filter.startDate = lastYear.startOf('year').toDate();
-                this.filter.endDate = lastYear.endOf('year').toDate();
-            }
-            else if (this.filterPresetDateRange === "oneYear") {
-                this.filter.startDate = moment().subtract(1, 'years').toDate();
-                this.filter.endDate = moment().toDate();
-            }
-            if (!suppressRefresh)
-                this.refreshEntries();
         };
         LedgerController.prototype.onFilterDescriptionChange = function () {
             if (this.filter.description.length > 2 || this.filter.description.length == 0)

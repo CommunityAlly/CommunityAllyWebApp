@@ -2234,6 +2234,121 @@ CA.angularApp.component("financialParent", {
     controller: Ally.FinancialParentController
 });
 
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to track group spending
+     */
+    var FinancialReportsController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function FinancialReportsController($http, siteInfo, appCacheService, $location) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
+            this.$location = $location;
+            this.isLoading = false;
+            this.incomeByCategoryData = null;
+            this.incomeByCategoryLabels = null;
+            this.incomeByCategoryCatIds = null;
+            this.expenseByCategoryData = null;
+            this.expenseByCategoryLabels = null;
+            this.expenseByCategoryCatIds = null;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        FinancialReportsController.prototype.$onInit = function () {
+            this.startDate = moment().startOf('month').toDate();
+            this.endDate = moment().endOf('month').toDate();
+            var innerThis = this;
+            this.doughnutChartOptions = {
+                onClick: function (event) {
+                    var elements = this.getElementAtEvent(event);
+                    if (elements.length) {
+                        var elem = elements[0];
+                        var isExpenseChart = event.target.id === "expense-category-chart";
+                        var categoryId = void 0;
+                        if (isExpenseChart) {
+                            //console.log( "Clicked on expense category: " + innerThis.expenseByCategoryLabels[elem._index] );
+                            categoryId = innerThis.expenseByCategoryCatIds[elem._index];
+                        }
+                        else {
+                            console.log("Clicked on income category: " + innerThis.incomeByCategoryLabels[elem._index]);
+                            categoryId = innerThis.incomeByCategoryCatIds[elem._index];
+                        }
+                        innerThis.appCacheService.set("ledger_preselect_start", innerThis.startDate.getTime().toString());
+                        innerThis.appCacheService.set("ledger_preselect_end", innerThis.endDate.getTime().toString());
+                        innerThis.appCacheService.set("ledger_preselect_categoryId", categoryId.toString());
+                        window.location.href = "/#!/Financials/Ledger";
+                        //console.log( "in new", element[0] )
+                    }
+                },
+            };
+            this.refreshData();
+        };
+        /**
+        * Retrieve the report data
+        */
+        FinancialReportsController.prototype.refreshData = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/FinancialReports/ChartData?startDate=" + encodeURIComponent(this.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.endDate.toISOString())).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.reportData = httpResponse.data;
+                _this.incomeByCategoryData = _.map(_this.reportData.incomeByCategory, function (e) { return e.amount; });
+                _this.incomeByCategoryLabels = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryName; });
+                _this.incomeByCategoryCatIds = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryId; });
+                _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return e.amount; });
+                _this.expenseByCategoryLabels = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryName; });
+                _this.expenseByCategoryCatIds = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryId; });
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to retrieve report data: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        FinancialReportsController.prototype.onByCategoryClickChart = function (points, event) {
+            if (!points || points.length === 0)
+                return;
+            var isExpenseChart = points[0]._chart.canvas.id === "expense-category-chart";
+            console.log("Clicked", isExpenseChart, points[0], event);
+            if (isExpenseChart) {
+                console.log("Clicked on expense category: " + this.expenseByCategoryLabels[points[0]._index]);
+            }
+            else
+                console.log("Clicked on income category: " + this.incomeByCategoryLabels[points[0]._index]);
+        };
+        FinancialReportsController.$inject = ["$http", "SiteInfo", "appCacheService", "$location"];
+        return FinancialReportsController;
+    }());
+    Ally.FinancialReportsController = FinancialReportsController;
+    var DoughnutChartEntry = /** @class */ (function () {
+        function DoughnutChartEntry() {
+        }
+        return DoughnutChartEntry;
+    }());
+    var BalanceEntry = /** @class */ (function () {
+        function BalanceEntry() {
+        }
+        return BalanceEntry;
+    }());
+    var AccountBalanceMonth = /** @class */ (function () {
+        function AccountBalanceMonth() {
+        }
+        return AccountBalanceMonth;
+    }());
+    var FinancialReportData = /** @class */ (function () {
+        function FinancialReportData() {
+        }
+        return FinancialReportData;
+    }());
+})(Ally || (Ally = {}));
+CA.angularApp.component("financialReports", {
+    templateUrl: "/ngApp/chtn/manager/financial/financial-reports.html",
+    controller: Ally.FinancialReportsController
+});
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -2295,11 +2410,12 @@ var Ally;
                         },
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
                         { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
+                    showColumnFooter: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false,
@@ -2308,6 +2424,7 @@ var Ally;
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
+                        _this.ledgerGridApi = gridApi;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                         gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
@@ -2329,9 +2446,20 @@ var Ally;
                         });
                     }
                 };
+            var preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
+            if (!isNaN(preselectStartMillis)) {
+                this.filter.startDate = new Date(preselectStartMillis);
+                var preselectEndMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_end"));
+                this.filter.endDate = new Date(preselectEndMillis);
+                this.preselectCategoryId = parseInt(this.appCacheService.getAndClear("ledger_preselect_categoryId"));
+                if (isNaN(this.preselectCategoryId))
+                    this.preselectCategoryId = undefined;
+            }
+            else {
+                this.filter.startDate = moment().startOf('month').toDate();
+                this.filter.endDate = moment().endOf('month').toDate();
+            }
             // Populate the page
-            this.filterPresetDateRange = "thisMonth";
-            this.selectPresetDateRange(true);
             this.fullRefresh();
         };
         /**
@@ -2376,6 +2504,16 @@ var Ally;
                 uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
                 var categoryColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "categoryDisplayName"; })[0];
                 categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
+                if (_this.preselectCategoryId) {
+                    window.setTimeout(function () {
+                        var selectedCatEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === _this.preselectCategoryId; })[0];
+                        _this.preselectCategoryId = undefined;
+                        var categoryColumn = _this.ledgerGridApi.grid.columns.filter(function (c) { return c.displayName === "Category"; })[0];
+                        categoryColumn.filters[0] = {
+                            term: selectedCatEntry.displayName
+                        };
+                    }, 100);
+                }
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
@@ -2595,33 +2733,6 @@ var Ally;
                 _this.isLoading = false;
                 alert("Failed to sync: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.selectPresetDateRange = function (suppressRefresh) {
-            if (suppressRefresh === void 0) { suppressRefresh = false; }
-            if (this.filterPresetDateRange === "thisMonth") {
-                this.filter.startDate = moment().startOf('month').toDate();
-                this.filter.endDate = moment().endOf('month').toDate();
-            }
-            else if (this.filterPresetDateRange === "lastMonth") {
-                var lastMonth = moment().subtract(1, 'months');
-                this.filter.startDate = lastMonth.startOf('month').toDate();
-                this.filter.endDate = lastMonth.endOf('month').toDate();
-            }
-            else if (this.filterPresetDateRange === "thisYear") {
-                this.filter.startDate = moment().startOf('year').toDate();
-                this.filter.endDate = moment().endOf('year').toDate();
-            }
-            else if (this.filterPresetDateRange === "lastYear") {
-                var lastYear = moment().subtract(1, 'years');
-                this.filter.startDate = lastYear.startOf('year').toDate();
-                this.filter.endDate = lastYear.endOf('year').toDate();
-            }
-            else if (this.filterPresetDateRange === "oneYear") {
-                this.filter.startDate = moment().subtract(1, 'years').toDate();
-                this.filter.endDate = moment().toDate();
-            }
-            if (!suppressRefresh)
-                this.refreshEntries();
         };
         LedgerController.prototype.onFilterDescriptionChange = function () {
             if (this.filter.description.length > 2 || this.filter.description.length == 0)
@@ -9146,6 +9257,68 @@ var ParagonPaymentRequest = /** @class */ (function () {
     }
     return ParagonPaymentRequest;
 }());
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to track group spending
+     */
+    var DateRangePickerController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function DateRangePickerController(appCacheService) {
+            this.appCacheService = appCacheService;
+            this.filterPresetDateRange = "thisMonth";
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        DateRangePickerController.prototype.$onInit = function () {
+            this.selectPresetDateRange(true);
+        };
+        DateRangePickerController.prototype.selectPresetDateRange = function (suppressRefresh) {
+            var _this = this;
+            if (suppressRefresh === void 0) { suppressRefresh = false; }
+            if (this.filterPresetDateRange === "thisMonth") {
+                this.startDate = moment().startOf('month').toDate();
+                this.endDate = moment().endOf('month').toDate();
+            }
+            else if (this.filterPresetDateRange === "lastMonth") {
+                var lastMonth = moment().subtract(1, 'months');
+                this.startDate = lastMonth.startOf('month').toDate();
+                this.endDate = lastMonth.endOf('month').toDate();
+            }
+            else if (this.filterPresetDateRange === "thisYear") {
+                this.startDate = moment().startOf('year').toDate();
+                this.endDate = moment().endOf('year').toDate();
+            }
+            else if (this.filterPresetDateRange === "lastYear") {
+                var lastYear = moment().subtract(1, 'years');
+                this.startDate = lastYear.startOf('year').toDate();
+                this.endDate = lastYear.endOf('year').toDate();
+            }
+            else if (this.filterPresetDateRange === "oneYear") {
+                this.startDate = moment().subtract(1, 'years').toDate();
+                this.endDate = moment().toDate();
+            }
+            if (!suppressRefresh && this.onChange)
+                window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
+        };
+        DateRangePickerController.$inject = ["appCacheService"];
+        return DateRangePickerController;
+    }());
+    Ally.DateRangePickerController = DateRangePickerController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("dateRangePicker", {
+    bindings: {
+        startDate: "=",
+        endDate: "=",
+        onChange: "&"
+    },
+    templateUrl: "/ngApp/common/date-range-picker.html",
+    controller: Ally.DateRangePickerController
+});
 
 /// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../../Scripts/typings/moment/moment.d.ts" />

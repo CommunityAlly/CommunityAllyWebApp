@@ -8,24 +8,24 @@
                 Online Payments
             </a>
 
-            <a class="nav-item nav-link" data-ng-href="#!/Financials/Ledger"
-               data-ng-class="{'active':$ctrl.selectedView==='Ledger'}">
-                Ledger
-            </a>
-
             <a class="nav-item nav-link" href="#!/Financials/AssessmentHistory"
                data-ng-class="{'active':$ctrl.selectedView==='AssessmentHistory'}">
                 Assessment History
             </a>
 
-            <a class="nav-item nav-link" href="#!/Financials/Budgets"
-               data-ng-class="{'active':$ctrl.selectedView==='Budgets'}">
-                Budgets
+            <a class="nav-item nav-link" data-ng-href="#!/Financials/Ledger"
+               data-ng-class="{'active':$ctrl.selectedView==='Ledger'}">
+                Ledger
             </a>
 
             <a class="nav-item nav-link" href="#!/Financials/Reports"
                data-ng-class="{'active':$ctrl.selectedView==='Reports'}">
                 Reports
+            </a>
+
+            <a class="nav-item nav-link" href="#!/Financials/Budgets"
+               data-ng-class="{'active':$ctrl.selectedView==='Budgets'}">
+                Budgets
             </a>
         </nav>
     </section>
@@ -36,11 +36,9 @@
 
     <ledger data-ng-if="$ctrl.selectedView === 'Ledger'"></ledger>
 
+    <financial-reports data-ng-if="$ctrl.selectedView === 'Reports'"></financial-reports>
+
     <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Budgets'">
         Coming December 2020! Easily and quickly create budgets from scratch, from previous years, or from spending activity.
-    </div>
-
-    <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Reports'">
-        Coming December 2020! View helpful reports to get an idea where your association stands financially.
     </div>
 </div>
