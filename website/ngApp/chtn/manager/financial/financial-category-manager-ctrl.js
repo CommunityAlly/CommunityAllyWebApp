@@ -138,6 +138,10 @@ var Ally;
         */
         FinancialCategoryManagerController.prototype.deleteCategory = function () {
             var _this = this;
+            if (this.selectedCategory.displayName === "Income") {
+                alert("You cannot delete the income category");
+                return;
+            }
             this.isLoading = true;
             var deleteUri = "/api/Ledger/FinancialCategory/" + this.selectedCategory.financialCategoryId;
             if (this.deleteCategoryRessignTo)

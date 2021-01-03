@@ -26,7 +26,6 @@ var Ally;
             this.isLoading = false;
             this.isLoadingEntries = false;
             this.ledgerAccounts = [];
-            this.categoryOptions = [];
             this.shouldShowAddTransaction = false;
             this.editAccount = null;
             this.editingTransaction = null;
@@ -97,19 +96,22 @@ var Ally;
                 };
             var preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
             if (!isNaN(preselectStartMillis)) {
-                this.filter.startDate = new Date(preselectStartMillis);
-                var preselectEndMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_end"));
-                this.filter.endDate = new Date(preselectEndMillis);
-                this.preselectCategoryId = parseInt(this.appCacheService.getAndClear("ledger_preselect_categoryId"));
-                if (isNaN(this.preselectCategoryId))
-                    this.preselectCategoryId = undefined;
+                // Let the page finish loading then update the filter or else the date filter will overwrite our date
+                window.setTimeout(function () {
+                    _this.filter.startDate = new Date(preselectStartMillis);
+                    var preselectEndMillis = parseInt(_this.appCacheService.getAndClear("ledger_preselect_end"));
+                    _this.filter.endDate = new Date(preselectEndMillis);
+                    _this.preselectCategoryId = parseInt(_this.appCacheService.getAndClear("ledger_preselect_categoryId"));
+                    if (isNaN(_this.preselectCategoryId))
+                        _this.preselectCategoryId = undefined;
+                    _this.fullRefresh();
+                }, 100);
             }
             else {
                 this.filter.startDate = moment().startOf('month').toDate();
                 this.filter.endDate = moment().endOf('month').toDate();
+                this.fullRefresh();
             }
-            // Populate the page
-            this.fullRefresh();
         };
         /**
          * Load all of the data on the page

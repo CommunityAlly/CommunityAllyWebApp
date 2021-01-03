@@ -13,9 +13,9 @@
                 Assessment History
             </a>
 
-            <a class="nav-item nav-link" data-ng-href="#!/Financials/Ledger"
-               data-ng-class="{'active':$ctrl.selectedView==='Ledger'}">
-                Ledger
+            <a class="nav-item nav-link" data-ng-href="#!/Financials/BankTransactions"
+               data-ng-class="{'active':$ctrl.selectedView==='BankTransactions'}">
+                Transactions
             </a>
 
             <a class="nav-item nav-link" href="#!/Financials/Reports"
@@ -34,11 +34,9 @@
 
     <assessment-history data-ng-if="$ctrl.selectedView === 'AssessmentHistory'"></assessment-history>
 
-    <ledger data-ng-if="$ctrl.selectedView === 'Ledger'"></ledger>
+    <ledger data-ng-if="$ctrl.selectedView === 'BankTransactions'"></ledger>
 
     <financial-reports data-ng-if="$ctrl.selectedView === 'Reports'"></financial-reports>
 
-    <div class="padding white-bg margin-vertical spinner-effect" data-ng-if="$ctrl.selectedView === 'Budgets'">
-        Coming December 2020! Easily and quickly create budgets from scratch, from previous years, or from spending activity.
-    </div>
+    <budget-tool data-ng-if="$ctrl.selectedView === 'Budgets'"></budget-tool>
 </div>

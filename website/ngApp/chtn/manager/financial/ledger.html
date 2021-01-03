@@ -1,15 +1,16 @@
-﻿<div class="page page-manage-payments" style="min-height: 100px;">
+﻿<div class="page" style="min-height: 100px;">
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
     <h1 style="display: inline;">Association Ledger</h1>
     <span class="ml-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
     <p>
         Here you can track, categorize, and notate your association's spending and income. You can connect your bank account so that transactions are
-        synchronized automatically.
+        synchronized automatically. This is meant to help small associations and is not a replacement for a more robust application like QuickBooks
+        or using an accountant.
     </p>
     <div class="container">
         <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
         <div class="row">
-            <div class="col-10 pl-0">
+            <div class="col-md-10 col-sm-12 pl-0">
                 <fieldset style="width: 100%;">
                     <legend style="font-size: 1em;">Bank Accounts</legend>
                     <div>
@@ -22,7 +23,7 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="col-2 text-right">
+            <div class="col-md-2 col-sm-12 text-right p-2">
                 <button class="btn btn-primary" type="button" data-ng-click="$ctrl.onAddTransaction()">Add Transaction</button>
                 <br />
                 <span class="note-text text-link" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
@@ -56,9 +57,10 @@
         Get started by adding an account using the button above.
     </h4>
 
-    <div style="position: relative;">
+    <div style="position: relative;" class="mt-2">
         <div data-ng-if="$ctrl.isLoading || $ctrl.isLoadingEntries" class="loading-overlay"></div>
-        <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-edit ui-grid-cellNav class="gridStyle margin-top-20"></div>
+        <span class="note-text">Double-click on a cell to quick edit</span>
+        <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-edit ui-grid-cellNav></div>
         <div style="height: 20px;"></div> <!-- Need to do because of the ui-grid footer floats -->
     </div>
 

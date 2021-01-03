@@ -7,15 +7,19 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function DateRangePickerController(appCacheService) {
+        function DateRangePickerController(appCacheService, $scope) {
             this.appCacheService = appCacheService;
+            this.$scope = $scope;
             this.filterPresetDateRange = "thisMonth";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         DateRangePickerController.prototype.$onInit = function () {
+            var _this = this;
             this.selectPresetDateRange(true);
+            this.$scope.$watch("startDate", function () { return _this.filterPresetDateRange = "custom"; });
+            this.$scope.$watch("endDate", function () { return _this.filterPresetDateRange = "custom"; });
         };
         DateRangePickerController.prototype.selectPresetDateRange = function (suppressRefresh) {
             var _this = this;
@@ -45,7 +49,7 @@ var Ally;
             if (!suppressRefresh && this.onChange)
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
         };
-        DateRangePickerController.$inject = ["appCacheService"];
+        DateRangePickerController.$inject = ["appCacheService", "$scope"];
         return DateRangePickerController;
     }());
     Ally.DateRangePickerController = DateRangePickerController;

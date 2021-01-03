@@ -13,7 +13,6 @@ var Ally;
             this.$routeParams = $routeParams;
             this.$cacheFactory = $cacheFactory;
             this.$rootScope = $rootScope;
-            this.initialView = "Home";
             this.selectedView = null;
             this.isLoading = false;
         }

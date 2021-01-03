@@ -45,7 +45,7 @@ var Ally;
                         innerThis.appCacheService.set("ledger_preselect_start", innerThis.startDate.getTime().toString());
                         innerThis.appCacheService.set("ledger_preselect_end", innerThis.endDate.getTime().toString());
                         innerThis.appCacheService.set("ledger_preselect_categoryId", categoryId.toString());
-                        window.location.href = "/#!/Financials/Ledger";
+                        window.location.href = "/#!/Financials/BankTransactions";
                         //console.log( "in new", element[0] )
                     }
                 },

@@ -202,6 +202,12 @@
         */
         deleteCategory()
         {
+            if( this.selectedCategory.displayName === "Income" )
+            {
+                alert( "You cannot delete the income category" );
+                return;
+            }
+
             this.isLoading = true;
 
             let deleteUri = `/api/Ledger/FinancialCategory/${this.selectedCategory.financialCategoryId}`;

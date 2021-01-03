@@ -301,7 +301,7 @@ namespace Ally
                         console.log( "Failed to get zip link: " + response.data.exceptionMessage );
                     }
                 );
-            }, 750 );
+            }, 1000 );
 
             // Return true because this is called from an <a> onclick handler
             return true;

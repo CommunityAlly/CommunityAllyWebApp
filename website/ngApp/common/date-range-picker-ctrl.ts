@@ -5,7 +5,7 @@
      */
     export class DateRangePickerController implements ng.IController
     {
-        static $inject = ["appCacheService"];
+        static $inject = ["appCacheService", "$scope"];
 
         filterPresetDateRange: string = "thisMonth";
         startDate: Date;
@@ -16,7 +16,8 @@
         /**
         * The constructor for the class
         */
-        constructor( private appCacheService: AppCacheService )
+        constructor( private appCacheService: AppCacheService,
+            private $scope: ng.IScope )
         {
         }
 
@@ -27,6 +28,9 @@
         $onInit()
         {
             this.selectPresetDateRange( true );
+
+            this.$scope.$watch( "startDate", () => this.filterPresetDateRange = "custom" );
+            this.$scope.$watch( "endDate", () => this.filterPresetDateRange = "custom" );
         }
 
 

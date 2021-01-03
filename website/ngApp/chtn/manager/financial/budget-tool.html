@@ -1,0 +1,50 @@
+﻿<div class="page" style="min-height: 100px;">
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+    <h1 style="display: inline;">Budgets</h1>
+    <span class="ml-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
+    <p>
+        Here you can create, edit, and view budgets for your association.
+    </p>
+    <div class="container">
+        <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+        <div class="row" data-ng-if="!$ctrl.curBudget">
+            <div class="col-12 pl-0">
+                <span data-ng-if="$ctrl.budgets.length > 0">
+                    <span>Load Budget: </span>
+                    <select class="mr-3" data-ng-model="$ctrl.selectedBudget" data-ng-options="b as b.budgetName for b in $ctrl.budgets" data-ng-change="$ctrl.onBudgetSelected()">
+                    </select>
+                </span>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createBudget()">Create New Budget</button>
+                <span class="note-text text-link ml-4" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
+            </div>
+        </div>
+        <div class="row mt-4" data-ng-if="$ctrl.curBudget">
+            <div class="col-12">
+                <h3 class="can-edit-inline" data-editable-text="$ctrl.curBudget.budgetName">{{$ctrl.curBudget.budgetName}}</h3>
+                <button type="button" class="btn btn-primary ml-4" data-ng-click="$ctrl.saveBudget()">Save Budget</button>
+                <button type="button" class="btn btn-primary ml-2" data-ng-click="$ctrl.closeBudget()">Cancel Edit</button>
+                <button type="button" class="btn btn-danger ml-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.deleteBudget()">Delete Budget</button>
+                <div>
+                    Enter the expected amount your association will spend in the categories below. Parent categories are automatically calculated from their child category amounts.
+                    Once you have multiple budgets, you'll be able to see past hisory during input.
+                </div>
+                <div class="mt-4" style="font-size: 1.25em;">
+                    <span>Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
+                    <span class="ml-4">Total Expense: <span class="text-bold">{{$ctrl.totalExpense | currency}}</span></span>
+                    <span class="ml-4">Net: <span class="text-bold">{{$ctrl.totalIncome - $ctrl.totalExpense | currency}}</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4" data-ng-if="$ctrl.curBudget">
+            <div class="col-md-6 col-sm-12">
+                <h4 class="mb-0">Expenses</h4>
+                <div data-ui-grid="$ctrl.expenseGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
+            </div>
+            <div class="col-md-6 col-sm-12 mt-sm-4 mt-md-0">
+                <h4 class="mb-0">Income</h4>
+                <div data-ui-grid="$ctrl.incomeGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
+            </div>
+        </div>
+    </div>
+    <financial-category-manager data-ng-if="$ctrl.shouldShowCategoryEditModal" data-on-closed="$ctrl.shouldShowCategoryEditModal = false; $ctrl.completeRefresh();"></financial-category-manager>
+</div>

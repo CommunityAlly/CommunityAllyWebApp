@@ -13,7 +13,7 @@
     {
         static $inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
 
-        initialView: string = "Home";
+        initialView: string;
         selectedView: string = null;
         isLoading: boolean = false;
 

@@ -14,7 +14,6 @@ namespace Ally
         ledgerGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
         ledgerGridApi: uiGrid.IGridApiOf<LedgerEntry>;
         ledgerAccounts: LedgerAccount[] = [];
-        categoryOptions: CategoryOption[] = [];
         shouldShowAddTransaction: boolean = false;
         editAccount: LedgerAccount = null;
         editingTransaction: LedgerEntry = null;
@@ -116,22 +115,27 @@ namespace Ally
             const preselectStartMillis = parseInt( this.appCacheService.getAndClear( "ledger_preselect_start" ) );
             if( !isNaN( preselectStartMillis ) )
             {
-                this.filter.startDate = new Date( preselectStartMillis );
-                const preselectEndMillis = parseInt( this.appCacheService.getAndClear( "ledger_preselect_end" ) );
-                this.filter.endDate = new Date( preselectEndMillis );
+                // Let the page finish loading then update the filter or else the date filter will overwrite our date
+                window.setTimeout( () =>
+                {
+                    this.filter.startDate = new Date( preselectStartMillis );
+                    const preselectEndMillis = parseInt( this.appCacheService.getAndClear( "ledger_preselect_end" ) );
+                    this.filter.endDate = new Date( preselectEndMillis );
 
-                this.preselectCategoryId = parseInt( this.appCacheService.getAndClear( "ledger_preselect_categoryId" ) );
-                if( isNaN( this.preselectCategoryId ) )
-                    this.preselectCategoryId = undefined;
+                    this.preselectCategoryId = parseInt( this.appCacheService.getAndClear( "ledger_preselect_categoryId" ) );
+                    if( isNaN( this.preselectCategoryId ) )
+                        this.preselectCategoryId = undefined;
+
+                    this.fullRefresh();
+                }, 100 );
             }
             else
             {
                 this.filter.startDate = moment().startOf( 'month' ).toDate();
                 this.filter.endDate = moment().endOf( 'month' ).toDate();
-            }
 
-            // Populate the page
-            this.fullRefresh();
+                this.fullRefresh();
+            }
         }
 
 
