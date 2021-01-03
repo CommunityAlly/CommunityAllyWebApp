@@ -88,7 +88,6 @@ namespace Ally
         isUpdatingPayPalCredentials: boolean;
         allowNewWePaySignUp: boolean = false;
         paymentsGridOptions: uiGrid.IGridOptionsOf<ElectronicPayment>;
-        shouldAllowDwollaSignUp: boolean = false;
         shouldShowDwollaAddAccountModal: boolean = false;
         shouldShowDwollaModalClose: boolean = false;
         isDwollaIavDone: boolean = false;
@@ -124,8 +123,6 @@ namespace Ally
             // Allow a single HOA to try WePay
             let wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
             this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
-
-            this.shouldAllowDwollaSignUp = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
 
             this.payments = [
                 {

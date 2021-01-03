@@ -73,14 +73,9 @@
 
             <div data-ng-if="$ctrl.hasAssessments != null">
 
-                <div data-ng-if="!$ctrl.shouldAllowDwollaSignUp && !$ctrl.paymentInfo.isDwollaSetup">
-                    We are currently beta testing our new payment provider. If you're interested in trying it out, reach
-                    out to support.
-                </div>
-
-                <div data-ng-if="$ctrl.shouldAllowDwollaSignUp && !$ctrl.paymentInfo.isDwollaSetup">
+                <div data-ng-if="!$ctrl.paymentInfo.isDwollaSetup">
                     We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to securely handle all of our payment transactions to offer you
-                    an incredible layer of security. To start receiving payments you need to associate a bank account
+                    an incredible layer of security. To start receiving payments you need to associate a bank account (savings or checking)
                     for your association via Dwolla. Payments will be automatically sent to this bank account once a Dwolla payment has cleared which takes about a week. Payment
                     notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">
                     the bottom of your residents page</a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and

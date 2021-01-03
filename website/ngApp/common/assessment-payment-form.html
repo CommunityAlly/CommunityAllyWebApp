@@ -7,8 +7,8 @@
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
 
         <div id="dwolla-form" class="mb-4" data-ng-if="$ctrl.isDwollaEnabledOnGroup">
-            <div data-ng-if="$ctrl.isDwollaUserAccountVerified && !$ctrl.hasDwollaFundingSource">                
-                Your Dwolla account is verified, you can now associate a bank account to make payments:
+            <div data-ng-if="$ctrl.isDwollaUserAccountVerified && !$ctrl.hasDwollaFundingSource">
+                Your Dwolla user account is verified, you can now associate a bank account (savings or checking) to make payments:
                 <br />
                 <br />
                 <div data-ng-if="$ctrl.hasComplexPassword">
@@ -42,7 +42,7 @@
                         </div>
                         <div class="row mb-3" data-ng-if="$ctrl.dwollaUserStatus !== 'retry'">
                             <div class="col-12">
-                                In order to make payments, Dwolla needs to verify your identity. Please enter the information below.
+                                In order to make payments to your association, Dwolla needs to verify your identity. Please enter the information below.
                             </div>
                         </div>
                         <div class="row mb-3">

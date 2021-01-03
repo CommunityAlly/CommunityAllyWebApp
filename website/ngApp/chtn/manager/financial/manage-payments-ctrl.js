@@ -41,7 +41,6 @@ var Ally;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
             this.allowNewWePaySignUp = false;
-            this.shouldAllowDwollaSignUp = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
             this.isDwollaIavDone = false;
@@ -60,7 +59,6 @@ var Ally;
             // Allow a single HOA to try WePay
             var wePayExemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
             this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
-            this.shouldAllowDwollaSignUp = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             this.payments = [
                 {
                     Date: "",
