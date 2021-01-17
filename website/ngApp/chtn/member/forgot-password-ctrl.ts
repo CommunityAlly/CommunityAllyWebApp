@@ -17,7 +17,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http:ng.IHttpService, private appCacheService:AppCacheService)
+        constructor( private $http: ng.IHttpService, private appCacheService: AppCacheService )
         {
         }
 
@@ -39,25 +39,25 @@
             this.isLoading = true;
 
             // Retrieve information for the current association
-            var innerThis = this;
-            this.$http.post( "/api/Login/Forgot", this.loginInfo ).then( function()
-            {
-                innerThis.shouldHideControls = true;
+            this.$http.post( "/api/Login/Forgot", this.loginInfo ).then(
+                () =>
+                {
+                    this.shouldHideControls = true;
 
-                innerThis.isLoading = false;
+                    this.isLoading = false;
 
-                innerThis.resultText = "Please check your e-mail for updated login information.";
-                innerThis.resultTextColor = "#00F";
+                    this.resultText = "Please check your e-mail for updated login information.";
+                    this.resultTextColor = "#00F";
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
 
-            }, function( httpResponse )
-            {
-                innerThis.isLoading = false;
-
-                innerThis.resultText = "Failed to process your request: " + httpResponse.data;
-                innerThis.resultTextColor = "#F00";
-            } );
+                    this.resultText = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+                    this.resultTextColor = "#F00";
+                }
+            );
         }
-
     }
 }
 

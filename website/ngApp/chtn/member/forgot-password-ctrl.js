@@ -24,18 +24,18 @@ var Ally;
          * Occurs when the user clicks the log-in button
          */
         ForgotPasswordController.prototype.onSubmitEmail = function () {
+            var _this = this;
             this.isLoading = true;
             // Retrieve information for the current association
-            var innerThis = this;
             this.$http.post("/api/Login/Forgot", this.loginInfo).then(function () {
-                innerThis.shouldHideControls = true;
-                innerThis.isLoading = false;
-                innerThis.resultText = "Please check your e-mail for updated login information.";
-                innerThis.resultTextColor = "#00F";
+                _this.shouldHideControls = true;
+                _this.isLoading = false;
+                _this.resultText = "Please check your e-mail for updated login information.";
+                _this.resultTextColor = "#00F";
             }, function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.resultText = "Failed to process your request: " + httpResponse.data;
-                innerThis.resultTextColor = "#F00";
+                _this.isLoading = false;
+                _this.resultText = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+                _this.resultTextColor = "#F00";
             });
         };
         ForgotPasswordController.$inject = ["$http", "appCacheService"];
