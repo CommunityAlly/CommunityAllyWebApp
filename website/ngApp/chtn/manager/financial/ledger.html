@@ -19,7 +19,8 @@
                             <span class="text-link mr-3" data-ng-click="$ctrl.openEditAccountModal(curAccount)">{{curAccount.accountName}}</span>
                         </span>
                         <button class="btn btn-primary btn-sm mr-3" data-ng-click="$ctrl.showAddAccount()" type="button">Add Account</button>
-                        <span data-ng-if="$ctrl.hasPlaidAccounts" class="text-link note-text" data-ng-click="$ctrl.syncPlaidAccounts()">Force Sync Recent Transactions</span>
+                        <span data-ng-if="$ctrl.hasPlaidAccounts" class="text-link note-text" data-ng-click="$ctrl.syncPlaidAccounts(true)">Force Sync Recent Transactions</span>
+                        <span data-ng-if="$ctrl.hasPlaidAccounts && $ctrl.isAdmin" class="text-link note-text" data-ng-click="$ctrl.syncPlaidAccounts(false)">Force Sync 2 Years of Transactions</span>
                     </div>
                 </fieldset>
             </div>

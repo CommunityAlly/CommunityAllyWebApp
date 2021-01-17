@@ -40,6 +40,7 @@ var Ally;
             this.shouldShowCategoryEditModal = false;
             this.spendingChartData = null;
             this.spendingChartLabels = null;
+            this.isAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -47,6 +48,7 @@ var Ally;
         LedgerController.prototype.$onInit = function () {
             var _this = this;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.ledgerGridOptions =
                 {
                     columnDefs: [
@@ -374,10 +376,11 @@ var Ally;
                 alert("Failed to update: " + httpResponse.data.exceptionMessage);
             });
         };
-        LedgerController.prototype.syncPlaidAccounts = function () {
+        LedgerController.prototype.syncPlaidAccounts = function (shouldSyncRecent) {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Plaid/SyncRecentTransactions").then(function (httpResponse) {
+            var getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
+            this.$http.get(getUri).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.refreshEntries();
             }, function (httpResponse) {

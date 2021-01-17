@@ -33,6 +33,7 @@ namespace Ally
         spendingChartData: number[]|null = null;
         spendingChartLabels: string[] | null = null;
         preselectCategoryId: number | undefined;
+        isAdmin: boolean = false;
 
 
         /**
@@ -53,6 +54,7 @@ namespace Ally
         $onInit()
         {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
 
             this.ledgerGridOptions =
             {
@@ -513,11 +515,12 @@ namespace Ally
             );
         }
 
-        syncPlaidAccounts()
+        syncPlaidAccounts( shouldSyncRecent: boolean )
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/Plaid/SyncRecentTransactions` ).then(
+            const getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
+            this.$http.get( getUri ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
