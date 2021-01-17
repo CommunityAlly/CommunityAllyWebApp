@@ -71,7 +71,7 @@ var Ally;
             var innerThis = this;
             this.fellowResidents.getGroupEmailObject().then(function (emailList) {
                 innerThis.isLoadingEmail = false;
-                innerThis.availableEmailGroups = emailList;
+                innerThis.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
                 if (innerThis.availableEmailGroups.length > 0) {
                     innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
                     innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
