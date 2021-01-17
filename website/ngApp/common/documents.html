@@ -123,10 +123,12 @@
         </div>
 
     </div>
-    <div class="text-right mt-2" data-ng-if="$ctrl.downloadZipUrl">
-        <a data-ng-href="{{$ctrl.downloadZipUrl}}" target="_blank" data-ng-click="$ctrl.getDownloadZipVid()">Download Zip Of All Files</a>
-        <br />
-        <span class="note-text">(Can take a few minutes, watch your browser's download area for progress. Please don't click more than once.)</span>
+    <div class="text-right mt-2">
+        <span class="text-link" data-ng-if="!$ctrl.generatingZipStatus" data-ng-click="$ctrl.startZipGenDownload()">Generate Zip Of All Files</span>
+        <img data-ng-if="$ctrl.generatingZipStatus && $ctrl.generatingZipStatus !== 'ready'" src="/assets/images/Spinner_Small.gif" />
+        <span data-ng-if="$ctrl.generatingZipStatus !== 'ready'">{{$ctrl.generatingZipStatus}}</span>
+        <a data-ng-if="$ctrl.generatingZipStatus === 'ready'" data-ng-href="{{$ctrl.downloadZipUrl}}" download>Download Zip File</a>
+        <div class="note-text">(This can take a few minutes. A download link will appear when ready.)</div>
     </div>
 
     <div id="CreateDirectoryContainer" class="modal-container" data-ng-show="$ctrl.shouldShowCreateFolderModal" data-ng-form data-ng-enter="$ctrl.onCreateDirectoryClicked()" data-ng-escape="$ctrl.onCancelAddDirectory()">

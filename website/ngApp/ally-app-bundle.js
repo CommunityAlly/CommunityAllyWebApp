@@ -841,8 +841,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"
-//OverrideOriginalUrl = "https://qa.condoally.com/";
+// OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"
+// OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -2759,6 +2759,7 @@ var Ally;
             this.shouldShowCategoryEditModal = false;
             this.spendingChartData = null;
             this.spendingChartLabels = null;
+            this.isAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2766,6 +2767,7 @@ var Ally;
         LedgerController.prototype.$onInit = function () {
             var _this = this;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.ledgerGridOptions =
                 {
                     columnDefs: [
@@ -3093,10 +3095,11 @@ var Ally;
                 alert("Failed to update: " + httpResponse.data.exceptionMessage);
             });
         };
-        LedgerController.prototype.syncPlaidAccounts = function () {
+        LedgerController.prototype.syncPlaidAccounts = function (shouldSyncRecent) {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Plaid/SyncRecentTransactions").then(function (httpResponse) {
+            var getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
+            this.$http.get(getUri).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.refreshEntries();
             }, function (httpResponse) {
@@ -6513,18 +6516,18 @@ var Ally;
          * Occurs when the user clicks the log-in button
          */
         ForgotPasswordController.prototype.onSubmitEmail = function () {
+            var _this = this;
             this.isLoading = true;
             // Retrieve information for the current association
-            var innerThis = this;
             this.$http.post("/api/Login/Forgot", this.loginInfo).then(function () {
-                innerThis.shouldHideControls = true;
-                innerThis.isLoading = false;
-                innerThis.resultText = "Please check your e-mail for updated login information.";
-                innerThis.resultTextColor = "#00F";
+                _this.shouldHideControls = true;
+                _this.isLoading = false;
+                _this.resultText = "Please check your e-mail for updated login information.";
+                _this.resultTextColor = "#00F";
             }, function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.resultText = "Failed to process your request: " + httpResponse.data;
-                innerThis.resultTextColor = "#F00";
+                _this.isLoading = false;
+                _this.resultText = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+                _this.resultTextColor = "#F00";
             });
         };
         ForgotPasswordController.$inject = ["$http", "appCacheService"];
@@ -9875,25 +9878,40 @@ var Ally;
                 alert("Failed to open document: " + response.data.exceptionMessage);
             });
         };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Get a view ID needed to download a full zip
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        DocumentsController.prototype.getDownloadZipVid = function () {
+        DocumentsController.prototype.startZipGenDownload = function () {
             var _this = this;
-            // Update after a half second
-            setTimeout(function () {
-                _this.$http.get("/api/DocumentLink/0").then(function (response) {
-                    if (_this.committee)
-                        _this.downloadZipUrl = "DocumentUpload/GetCommitteeFullZip/" + _this.committee.committeeId + "?vid=" + response.data.vid;
+            var refreshGenStatus;
+            var numRefreshes = 0;
+            refreshGenStatus = function () {
+                _this.$http.get("/api/DocumentUpload/GetZipGenStatus?vid=" + _this.generatingZipId).then(function (response) {
+                    ++numRefreshes;
+                    if (response.data.totalNumFiles === 0)
+                        _this.generatingZipStatus = "Still waiting...";
                     else
-                        _this.downloadZipUrl = "DocumentUpload/GetFullZip?vid=" + response.data.vid;
-                    _this.downloadZipUrl = _this.siteInfo.publicSiteInfo.baseApiUrl + _this.downloadZipUrl;
+                        _this.generatingZipStatus = response.data.numFilesProcessed + " of " + response.data.totalNumFiles + " files processed";
+                    if (response.data.isReady) {
+                        _this.generatingZipStatus = "ready";
+                        _this.downloadZipUrl = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/DownloadZipGen?vid=" + _this.generatingZipId;
+                    }
+                    else
+                        window.setTimeout(function () { return refreshGenStatus(); }, 750);
                 }, function (response) {
-                    console.log("Failed to get zip link: " + response.data.exceptionMessage);
+                    _this.generatingZipStatus = null;
+                    alert("Zip file generation failed: " + response.data.exceptionMessage);
                 });
-            }, 1000);
-            // Return true because this is called from an <a> onclick handler
-            return true;
+            };
+            this.generatingZipStatus = "Starting...";
+            var getUri = "/api/DocumentUpload/StartFullZipGeneration";
+            if (this.committee)
+                getUri += "?committeeId=" + this.committee.committeeId;
+            this.$http.get(getUri).then(function (response) {
+                _this.generatingZipId = response.data.statusId;
+                _this.generatingZipStatus = "Waiting for update...";
+                window.setTimeout(function () { return refreshGenStatus(); }, 1250);
+            }, function (response) {
+                _this.generatingZipStatus = null;
+                alert("Failed to start zip generation: " + response.data.exceptionMessage);
+            });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Get the name of the selected directory. If it is a sub-directory then include the parent
@@ -10313,8 +10331,6 @@ var Ally;
                 };
                 processDir(_this.documentTree);
                 _this.fullSearchFileList = allFiles;
-                if (_this.fullSearchFileList.length > 0 && !_this.downloadZipUrl)
-                    _this.getDownloadZipVid();
                 // Find the directory we had selected before the refresh
                 if (selectedDirectoryPath) {
                     _this.selectedDirectory = _this.FindDirectoryByPath(selectedDirectoryPath);
@@ -10334,6 +10350,11 @@ var Ally;
         return DocumentsController;
     }());
     Ally.DocumentsController = DocumentsController;
+    var FullZipGenStatus = /** @class */ (function () {
+        function FullZipGenStatus() {
+        }
+        return FullZipGenStatus;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("documents", {
     bindings: {
@@ -10649,7 +10670,7 @@ var Ally;
             var innerThis = this;
             this.fellowResidents.getGroupEmailObject().then(function (emailList) {
                 innerThis.isLoadingEmail = false;
-                innerThis.availableEmailGroups = emailList;
+                innerThis.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
                 if (innerThis.availableEmailGroups.length > 0) {
                     innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
                     innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;

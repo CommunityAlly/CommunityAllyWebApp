@@ -87,6 +87,8 @@ namespace Ally
         shouldShowSubdirectories: boolean = true;
         downloadZipUrl: string;
         docsHttpCache: ng.ICacheObject;
+        generatingZipStatus: string;
+        generatingZipId: string;
 
 
         /**
@@ -278,33 +280,58 @@ namespace Ally
         }
 
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Get a view ID needed to download a full zip
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        getDownloadZipVid()
+        startZipGenDownload()
         {
-            // Update after a half second
-            setTimeout( () =>
-            {
-                this.$http.get( "/api/DocumentLink/0" ).then(
-                    ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
-                    {
-                        if( this.committee )
-                            this.downloadZipUrl = `DocumentUpload/GetCommitteeFullZip/${this.committee.committeeId}?vid=` + response.data.vid;
-                        else
-                            this.downloadZipUrl = "DocumentUpload/GetFullZip?vid=" + response.data.vid;
+            let refreshGenStatus: () => void;
+            let numRefreshes = 0;
 
-                        this.downloadZipUrl = this.siteInfo.publicSiteInfo.baseApiUrl + this.downloadZipUrl;
+            refreshGenStatus = () =>
+            {
+                this.$http.get( "/api/DocumentUpload/GetZipGenStatus?vid=" + this.generatingZipId ).then(
+                    ( response: ng.IHttpPromiseCallbackArg<FullZipGenStatus> ) =>
+                    {
+                        ++numRefreshes;
+                        if( response.data.totalNumFiles === 0 )
+                            this.generatingZipStatus = "Still waiting...";
+                        else
+                            this.generatingZipStatus = `${response.data.numFilesProcessed} of ${response.data.totalNumFiles} files processed`;
+
+                        if( response.data.isReady )
+                        {
+                            this.generatingZipStatus = "ready";
+                            this.downloadZipUrl = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/DownloadZipGen?vid=" + this.generatingZipId;
+                        }
+                        else
+                            window.setTimeout( () => refreshGenStatus(), 750 );
                     },
                     ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                     {
-                        console.log( "Failed to get zip link: " + response.data.exceptionMessage );
+                        this.generatingZipStatus = null;
+                        alert( "Zip file generation failed: " + response.data.exceptionMessage );
                     }
                 );
-            }, 1000 );
+            };
 
-            // Return true because this is called from an <a> onclick handler
-            return true;
+            this.generatingZipStatus = "Starting...";
+
+            let getUri = "/api/DocumentUpload/StartFullZipGeneration";
+            if( this.committee )
+                getUri += "?committeeId=" + this.committee.committeeId;
+
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<FullZipGenStatus> ) =>
+                {
+                    this.generatingZipId = response.data.statusId;
+                    this.generatingZipStatus = "Waiting for update...";
+
+                    window.setTimeout( () => refreshGenStatus(), 1250 );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.generatingZipStatus = null;
+                    alert( "Failed to start zip generation: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -913,9 +940,6 @@ namespace Ally
 
                     this.fullSearchFileList = allFiles;
 
-                    if( this.fullSearchFileList.length > 0 && !this.downloadZipUrl )
-                        this.getDownloadZipVid();
-
                     // Find the directory we had selected before the refresh
                     if( selectedDirectoryPath )
                     {
@@ -933,6 +957,15 @@ namespace Ally
                 }
             );
         }
+    }
+
+    class FullZipGenStatus
+    {
+        statusId: string;
+        numFilesProcessed: number;
+        totalNumFiles: number;
+        isReady: boolean;
+        errorResult: string;
     }
 }
 
