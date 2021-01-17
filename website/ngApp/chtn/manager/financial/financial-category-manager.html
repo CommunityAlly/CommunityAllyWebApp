@@ -18,7 +18,7 @@
                 <div data-ng-if="$ctrl.selectedCategory">
 
                     <div data-ng-if="!$ctrl.shouldShowDeleteCategoryArea">
-                        Name: <input type="text" data-ng-model="$ctrl.editName" maxlength="128" />
+                        Name: <input type="text" data-ng-model="$ctrl.editName" maxlength="128" data-ng-enter="$ctrl.updateCategoryName()" />
                         <div class="mt-2">
                             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.updateCategoryName()">Save</button>
                             <button type="button" class="btn btn-danger" data-ng-click="$ctrl.shouldShowDeleteCategoryArea = true; $ctrl.shouldShowNewCategoryArea = false;">Delete Category</button>
