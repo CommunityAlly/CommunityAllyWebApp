@@ -79,6 +79,8 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageGroupsController.prototype.$onInit = function () {
+            this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
+            this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
             // A little shortcut for updating
             if (AppConfig.appShortName === "hoa")
                 this.changeShortNameData.appName = "Hoa";

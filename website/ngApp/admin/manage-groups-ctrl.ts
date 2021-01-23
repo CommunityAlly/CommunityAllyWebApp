@@ -42,6 +42,8 @@
         inactiveShortNames: string;
         logInAsEmail: string;
         sendTestFromInmail: boolean = false;
+        curGroupApiUri: string;
+        curGroupId: string;
         noReplyEmailInfo = {
             to: "",
             subject: "",
@@ -64,6 +66,9 @@
         */
         $onInit()
         {
+            this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
+            this.curGroupId = this.curGroupApiUri.substring( "https://".length, this.curGroupApiUri.indexOf(".") );
+
             // A little shortcut for updating
             if( AppConfig.appShortName === "hoa" )
                 this.changeShortNameData.appName = "Hoa";

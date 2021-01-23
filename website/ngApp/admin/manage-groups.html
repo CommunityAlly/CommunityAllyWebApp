@@ -1,6 +1,6 @@
 ﻿<div class="page margin-vertical padding white-bg spinner-effect">
-    
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
     <div style="border:1px solid #000;">
         Find associations for user by e-mail: <input data-ng-model="$ctrl.findUserAssociationsEmail" data-ng-enter="$ctrl.findAssociationsForUser()" type="text" /><button data-ng-click="$ctrl.findAssociationsForUser()">Find</button>
         <div>
@@ -9,6 +9,13 @@
             </p>
         </div>
     </div>
+
+    <div class="p-3">
+        Current Group ID: <b>{{$ctrl.curGroupId}}</b>
+        <br />
+        Current Group API URI: <b>{{$ctrl.curGroupApiUri}}</b>
+    </div>
+
     <br />
 
     <fieldset>
@@ -25,7 +32,7 @@
         </select><br />
         Old Short Name: <input data-ng-model="$ctrl.changeShortNameData.old" type="text" /><br />
         New Short Name: <input data-ng-model="$ctrl.changeShortNameData.newShortName" type="text" /><br />
-        
+
         <button data-ng-click="$ctrl.changeShortName()">Change</button>
         <div style="font-size: large; color: blue;">{{$ctrl.changeShortNameResult}}</div>
     </fieldset>
