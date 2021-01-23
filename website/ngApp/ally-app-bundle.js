@@ -190,6 +190,8 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageGroupsController.prototype.$onInit = function () {
+            this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
+            this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
             // A little shortcut for updating
             if (AppConfig.appShortName === "hoa")
                 this.changeShortNameData.appName = "Hoa";
@@ -841,8 +843,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-// OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"
-// OverrideOriginalUrl = "https://qa.condoally.com/";
+//OverrideBaseApiPath = "https://7056.webappapi.mycommunityally.org/api/"
+//OverrideOriginalUrl = "http://valleylocondominium6.hoaally.org/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -2745,6 +2747,7 @@ var Ally;
             this.isLoading = false;
             this.isLoadingEntries = false;
             this.ledgerAccounts = [];
+            this.accountsNeedingLogin = [];
             this.shouldShowAddTransaction = false;
             this.editAccount = null;
             this.editingTransaction = null;
@@ -2848,6 +2851,16 @@ var Ally;
                 var pageInfo = httpResponse.data;
                 _this.ledgerAccounts = pageInfo.accounts;
                 _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
+                // Add only the first account needing login for a Plaid item
+                var accountsNeedingLogin = _this.ledgerAccounts.filter(function (a) { return a.plaidNeedsRelogin; });
+                _this.accountsNeedingLogin = [];
+                var _loop_1 = function (i) {
+                    if (!_this.accountsNeedingLogin.find(function (a) { return a.plaidItemId === accountsNeedingLogin[i].plaidItemId; }))
+                        _this.accountsNeedingLogin.push(accountsNeedingLogin[i]);
+                };
+                for (var i = 0; i < accountsNeedingLogin.length; ++i) {
+                    _loop_1(i);
+                }
                 var accountColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "accountName"; })[0];
                 accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
                 _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
@@ -2932,7 +2945,7 @@ var Ally;
             var entriesByParentCat = _.groupBy(this.allEntries, function (e) { return getParentCategoryId(e.financialCategoryId); });
             var spendingChartEntries = [];
             var parentCatIds = _.keys(entriesByParentCat);
-            var _loop_1 = function (i) {
+            var _loop_2 = function (i) {
                 var parentCategoryId = +parentCatIds[i];
                 var entries = entriesByParentCat[parentCategoryId];
                 var cats = this_1.flatCategoryList.filter(function (c) { return c.financialCategoryId === +parentCategoryId; });
@@ -2952,7 +2965,7 @@ var Ally;
             };
             var this_1 = this;
             for (var i = 0; i < parentCatIds.length; ++i) {
-                _loop_1(i);
+                _loop_2(i);
             }
             spendingChartEntries = _.sortBy(spendingChartEntries, function (e) { return e.sumTotal; }).reverse();
             this.spendingChartData = [];
@@ -2974,12 +2987,18 @@ var Ally;
             this.editingTransaction.ledgerAccountId = this.ledgerAccounts[0].ledgerAccountId;
             this.editingTransaction.transactionDate = new Date();
         };
-        LedgerController.prototype.completePlaidSync = function (accessToken) {
+        LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId) {
             var _this = this;
             this.isLoading = true;
-            this.$http.post("/api/Plaid/ProcessAccessToken", { accessToken: accessToken }).then(function (httpResponse) {
+            var postData = {
+                accessToken: accessToken,
+                updatePlaidItemId: updatePlaidItemId
+            };
+            this.$http.post("/api/Plaid/ProcessAccessToken", postData).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.newPlaidAccounts = httpResponse.data;
+                if (updatePlaidItemId)
+                    window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to link: " + httpResponse.data.exceptionMessage);
@@ -3000,7 +3019,7 @@ var Ally;
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid onSuccess");
-                        _this.completePlaidSync(public_token);
+                        _this.completePlaidSync(public_token, null);
                     },
                     onLoad: function () { },
                     onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
@@ -3009,6 +3028,34 @@ var Ally;
                 });
             }, function (httpResponse) {
                 _this.isLoading = false;
+            });
+        };
+        LedgerController.prototype.updateAccountLink = function (ledgerAccount) {
+            //this.createAccountInfo = new CreateAccountInfo();
+            //this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
+            var _this = this;
+            if (!this.isPremiumPlanActive)
+                return;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId).then(function (httpResponse) {
+                _this.isLoading = false;
+                if (!httpResponse.data)
+                    return;
+                _this.plaidHandler = Plaid.create({
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid update onSuccess");
+                        _this.completePlaidSync(public_token, ledgerAccount.plaidItemId);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                });
+                _this.startPlaidFlow();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to start account update: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -3055,7 +3102,8 @@ var Ally;
             this.$http.post("/api/Ledger/NewBankAccount", this.createAccountInfo).then(onSave, onError);
         };
         LedgerController.prototype.startPlaidFlow = function () {
-            this.createAccountInfo.type = 'plaid';
+            if (this.createAccountInfo)
+                this.createAccountInfo.type = 'plaid';
             this.plaidHandler.open();
             //this.isLoading = true;
             //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
@@ -3105,6 +3153,8 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to sync: " + httpResponse.data.exceptionMessage);
+                if (httpResponse.data.exceptionMessage && httpResponse.data.exceptionMessage.indexOf("login credentials") > -1)
+                    window.location.reload();
             });
         };
         LedgerController.prototype.onFilterDescriptionChange = function () {

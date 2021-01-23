@@ -14,6 +14,7 @@ namespace Ally
         ledgerGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
         ledgerGridApi: uiGrid.IGridApiOf<LedgerEntry>;
         ledgerAccounts: LedgerAccount[] = [];
+        accountsNeedingLogin: LedgerAccount[] = [];
         shouldShowAddTransaction: boolean = false;
         editAccount: LedgerAccount = null;
         editingTransaction: LedgerEntry = null;
@@ -160,6 +161,16 @@ namespace Ally
                     const pageInfo = httpResponse.data;
                     this.ledgerAccounts = pageInfo.accounts;
                     _.forEach( this.ledgerAccounts, a => a.shouldShowInGrid = true );
+
+                    // Add only the first account needing login for a Plaid item
+                    let accountsNeedingLogin = this.ledgerAccounts.filter( a => a.plaidNeedsRelogin );
+                    this.accountsNeedingLogin = [];
+                    for( let i = 0; i < accountsNeedingLogin.length; ++i )
+                    {
+                        if( !this.accountsNeedingLogin.find( a => a.plaidItemId === accountsNeedingLogin[i].plaidItemId ) )
+                            this.accountsNeedingLogin.push( accountsNeedingLogin[i] );
+                    }
+
                     const accountColumn = this.ledgerGridOptions.columnDefs.filter( c => c.field === "accountName" )[0];
                     accountColumn.filter.selectOptions = this.ledgerAccounts.map( a => { return {value: a.accountName, label: a.accountName} } );
 
@@ -339,16 +350,24 @@ namespace Ally
         }
 
 
-        completePlaidSync( accessToken: string )
+        completePlaidSync( accessToken: string, updatePlaidItemId: string )
         {
             this.isLoading = true;
 
-            this.$http.post( "/api/Plaid/ProcessAccessToken", { accessToken } ).then(
+            const postData = {
+                accessToken,
+                updatePlaidItemId
+            };
+
+            this.$http.post( "/api/Plaid/ProcessAccessToken", postData ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerAccount[]> ) =>
                 {
                     this.isLoading = false;
 
                     this.newPlaidAccounts = httpResponse.data;
+
+                    if( updatePlaidItemId )
+                        window.location.reload();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -382,7 +401,7 @@ namespace Ally
                         onSuccess: ( public_token: string, metadata: any ) =>
                         {
                             console.log( "Plaid onSuccess" );
-                            this.completePlaidSync( public_token );
+                            this.completePlaidSync( public_token, null );
                         },
                         onLoad: () => { },
                         onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
@@ -393,6 +412,48 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
+                }
+            );
+        }
+
+
+        updateAccountLink( ledgerAccount: LedgerAccount )
+        {
+            //this.createAccountInfo = new CreateAccountInfo();
+            //this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
+
+            if( !this.isPremiumPlanActive )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.get( "/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+
+                    if( !httpResponse.data )
+                        return;
+
+                    this.plaidHandler = Plaid.create( {
+                        token: httpResponse.data,
+                        onSuccess: ( public_token: string, metadata: any ) =>
+                        {
+                            console.log( "Plaid update onSuccess" );
+                            this.completePlaidSync( public_token, ledgerAccount.plaidItemId );
+                        },
+                        onLoad: () => { },
+                        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
+                        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
+                        receivedRedirectUri: null,
+                    } );
+
+                    this.startPlaidFlow();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to start account update: " + httpResponse.data.exceptionMessage );
                 }
             );
         }
@@ -459,7 +520,9 @@ namespace Ally
 
         startPlaidFlow()
         {
-            this.createAccountInfo.type = 'plaid';
+            if( this.createAccountInfo )
+                this.createAccountInfo.type = 'plaid';
+
             this.plaidHandler.open();
 
             //this.isLoading = true;
@@ -530,6 +593,9 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to sync: " + httpResponse.data.exceptionMessage );
+
+                    if( httpResponse.data.exceptionMessage && httpResponse.data.exceptionMessage.indexOf( "login credentials" ) > -1 )
+                        window.location.reload();
                 }
             );
         }
@@ -582,9 +648,11 @@ namespace Ally
         createdByUserId: string;
         createdDateUtc: Date;
         plaidAccountId: string;
+        plaidItemId: string;
         syncLastUpdatedUtc: Date;
         syncBalance: number;
         bankName: string;
+        plaidNeedsRelogin: boolean;
 
         // Not from server
         shouldShowInGrid: boolean;

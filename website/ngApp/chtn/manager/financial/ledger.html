@@ -9,6 +9,9 @@
     </p>
     <div class="container">
         <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+        <div class="alert alert-warning" style="cursor: pointer;" role="alert" data-ng-repeat="curAccount in $ctrl.accountsNeedingLogin" data-ng-click="$ctrl.updateAccountLink( curAccount )">
+            Plaid needs you to refresh your login credentials for your {{curAccount.accountName}} account. Click here to refresh.
+        </div>
         <div class="row">
             <div class="col-md-10 col-sm-12 pl-0">
                 <fieldset style="width: 100%;">
@@ -241,6 +244,7 @@
                 </div>
 
                 <div class="col-sm-12 text-right">
+                    <span data-ng-if="$ctrl.editAccount.syncType === 'plaid' && $ctrl.isAdmin" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Update Link</span>
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onEditAccount()">Save</button>
                     <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editAccount = null">Cancel</button>
                 </div>
