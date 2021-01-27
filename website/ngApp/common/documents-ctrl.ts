@@ -856,12 +856,36 @@ namespace Ally
                     imagePath = "ZipIcon.png";
                     break;
 
+                case "txt":
+                    imagePath = "TxtIcon.png";
+                    break;
+
+                case "mp4":
+                    imagePath = "Mp4Icon.png";
+                    break;
+
                 default:
                     imagePath = "GenericFileIcon.png";
                     break;
             }
 
             return "/assets/images/FileIcons/" + imagePath;
+        }
+
+
+        isGenericIcon( file: DocumentTreeFile )
+        {
+            var iconFilePath = this.getFileIcon( file.fileName );
+            const GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
+            return iconFilePath === GenericIconPath;
+        }
+
+
+        getDisplayExtension( file: DocumentTreeFile )
+        {
+            var extension = file.fileName.split( '.' ).pop().toLowerCase();
+
+            return "." + extension;
         }
 
 

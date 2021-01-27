@@ -574,11 +574,26 @@ var Ally;
                 case "zip":
                     imagePath = "ZipIcon.png";
                     break;
+                case "txt":
+                    imagePath = "TxtIcon.png";
+                    break;
+                case "mp4":
+                    imagePath = "Mp4Icon.png";
+                    break;
                 default:
                     imagePath = "GenericFileIcon.png";
                     break;
             }
             return "/assets/images/FileIcons/" + imagePath;
+        };
+        DocumentsController.prototype.isGenericIcon = function (file) {
+            var iconFilePath = this.getFileIcon(file.fileName);
+            var GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
+            return iconFilePath === GenericIconPath;
+        };
+        DocumentsController.prototype.getDisplayExtension = function (file) {
+            var extension = file.fileName.split('.').pop().toLowerCase();
+            return "." + extension;
         };
         DocumentsController.prototype.hookupParentDirs = function (dir) {
             var _this = this;

@@ -843,8 +843,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://7056.webappapi.mycommunityally.org/api/"
-//OverrideOriginalUrl = "http://valleylocondominium6.hoaally.org/";
+//OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/"
+//OverrideOriginalUrl = "http://qa.hoaally.org/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -10321,11 +10321,26 @@ var Ally;
                 case "zip":
                     imagePath = "ZipIcon.png";
                     break;
+                case "txt":
+                    imagePath = "TxtIcon.png";
+                    break;
+                case "mp4":
+                    imagePath = "Mp4Icon.png";
+                    break;
                 default:
                     imagePath = "GenericFileIcon.png";
                     break;
             }
             return "/assets/images/FileIcons/" + imagePath;
+        };
+        DocumentsController.prototype.isGenericIcon = function (file) {
+            var iconFilePath = this.getFileIcon(file.fileName);
+            var GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
+            return iconFilePath === GenericIconPath;
+        };
+        DocumentsController.prototype.getDisplayExtension = function (file) {
+            var extension = file.fileName.split('.').pop().toLowerCase();
+            return "." + extension;
         };
         DocumentsController.prototype.hookupParentDirs = function (dir) {
             var _this = this;
