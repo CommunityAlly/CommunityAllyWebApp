@@ -844,6 +844,11 @@ namespace Ally
                     imagePath = "ExcelIcon.png";
                     break;
 
+                case "ppt":
+                case "pptx":
+                    imagePath = "PptxIcon.png";
+                    break;
+
                 case "jpeg":
                 case "jpe":
                 case "jpg":
