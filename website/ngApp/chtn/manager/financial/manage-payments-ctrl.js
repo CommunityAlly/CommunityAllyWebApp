@@ -5,6 +5,7 @@ var Ally;
         }
         return ElectronicPayment;
     }());
+    Ally.ElectronicPayment = ElectronicPayment;
     var PaymentPageInfo = /** @class */ (function () {
         function PaymentPageInfo() {
         }

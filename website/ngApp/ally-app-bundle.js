@@ -196,6 +196,17 @@ var Ally;
             if (AppConfig.appShortName === "hoa")
                 this.changeShortNameData.appName = "Hoa";
             this.changeShortNameData.old = this.siteInfo.publicSiteInfo.shortName;
+            this.newAllyPaymentEntry = {
+                paymentId: 0,
+                groupId: parseInt(this.curGroupId),
+                amount: 0,
+                netAmount: null,
+                description: "Annual Premium Plan",
+                entryDateUtc: new Date(),
+                paymentMethod: "Check",
+                paymentMethodId: "",
+                status: "Complete"
+            };
         };
         /**
          * Change a group's short name
@@ -379,10 +390,29 @@ var Ally;
                 alert("Failed: " + response.data.exceptionMessage);
             });
         };
+        ManageGroupsController.prototype.onAddAllyPayment = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then(function (response) {
+                _this.isLoading = false;
+                _this.newAllyPaymentEntry.amount = 0;
+                _this.newAllyPaymentEntry.netAmount = null;
+                _this.newAllyPaymentEntry.paymentMethodId = "";
+                alert("Succeeded");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
         ManageGroupsController.$inject = ["$timeout", "$http", "SiteInfo"];
         return ManageGroupsController;
     }());
     Ally.ManageGroupsController = ManageGroupsController;
+    var AllyPaymentEntry = /** @class */ (function () {
+        function AllyPaymentEntry() {
+        }
+        return AllyPaymentEntry;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageGroups", {
     templateUrl: "/ngApp/admin/manage-groups.html",
@@ -843,8 +873,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/"
-//OverrideOriginalUrl = "http://qa.hoaally.org/";
+//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/"
+//OverrideOriginalUrl = "http://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -3237,6 +3267,7 @@ var Ally;
         }
         return ElectronicPayment;
     }());
+    Ally.ElectronicPayment = ElectronicPayment;
     var PaymentPageInfo = /** @class */ (function () {
         function PaymentPageInfo() {
         }
@@ -9201,13 +9232,13 @@ var Ally;
                 };
             this.onPaymentAmountChange();
             var MaxNumRecentPayments = 24;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.recentPayments && this.recentPayments.length > 0) {
-                if (this.recentPayments.length > MaxNumRecentPayments)
-                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
+            this.historicPayments = this.siteInfo.userInfo.recentPayments;
+            if (this.historicPayments && this.historicPayments.length > 0) {
+                if (this.historicPayments.length > MaxNumRecentPayments)
+                    this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
                 // Fill up the list so there's always MaxNumRecentPayments
-                while (this.recentPayments.length < MaxNumRecentPayments)
-                    this.recentPayments.push({});
+                while (this.historicPayments.length < MaxNumRecentPayments)
+                    this.historicPayments.push({});
             }
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
@@ -9343,7 +9374,8 @@ var Ally;
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
-        AssessmentPaymentFormController.prototype.makePayment = function (fundingTypeName) {
+        AssessmentPaymentFormController.prototype.makeWePayPayment = function (fundingTypeName) {
+            var _this = this;
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
             // Remove leading dollar signs
@@ -9353,19 +9385,37 @@ var Ally;
             analytics.track("makePayment", {
                 fundingType: fundingTypeName
             });
-            var innerThis = this;
-            this.$http.post("/api/WePayPayment", this.paymentInfo).then(function (httpResponse) {
+            this.$http.post("/api/WePayPayment/MakeNewPayment", this.paymentInfo).then(function (httpResponse) {
                 var checkoutInfo = httpResponse.data;
-                if (checkoutInfo !== null && typeof (checkoutInfo.checkoutUri) === "string" && checkoutInfo.checkoutUri.length > 0)
+                if (checkoutInfo !== null && typeof (checkoutInfo.checkoutUri) === "string" && checkoutInfo.checkoutUri.length > 0) {
+                    //if( checkoutInfo.pendingPaymentAmount )
+                    //{
+                    //    const pendingDateStr = moment( checkoutInfo.pendingPaymentDateUtc ).format("M/D/YYYY h:mma")
+                    //    const pendingMessage = `You already have a pending payment of $${checkoutInfo.pendingPaymentAmount} made on ${pendingDateStr}. Would you still like to continue to a make a new payment?`;
+                    //    if( !confirm( pendingMessage ) )
+                    //    {
+                    //        this.isLoading_Payment = false;
+                    //        return;
+                    //    }
+                    //}
                     window.location.href = checkoutInfo.checkoutUri;
+                }
                 else {
-                    innerThis.isLoading_Payment = false;
+                    _this.isLoading_Payment = false;
                     alert("Unable to initiate WePay checkout");
                 }
             }, function (httpResponse) {
-                innerThis.isLoading_Payment = false;
+                _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
                     alert(httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.prototype.getMyRecentPayments = function () {
+            var _this = this;
+            this.$http.get("/api/WePayPayment/MyRecentPayments").then(function (httpResponse) {
+                _this.myRecentPayments = httpResponse.data;
+            }, function (httpResponse) {
+                console.log("Failed to retrieve recent payments: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -9650,6 +9700,11 @@ var Ally;
         return AssessmentPaymentFormController;
     }());
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
+    var CheckoutRequest = /** @class */ (function () {
+        function CheckoutRequest() {
+        }
+        return CheckoutRequest;
+    }());
     var DwollaAccountStatusInfo = /** @class */ (function () {
         function DwollaAccountStatusInfo() {
         }
@@ -10310,6 +10365,10 @@ var Ally;
                 case "xls":
                 case "xlsx":
                     imagePath = "ExcelIcon.png";
+                    break;
+                case "ppt":
+                case "pptx":
+                    imagePath = "PptxIcon.png";
                     break;
                 case "jpeg":
                 case "jpe":

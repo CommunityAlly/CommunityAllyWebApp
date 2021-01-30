@@ -141,13 +141,13 @@ var Ally;
                 };
             this.onPaymentAmountChange();
             var MaxNumRecentPayments = 24;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.recentPayments && this.recentPayments.length > 0) {
-                if (this.recentPayments.length > MaxNumRecentPayments)
-                    this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
+            this.historicPayments = this.siteInfo.userInfo.recentPayments;
+            if (this.historicPayments && this.historicPayments.length > 0) {
+                if (this.historicPayments.length > MaxNumRecentPayments)
+                    this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
                 // Fill up the list so there's always MaxNumRecentPayments
-                while (this.recentPayments.length < MaxNumRecentPayments)
-                    this.recentPayments.push({});
+                while (this.historicPayments.length < MaxNumRecentPayments)
+                    this.historicPayments.push({});
             }
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
@@ -283,7 +283,8 @@ var Ally;
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
-        AssessmentPaymentFormController.prototype.makePayment = function (fundingTypeName) {
+        AssessmentPaymentFormController.prototype.makeWePayPayment = function (fundingTypeName) {
+            var _this = this;
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
             // Remove leading dollar signs
@@ -293,19 +294,37 @@ var Ally;
             analytics.track("makePayment", {
                 fundingType: fundingTypeName
             });
-            var innerThis = this;
-            this.$http.post("/api/WePayPayment", this.paymentInfo).then(function (httpResponse) {
+            this.$http.post("/api/WePayPayment/MakeNewPayment", this.paymentInfo).then(function (httpResponse) {
                 var checkoutInfo = httpResponse.data;
-                if (checkoutInfo !== null && typeof (checkoutInfo.checkoutUri) === "string" && checkoutInfo.checkoutUri.length > 0)
+                if (checkoutInfo !== null && typeof (checkoutInfo.checkoutUri) === "string" && checkoutInfo.checkoutUri.length > 0) {
+                    //if( checkoutInfo.pendingPaymentAmount )
+                    //{
+                    //    const pendingDateStr = moment( checkoutInfo.pendingPaymentDateUtc ).format("M/D/YYYY h:mma")
+                    //    const pendingMessage = `You already have a pending payment of $${checkoutInfo.pendingPaymentAmount} made on ${pendingDateStr}. Would you still like to continue to a make a new payment?`;
+                    //    if( !confirm( pendingMessage ) )
+                    //    {
+                    //        this.isLoading_Payment = false;
+                    //        return;
+                    //    }
+                    //}
                     window.location.href = checkoutInfo.checkoutUri;
+                }
                 else {
-                    innerThis.isLoading_Payment = false;
+                    _this.isLoading_Payment = false;
                     alert("Unable to initiate WePay checkout");
                 }
             }, function (httpResponse) {
-                innerThis.isLoading_Payment = false;
+                _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
                     alert(httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.prototype.getMyRecentPayments = function () {
+            var _this = this;
+            this.$http.get("/api/WePayPayment/MyRecentPayments").then(function (httpResponse) {
+                _this.myRecentPayments = httpResponse.data;
+            }, function (httpResponse) {
+                console.log("Failed to retrieve recent payments: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -590,6 +609,11 @@ var Ally;
         return AssessmentPaymentFormController;
     }());
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
+    var CheckoutRequest = /** @class */ (function () {
+        function CheckoutRequest() {
+        }
+        return CheckoutRequest;
+    }());
     var DwollaAccountStatusInfo = /** @class */ (function () {
         function DwollaAccountStatusInfo() {
         }

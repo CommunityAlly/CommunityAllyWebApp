@@ -1,6 +1,6 @@
 namespace Ally
 {
-    class ElectronicPayment
+    export class ElectronicPayment
     {
         paymentId: number;
         submitDateUtc: Date;

@@ -22,7 +22,8 @@ namespace Ally
         isAutoPayActive: boolean;
         nextAutoPayText: string;
         paymentInfo: MakePaymentRequest;
-        recentPayments: any[];
+        myRecentPayments: ElectronicPayment[];
+        historicPayments: any[];
         assessmentAmount: number;
         nextPaymentText: string;
         knowsNextPayment: boolean;
@@ -227,15 +228,15 @@ namespace Ally
             this.onPaymentAmountChange();
 
             var MaxNumRecentPayments: number = 24;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
-            if( this.recentPayments && this.recentPayments.length > 0 )
+            this.historicPayments = this.siteInfo.userInfo.recentPayments;
+            if( this.historicPayments && this.historicPayments.length > 0 )
             {
-                if( this.recentPayments.length > MaxNumRecentPayments )
-                    this.recentPayments = this.recentPayments.slice( 0, MaxNumRecentPayments );
+                if( this.historicPayments.length > MaxNumRecentPayments )
+                    this.historicPayments = this.historicPayments.slice( 0, MaxNumRecentPayments );
 
                 // Fill up the list so there's always MaxNumRecentPayments
-                while( this.recentPayments.length < MaxNumRecentPayments )
-                    this.recentPayments.push( {} );
+                while( this.historicPayments.length < MaxNumRecentPayments )
+                    this.historicPayments.push( {} );
             }
 
             // If the user lives in a unit and assessments are enabled
@@ -425,7 +426,7 @@ namespace Ally
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
-        makePayment( fundingTypeName: string )
+        makeWePayPayment( fundingTypeName: string )
         {
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
@@ -439,26 +440,56 @@ namespace Ally
                 fundingType: fundingTypeName
             } );
 
-            var innerThis = this;
-            this.$http.post( "/api/WePayPayment", this.paymentInfo ).then( function( httpResponse: any )
-            {
-                var checkoutInfo = httpResponse.data;
-
-                if( checkoutInfo !== null && typeof ( checkoutInfo.checkoutUri ) === "string" && checkoutInfo.checkoutUri.length > 0 )
-                    window.location.href = checkoutInfo.checkoutUri;
-                else
+            this.$http.post( "/api/WePayPayment/MakeNewPayment", this.paymentInfo ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<CheckoutRequest> ) =>
                 {
-                    innerThis.isLoading_Payment = false;
-                    alert( "Unable to initiate WePay checkout" );
+                    var checkoutInfo = httpResponse.data;
+
+                    if( checkoutInfo !== null && typeof ( checkoutInfo.checkoutUri ) === "string" && checkoutInfo.checkoutUri.length > 0 )
+                    {
+                        //if( checkoutInfo.pendingPaymentAmount )
+                        //{
+                        //    const pendingDateStr = moment( checkoutInfo.pendingPaymentDateUtc ).format("M/D/YYYY h:mma")
+                        //    const pendingMessage = `You already have a pending payment of $${checkoutInfo.pendingPaymentAmount} made on ${pendingDateStr}. Would you still like to continue to a make a new payment?`;
+                        //    if( !confirm( pendingMessage ) )
+                        //    {
+                        //        this.isLoading_Payment = false;
+                        //        return;
+                        //    }
+                        //}
+
+                        window.location.href = checkoutInfo.checkoutUri;
+                    }
+                    else
+                    {
+                        this.isLoading_Payment = false;
+                        alert( "Unable to initiate WePay checkout" );
+                    }
+
+                },
+                ( httpResponse: any ) =>
+                {
+                    this.isLoading_Payment = false;
+
+                    if( httpResponse.data && httpResponse.data.exceptionMessage )
+                        alert( httpResponse.data.exceptionMessage );
                 }
+            );
+        }
 
-            }, function( httpResponse: any )
-            {
-                innerThis.isLoading_Payment = false;
 
-                if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    alert( httpResponse.data.exceptionMessage );
-            } );
+        getMyRecentPayments()
+        {
+            this.$http.get( "/api/WePayPayment/MyRecentPayments" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ElectronicPayment[]> ) =>
+                {
+                    this.myRecentPayments = httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    console.log( "Failed to retrieve recent payments: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -660,7 +691,7 @@ namespace Ally
             this.isDwollaIavDone = false;
             this.isLoadingDwolla = true;
 
-            const startIav = ( iavToken: string) =>
+            const startIav = ( iavToken: string ) =>
             {
                 dwolla.configure( AppConfigInfo.dwollaEnvironmentName );
 
@@ -878,6 +909,12 @@ namespace Ally
                 }
             )
         }
+    }
+
+    class CheckoutRequest
+    {
+        wasSuccessful: boolean;
+        checkoutUri: string;
     }
 
     class DwollaAccountStatusInfo
