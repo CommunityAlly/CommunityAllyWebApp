@@ -51,6 +51,7 @@
         };
         changeShortNameResult: string;
         populateDocUsageGroupId: number;
+        newAllyPaymentEntry: AllyPaymentEntry;
 
 
         /**
@@ -73,6 +74,18 @@
             if( AppConfig.appShortName === "hoa" )
                 this.changeShortNameData.appName = "Hoa";
             this.changeShortNameData.old = this.siteInfo.publicSiteInfo.shortName;
+
+            this.newAllyPaymentEntry = {
+                paymentId: 0,
+                groupId: parseInt( this.curGroupId ),
+                amount: 0,
+                netAmount: null,
+                description: "Annual Premium Plan",
+                entryDateUtc: new Date(),
+                paymentMethod: "Check",
+                paymentMethodId: "",
+                status: "Complete"
+            };
         }
 
 
@@ -350,6 +363,7 @@
             );
         }
 
+
         onTestException()
         {
             this.makeHelperRequest( "/api/AdminHelper/TestException" );
@@ -360,15 +374,18 @@
             this.makeHelperRequest( "/api/AdminHelper/ClearElmah" );
         }
 
+
         onClearCurrentAppGroupCache()
         {
             this.makeHelperRequest( "/api/AdminHelper/ClearCurrentGroupFromCache" );
         }
 
+
         onClearEntireAppGroupCache()
         {
             this.makeHelperRequest( "/api/AdminHelper/ClearGroupCache" );
         }
+
 
         onSendInactiveGroupsMail()
         {
@@ -378,6 +395,7 @@
 
             this.makeHelperRequest( "/api/AdminHelper/SendInactiveGroupsMail", postData );
         }
+
 
         logInAs()
         {
@@ -396,6 +414,7 @@
                 }
             ).finally( () => this.isLoading = false );
         }
+
 
         populateEmptyDocumentUsage()
         {
@@ -418,6 +437,41 @@
                 }
             );
         }
+
+
+        onAddAllyPayment()
+        {
+            this.isLoading = true;
+
+            this.$http.post( "/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.newAllyPaymentEntry.amount = 0;
+                    this.newAllyPaymentEntry.netAmount = null;
+                    this.newAllyPaymentEntry.paymentMethodId = "";
+                    alert( "Succeeded" );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+    }
+
+    class AllyPaymentEntry
+    {
+        paymentId: number;
+        groupId: number;
+        description: string;
+        entryDateUtc: Date;
+        amount: number;
+        netAmount: number | null;
+        paymentMethod: string;
+        paymentMethodId: string;
+        status: string;
     }
 }
 

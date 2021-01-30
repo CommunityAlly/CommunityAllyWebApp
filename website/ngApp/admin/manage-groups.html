@@ -216,7 +216,50 @@
         <br />
         <br />
         <textarea data-ng-model="$ctrl.inactiveShortNames" rows="10"></textarea><br />
-        <input type="button" value="Send Inactive Mail" data-ng-click="$ctrl.onSendInactiveGroupsMail()"><br />
+        <input type="button" value="Send Inactive Mail" data-ng-click="$ctrl.onSendInactiveGroupsMail()">
+        <br />
+
+        <fieldset>
+            <legend>Add Ally Payment</legend>
+            <table>
+                <tr>
+                    <td class="AlignRight">Group ID:</td>
+                    <td><input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.groupId" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Amount:</td>
+                    <td>$<input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.amount" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Net Amount:</td>
+                    <td>
+                        $<input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.netAmount" />
+                        <span class="note-text">optional</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Description:</td>
+                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.description" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Payment Date:</td>
+                    <td><input type="text" data-ui-date data-ng-model="$ctrl.newAllyPaymentEntry.entryDateUtc" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Payment Method:</td>
+                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.paymentMethod" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Payment Method ID:</td>
+                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.paymentMethodId" data-rule-required="true" /></td>
+                </tr>
+                <tr>
+                    <td class="AlignRight">Status:</td>
+                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.status" data-rule-required="true" /></td>
+                </tr>
+            </table>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddAllyPayment()">Add Payment</button>
+        </fieldset>
     </div>
 
 </div>

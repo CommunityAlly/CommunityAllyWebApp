@@ -85,6 +85,17 @@ var Ally;
             if (AppConfig.appShortName === "hoa")
                 this.changeShortNameData.appName = "Hoa";
             this.changeShortNameData.old = this.siteInfo.publicSiteInfo.shortName;
+            this.newAllyPaymentEntry = {
+                paymentId: 0,
+                groupId: parseInt(this.curGroupId),
+                amount: 0,
+                netAmount: null,
+                description: "Annual Premium Plan",
+                entryDateUtc: new Date(),
+                paymentMethod: "Check",
+                paymentMethodId: "",
+                status: "Complete"
+            };
         };
         /**
          * Change a group's short name
@@ -268,10 +279,29 @@ var Ally;
                 alert("Failed: " + response.data.exceptionMessage);
             });
         };
+        ManageGroupsController.prototype.onAddAllyPayment = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then(function (response) {
+                _this.isLoading = false;
+                _this.newAllyPaymentEntry.amount = 0;
+                _this.newAllyPaymentEntry.netAmount = null;
+                _this.newAllyPaymentEntry.paymentMethodId = "";
+                alert("Succeeded");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
         ManageGroupsController.$inject = ["$timeout", "$http", "SiteInfo"];
         return ManageGroupsController;
     }());
     Ally.ManageGroupsController = ManageGroupsController;
+    var AllyPaymentEntry = /** @class */ (function () {
+        function AllyPaymentEntry() {
+        }
+        return AllyPaymentEntry;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageGroups", {
     templateUrl: "/ngApp/admin/manage-groups.html",
