@@ -258,8 +258,9 @@
 
     <div data-ng-if="$ctrl.showLaunchSite" class="mt-4 mb-4">
         <div data-ng-show="!$ctrl.siteLaunchedDateUtc">
-            Is your site new and are you ready to share it with your fellow residents?<br />
-            <input type="button" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent" value="Launch Site" />
+            Is your site new and are you ready to share it with your fellow residents?
+            <br />
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent">Launch Site</button>
             <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All emails sent!</span>
             <br>
             <span>
