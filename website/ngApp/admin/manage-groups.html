@@ -174,7 +174,7 @@
         <legend>Add Full Address</legend>
 
         Address: <input data-ng-model="$ctrl.newAddress" type="text" style="width: 80%;" /><br />
-        <span style="font-weight: bold; color: forestgreen;" data-ng-if="newAddressId">New Address ID: {{$ctrl.newAddressId}}</span>
+        <span style="font-weight: bold; color: forestgreen;" data-ng-if="$ctrl.newAddressId">New Address ID: {{$ctrl.newAddressId}}</span>
         <br />
         <button data-ng-click="$ctrl.addAddress()">Add Address</button>
     </fieldset>
