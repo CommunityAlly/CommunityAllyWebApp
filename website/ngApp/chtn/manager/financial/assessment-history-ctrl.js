@@ -70,6 +70,8 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         AssessmentHistoryController.prototype.$onInit = function () {
+            var _this = this;
+            this.baseApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.isForMemberGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             if (this.isForMemberGroup)
                 this.pageTitle = "Membership Dues Payment History";
@@ -161,6 +163,7 @@ var Ally;
             }
             this.isPeriodicPaymentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             this.retrievePaymentHistory();
+            window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewExportViewId = response.data.vid; }); }, 250);
         };
         AssessmentHistoryController.prototype.onChangePeriodicPaymentTracking = function () {
             var _this = this;
@@ -512,6 +515,13 @@ var Ally;
                 _this.isLoading = false;
                 _this.retrievePaymentHistory();
             }, (numPosts + 1) * 350);
+        };
+        AssessmentHistoryController.prototype.onExportClick = function (type) {
+            var _this = this;
+            // Get a new view token in case the user clicks export again
+            window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewExportViewId = response.data.vid; }); }, 500);
+            analytics.track('exportAssessment' + type);
+            return true;
         };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         return AssessmentHistoryController;

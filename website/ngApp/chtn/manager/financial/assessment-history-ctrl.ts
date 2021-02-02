@@ -96,6 +96,8 @@
         shouldColorCodePayments: boolean = false;
         shouldShowFillInSection: boolean = false;
         selectedFillInPeriod: PeriodEntry = null;
+        baseApiUri: string;
+        viewExportViewId: string;
 
 
         /**
@@ -111,6 +113,7 @@
         */
         $onInit(): void
         {
+            this.baseApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.isForMemberGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
 
             if( this.isForMemberGroup )
@@ -226,6 +229,8 @@
             this.isPeriodicPaymentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
 
             this.retrievePaymentHistory();
+
+            window.setTimeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewExportViewId = response.data.vid ), 250 );
         }
 
 
@@ -718,6 +723,16 @@
                 this.isLoading = false;
                 this.retrievePaymentHistory();
             }, ( numPosts + 1 ) * 350 );
+        }
+
+
+        onExportClick( type: string )
+        {
+            // Get a new view token in case the user clicks export again
+            window.setTimeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewExportViewId = response.data.vid ), 500 );
+
+            analytics.track( 'exportAssessment' + type );
+            return true;
         }
     }
 

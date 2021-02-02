@@ -6,7 +6,7 @@
     </p>
     <p class="clearfix">
         <div class="pull-right">
-            Export To: <a data-ng-href="/api/PaymentHistory/Xlsx?ApiAuthToken={{ $ctrl.authToken }}" onclick="analytics.track( 'exportAssessmentXlsx' ); return true;" target="_blank">Excel (xslx)</a> or <a data-ng-href="/api/PaymentHistory/Csv?ApiAuthToken={{ $ctrl.authToken }}" onclick="analytics.track( 'exportAssessmentCsv' ); return true;" target="_blank">CSV</a>
+            Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
         </div>
 
         <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
