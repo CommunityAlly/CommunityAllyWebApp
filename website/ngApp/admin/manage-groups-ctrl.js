@@ -81,6 +81,7 @@ var Ally;
         ManageGroupsController.prototype.$onInit = function () {
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
+            this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
             // A little shortcut for updating
             if (AppConfig.appShortName === "hoa")
                 this.changeShortNameData.appName = "Hoa";

@@ -14,6 +14,8 @@
         Current Group ID: <b>{{$ctrl.curGroupId}}</b>
         <br />
         Current Group API URI: <b>{{$ctrl.curGroupApiUri}}</b>
+        <br />
+        Current Group Creation Date: <b>{{$ctrl.curGroupCreationDate | date:'short'}}</b>        
     </div>
 
     <br />
@@ -51,7 +53,7 @@
                 <th>Long Name</th>
                 <th>Address ID</th>
                 <th>GPS</th>
-                <th>Last Activity</th>
+                <th class="d-none">Last Activity</th>
                 <th>Created</th>
                 <th></th>
                 <th></th>
@@ -68,7 +70,7 @@
                 <td>{{ curAssociation.fullName }}</td>
                 <td>{{ curAssociation.fullAddressId }}</td>
                 <td><a target="_blank" ng-href="https://www.google.com/maps?ie=UTF8&hq&ll={{ curAssociation.gpsPos.lat }},{{curAssociation.gpsPos.lon }}&z=15">View on Map</a></td>
-                <td>{{ curAssociation.lastActivityTime | date:'M/d/yyyy' }}</td>
+                <td class="d-none">{{ curAssociation.lastActivityTime | date:'M/d/yyyy' }}</td>
                 <td>{{ curAssociation.creationDate | date:'M/d/yyyy' }}</td>
                 <td><a href="{{ curAssociation.baseUrl }}">Visit</a></td>
                 <td><a href="https://{{ curAssociation.shortName }}.CondoAlly.com/#!/Admin/ViewActivityLog">View Log</a></td>
