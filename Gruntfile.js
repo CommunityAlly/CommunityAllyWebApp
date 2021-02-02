@@ -232,6 +232,7 @@ grunt.initConfig({
                     "js/AllyLibBottom.min.js",
                     "assets/compiled.min.css",
                     "assets/images/**",
+                    "assets/files/**",
                     "ngApp/ally-app-bundle.js",
                     "ngApp/ally-app-bundle.min.js",
                     "third-party-css/fontawesome-webfont.woff",
