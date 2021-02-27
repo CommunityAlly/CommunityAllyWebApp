@@ -53,6 +53,9 @@
         changeShortNameResult: string;
         populateDocUsageGroupId: number;
         newAllyPaymentEntry: AllyPaymentEntry;
+        premiumUpdateGroupId: number;
+        premiumNewCost: number;
+        premiumNewExpiration: Date;
 
 
         /**
@@ -71,7 +74,8 @@
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.curGroupId = this.curGroupApiUri.substring( "https://".length, this.curGroupApiUri.indexOf(".") );
             this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
-
+            this.premiumUpdateGroupId = parseInt(this.curGroupId);
+            
             // A little shortcut for updating
             if( AppConfig.appShortName === "hoa" )
                 this.changeShortNameData.appName = "Hoa";
@@ -84,6 +88,7 @@
                 netAmount: null,
                 description: "Annual Premium Plan",
                 entryDateUtc: new Date(),
+                paymentDateUtc: new Date(),
                 paymentMethod: "Check",
                 paymentMethodId: "",
                 status: "Complete"
@@ -461,6 +466,48 @@
                 }
             );
         }
+
+
+        updatePremiumCost()
+        {
+            this.isLoading = true;
+
+            const postUri = `/api/AdminHelper/SetPremiumCost/${this.premiumUpdateGroupId}?cost=${this.premiumNewCost}`;
+            this.$http.put( postUri, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.premiumNewCost = 0;
+                    alert( "Succeeded" );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        updatePremiumExpiration()
+        {
+            this.isLoading = true;
+
+            const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
+            this.$http.put( postUri, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.premiumNewExpiration = null;
+                    alert( "Succeeded" );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
     }
 
     class AllyPaymentEntry
@@ -469,6 +516,7 @@
         groupId: number;
         description: string;
         entryDateUtc: Date;
+        paymentDateUtc: Date;
         amount: number;
         netAmount: number | null;
         paymentMethod: string;

@@ -222,6 +222,32 @@
         <br />
 
         <fieldset>
+            <legend>Update Premium Plan</legend>
+            <table>
+                <tr>
+                    <td class="AlignRight">Group ID:</td>
+                    <td><input type="number" data-ng-model="$ctrl.premiumUpdateGroupId" /></td>
+                </tr>
+
+                <tr>
+                    <td class="AlignRight">New Cost:</td>
+                    <td>
+                        $<input type="number" data-ng-model="$ctrl.premiumNewCost" />
+                        <button class="btn btn-primary" type="button" data-ng-click="$ctrl.updatePremiumCost()">Update Cost</button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="AlignRight">New Expiration:</td>
+                    <td>
+                        <input type="text" data-ui-date data-ng-model="$ctrl.premiumNewExpiration" />
+                        <button class="btn btn-primary" type="button" data-ng-click="$ctrl.updatePremiumExpiration()">Update Expiration Date</button>
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+
+        <fieldset>
             <legend>Add Ally Payment</legend>
             <table>
                 <tr>
@@ -245,7 +271,7 @@
                 </tr>
                 <tr>
                     <td class="AlignRight">Payment Date:</td>
-                    <td><input type="text" data-ui-date data-ng-model="$ctrl.newAllyPaymentEntry.entryDateUtc" data-rule-required="true" /></td>
+                    <td><input type="text" data-ui-date data-ng-model="$ctrl.newAllyPaymentEntry.paymentDateUtc" data-rule-required="true" /></td>
                 </tr>
                 <tr>
                     <td class="AlignRight">Payment Method:</td>

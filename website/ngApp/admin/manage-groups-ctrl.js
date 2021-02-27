@@ -82,6 +82,7 @@ var Ally;
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
             this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
+            this.premiumUpdateGroupId = parseInt(this.curGroupId);
             // A little shortcut for updating
             if (AppConfig.appShortName === "hoa")
                 this.changeShortNameData.appName = "Hoa";
@@ -93,6 +94,7 @@ var Ally;
                 netAmount: null,
                 description: "Annual Premium Plan",
                 entryDateUtc: new Date(),
+                paymentDateUtc: new Date(),
                 paymentMethod: "Check",
                 paymentMethodId: "",
                 status: "Complete"
@@ -288,6 +290,32 @@ var Ally;
                 _this.newAllyPaymentEntry.amount = 0;
                 _this.newAllyPaymentEntry.netAmount = null;
                 _this.newAllyPaymentEntry.paymentMethodId = "";
+                alert("Succeeded");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
+        ManageGroupsController.prototype.updatePremiumCost = function () {
+            var _this = this;
+            this.isLoading = true;
+            var postUri = "/api/AdminHelper/SetPremiumCost/" + this.premiumUpdateGroupId + "?cost=" + this.premiumNewCost;
+            this.$http.put(postUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.premiumNewCost = 0;
+                alert("Succeeded");
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
+        ManageGroupsController.prototype.updatePremiumExpiration = function () {
+            var _this = this;
+            this.isLoading = true;
+            var postUri = "/api/AdminHelper/SetPremiumExpiration/" + this.premiumUpdateGroupId + "?expirationDate=" + encodeURIComponent(this.premiumNewExpiration.toISOString());
+            this.$http.put(postUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.premiumNewExpiration = null;
                 alert("Succeeded");
             }, function (response) {
                 _this.isLoading = false;
