@@ -31,10 +31,12 @@ namespace Ally
         isPremiumPlanActive: boolean = false;
         readonly ManageCategoriesDropId = -15;
         shouldShowCategoryEditModal: boolean = false;
-        spendingChartData: number[]|null = null;
+        spendingChartData: number[] | null = null;
         spendingChartLabels: string[] | null = null;
         preselectCategoryId: number | undefined;
         isAdmin: boolean = false;
+        homeName: string;
+        allUnits: Ally.Unit[];
 
 
         /**
@@ -56,21 +58,24 @@ namespace Ally
         {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.homeName = AppConfig.homeName || "Unit";
 
             this.ledgerGridOptions =
             {
                 columnDefs:
                     [
                         { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
-                        { field: 'accountName', filter: {
-                              type: this.uiGridConstants.filter.SELECT,
-                              selectOptions: []
+                        {
+                            field: 'accountName', filter: {
+                                type: this.uiGridConstants.filter.SELECT,
+                                selectOptions: []
                             }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
                         },
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
-                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
+                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red;">&times;</span></div>' }
                     ],
                 enableFiltering: true,
                 enableSorting: true,
@@ -91,7 +96,7 @@ namespace Ally
 
                     gridApi.edit.on.afterCellEdit( this.$rootScope, ( rowEntity, colDef: any, newValue, oldValue ) =>
                     {
-                        console.log( 'edited row id:' + rowEntity.amount + ' Column:' + colDef + ' newValue:' + newValue + ' oldValue:' + oldValue );
+                        console.log( 'edited row amount:' + rowEntity.amount + ' Column', colDef, ' newValue:' + newValue + ' oldValue:' + oldValue );
 
                         // Ignore no changes
                         if( oldValue === newValue )
@@ -104,9 +109,11 @@ namespace Ally
                             return;
                         }
 
-                        const catEntry = this.flatCategoryList.filter( c => c.financialCategoryId === rowEntity.financialCategoryId );
-                        if( catEntry && catEntry.length > 0 )
-                            rowEntity.categoryDisplayName = catEntry[0].displayName;
+                        const catEntry = this.flatCategoryList.find( c => c.financialCategoryId === rowEntity.financialCategoryId );
+                        rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
+
+                        const unitEntry = this.allUnits.find( c => c.unitId === rowEntity.associatedUnitId );
+                        rowEntity.unitGridLabel = unitEntry ? unitEntry.name : null;
 
                         this.$http.put( "/api/Ledger/UpdateEntry", rowEntity ).then( () => this.regenerateDateDonutChart() );
                         //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
@@ -134,10 +141,12 @@ namespace Ally
             }
             else
             {
-                this.filter.startDate = moment().startOf( 'month' ).toDate();
-                this.filter.endDate = moment().endOf( 'month' ).toDate();
+                this.filter.startDate = moment().subtract( 30, 'days' ).toDate();
+                this.filter.endDate = moment().toDate();
 
                 this.fullRefresh();
+
+                this.loadUnits();
             }
         }
 
@@ -172,12 +181,12 @@ namespace Ally
                     }
 
                     const accountColumn = this.ledgerGridOptions.columnDefs.filter( c => c.field === "accountName" )[0];
-                    accountColumn.filter.selectOptions = this.ledgerAccounts.map( a => { return {value: a.accountName, label: a.accountName} } );
+                    accountColumn.filter.selectOptions = this.ledgerAccounts.map( a => { return { value: a.accountName, label: a.accountName } } );
 
                     this.hasPlaidAccounts = _.any( this.ledgerAccounts, a => a.syncType === 'plaid' );
 
                     this.allEntries = pageInfo.entries;
-                    
+
                     this.flatCategoryList = [];
                     const visitNode = ( curNode: FinancialCategory, depth: number ) =>
                     {
@@ -204,13 +213,14 @@ namespace Ally
                     this.updateLocalFilter();
 
                     const uiGridCategoryDropDown = [];
+                    uiGridCategoryDropDown.push( { id: null, value: "" } );
                     for( let i = 0; i < this.flatCategoryList.length; ++i )
                     {
                         uiGridCategoryDropDown.push( { id: this.flatCategoryList[i].financialCategoryId, value: this.flatCategoryList[i].dropDownLabel } );
                     }
                     uiGridCategoryDropDown.push( { id: this.ManageCategoriesDropId, value: "Manage Categories..." } );
 
-                    const categoryColumn = this.ledgerGridOptions.columnDefs.filter( c => c.field === "categoryDisplayName" )[0];
+                    const categoryColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "categoryDisplayName" );
                     categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
 
                     if( this.preselectCategoryId )
@@ -226,6 +236,9 @@ namespace Ally
                             };
                         }, 100 );
                     }
+
+                    if( this.allUnits )
+                        this.populateGridUnitLabels();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -233,6 +246,22 @@ namespace Ally
                     alert( "Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        /**
+         * Populate the text that is shown for the unit column
+         */
+        populateGridUnitLabels()
+        {
+            // Populate the unit names for the grid
+            _.each( this.allEntries, ( entry ) =>
+            {
+                if( !entry.associatedUnitId )
+                    return;
+
+                entry.unitGridLabel = this.allUnits.find( u => u.unitId === entry.associatedUnitId ).name;
+            } );
         }
 
 
@@ -250,6 +279,8 @@ namespace Ally
 
                 this.allEntries = httpResponse.data.entries;
                 this.updateLocalFilter();
+
+                this.populateGridUnitLabels();
             } );
         }
 
@@ -258,7 +289,7 @@ namespace Ally
         {
             const enabledAccountIds = this.ledgerAccounts.filter( a => a.shouldShowInGrid ).map( a => a.ledgerAccountId );
 
-            const filteredList = this.allEntries.filter( e => enabledAccountIds.indexOf(e.ledgerAccountId) > -1 );
+            const filteredList = this.allEntries.filter( e => enabledAccountIds.indexOf( e.ledgerAccountId ) > -1 );
 
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
@@ -347,6 +378,8 @@ namespace Ally
             this.editingTransaction = new LedgerEntry();
             this.editingTransaction.ledgerAccountId = this.ledgerAccounts[0].ledgerAccountId;
             this.editingTransaction.transactionDate = new Date();
+
+            window.setTimeout( () => document.getElementById( "transaction-amount-input" ).focus(), 50 );
         }
 
 
@@ -465,6 +498,32 @@ namespace Ally
         editEntry( entry: LedgerEntry )
         {
             this.editingTransaction = _.clone( entry );
+        }
+
+
+        /**
+         * Occurs when the user wants to delete a transaction
+         */
+        deleteEntry( entry: LedgerEntry )
+        {
+            if( !confirm( "Are you sure you want to delete this entry? Deletion is permanent." ) )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.delete( "/api/Ledger/DeleteEntry/" + entry.ledgerEntryId ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.editAccount = null;
+                    this.fullRefresh();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -611,11 +670,47 @@ namespace Ally
 
         }
 
-        onCategoryManagerClosed(didMakeChanges: boolean)
+        onCategoryManagerClosed( didMakeChanges: boolean )
         {
             this.shouldShowCategoryEditModal = false;
             if( didMakeChanges )
                 this.fullRefresh();
+        }
+
+
+        loadUnits()
+        {
+            this.$http.get( "/api/Unit" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
+                {
+                    this.allUnits = httpResponse.data;
+
+                    const shouldSortUnitsNumerically = _.every( this.allUnits, u => HtmlUtil.isNumericString( u.name ) );
+
+                    if( shouldSortUnitsNumerically )
+                        this.allUnits = _.sortBy( this.allUnits, u => parseFloat( u.name ) );
+
+                    // Populate the object used for quick editing the home
+                    const uiGridUnitDropDown = [];
+                    uiGridUnitDropDown.push( { id: null, value: "" } );
+                    for( let i = 0; i < this.allUnits.length; ++i )
+                    {
+                        uiGridUnitDropDown.push( { id: this.allUnits[i].unitId, value: this.allUnits[i].name } );
+                    }
+                    
+                    const unitColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
+                    unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
+
+                    // If we already have entries, populate the label for the grid
+                    if( this.allEntries )
+                        this.populateGridUnitLabels();
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve your association's home listing, please contact support." );
+                }
+            );
         }
     }
 
@@ -669,8 +764,11 @@ namespace Ally
         amount: number;
         addedDateUtc: Date;
         plaidTransactionId: string;
+        associatedUnitId: number | null;
         accountName: string;
         categoryDisplayName: string;
+
+        unitGridLabel: string;
     }
 
     class LedgerListEntry extends LedgerEntry
@@ -697,7 +795,7 @@ namespace Ally
     {
         financialCategoryId: number;
         displayName: string;
-        parentFinancialCategoryId: number|null;
+        parentFinancialCategoryId: number | null;
         plaidCategoryIdMatchRegEx: string;
         childCategories: FinancialCategory[];
         dropDownLabel: string;

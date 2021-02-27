@@ -50,19 +50,22 @@ var Ally;
             var _this = this;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.homeName = AppConfig.homeName || "Unit";
             this.ledgerGridOptions =
                 {
                     columnDefs: [
                         { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
-                        { field: 'accountName', filter: {
+                        {
+                            field: 'accountName', filter: {
                                 type: this.uiGridConstants.filter.SELECT,
                                 selectOptions: []
                             }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
                         },
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
-                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" style="color: red;">&times;</span></div>' }
+                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red;">&times;</span></div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
@@ -79,7 +82,7 @@ var Ally;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                         gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
-                            console.log('edited row id:' + rowEntity.amount + ' Column:' + colDef + ' newValue:' + newValue + ' oldValue:' + oldValue);
+                            console.log('edited row amount:' + rowEntity.amount + ' Column', colDef, ' newValue:' + newValue + ' oldValue:' + oldValue);
                             // Ignore no changes
                             if (oldValue === newValue)
                                 return;
@@ -88,9 +91,10 @@ var Ally;
                                 _this.shouldShowCategoryEditModal = true;
                                 return;
                             }
-                            var catEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
-                            if (catEntry && catEntry.length > 0)
-                                rowEntity.categoryDisplayName = catEntry[0].displayName;
+                            var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
+                            rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
+                            var unitEntry = _this.allUnits.find(function (c) { return c.unitId === rowEntity.associatedUnitId; });
+                            rowEntity.unitGridLabel = unitEntry ? unitEntry.name : null;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
@@ -111,9 +115,10 @@ var Ally;
                 }, 100);
             }
             else {
-                this.filter.startDate = moment().startOf('month').toDate();
-                this.filter.endDate = moment().endOf('month').toDate();
+                this.filter.startDate = moment().subtract(30, 'days').toDate();
+                this.filter.endDate = moment().toDate();
                 this.fullRefresh();
+                this.loadUnits();
             }
         };
         /**
@@ -162,11 +167,12 @@ var Ally;
                 visitNode(pageInfo.rootFinancialCategory, 0);
                 _this.updateLocalFilter();
                 var uiGridCategoryDropDown = [];
+                uiGridCategoryDropDown.push({ id: null, value: "" });
                 for (var i = 0; i < _this.flatCategoryList.length; ++i) {
                     uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
                 }
                 uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
-                var categoryColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "categoryDisplayName"; })[0];
+                var categoryColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "categoryDisplayName"; });
                 categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
                 if (_this.preselectCategoryId) {
                     window.setTimeout(function () {
@@ -178,9 +184,23 @@ var Ally;
                         };
                     }, 100);
                 }
+                if (_this.allUnits)
+                    _this.populateGridUnitLabels();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Populate the text that is shown for the unit column
+         */
+        LedgerController.prototype.populateGridUnitLabels = function () {
+            var _this = this;
+            // Populate the unit names for the grid
+            _.each(this.allEntries, function (entry) {
+                if (!entry.associatedUnitId)
+                    return;
+                entry.unitGridLabel = _this.allUnits.find(function (u) { return u.unitId === entry.associatedUnitId; }).name;
             });
         };
         LedgerController.prototype.refreshEntries = function () {
@@ -193,6 +213,7 @@ var Ally;
                 _this.isLoadingEntries = false;
                 _this.allEntries = httpResponse.data.entries;
                 _this.updateLocalFilter();
+                _this.populateGridUnitLabels();
             });
         };
         LedgerController.prototype.updateLocalFilter = function () {
@@ -265,6 +286,7 @@ var Ally;
             this.editingTransaction = new LedgerEntry();
             this.editingTransaction.ledgerAccountId = this.ledgerAccounts[0].ledgerAccountId;
             this.editingTransaction.transactionDate = new Date();
+            window.setTimeout(function () { return document.getElementById("transaction-amount-input").focus(); }, 50);
         };
         LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId) {
             var _this = this;
@@ -342,6 +364,23 @@ var Ally;
          */
         LedgerController.prototype.editEntry = function (entry) {
             this.editingTransaction = _.clone(entry);
+        };
+        /**
+         * Occurs when the user wants to delete a transaction
+         */
+        LedgerController.prototype.deleteEntry = function (entry) {
+            var _this = this;
+            if (!confirm("Are you sure you want to delete this entry? Deletion is permanent."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.editAccount = null;
+                _this.fullRefresh();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to delete: " + httpResponse.data.exceptionMessage);
+            });
         };
         /**
          * Occurs when the user clicks the button to save transaction details
@@ -446,6 +485,29 @@ var Ally;
             this.shouldShowCategoryEditModal = false;
             if (didMakeChanges)
                 this.fullRefresh();
+        };
+        LedgerController.prototype.loadUnits = function () {
+            var _this = this;
+            this.$http.get("/api/Unit").then(function (httpResponse) {
+                _this.allUnits = httpResponse.data;
+                var shouldSortUnitsNumerically = _.every(_this.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
+                if (shouldSortUnitsNumerically)
+                    _this.allUnits = _.sortBy(_this.allUnits, function (u) { return parseFloat(u.name); });
+                // Populate the object used for quick editing the home
+                var uiGridUnitDropDown = [];
+                uiGridUnitDropDown.push({ id: null, value: "" });
+                for (var i = 0; i < _this.allUnits.length; ++i) {
+                    uiGridUnitDropDown.push({ id: _this.allUnits[i].unitId, value: _this.allUnits[i].name });
+                }
+                var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+                unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
+                // If we already have entries, populate the label for the grid
+                if (_this.allEntries)
+                    _this.populateGridUnitLabels();
+            }, function () {
+                _this.isLoading = false;
+                alert("Failed to retrieve your association's home listing, please contact support.");
+            });
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
         return LedgerController;

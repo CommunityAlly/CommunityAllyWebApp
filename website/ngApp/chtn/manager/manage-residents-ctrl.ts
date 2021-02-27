@@ -648,7 +648,7 @@ namespace Ally
                     innerThis.$http.get( "/api/Unit" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> )
                     {
                         innerThis.isLoading = false;
-                        innerThis.allUnits = <Ally.Unit[]>httpResponse.data;
+                        innerThis.allUnits = httpResponse.data;
                         
                         innerThis.shouldSortUnitsNumerically = _.every( innerThis.allUnits, u => HtmlUtil.isNumericString( u.name ) );
 

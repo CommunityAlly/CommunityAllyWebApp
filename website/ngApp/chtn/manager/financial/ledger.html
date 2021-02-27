@@ -75,7 +75,7 @@
             <h2 title="{{$ctrl.editingTransaction.ledgerEntryId}}">Transaction Details</h2>
             <div class="row">
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Date:</label>
                         <div class="col-sm-8 col-xs-12">
@@ -84,11 +84,22 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Amount:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input type="number" class="form-control form-control-sm" step=".01" pattern="^\d+(?:\.\d{1,2})?$" data-ng-model="$ctrl.editingTransaction.amount" />
+                            <input id="transaction-amount-input" type="number" class="form-control form-control-sm" step=".01" pattern="^-?\d+(?:\.\d{1,2})?$" data-ng-model="$ctrl.editingTransaction.amount" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">{{$ctrl.homeName}}:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editingTransaction.associatedUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
+                                <option value=""></option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -244,7 +255,7 @@
                 </div>
 
                 <div class="col-sm-12 text-right">
-                    <span data-ng-if="$ctrl.editAccount.syncType === 'plaid' && $ctrl.isAdmin" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Update Link</span>
+                    <span data-ng-if="$ctrl.editAccount.syncType === 'plaid' && $ctrl.isAdmin" title="Do this if your bank transactions are no longer downloading" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Refresh Bank Link</span>
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onEditAccount()">Save</button>
                     <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editAccount = null">Cancel</button>
                 </div>
