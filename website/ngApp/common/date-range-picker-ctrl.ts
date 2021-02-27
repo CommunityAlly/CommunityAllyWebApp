@@ -7,11 +7,12 @@
     {
         static $inject = ["appCacheService", "$scope"];
 
-        filterPresetDateRange: string = "thisMonth";
+        filterPresetDateRange: string = "last30days";
         startDate: Date;
         endDate: Date;
+        shouldSuppressCustom: boolean = false;
         onChange: () => void;
-
+        
 
         /**
         * The constructor for the class
@@ -29,14 +30,31 @@
         {
             this.selectPresetDateRange( true );
 
-            this.$scope.$watch( "startDate", () => this.filterPresetDateRange = "custom" );
-            this.$scope.$watch( "endDate", () => this.filterPresetDateRange = "custom" );
+            this.$scope.$watch( "$ctrl.startDate", (newValue: Date, oldValue: Date) =>
+            {
+                if( !newValue || newValue === oldValue || this.shouldSuppressCustom )
+                    return;
+
+                this.filterPresetDateRange = "custom";
+            } );
+            this.$scope.$watch( "$ctrl.endDate", ( newValue: Date, oldValue: Date) =>
+            {
+                if( !newValue || newValue === oldValue || this.shouldSuppressCustom )
+                    return;
+
+                this.filterPresetDateRange = "custom";
+            } );
         }
 
 
         selectPresetDateRange( suppressRefresh: boolean = false )
         {
-            if( this.filterPresetDateRange === "thisMonth" )
+            if( this.filterPresetDateRange === "last30days" )
+            {
+                this.startDate = moment().subtract( 30, 'days' ).toDate();
+                this.endDate = moment().toDate();
+            }
+            else if( this.filterPresetDateRange === "thisMonth" )
             {
                 this.startDate = moment().startOf( 'month' ).toDate();
                 this.endDate = moment().endOf( 'month' ).toDate();
@@ -64,8 +82,18 @@
                 this.endDate = moment().toDate();
             }
 
+            // To prevent the dumb $watch from clearing our preselect label
+            this.shouldSuppressCustom = true;
+            window.setTimeout( () => this.shouldSuppressCustom = false, 25 );
+
             if( !suppressRefresh && this.onChange )
                 window.setTimeout( () => this.onChange(), 50 ); // Delay a bit to let Angular's digests run on the bound dates
+        }
+
+        onInternalChange()
+        {
+            if( this.onChange )
+                this.onChange();
         }
     }
 }

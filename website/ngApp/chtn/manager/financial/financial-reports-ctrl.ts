@@ -36,8 +36,8 @@
         */
         $onInit()
         {
-            this.startDate = moment().startOf( 'month' ).toDate();
-            this.endDate = moment().endOf( 'month' ).toDate();
+            this.startDate = moment().subtract( 30, 'days' ).toDate();
+            this.endDate = moment().toDate();
 
             const innerThis = this;
             this.doughnutChartOptions = {

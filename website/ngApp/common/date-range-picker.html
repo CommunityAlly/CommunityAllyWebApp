@@ -1,4 +1,5 @@
 ﻿<select data-ng-change="$ctrl.selectPresetDateRange()" data-ng-model="$ctrl.filterPresetDateRange" style="border: none;">
+    <option value="last30days">Last 30 Days</option>
     <option value="thisMonth">This Month</option>
     <option value="lastMonth">Last Month</option>
     <option value="thisYear">This Year</option>
@@ -6,6 +7,6 @@
     <option value="oneYear">One Year</option>
     <option value="custom">Custom</option>
 </select>
-<input type="text" data-ng-model="$ctrl.startDate" data-ui-date style="width: 100px;" data-ng-change="$ctrl.onChange()" />
+<input type="text" data-ng-model="$ctrl.startDate" data-ui-date style="width: 100px;" data-ng-change="$ctrl.onInternalChange()" />
                             to
-<input type="text" data-ng-model="$ctrl.endDate" data-ui-date style="width: 100px;" data-ng-change="$ctrl.onChange()" />
+<input type="text" data-ng-model="$ctrl.endDate" data-ui-date style="width: 100px;" data-ng-change="$ctrl.onInternalChange()" />

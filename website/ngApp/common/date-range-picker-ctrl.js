@@ -10,7 +10,8 @@ var Ally;
         function DateRangePickerController(appCacheService, $scope) {
             this.appCacheService = appCacheService;
             this.$scope = $scope;
-            this.filterPresetDateRange = "thisMonth";
+            this.filterPresetDateRange = "last30days";
+            this.shouldSuppressCustom = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -18,13 +19,25 @@ var Ally;
         DateRangePickerController.prototype.$onInit = function () {
             var _this = this;
             this.selectPresetDateRange(true);
-            this.$scope.$watch("startDate", function () { return _this.filterPresetDateRange = "custom"; });
-            this.$scope.$watch("endDate", function () { return _this.filterPresetDateRange = "custom"; });
+            this.$scope.$watch("$ctrl.startDate", function (newValue, oldValue) {
+                if (!newValue || newValue === oldValue || _this.shouldSuppressCustom)
+                    return;
+                _this.filterPresetDateRange = "custom";
+            });
+            this.$scope.$watch("$ctrl.endDate", function (newValue, oldValue) {
+                if (!newValue || newValue === oldValue || _this.shouldSuppressCustom)
+                    return;
+                _this.filterPresetDateRange = "custom";
+            });
         };
         DateRangePickerController.prototype.selectPresetDateRange = function (suppressRefresh) {
             var _this = this;
             if (suppressRefresh === void 0) { suppressRefresh = false; }
-            if (this.filterPresetDateRange === "thisMonth") {
+            if (this.filterPresetDateRange === "last30days") {
+                this.startDate = moment().subtract(30, 'days').toDate();
+                this.endDate = moment().toDate();
+            }
+            else if (this.filterPresetDateRange === "thisMonth") {
                 this.startDate = moment().startOf('month').toDate();
                 this.endDate = moment().endOf('month').toDate();
             }
@@ -46,8 +59,15 @@ var Ally;
                 this.startDate = moment().subtract(1, 'years').toDate();
                 this.endDate = moment().toDate();
             }
+            // To prevent the dumb $watch from clearing our preselect label
+            this.shouldSuppressCustom = true;
+            window.setTimeout(function () { return _this.shouldSuppressCustom = false; }, 25);
             if (!suppressRefresh && this.onChange)
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
+        };
+        DateRangePickerController.prototype.onInternalChange = function () {
+            if (this.onChange)
+                this.onChange();
         };
         DateRangePickerController.$inject = ["appCacheService", "$scope"];
         return DateRangePickerController;

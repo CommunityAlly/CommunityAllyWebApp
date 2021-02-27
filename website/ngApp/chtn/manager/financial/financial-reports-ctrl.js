@@ -24,8 +24,8 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         FinancialReportsController.prototype.$onInit = function () {
-            this.startDate = moment().startOf('month').toDate();
-            this.endDate = moment().endOf('month').toDate();
+            this.startDate = moment().subtract(30, 'days').toDate();
+            this.endDate = moment().toDate();
             var innerThis = this;
             this.doughnutChartOptions = {
                 onClick: function (event) {
