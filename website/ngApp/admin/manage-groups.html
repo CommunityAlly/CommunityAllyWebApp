@@ -69,11 +69,11 @@
                 <td>{{ curAssociation.shortName }}</td>
                 <td>{{ curAssociation.fullName }}</td>
                 <td>{{ curAssociation.fullAddressId }}</td>
-                <td><a target="_blank" ng-href="https://www.google.com/maps?ie=UTF8&hq&ll={{ curAssociation.gpsPos.lat }},{{curAssociation.gpsPos.lon }}&z=15">View on Map</a></td>
+                <td><a target="_blank" ng-href="https://www.google.com/maps?ie=UTF8&hq&ll={{ curAssociation.gpsPos.lat }},{{curAssociation.gpsPos.lon }}&z=15">Map</a></td>
                 <td class="d-none">{{ curAssociation.lastActivityTime | date:'M/d/yyyy' }}</td>
                 <td>{{ curAssociation.creationDate | date:'M/d/yyyy' }}</td>
                 <td><a href="{{ curAssociation.baseUrl }}">Visit</a></td>
-                <td><a href="https://{{ curAssociation.shortName }}.CondoAlly.com/#!/Admin/ViewActivityLog">View Log</a></td>
+                <td><a href="https://{{ curAssociation.shortName }}.CondoAlly.com/#!/Admin/ViewActivityLog">Log</a></td>
             </tr>
         </tbody>
         <tfoot>
