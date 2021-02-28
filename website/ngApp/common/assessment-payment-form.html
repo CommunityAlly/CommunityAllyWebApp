@@ -164,9 +164,9 @@
                     <div data-ng-if="!$ctrl.dwollaPaymentMessage">
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitDwollaPayment()" value="Submit Payment">
                         <br />
-                        Clicking this button will submit payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}) applies.
+                        Clicking this button will submit payment. {{$ctrl.dwollaFeePercent}}% fee (max ${{$ctrl.dwollaMaxFee}}) ({{$ctrl.dwollaFeeAmountString}}) applies.
                         <div class="note-text mt-2">
-                            Auto-recurring payments are coming Q1 2020!
+                            Auto-recurring payments are planned for 2021.
                         </div>
                         <div class="mt-3 text-right">
                             Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>

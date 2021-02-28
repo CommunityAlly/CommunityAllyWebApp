@@ -9,3 +9,4 @@ App_Data/
 /website/.vs/
 /.vs/
 /packages/
+/deploy-to-aws.ps1

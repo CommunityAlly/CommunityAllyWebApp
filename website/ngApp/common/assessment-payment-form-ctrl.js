@@ -33,6 +33,7 @@ var Ally;
             this.hasComplexPassword = false;
             this.didAgreeToDwollaTerms = false;
             this.dwollaFeePercent = 0.5;
+            this.dwollaMaxFee = 5;
             this.dwollaDocUploadType = "license";
             this.dwollaDocUploadFile = null;
             this.dwollaBalance = -1;
@@ -55,6 +56,7 @@ var Ally;
             if (shouldShowDwolla)
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
+            this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
             if (this.isDwollaUserAccountVerified) {
                 this.dwollaUserStatus = "verified";
@@ -542,6 +544,9 @@ var Ally;
             // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
             // So we only need to divide by 100 to get our rounded fee
             var feeAmount = Math.ceil(this.paymentInfo.amount * this.dwollaFeePercent) / 100;
+            // Cap the fee at $5 for premium, $10 for free plan groups
+            if (feeAmount > this.dwollaMaxFee)
+                feeAmount = this.dwollaMaxFee;
             this.dwollaFeeAmountString = "$" + feeAmount.toFixed(2);
         };
         /**
