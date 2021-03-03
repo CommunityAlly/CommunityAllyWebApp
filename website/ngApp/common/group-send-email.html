@@ -29,7 +29,7 @@
                     </div>
 
                     <div data-ng-if="$ctrl.showDiscussionLargeWarning" style="color: red; font-weight: bold;">
-                        Sending an email to this receipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
+                        Sending an email to this recipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
                         individual threads. This way, residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
@@ -53,6 +53,10 @@
                 <div class="form-group">
                     <label>Email Contents:</label>
                     <textarea class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
+                </div>
+                <div class="mb-4" data-ng-if="$ctrl.shouldShowSendAsBoard">
+                    <label><input type="checkbox" data-ng-model="$ctrl.messageObject.shouldSendAsBoard" />Send from the board group email address</label>
+                    <div class="note-text">This will set the "from" address as the board's address rather than your personal, anonymized email address.</div>
                 </div>
                 <a class="note-text" target="_blank" href="https://help.communityally.org/how-to-send-an-e-mail-with-an-attachment/">Want to add an attachment or use advanced formatting?</a>
                 <p class="text-right">

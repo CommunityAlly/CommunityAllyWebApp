@@ -13,6 +13,7 @@
         message: string;
         recipientType: string = "board";
         committeeId: number;
+        shouldSendAsBoard: boolean;
     }
 
 
@@ -40,6 +41,7 @@
         memberLabel: string = "resident";
         memberPageName: string = "Residents";
         groupEmailDomain: string;
+        shouldShowSendAsBoard: boolean = false;
 
 
         /**
@@ -217,6 +219,8 @@
 
             var groupInfo = _.find( this.availableEmailGroups, ( g: GroupEmailInfo ) => g.recipientType === this.messageObject.recipientType );
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
+
+            this.shouldShowSendAsBoard = this.siteInfo.userInfo.isSiteManager && !isSendingToBoard;
         }
     }
 }
