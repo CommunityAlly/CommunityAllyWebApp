@@ -38,11 +38,11 @@ namespace Ally
         paragonPaymentMessage: string;
         paragonCardTokenizedUrl: string;
         paragonCardTokenizationMessage: string;
-        dwollaSignUpInfo: any = {
+        dwollaSignUpInfo: CreateDwollaUser = {
             dateOfBirth: "",
             ssnLast4: "",
             ssnFull: "",
-            streetAddress3: new FullAddress()
+            streetAddress: new FullAddress()
         };
         isWePayPaymentActive: boolean = false;
         isDwollaEnabledOnGroup: boolean = false;
@@ -944,6 +944,15 @@ CA.angularApp.component( "assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
     controller: Ally.AssessmentPaymentFormController
 } );
+
+
+class CreateDwollaUser
+{
+    dateOfBirth: string;
+    ssnLast4: string;
+    ssnFull: string;
+    streetAddress: Ally.FullAddress;
+}
 
 
 class ParagonPayerSignUpInfo

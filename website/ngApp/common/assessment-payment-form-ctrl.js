@@ -23,7 +23,7 @@ var Ally;
                 dateOfBirth: "",
                 ssnLast4: "",
                 ssnFull: "",
-                streetAddress3: new Ally.FullAddress()
+                streetAddress: new Ally.FullAddress()
             };
             this.isWePayPaymentActive = false;
             this.isDwollaEnabledOnGroup = false;
@@ -634,6 +634,11 @@ CA.angularApp.component("assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
     controller: Ally.AssessmentPaymentFormController
 });
+var CreateDwollaUser = /** @class */ (function () {
+    function CreateDwollaUser() {
+    }
+    return CreateDwollaUser;
+}());
 var ParagonPayerSignUpInfo = /** @class */ (function () {
     function ParagonPayerSignUpInfo() {
         this.billingAddress = new Ally.FullAddress();

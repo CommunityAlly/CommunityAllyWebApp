@@ -58,10 +58,10 @@
                             <div data-ng-if="$ctrl.dwollaUserStatus !== 'retry'" class="col-6">Last 4 of SSN: <input type="password" class="form-control form-control-sm" maxlength="4" data-ng-model="$ctrl.dwollaSignUpInfo.ssnLast4" /></div>
                             <div data-ng-if="$ctrl.dwollaUserStatus === 'retry'" class="col-6">Full SSN: <input type="password" class="form-control form-control-sm" maxlength="11" data-ng-model="$ctrl.dwollaSignUpInfo.ssnFull" /></div>
                         </div>
-                        <div class="row mb-3" data-ng-if="!$ctrl.editDwollaSignUpAddress && !$ctrl.dwollaUserStatus === 'retry'">
-                            <div class="col-12"><span class="font-weight-bold">Home Address:</span> <span>{{$ctrl.dwollaSignUpInfo.streetAddress.oneLiner}}</span> <span class="note-text text-link" data-ng-click="$ctrl.editDwollaSignUpAddress = true">edit</span></div>
+                        <div class="row mb-3" data-ng-if="!$ctrl.shouldShowEditDwollaSignUpAddress && $ctrl.dwollaUserStatus !== 'retry'">
+                            <div class="col-12"><span class="font-weight-bold">Home Address:</span> <span>{{$ctrl.dwollaSignUpInfo.streetAddress.oneLiner}}</span> <span class="note-text text-link" data-ng-click="$ctrl.shouldShowEditDwollaSignUpAddress = true">edit</span></div>
                         </div>
-                        <street-address-form data-ng-if="$ctrl.editDwollaSignUpAddress || $ctrl.dwollaUserStatus === 'retry'" data-street-address="$ctrl.dwollaSignUpInfo.streetAddress" should-hide-name="true"></street-address-form>
+                        <street-address-form data-ng-if="$ctrl.shouldShowEditDwollaSignUpAddress || $ctrl.dwollaUserStatus === 'retry'" data-street-address="$ctrl.dwollaSignUpInfo.streetAddress" should-hide-name="true"></street-address-form>
                         <div class="row mb-2">
                             <div class="col-12">
                                 <label><input type="checkbox" data-ng-model="$ctrl.didAgreeToDwollaTerms" /> By checking this box you agree to <a target="_blank" href="https://login.condoally.com/TermsOfService.html">Our Terms of Service</a> and <a target="_blank" href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>, as well as our partner <a target="_blank" href="https://www.dwolla.com/legal/tos/">Dwolla's Terms of Service</a> and <a target="_blank" href="https://www.dwolla.com/legal/privacy/">Privacy Policy</a>.</label>
@@ -177,9 +177,7 @@
 
             <div class="buttons margin-top-30 text-center" data-ng-if="$ctrl.showParagon">
                 <p class="single_p text-left">
-                    {{
- $ctrl.allyAppName
-                    }} uses <a target="_blank" href="https://paragonsolutions.com/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments.
+                    {{$ctrl.allyAppName}} uses <a target="_blank" href="https://paragonsolutions.com/"><img src="/assets/images/paragon-logo-black.png" alt="" /></a> to safely and securely handle payments.
                 </p>
 
                 <div class="text-center d-inline-block" data-ng-if="$ctrl.paragonCheckingLast4 || $ctrl.paragonCardLast4">
