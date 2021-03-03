@@ -152,6 +152,7 @@
                     <button data-ng-if="$ctrl.isPremiumPlanActive" type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidFlow()">Sync Account</button>
                     <b data-ng-if="!$ctrl.isPremiumPlanActive">Sync accounts are only available on <a href="https://help.communityally.org/why-go-premium/" target="_blank">our premium plan</a>.</b>
                     <div class="note-text">Our software will automatically retrieve categorized transactions from your bank via <a href="https://plaid.com/security/" target="_blank">Plaid</a>.</div>
+                    <div style="font-weight: bold; color: red;">NOTE: Plaid's automatic account connection process has been failing lately for the vast majority of users. If the choice is given, use the micro-deposit account verification.</div>
                 </div>
 
                 <div class="col-6 text-center">
@@ -163,6 +164,9 @@
             <div data-ng-if="$ctrl.createAccountInfo.type === 'plaid'" class="row">
                 <div class="col-12 text-center" data-ng-if="$ctrl.newPlaidAccounts.length === 0">
                     Launching Plaid setup...
+                    <div class="mt-3" style="font-weight:bold;">
+                        If you find yourself waiting on any step more than 5 minutes, refresh the page and start over. Plaid gets hung up frequently.
+                    </div>
                 </div>
 
                 <div class="col-12" data-ng-if="$ctrl.newPlaidAccounts.length > 0">

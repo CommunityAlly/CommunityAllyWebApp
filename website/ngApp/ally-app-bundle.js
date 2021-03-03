@@ -9214,7 +9214,7 @@ var Ally;
                 dateOfBirth: "",
                 ssnLast4: "",
                 ssnFull: "",
-                streetAddress3: new Ally.FullAddress()
+                streetAddress: new Ally.FullAddress()
             };
             this.isWePayPaymentActive = false;
             this.isDwollaEnabledOnGroup = false;
@@ -9825,6 +9825,11 @@ CA.angularApp.component("assessmentPaymentForm", {
     templateUrl: "/ngApp/common/assessment-payment-form.html",
     controller: Ally.AssessmentPaymentFormController
 });
+var CreateDwollaUser = /** @class */ (function () {
+    function CreateDwollaUser() {
+    }
+    return CreateDwollaUser;
+}());
 var ParagonPayerSignUpInfo = /** @class */ (function () {
     function ParagonPayerSignUpInfo() {
         this.billingAddress = new Ally.FullAddress();
@@ -10883,6 +10888,7 @@ var Ally;
             this.defaultSubject = "A message from your neighbor";
             this.memberLabel = "resident";
             this.memberPageName = "Residents";
+            this.shouldShowSendAsBoard = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -11003,6 +11009,7 @@ var Ally;
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
             var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
+            this.shouldShowSendAsBoard = this.siteInfo.userInfo.isSiteManager && !isSendingToBoard;
         };
         GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
         return GroupSendEmailController;
