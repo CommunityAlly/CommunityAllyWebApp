@@ -12,6 +12,8 @@ var Ally;
             this.$scope = $scope;
             this.filterPresetDateRange = "last30days";
             this.shouldSuppressCustom = false;
+            this.thisYearLabel = new Date().getFullYear().toString();
+            this.lastYearLabel = (new Date().getFullYear() - 1).toString();
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed

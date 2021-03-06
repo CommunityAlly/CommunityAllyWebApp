@@ -12,7 +12,9 @@
         endDate: Date;
         shouldSuppressCustom: boolean = false;
         onChange: () => void;
-        
+        thisYearLabel: string;
+        lastYearLabel: string;
+
 
         /**
         * The constructor for the class
@@ -20,6 +22,8 @@
         constructor( private appCacheService: AppCacheService,
             private $scope: ng.IScope )
         {
+            this.thisYearLabel = new Date().getFullYear().toString();
+            this.lastYearLabel = (new Date().getFullYear() - 1).toString();
         }
 
 
