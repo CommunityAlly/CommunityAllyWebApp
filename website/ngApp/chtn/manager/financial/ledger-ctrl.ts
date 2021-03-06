@@ -34,9 +34,10 @@ namespace Ally
         spendingChartData: number[] | null = null;
         spendingChartLabels: string[] | null = null;
         preselectCategoryId: number | undefined;
-        isAdmin: boolean = false;
+        isSuperAdmin: boolean = false;
         homeName: string;
         allUnits: Ally.Unit[];
+        plaidSuccessProgressMsg: string;
 
 
         /**
@@ -57,7 +58,7 @@ namespace Ally
         $onInit()
         {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-            this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
 
             this.ledgerGridOptions =
@@ -383,20 +384,24 @@ namespace Ally
         }
 
 
-        completePlaidSync( accessToken: string, updatePlaidItemId: string )
+        completePlaidSync( accessToken: string, updatePlaidItemId: string, selectedAccountIds: string[] = null )
         {
             this.isLoading = true;
+            this.plaidSuccessProgressMsg = "Contacting Plaid server for selected account information";
 
             const postData = {
                 accessToken,
-                updatePlaidItemId
+                updatePlaidItemId, 
+                selectedAccountIds
             };
-
+            
             this.$http.post( "/api/Plaid/ProcessAccessToken", postData ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerAccount[]> ) =>
                 {
                     this.isLoading = false;
 
+                    this.plaidSuccessProgressMsg = "Account information successfully retrieved";
+                    
                     this.newPlaidAccounts = httpResponse.data;
 
                     if( updatePlaidItemId )
@@ -405,6 +410,7 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
+                    this.plaidSuccessProgressMsg = "Failed to retrieve account information from Plaid: " + httpResponse.data.exceptionMessage;
                     alert( "Failed to link: " + httpResponse.data.exceptionMessage );
                 }
             );
@@ -433,8 +439,13 @@ namespace Ally
                         token: httpResponse.data,
                         onSuccess: ( public_token: string, metadata: any ) =>
                         {
-                            console.log( "Plaid onSuccess" );
-                            this.completePlaidSync( public_token, null );
+                            console.log( "Plaid onSuccess", metadata );
+
+                            let selectedAccountIds: string[] = null;
+                            if( metadata && metadata.accounts && metadata.accounts.length > 0 )
+                                selectedAccountIds = metadata.accounts.map( ( a: any ) => a.id );
+
+                            this.completePlaidSync( public_token, null, selectedAccountIds );
                         },
                         onLoad: () => { },
                         onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
@@ -516,6 +527,7 @@ namespace Ally
                 {
                     this.isLoading = false;
                     this.editAccount = null;
+                    this.editingTransaction = null;
                     this.fullRefresh();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -709,6 +721,29 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to retrieve your association's home listing, please contact support." );
+                }
+            );
+        }
+
+
+        onDeleteAccount()
+        {
+            if( !confirm( "Are you sure you want to remove this account?" ) )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.delete( "/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.editAccount = null;
+                    this.fullRefresh();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete: " + httpResponse.data.exceptionMessage );
                 }
             );
         }

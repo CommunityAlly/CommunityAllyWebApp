@@ -41,7 +41,7 @@ var Ally;
             this.shouldShowCategoryEditModal = false;
             this.spendingChartData = null;
             this.spendingChartLabels = null;
-            this.isAdmin = false;
+            this.isSuperAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -49,7 +49,7 @@ var Ally;
         LedgerController.prototype.$onInit = function () {
             var _this = this;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-            this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.ledgerGridOptions =
                 {
@@ -288,20 +288,25 @@ var Ally;
             this.editingTransaction.transactionDate = new Date();
             window.setTimeout(function () { return document.getElementById("transaction-amount-input").focus(); }, 50);
         };
-        LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId) {
+        LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId, selectedAccountIds) {
             var _this = this;
+            if (selectedAccountIds === void 0) { selectedAccountIds = null; }
             this.isLoading = true;
+            this.plaidSuccessProgressMsg = "Contacting Plaid server for selected account information";
             var postData = {
                 accessToken: accessToken,
-                updatePlaidItemId: updatePlaidItemId
+                updatePlaidItemId: updatePlaidItemId,
+                selectedAccountIds: selectedAccountIds
             };
             this.$http.post("/api/Plaid/ProcessAccessToken", postData).then(function (httpResponse) {
                 _this.isLoading = false;
+                _this.plaidSuccessProgressMsg = "Account information successfully retrieved";
                 _this.newPlaidAccounts = httpResponse.data;
                 if (updatePlaidItemId)
                     window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
+                _this.plaidSuccessProgressMsg = "Failed to retrieve account information from Plaid: " + httpResponse.data.exceptionMessage;
                 alert("Failed to link: " + httpResponse.data.exceptionMessage);
             });
         };
@@ -319,8 +324,11 @@ var Ally;
                 _this.plaidHandler = Plaid.create({
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
-                        console.log("Plaid onSuccess");
-                        _this.completePlaidSync(public_token, null);
+                        console.log("Plaid onSuccess", metadata);
+                        var selectedAccountIds = null;
+                        if (metadata && metadata.accounts && metadata.accounts.length > 0)
+                            selectedAccountIds = metadata.accounts.map(function (a) { return a.id; });
+                        _this.completePlaidSync(public_token, null, selectedAccountIds);
                     },
                     onLoad: function () { },
                     onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
@@ -376,6 +384,7 @@ var Ally;
             this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.editAccount = null;
+                _this.editingTransaction = null;
                 _this.fullRefresh();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -507,6 +516,20 @@ var Ally;
             }, function () {
                 _this.isLoading = false;
                 alert("Failed to retrieve your association's home listing, please contact support.");
+            });
+        };
+        LedgerController.prototype.onDeleteAccount = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to remove this account?"))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.editAccount = null;
+                _this.fullRefresh();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];

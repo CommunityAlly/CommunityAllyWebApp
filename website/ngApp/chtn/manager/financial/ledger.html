@@ -23,7 +23,7 @@
                         </span>
                         <button class="btn btn-primary btn-sm mr-3" data-ng-click="$ctrl.showAddAccount()" type="button">Add Account</button>
                         <span data-ng-if="$ctrl.hasPlaidAccounts" class="text-link note-text" data-ng-click="$ctrl.syncPlaidAccounts(true)">Force Sync Recent Transactions</span>
-                        <span data-ng-if="$ctrl.hasPlaidAccounts && $ctrl.isAdmin" class="text-link note-text" data-ng-click="$ctrl.syncPlaidAccounts(false)">Force Sync 2 Years of Transactions</span>
+                        <span data-ng-if="$ctrl.hasPlaidAccounts && $ctrl.isSuperAdmin" class="text-link note-text" data-ng-click="$ctrl.syncPlaidAccounts(false)">Force Sync 2 Years of Transactions</span>
                     </div>
                 </fieldset>
             </div>
@@ -152,7 +152,7 @@
                     <button data-ng-if="$ctrl.isPremiumPlanActive" type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidFlow()">Sync Account</button>
                     <b data-ng-if="!$ctrl.isPremiumPlanActive">Sync accounts are only available on <a href="https://help.communityally.org/why-go-premium/" target="_blank">our premium plan</a>.</b>
                     <div class="note-text">Our software will automatically retrieve categorized transactions from your bank via <a href="https://plaid.com/security/" target="_blank">Plaid</a>.</div>
-                    <div style="font-weight: bold; color: red;">NOTE: Plaid's automatic account connection process has been failing lately for the vast majority of users. If the choice is given, use the micro-deposit account verification.</div>
+                    <div style="display: none; font-weight: bold; color: red;">NOTE: Plaid's automatic account connection process has been failing lately for the vast majority of users. If the choice is given, use the micro-deposit account verification.</div>
                 </div>
 
                 <div class="col-6 text-center">
@@ -169,18 +169,14 @@
                     </div>
                 </div>
 
+                <div class="m-2" data-ng-if="$ctrl.plaidSuccessProgressMsg">
+                    {{$ctrl.plaidSuccessProgressMsg}}
+                </div>
+
                 <div class="col-12" data-ng-if="$ctrl.newPlaidAccounts.length > 0">
                     Created Accounts:
-                    <table>
-                        <thead>
-
-                        </thead>
-                        <tbody>
-                            <tr></tr>
-                        </tbody>
-                    </table>
                     <div data-ng-repeat="curAccount in $ctrl.newPlaidAccounts">
-                        <div>{{$index + 1}}. {{curAccount.accountName}}</div>
+                        <div>{{$index + 1}}. <b>{{curAccount.accountName}}</b></div>
                     </div>
                     <div class="m-2">
                         Plaid will begin processing your records immediately, but it still takes some time. Come back in 5-10 minutes and you should see the first batch of transactions loaded covering the last 30 days. After
@@ -259,7 +255,11 @@
                 </div>
 
                 <div class="col-sm-12 text-right">
-                    <span data-ng-if="$ctrl.editAccount.syncType === 'plaid' && $ctrl.isAdmin" title="Do this if your bank transactions are no longer downloading" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Refresh Bank Link</span>
+                    <div class="text-left">
+                        <span data-ng-if="$ctrl.editAccount.syncType === 'plaid'" title="Do this if your bank transactions are no longer downloading" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Refresh Bank Link</span>
+                        <span data-ng-if="$ctrl.isSuperAdmin" class="note-text"> (acct id: {{$ctrl.editAccount.ledgerAccountId}})</span>
+                    </div>                    
+                    <button class="btn btn-danger mr-4" type="button" data-ng-click="$ctrl.onDeleteAccount()">Delete Account</button>
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onEditAccount()">Save</button>
                     <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editAccount = null">Cancel</button>
                 </div>
