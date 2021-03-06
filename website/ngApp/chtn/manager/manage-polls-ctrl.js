@@ -27,11 +27,13 @@ var Ally;
             this.editingItem = new Poll();
             this.pollHistory = [];
             this.isLoading = false;
+            this.isSuperAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManagePollsController.prototype.$onInit = function () {
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             var threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
@@ -129,14 +131,16 @@ var Ally;
          * Occurs when the user wants to delete a poll
          */
         ManagePollsController.prototype.onDeleteItem = function (item) {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.delete("/api/Poll?pollId=" + item.pollId).then(function () {
-                innerThis.retrieveItems();
+                _this.retrieveItems();
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 if (httpResponse.status === 403)
                     alert("You cannot authorized to delete this poll.");
+                else
+                    alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
         };
         /**

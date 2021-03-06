@@ -117,7 +117,7 @@
                         <span id="delete-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onDeleteItem( pollItem );">Delete</span>
                     </td>
                     <!--<td class="poll-entry-{{ $index }}-status"></td>-->
-                    <td class="poll-entry-{{ $index }}-question-text">{{pollItem.questionText}}</td>
+                    <td class="poll-entry-{{ $index }}-question-text">{{pollItem.questionText}}<span class="note-text ml-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>
                     <td class="poll-entry-{{ $index }}-post-date">{{pollItem.postDate | date:'M/d/yyyy'}}</td>
                     <td class="poll-entry-{{ $index }}-expiration-date">{{pollItem.expirationDate | date:'M/d/yyyy'}}</td>
                     <td class="poll-entry-{{ $index }}-author-name">{{pollItem.authorName | date:'M/d/yyyy'}}</td>

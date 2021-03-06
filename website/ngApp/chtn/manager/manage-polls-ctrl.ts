@@ -61,6 +61,7 @@
         isLoading: boolean = false;
         chartData: number[];
         chartLabels: string[];
+        isSuperAdmin: boolean = false;
 
 
         /**
@@ -76,6 +77,8 @@
         */
         $onInit()
         {
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+
             var threeDaysLater = new Date();
             threeDaysLater.setDate( new Date().getDate() + 3 );
 
@@ -107,7 +110,7 @@
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.get( "/api/Poll" ).then( function( httpResponse:ng.IHttpPromiseCallbackArg<Poll[]> )
+            this.$http.get( "/api/Poll" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<Poll[]> )
             {
                 innerThis.pollHistory = httpResponse.data;
 
@@ -115,7 +118,7 @@
                 for( var i = 0; i < innerThis.pollHistory.length; ++i )
                 {
                     // The date comes down as a string so we need to convert it
-                    innerThis.pollHistory[i].expirationDate = new Date( (innerThis.pollHistory[i] as any).expirationDate );
+                    innerThis.pollHistory[i].expirationDate = new Date( ( innerThis.pollHistory[i] as any ).expirationDate );
 
                     // Remove the abstain answer since it can't be edited, but save the full answer
                     // list for displaying results
@@ -200,7 +203,7 @@
         /**
          * Occurs when the user wants to edit an existing poll
          */
-        onEditItem( item:Poll )
+        onEditItem( item: Poll )
         {
             this.editingItem = angular.copy( item );
             window.scrollTo( 0, 0 );
@@ -210,28 +213,32 @@
         /**
          * Occurs when the user wants to delete a poll
          */
-        onDeleteItem( item:Poll )
+        onDeleteItem( item: Poll )
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.delete( "/api/Poll?pollId=" + item.pollId ).then( function()
-            {
-                innerThis.retrieveItems();
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            this.$http.delete( "/api/Poll?pollId=" + item.pollId ).then(
+                () =>
                 {
-                    innerThis.isLoading = false;
+                    this.retrieveItems();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
 
                     if( httpResponse.status === 403 )
                         alert( "You cannot authorized to delete this poll." );
-                } );
+                    else
+                        alert( "Failed to delete: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
         /**
          * Occurs when the user wants to view the results for a poll
          */
-        onViewResults( poll:Poll )
+        onViewResults( poll: Poll )
         {
             if( !poll )
             {
