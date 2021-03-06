@@ -390,6 +390,10 @@
 
                 </div>
 
+                <div data-ng-if="!$ctrl.hasAssessments">
+                    You answered "no" to your association having regular assessments. If you'd like to change that, <span class="text-button" data-ng-click="$ctrl.hasAssessments = null">click here</span>.
+                </div>
+
             </div>
 
         </div>
