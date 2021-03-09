@@ -19,6 +19,7 @@ namespace Ally
         signerUpInfo: HoaSignerUpInfo = new HoaSignerUpInfo();
         boundsGpsVertices: any[];
         referralSource: string = "";
+        recaptchaKey: string = "";
     }
 
 
@@ -72,6 +73,8 @@ namespace Ally
             {
                 if( args.index === 1 )
                     this.$timeout( () => this.showMap = true, 50 );
+                else if( args.index === 2 )
+                    this.$timeout( () => grecaptcha.render( "recaptcha-check-elem" ), 50 );
                 else
                     this.showMap = false;
             } );
@@ -281,6 +284,14 @@ namespace Ally
          */
         onFinishedWizard()
         {
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+
+            if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.recaptchaKey ) )
+            {
+                alert( "Please complete the reCAPTCHA field" );
+                return;
+            }
+
             this.isLoading = true;
 
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;

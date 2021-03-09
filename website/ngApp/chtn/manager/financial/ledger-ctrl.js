@@ -311,33 +311,8 @@ var Ally;
             });
         };
         LedgerController.prototype.showAddAccount = function () {
-            var _this = this;
             this.createAccountInfo = new CreateAccountInfo();
             this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-            if (!this.isPremiumPlanActive)
-                return;
-            this.isLoading = true;
-            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
-                _this.isLoading = false;
-                if (!httpResponse.data)
-                    return;
-                _this.plaidHandler = Plaid.create({
-                    token: httpResponse.data,
-                    onSuccess: function (public_token, metadata) {
-                        console.log("Plaid onSuccess", metadata);
-                        var selectedAccountIds = null;
-                        if (metadata && metadata.accounts && metadata.accounts.length > 0)
-                            selectedAccountIds = metadata.accounts.map(function (a) { return a.id; });
-                        _this.completePlaidSync(public_token, null, selectedAccountIds);
-                    },
-                    onLoad: function () { },
-                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
-                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
-                    receivedRedirectUri: null,
-                });
-            }, function (httpResponse) {
-                _this.isLoading = false;
-            });
         };
         LedgerController.prototype.updateAccountLink = function (ledgerAccount) {
             //this.createAccountInfo = new CreateAccountInfo();
@@ -429,9 +404,36 @@ var Ally;
             this.$http.post("/api/Ledger/NewBankAccount", this.createAccountInfo).then(onSave, onError);
         };
         LedgerController.prototype.startPlaidFlow = function () {
+            var _this = this;
             if (this.createAccountInfo)
                 this.createAccountInfo.type = 'plaid';
-            this.plaidHandler.open();
+            if (!this.isPremiumPlanActive)
+                return;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                if (!httpResponse.data)
+                    return;
+                _this.plaidHandler = Plaid.create({
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid onSuccess", metadata);
+                        var selectedAccountIds = null;
+                        if (metadata && metadata.accounts && metadata.accounts.length > 0)
+                            selectedAccountIds = metadata.accounts.map(function (a) { return a.id; });
+                        _this.completePlaidSync(public_token, null, selectedAccountIds);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                });
+                _this.plaidHandler.open();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to start Plaid sign-up: " + httpResponse.data.exceptionMessage);
+                _this.closeAccountAndReload();
+            });
             //this.isLoading = true;
             //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
             //{

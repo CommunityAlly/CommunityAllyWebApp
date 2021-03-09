@@ -94,6 +94,7 @@ namespace Ally
         shouldShowMicroDepositModal: boolean = false;
         dwollaMicroDepositAmount1String: string;
         dwollaMicroDepositAmount2String: string;
+        dwollaIavToken: string;
         readonly HistoryPageSize: number = 50;
 
 
@@ -811,12 +812,30 @@ namespace Ally
         }
 
 
+        showDwollaSignUpModal()
+        {
+            this.shouldShowDwollaAddAccountModal = true;
+
+            window.setTimeout( () =>
+            {
+                grecaptcha.render( "recaptcha-check-elem" );
+            }, 200 );
+        }
+
+
         /**
          * Start the Dwolla IAV process
          */
         startDwollaSignUp()
         {
-            this.shouldShowDwollaAddAccountModal = true;
+            const recaptchaKey = grecaptcha.getResponse();
+
+            if( HtmlUtil.isNullOrWhitespace( recaptchaKey ) )
+            {
+                alert( "Please complete the reCAPTCHA field" );
+                return;
+            }
+
             this.shouldShowDwollaModalClose = false;
             this.isDwollaIavDone = false;
             this.isLoading = true;
@@ -860,18 +879,20 @@ namespace Ally
                 );
             };
 
-            this.$http.get( "/api/Dwolla/GroupIavToken" ).then(
+            this.$http.get( "/api/Dwolla/GroupIavToken?token=" + encodeURIComponent( recaptchaKey ) ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
 
-                    var iavToken = httpResponse.data.iavToken;
-                    startDwollaIav( iavToken );
+                    this.dwollaIavToken = httpResponse.data.iavToken;
+                    
+                    startDwollaIav( this.dwollaIavToken );
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     this.shouldShowDwollaAddAccountModal = false;
+                    grecaptcha.reset();
 
                     alert( "Failed to start instant account verification: " + httpResponse.data.exceptionMessage );
                 }
@@ -882,6 +903,7 @@ namespace Ally
         hideDwollaAddAccountModal()
         {
             this.shouldShowDwollaAddAccountModal = false;
+            this.dwollaIavToken = null;
 
             if( this.isDwollaIavDone )
             {

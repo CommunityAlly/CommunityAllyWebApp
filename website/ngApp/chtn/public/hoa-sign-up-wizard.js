@@ -15,6 +15,7 @@ var Ally;
             this.isResident = true;
             this.signerUpInfo = new HoaSignerUpInfo();
             this.referralSource = "";
+            this.recaptchaKey = "";
         }
         return HoaSignUpInfo;
     }());
@@ -56,6 +57,8 @@ var Ally;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
                     _this.$timeout(function () { return _this.showMap = true; }, 50);
+                else if (args.index === 2)
+                    _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
                 else
                     _this.showMap = false;
             });
@@ -199,6 +202,11 @@ var Ally;
          */
         HoaSignUpWizardController.prototype.onFinishedWizard = function () {
             var _this = this;
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
+                return;
+            }
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
             this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {

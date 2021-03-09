@@ -34,7 +34,11 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService, private appCacheService: AppCacheService )
+        constructor( private $http: ng.IHttpService,
+            private $rootScope: ng.IRootScopeService,
+            private siteInfo: Ally.SiteInfoService,
+            private $timeout: ng.ITimeoutService,
+            private appCacheService: AppCacheService )
         {
             
         }
@@ -49,6 +53,8 @@ namespace Ally
             this.showSchoolField = AppConfig.appShortName === "pta";
 
             window.setTimeout( () => this.hookupAddressAutocomplete(), 300 );
+
+            this.$timeout( () => grecaptcha.render( "recaptcha-check-elem" ), 100 );
         }
 
 

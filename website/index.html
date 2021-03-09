@@ -32,6 +32,7 @@
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=39"></script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
+    <script async defer src='https://www.google.com/recaptcha/api.js'></script>
     <script>
         var CA = CA || {};
 
@@ -44,7 +45,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=635;
+        var appVer = 644;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -52,17 +53,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=635" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=647" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=635" );
+                    localStorage.setItem( Key_JSVersion, "appVer=647" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=635"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=635"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=647"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=647"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">

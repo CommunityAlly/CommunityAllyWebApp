@@ -421,43 +421,6 @@ namespace Ally
         {
             this.createAccountInfo = new CreateAccountInfo();
             this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-
-            if( !this.isPremiumPlanActive )
-                return;
-
-            this.isLoading = true;
-
-            this.$http.get( "/api/Plaid/LinkToken" ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
-                {
-                    this.isLoading = false;
-
-                    if( !httpResponse.data )
-                        return;
-
-                    this.plaidHandler = Plaid.create( {
-                        token: httpResponse.data,
-                        onSuccess: ( public_token: string, metadata: any ) =>
-                        {
-                            console.log( "Plaid onSuccess", metadata );
-
-                            let selectedAccountIds: string[] = null;
-                            if( metadata && metadata.accounts && metadata.accounts.length > 0 )
-                                selectedAccountIds = metadata.accounts.map( ( a: any ) => a.id );
-
-                            this.completePlaidSync( public_token, null, selectedAccountIds );
-                        },
-                        onLoad: () => { },
-                        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
-                        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
-                        receivedRedirectUri: null,
-                    } );
-                },
-                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
-                }
-            );
         }
 
 
@@ -594,7 +557,47 @@ namespace Ally
             if( this.createAccountInfo )
                 this.createAccountInfo.type = 'plaid';
 
-            this.plaidHandler.open();
+            if( !this.isPremiumPlanActive )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.get( "/api/Plaid/LinkToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+
+                    if( !httpResponse.data )
+                        return;
+
+                    this.plaidHandler = Plaid.create( {
+                        token: httpResponse.data,
+                        onSuccess: ( public_token: string, metadata: any ) =>
+                        {
+                            console.log( "Plaid onSuccess", metadata );
+
+                            let selectedAccountIds: string[] = null;
+                            if( metadata && metadata.accounts && metadata.accounts.length > 0 )
+                                selectedAccountIds = metadata.accounts.map( ( a: any ) => a.id );
+
+                            this.completePlaidSync( public_token, null, selectedAccountIds );
+                        },
+                        onLoad: () => { },
+                        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
+                        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
+                        receivedRedirectUri: null,
+                    } );
+
+                    this.plaidHandler.open();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to start Plaid sign-up: " + httpResponse.data.exceptionMessage );
+
+                    this.closeAccountAndReload();
+                }
+            );
 
             //this.isLoading = true;
 

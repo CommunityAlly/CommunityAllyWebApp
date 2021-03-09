@@ -32,6 +32,7 @@ var Ally;
             this.groupName = this.siteInfo.publicSiteInfo.fullName;
             this.showSchoolField = AppConfig.appShortName === "pta";
             window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 300);
+            this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 100);
         };
         /**
          * Attach the Google Places auto-complete logic to the address text box

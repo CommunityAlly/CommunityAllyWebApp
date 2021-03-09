@@ -1,5 +1,6 @@
 ﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 
+
 namespace Ally
 {
     export class CondoSignUpWizardController implements ng.IController
@@ -27,7 +28,8 @@ namespace Ally
             signerUpInfo: {
                 buildingIndex: 0,
                 boardPositionValue: "1"
-            }
+            },
+            recaptchaKey: ""
         };
 
 
@@ -52,6 +54,12 @@ namespace Ally
             };
 
             this.$timeout( onReady, 500 );
+
+            this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
+            {
+                if( args.index === 2 )
+                    this.$timeout( () => grecaptcha.render( "recaptcha-check-elem" ), 50 );
+            } );
         }
 
 
@@ -346,6 +354,14 @@ namespace Ally
          */
         onFinishedWizard()
         {
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+
+            if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.recaptchaKey ) )
+            {
+                alert( "Please complete the reCAPTCHA field" );
+                return;
+            }
+
             this.isLoading = true;
 
             var innerThis = this;

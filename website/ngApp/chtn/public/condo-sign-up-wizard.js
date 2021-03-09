@@ -27,18 +27,24 @@ var Ally;
                 signerUpInfo: {
                     buildingIndex: 0,
                     boardPositionValue: "1"
-                }
+                },
+                recaptchaKey: ""
             };
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         CondoSignUpWizardController.prototype.$onInit = function () {
+            var _this = this;
             var innerThis = this;
             var onReady = function () {
                 innerThis.init();
             };
             this.$timeout(onReady, 500);
+            this.$scope.$on('wizard:stepChanged', function (event, args) {
+                if (args.index === 2)
+                    _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
+            });
         };
         /**
          * Occurs when the user changes the number of units
@@ -246,6 +252,11 @@ var Ally;
          * Called when the user press the button to complete the sign-up process
          */
         CondoSignUpWizardController.prototype.onFinishedWizard = function () {
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
+                return;
+            }
             this.isLoading = true;
             var innerThis = this;
             this.$http.post("/api/SignUpWizard", this.signUpInfo).then(function (httpResponse) {

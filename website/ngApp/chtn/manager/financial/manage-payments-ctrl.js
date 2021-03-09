@@ -534,12 +534,22 @@ var Ally;
         ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
             alert("TODO hook this up");
         };
+        ManagePaymentsController.prototype.showDwollaSignUpModal = function () {
+            this.shouldShowDwollaAddAccountModal = true;
+            window.setTimeout(function () {
+                grecaptcha.render("recaptcha-check-elem");
+            }, 200);
+        };
         /**
          * Start the Dwolla IAV process
          */
         ManagePaymentsController.prototype.startDwollaSignUp = function () {
             var _this = this;
-            this.shouldShowDwollaAddAccountModal = true;
+            var recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
+                return;
+            }
             this.shouldShowDwollaModalClose = false;
             this.isDwollaIavDone = false;
             this.isLoading = true;
@@ -567,18 +577,20 @@ var Ally;
                     }
                 });
             };
-            this.$http.get("/api/Dwolla/GroupIavToken").then(function (httpResponse) {
+            this.$http.get("/api/Dwolla/GroupIavToken?token=" + encodeURIComponent(recaptchaKey)).then(function (httpResponse) {
                 _this.isLoading = false;
-                var iavToken = httpResponse.data.iavToken;
-                startDwollaIav(iavToken);
+                _this.dwollaIavToken = httpResponse.data.iavToken;
+                startDwollaIav(_this.dwollaIavToken);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 _this.shouldShowDwollaAddAccountModal = false;
+                grecaptcha.reset();
                 alert("Failed to start instant account verification: " + httpResponse.data.exceptionMessage);
             });
         };
         ManagePaymentsController.prototype.hideDwollaAddAccountModal = function () {
             this.shouldShowDwollaAddAccountModal = false;
+            this.dwollaIavToken = null;
             if (this.isDwollaIavDone) {
                 this.isLoading = true;
                 window.location.reload();

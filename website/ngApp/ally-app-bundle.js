@@ -902,6 +902,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/";
+//OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -2830,7 +2832,7 @@ var Ally;
             this.shouldShowCategoryEditModal = false;
             this.spendingChartData = null;
             this.spendingChartLabels = null;
-            this.isAdmin = false;
+            this.isSuperAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2838,7 +2840,7 @@ var Ally;
         LedgerController.prototype.$onInit = function () {
             var _this = this;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-            this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.ledgerGridOptions =
                 {
@@ -3077,48 +3079,31 @@ var Ally;
             this.editingTransaction.transactionDate = new Date();
             window.setTimeout(function () { return document.getElementById("transaction-amount-input").focus(); }, 50);
         };
-        LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId) {
+        LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId, selectedAccountIds) {
             var _this = this;
+            if (selectedAccountIds === void 0) { selectedAccountIds = null; }
             this.isLoading = true;
+            this.plaidSuccessProgressMsg = "Contacting Plaid server for selected account information";
             var postData = {
                 accessToken: accessToken,
-                updatePlaidItemId: updatePlaidItemId
+                updatePlaidItemId: updatePlaidItemId,
+                selectedAccountIds: selectedAccountIds
             };
             this.$http.post("/api/Plaid/ProcessAccessToken", postData).then(function (httpResponse) {
                 _this.isLoading = false;
+                _this.plaidSuccessProgressMsg = "Account information successfully retrieved";
                 _this.newPlaidAccounts = httpResponse.data;
                 if (updatePlaidItemId)
                     window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
+                _this.plaidSuccessProgressMsg = "Failed to retrieve account information from Plaid: " + httpResponse.data.exceptionMessage;
                 alert("Failed to link: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.prototype.showAddAccount = function () {
-            var _this = this;
             this.createAccountInfo = new CreateAccountInfo();
             this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-            if (!this.isPremiumPlanActive)
-                return;
-            this.isLoading = true;
-            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
-                _this.isLoading = false;
-                if (!httpResponse.data)
-                    return;
-                _this.plaidHandler = Plaid.create({
-                    token: httpResponse.data,
-                    onSuccess: function (public_token, metadata) {
-                        console.log("Plaid onSuccess");
-                        _this.completePlaidSync(public_token, null);
-                    },
-                    onLoad: function () { },
-                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
-                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
-                    receivedRedirectUri: null,
-                });
-            }, function (httpResponse) {
-                _this.isLoading = false;
-            });
         };
         LedgerController.prototype.updateAccountLink = function (ledgerAccount) {
             //this.createAccountInfo = new CreateAccountInfo();
@@ -3165,6 +3150,7 @@ var Ally;
             this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.editAccount = null;
+                _this.editingTransaction = null;
                 _this.fullRefresh();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -3209,9 +3195,36 @@ var Ally;
             this.$http.post("/api/Ledger/NewBankAccount", this.createAccountInfo).then(onSave, onError);
         };
         LedgerController.prototype.startPlaidFlow = function () {
+            var _this = this;
             if (this.createAccountInfo)
                 this.createAccountInfo.type = 'plaid';
-            this.plaidHandler.open();
+            if (!this.isPremiumPlanActive)
+                return;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                if (!httpResponse.data)
+                    return;
+                _this.plaidHandler = Plaid.create({
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid onSuccess", metadata);
+                        var selectedAccountIds = null;
+                        if (metadata && metadata.accounts && metadata.accounts.length > 0)
+                            selectedAccountIds = metadata.accounts.map(function (a) { return a.id; });
+                        _this.completePlaidSync(public_token, null, selectedAccountIds);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                });
+                _this.plaidHandler.open();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to start Plaid sign-up: " + httpResponse.data.exceptionMessage);
+                _this.closeAccountAndReload();
+            });
             //this.isLoading = true;
             //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
             //{
@@ -3296,6 +3309,20 @@ var Ally;
             }, function () {
                 _this.isLoading = false;
                 alert("Failed to retrieve your association's home listing, please contact support.");
+            });
+        };
+        LedgerController.prototype.onDeleteAccount = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to remove this account?"))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.editAccount = null;
+                _this.fullRefresh();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
@@ -3896,12 +3923,22 @@ var Ally;
         ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
             alert("TODO hook this up");
         };
+        ManagePaymentsController.prototype.showDwollaSignUpModal = function () {
+            this.shouldShowDwollaAddAccountModal = true;
+            window.setTimeout(function () {
+                grecaptcha.render("recaptcha-check-elem");
+            }, 200);
+        };
         /**
          * Start the Dwolla IAV process
          */
         ManagePaymentsController.prototype.startDwollaSignUp = function () {
             var _this = this;
-            this.shouldShowDwollaAddAccountModal = true;
+            var recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
+                return;
+            }
             this.shouldShowDwollaModalClose = false;
             this.isDwollaIavDone = false;
             this.isLoading = true;
@@ -3929,18 +3966,20 @@ var Ally;
                     }
                 });
             };
-            this.$http.get("/api/Dwolla/GroupIavToken").then(function (httpResponse) {
+            this.$http.get("/api/Dwolla/GroupIavToken?token=" + encodeURIComponent(recaptchaKey)).then(function (httpResponse) {
                 _this.isLoading = false;
-                var iavToken = httpResponse.data.iavToken;
-                startDwollaIav(iavToken);
+                _this.dwollaIavToken = httpResponse.data.iavToken;
+                startDwollaIav(_this.dwollaIavToken);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 _this.shouldShowDwollaAddAccountModal = false;
+                grecaptcha.reset();
                 alert("Failed to start instant account verification: " + httpResponse.data.exceptionMessage);
             });
         };
         ManagePaymentsController.prototype.hideDwollaAddAccountModal = function () {
             this.shouldShowDwollaAddAccountModal = false;
+            this.dwollaIavToken = null;
             if (this.isDwollaIavDone) {
                 this.isLoading = true;
                 window.location.reload();
@@ -4159,11 +4198,13 @@ var Ally;
             this.editingItem = new Poll();
             this.pollHistory = [];
             this.isLoading = false;
+            this.isSuperAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManagePollsController.prototype.$onInit = function () {
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             var threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
@@ -4261,14 +4302,16 @@ var Ally;
          * Occurs when the user wants to delete a poll
          */
         ManagePollsController.prototype.onDeleteItem = function (item) {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.delete("/api/Poll?pollId=" + item.pollId).then(function () {
-                innerThis.retrieveItems();
+                _this.retrieveItems();
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 if (httpResponse.status === 403)
                     alert("You cannot authorized to delete this poll.");
+                else
+                    alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -7767,18 +7810,24 @@ var Ally;
                 signerUpInfo: {
                     buildingIndex: 0,
                     boardPositionValue: "1"
-                }
+                },
+                recaptchaKey: ""
             };
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         CondoSignUpWizardController.prototype.$onInit = function () {
+            var _this = this;
             var innerThis = this;
             var onReady = function () {
                 innerThis.init();
             };
             this.$timeout(onReady, 500);
+            this.$scope.$on('wizard:stepChanged', function (event, args) {
+                if (args.index === 2)
+                    _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
+            });
         };
         /**
          * Occurs when the user changes the number of units
@@ -7986,6 +8035,11 @@ var Ally;
          * Called when the user press the button to complete the sign-up process
          */
         CondoSignUpWizardController.prototype.onFinishedWizard = function () {
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
+                return;
+            }
             this.isLoading = true;
             var innerThis = this;
             this.$http.post("/api/SignUpWizard", this.signUpInfo).then(function (httpResponse) {
@@ -8192,6 +8246,7 @@ var Ally;
             this.isResident = true;
             this.signerUpInfo = new HoaSignerUpInfo();
             this.referralSource = "";
+            this.recaptchaKey = "";
         }
         return HoaSignUpInfo;
     }());
@@ -8233,6 +8288,8 @@ var Ally;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
                     _this.$timeout(function () { return _this.showMap = true; }, 50);
+                else if (args.index === 2)
+                    _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
                 else
                     _this.showMap = false;
             });
@@ -8376,6 +8433,11 @@ var Ally;
          */
         HoaSignUpWizardController.prototype.onFinishedWizard = function () {
             var _this = this;
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
+                return;
+            }
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
             this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
@@ -8789,6 +8851,7 @@ var Ally;
             this.groupName = this.siteInfo.publicSiteInfo.fullName;
             this.showSchoolField = AppConfig.appShortName === "pta";
             window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 300);
+            this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 100);
         };
         /**
          * Attach the Google Places auto-complete logic to the address text box
@@ -9858,6 +9921,8 @@ var Ally;
             this.$scope = $scope;
             this.filterPresetDateRange = "last30days";
             this.shouldSuppressCustom = false;
+            this.thisYearLabel = new Date().getFullYear().toString();
+            this.lastYearLabel = (new Date().getFullYear() - 1).toString();
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed

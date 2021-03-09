@@ -85,7 +85,7 @@
                     Dwolla is completely free for the association. Payers pay a 0.5% payment fee when your association is on the premium plan ($5 max), 1% when on the free plan ($10 max). For example, 0.5% is $0.50 on a $100 payment, $1 on $200, an $1.50 on $300.
                     <br />
                     <br />
-                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startDwollaSignUp()">Sign up Now</button>
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showDwollaSignUpModal()">Sign up Now</button>
                 </div>
 
                 <div data-ng-if="!$ctrl.paymentInfo.isWePaySetup">
@@ -498,7 +498,15 @@
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.hideDwollaAddAccountModal()">&times;</span>
                 <h2>Add Bank Account</h2>
-                <span class="note-text">
+                <div class="mb-1 text-center" data-ng-if="!$ctrl.dwollaIavToken">
+                    Please check this box. An extra layer of safety for our site.
+                    <br />
+                    <br />
+                    <div id="recaptcha-check-elem" class="g-recaptcha" style="display: inline-block; margin: 0 auto;" data-sitekey="6LfNM3UUAAAAAENjycvvELqQ7PzRQ1y0PtxGFMvF"></div>
+                    <br />
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startDwollaSignUp()">Begin</button>
+                </div>
+                <span class="note-text mt-3">
                     Note: For an extra layer of security, the account addition process takes place through Dwolla's servers only. The information you enter below does not
                     interact with Community Ally's server.
                 </span>
