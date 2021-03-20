@@ -18,7 +18,7 @@
                     <legend style="font-size: 1em;">Bank Accounts</legend>
                     <div>
                         <span data-ng-repeat="curAccount in $ctrl.ledgerAccounts">
-                            <input class="ui-helper-hidden" type="checkbox" data-ng-model="curAccount.shouldShowInGrid" data-ng-change="$ctrl.updateLocalFilter()" />
+                            <input class="ui-helper-hidden" type="checkbox" data-ng-model="curAccount.shouldShowInGrid" data-ng-change="$ctrl.updateLocalData()" />
                             <span class="text-link mr-3" data-ng-click="$ctrl.openEditAccountModal(curAccount)">{{curAccount.accountName}}</span>
                         </span>
                         <button class="btn btn-primary btn-sm mr-3" data-ng-click="$ctrl.showAddAccount()" type="button">Add Account</button>
@@ -46,7 +46,7 @@
 
                         <div data-ng-if="$ctrl.spendingChartData" style="width: 400px; height: 150px; display: inline-block; float: right;">
                             <div style="width: 200px; height: 150px; display: inline-block;">
-                                <canvas width="200" height="150" class="chart chart-doughnut" data-chart-data="$ctrl.spendingChartData" data-chart-labels="$ctrl.spendingChartLabels" legend="true"></canvas>
+                                <canvas data-ng-if="$ctrl.showDonut" width="200" height="150" class="chart chart-doughnut" data-chart-data="$ctrl.spendingChartData" data-chart-labels="$ctrl.spendingChartLabels" legend="true"></canvas>
                             </div>
                             <div style="display: inline-block; width: 200px;">
                                 <div data-ng-repeat="curEntry in $ctrl.spendingChartLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.spendingChartData[$index] | currency}}</div>
@@ -93,13 +93,23 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-12">
+                <div class="col-md-4 col-sm-12" data-ng-if="!$ctrl.editingTransaction.isSplit">
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">{{$ctrl.homeName}}:</label>
                         <div class="col-sm-8 col-xs-12">
                             <select class="form-control form-control-sm" data-ng-model="$ctrl.editingTransaction.associatedUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
                                 <option value=""></option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4" data-ng-if="$ctrl.editingTransaction.isSplit">
+                    <div class="form-group row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Account:</label>
+                        <div class="col-sm-8 col-xs-12">
+                            <select data-ng-if="!$ctrl.editingTransaction.plaidTransactionId" class="form-control form-control-sm" data-ng-options="a.ledgerAccountId as a.accountName for a in $ctrl.ledgerAccounts" data-ng-model="$ctrl.editingTransaction.ledgerAccountId"></select>
+                            <span data-ng-if="$ctrl.editingTransaction.plaidTransactionId" class="note-text">This entry came from Plaid so cannot be changed.</span>
                         </div>
                     </div>
                 </div>
@@ -113,7 +123,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-6 col-sm-12" data-ng-if="!$ctrl.editingTransaction.isSplit">
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Category:</label>
                         <div class="col-sm-8 col-xs-12">
@@ -124,7 +134,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-sm-12 col-md-6" data-ng-if="!$ctrl.editingTransaction.isSplit">
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Account:</label>
                         <div class="col-sm-8 col-xs-12">
@@ -133,8 +143,55 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <div class="row" data-ng-if="$ctrl.editingTransaction.splitEntries.length > 0">
+                <div class="col-sm-12">
+                    <h4>Split Transactions</h4>
+                    <table style="display: block;">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Category</th>
+                                <th>Description</th>
+                                <th style="width: 12%;">Unit</th>
+                                <th style="width: 15%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ng-repeat="curSplit in $ctrl.editingTransaction.splitEntries">
+                                <td>
+                                    <select class="form-control form-control-sm" data-ng-options="c.financialCategoryId as c.dropDownLabel for c in $ctrl.flatCategoryList" data-ng-model="curSplit.financialCategoryId">
+                                        <option></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" data-ng-model="curSplit.description" />
+                                </td>
+                                <td>
+                                    <select class="form-control form-control-sm" data-ng-model="curSplit.associatedUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm" style="width:80%; display: inline;" step=".01" pattern="^-?\d+(?:\.\d{1,2})?$" data-ng-model="curSplit.amount" data-ng-change="$ctrl.onSplitAmountChange()" />
+                                    <span class="close-x" style="display: inline; margin: 0;" data-ng-click="$ctrl.removeSplit(curSplit)">&times;</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row" data-ng-if="$ctrl.editingTransaction.isSplit && !$ctrl.isSplitAmountEqual && $ctrl.editingTransaction.amount">
+                <div class="col-sm-12 text-right" style="font-weight: bold; color: red;">
+                    The split total is {{$ctrl.splitAmountTotal | currency}} but must equal {{$ctrl.editingTransaction.amount | currency}}
+                </div>
+            </div>
+
+            <div class="row mt-3">
                 <div class="col-sm-12 text-right">
+                    <button type="button" style="float: left;" class="btn btn-secondary" data-ng-click="$ctrl.splitTransaction()">Split Transaction</button>
+
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSaveEntry()">Save</button>
                     <button id="cancel-entry-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.editingTransaction = null">Cancel</button>
                 </div>

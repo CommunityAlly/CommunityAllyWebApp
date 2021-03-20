@@ -17,12 +17,13 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function LedgerController($http, siteInfo, appCacheService, uiGridConstants, $rootScope) {
+        function LedgerController($http, siteInfo, appCacheService, uiGridConstants, $rootScope, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
             this.$rootScope = $rootScope;
+            this.$timeout = $timeout;
             this.isLoading = false;
             this.isLoadingEntries = false;
             this.ledgerAccounts = [];
@@ -41,6 +42,7 @@ var Ally;
             this.shouldShowCategoryEditModal = false;
             this.spendingChartData = null;
             this.spendingChartLabels = null;
+            this.showDonut = true;
             this.isSuperAdmin = false;
         }
         /**
@@ -165,7 +167,7 @@ var Ally;
                     }
                 };
                 visitNode(pageInfo.rootFinancialCategory, 0);
-                _this.updateLocalFilter();
+                _this.updateLocalData();
                 var uiGridCategoryDropDown = [];
                 uiGridCategoryDropDown.push({ id: null, value: "" });
                 for (var i = 0; i < _this.flatCategoryList.length; ++i) {
@@ -192,12 +194,14 @@ var Ally;
             });
         };
         /**
-         * Populate the text that is shown for the unit column
+         * Populate the text that is shown for the unit column and split for category
          */
         LedgerController.prototype.populateGridUnitLabels = function () {
             var _this = this;
             // Populate the unit names for the grid
             _.each(this.allEntries, function (entry) {
+                if (entry.isSplit)
+                    entry.categoryDisplayName = "(split)";
                 if (!entry.associatedUnitId)
                     return;
                 entry.unitGridLabel = _this.allUnits.find(function (u) { return u.unitId === entry.associatedUnitId; }).name;
@@ -212,11 +216,11 @@ var Ally;
             this.$http.get(getUri).then(function (httpResponse) {
                 _this.isLoadingEntries = false;
                 _this.allEntries = httpResponse.data.entries;
-                _this.updateLocalFilter();
+                _this.updateLocalData();
                 _this.populateGridUnitLabels();
             });
         };
-        LedgerController.prototype.updateLocalFilter = function () {
+        LedgerController.prototype.updateLocalData = function () {
             var enabledAccountIds = this.ledgerAccounts.filter(function (a) { return a.shouldShowInGrid; }).map(function (a) { return a.ledgerAccountId; });
             var filteredList = this.allEntries.filter(function (e) { return enabledAccountIds.indexOf(e.ledgerAccountId) > -1; });
             this.ledgerGridOptions.data = filteredList;
@@ -242,8 +246,20 @@ var Ally;
                 }
                 return 0;
             };
-            var entriesByParentCat = _.groupBy(this.allEntries, function (e) { return getParentCategoryId(e.financialCategoryId); });
+            var flattenedTransactions = [];
+            for (var i = 0; i < this.allEntries.length; ++i) {
+                if (this.allEntries[i].isSplit) {
+                    for (var _i = 0, _a = this.allEntries[i].splitEntries; _i < _a.length; _i++) {
+                        var e = _a[_i];
+                        flattenedTransactions.push(e);
+                    }
+                }
+                else
+                    flattenedTransactions.push(this.allEntries[i]);
+            }
+            var entriesByParentCat = _.groupBy(flattenedTransactions, function (e) { return getParentCategoryId(e.financialCategoryId); });
             var spendingChartEntries = [];
+            // Go through all the parent categories and sum the transactions under them
             var parentCatIds = _.keys(entriesByParentCat);
             var _loop_2 = function (i) {
                 var parentCategoryId = +parentCatIds[i];
@@ -274,6 +290,9 @@ var Ally;
                 this.spendingChartData.push(spendingChartEntries[i].sumTotal);
                 this.spendingChartLabels.push(spendingChartEntries[i].parentCategoryDisplayName);
             }
+            // Force redraw
+            this.showDonut = false;
+            this.$timeout(function () { return _this.showDonut = true; }, 100);
         };
         /**
          * Occurs when the user clicks the button to add a new transaction
@@ -290,7 +309,6 @@ var Ally;
         };
         LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId, selectedAccountIds) {
             var _this = this;
-            if (selectedAccountIds === void 0) { selectedAccountIds = null; }
             this.isLoading = true;
             this.plaidSuccessProgressMsg = "Contacting Plaid server for selected account information";
             var postData = {
@@ -298,7 +316,8 @@ var Ally;
                 updatePlaidItemId: updatePlaidItemId,
                 selectedAccountIds: selectedAccountIds
             };
-            this.$http.post("/api/Plaid/ProcessAccessToken", postData).then(function (httpResponse) {
+            var postUri = updatePlaidItemId ? "/api/Plaid/UpdateAccessToken" : "/api/Plaid/ProcessNewAccessToken";
+            this.$http.post(postUri, postData).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.plaidSuccessProgressMsg = "Account information successfully retrieved";
                 _this.newPlaidAccounts = httpResponse.data;
@@ -329,14 +348,14 @@ var Ally;
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid update onSuccess");
-                        _this.completePlaidSync(public_token, ledgerAccount.plaidItemId);
+                        _this.completePlaidSync(public_token, ledgerAccount.plaidItemId, null);
                     },
                     onLoad: function () { },
                     onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
                     onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
                 });
-                _this.startPlaidFlow();
+                _this.plaidHandler.open();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to start account update: " + httpResponse.data.exceptionMessage);
@@ -347,6 +366,8 @@ var Ally;
          */
         LedgerController.prototype.editEntry = function (entry) {
             this.editingTransaction = _.clone(entry);
+            if (this.editingTransaction.isSplit)
+                this.onSplitAmountChange();
         };
         /**
          * Occurs when the user wants to delete a transaction
@@ -371,6 +392,24 @@ var Ally;
          */
         LedgerController.prototype.onSaveEntry = function () {
             var _this = this;
+            if (!this.editingTransaction.isSplit) {
+                if (!this.editingTransaction.description) {
+                    alert("Description is required");
+                    return;
+                }
+                if (!this.editingTransaction.amount) {
+                    alert("Non-zero amount is required");
+                    return;
+                }
+            }
+            else {
+                for (var i = 0; i < this.editingTransaction.splitEntries.length; ++i) {
+                    if (!this.editingTransaction.splitEntries[i].amount) {
+                        alert("A non-zero amount is required for all split transaction entries");
+                        return;
+                    }
+                }
+            }
             this.isLoading = true;
             var onSave = function (httpResponse) {
                 _this.isLoading = false;
@@ -424,8 +463,8 @@ var Ally;
                         _this.completePlaidSync(public_token, null, selectedAccountIds);
                     },
                     onLoad: function () { },
-                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
-                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
                 });
                 _this.plaidHandler.open();
@@ -534,7 +573,23 @@ var Ally;
                 alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
         };
-        LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
+        LedgerController.prototype.splitTransaction = function () {
+            if (!this.editingTransaction.splitEntries)
+                this.editingTransaction.splitEntries = [];
+            this.editingTransaction.splitEntries.push(new LedgerEntry());
+            this.editingTransaction.isSplit = true;
+        };
+        LedgerController.prototype.onSplitAmountChange = function () {
+            this.splitAmountTotal = this.editingTransaction.splitEntries.reduce(function (sum, e) { return sum + e.amount; }, 0);
+            var roundedSplit = Math.round(this.splitAmountTotal * 100);
+            var roundedTotal = Math.round(this.editingTransaction.amount * 100);
+            this.isSplitAmountEqual = roundedSplit === roundedTotal;
+        };
+        LedgerController.prototype.removeSplit = function (splitEntry) {
+            this.editingTransaction.splitEntries.splice(this.editingTransaction.splitEntries.indexOf(splitEntry), 1);
+            this.onSplitAmountChange();
+        };
+        LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;
     }());
     Ally.LedgerController = LedgerController;

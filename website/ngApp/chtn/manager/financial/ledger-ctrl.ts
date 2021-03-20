@@ -7,7 +7,7 @@ namespace Ally
      */
     export class LedgerController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope"];
+        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
 
         isLoading: boolean = false;
         isLoadingEntries: boolean = false;
@@ -33,11 +33,14 @@ namespace Ally
         shouldShowCategoryEditModal: boolean = false;
         spendingChartData: number[] | null = null;
         spendingChartLabels: string[] | null = null;
+        showDonut: boolean = true;
         preselectCategoryId: number | undefined;
         isSuperAdmin: boolean = false;
         homeName: string;
         allUnits: Ally.Unit[];
         plaidSuccessProgressMsg: string;
+        splitAmountTotal: number;
+        isSplitAmountEqual: boolean;
 
 
         /**
@@ -47,7 +50,8 @@ namespace Ally
             private siteInfo: Ally.SiteInfoService,
             private appCacheService: AppCacheService,
             private uiGridConstants: uiGrid.IUiGridConstants,
-            private $rootScope: ng.IRootScopeService )
+            private $rootScope: ng.IRootScopeService,
+            private $timeout: ng.ITimeoutService )
         {
         }
 
@@ -211,7 +215,7 @@ namespace Ally
                     };
                     visitNode( pageInfo.rootFinancialCategory, 0 );
 
-                    this.updateLocalFilter();
+                    this.updateLocalData();
 
                     const uiGridCategoryDropDown = [];
                     uiGridCategoryDropDown.push( { id: null, value: "" } );
@@ -251,13 +255,16 @@ namespace Ally
 
 
         /**
-         * Populate the text that is shown for the unit column
+         * Populate the text that is shown for the unit column and split for category
          */
         populateGridUnitLabels()
         {
             // Populate the unit names for the grid
             _.each( this.allEntries, ( entry ) =>
             {
+                if( entry.isSplit )
+                    entry.categoryDisplayName = "(split)";
+
                 if( !entry.associatedUnitId )
                     return;
 
@@ -279,14 +286,14 @@ namespace Ally
                 this.isLoadingEntries = false;
 
                 this.allEntries = httpResponse.data.entries;
-                this.updateLocalFilter();
+                this.updateLocalData();
 
                 this.populateGridUnitLabels();
             } );
         }
 
 
-        updateLocalFilter()
+        updateLocalData()
         {
             const enabledAccountIds = this.ledgerAccounts.filter( a => a.shouldShowInGrid ).map( a => a.ledgerAccountId );
 
@@ -324,10 +331,23 @@ namespace Ally
                 return 0;
             };
 
-            const entriesByParentCat = _.groupBy( this.allEntries, e => getParentCategoryId( e.financialCategoryId ) );
+            const flattenedTransactions = [];
+            for( let i = 0; i < this.allEntries.length; ++i )
+            {
+                if( this.allEntries[i].isSplit )
+                {
+                    for( let e of this.allEntries[i].splitEntries )
+                        flattenedTransactions.push( e );
+                }
+                else
+                    flattenedTransactions.push( this.allEntries[i] );
+            }
+
+            const entriesByParentCat = _.groupBy( flattenedTransactions, e => getParentCategoryId( e.financialCategoryId ) );
 
             let spendingChartEntries: SpendingChartEntry[] = [];
 
+            // Go through all the parent categories and sum the transactions under them
             const parentCatIds = _.keys( entriesByParentCat );
             for( let i = 0; i < parentCatIds.length; ++i )
             {
@@ -362,6 +382,10 @@ namespace Ally
                 this.spendingChartData.push( spendingChartEntries[i].sumTotal );
                 this.spendingChartLabels.push( spendingChartEntries[i].parentCategoryDisplayName );
             }
+
+            // Force redraw
+            this.showDonut = false;
+            this.$timeout( () => this.showDonut = true, 100 );
         }
 
 
@@ -384,24 +408,25 @@ namespace Ally
         }
 
 
-        completePlaidSync( accessToken: string, updatePlaidItemId: string, selectedAccountIds: string[] = null )
+        completePlaidSync( accessToken: string, updatePlaidItemId: string, selectedAccountIds: string[] )
         {
             this.isLoading = true;
             this.plaidSuccessProgressMsg = "Contacting Plaid server for selected account information";
 
             const postData = {
                 accessToken,
-                updatePlaidItemId, 
+                updatePlaidItemId,
                 selectedAccountIds
             };
-            
-            this.$http.post( "/api/Plaid/ProcessAccessToken", postData ).then(
+
+            const postUri = updatePlaidItemId ? "/api/Plaid/UpdateAccessToken" : "/api/Plaid/ProcessNewAccessToken";
+            this.$http.post( postUri, postData ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerAccount[]> ) =>
                 {
                     this.isLoading = false;
 
                     this.plaidSuccessProgressMsg = "Account information successfully retrieved";
-                    
+
                     this.newPlaidAccounts = httpResponse.data;
 
                     if( updatePlaidItemId )
@@ -447,7 +472,7 @@ namespace Ally
                         onSuccess: ( public_token: string, metadata: any ) =>
                         {
                             console.log( "Plaid update onSuccess" );
-                            this.completePlaidSync( public_token, ledgerAccount.plaidItemId );
+                            this.completePlaidSync( public_token, ledgerAccount.plaidItemId, null );
                         },
                         onLoad: () => { },
                         onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
@@ -455,7 +480,7 @@ namespace Ally
                         receivedRedirectUri: null,
                     } );
 
-                    this.startPlaidFlow();
+                    this.plaidHandler.open();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -472,6 +497,8 @@ namespace Ally
         editEntry( entry: LedgerEntry )
         {
             this.editingTransaction = _.clone( entry );
+            if( this.editingTransaction.isSplit )
+                this.onSplitAmountChange();
         }
 
 
@@ -507,6 +534,32 @@ namespace Ally
          */
         onSaveEntry()
         {
+            if( !this.editingTransaction.isSplit )
+            {
+                if( !this.editingTransaction.description )
+                {
+                    alert( "Description is required" );
+                    return;
+                }
+
+                if( !this.editingTransaction.amount )
+                {
+                    alert( "Non-zero amount is required" );
+                    return;
+                }
+            }
+            else
+            {
+                for( let i = 0; i < this.editingTransaction.splitEntries.length; ++i )
+                {
+                    if( !this.editingTransaction.splitEntries[i].amount )
+                    {
+                        alert( "A non-zero amount is required for all split transaction entries" );
+                        return;
+                    }
+                }
+            }
+
             this.isLoading = true;
 
             const onSave = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
@@ -552,6 +605,7 @@ namespace Ally
             this.$http.post( "/api/Ledger/NewBankAccount", this.createAccountInfo ).then( onSave, onError );
         }
 
+
         startPlaidFlow()
         {
             if( this.createAccountInfo )
@@ -583,8 +637,8 @@ namespace Ally
                             this.completePlaidSync( public_token, null, selectedAccountIds );
                         },
                         onLoad: () => { },
-                        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
-                        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
+                        onExit: ( err: any, metadata: any ) => { console.log( "update onExit.err", err, metadata ); },
+                        onEvent: ( eventName: string, metadata: any ) => { console.log( "update onEvent.eventName", eventName, metadata ); },
                         receivedRedirectUri: null,
                     } );
 
@@ -621,16 +675,19 @@ namespace Ally
             //} );
         }
 
+
         openEditAccountModal( account: LedgerAccount )
         {
             this.editAccount = _.clone( account );
         }
+
 
         closeAccountAndReload()
         {
             this.createAccountInfo = null;
             this.fullRefresh();
         }
+
 
         onEditAccount()
         {
@@ -651,6 +708,7 @@ namespace Ally
                 }
             );
         }
+
 
         syncPlaidAccounts( shouldSyncRecent: boolean )
         {
@@ -674,11 +732,13 @@ namespace Ally
             );
         }
 
+
         onFilterDescriptionChange()
         {
             if( this.filter.description.length > 2 || this.filter.description.length == 0 )
                 this.refreshEntries();
         }
+
 
         onEditTransactionCategoryChange()
         {
@@ -712,7 +772,7 @@ namespace Ally
                     {
                         uiGridUnitDropDown.push( { id: this.allUnits[i].unitId, value: this.allUnits[i].name } );
                     }
-                    
+
                     const unitColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
                     unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
 
@@ -749,6 +809,33 @@ namespace Ally
                     alert( "Failed to delete: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        splitTransaction()
+        {
+            if( !this.editingTransaction.splitEntries )
+                this.editingTransaction.splitEntries = [];
+
+            this.editingTransaction.splitEntries.push( new LedgerEntry() );
+            this.editingTransaction.isSplit = true;
+        }
+
+
+        onSplitAmountChange()
+        {
+            this.splitAmountTotal = this.editingTransaction.splitEntries.reduce( ( sum, e ) => sum + e.amount, 0 );
+
+            const roundedSplit = Math.round( this.splitAmountTotal * 100 );
+            const roundedTotal = Math.round( this.editingTransaction.amount * 100 );
+            this.isSplitAmountEqual = roundedSplit === roundedTotal;
+        }
+
+
+        removeSplit( splitEntry: LedgerEntry )
+        {
+            this.editingTransaction.splitEntries.splice( this.editingTransaction.splitEntries.indexOf( splitEntry ), 1 );
+            this.onSplitAmountChange();
         }
     }
 
@@ -803,8 +890,11 @@ namespace Ally
         addedDateUtc: Date;
         plaidTransactionId: string;
         associatedUnitId: number | null;
+        isSplit: boolean;
+        parentLedgerEntryId: number | null;
         accountName: string;
         categoryDisplayName: string;
+        splitEntries: LedgerEntry[] | null;
 
         unitGridLabel: string;
     }
