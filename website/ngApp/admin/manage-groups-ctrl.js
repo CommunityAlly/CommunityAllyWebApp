@@ -17,8 +17,7 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManageGroupsController($timeout, $http, siteInfo) {
-            this.$timeout = $timeout;
+        function ManageGroupsController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.newAssociation = new GroupEntry();
@@ -322,7 +321,7 @@ var Ally;
                 alert("Failed: " + response.data.exceptionMessage);
             });
         };
-        ManageGroupsController.$inject = ["$timeout", "$http", "SiteInfo"];
+        ManageGroupsController.$inject = ["$http", "SiteInfo"];
         return ManageGroupsController;
     }());
     Ally.ManageGroupsController = ManageGroupsController;

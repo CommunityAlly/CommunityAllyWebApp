@@ -26,7 +26,7 @@
      */
     export class ManageGroupsController implements ng.IController
     {
-        static $inject = ["$timeout", "$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo"];
         groups: GroupEntry[];
         newAssociation: GroupEntry = new GroupEntry();
         changeShortNameData: any = { appName: "Condo" };
@@ -61,7 +61,7 @@
         /**
         * The constructor for the class
         */
-        constructor( private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
         {
         }
 
