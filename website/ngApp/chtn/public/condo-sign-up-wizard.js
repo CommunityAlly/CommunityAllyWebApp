@@ -252,20 +252,21 @@ var Ally;
          * Called when the user press the button to complete the sign-up process
          */
         CondoSignUpWizardController.prototype.onFinishedWizard = function () {
+            var _this = this;
             this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
                 alert("Please complete the reCAPTCHA field");
                 return;
             }
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/SignUpWizard", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var signUpResult = httpResponse.data;
                 // If the was an error creating the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
-                    innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    _this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    grecaptcha.reset();
                 }
                 // Otherwise create succeeded
                 else {
@@ -283,14 +284,14 @@ var Ally;
                     }
                     // Otherwise the user needs to confirm sign-up via e-mail
                     else {
-                        innerThis.hideWizard = true;
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.hideWizard = true;
+                        _this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
-                innerThis.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert("Failed to complete sign-up: " + errorMessage);
+                _this.isLoading = false;
+                alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
+                grecaptcha.reset();
             });
         };
         CondoSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];

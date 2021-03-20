@@ -38,14 +38,14 @@ namespace Ally
         map: google.maps.Map = null;
         mapMarker: google.maps.Marker;
         isLoadingMap: boolean = false;
-        hideWizard: boolean  = false;
+        hideWizard: boolean = false;
         resultMessage: string;
         hoaPoly: any = { vertices: [] };
         showMap = false;
         hoaAlertEmail: string;
         hoaAlertNumHomes: string;
         didSignUpForHoaAlert: boolean = false;
-        
+
         // The default sign-up info object
         signUpInfo = new Ally.HoaSignUpInfo();
 
@@ -296,52 +296,55 @@ namespace Ally
 
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
 
-            this.$http.post( "/api/SignUpWizard/Hoa", this.signUpInfo ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-
-                const signUpResult: any = httpResponse.data;
-
-                // If the was an error creating the site
-                if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
+            this.$http.post( "/api/SignUpWizard/Hoa", this.signUpInfo ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
-                    this.WizardHandler.wizard().goTo( signUpResult.stepIndex );
-                }
-                // Otherwise create succeeded
-                else
-                {
-                    if( typeof ( ( <any>window ).analytics ) !== "undefined" )
-                        ( <any>window ).analytics.track( "condoSignUpComplete" );
+                    this.isLoading = false;
 
-                    // Log this as a conversion
-                    if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
-                        ( <any>window ).goog_report_conversion();
+                    const signUpResult: any = httpResponse.data;
 
-                    if( this.signUpInfo.referralSource && typeof ( ( <any>window ).capterra_trackingListener_v2 ) !== "undefined" )
-                        ( <any>window ).capterra_trackingListener_v2();
-
-                    // Or if the user created an active signUpResult
-                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                    // If the was an error creating the site
+                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
                     {
-                        // Delay just a bit to let the Capterra tracking log, if needed
-                        window.setTimeout( () => window.location.href = signUpResult.createUrl, 50 );
+                        alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
+                        this.WizardHandler.wizard().goTo( signUpResult.stepIndex );
+                        grecaptcha.reset();
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise create succeeded
                     else
                     {
-                        this.hideWizard = true;
+                        if( typeof ( ( <any>window ).analytics ) !== "undefined" )
+                            ( <any>window ).analytics.track( "condoSignUpComplete" );
 
-                        this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        // Log this as a conversion
+                        if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
+                            ( <any>window ).goog_report_conversion();
+
+                        if( this.signUpInfo.referralSource && typeof ( ( <any>window ).capterra_trackingListener_v2 ) !== "undefined" )
+                            ( <any>window ).capterra_trackingListener_v2();
+
+                        // Or if the user created an active signUpResult
+                        if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                        {
+                            // Delay just a bit to let the Capterra tracking log, if needed
+                            window.setTimeout( () => window.location.href = signUpResult.createUrl, 50 );
+                        }
+                        // Otherwise the user needs to confirm sign-up via e-mail
+                        else
+                        {
+                            this.hideWizard = true;
+
+                            this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        }
                     }
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
+                    grecaptcha.reset();
                 }
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-
-                alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
-            } );
+            );
         }
 
 
@@ -355,7 +358,7 @@ namespace Ally
                 alert( "Please enter a valid e-mail address" );
                 return;
             }
-            
+
             this.isLoading = true;
 
             this.$http.get( "/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent( this.hoaAlertEmail ) + "&numHomes=" + encodeURIComponent( this.hoaAlertNumHomes ) ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>

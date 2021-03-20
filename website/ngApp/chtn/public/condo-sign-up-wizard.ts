@@ -19,7 +19,7 @@ namespace Ally
         isLoadingMap: boolean = false;
         hideWizard: boolean = false;
         resultMessage: string;
-        
+
         // The default sign-up info object
         signUpInfo: any = {
             buildings: [{
@@ -105,7 +105,7 @@ namespace Ally
             }
 
             this.shouldShowHoaMessage = this.signUpInfo.name.toLowerCase().indexOf( "hoa" ) !== -1
-                                    || this.signUpInfo.name.toLowerCase().indexOf( "home" ) !== -1;
+                || this.signUpInfo.name.toLowerCase().indexOf( "home" ) !== -1;
         }
 
 
@@ -364,53 +364,55 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/SignUpWizard", this.signUpInfo ).then( function( httpResponse )
-            {
-                innerThis.isLoading = false;
-
-                var signUpResult: any = httpResponse.data;
-
-                // If the was an error creating the site
-                if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
+            this.$http.post( "/api/SignUpWizard", this.signUpInfo ).then(
+                ( httpResponse ) =>
                 {
-                    alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
-                    innerThis.WizardHandler.wizard().goTo( signUpResult.stepIndex );
-                }
-                // Otherwise create succeeded
-                else
-                {
-                    if( typeof ( ( <any>window ).analytics ) !== "undefined" )
-                        ( <any>window ).analytics.track( "condoSignUpComplete", {
-                            category: "SignUp",
-                            label: "Success"
-                        } );
+                    this.isLoading = false;
 
-                    // Log this as a conversion
-                    //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
-                    //    ( <any>window ).goog_report_conversion();
+                    var signUpResult: any = httpResponse.data;
 
-                    // Or if the user created an active signUpResult
-                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                    // If the was an error creating the site
+                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
                     {
-                        window.location.href = signUpResult.createUrl;
+                        alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
+                        this.WizardHandler.wizard().goTo( signUpResult.stepIndex );
+                        grecaptcha.reset();
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise create succeeded
                     else
                     {
-                        innerThis.hideWizard = true;
+                        if( typeof ( ( <any>window ).analytics ) !== "undefined" )
+                            ( <any>window ).analytics.track( "condoSignUpComplete", {
+                                category: "SignUp",
+                                label: "Success"
+                            } );
 
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        // Log this as a conversion
+                        //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
+                        //    ( <any>window ).goog_report_conversion();
+
+                        // Or if the user created an active signUpResult
+                        if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                        {
+                            window.location.href = signUpResult.createUrl;
+                        }
+                        // Otherwise the user needs to confirm sign-up via e-mail
+                        else
+                        {
+                            this.hideWizard = true;
+
+                            this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        }
                     }
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
+                    grecaptcha.reset();
                 }
-
-            }, function( httpResponse )
-            {
-                innerThis.isLoading = false;
-
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to complete sign-up: " + errorMessage );
-            } );
+            );
         }
     }
 }

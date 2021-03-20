@@ -216,6 +216,7 @@ var Ally;
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
                     _this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    grecaptcha.reset();
                 }
                 // Otherwise create succeeded
                 else {
@@ -240,6 +241,7 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
+                grecaptcha.reset();
             });
         };
         /**
