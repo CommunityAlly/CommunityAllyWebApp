@@ -138,7 +138,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "Info/:viewName", templateHtml: "<association-info></association-info>" } ),
         new Ally.RoutePath_v3( { path: "Logbook", templateHtml: "<logbook-page></logbook-page>", menuTitle: "Calendar" } ),
         new Ally.RoutePath_v3( { path: "Map", templateHtml: "<chtn-map></chtn-map>", menuTitle: "Map" } ),
-        new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Residents" } ),
+        new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Directory" } ),
         new Ally.RoutePath_v3( { path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>" } ),
         new Ally.RoutePath_v3( { path: "Committee/:committeeId/Home/DiscussionThread/:discussionThreadId", templateHtml: "<committee-parent></committee-parent>" } ),
 
@@ -285,11 +285,11 @@ NeighborhoodAppConfig.baseUrl = "https://neighborhoodally.org/";
 NeighborhoodAppConfig.homeName = "Home";
 
 // Remove Residents and Manage Residents
-NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
+NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents" || mi.menuTitle === "Directory"; } );
 
 // Add them back under the name "Members"
 NeighborhoodAppConfig.menu.push( new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
-NeighborhoodAppConfig.menu.splice( 0, 0, new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
+NeighborhoodAppConfig.menu.splice( 0, 0, new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager } ) );
 
 // Remove assessment history and add dues history
 NeighborhoodAppConfig.menu = _.reject( NeighborhoodAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
@@ -311,11 +311,11 @@ BlockClubAppConfig.homeName = "Home";
 BlockClubAppConfig.memberTypeLabel = "Member";
 
 // Remove Residents and Manage Residents
-BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents"; } );
+BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Residents" || mi.menuTitle === "Directory"; } );
 
 // Add them back under the name "Members"
 BlockClubAppConfig.menu.push( new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" } ) );
-BlockClubAppConfig.menu.splice( 0, 0, new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ) );
+BlockClubAppConfig.menu.splice( 0, 0, new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager } ) );
 
 // Remove assessment history and add dues history
 BlockClubAppConfig.menu = _.reject( BlockClubAppConfig.menu, function( mi ) { return mi.menuTitle === "Assessment History"; } );
