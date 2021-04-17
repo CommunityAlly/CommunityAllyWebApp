@@ -68,6 +68,10 @@
         <div style="height: 20px;"></div> <!-- Need to do because of the ui-grid footer floats -->
     </div>
 
+    <div class="mb-2">
+        <span class="note-text text-link pull-right" data-ng-click="$ctrl.exportTransactionsCsv()">Export To CSV</span>
+    </div>
+
     <div data-ng-if="$ctrl.editingTransaction" class="modal-container">
         <div class="modal-overlay" data-ng-click="$ctrl.editingTransaction = null"></div>
         <div class="ca-modal-dialog modal-lg container">

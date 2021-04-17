@@ -837,6 +837,49 @@ namespace Ally
             this.editingTransaction.splitEntries.splice( this.editingTransaction.splitEntries.indexOf( splitEntry ), 1 );
             this.onSplitAmountChange();
         }
+
+
+        /** Export the transactions list as a CSV */
+        exportTransactionsCsv()
+        {
+            var csvColumns = [
+                {
+                    headerText: "Date",
+                    fieldName: "transactionDate",
+                    dataMapper: function( value: Date )
+                    {
+                        if( !value )
+                            return "";
+
+                        return moment( value ).format( "YYYY-MM-DD" );
+                    }
+                },
+                {
+                    headerText: "Account",
+                    fieldName: "accountName"
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Category",
+                    fieldName: "categoryDisplayName"
+                },
+                {
+                    headerText: AppConfig.homeName,
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Amount",
+                    fieldName: "amount"
+                }
+            ];
+
+            var csvDataString = Ally.createCsvString( this.ledgerGridOptions.data as LedgerEntry[], csvColumns );
+
+            HtmlUtil2.downloadCsv( csvDataString, "Transactions.csv" );
+        }
     }
 
     class CategoryOption
