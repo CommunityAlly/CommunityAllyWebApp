@@ -227,6 +227,11 @@ namespace Ally
 
             let viewDocWindow: Window;
 
+            // Force download of RTFs. Eventually we'll make this a allow-list of extensions that
+            // browsers can display directly
+            if( this.getDisplayExtension( curFile ) === ".rtf" )
+                isForDownload = true;
+
             if( !isForDownload )
             {
                 viewDocWindow = window.open( '', '_blank' );
@@ -256,7 +261,7 @@ namespace Ally
                     {
                         var link = document.createElement( 'a' );
                         link.setAttribute( "type", "hidden" ); // make it hidden if needed
-                        link.href = fileUri;
+                        link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);
                         link.download = curFile.fileName;
                         document.body.appendChild( link );
                         link.click();
