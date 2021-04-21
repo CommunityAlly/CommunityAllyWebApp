@@ -224,7 +224,7 @@ var Ally;
         //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
         // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
         // regex is needed for the dates that come down
-        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
+        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
         return HtmlUtil2;
     }());
     Ally.HtmlUtil2 = HtmlUtil2;
