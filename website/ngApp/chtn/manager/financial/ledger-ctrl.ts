@@ -979,10 +979,6 @@ namespace Ally
                     }
                 },
                 {
-                    headerText: "Account",
-                    fieldName: "accountName"
-                },
-                {
                     headerText: "Description",
                     fieldName: "description"
                 },
@@ -997,6 +993,10 @@ namespace Ally
                 {
                     headerText: "Amount",
                     fieldName: "amount"
+                },
+                {
+                    headerText: "Account",
+                    fieldName: "accountName"
                 }
             ];
 
