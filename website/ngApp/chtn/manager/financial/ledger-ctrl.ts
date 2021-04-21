@@ -13,6 +13,7 @@ namespace Ally
         isLoadingEntries: boolean = false;
         ledgerGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
         ledgerGridApi: uiGrid.IGridApiOf<LedgerEntry>;
+        previewImportGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
         ledgerAccounts: LedgerAccount[] = [];
         accountsNeedingLogin: LedgerAccount[] = [];
         shouldShowAddTransaction: boolean = false;
@@ -41,6 +42,8 @@ namespace Ally
         plaidSuccessProgressMsg: string;
         splitAmountTotal: number;
         isSplitAmountEqual: boolean;
+        bulkImportAccountId: number;
+        shouldShowImportModal: boolean = false;
 
 
         /**
@@ -125,6 +128,24 @@ namespace Ally
                         //$scope.$apply();
                     } );
                 }
+            };
+
+            this.previewImportGridOptions =
+            {
+                columnDefs:
+                    [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
+                        { field: 'id', displayName: '', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 40, cellTemplate: '<div class="ui-grid-cell-contents text-center"><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.removeImportRow( row.entity )" style="color: red;">&times;</span></div>' }
+                    ],
+                enableSorting: true,
+                showColumnFooter: false,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableColumnMenus: false
             };
 
             const preselectStartMillis = parseInt( this.appCacheService.getAndClear( "ledger_preselect_start" ) );
@@ -836,6 +857,109 @@ namespace Ally
         {
             this.editingTransaction.splitEntries.splice( this.editingTransaction.splitEntries.indexOf( splitEntry ), 1 );
             this.onSplitAmountChange();
+        }
+
+        openImportFilePicker()
+        {
+            document.getElementById( 'importTransactionFileInput' ).click();
+        }
+
+        openImportModal()
+        {
+            this.shouldShowImportModal = true;
+            this.previewImportGridOptions.data = null
+        }
+
+        onImportFileSelected( event: any )
+        {
+            const importTransactionsFile = event.target.files[0];
+            if( !importTransactionsFile )
+                return;
+
+            this.isLoading = true;
+
+            const formData = new FormData();
+            formData.append( "importFile", importTransactionsFile );
+
+            const postHeaders: ng.IRequestShortcutConfig = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+
+            this.$http.post( "/api/Ledger/PreviewImport", formData, postHeaders ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerEntry[]> ) =>
+                {
+                    this.isLoading = false;
+                    const fileElem = document.getElementById( "importTransactionFileInput" ) as HTMLInputElement;
+                    fileElem.value = "";
+
+                    this.previewImportGridOptions.data = httpResponse.data;
+
+                    for( let i = 0; i < this.previewImportGridOptions.data.length; ++i )
+                    {
+                        const curEntry = this.previewImportGridOptions.data[i];
+                        curEntry.ledgerEntryId = i;
+
+                        const unit = this.allUnits.find( u => u.unitId === curEntry.associatedUnitId );
+                        if( unit )
+                            curEntry.unitGridLabel = unit.name;
+
+                        const catEntry = this.flatCategoryList.find( c => c.financialCategoryId === curEntry.financialCategoryId );
+                        curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
+                    }
+
+                    this.previewImportGridOptions.minRowsToShow = httpResponse.data.length;
+                    this.previewImportGridOptions.virtualizationThreshold = this.previewImportGridOptions.minRowsToShow;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to upload document: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /** Bulk import transactions */
+        importPreviewTransactions()
+        {
+            if( !this.bulkImportAccountId )
+            {
+                alert( "Please select the account into which these transactions will be imported using the drop-down above the grid." );
+                return;
+            }
+
+            this.isLoading = true;
+
+            const entries = this.previewImportGridOptions.data as LedgerEntry[];
+
+            for( let i = 0; i < entries.length; ++i )
+                entries[i].ledgerAccountId = this.bulkImportAccountId;
+
+            this.$http.post( "/api/Ledger/BulkImport", this.previewImportGridOptions.data ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.previewImportGridOptions.data = null;
+                    this.shouldShowImportModal = false;
+                    this.isLoading = false;
+                    this.refreshEntries();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to import: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        removeImportRow( entry: LedgerEntry )
+        {
+            // For import rows, the row index is stored in ledgerEntryId
+            const importEntries = this.previewImportGridOptions.data as LedgerEntry[];
+            importEntries.splice( entry.ledgerEntryId, 1 );
+
+            for( let i = 0; i < importEntries.length; ++i )
+                importEntries[i].ledgerEntryId = i;
         }
 
 

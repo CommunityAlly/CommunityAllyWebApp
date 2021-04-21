@@ -44,6 +44,7 @@ var Ally;
             this.spendingChartLabels = null;
             this.showDonut = true;
             this.isSuperAdmin = false;
+            this.shouldShowImportModal = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -102,6 +103,22 @@ var Ally;
                             //$scope.$apply();
                         });
                     }
+                };
+            this.previewImportGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
+                        { field: 'id', displayName: '', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 40, cellTemplate: '<div class="ui-grid-cell-contents text-center"><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.removeImportRow( row.entity )" style="color: red;">&times;</span></div>' }
+                    ],
+                    enableSorting: true,
+                    showColumnFooter: false,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false
                 };
             var preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
             if (!isNaN(preselectStartMillis)) {
@@ -588,6 +605,112 @@ var Ally;
         LedgerController.prototype.removeSplit = function (splitEntry) {
             this.editingTransaction.splitEntries.splice(this.editingTransaction.splitEntries.indexOf(splitEntry), 1);
             this.onSplitAmountChange();
+        };
+        LedgerController.prototype.openImportFilePicker = function () {
+            document.getElementById('importTransactionFileInput').click();
+        };
+        LedgerController.prototype.openImportModal = function () {
+            this.shouldShowImportModal = true;
+            this.previewImportGridOptions.data = null;
+        };
+        LedgerController.prototype.onImportFileSelected = function (event) {
+            var _this = this;
+            var importTransactionsFile = event.target.files[0];
+            if (!importTransactionsFile)
+                return;
+            this.isLoading = true;
+            var formData = new FormData();
+            formData.append("importFile", importTransactionsFile);
+            var postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            this.$http.post("/api/Ledger/PreviewImport", formData, postHeaders).then(function (httpResponse) {
+                _this.isLoading = false;
+                var fileElem = document.getElementById("importTransactionFileInput");
+                fileElem.value = "";
+                _this.previewImportGridOptions.data = httpResponse.data;
+                var _loop_3 = function (i) {
+                    var curEntry = _this.previewImportGridOptions.data[i];
+                    curEntry.ledgerEntryId = i;
+                    var unit = _this.allUnits.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
+                    if (unit)
+                        curEntry.unitGridLabel = unit.name;
+                    var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === curEntry.financialCategoryId; });
+                    curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
+                };
+                for (var i = 0; i < _this.previewImportGridOptions.data.length; ++i) {
+                    _loop_3(i);
+                }
+                _this.previewImportGridOptions.minRowsToShow = httpResponse.data.length;
+                _this.previewImportGridOptions.virtualizationThreshold = _this.previewImportGridOptions.minRowsToShow;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to upload document: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /** Bulk import transactions */
+        LedgerController.prototype.importPreviewTransactions = function () {
+            var _this = this;
+            if (!this.bulkImportAccountId) {
+                alert("Please select the account into which these transactions will be imported using the drop-down above the grid.");
+                return;
+            }
+            this.isLoading = true;
+            var entries = this.previewImportGridOptions.data;
+            for (var i = 0; i < entries.length; ++i)
+                entries[i].ledgerAccountId = this.bulkImportAccountId;
+            this.$http.post("/api/Ledger/BulkImport", this.previewImportGridOptions.data).then(function (httpResponse) {
+                _this.previewImportGridOptions.data = null;
+                _this.shouldShowImportModal = false;
+                _this.isLoading = false;
+                _this.refreshEntries();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to import: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.removeImportRow = function (entry) {
+            // For import rows, the row index is stored in ledgerEntryId
+            var importEntries = this.previewImportGridOptions.data;
+            importEntries.splice(entry.ledgerEntryId, 1);
+            for (var i = 0; i < importEntries.length; ++i)
+                importEntries[i].ledgerEntryId = i;
+        };
+        /** Export the transactions list as a CSV */
+        LedgerController.prototype.exportTransactionsCsv = function () {
+            var csvColumns = [
+                {
+                    headerText: "Date",
+                    fieldName: "transactionDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Category",
+                    fieldName: "categoryDisplayName"
+                },
+                {
+                    headerText: AppConfig.homeName,
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Amount",
+                    fieldName: "amount"
+                },
+                {
+                    headerText: "Account",
+                    fieldName: "accountName"
+                }
+            ];
+            var csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;

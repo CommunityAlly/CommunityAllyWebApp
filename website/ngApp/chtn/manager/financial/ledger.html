@@ -30,6 +30,8 @@
             <div class="col-md-2 col-sm-12 text-right p-2">
                 <button class="btn btn-primary" type="button" data-ng-click="$ctrl.onAddTransaction()">Add Transaction</button>
                 <br />
+                <span class="note-text text-link" data-ng-click="$ctrl.openImportModal()">Import Transactions</span>
+                <br />
                 <span class="note-text text-link" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
             </div>
         </div>
@@ -65,7 +67,6 @@
         <div data-ng-if="$ctrl.isLoading || $ctrl.isLoadingEntries" class="loading-overlay"></div>
         <span class="note-text">Double-click on a cell to quick edit</span>
         <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-edit ui-grid-cellNav></div>
-        <div style="height: 20px;"></div> <!-- Need to do because of the ui-grid footer floats -->
     </div>
 
     <div class="mb-2">
@@ -319,10 +320,55 @@
                     <div class="text-left">
                         <span data-ng-if="$ctrl.editAccount.syncType === 'plaid'" title="Do this if your bank transactions are no longer downloading" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Refresh Bank Link</span>
                         <span data-ng-if="$ctrl.isSuperAdmin" class="note-text"> (acct id: {{$ctrl.editAccount.ledgerAccountId}})</span>
-                    </div>                    
+                    </div>
                     <button class="btn btn-danger mr-4" type="button" data-ng-click="$ctrl.onDeleteAccount()">Delete Account</button>
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onEditAccount()">Save</button>
                     <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editAccount = null">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-ng-if="$ctrl.shouldShowImportModal" class="modal-container">
+        <div class="modal-overlay" data-ng-click=""></div>
+        <div class="ca-modal-dialog modal-lg container">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowImportModal = false">&times;</span>
+            <h2 class="mb-4">Import Transactions</h2>
+
+            <div data-ng-if="!$ctrl.previewImportGridOptions.data || $ctrl.previewImportGridOptions.data.length === 0">
+                <div class="row">
+                    <div class="col-12">
+                        You can bulk import transactions via an XLSX or CSV file. Download the sample file to see the required format.
+                        <br />
+                        <a href="/assets/files/SampleTransactionImport.csv" download="SampleTransactionImport.csv">Download Sample Import Spreadsheet</a>
+                        <br />
+                        <br />
+                        <input id="importTransactionFileInput" style="display: none;" type="file" on-file-change="$ctrl.onImportFileSelected($event)" />
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.openImportFilePicker()">Select File</button>
+                    </div>
+                </div>
+            </div>
+
+            <div data-ng-if="$ctrl.previewImportGridOptions.data.length > 0">
+                <div class="row">
+                    <div class="col-12">
+                        Import Into Account:
+                        <select data-ng-options="a.ledgerAccountId as a.accountName for a in $ctrl.ledgerAccounts" data-ng-model="$ctrl.bulkImportAccountId"></select>
+                        <span class="note-text ml-3">{{$ctrl.previewImportGridOptions.data.length}} transactions found</span>
+                    </div>
+                </div>
+
+                <div data-ui-grid="$ctrl.previewImportGridOptions" ui-grid-resize-columns></div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6 col-sm-12">
+                </div>
+
+                <div class="col-sm-12 text-right">
+                    <button data-ng-if="$ctrl.previewImportGridOptions.data.length > 0" id="save-entry-button" class="btn btn-primary mr-2" type="button" value="Save" data-ng-click="$ctrl.importPreviewTransactions()">Import</button>
+                    <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.shouldShowImportModal = false">Cancel</button>
                 </div>
             </div>
         </div>
