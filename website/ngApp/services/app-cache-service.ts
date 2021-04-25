@@ -1,20 +1,22 @@
 ﻿class AppCacheService
 {
     // The key for when the user gets redirect for a 401, but is logged in
-    Key_WasLoggedIn403 = "wasLoggedIn403";
-    Key_WasLoggedIn401 = "wasLoggedIn401";
-    Key_AfterLoginRedirect = "afterLoginRedirect";
+    public static readonly Key_WasLoggedIn403 = "wasLoggedIn403";
 
-    KeyPrefix = "AppCacheService_";
+    // Used to display a friendly message when a user is brought to the login page before redirection
+    public static readonly Key_WasLoggedIn401 = "wasLoggedIn401";
+    public static readonly Key_AfterLoginRedirect = "afterLoginRedirect";
 
-    set( key: string, value: string ) { window.sessionStorage[this.KeyPrefix + key] = value; }
+    public static readonly KeyPrefix = "AppCacheService_";
 
-    get( key: string ): string { return window.sessionStorage[this.KeyPrefix + key]; }
+    set( key: string, value: string ) { window.sessionStorage[AppCacheService.KeyPrefix + key] = value; }
+
+    get( key: string ): string { return window.sessionStorage[AppCacheService.KeyPrefix + key]; }
     
     clear( key: string )
     {
-        window.sessionStorage[this.KeyPrefix + key] = void 0;
-        delete window.sessionStorage[this.KeyPrefix + key];
+        window.sessionStorage[AppCacheService.KeyPrefix + key] = void 0;
+        delete window.sessionStorage[AppCacheService.KeyPrefix + key];
     }
 
     getAndClear( key: string ): string

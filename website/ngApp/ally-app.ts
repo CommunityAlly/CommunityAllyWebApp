@@ -3,6 +3,9 @@
 var OverrideBaseApiPath: string = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl: string = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 
+//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/";
+//OverrideOriginalUrl = "https://qa.condoally.com/";
+
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 
@@ -39,8 +42,8 @@ CA.angularApp.config(
             // Home, the default page, and login don't need special redirection or user messaging
             if( $location.path() !== "/Home" && $location.path() !== "/Login" )
             {
-                appCacheService.set( appCacheService.Key_AfterLoginRedirect, $location.path() );
-                appCacheService.set( appCacheService.Key_WasLoggedIn401, "true" );
+                appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
+                appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );
             }
 
             deferred.reject();
@@ -134,7 +137,7 @@ CA.angularApp.config(
                     // If the user's action is forbidden and is logged-in then set this flag so we
                     // can display a helpful error message
                     if( status === 403 && $rootScope.isLoggedIn )
-                        appCacheService.set( appCacheService.Key_WasLoggedIn403, "true" );
+                        appCacheService.set( AppCacheService.Key_WasLoggedIn403, "true" );
 
                     // If the user is unauthorized but has saved credentials, try to log-in then retry the request
                     if( status === 401 && HtmlUtil.isValidString( window.localStorage["rememberMe_Email"] ) )
@@ -212,8 +215,8 @@ CA.angularApp.config(
                     // Home, the default page, and login don't need special redirection or user messaging
                     if( $location.path() !== "/Home" && $location.path() !== "/Login" )
                     {
-                        appCacheService.set( appCacheService.Key_AfterLoginRedirect, $location.path() );
-                        appCacheService.set( appCacheService.Key_WasLoggedIn401, "true" );
+                        appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
+                        appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );
                     }
 
                     // The use is not authorized so let's clear the session data

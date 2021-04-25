@@ -901,8 +901,8 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://1.webappapi.communityally.org/api/";
-//OverrideOriginalUrl = "https://900wainslie.condoally.com/";
+//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/";
+//OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -920,8 +920,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
             if (!siteInfo.userInfo) {
                 // Home, the default page, and login don't need special redirection or user messaging
                 if ($location.path() !== "/Home" && $location.path() !== "/Login") {
-                    appCacheService.set(appCacheService.Key_AfterLoginRedirect, $location.path());
-                    appCacheService.set(appCacheService.Key_WasLoggedIn401, "true");
+                    appCacheService.set(AppCacheService.Key_AfterLoginRedirect, $location.path());
+                    appCacheService.set(AppCacheService.Key_WasLoggedIn401, "true");
                 }
                 deferred.reject();
                 $location.path('/Login');
@@ -989,7 +989,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             // If the user's action is forbidden and is logged-in then set this flag so we
                             // can display a helpful error message
                             if (status === 403 && $rootScope.isLoggedIn)
-                                appCacheService.set(appCacheService.Key_WasLoggedIn403, "true");
+                                appCacheService.set(AppCacheService.Key_WasLoggedIn403, "true");
                             // If the user is unauthorized but has saved credentials, try to log-in then retry the request
                             if (status === 401 && HtmlUtil.isValidString(window.localStorage["rememberMe_Email"])) {
                                 var $http = $injector.get("$http");
@@ -1040,8 +1040,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             }
                             // Home, the default page, and login don't need special redirection or user messaging
                             if ($location.path() !== "/Home" && $location.path() !== "/Login") {
-                                appCacheService.set(appCacheService.Key_AfterLoginRedirect, $location.path());
-                                appCacheService.set(appCacheService.Key_WasLoggedIn401, "true");
+                                appCacheService.set(AppCacheService.Key_AfterLoginRedirect, $location.path());
+                                appCacheService.set(AppCacheService.Key_WasLoggedIn401, "true");
                             }
                             // The use is not authorized so let's clear the session data
                             $rootScope.onLogOut_ClearData();
@@ -1325,6 +1325,7 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/:viewName", templateHtml: "<settings-parent></settings-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Financials/:viewName", templateHtml: "<financial-parent></financial-parent>", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "GroupAmenities", templateHtml: "<group-amenities></group-amenities>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin }),
@@ -2834,6 +2835,7 @@ var Ally;
             this.spendingChartLabels = null;
             this.showDonut = true;
             this.isSuperAdmin = false;
+            this.shouldShowImportModal = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2892,6 +2894,22 @@ var Ally;
                             //$scope.$apply();
                         });
                     }
+                };
+            this.previewImportGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
+                        { field: 'id', displayName: '', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 40, cellTemplate: '<div class="ui-grid-cell-contents text-center"><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.removeImportRow( row.entity )" style="color: red;">&times;</span></div>' }
+                    ],
+                    enableSorting: true,
+                    showColumnFooter: false,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false
                 };
             var preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
             if (!isNaN(preselectStartMillis)) {
@@ -3378,6 +3396,112 @@ var Ally;
         LedgerController.prototype.removeSplit = function (splitEntry) {
             this.editingTransaction.splitEntries.splice(this.editingTransaction.splitEntries.indexOf(splitEntry), 1);
             this.onSplitAmountChange();
+        };
+        LedgerController.prototype.openImportFilePicker = function () {
+            document.getElementById('importTransactionFileInput').click();
+        };
+        LedgerController.prototype.openImportModal = function () {
+            this.shouldShowImportModal = true;
+            this.previewImportGridOptions.data = null;
+        };
+        LedgerController.prototype.onImportFileSelected = function (event) {
+            var _this = this;
+            var importTransactionsFile = event.target.files[0];
+            if (!importTransactionsFile)
+                return;
+            this.isLoading = true;
+            var formData = new FormData();
+            formData.append("importFile", importTransactionsFile);
+            var postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            this.$http.post("/api/Ledger/PreviewImport", formData, postHeaders).then(function (httpResponse) {
+                _this.isLoading = false;
+                var fileElem = document.getElementById("importTransactionFileInput");
+                fileElem.value = "";
+                _this.previewImportGridOptions.data = httpResponse.data;
+                var _loop_3 = function (i) {
+                    var curEntry = _this.previewImportGridOptions.data[i];
+                    curEntry.ledgerEntryId = i;
+                    var unit = _this.allUnits.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
+                    if (unit)
+                        curEntry.unitGridLabel = unit.name;
+                    var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === curEntry.financialCategoryId; });
+                    curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
+                };
+                for (var i = 0; i < _this.previewImportGridOptions.data.length; ++i) {
+                    _loop_3(i);
+                }
+                _this.previewImportGridOptions.minRowsToShow = httpResponse.data.length;
+                _this.previewImportGridOptions.virtualizationThreshold = _this.previewImportGridOptions.minRowsToShow;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to upload document: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /** Bulk import transactions */
+        LedgerController.prototype.importPreviewTransactions = function () {
+            var _this = this;
+            if (!this.bulkImportAccountId) {
+                alert("Please select the account into which these transactions will be imported using the drop-down above the grid.");
+                return;
+            }
+            this.isLoading = true;
+            var entries = this.previewImportGridOptions.data;
+            for (var i = 0; i < entries.length; ++i)
+                entries[i].ledgerAccountId = this.bulkImportAccountId;
+            this.$http.post("/api/Ledger/BulkImport", this.previewImportGridOptions.data).then(function (httpResponse) {
+                _this.previewImportGridOptions.data = null;
+                _this.shouldShowImportModal = false;
+                _this.isLoading = false;
+                _this.refreshEntries();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to import: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.removeImportRow = function (entry) {
+            // For import rows, the row index is stored in ledgerEntryId
+            var importEntries = this.previewImportGridOptions.data;
+            importEntries.splice(entry.ledgerEntryId, 1);
+            for (var i = 0; i < importEntries.length; ++i)
+                importEntries[i].ledgerEntryId = i;
+        };
+        /** Export the transactions list as a CSV */
+        LedgerController.prototype.exportTransactionsCsv = function () {
+            var csvColumns = [
+                {
+                    headerText: "Date",
+                    fieldName: "transactionDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Category",
+                    fieldName: "categoryDisplayName"
+                },
+                {
+                    headerText: AppConfig.homeName,
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Amount",
+                    fieldName: "amount"
+                },
+                {
+                    headerText: "Account",
+                    fieldName: "accountName"
+                }
+            ];
+            var csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;
@@ -5483,6 +5607,64 @@ CA.angularApp.component("manageResidents", {
 var Ally;
 (function (Ally) {
     /**
+     * The controller for the manage polls page
+     */
+    var GroupAmenitiesController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function GroupAmenitiesController($http, siteInfo, $location) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$location = $location;
+            this.isLoading = false;
+            this.appShortName = AppConfig.appShortName;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        GroupAmenitiesController.prototype.$onInit = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Association/GroupAmenities").then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.groupAmenities = httpResponse.data;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to retrieve amenity data: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+        * Called when the user clicks the save button
+        */
+        GroupAmenitiesController.prototype.saveForm = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.put("/api/Association/GroupAmenities", this.groupAmenities).then(function (httpResponse) {
+                _this.$location.path("/Home");
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        GroupAmenitiesController.$inject = ["$http", "SiteInfo", "$location"];
+        return GroupAmenitiesController;
+    }());
+    Ally.GroupAmenitiesController = GroupAmenitiesController;
+    var GroupAmenities = /** @class */ (function () {
+        function GroupAmenities() {
+        }
+        return GroupAmenities;
+    }());
+})(Ally || (Ally = {}));
+CA.angularApp.component("groupAmenities", {
+    templateUrl: "/ngApp/chtn/manager/settings/group-amenities.html",
+    controller: Ally.GroupAmenitiesController
+});
+
+var Ally;
+(function (Ally) {
+    /**
      * The controller for the page to view group premium plan settings
      */
     var PremiumPlanSettingsController = /** @class */ (function () {
@@ -7532,14 +7714,14 @@ var Ally;
                 this.sectionStyle["margin-right"] = "auto";
             }
             // If we got sent here for a 403, but the user was already logged in
-            if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn403) === "true") {
+            if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn403) === "true") {
                 if (this.$rootScope.isSiteManager)
                     this.loginResult = "You are not authorized to perform that action. Please contact support.";
                 else
                     this.loginResult = "You are not authorized to perform that action. Please contact an admin.";
             }
             // Or if we got sent here for a 401
-            else if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn401) === "true")
+            else if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn401) === "true")
                 this.loginResult = "Please login first.";
             // Focus on the e-mail text box
             setTimeout(function () {
@@ -7593,7 +7775,7 @@ var Ally;
             this.$http.post("/api/Login", this.loginInfo).then(function (httpResponse) {
                 innerThis.isLoading = false;
                 var data = httpResponse.data;
-                var redirectPath = innerThis.appCacheService.getAndClear(innerThis.appCacheService.Key_AfterLoginRedirect);
+                var redirectPath = innerThis.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
                 innerThis.siteInfo.setAuthToken(data.authToken);
                 innerThis.siteInfo.handleSiteInfo(data.siteInfo, innerThis.$rootScope);
                 if (innerThis.rememberMe) {
@@ -10197,6 +10379,10 @@ var Ally;
             this.isLoading = true;
             this.showPopUpWarning = false;
             var viewDocWindow;
+            // Force download of RTFs. Eventually we'll make this a allow-list of extensions that
+            // browsers can display directly
+            if (this.getDisplayExtension(curFile) === ".rtf")
+                isForDownload = true;
             if (!isForDownload) {
                 viewDocWindow = window.open('', '_blank');
                 var wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
@@ -10217,7 +10403,7 @@ var Ally;
                 if (isForDownload) {
                     var link = document.createElement('a');
                     link.setAttribute("type", "hidden"); // make it hidden if needed
-                    link.href = fileUri;
+                    link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);
                     link.download = curFile.fileName;
                     document.body.appendChild(link);
                     link.click();
@@ -13854,17 +14040,12 @@ ServiceJobsCtrl.$inject = ["$http"];
 
 var AppCacheService = /** @class */ (function () {
     function AppCacheService() {
-        // The key for when the user gets redirect for a 401, but is logged in
-        this.Key_WasLoggedIn403 = "wasLoggedIn403";
-        this.Key_WasLoggedIn401 = "wasLoggedIn401";
-        this.Key_AfterLoginRedirect = "afterLoginRedirect";
-        this.KeyPrefix = "AppCacheService_";
     }
-    AppCacheService.prototype.set = function (key, value) { window.sessionStorage[this.KeyPrefix + key] = value; };
-    AppCacheService.prototype.get = function (key) { return window.sessionStorage[this.KeyPrefix + key]; };
+    AppCacheService.prototype.set = function (key, value) { window.sessionStorage[AppCacheService.KeyPrefix + key] = value; };
+    AppCacheService.prototype.get = function (key) { return window.sessionStorage[AppCacheService.KeyPrefix + key]; };
     AppCacheService.prototype.clear = function (key) {
-        window.sessionStorage[this.KeyPrefix + key] = void 0;
-        delete window.sessionStorage[this.KeyPrefix + key];
+        window.sessionStorage[AppCacheService.KeyPrefix + key] = void 0;
+        delete window.sessionStorage[AppCacheService.KeyPrefix + key];
     };
     AppCacheService.prototype.getAndClear = function (key) {
         var result;
@@ -13872,6 +14053,12 @@ var AppCacheService = /** @class */ (function () {
         this.clear(key);
         return result;
     };
+    // The key for when the user gets redirect for a 401, but is logged in
+    AppCacheService.Key_WasLoggedIn403 = "wasLoggedIn403";
+    // Used to display a friendly message when a user is brought to the login page before redirection
+    AppCacheService.Key_WasLoggedIn401 = "wasLoggedIn401";
+    AppCacheService.Key_AfterLoginRedirect = "afterLoginRedirect";
+    AppCacheService.KeyPrefix = "AppCacheService_";
     return AppCacheService;
 }());
 angular.module("CondoAlly").service("appCacheService", [AppCacheService]);
@@ -15372,7 +15559,7 @@ var Ally;
         //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
         // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
         // regex is needed for the dates that come down
-        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
+        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
         return HtmlUtil2;
     }());
     Ally.HtmlUtil2 = HtmlUtil2;
@@ -15885,6 +16072,12 @@ var Ally;
                 if (window.location.hash != LoginPath && !AppConfig.isPublicRoute(window.location.hash)) {
                     // If we're at a valid subdomain
                     if (this.publicSiteInfo && this.publicSiteInfo.baseUrl) {
+                        if (window.location.hash && window.location.hash !== "#!/Home") {
+                            // An ugly sidestep becuase AppCacheService isn't ready when this code is
+                            // called
+                            window.sessionStorage[AppCacheService.KeyPrefix + AppCacheService.Key_AfterLoginRedirect] = window.location.hash.substr(2); // Remove the leading #!
+                            window.sessionStorage[AppCacheService.KeyPrefix + AppCacheService.Key_WasLoggedIn401] = "true";
+                        }
                         // Need to set the hash "manually" as $location is not available in the config
                         // block and GlobalRedirect will go to the wrong TLD when working locally
                         window.location.hash = LoginPath;

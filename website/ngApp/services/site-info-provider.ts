@@ -361,6 +361,14 @@ namespace Ally
                     // If we're at a valid subdomain
                     if( this.publicSiteInfo && this.publicSiteInfo.baseUrl )
                     {
+                        if( window.location.hash && window.location.hash !== "#!/Home" )
+                        {
+                            // An ugly sidestep becuase AppCacheService isn't ready when this code is
+                            // called
+                            window.sessionStorage[AppCacheService.KeyPrefix + AppCacheService.Key_AfterLoginRedirect] = window.location.hash.substr( 2 ); // Remove the leading #!
+                            window.sessionStorage[AppCacheService.KeyPrefix + AppCacheService.Key_WasLoggedIn401] = "true";
+                        }
+
                         // Need to set the hash "manually" as $location is not available in the config
                         // block and GlobalRedirect will go to the wrong TLD when working locally
                         window.location.hash = LoginPath;

@@ -72,14 +72,14 @@ var Ally;
                 this.sectionStyle["margin-right"] = "auto";
             }
             // If we got sent here for a 403, but the user was already logged in
-            if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn403) === "true") {
+            if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn403) === "true") {
                 if (this.$rootScope.isSiteManager)
                     this.loginResult = "You are not authorized to perform that action. Please contact support.";
                 else
                     this.loginResult = "You are not authorized to perform that action. Please contact an admin.";
             }
             // Or if we got sent here for a 401
-            else if (this.appCacheService.getAndClear(this.appCacheService.Key_WasLoggedIn401) === "true")
+            else if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn401) === "true")
                 this.loginResult = "Please login first.";
             // Focus on the e-mail text box
             setTimeout(function () {
@@ -133,7 +133,7 @@ var Ally;
             this.$http.post("/api/Login", this.loginInfo).then(function (httpResponse) {
                 innerThis.isLoading = false;
                 var data = httpResponse.data;
-                var redirectPath = innerThis.appCacheService.getAndClear(innerThis.appCacheService.Key_AfterLoginRedirect);
+                var redirectPath = innerThis.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
                 innerThis.siteInfo.setAuthToken(data.authToken);
                 innerThis.siteInfo.handleSiteInfo(data.siteInfo, innerThis.$rootScope);
                 if (innerThis.rememberMe) {
