@@ -379,13 +379,19 @@ fieldset {
     width: auto; }
 
 /** form controls */
-.form-group label {
-  font-size: 16px;
-  font-weight: 600; }
-
-@media screen and (min-width: 620px) {
+.form-group {
+  /** Not sure why this rule is here */
+  /*@media screen and (min-width: 620px) {
+        label {
+            text-align: right;
+        }
+    }*/ }
   .form-group label {
-    text-align: right; } }
+    font-size: 16px;
+    font-weight: 600; }
+
+label.form-check-label {
+  font-weight: normal; }
 
 .form-control.grey {
   background: #eceeef; }

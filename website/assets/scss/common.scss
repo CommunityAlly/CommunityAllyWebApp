@@ -218,11 +218,15 @@ fieldset {
         font-size: 16px;
         font-weight: 600;
     }
-    @media screen and (min-width: 620px) {
+    /** Not sure why this rule is here */
+    /*@media screen and (min-width: 620px) {
         label {
             text-align: right;
         }
-    }
+    }*/
+}
+label.form-check-label {
+    font-weight: normal;
 }
 .form-control.grey {
     background: #eceeef;
