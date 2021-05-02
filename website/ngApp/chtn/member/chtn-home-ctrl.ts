@@ -33,7 +33,7 @@
         testPay_UserFirst: string;
         testPay_UserLast: string;
         testPay_Description: string;
-
+        allySurvey: AllySurveyInfo;
 
         /**
          * The constructor for the class
@@ -103,6 +103,29 @@
                 if( this.usersCommittees )
                     this.usersCommittees = _.sortBy( this.usersCommittees, c => c.name.toLowerCase() );
             } );
+
+            // Delay the survey check since it's low prioirty and it lets the other parts of the page load faster
+            this.$timeout( () => this.checkForSurveys(), 250 );
+        }
+
+
+        /**
+        * See if there's any surveys waiting to be completed for the current group+user
+        */
+        checkForSurveys()
+        {
+            this.$http.get( "/api/AllySurvey/AnySurvey" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<AllySurveyInfo> ) =>
+                {
+                    this.allySurvey = response.data;
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    console.log( "Failed to load ally survey", errorResponse.data.exceptionMessage );
+                }
+            );
+
+            this.allySurvey = null;
         }
 
 
@@ -117,6 +140,14 @@
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
         }
+    }
+
+
+    class AllySurveyInfo
+    {
+        surveyDescription: string;
+        urlDescription: string;
+        url: string;
     }
 }
 

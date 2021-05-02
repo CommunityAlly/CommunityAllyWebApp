@@ -82,6 +82,9 @@
         hasDoorman: boolean | null;
         hasCommonBalconies: boolean | null;
         exteriorMaterial: string | null;
+        hiresPropertyManager: boolean | null;
+        lastUpdateDateUtc: Date | null;
+        lastUpdateUserId: string | null;
     }
 }
 

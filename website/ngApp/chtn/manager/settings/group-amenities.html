@@ -4,8 +4,8 @@
         <div class="row">
             <h1>Association Amenities</h1>
             <p>
-                This is a totally optional page that doesn't affect your site functionality in any way. So, yes, filling this out doesn't really
-                help you directly, but it helps the greater community of HOAs, which includes you, immensely! We anonymize the data (Make it impossible
+                This is a totally optional page that doesn't affect your site functionality in any way. Filling out this survey helps the greater
+                community of HOAs immensely! We anonymize the data (Make it impossible
                 to link this data to you and your association) and use it to provide helpful research. Like knowing a normal range for annual dues.
             </p>
         </div>
@@ -65,6 +65,19 @@
                     <label class="form-check-label" for="associationPaysForGarbage">Garbage</label>
                 </div>
             </div>
+
+            <div class="form-group col-sm-12 col-md-6">
+                <label>Does your association hire a property manager?</label>
+                <div class="note-text">Choose no if you consider your group self-managed</div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="hiresPropertyManagerYes" name="hiresPropertyManager" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hiresPropertyManager">
+                    <label class="form-check-label" for="hiresPropertyManagerYes">Yes</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="hiresPropertyManagerNo" name="hiresPropertyManager" data-ng-value="false" data-ng-model="$ctrl.groupAmenities.hiresPropertyManager">
+                    <label class="form-check-label" for="hiresPropertyManagerNo">No</label>
+                </div>
+            </div>
         </form>
 
         <div style="display: flex; flex-direction: column;">
@@ -119,11 +132,11 @@
                     <div class="form-group col-sm-12 col-md-6">
                         <label>Does your association have a stand-alone club house?</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="hasClubHouseYes" name="hasClubHouse" value="true" data-ng-model="$ctrl.groupAmenities.hasClubHouse">
+                            <input class="form-check-input" type="radio" id="hasClubHouseYes" name="hasClubHouse" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hasClubHouse">
                             <label class="form-check-label" for="hasClubHouseYes">Yes</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="hasClubHouseNo" name="hasClubHouse" value="false" data-ng-model="$ctrl.groupAmenities.hasClubHouse">
+                            <input class="form-check-input" type="radio" id="hasClubHouseNo" name="hasClubHouse" data-ng-value="false" data-ng-model="$ctrl.groupAmenities.hasClubHouse">
                             <label class="form-check-label" for="hasClubHouseNo">No</label>
                         </div>
                     </div>
@@ -131,11 +144,11 @@
                     <div class="form-group col-sm-12 col-md-6">
                         <label>Does your association maintain its own roads?</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="maintainsOwnRoadsTrue" name="maintainsOwnRoads" value="true" data-ng-model="$ctrl.groupAmenities.maintainsOwnRoads">
+                            <input class="form-check-input" type="radio" id="maintainsOwnRoadsTrue" name="maintainsOwnRoads" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.maintainsOwnRoads">
                             <label class="form-check-label" for="maintainsOwnRoadsTrue">Yes</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="maintainsOwnRoadsFalse" name="maintainsOwnRoads" value="false" data-ng-model="$ctrl.groupAmenities.maintainsOwnRoads">
+                            <input class="form-check-input" type="radio" id="maintainsOwnRoadsFalse" name="maintainsOwnRoads" data-ng-value="false" data-ng-model="$ctrl.groupAmenities.maintainsOwnRoads">
                             <label class="form-check-label" for="maintainsOwnRoadsFalse">No</label>
                         </div>
                     </div>
@@ -143,11 +156,11 @@
                     <div class="form-group col-sm-12 col-md-6">
                         <label>Are you considered a gated community?</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="isGatedCommunityTrue" name="isGatedCommunity" value="true" data-ng-model="$ctrl.groupAmenities.isGatedCommunity">
+                            <input class="form-check-input" type="radio" id="isGatedCommunityTrue" name="isGatedCommunity" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.isGatedCommunity">
                             <label class="form-check-label" for="isGatedCommunityTrue">Yes</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="isGatedCommunityFalse" name="isGatedCommunity" value="false" data-ng-model="$ctrl.groupAmenities.isGatedCommunity">
+                            <input class="form-check-input" type="radio" id="isGatedCommunityFalse" name="isGatedCommunity" data-ng-value="false" data-ng-model="$ctrl.groupAmenities.isGatedCommunity">
                             <label class="form-check-label" for="isGatedCommunityFalse">No</label>
                         </div>
                     </div>
@@ -161,11 +174,11 @@
                     <div class="form-group col-sm-12 col-md-6">
                         <label>Does your association have a doorman?</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="hasDoormanTrue" name="hasDoorman" value="true" data-ng-model="$ctrl.groupAmenities.hasDoorman">
+                            <input class="form-check-input" type="radio" id="hasDoormanTrue" name="hasDoorman" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hasDoorman">
                             <label class="form-check-label" for="hasDoormanTrue">Yes</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="hasDoormanFalse" name="hasDoorman" value="false" data-ng-model="$ctrl.groupAmenities.hasDoorman">
+                            <input class="form-check-input" type="radio" id="hasDoormanFalse" name="hasDoorman" data-ng-value="false" data-ng-model="$ctrl.groupAmenities.hasDoorman">
                             <label class="form-check-label" for="hasDoormanFalse">No</label>
                         </div>
                     </div>
@@ -174,11 +187,11 @@
                         <label>Do you have balconies maintained as common area?</label>
                         <div class="note-text">Association pays for maintenance/repairs as opposed to resident paying</div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="hasCommonBalconiesTrue" name="hasCommonBalconies" value="true" data-ng-model="$ctrl.groupAmenities.hasCommonBalconies">
+                            <input class="form-check-input" type="radio" id="hasCommonBalconiesTrue" name="hasCommonBalconies" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hasCommonBalconies">
                             <label class="form-check-label" for="hasCommonBalconiesTrue">Yes</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="hasCommonBalconiesFalse" name="hasCommonBalconies" value="false" data-ng-model="$ctrl.groupAmenities.hasCommonBalconies">
+                            <input class="form-check-input" type="radio" id="hasCommonBalconiesFalse" name="hasCommonBalconies" data-ng-value="false" data-ng-model="$ctrl.groupAmenities.hasCommonBalconies">
                             <label class="form-check-label" for="hasCommonBalconiesFalse">No</label>
                         </div>
                     </div>

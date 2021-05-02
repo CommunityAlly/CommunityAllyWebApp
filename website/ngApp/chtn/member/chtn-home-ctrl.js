@@ -59,6 +59,20 @@ var Ally;
                 if (_this.usersCommittees)
                     _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
             });
+            // Delay the survey check since it's low prioirty and it lets the other parts of the page load faster
+            this.$timeout(function () { return _this.checkForSurveys(); }, 250);
+        };
+        /**
+        * See if there's any surveys waiting to be completed for the current group+user
+        */
+        ChtnHomeController.prototype.checkForSurveys = function () {
+            var _this = this;
+            this.$http.get("/api/AllySurvey/AnySurvey").then(function (response) {
+                _this.allySurvey = response.data;
+            }, function (errorResponse) {
+                console.log("Failed to load ally survey", errorResponse.data.exceptionMessage);
+            });
+            this.allySurvey = null;
         };
         ChtnHomeController.prototype.onTestPayAmtChange = function () {
             this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
@@ -71,6 +85,11 @@ var Ally;
         return ChtnHomeController;
     }());
     Ally.ChtnHomeController = ChtnHomeController;
+    var AllySurveyInfo = /** @class */ (function () {
+        function AllySurveyInfo() {
+        }
+        return AllySurveyInfo;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnHome", {
     templateUrl: "/ngApp/chtn/member/chtn-home.html",
