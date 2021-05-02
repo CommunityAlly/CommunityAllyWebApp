@@ -485,11 +485,15 @@ namespace Ally
                 {
                     this.isLoading = false;
 
-                    if( !httpResponse.data )
+                    const newLinkToken = httpResponse.data;
+                    if( !newLinkToken )
+                    {
+                        alert( "Something went wrong on the server. Please contact support." );
                         return;
+                    }
 
                     this.plaidHandler = Plaid.create( {
-                        token: httpResponse.data,
+                        token: newLinkToken,
                         onSuccess: ( public_token: string, metadata: any ) =>
                         {
                             console.log( "Plaid update onSuccess" );
@@ -506,7 +510,7 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to start account update: " + httpResponse.data.exceptionMessage );
+                    alert( "Failed to update account link: " + httpResponse.data.exceptionMessage );
                 }
             );
         }

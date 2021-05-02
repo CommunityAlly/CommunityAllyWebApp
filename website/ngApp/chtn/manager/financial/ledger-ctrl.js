@@ -359,10 +359,13 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId).then(function (httpResponse) {
                 _this.isLoading = false;
-                if (!httpResponse.data)
+                var newLinkToken = httpResponse.data;
+                if (!newLinkToken) {
+                    alert("Something went wrong on the server. Please contact support.");
                     return;
+                }
                 _this.plaidHandler = Plaid.create({
-                    token: httpResponse.data,
+                    token: newLinkToken,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid update onSuccess");
                         _this.completePlaidSync(public_token, ledgerAccount.plaidItemId, null);
@@ -375,7 +378,7 @@ var Ally;
                 _this.plaidHandler.open();
             }, function (httpResponse) {
                 _this.isLoading = false;
-                alert("Failed to start account update: " + httpResponse.data.exceptionMessage);
+                alert("Failed to update account link: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
