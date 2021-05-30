@@ -14,7 +14,7 @@
         isComplete: boolean;
         answers: any[];
         responses: PollResponse[];
-        whoCanVote: string = "Owners";
+        whoCanVote: number = 2;
         hasUsersUnitVoted: boolean;
         unitVoteText: string;
         noResponseCount: number;

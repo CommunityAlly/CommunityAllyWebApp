@@ -82,9 +82,9 @@
 
         <p>
             Who can vote on this poll? <select data-ng-model="$ctrl.editingItem.whoCanVote">
-                <option value="Board">Board</option>
-                <option value="Owners">Owners</option>
-                <option value="Everyone">Everyone</option>
+                <option data-ng-value="1">Board</option>
+                <option data-ng-value="2">Owners</option>
+                <option data-ng-value="3">Everyone</option>
             </select>
         </p>
 
@@ -104,9 +104,10 @@
                     <th style="width: 10%"></th>
                     <!--<th>Status</th>-->
                     <th style="width:52%;">Question</th>
+                    <th>Who</th>
                     <th>Post Date</th>
                     <th>Expiration Date</th>
-                    <th style="width: 20%">Posted By</th>
+                    <th style="width: 15%">Posted By</th>
                     <th>Results</th>
                 </tr>
             </thead>
@@ -118,6 +119,11 @@
                     </td>
                     <!--<td class="poll-entry-{{ $index }}-status"></td>-->
                     <td class="poll-entry-{{ $index }}-question-text">{{pollItem.questionText}}<span class="note-text ml-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>
+                    <td class="poll-entry-{{ $index }}-who">
+                        <span data-ng-if="pollItem.whoCanVote === 1">Board</span>
+                        <span data-ng-if="pollItem.whoCanVote === 2">Owners</span>
+                        <span data-ng-if="pollItem.whoCanVote === 3">Everyone</span>
+                    </td>
                     <td class="poll-entry-{{ $index }}-post-date">{{pollItem.postDate | date:'M/d/yyyy'}}</td>
                     <td class="poll-entry-{{ $index }}-expiration-date">{{pollItem.expirationDate | date:'M/d/yyyy'}}</td>
                     <td class="poll-entry-{{ $index }}-author-name">{{pollItem.authorName | date:'M/d/yyyy'}}</td>

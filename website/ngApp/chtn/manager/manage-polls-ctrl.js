@@ -3,7 +3,7 @@ var Ally;
     var Poll = /** @class */ (function () {
         function Poll() {
             this.isAnonymous = true;
-            this.whoCanVote = "Owners";
+            this.whoCanVote = 2;
         }
         return Poll;
     }());
