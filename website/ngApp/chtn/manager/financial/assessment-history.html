@@ -2,7 +2,7 @@
     <h1>{{ $ctrl.pageTitle }}</h1>
     <p data-ng-if="!$ctrl.isForMemberGroup">
         <label><input id="enable-tracking-checkbox" type="checkbox" data-ng-change="$ctrl.onChangePeriodicPaymentTracking()" data-ng-model="$ctrl.isPeriodicPaymentTrackingEnabled">Enable Payment History for Residents</label><br>
-        <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each unit's most recent payment recorded because that is how residents will know what payment they're making next.</span>
+        <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
     </p>
     <p class="clearfix">
         <div class="pull-right">

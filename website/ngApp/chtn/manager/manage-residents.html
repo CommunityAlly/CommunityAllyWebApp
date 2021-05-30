@@ -147,17 +147,18 @@
                                  tick-property="isSelectedForEditUser">
                             </div>
 
-                            <span data-ng-if="$ctrl.multiselectMulti === 'single'" class="text-link note-text" data-ng-click="$ctrl.enableMultiHomePicker()">Click here to select multiple units</span>
+                            <span data-ng-if="$ctrl.multiselectMulti === 'single'" class="text-link note-text" data-ng-click="$ctrl.enableMultiHomePicker()">Click here to select multiple {{ $ctrl.homeName.toLowerCase() }}s</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-12" data-ng-if="$ctrl.showIsRenter">
                     <div class="form-group row">
-                        <label for="is-renter-checkbox" class="col-sm-4 col-xs-12">Is a Renter/Unit Manager:</label>
+                        <label for="is-renter-checkbox" class="col-sm-4 col-xs-12">Is a Renter/Manager:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="is-renter-checkbox" class="validation-label" type="checkbox" data-ng-model="$ctrl.editUser.isRenter" /><br />
-                            <span class="note-text">Indicates this person is not a unit owner.</span>
+                            <input id="is-renter-checkbox" class="validation-label" type="checkbox" data-ng-model="$ctrl.editUser.isRenter" />
+                            <br />
+                            <span class="note-text">Indicates this person is not a {{ $ctrl.homeName.toLowerCase() }} owner.</span>
                         </div>
                     </div>
                 </div>

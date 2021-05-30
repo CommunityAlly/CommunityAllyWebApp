@@ -120,7 +120,7 @@ CA.angularApp.filter( "highlight", ["$sce", function( $sce: ng.ISCEService )
         if( phrase )
             text = text.replace( new RegExp( '(' + phrase + ')', 'gi' ), '<span class="fileSearchHighlight">$1</span>' );
 
-        return $sce.trustAsHtml( text )
+        return $sce.trustAsHtml( text );
     }
 }] );
 

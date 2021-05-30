@@ -318,9 +318,9 @@
                 </div>
 
                 <div id="AssessmentsPanel" data-ng-if="$ctrl.hasAssessments">
-                    <h3 class="margin-top">Unit Assessments</h3>
+                    <h3 class="margin-top">{{$ctrl.homeName}} Assessments</h3>
                     <p>
-                        The unit assessments are set upon setup of your online payments. If you need to make an adjustment to a base assessment, please
+                        The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. If you need to make an adjustment to a base assessment, please
                         contact support and they'll be happy to help you. If a unit receives a discount, you can use the adjusted assessment and
                         reason column to indicate as such. For example, some associations compensate their board members for their duty via a discount on their assessment.
                     </p>
@@ -328,7 +328,7 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th class="text-right" style="width: 260px;">Unit</th>
+                                    <th class="text-right" style="width: 260px;">{{$ctrl.homeName}}</th>
                                     <th class="text-center" style="width: 140px;">Assessment</th>
                                     <th class="text-left">Notes</th>
                                 </tr>

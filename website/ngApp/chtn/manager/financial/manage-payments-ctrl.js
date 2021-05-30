@@ -52,6 +52,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManagePaymentsController.prototype.$onInit = function () {
+            this.homeName = AppConfig.homeName;
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
             var tempPayId = this.appCacheService.getAndClear("onpayid");
             if (HtmlUtil.isNumericString(tempPayId))
@@ -86,7 +87,7 @@ var Ally;
                 {
                     columnDefs: [
                         { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'unitName', displayName: 'Unit', width: 60 },
+                        { field: 'unitName', displayName: this.homeName, width: 80 },
                         { field: 'resident', displayName: 'Resident', width: 160 },
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },

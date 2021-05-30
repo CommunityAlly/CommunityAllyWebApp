@@ -95,6 +95,7 @@ namespace Ally
         dwollaMicroDepositAmount1String: string;
         dwollaMicroDepositAmount2String: string;
         dwollaIavToken: string;
+        homeName: string;
         readonly HistoryPageSize: number = 50;
 
 
@@ -114,6 +115,7 @@ namespace Ally
         */
         $onInit()
         {
+            this.homeName = AppConfig.homeName;
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear( "hwpid" );
             const tempPayId = this.appCacheService.getAndClear( "onpayid" );
             if( HtmlUtil.isNumericString( tempPayId ) )
@@ -155,7 +157,7 @@ namespace Ally
                 columnDefs:
                     [
                         { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'unitName', displayName: 'Unit', width: 60 },
+                        { field: 'unitName', displayName: this.homeName, width: 80 },
                         { field: 'resident', displayName: 'Resident', width: 160 },
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
