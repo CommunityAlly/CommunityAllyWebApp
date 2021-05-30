@@ -193,7 +193,7 @@ var Ally;
                     columnDefs: [
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
-                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
+                        { field: 'email', displayName: 'Email', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
                         {
                             field: 'unitGridLabel',
@@ -251,7 +251,7 @@ var Ally;
                     columnDefs: [
                         { field: 'firstName', displayName: 'First Name' },
                         { field: 'lastName', displayName: 'Last Name' },
-                        { field: 'email', displayName: 'E-mail' },
+                        { field: 'email', displayName: 'Email' },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
                     ],
                     multiSelect: false,
@@ -387,7 +387,7 @@ var Ally;
             setTimeout("$( '#edit-user-first-text-box' ).focus();", 100);
         };
         /**
-         * Send a resident the welcome e-mail
+         * Send a resident the welcome email
          */
         ManageResidentsController.prototype.onSendWelcome = function () {
             this.isSavingUser = true;
@@ -397,7 +397,7 @@ var Ally;
                 innerThis.sentWelcomeEmail = true;
             }).error(function () {
                 innerThis.isSavingUser = false;
-                alert("Failed to send the welcome e-mail, please contact support if this problem persists.");
+                alert("Failed to send the welcome email, please contact support if this problem persists.");
             });
         };
         /**
@@ -624,7 +624,7 @@ var Ally;
                     fieldName: "phoneNumber"
                 },
                 {
-                    headerText: "E-mail",
+                    headerText: "Email",
                     fieldName: "email"
                 },
                 {
@@ -862,7 +862,7 @@ var Ally;
          * Occurs when the user presses the button to reset everyone's password
          */
         ManageResidentsController.prototype.onSendAllWelcome = function () {
-            if (!confirm("This will e-mail all of the residents in your association. Do you want to proceed?"))
+            if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
             var innerThis = this;
@@ -872,7 +872,7 @@ var Ally;
                 innerThis.allEmailsSent = true;
             }).error(function () {
                 innerThis.isLoading = false;
-                alert("Failed to send welcome e-mail, please contact support if this problem persists.");
+                alert("Failed to send welcome email, please contact support if this problem persists.");
             });
         };
         /**
@@ -1028,7 +1028,7 @@ var Ally;
             this.bulkImportRows.push(newRow);
         };
         /**
-         * Display the list of recent e-mails
+         * Display the list of recent emails
          */
         ManageResidentsController.prototype.toggleEmailHistoryVisible = function () {
             var _this = this;
@@ -1041,7 +1041,7 @@ var Ally;
                     _this.emailHistoryGridOptions.data = response.data;
                 }, function (response) {
                     _this.isLoadingSettings = false;
-                    alert("Failed to load e-mails: " + response.data.exceptionMessage);
+                    alert("Failed to load emails: " + response.data.exceptionMessage);
                 });
             }
         };

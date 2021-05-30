@@ -1313,6 +1313,7 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "NeighborSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All }),
         new Ally.RoutePath_v3({ path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All }),
         new Ally.RoutePath_v3({ path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "CPView/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
         new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
@@ -1395,6 +1396,7 @@ var HomeAppConfig = {
         new Ally.RoutePath_v3({ path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "CPView/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<home-group-home></home-group-home>", menuTitle: "Home" }),
         new Ally.RoutePath_v3({ path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info" }),
@@ -3150,10 +3152,13 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId).then(function (httpResponse) {
                 _this.isLoading = false;
-                if (!httpResponse.data)
+                var newLinkToken = httpResponse.data;
+                if (!newLinkToken) {
+                    alert("Something went wrong on the server. Please contact support.");
                     return;
-                _this.plaidHandler = Plaid.create({
-                    token: httpResponse.data,
+                }
+                var plaidConfig = {
+                    token: newLinkToken,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid update onSuccess");
                         _this.completePlaidSync(public_token, ledgerAccount.plaidItemId, null);
@@ -3162,11 +3167,12 @@ var Ally;
                     onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
                     onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
-                });
+                };
+                _this.plaidHandler = Plaid.create(plaidConfig);
                 _this.plaidHandler.open();
             }, function (httpResponse) {
                 _this.isLoading = false;
-                alert("Failed to start account update: " + httpResponse.data.exceptionMessage);
+                alert("Failed to update account link: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -3257,11 +3263,11 @@ var Ally;
             if (!this.isPremiumPlanActive)
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
+            this.$http.get("/api/Plaid/NewLinkToken").then(function (httpResponse) {
                 _this.isLoading = false;
                 if (!httpResponse.data)
                     return;
-                _this.plaidHandler = Plaid.create({
+                var plaidConfig = {
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid onSuccess", metadata);
@@ -3274,30 +3280,14 @@ var Ally;
                     onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
                     onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
-                });
+                };
+                _this.plaidHandler = Plaid.create(plaidConfig);
                 _this.plaidHandler.open();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to start Plaid sign-up: " + httpResponse.data.exceptionMessage);
                 _this.closeAccountAndReload();
             });
-            //this.isLoading = true;
-            //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
-            //{
-            //    this.isLoading = false;
-            //    const handler = Plaid.create( {
-            //        token: httpResponse.data,
-            //        onSuccess: ( public_token: string, metadata: any ) =>
-            //        {
-            //            console.log( "onSuccess" );
-            //        },
-            //        onLoad: () => { },
-            //        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
-            //        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
-            //        receivedRedirectUri: null,
-            //    } );
-            //    handler.open();
-            //} );
         };
         LedgerController.prototype.openEditAccountModal = function (account) {
             this.editAccount = _.clone(account);
@@ -3619,6 +3609,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManagePaymentsController.prototype.$onInit = function () {
+            this.homeName = AppConfig.homeName;
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
             var tempPayId = this.appCacheService.getAndClear("onpayid");
             if (HtmlUtil.isNumericString(tempPayId))
@@ -3653,7 +3644,7 @@ var Ally;
                 {
                     columnDefs: [
                         { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'unitName', displayName: 'Unit', width: 60 },
+                        { field: 'unitName', displayName: this.homeName, width: 80 },
                         { field: 'resident', displayName: 'Resident', width: 160 },
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
@@ -4742,7 +4733,7 @@ var Ally;
                     columnDefs: [
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
-                        { field: 'email', displayName: 'E-mail', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
+                        { field: 'email', displayName: 'Email', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
                         {
                             field: 'unitGridLabel',
@@ -4800,7 +4791,7 @@ var Ally;
                     columnDefs: [
                         { field: 'firstName', displayName: 'First Name' },
                         { field: 'lastName', displayName: 'Last Name' },
-                        { field: 'email', displayName: 'E-mail' },
+                        { field: 'email', displayName: 'Email' },
                         { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
                     ],
                     multiSelect: false,
@@ -4936,7 +4927,7 @@ var Ally;
             setTimeout("$( '#edit-user-first-text-box' ).focus();", 100);
         };
         /**
-         * Send a resident the welcome e-mail
+         * Send a resident the welcome email
          */
         ManageResidentsController.prototype.onSendWelcome = function () {
             this.isSavingUser = true;
@@ -4946,7 +4937,7 @@ var Ally;
                 innerThis.sentWelcomeEmail = true;
             }).error(function () {
                 innerThis.isSavingUser = false;
-                alert("Failed to send the welcome e-mail, please contact support if this problem persists.");
+                alert("Failed to send the welcome email, please contact support if this problem persists.");
             });
         };
         /**
@@ -5173,7 +5164,7 @@ var Ally;
                     fieldName: "phoneNumber"
                 },
                 {
-                    headerText: "E-mail",
+                    headerText: "Email",
                     fieldName: "email"
                 },
                 {
@@ -5411,7 +5402,7 @@ var Ally;
          * Occurs when the user presses the button to reset everyone's password
          */
         ManageResidentsController.prototype.onSendAllWelcome = function () {
-            if (!confirm("This will e-mail all of the residents in your association. Do you want to proceed?"))
+            if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
             var innerThis = this;
@@ -5421,7 +5412,7 @@ var Ally;
                 innerThis.allEmailsSent = true;
             }).error(function () {
                 innerThis.isLoading = false;
-                alert("Failed to send welcome e-mail, please contact support if this problem persists.");
+                alert("Failed to send welcome email, please contact support if this problem persists.");
             });
         };
         /**
@@ -5577,7 +5568,7 @@ var Ally;
             this.bulkImportRows.push(newRow);
         };
         /**
-         * Display the list of recent e-mails
+         * Display the list of recent emails
          */
         ManageResidentsController.prototype.toggleEmailHistoryVisible = function () {
             var _this = this;
@@ -5590,7 +5581,7 @@ var Ally;
                     _this.emailHistoryGridOptions.data = response.data;
                 }, function (response) {
                     _this.isLoadingSettings = false;
-                    alert("Failed to load e-mails: " + response.data.exceptionMessage);
+                    alert("Failed to load emails: " + response.data.exceptionMessage);
                 });
             }
         };
@@ -5671,12 +5662,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function PremiumPlanSettingsController($http, siteInfo, appCacheService) {
+        function PremiumPlanSettingsController($http, siteInfo, appCacheService, $timeout, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.$timeout = $timeout;
+            this.$scope = $scope;
             this.settings = new Ally.ChtnSiteSettings();
-            this.originalSettings = new Ally.ChtnSiteSettings();
             this.isLoading = false;
             this.isLoadingUsage = false;
             this.shouldShowPremiumPlanSection = true;
@@ -5696,6 +5688,7 @@ var Ally;
             this.emailUsageAverageNumMonths = 0;
             this.emailUsageAverageSent = 0;
             this.showInvoiceSection = false;
+            this.paymentType = "creditCard";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
@@ -5715,7 +5708,7 @@ var Ally;
             this.refreshData();
             // Get a view token to view the premium plan invoice should one be generated
             if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
-                window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
+                this.$timeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -5738,7 +5731,7 @@ var Ally;
         PremiumPlanSettingsController.prototype.showStripeError = function (errorMessage) {
             var displayError = document.getElementById('card-errors');
             if (HtmlUtil.isNullOrWhitespace(errorMessage))
-                displayError.textContent = '';
+                displayError.textContent = 'Unknown Error';
             else
                 displayError.textContent = errorMessage;
         };
@@ -5781,7 +5774,7 @@ var Ally;
                 .then(function (result) {
                 if (result.error) {
                     _this.isLoading = false;
-                    _this.showStripeError(result.error);
+                    _this.showStripeError(result.error.message);
                 }
                 else {
                     var activateInfo = {
@@ -5799,6 +5792,7 @@ var Ally;
                     });
                     //this.createSubscription( result.paymentMethod.id );
                 }
+                _this.$scope.$apply();
             });
         };
         /**
@@ -5829,7 +5823,7 @@ var Ally;
             var _this = this;
             var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&numMonths=" + numMonths + "&shouldIncludeWireInfo=" + shouldIncludeWireInfo;
             window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
-            window.setTimeout(function () {
+            this.$timeout(function () {
                 // Refresh the view token in case the user clicks again
                 _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
             }, 1250);
@@ -5841,7 +5835,7 @@ var Ally;
             var _this = this;
             this.shouldShowPaymentForm = true;
             this.updateCheckoutDescription();
-            setTimeout(function () { return _this.initStripePayment(); }, 250);
+            this.$timeout(function () { return _this.initStripePayment(); }, 250);
         };
         PremiumPlanSettingsController.prototype.updateCheckoutDescription = function () {
             var renewedInPast = moment(this.premiumPlanRenewDate).isBefore();
@@ -6049,7 +6043,6 @@ var Ally;
             this.$http.get("/api/Settings").then(function (response) {
                 _this.isLoading = false;
                 _this.settings = response.data;
-                _this.originalSettings = _.clone(response.data);
                 _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 _this.premiumPlanRenewDate = new Date();
                 _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
@@ -6075,7 +6068,82 @@ var Ally;
             window.location.hash = "#!/ManageResidents";
             return true;
         };
-        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService"];
+        /**
+         * Start the Stripe-Plaid ACH-linking flow
+         */
+        PremiumPlanSettingsController.prototype.startPlaidAchConnection = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/StripeLinkToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                if (!httpResponse.data) {
+                    alert("Failed to start Plaid connection. Please contact support.");
+                    return;
+                }
+                var plaidConfig = {
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid StripeLinkToken onSuccess", metadata);
+                        _this.completePlaidAchConnection(public_token, metadata.account_id);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                };
+                var plaidHandler = Plaid.create(plaidConfig);
+                plaidHandler.open();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to start Plaid connection: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        PremiumPlanSettingsController.prototype.completePlaidAchConnection = function (accessToken, accountId) {
+            var _this = this;
+            this.isLoading = true;
+            var postData = {
+                accessToken: accessToken,
+                selectedAccountIds: [accountId]
+            };
+            this.$http.post("/api/Plaid/ProcessStripeAccessToken", postData).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.checkoutDescription = "Account successfully linked, reloading...";
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to link account: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        PremiumPlanSettingsController.prototype.makeAchStripePayment = function () {
+            var _this = this;
+            this.isLoading = true;
+            var activateInfo = {
+                shouldPayAnnually: this.isActivatingAnnual,
+                payViaAch: true
+            };
+            this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function (response) {
+                _this.isLoading = false;
+                _this.settings.premiumPlanIsAutoRenewed = true;
+                _this.shouldShowPaymentForm = false;
+                _this.refreshData();
+            }, function (errorResponse) {
+                _this.isLoading = false;
+                alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
+            });
+        };
+        PremiumPlanSettingsController.prototype.onPaymentTypeChange = function () {
+            var _this = this;
+            // Tell Stripe to populate the card info area
+            if (this.paymentType === "creditCard")
+                this.$timeout(function () { return _this.initStripePayment(); }, 250);
+        };
+        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService", "$timeout", "$scope"];
         return PremiumPlanSettingsController;
     }());
     Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;
@@ -6497,6 +6565,21 @@ var Ally;
                 if (_this.usersCommittees)
                     _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
             });
+            // Delay the survey check since it's low priority and it lets the other parts of the page load faster
+            if (AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa")
+                this.$timeout(function () { return _this.checkForSurveys(); }, 250);
+        };
+        /**
+        * See if there's any surveys waiting to be completed for the current group+user
+        */
+        ChtnHomeController.prototype.checkForSurveys = function () {
+            var _this = this;
+            this.$http.get("/api/AllySurvey/AnySurvey").then(function (response) {
+                _this.allySurvey = response.data;
+            }, function (errorResponse) {
+                console.log("Failed to load ally survey", errorResponse.data.exceptionMessage);
+            });
+            this.allySurvey = null;
         };
         ChtnHomeController.prototype.onTestPayAmtChange = function () {
             this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
@@ -6509,6 +6592,11 @@ var Ally;
         return ChtnHomeController;
     }());
     Ally.ChtnHomeController = ChtnHomeController;
+    var AllySurveyInfo = /** @class */ (function () {
+        function AllySurveyInfo() {
+        }
+        return AllySurveyInfo;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnHome", {
     templateUrl: "/ngApp/chtn/member/chtn-home.html",
@@ -10145,6 +10233,51 @@ var ParagonPaymentRequest = /** @class */ (function () {
     }
     return ParagonPaymentRequest;
 }());
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to track group spending
+     */
+    var CustomPageViewController = /** @class */ (function () {
+        /**
+        * The constructor for the class
+        */
+        function CustomPageViewController($http, siteInfo, $sce) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$sce = $sce;
+            this.isLoading = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        CustomPageViewController.prototype.$onInit = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/CustomPage/View/SellPage").then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.customPage = httpResponse.data;
+                _this.markupHtml = _this.$sce.trustAsHtml(_this.customPage.markupHtml);
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to load page, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce"];
+        return CustomPageViewController;
+    }());
+    Ally.CustomPageViewController = CustomPageViewController;
+    var CustomPage = /** @class */ (function () {
+        function CustomPage() {
+        }
+        return CustomPage;
+    }());
+})(Ally || (Ally = {}));
+CA.angularApp.component("customPageView", {
+    templateUrl: "/ngApp/common/custom-page-view.html",
+    controller: Ally.CustomPageViewController
+});
 
 var Ally;
 (function (Ally) {
