@@ -59,8 +59,9 @@ var Ally;
                 if (_this.usersCommittees)
                     _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
             });
-            // Delay the survey check since it's low prioirty and it lets the other parts of the page load faster
-            this.$timeout(function () { return _this.checkForSurveys(); }, 250);
+            // Delay the survey check since it's low priority and it lets the other parts of the page load faster
+            if (AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa")
+                this.$timeout(function () { return _this.checkForSurveys(); }, 250);
         };
         /**
         * See if there's any surveys waiting to be completed for the current group+user

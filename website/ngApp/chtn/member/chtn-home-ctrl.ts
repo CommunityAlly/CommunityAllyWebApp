@@ -104,8 +104,9 @@
                     this.usersCommittees = _.sortBy( this.usersCommittees, c => c.name.toLowerCase() );
             } );
 
-            // Delay the survey check since it's low prioirty and it lets the other parts of the page load faster
-            this.$timeout( () => this.checkForSurveys(), 250 );
+            // Delay the survey check since it's low priority and it lets the other parts of the page load faster
+            if( AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa" )
+                this.$timeout( () => this.checkForSurveys(), 250 );
         }
 
 
