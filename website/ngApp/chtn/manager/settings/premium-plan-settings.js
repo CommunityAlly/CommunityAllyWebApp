@@ -7,12 +7,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function PremiumPlanSettingsController($http, siteInfo, appCacheService) {
+        function PremiumPlanSettingsController($http, siteInfo, appCacheService, $timeout, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.$timeout = $timeout;
+            this.$scope = $scope;
             this.settings = new Ally.ChtnSiteSettings();
-            this.originalSettings = new Ally.ChtnSiteSettings();
             this.isLoading = false;
             this.isLoadingUsage = false;
             this.shouldShowPremiumPlanSection = true;
@@ -32,6 +33,7 @@ var Ally;
             this.emailUsageAverageNumMonths = 0;
             this.emailUsageAverageSent = 0;
             this.showInvoiceSection = false;
+            this.paymentType = "creditCard";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
@@ -51,7 +53,7 @@ var Ally;
             this.refreshData();
             // Get a view token to view the premium plan invoice should one be generated
             if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
-                window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
+                this.$timeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -74,7 +76,7 @@ var Ally;
         PremiumPlanSettingsController.prototype.showStripeError = function (errorMessage) {
             var displayError = document.getElementById('card-errors');
             if (HtmlUtil.isNullOrWhitespace(errorMessage))
-                displayError.textContent = '';
+                displayError.textContent = 'Unknown Error';
             else
                 displayError.textContent = errorMessage;
         };
@@ -117,7 +119,7 @@ var Ally;
                 .then(function (result) {
                 if (result.error) {
                     _this.isLoading = false;
-                    _this.showStripeError(result.error);
+                    _this.showStripeError(result.error.message);
                 }
                 else {
                     var activateInfo = {
@@ -135,6 +137,7 @@ var Ally;
                     });
                     //this.createSubscription( result.paymentMethod.id );
                 }
+                _this.$scope.$apply();
             });
         };
         /**
@@ -165,7 +168,7 @@ var Ally;
             var _this = this;
             var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&numMonths=" + numMonths + "&shouldIncludeWireInfo=" + shouldIncludeWireInfo;
             window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
-            window.setTimeout(function () {
+            this.$timeout(function () {
                 // Refresh the view token in case the user clicks again
                 _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
             }, 1250);
@@ -177,7 +180,7 @@ var Ally;
             var _this = this;
             this.shouldShowPaymentForm = true;
             this.updateCheckoutDescription();
-            setTimeout(function () { return _this.initStripePayment(); }, 250);
+            this.$timeout(function () { return _this.initStripePayment(); }, 250);
         };
         PremiumPlanSettingsController.prototype.updateCheckoutDescription = function () {
             var renewedInPast = moment(this.premiumPlanRenewDate).isBefore();
@@ -385,7 +388,6 @@ var Ally;
             this.$http.get("/api/Settings").then(function (response) {
                 _this.isLoading = false;
                 _this.settings = response.data;
-                _this.originalSettings = _.clone(response.data);
                 _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 _this.premiumPlanRenewDate = new Date();
                 _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
@@ -411,7 +413,82 @@ var Ally;
             window.location.hash = "#!/ManageResidents";
             return true;
         };
-        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService"];
+        /**
+         * Start the Stripe-Plaid ACH-linking flow
+         */
+        PremiumPlanSettingsController.prototype.startPlaidAchConnection = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/StripeLinkToken").then(function (httpResponse) {
+                _this.isLoading = false;
+                if (!httpResponse.data) {
+                    alert("Failed to start Plaid connection. Please contact support.");
+                    return;
+                }
+                var plaidConfig = {
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid StripeLinkToken onSuccess", metadata);
+                        _this.completePlaidAchConnection(public_token, metadata.account_id);
+                    },
+                    onLoad: function () { },
+                    onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
+                    onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                };
+                var plaidHandler = Plaid.create(plaidConfig);
+                plaidHandler.open();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to start Plaid connection: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        PremiumPlanSettingsController.prototype.completePlaidAchConnection = function (accessToken, accountId) {
+            var _this = this;
+            this.isLoading = true;
+            var postData = {
+                accessToken: accessToken,
+                selectedAccountIds: [accountId]
+            };
+            this.$http.post("/api/Plaid/ProcessStripeAccessToken", postData).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.checkoutDescription = "Account successfully linked, reloading...";
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to link account: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        PremiumPlanSettingsController.prototype.makeAchStripePayment = function () {
+            var _this = this;
+            this.isLoading = true;
+            var activateInfo = {
+                shouldPayAnnually: this.isActivatingAnnual,
+                payViaAch: true
+            };
+            this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function (response) {
+                _this.isLoading = false;
+                _this.settings.premiumPlanIsAutoRenewed = true;
+                _this.shouldShowPaymentForm = false;
+                _this.refreshData();
+            }, function (errorResponse) {
+                _this.isLoading = false;
+                alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
+            });
+        };
+        PremiumPlanSettingsController.prototype.onPaymentTypeChange = function () {
+            var _this = this;
+            // Tell Stripe to populate the card info area
+            if (this.paymentType === "creditCard")
+                this.$timeout(function () { return _this.initStripePayment(); }, 250);
+        };
+        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService", "$timeout", "$scope"];
         return PremiumPlanSettingsController;
     }());
     Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;

@@ -9,10 +9,9 @@ namespace Ally
      */
     export class PremiumPlanSettingsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "appCacheService"];
+        static $inject = ["$http", "SiteInfo", "appCacheService", "$timeout", "$scope"];
 
         settings: ChtnSiteSettings = new ChtnSiteSettings();
-        originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
         isLoading: boolean = false;
         isLoadingUsage: boolean = false;
         shouldShowPremiumPlanSection: boolean = true;
@@ -40,6 +39,7 @@ namespace Ally
         meteredUsage: MeteredFeaturesUsage;
         viewPremiumInvoiceViewId: string;
         showInvoiceSection: boolean = false;
+        paymentType: string = "creditCard";
 
 
         /**
@@ -47,7 +47,9 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService,
             private siteInfo: Ally.SiteInfoService,
-            private appCacheService: AppCacheService )
+            private appCacheService: AppCacheService,
+            private $timeout: ng.ITimeoutService,
+            private $scope: ng.IScope )
         {
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
@@ -74,7 +76,7 @@ namespace Ally
 
             // Get a view token to view the premium plan invoice should one be generated
             if( this.showInvoiceSection ) // Add a slight delay to let the rest of the page load
-                window.setTimeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid ), 250 );
+                this.$timeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid ), 250 );
         }
 
 
@@ -110,7 +112,7 @@ namespace Ally
             let displayError = document.getElementById( 'card-errors' );
 
             if( HtmlUtil.isNullOrWhitespace( errorMessage ) )
-                displayError.textContent = '';
+                displayError.textContent = 'Unknown Error';
             else
                 displayError.textContent = errorMessage;
         }
@@ -166,7 +168,7 @@ namespace Ally
                     {
                         this.isLoading = false;
 
-                        this.showStripeError( result.error );
+                        this.showStripeError( result.error.message );
                     }
                     else
                     {
@@ -190,9 +192,10 @@ namespace Ally
                             }
                         );
 
-
                         //this.createSubscription( result.paymentMethod.id );
                     }
+
+                    this.$scope.$apply();
                 } );
         }
 
@@ -229,7 +232,7 @@ namespace Ally
             const getUri = `PublicSettings/ViewPremiumInvoice?vid=${this.viewPremiumInvoiceViewId}&numMonths=${numMonths}&shouldIncludeWireInfo=${shouldIncludeWireInfo}`;
             window.open( this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank" );
 
-            window.setTimeout( () =>
+            this.$timeout( () =>
             {
                 // Refresh the view token in case the user clicks again
                 this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid );
@@ -245,7 +248,7 @@ namespace Ally
             this.shouldShowPaymentForm = true;
             this.updateCheckoutDescription();
 
-            setTimeout( () => this.initStripePayment(), 250 );
+            this.$timeout( () => this.initStripePayment(), 250 );
         }
 
 
@@ -521,8 +524,7 @@ namespace Ally
             {
                 this.isLoading = false;
                 this.settings = response.data;
-                this.originalSettings = _.clone( response.data );
-
+                
                 this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 this.premiumPlanRenewDate = new Date();
                 this.premiumPlanRenewDate = moment( this.settings.premiumPlanExpirationDate ).add( 1, "days" ).toDate();
@@ -554,6 +556,115 @@ namespace Ally
             this.appCacheService.set( "goToEmailHistory", "true" );
             window.location.hash = "#!/ManageResidents";
             return true;
+        }
+
+
+        /**
+         * Start the Stripe-Plaid ACH-linking flow
+         */
+        startPlaidAchConnection()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/Plaid/StripeLinkToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+
+                    if( !httpResponse.data )
+                    {
+                        alert( "Failed to start Plaid connection. Please contact support." );
+                        return;
+                    }
+
+                    const plaidConfig: any = {
+                        token: httpResponse.data,
+                        onSuccess: ( public_token: string, metadata: any ) =>
+                        {
+                            console.log( "Plaid StripeLinkToken onSuccess", metadata );
+
+                            this.completePlaidAchConnection( public_token, metadata.account_id );
+                        },
+                        onLoad: () => { },
+                        onExit: ( err: any, metadata: any ) => { console.log( "update onExit.err", err, metadata ); },
+                        onEvent: ( eventName: string, metadata: any ) => { console.log( "update onEvent.eventName", eventName, metadata ); },
+                        receivedRedirectUri: null,
+                    };
+
+                    const plaidHandler = Plaid.create( plaidConfig );
+                    plaidHandler.open();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to start Plaid connection: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        completePlaidAchConnection( accessToken: string, accountId: string )
+        {
+            this.isLoading = true;
+
+            const postData = {
+                accessToken,
+                selectedAccountIds: [accountId]
+            };
+
+            this.$http.post( "/api/Plaid/ProcessStripeAccessToken", postData ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.checkoutDescription = "Account successfully linked, reloading...";
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to link account: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        makeAchStripePayment()
+        {
+            this.isLoading = true;
+
+            const activateInfo = {
+                shouldPayAnnually: this.isActivatingAnnual,
+                payViaAch: true
+            };
+
+            this.$http.put( "/api/Settings/ActivatePremium", activateInfo ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.settings.premiumPlanIsAutoRenewed = true;
+                    this.shouldShowPaymentForm = false;
+                    this.refreshData();
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        onPaymentTypeChange()
+        {
+            // Tell Stripe to populate the card info area
+            if( this.paymentType === "creditCard" )
+                this.$timeout( () => this.initStripePayment(), 250 );
         }
     }
 
