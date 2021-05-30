@@ -364,7 +364,7 @@ var Ally;
                     alert("Something went wrong on the server. Please contact support.");
                     return;
                 }
-                _this.plaidHandler = Plaid.create({
+                var plaidConfig = {
                     token: newLinkToken,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid update onSuccess");
@@ -374,7 +374,8 @@ var Ally;
                     onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
                     onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
-                });
+                };
+                _this.plaidHandler = Plaid.create(plaidConfig);
                 _this.plaidHandler.open();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -469,11 +470,11 @@ var Ally;
             if (!this.isPremiumPlanActive)
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Plaid/LinkToken").then(function (httpResponse) {
+            this.$http.get("/api/Plaid/NewLinkToken").then(function (httpResponse) {
                 _this.isLoading = false;
                 if (!httpResponse.data)
                     return;
-                _this.plaidHandler = Plaid.create({
+                var plaidConfig = {
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
                         console.log("Plaid onSuccess", metadata);
@@ -486,30 +487,14 @@ var Ally;
                     onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
                     onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
-                });
+                };
+                _this.plaidHandler = Plaid.create(plaidConfig);
                 _this.plaidHandler.open();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to start Plaid sign-up: " + httpResponse.data.exceptionMessage);
                 _this.closeAccountAndReload();
             });
-            //this.isLoading = true;
-            //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
-            //{
-            //    this.isLoading = false;
-            //    const handler = Plaid.create( {
-            //        token: httpResponse.data,
-            //        onSuccess: ( public_token: string, metadata: any ) =>
-            //        {
-            //            console.log( "onSuccess" );
-            //        },
-            //        onLoad: () => { },
-            //        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
-            //        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
-            //        receivedRedirectUri: null,
-            //    } );
-            //    handler.open();
-            //} );
         };
         LedgerController.prototype.openEditAccountModal = function (account) {
             this.editAccount = _.clone(account);

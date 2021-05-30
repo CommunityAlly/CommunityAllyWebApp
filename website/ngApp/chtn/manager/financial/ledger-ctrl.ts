@@ -492,7 +492,7 @@ namespace Ally
                         return;
                     }
 
-                    this.plaidHandler = Plaid.create( {
+                    const plaidConfig: any = {
                         token: newLinkToken,
                         onSuccess: ( public_token: string, metadata: any ) =>
                         {
@@ -503,7 +503,9 @@ namespace Ally
                         onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
                         onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
                         receivedRedirectUri: null,
-                    } );
+                    };
+
+                    this.plaidHandler = Plaid.create( plaidConfig );
 
                     this.plaidHandler.open();
                 },
@@ -641,7 +643,7 @@ namespace Ally
 
             this.isLoading = true;
 
-            this.$http.get( "/api/Plaid/LinkToken" ).then(
+            this.$http.get( "/api/Plaid/NewLinkToken" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading = false;
@@ -649,7 +651,7 @@ namespace Ally
                     if( !httpResponse.data )
                         return;
 
-                    this.plaidHandler = Plaid.create( {
+                    const plaidConfig: any = {
                         token: httpResponse.data,
                         onSuccess: ( public_token: string, metadata: any ) =>
                         {
@@ -665,7 +667,9 @@ namespace Ally
                         onExit: ( err: any, metadata: any ) => { console.log( "update onExit.err", err, metadata ); },
                         onEvent: ( eventName: string, metadata: any ) => { console.log( "update onEvent.eventName", eventName, metadata ); },
                         receivedRedirectUri: null,
-                    } );
+                    };
+
+                    this.plaidHandler = Plaid.create( plaidConfig );
 
                     this.plaidHandler.open();
                 },
@@ -677,27 +681,6 @@ namespace Ally
                     this.closeAccountAndReload();
                 }
             );
-
-            //this.isLoading = true;
-
-            //this.$http.get( "/api/Plaid/LinkToken" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
-            //{
-            //    this.isLoading = false;
-
-            //    const handler = Plaid.create( {
-            //        token: httpResponse.data,
-            //        onSuccess: ( public_token: string, metadata: any ) =>
-            //        {
-            //            console.log( "onSuccess" );
-            //        },
-            //        onLoad: () => { },
-            //        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
-            //        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
-            //        receivedRedirectUri: null,
-            //    } );
-
-            //    handler.open();
-            //} );
         }
 
 

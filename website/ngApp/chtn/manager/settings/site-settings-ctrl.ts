@@ -29,6 +29,7 @@ namespace Ally
         canHideContactInfo: boolean;
         isDiscussionEmailGroupEnabled: boolean;
         whoCanCreateDiscussionThreads: string;
+        hasStripeAchAccount: string;
         ptaUnitId: number;
     }
 
