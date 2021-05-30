@@ -151,6 +151,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "NeighborSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All } ),
         new Ally.RoutePath_v3( { path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All } ),
         new Ally.RoutePath_v3( { path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All } ),
+        new Ally.RoutePath_v3( { path: "CPView/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All } ),
 
         new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
         new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ),
@@ -247,6 +248,7 @@ const HomeAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All } ),
         new Ally.RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All } ),
         new Ally.RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All } ),
+        new Ally.RoutePath_v3( { path: "CPView/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All } ),
         new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>" } ),
 
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<home-group-home></home-group-home>", menuTitle: "Home" } ),
