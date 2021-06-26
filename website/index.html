@@ -67,13 +67,8 @@
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
-        ( function()
+        var setupZopim = ( function()
         {
-            var subdomain = HtmlUtil.getSubdomain( window.location.host );
-            var isTestSubdomain = subdomain === "qa" || subdomain === "localtest";
-            if( isTestSubdomain )
-                return;
-
             // Zopim
             window.$zopim || ( function( d, s )
             {
@@ -94,15 +89,24 @@
                 z.t = +new Date;
                 $.type = 'text/javascript';
 
-                // Delay loading 2sec
-                setTimeout( function()
-                {
-                    e.parentNode.insertBefore( $, e );
-                }, 5000 );
+                e.parentNode.insertBefore( $, e );
 
             } )( document, 'script' );
 
-        } )();
+        } );
+
+        var subdomain = HtmlUtil.getSubdomain( window.location.host );
+        var shouldNotLoadZopim = subdomain === "qa" || subdomain === "localtest" || subdomain === "login";
+        if( !shouldNotLoadZopim )
+        {
+            // Delay loading a bit for sites that get spam via Zopim
+            var isSpammedSite = subdomain === "themaples";
+            var zopimDelay = isSpammedSite ? 20000 : 5000;
+            setTimeout( function()
+            {
+                setupZopim();
+            }, zopimDelay );
+        }
     </script>
     <script src="https://stingray.communityally.org/script.js" site="SHLEWGEJ" auto="false" spa="hash" defer></script>
     <script>
