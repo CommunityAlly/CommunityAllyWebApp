@@ -7,9 +7,10 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function DateRangePickerController(appCacheService, $scope) {
+        function DateRangePickerController(appCacheService, $scope, $timeout) {
             this.appCacheService = appCacheService;
             this.$scope = $scope;
+            this.$timeout = $timeout;
             this.filterPresetDateRange = "last30days";
             this.shouldSuppressCustom = false;
             this.thisYearLabel = new Date().getFullYear().toString();
@@ -68,10 +69,14 @@ var Ally;
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
         };
         DateRangePickerController.prototype.onInternalChange = function () {
-            if (this.onChange)
-                this.onChange();
+            var _this = this;
+            // Delay just a touch to let the model update
+            this.$timeout(function () {
+                if (_this.onChange)
+                    _this.onChange();
+            }, 10);
         };
-        DateRangePickerController.$inject = ["appCacheService", "$scope"];
+        DateRangePickerController.$inject = ["appCacheService", "$scope", "$timeout"];
         return DateRangePickerController;
     }());
     Ally.DateRangePickerController = DateRangePickerController;

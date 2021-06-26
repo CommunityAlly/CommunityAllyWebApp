@@ -5,7 +5,7 @@
      */
     export class DateRangePickerController implements ng.IController
     {
-        static $inject = ["appCacheService", "$scope"];
+        static $inject = ["appCacheService", "$scope", "$timeout"];
 
         filterPresetDateRange: string = "last30days";
         startDate: Date;
@@ -20,7 +20,8 @@
         * The constructor for the class
         */
         constructor( private appCacheService: AppCacheService,
-            private $scope: ng.IScope )
+            private $scope: ng.IScope,
+            private $timeout: ng.ITimeoutService )
         {
             this.thisYearLabel = new Date().getFullYear().toString();
             this.lastYearLabel = (new Date().getFullYear() - 1).toString();
@@ -96,8 +97,12 @@
 
         onInternalChange()
         {
-            if( this.onChange )
-                this.onChange();
+            // Delay just a touch to let the model update
+            this.$timeout( () =>
+            {
+                if( this.onChange )
+                    this.onChange();
+            }, 10 );
         }
     }
 }
