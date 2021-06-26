@@ -17,7 +17,7 @@
                 <tr>
                     <th></th>
                     <th>Name</th>
-                    <th>% Interest</th>
+                    <!--<th>% Interest</th>-->
                     <th data-ng-if="$ctrl.isAdmin">Unit ID</th>
                     <th data-ng-if="$ctrl.isAdmin">Address ID</th>
                     <th>Street Address</th>
@@ -32,7 +32,7 @@
                         <span data-ng-if="$ctrl.isAdmin">- <span class="text-button" data-ng-click="$ctrl.onRefreshUnitFromGoogle( unit );">Goog Refresh</span></span>
                     </td>
                     <td>{{unit.name}}</td>
-                    <td>{{unit.percentageInterest}}</td>
+                    <!--<td>{{unit.percentageInterest}}</td>-->
                     <td data-ng-if="$ctrl.isAdmin">{{unit.unitId}}</td>
                     <td data-ng-if="$ctrl.isAdmin">{{unit.addressId}}</td>
                     <td>{{unit.fullAddress.oneLiner}}</td>
@@ -50,10 +50,10 @@
                     <td class="text-right">{{$ctrl.homeName}} Label:</td>
                     <td style="width: 500px;"><input id="unit-name-text-box" type="text" style="width: 50%;" data-ng-model="$ctrl.unitToEdit.name" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
                 </tr>
-                <tr>
+                <!--<tr>
                     <td class="text-right">Percent Ownership:</td>
                     <td><input id="unit-ownership-text-box" type="text" style="width: 50%;" data-ng-model="$ctrl.unitToEdit.percentageInterest" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
-                </tr>
+                </tr>-->
                 <tr>
                     <td class="text-right">Street Address:</td>
                     <td><input id="unit-address-text-box" type="text" style="width: 100%;" data-ng-model="$ctrl.unitToEdit.streetAddress" data-ng-enter="$ctrl.onCreateUnitClick()" data-rule-required="true" /></td>
