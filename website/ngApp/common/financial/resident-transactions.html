@@ -1,0 +1,15 @@
+﻿<div>
+    <span class="text-link" data-ng-click="$ctrl.showModal()">View My Transactions</span>
+</div>
+<div class="modal-container" data-ng-if="$ctrl.shouldShowModal">
+    <div class="modal-overlay" data-ng-click="$ctrl.shouldShowModal = false"></div>
+    <div class="ca-modal-dialog modal-lg">
+        <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
+        <span style="float:right" class="close-x" data-ng-click="$ctrl.shouldShowModal = false">×</span>
+        <h2>Financial Transactions</h2>
+        <div data-ng-if="$ctrl.transactionGridOptions.data.length > 0" data-ui-grid="$ctrl.transactionGridOptions" ui-grid-resize-columns ui-grid-pagination></div>
+        <div data-ng-if="$ctrl.transactionGridOptions.data.length === 0">
+            No financial transactions found for your {{$ctrl.homeName.toLowerCase()}}.
+        </div>
+    </div>
+</div>

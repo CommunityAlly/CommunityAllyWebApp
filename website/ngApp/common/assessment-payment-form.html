@@ -364,6 +364,7 @@
                 <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">View Payment History</span>
                 <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">View Payment Information</span>
             </div>
+            <resident-transactions data-ng-if="$ctrl.shouldShowOwnerFinanceTxn"></resident-transactions>
 
             <div class="mt-4">
                 <div id="payment_history" data-ng-if="$ctrl.showExtraInfo === 'payment-history'">

@@ -41,6 +41,7 @@ var Ally;
             this.shouldShowMicroDepositModal = false;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
+            this.shouldShowOwnerFinanceTxn = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -57,6 +58,7 @@ var Ally;
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
             if (this.isDwollaUserAccountVerified) {
                 this.dwollaUserStatus = "verified";

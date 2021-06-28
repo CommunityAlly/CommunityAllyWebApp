@@ -34,6 +34,7 @@
         testPay_UserLast: string;
         testPay_Description: string;
         allySurvey: AllySurveyInfo;
+        shouldShowOwnerFinanceTxn: boolean = false;
 
         /**
          * The constructor for the class
@@ -66,6 +67,7 @@
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;

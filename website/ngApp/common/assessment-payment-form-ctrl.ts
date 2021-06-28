@@ -71,6 +71,7 @@ namespace Ally
         shouldShowMicroDepositModal: boolean = false;
         dwollaMicroDepositAmount1String: string = "0.01";
         dwollaMicroDepositAmount2String: string = "0.01";
+        shouldShowOwnerFinanceTxn: boolean = false;
 
 
         /**
@@ -102,6 +103,7 @@ namespace Ally
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
 
             this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
             if( this.isDwollaUserAccountVerified )

@@ -113,6 +113,7 @@ namespace Ally
         whoCanCreateDiscussionThreads: string;
         isDiscussionEmailGroupEnabled: boolean;
         isPremiumPlanActive: boolean;
+        shouldShowOwnerFinanceTxn: boolean;
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;

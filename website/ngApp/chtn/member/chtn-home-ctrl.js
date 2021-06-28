@@ -18,6 +18,7 @@ var Ally;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
+            this.shouldShowOwnerFinanceTxn = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -34,6 +35,7 @@ var Ally;
             }
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;

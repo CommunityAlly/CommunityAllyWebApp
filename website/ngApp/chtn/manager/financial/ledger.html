@@ -69,8 +69,13 @@
         <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-edit ui-grid-cellNav></div>
     </div>
 
-    <div class="mb-2">
+    <div class="mb-2" style="height: 20px;">
         <span class="note-text text-link pull-right" data-ng-click="$ctrl.exportTransactionsCsv()">Export To CSV</span>
+    </div>
+
+    <div class="mb-2">
+        <label><input type="checkbox" data-ng-change="$ctrl.onShowOwnerTxnsChange()" data-ng-model="$ctrl.shouldShowOwnerFinanceTxn" /> Allow owners to view their transaction history</label>
+        <a class="note-text" href="https://help.communityally.org/sharing-owner-financial-transactions/" target="_blank">Learn More</a>
     </div>
 
     <div data-ng-if="$ctrl.editingTransaction" class="modal-container">

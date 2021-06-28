@@ -45,6 +45,7 @@ var Ally;
             this.showDonut = true;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
+            this.shouldShowOwnerFinanceTxn = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -54,6 +55,7 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.ledgerGridOptions =
                 {
                     columnDefs: [
@@ -700,6 +702,19 @@ var Ally;
             var csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
         };
+        /** Occurs when the user changes the setting to share transactions with owners */
+        LedgerController.prototype.onShowOwnerTxnsChange = function () {
+            var _this = this;
+            this.isLoading = true;
+            var putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
+            this.$http.put(putUri, null).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = _this.shouldShowOwnerFinanceTxn;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
+            });
+        };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;
     }());
@@ -729,6 +744,7 @@ var Ally;
         }
         return LedgerEntry;
     }());
+    Ally.LedgerEntry = LedgerEntry;
     var LedgerListEntry = /** @class */ (function (_super) {
         __extends(LedgerListEntry, _super);
         function LedgerListEntry() {

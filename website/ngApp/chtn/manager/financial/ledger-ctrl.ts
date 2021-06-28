@@ -44,6 +44,7 @@ namespace Ally
         isSplitAmountEqual: boolean;
         bulkImportAccountId: number;
         shouldShowImportModal: boolean = false;
+        shouldShowOwnerFinanceTxn: boolean = false;
 
 
         /**
@@ -67,6 +68,7 @@ namespace Ally
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
 
             this.ledgerGridOptions =
             {
@@ -991,6 +993,27 @@ namespace Ally
 
             HtmlUtil2.downloadCsv( csvDataString, "Transactions.csv" );
         }
+
+
+        /** Occurs when the user changes the setting to share transactions with owners */
+        onShowOwnerTxnsChange()
+        {
+            this.isLoading = true;
+
+            const putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
+            this.$http.put( putUri, null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = this.shouldShowOwnerFinanceTxn;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to change setting: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
     }
 
     class CategoryOption
@@ -1032,7 +1055,7 @@ namespace Ally
         shouldShowInGrid: boolean;
     }
 
-    class LedgerEntry
+    export class LedgerEntry
     {
         ledgerEntryId: number;
         ledgerAccountId: number;
