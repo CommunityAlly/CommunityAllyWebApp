@@ -7,7 +7,13 @@
         <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
         <span style="float:right" class="close-x" data-ng-click="$ctrl.shouldShowModal = false">×</span>
         <h2>Financial Transactions</h2>
-        <div data-ng-if="$ctrl.transactionGridOptions.data.length > 0" data-ui-grid="$ctrl.transactionGridOptions" ui-grid-resize-columns ui-grid-pagination></div>
+        <span class="note-text">BETA</span>
+        <div data-ng-if="$ctrl.transactionGridOptions.data.length > 0">
+            <div data-ui-grid="$ctrl.transactionGridOptions" ui-grid-resize-columns ui-grid-pagination></div>
+            <div class="mb-2" style="height: 20px;">
+                <span class="note-text text-link pull-right" data-ng-click="$ctrl.exportTransactionsCsv()">Export To CSV</span>
+            </div>
+        </div>
         <div data-ng-if="$ctrl.transactionGridOptions.data.length === 0">
             No financial transactions found for your {{$ctrl.homeName.toLowerCase()}}.
         </div>

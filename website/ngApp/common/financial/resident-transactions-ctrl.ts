@@ -73,7 +73,7 @@
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/Ledger/ForOwner` ).then(
+            this.$http.get( `/api/OwnerLedger/MyTransactions` ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerEntry[]> ) =>
                 {
                     this.isLoading = false;
@@ -97,6 +97,44 @@
                     this.isLoading = false;
                 }
             );
+        }
+
+
+        exportTransactionsCsv()
+        {
+            var csvColumns = [
+                {
+                    headerText: "Date",
+                    fieldName: "transactionDate",
+                    dataMapper: function( value: Date )
+                    {
+                        if( !value )
+                            return "";
+
+                        return moment( value ).format( "YYYY-MM-DD" );
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Category",
+                    fieldName: "categoryDisplayName"
+                },
+                {
+                    headerText: AppConfig.homeName,
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Amount",
+                    fieldName: "amount"
+                }
+            ];
+
+            var csvDataString = Ally.createCsvString( this.transactionGridOptions.data as LedgerEntry[], csvColumns );
+
+            HtmlUtil2.downloadCsv( csvDataString, "Owner-Transactions.csv" );
         }
     }
 }

@@ -56,7 +56,7 @@ var Ally;
         ResidentTransactionsController.prototype.refreshEntries = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Ledger/ForOwner").then(function (httpResponse) {
+            this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.transactionGridOptions.data = httpResponse.data;
                 // Hide the unit column if the owner only has one unit
@@ -72,6 +72,37 @@ var Ally;
             }, function () {
                 _this.isLoading = false;
             });
+        };
+        ResidentTransactionsController.prototype.exportTransactionsCsv = function () {
+            var csvColumns = [
+                {
+                    headerText: "Date",
+                    fieldName: "transactionDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Category",
+                    fieldName: "categoryDisplayName"
+                },
+                {
+                    headerText: AppConfig.homeName,
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Amount",
+                    fieldName: "amount"
+                }
+            ];
+            var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
         };
         ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants"];
         return ResidentTransactionsController;
