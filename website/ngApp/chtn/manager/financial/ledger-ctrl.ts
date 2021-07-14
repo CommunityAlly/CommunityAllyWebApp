@@ -14,6 +14,8 @@ namespace Ally
         ledgerGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
         ledgerGridApi: uiGrid.IGridApiOf<LedgerEntry>;
         previewImportGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
+        pendingGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
+        shouldExpandPending: boolean = false;
         ledgerAccounts: LedgerAccount[] = [];
         accountsNeedingLogin: LedgerAccount[] = [];
         shouldShowAddTransaction: boolean = false;
@@ -29,6 +31,7 @@ namespace Ally
         filterPresetDateRange: string;
         flatCategoryList: FinancialCategory[];
         allEntries: LedgerEntry[];
+        pendingEntries: LedgerEntry[];
         isPremiumPlanActive: boolean = false;
         readonly ManageCategoriesDropId = -15;
         shouldShowCategoryEditModal: boolean = false;
@@ -132,6 +135,28 @@ namespace Ally
                 }
             };
 
+            this.pendingGridOptions =
+            {
+                columnDefs:
+                    [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        {
+                            field: 'accountName', filter: {
+                                type: this.uiGridConstants.filter.SELECT,
+                                selectOptions: []
+                            }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                        },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum }
+                    ],
+                enableSorting: true,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableColumnMenus: false,
+                enablePaginationControls: false,
+                enableRowHeaderSelection: false
+            };
+
             this.previewImportGridOptions =
             {
                 columnDefs:
@@ -214,6 +239,7 @@ namespace Ally
                     this.hasPlaidAccounts = _.any( this.ledgerAccounts, a => a.syncType === 'plaid' );
 
                     this.allEntries = pageInfo.entries;
+                    this.pendingGridOptions.data = pageInfo.pendingEntries;
 
                     this.flatCategoryList = [];
                     const visitNode = ( curNode: FinancialCategory, depth: number ) =>
@@ -1069,6 +1095,7 @@ namespace Ally
         associatedUnitId: number | null;
         isSplit: boolean;
         parentLedgerEntryId: number | null;
+        isPending: boolean;
         accountName: string;
         categoryDisplayName: string;
         splitEntries: LedgerEntry[] | null;
@@ -1085,6 +1112,7 @@ namespace Ally
     {
         accounts: LedgerAccount[];
         entries: LedgerEntry[];
+        pendingEntries: LedgerEntry[];
         rootFinancialCategory: FinancialCategory;
     }
 

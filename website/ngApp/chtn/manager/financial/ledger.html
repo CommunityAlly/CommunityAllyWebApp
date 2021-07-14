@@ -63,6 +63,14 @@
         Get started by adding an account using the button above.
     </h4>
 
+    <div data-ng-if="$ctrl.pendingGridOptions.data.length > 0" class="mt-4 mb-4">
+        <h5 class="text-link" data-ng-click="$ctrl.shouldExpandPending = !$ctrl.shouldExpandPending">
+            Pending Transactions ({{$ctrl.pendingGridOptions.data.length}})
+            <span class="note-text">({{$ctrl.shouldExpandPending ? 'hide' : 'show'}})</span>
+        </h5>
+        <div data-ui-grid="$ctrl.pendingGridOptions" data-ng-if="$ctrl.shouldExpandPending" ui-grid-resize-columns></div>
+    </div>
+
     <div style="position: relative;" class="mt-2">
         <div data-ng-if="$ctrl.isLoading || $ctrl.isLoadingEntries" class="loading-overlay"></div>
         <span class="note-text">Double-click on a cell to quick edit</span>

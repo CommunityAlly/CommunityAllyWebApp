@@ -26,6 +26,7 @@ var Ally;
             this.$timeout = $timeout;
             this.isLoading = false;
             this.isLoadingEntries = false;
+            this.shouldExpandPending = false;
             this.ledgerAccounts = [];
             this.accountsNeedingLogin = [];
             this.shouldShowAddTransaction = false;
@@ -106,6 +107,26 @@ var Ally;
                         });
                     }
                 };
+            this.pendingGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        {
+                            field: 'accountName', filter: {
+                                type: this.uiGridConstants.filter.SELECT,
+                                selectOptions: []
+                            }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                        },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: false,
+                    enableRowHeaderSelection: false
+                };
             this.previewImportGridOptions =
                 {
                     columnDefs: [
@@ -170,6 +191,7 @@ var Ally;
                 accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
                 _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
                 _this.allEntries = pageInfo.entries;
+                _this.pendingGridOptions.data = pageInfo.pendingEntries;
                 _this.flatCategoryList = [];
                 var visitNode = function (curNode, depth) {
                     if (curNode.displayName) {
