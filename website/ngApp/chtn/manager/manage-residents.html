@@ -248,7 +248,7 @@
                 <div class="col-sm-6 text-sm-right">
                     <button id="save-edit-button" class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$invalid" type="button" data-ng-click="$ctrl.onSaveResident();">{{ $ctrl.editUser.pendingMemberId ? "Approve" : "Save" }}</button>
                     <button id="cancel-edit-button" class="btn btn-secondary" data-ng-if="!$ctrl.editUser.pendingMemberId" type="button" data-ng-click="$ctrl.setEdit( null )">Cancel</button>
-                    <button id="remove-resident-button" class="btn btn-secondary" data-ng-show="$ctrl.editUser.userId.length > 0" data-ng-click="$ctrl.onDeleteResident();">Remove Resident</button>
+                    <button id="remove-resident-button" class="btn btn-danger" data-ng-show="$ctrl.editUser.userId.length > 0" data-ng-click="$ctrl.onDeleteResident();">Remove Resident</button>
                     <button class="btn btn-secondary" data-ng-if="$ctrl.editUser.pendingMemberId" data-ng-click="$ctrl.rejectPendingMember();">Reject</button>
 
                     <input type="hidden" value="{{$ctrl.editUser.userId}}" />
