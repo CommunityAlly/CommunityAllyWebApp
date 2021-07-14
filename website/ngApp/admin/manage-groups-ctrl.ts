@@ -330,6 +330,23 @@
         }
 
 
+        onSendTestCalendarEmail()
+        {
+            this.isLoading = true;
+
+            var innerThis = this;
+            this.$http.get( "/api/AdminHelper/SendTestCalendarEmail" ).success( function()
+            {
+                innerThis.isLoading = false;
+                alert( "Successfully sent email" );
+            } ).error( function()
+            {
+                innerThis.isLoading = false;
+                alert( "Failed to send email" );
+            } );
+        }
+
+
         onSendNoReplyEmail()
         {
             this.isLoading = true;

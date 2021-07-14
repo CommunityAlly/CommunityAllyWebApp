@@ -212,6 +212,17 @@ var Ally;
                 alert("Failed to send email");
             });
         };
+        ManageGroupsController.prototype.onSendTestCalendarEmail = function () {
+            this.isLoading = true;
+            var innerThis = this;
+            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").success(function () {
+                innerThis.isLoading = false;
+                alert("Successfully sent email");
+            }).error(function () {
+                innerThis.isLoading = false;
+                alert("Failed to send email");
+            });
+        };
         ManageGroupsController.prototype.onSendNoReplyEmail = function () {
             var _this = this;
             this.isLoading = true;
