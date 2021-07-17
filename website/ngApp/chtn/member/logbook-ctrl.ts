@@ -520,6 +520,12 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         saveCalendarEvent()
         {
+            if( !HtmlUtil2.isValidString( this.editEvent.title ) )
+            {
+                alert( "Please enter a title in the 'what' field" );
+                return;
+            }
+
             // Build the list of the associated users
             if( this.residents )
             {
