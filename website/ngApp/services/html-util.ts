@@ -105,7 +105,7 @@ namespace Ally
         }
 
 
-        // Test if an object is a string, if it is not empty, and if it's not "null"
+        /// Test if an object is a string, if it is not empty, and if it's not "null"
         static isValidString( str: any ): boolean
         {
             if( !str || typeof ( str ) !== "string" )

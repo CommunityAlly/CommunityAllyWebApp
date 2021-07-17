@@ -323,6 +323,17 @@ var Ally;
                 alert("Failed to send email");
             });
         };
+        ManageGroupsController.prototype.onSendTestCalendarEmail = function () {
+            this.isLoading = true;
+            var innerThis = this;
+            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").success(function () {
+                innerThis.isLoading = false;
+                alert("Successfully sent email");
+            }).error(function () {
+                innerThis.isLoading = false;
+                alert("Failed to send email");
+            });
+        };
         ManageGroupsController.prototype.onSendNoReplyEmail = function () {
             var _this = this;
             this.isLoading = true;
@@ -2819,6 +2830,7 @@ var Ally;
             this.$timeout = $timeout;
             this.isLoading = false;
             this.isLoadingEntries = false;
+            this.shouldExpandPending = false;
             this.ledgerAccounts = [];
             this.accountsNeedingLogin = [];
             this.shouldShowAddTransaction = false;
@@ -2838,6 +2850,7 @@ var Ally;
             this.showDonut = true;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
+            this.shouldShowOwnerFinanceTxn = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -2847,6 +2860,7 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.ledgerGridOptions =
                 {
                     columnDefs: [
@@ -2896,6 +2910,26 @@ var Ally;
                             //$scope.$apply();
                         });
                     }
+                };
+            this.pendingGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        {
+                            field: 'accountName', filter: {
+                                type: this.uiGridConstants.filter.SELECT,
+                                selectOptions: []
+                            }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                        },
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: false,
+                    enableRowHeaderSelection: false
                 };
             this.previewImportGridOptions =
                 {
@@ -2961,6 +2995,7 @@ var Ally;
                 accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
                 _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
                 _this.allEntries = pageInfo.entries;
+                _this.pendingGridOptions.data = pageInfo.pendingEntries;
                 _this.flatCategoryList = [];
                 var visitNode = function (curNode, depth) {
                     if (curNode.displayName) {
@@ -3493,6 +3528,19 @@ var Ally;
             var csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
         };
+        /** Occurs when the user changes the setting to share transactions with owners */
+        LedgerController.prototype.onShowOwnerTxnsChange = function () {
+            var _this = this;
+            this.isLoading = true;
+            var putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
+            this.$http.put(putUri, null).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = _this.shouldShowOwnerFinanceTxn;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
+            });
+        };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;
     }());
@@ -3522,6 +3570,7 @@ var Ally;
         }
         return LedgerEntry;
     }());
+    Ally.LedgerEntry = LedgerEntry;
     var LedgerListEntry = /** @class */ (function (_super) {
         __extends(LedgerListEntry, _super);
         function LedgerListEntry() {
@@ -4343,7 +4392,7 @@ var Ally;
     var Poll = /** @class */ (function () {
         function Poll() {
             this.isAnonymous = true;
-            this.whoCanVote = "Owners";
+            this.whoCanVote = 2;
         }
         return Poll;
     }());
@@ -6524,6 +6573,7 @@ var Ally;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
+            this.shouldShowOwnerFinanceTxn = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -6540,6 +6590,7 @@ var Ally;
             }
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
@@ -7620,7 +7671,12 @@ var Ally;
             // Don't allow the user to send remdiner e-mails for past dates
             if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent.dateOnly))
                 this.editEvent.shouldSendNotification = false;
+            else if (!this.editEvent.notificationEmailDaysBefore)
+                this.editEvent.notificationEmailDaysBefore = 1;
         };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user changes the "days before" email setting
+        ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.onChangeEmailDaysBefore = function () {
             var notificationDate = moment(this.editEvent.dateOnly).subtract(this.editEvent.notificationEmailDaysBefore, 'day');
             var today = moment();
@@ -7675,11 +7731,39 @@ var Ally;
                 alert("Failed to delete the calendar event.");
             });
         };
+        LogbookController.prototype.getDaysBeforeValue = function () {
+            var daysBefore = null;
+            // We need to handle strings or numbers for this property
+            if (this.editEvent.notificationEmailDaysBefore !== null && this.editEvent.notificationEmailDaysBefore !== undefined) {
+                if (typeof this.editEvent.notificationEmailDaysBefore === "string") {
+                    daysBefore = parseInt(this.editEvent.notificationEmailDaysBefore);
+                    if (isNaN(daysBefore))
+                        daysBefore = null;
+                }
+                else if (typeof this.editEvent.notificationEmailDaysBefore === "number")
+                    daysBefore = this.editEvent.notificationEmailDaysBefore;
+            }
+            if (daysBefore !== null && daysBefore < 0)
+                daysBefore = null;
+            return daysBefore;
+        };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Save the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.saveCalendarEvent = function () {
             var _this = this;
+            if (!Ally.HtmlUtil2.isValidString(this.editEvent.title)) {
+                alert("Please enter a title in the 'what' field");
+                return;
+            }
+            // Ensure the user enters a 'days before' email setting
+            if (this.editEvent.shouldSendNotification) {
+                var daysBefore = this.getDaysBeforeValue();
+                if (daysBefore === null) {
+                    alert("Please enter a valid number for the 'days before' email send date");
+                    return;
+                }
+            }
             // Build the list of the associated users
             if (this.residents) {
                 var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
@@ -9622,6 +9706,7 @@ var Ally;
             this.shouldShowMicroDepositModal = false;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
+            this.shouldShowOwnerFinanceTxn = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -9638,6 +9723,7 @@ var Ally;
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
+            this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
             if (this.isDwollaUserAccountVerified) {
                 this.dwollaUserStatus = "verified";
@@ -10288,9 +10374,10 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function DateRangePickerController(appCacheService, $scope) {
+        function DateRangePickerController(appCacheService, $scope, $timeout) {
             this.appCacheService = appCacheService;
             this.$scope = $scope;
+            this.$timeout = $timeout;
             this.filterPresetDateRange = "last30days";
             this.shouldSuppressCustom = false;
             this.thisYearLabel = new Date().getFullYear().toString();
@@ -10349,10 +10436,25 @@ var Ally;
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
         };
         DateRangePickerController.prototype.onInternalChange = function () {
-            if (this.onChange)
-                this.onChange();
+            var _this = this;
+            // Only call the change functin if both strings are valid dates
+            if (typeof this.startDate === "string") {
+                if (this.startDate.length !== 10)
+                    return;
+                this.startDate = moment(this.startDate, "MM-DD-YYYY").toDate();
+            }
+            if (typeof this.endDate === "string") {
+                if (this.endDate.length !== 10)
+                    return;
+                this.endDate = moment(this.endDate, "MM-DD-YYYY").toDate();
+            }
+            // Delay just a touch to let the model update
+            this.$timeout(function () {
+                if (_this.onChange)
+                    _this.onChange();
+            }, 10);
         };
-        DateRangePickerController.$inject = ["appCacheService", "$scope"];
+        DateRangePickerController.$inject = ["appCacheService", "$scope", "$timeout"];
         return DateRangePickerController;
     }());
     Ally.DateRangePickerController = DateRangePickerController;
@@ -11249,6 +11351,122 @@ CA.angularApp.component("faqs", {
     },
     templateUrl: "/ngApp/common/FAQs.html",
     controller: Ally.FAQsController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for display a resident's financial transaction history
+     */
+    var ResidentTransactionsController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.$rootScope = $rootScope;
+            this.uiGridConstants = uiGridConstants;
+            this.shouldShowModal = false;
+            this.isLoading = false;
+            this.HistoryPageSize = 50;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        ResidentTransactionsController.prototype.$onInit = function () {
+            this.homeName = AppConfig.homeName || "Unit";
+            this.transactionGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        //{
+                        //    field: 'accountName', filter: {
+                        //        type: this.uiGridConstants.filter.SELECT,
+                        //        selectOptions: []
+                        //    }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                        //},
+                        { field: 'description', displayName: 'Description', enableFiltering: true, filter: { placeholder: "search" } },
+                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editDropdownOptionsArray: [], enableFiltering: true },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, enableFiltering: true },
+                        { field: 'amount', displayName: 'Amount', width: 120, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents" >Total: {{col.getAggregationValue() | currency }}</div>' }
+                    ],
+                    enableFiltering: true,
+                    enableSorting: true,
+                    showColumnFooter: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: this.HistoryPageSize,
+                    paginationPageSizes: [this.HistoryPageSize],
+                    enableRowHeaderSelection: false
+                };
+        };
+        ResidentTransactionsController.prototype.showModal = function () {
+            this.shouldShowModal = true;
+            this.refreshEntries();
+        };
+        ResidentTransactionsController.prototype.refreshEntries = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.transactionGridOptions.data = httpResponse.data;
+                // Hide the unit column if the owner only has one unit
+                var allUnitIds = _this.transactionGridOptions.data.map(function (u) { return u.associatedUnitId; });
+                var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
+                var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+                if (unitColumn)
+                    unitColumn.visible = uniqueUnitIds.length > 1;
+                if (_this.transactionGridOptions.data.length <= _this.HistoryPageSize) {
+                    _this.transactionGridOptions.enablePagination = false;
+                    _this.transactionGridOptions.enablePaginationControls = false;
+                }
+            }, function () {
+                _this.isLoading = false;
+            });
+        };
+        ResidentTransactionsController.prototype.exportTransactionsCsv = function () {
+            var csvColumns = [
+                {
+                    headerText: "Date",
+                    fieldName: "transactionDate",
+                    dataMapper: function (value) {
+                        if (!value)
+                            return "";
+                        return moment(value).format("YYYY-MM-DD");
+                    }
+                },
+                {
+                    headerText: "Description",
+                    fieldName: "description"
+                },
+                {
+                    headerText: "Category",
+                    fieldName: "categoryDisplayName"
+                },
+                {
+                    headerText: AppConfig.homeName,
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Amount",
+                    fieldName: "amount"
+                }
+            ];
+            var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
+        };
+        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants"];
+        return ResidentTransactionsController;
+    }());
+    Ally.ResidentTransactionsController = ResidentTransactionsController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("residentTransactions", {
+    templateUrl: "/ngApp/common/financial/resident-transactions.html",
+    controller: Ally.ResidentTransactionsController
 });
 
 var Ally;
@@ -15517,7 +15735,7 @@ var Ally;
         HtmlUtil2.isString = function (value) {
             return Object.prototype.toString.call(value) === "[object String]";
         };
-        // Test if an object is a string, if it is not empty, and if it's not "null"
+        /// Test if an object is a string, if it is not empty, and if it's not "null"
         HtmlUtil2.isValidString = function (str) {
             if (!str || typeof (str) !== "string")
                 return false;

@@ -49,7 +49,7 @@ var Ally;
         HtmlUtil2.isString = function (value) {
             return Object.prototype.toString.call(value) === "[object String]";
         };
-        // Test if an object is a string, if it is not empty, and if it's not "null"
+        /// Test if an object is a string, if it is not empty, and if it's not "null"
         HtmlUtil2.isValidString = function (str) {
             if (!str || typeof (str) !== "string")
                 return false;
