@@ -97,6 +97,21 @@
 
         onInternalChange()
         {
+            // Only call the change functin if both strings are valid dates
+            if( typeof this.startDate === "string" )
+            {
+                if( ( <string>this.startDate ).length !== 10 )
+                    return;
+                this.startDate = moment( <string>this.startDate, "MM-DD-YYYY" ).toDate();
+            }
+
+            if( typeof this.endDate === "string" )
+            {
+                if( ( <string>this.endDate ).length !== 10 )
+                    return;
+                this.endDate = moment( <string>this.endDate, "MM-DD-YYYY" ).toDate();
+            }
+
             // Delay just a touch to let the model update
             this.$timeout( () =>
             {

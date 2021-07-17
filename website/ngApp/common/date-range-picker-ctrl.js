@@ -70,6 +70,17 @@ var Ally;
         };
         DateRangePickerController.prototype.onInternalChange = function () {
             var _this = this;
+            // Only call the change functin if both strings are valid dates
+            if (typeof this.startDate === "string") {
+                if (this.startDate.length !== 10)
+                    return;
+                this.startDate = moment(this.startDate, "MM-DD-YYYY").toDate();
+            }
+            if (typeof this.endDate === "string") {
+                if (this.endDate.length !== 10)
+                    return;
+                this.endDate = moment(this.endDate, "MM-DD-YYYY").toDate();
+            }
             // Delay just a touch to let the model update
             this.$timeout(function () {
                 if (_this.onChange)
