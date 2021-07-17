@@ -43,7 +43,6 @@
     }
 
     .Document_Folder, .Document_File, .Document_Folder_Selected, .Document_File_Selected {
-        
     }
 
     .Document_File {
@@ -189,6 +188,10 @@
 
         &.sub-directory {
             margin: 4px 0 4px 30px;
+        }
+
+        &.sub-sub-directory {
+            margin: 4px 0 4px 60px;
         }
     }
 

@@ -844,6 +844,8 @@ footer {
     cursor: pointer; }
   .page-documents div.sub-directory {
     margin: 4px 0 4px 30px; }
+  .page-documents div.sub-sub-directory {
+    margin: 4px 0 4px 60px; }
   .page-documents .directory > span.folder-icon, .page-documents .directory-private > span.folder-icon,
   .page-documents .directory > span.folder-multi-icon, .page-documents .directory-private > span.folder-multi-icon {
     height: 100%;

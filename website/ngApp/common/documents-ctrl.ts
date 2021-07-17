@@ -39,6 +39,9 @@ namespace Ally
         fullDirectoryPath: string;
         files: DocumentTreeFile[];
 
+        // Calculated on the client
+        directoryDepth: number;
+
         getSubDirectoryByName( dirName: string ): DocumentDirectory
         {
             if( !this.subdirectories )
@@ -551,7 +554,7 @@ namespace Ally
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user wants to create a directory within the current directory
+        // Occurs when the user wants to create a directory within the root directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
         createDirectory()
         {
@@ -570,7 +573,7 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         CreateSubDirectory()
         {
-            this.createUnderParentDirName = this.selectedDirectory.name;
+            this.createUnderParentDirName = this.selectedDirectory.fullDirectoryPath;
 
             if( this.committee )
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
@@ -910,6 +913,8 @@ namespace Ally
             dir.subdirectories.forEach( ( subDir ) =>
             {
                 subDir.parentDirectory = dir;
+                subDir.directoryDepth = dir.directoryDepth + 1;
+
                 this.hookupParentDirs( subDir );
             } );
         }
@@ -953,6 +958,7 @@ namespace Ally
                     // Hook up parent directories
                     this.documentTree.subdirectories.forEach( ( dir ) =>
                     {
+                        dir.directoryDepth = 0;
                         this.hookupParentDirs( dir );
                     } );
 

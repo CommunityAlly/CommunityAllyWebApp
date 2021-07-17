@@ -371,7 +371,7 @@ var Ally;
                 this.$location.search("directory", dir.fullDirectoryPath);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user wants to create a directory within the current directory
+        // Occurs when the user wants to create a directory within the root directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.createDirectory = function () {
             this.createUnderParentDirName = null;
@@ -384,7 +384,7 @@ var Ally;
         // Occurs when the user wants to create a directory within the current directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.CreateSubDirectory = function () {
-            this.createUnderParentDirName = this.selectedDirectory.name;
+            this.createUnderParentDirName = this.selectedDirectory.fullDirectoryPath;
             if (this.committee)
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
             this.shouldShowCreateFolderModal = true;
@@ -611,6 +611,7 @@ var Ally;
                 return;
             dir.subdirectories.forEach(function (subDir) {
                 subDir.parentDirectory = dir;
+                subDir.directoryDepth = dir.directoryDepth + 1;
                 _this.hookupParentDirs(subDir);
             });
         };
@@ -643,6 +644,7 @@ var Ally;
                 _this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
                 // Hook up parent directories
                 _this.documentTree.subdirectories.forEach(function (dir) {
+                    dir.directoryDepth = 0;
                     _this.hookupParentDirs(dir);
                 });
                 // Build an array of all local files
