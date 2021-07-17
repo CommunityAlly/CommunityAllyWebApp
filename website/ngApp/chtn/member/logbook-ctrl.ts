@@ -424,9 +424,14 @@ namespace Ally
             // Don't allow the user to send remdiner e-mails for past dates
             if( this.editEvent.shouldSendNotification && this.isDateInPast( this.editEvent.dateOnly ) )
                 this.editEvent.shouldSendNotification = false;
+            else if( !this.editEvent.notificationEmailDaysBefore )
+                this.editEvent.notificationEmailDaysBefore = 1;
         }
 
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user changes the "days before" email setting
+        ///////////////////////////////////////////////////////////////////////////////////////////////
         onChangeEmailDaysBefore()
         {
             var notificationDate = moment( this.editEvent.dateOnly ).subtract( this.editEvent.notificationEmailDaysBefore, 'day' );
@@ -515,6 +520,29 @@ namespace Ally
         }
 
 
+        private getDaysBeforeValue()
+        {
+            let daysBefore: number = null;
+            // We need to handle strings or numbers for this property
+            if( this.editEvent.notificationEmailDaysBefore !== null && this.editEvent.notificationEmailDaysBefore !== undefined )
+            {
+                if( typeof this.editEvent.notificationEmailDaysBefore === "string" )
+                {
+                    daysBefore = parseInt( this.editEvent.notificationEmailDaysBefore );
+                    if( isNaN( daysBefore ) )
+                        daysBefore = null;
+                }
+                else if( typeof this.editEvent.notificationEmailDaysBefore === "number" )
+                    daysBefore = this.editEvent.notificationEmailDaysBefore;
+            }
+
+            if( daysBefore !== null && daysBefore < 0 )
+                daysBefore = null;
+
+            return daysBefore;
+        }
+
+
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Save the calendar event that's being viewed
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,6 +552,17 @@ namespace Ally
             {
                 alert( "Please enter a title in the 'what' field" );
                 return;
+            }
+
+            // Ensure the user enters a 'days before' email setting
+            if( this.editEvent.shouldSendNotification )
+            {
+                const daysBefore = this.getDaysBeforeValue();
+                if( daysBefore === null )
+                {
+                    alert( "Please enter a valid number for the 'days before' email send date" );
+                    return;
+                }
             }
 
             // Build the list of the associated users

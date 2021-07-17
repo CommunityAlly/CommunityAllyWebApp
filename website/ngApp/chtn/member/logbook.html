@@ -87,7 +87,7 @@
                                 <p data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
                                     <input class="form-control form-control-sm d-inline-block" style="width: 40px;" type="text" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
                                            data-ng-disabled="!$ctrl.editEvent.shouldSendNotification" data-ng-change="$ctrl.onChangeEmailDaysBefore()"
-                                           data-ng-model="$ctrl.editEvent.notificationEmailDaysBefore"> {{ $ctrl.editEvent.notificationEmailDaysBefore == 1 ? 'day' : 'days' }} before event
+                                           data-ng-model="$ctrl.editEvent.notificationEmailDaysBefore" autocomplete="off" > {{ $ctrl.editEvent.notificationEmailDaysBefore == 1 ? 'day' : 'days' }} before event
                                 </p>
                                 <p data-ng-show="$ctrl.showBadNotificationDateWarning" class="text-warning">
                                     You can only go back {{ $ctrl.maxDaysBack }} {{ $ctrl.maxDaysBack == 1 ? 'day' : 'days' }} for the reminder to be sent.
