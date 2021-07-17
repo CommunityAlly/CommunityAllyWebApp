@@ -327,6 +327,10 @@
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Sync Balance:</label>
                         <div class="col-sm-8 col-xs-12">{{$ctrl.editAccount.syncBalance | currency}}</div>
                     </div>
+                    <div class="form-group row" data-ng-if="$ctrl.editAccount.syncType === 'plaid' && $ctrl.isSuperAdmin">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">Plaid Item ID:</label>
+                        <div class="col-sm-8 col-xs-12">{{$ctrl.editAccount.plaidItemId}}</div>
+                    </div>
                 </div>
 
                 <div class="col-sm-12 text-right">
