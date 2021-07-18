@@ -6328,6 +6328,17 @@ var Ally;
                 _this.isLoading = false;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
+                if (!_this.welcomeRichEditorElem) {
+                    _this.$timeout(function () {
+                        Ally.RichTextHelper.initToolbarBootstrapBindings();
+                        _this.welcomeRichEditorElem = $('#welcome-rich-editor');
+                        _this.welcomeRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+                        // Convert old line breaks to HTML line breaks
+                        if (Ally.HtmlUtil2.isValidString(_this.settings.welcomeMessage) && _this.settings.welcomeMessage.indexOf("<") === -1)
+                            _this.settings.welcomeMessage = _this.settings.welcomeMessage.replace(/\n/g, "<br>");
+                        _this.welcomeRichEditorElem.html(_this.settings.welcomeMessage);
+                    }, 100);
+                }
             });
         };
         /**
@@ -6352,6 +6363,7 @@ var Ally;
         ChtnSettingsController.prototype.saveAllSettings = function () {
             var _this = this;
             analytics.track("editSettings");
+            this.settings.welcomeMessage = this.welcomeRichEditorElem.html();
             this.isLoading = true;
             this.$http.put("/api/Settings", this.settings).then(function () {
                 _this.isLoading = false;
@@ -6562,13 +6574,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams) {
+        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams, $sce) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
             this.$routeParams = $routeParams;
+            this.$sce = $sce;
             this.showDiscussionThreads = false;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
@@ -6589,6 +6602,11 @@ var Ally;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
+            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf("<") > -1;
+            if (this.isWelcomeMessageHtml) {
+                this.welcomeMessage = this.$sce.trustAsHtml(this.welcomeMessage);
+                Ally.RichTextHelper.makeLinksOpenNewTab("welcome-message-panel");
+            }
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
@@ -6639,7 +6657,7 @@ var Ally;
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
         };
-        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams"];
+        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
         return ChtnHomeController;
     }());
     Ally.ChtnHomeController = ChtnHomeController;
@@ -10842,7 +10860,7 @@ var Ally;
                 this.$location.search("directory", dir.fullDirectoryPath);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user wants to create a directory within the current directory
+        // Occurs when the user wants to create a directory within the root directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.createDirectory = function () {
             this.createUnderParentDirName = null;
@@ -10855,7 +10873,7 @@ var Ally;
         // Occurs when the user wants to create a directory within the current directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.CreateSubDirectory = function () {
-            this.createUnderParentDirName = this.selectedDirectory.name;
+            this.createUnderParentDirName = this.selectedDirectory.fullDirectoryPath;
             if (this.committee)
                 this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
             this.shouldShowCreateFolderModal = true;
@@ -11082,6 +11100,7 @@ var Ally;
                 return;
             dir.subdirectories.forEach(function (subDir) {
                 subDir.parentDirectory = dir;
+                subDir.directoryDepth = dir.directoryDepth + 1;
                 _this.hookupParentDirs(subDir);
             });
         };
@@ -11114,6 +11133,7 @@ var Ally;
                 _this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
                 // Hook up parent directories
                 _this.documentTree.subdirectories.forEach(function (dir) {
+                    dir.directoryDepth = 0;
                     _this.hookupParentDirs(dir);
                 });
                 // Build an array of all local files
@@ -11205,47 +11225,9 @@ var Ally;
             this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
-                var showErrorAlert = function (reason, detail) {
-                    var msg = "";
-                    if (reason === "unsupported-file-type")
-                        msg = "Unsupported format " + detail;
-                    else
-                        console.log("error uploading file", reason, detail);
-                    $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                        '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
-                };
-                function initToolbarBootstrapBindings() {
-                    var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
-                        'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
-                        'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
-                    $.each(fonts, function (idx, fontName) {
-                        fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
-                    });
-                    var tooltipper = $('a[title]');
-                    tooltipper.tooltip({ container: 'body' });
-                    $('.dropdown-menu input')
-                        .click(function () { return false; })
-                        .change(function () {
-                        var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
-                        drops.dropdown('toggle');
-                    })
-                        .keydown('esc', function () { this.value = ''; $(this).change(); });
-                    $('[data-role=magic-overlay]').each(function () {
-                        var overlay = $(this), target = $(overlay.data('target'));
-                        overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
-                    });
-                    if ("onwebkitspeechchange" in document.createElement("input")) {
-                        var editorOffset = $('#editor').offset();
-                        $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
-                    }
-                    else {
-                        $('#voiceBtn').hide();
-                    }
-                }
-                ;
-                initToolbarBootstrapBindings();
+                RichTextHelper.initToolbarBootstrapBindings();
                 var editorElem = $('#editor');
-                editorElem.wysiwyg({ fileUploadError: showErrorAlert });
+                editorElem.wysiwyg({ fileUploadError: RichTextHelper.showFileUploadAlert });
             }, 10);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -11264,11 +11246,8 @@ var Ally;
                 _this.infoItems = httpResponse.data;
                 // Make <a> links open in new tabs
                 setTimeout(function () {
-                    for (var i = 0; i < _this.infoItems.length; ++i) {
-                        $("a", "#info-item-body-" + i).each(function () {
-                            $(this).attr('target', '_blank');
-                        });
-                    }
+                    for (var i = 0; i < _this.infoItems.length; ++i)
+                        RichTextHelper.makeLinksOpenNewTab("info-item-body-" + i);
                 }, 500);
             });
         };
@@ -11344,6 +11323,60 @@ var Ally;
         return FAQsController;
     }());
     Ally.FAQsController = FAQsController;
+    var RichTextHelper = /** @class */ (function () {
+        function RichTextHelper() {
+        }
+        RichTextHelper.initToolbarBootstrapBindings = function () {
+            var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
+                'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
+                'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
+            $.each(fonts, function (idx, fontName) {
+                fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
+            });
+            var tooltipper = $('a[title]');
+            tooltipper.tooltip({ container: 'body' });
+            $('.dropdown-menu input')
+                .click(function () { return false; })
+                .change(function () {
+                var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
+                drops.dropdown('toggle');
+            })
+                .keydown('esc', function () { this.value = ''; $(this).change(); });
+            $('[data-role=magic-overlay]').each(function () {
+                var overlay = $(this), target = $(overlay.data('target'));
+                overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
+            });
+            if ("onwebkitspeechchange" in document.createElement("input")) {
+                var editorOffset = $('#editor').offset();
+                $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
+            }
+            else {
+                $('#voiceBtn').hide();
+            }
+        };
+        RichTextHelper.showFileUploadAlert = function (reason, detail) {
+            var msg = "";
+            if (reason === "unsupported-file-type")
+                msg = "Unsupported format " + detail;
+            else
+                console.log("error uploading file", reason, detail);
+            $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
+        };
+        RichTextHelper.makeLinksOpenNewTab = function (elemId) {
+            window.setTimeout(function () {
+                // Make links in the welcome message open in a new tab
+                $("a", "#" + elemId).each(function (index, elem) {
+                    // Let local links modify the current tab
+                    var isLocalLink = elem.href && (elem.href[0] === "#" || elem.href.indexOf(AppConfig.baseTld) > -1);
+                    if (!isLocalLink)
+                        $(elem).attr("target", "_blank");
+                });
+            }, 100);
+        };
+        return RichTextHelper;
+    }());
+    Ally.RichTextHelper = RichTextHelper;
 })(Ally || (Ally = {}));
 CA.angularApp.component("faqs", {
     bindings: {

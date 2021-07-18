@@ -42,47 +42,9 @@ var Ally;
             this.retrieveInfo();
             // Hook up the rich text editor
             window.setTimeout(function () {
-                var showErrorAlert = function (reason, detail) {
-                    var msg = "";
-                    if (reason === "unsupported-file-type")
-                        msg = "Unsupported format " + detail;
-                    else
-                        console.log("error uploading file", reason, detail);
-                    $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                        '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
-                };
-                function initToolbarBootstrapBindings() {
-                    var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
-                        'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
-                        'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
-                    $.each(fonts, function (idx, fontName) {
-                        fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
-                    });
-                    var tooltipper = $('a[title]');
-                    tooltipper.tooltip({ container: 'body' });
-                    $('.dropdown-menu input')
-                        .click(function () { return false; })
-                        .change(function () {
-                        var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
-                        drops.dropdown('toggle');
-                    })
-                        .keydown('esc', function () { this.value = ''; $(this).change(); });
-                    $('[data-role=magic-overlay]').each(function () {
-                        var overlay = $(this), target = $(overlay.data('target'));
-                        overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
-                    });
-                    if ("onwebkitspeechchange" in document.createElement("input")) {
-                        var editorOffset = $('#editor').offset();
-                        $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
-                    }
-                    else {
-                        $('#voiceBtn').hide();
-                    }
-                }
-                ;
-                initToolbarBootstrapBindings();
+                RichTextHelper.initToolbarBootstrapBindings();
                 var editorElem = $('#editor');
-                editorElem.wysiwyg({ fileUploadError: showErrorAlert });
+                editorElem.wysiwyg({ fileUploadError: RichTextHelper.showFileUploadAlert });
             }, 10);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,11 +63,8 @@ var Ally;
                 _this.infoItems = httpResponse.data;
                 // Make <a> links open in new tabs
                 setTimeout(function () {
-                    for (var i = 0; i < _this.infoItems.length; ++i) {
-                        $("a", "#info-item-body-" + i).each(function () {
-                            $(this).attr('target', '_blank');
-                        });
-                    }
+                    for (var i = 0; i < _this.infoItems.length; ++i)
+                        RichTextHelper.makeLinksOpenNewTab("info-item-body-" + i);
                 }, 500);
             });
         };
@@ -181,6 +140,60 @@ var Ally;
         return FAQsController;
     }());
     Ally.FAQsController = FAQsController;
+    var RichTextHelper = /** @class */ (function () {
+        function RichTextHelper() {
+        }
+        RichTextHelper.initToolbarBootstrapBindings = function () {
+            var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
+                'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
+                'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
+            $.each(fonts, function (idx, fontName) {
+                fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
+            });
+            var tooltipper = $('a[title]');
+            tooltipper.tooltip({ container: 'body' });
+            $('.dropdown-menu input')
+                .click(function () { return false; })
+                .change(function () {
+                var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
+                drops.dropdown('toggle');
+            })
+                .keydown('esc', function () { this.value = ''; $(this).change(); });
+            $('[data-role=magic-overlay]').each(function () {
+                var overlay = $(this), target = $(overlay.data('target'));
+                overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
+            });
+            if ("onwebkitspeechchange" in document.createElement("input")) {
+                var editorOffset = $('#editor').offset();
+                $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
+            }
+            else {
+                $('#voiceBtn').hide();
+            }
+        };
+        RichTextHelper.showFileUploadAlert = function (reason, detail) {
+            var msg = "";
+            if (reason === "unsupported-file-type")
+                msg = "Unsupported format " + detail;
+            else
+                console.log("error uploading file", reason, detail);
+            $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                '<strong>File upload error</strong> ' + msg + ' </div>').prependTo('#alerts');
+        };
+        RichTextHelper.makeLinksOpenNewTab = function (elemId) {
+            window.setTimeout(function () {
+                // Make links in the welcome message open in a new tab
+                $("a", "#" + elemId).each(function (index, elem) {
+                    // Let local links modify the current tab
+                    var isLocalLink = elem.href && (elem.href[0] === "#" || elem.href.indexOf(AppConfig.baseTld) > -1);
+                    if (!isLocalLink)
+                        $(elem).attr("target", "_blank");
+                });
+            }, 100);
+        };
+        return RichTextHelper;
+    }());
+    Ally.RichTextHelper = RichTextHelper;
 })(Ally || (Ally = {}));
 CA.angularApp.component("faqs", {
     bindings: {

@@ -11,9 +11,10 @@
      */
     export class ChtnHomeController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
 
         welcomeMessage: string;
+        isWelcomeMessageHtml: boolean;
         canMakePayment: boolean;
         isFirstVisit: boolean;
         isSiteManager: boolean;
@@ -44,7 +45,8 @@
             private siteInfo: Ally.SiteInfoService,
             private $timeout: ng.ITimeoutService,
             private $scope: ng.IScope,
-            private $routeParams: IHomeRouteParams )
+            private $routeParams: IHomeRouteParams,
+            private $sce: ng.ISCEService )
         {
         }
 
@@ -65,6 +67,12 @@
             }
 
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
+            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf( "<" ) > -1;
+            if( this.isWelcomeMessageHtml )
+            {
+                this.welcomeMessage = this.$sce.trustAsHtml( this.welcomeMessage );
+                RichTextHelper.makeLinksOpenNewTab( "welcome-message-panel" );
+            }
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;

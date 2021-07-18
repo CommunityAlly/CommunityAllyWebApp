@@ -51,6 +51,7 @@ namespace Ally
         showLocalNewsSetting: boolean = false;
         isPta: boolean = false;
         frontEndVersion: string;
+        welcomeRichEditorElem: JQuery
 
 
         /**
@@ -102,6 +103,23 @@ namespace Ally
                 this.isLoading = false;
                 this.settings = response.data;
                 this.originalSettings = _.clone( response.data );
+
+                if( !this.welcomeRichEditorElem )
+                {
+                    this.$timeout( () =>
+                    {
+                        RichTextHelper.initToolbarBootstrapBindings();
+
+                        this.welcomeRichEditorElem = $( '#welcome-rich-editor' );
+                        ( <any>this.welcomeRichEditorElem ).wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert } );
+
+                        // Convert old line breaks to HTML line breaks
+                        if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
+                            this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
+
+                        this.welcomeRichEditorElem.html( this.settings.welcomeMessage );
+                    }, 100 );
+                }
             } );
         }
 
@@ -135,6 +153,8 @@ namespace Ally
         saveAllSettings()
         {
             analytics.track( "editSettings" );
+
+            this.settings.welcomeMessage = this.welcomeRichEditorElem.html();
 
             this.isLoading = true;
             

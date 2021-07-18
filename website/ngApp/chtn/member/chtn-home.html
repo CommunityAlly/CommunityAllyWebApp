@@ -1,12 +1,13 @@
 <div class="page-home">
-    <div class="portlet-box white box-shadow margin-vertical" data-ng-if="$ctrl.welcomeMessage.length > 0">
+    <div class="portlet-box white box-shadow margin-vertical" data-ng-if="$ctrl.welcomeMessage.length > 0 || $ctrl.isWelcomeMessageHtml">
         <div class="portlet-header">
             <div class="title">
                 Welcome!
             </div>
         </div>
         <div id="portlet-body welcome-message-label">
-            <pre style="font-family: inherit; font-size: 1rem; white-space: pre-wrap;" ng-bind-html="$ctrl.welcomeMessage | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></pre>
+            <pre id="welcome-message-panel" data-ng-if="!$ctrl.isWelcomeMessageHtml" style="font-family: inherit; font-size: 1rem; white-space: pre-wrap;" data-ng-bind-html="$ctrl.welcomeMessage | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></pre>
+            <div id="welcome-message-panel" data-ng-if="$ctrl.isWelcomeMessageHtml" style="font-family: inherit; font-size: 1rem;" data-ng-bind-html="$ctrl.welcomeMessage"></div>
         </div>
     </div>
     

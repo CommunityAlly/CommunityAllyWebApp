@@ -2,7 +2,7 @@
  * of the key things about the widget is that it allows you to do your own styling!
  */
 
-#editor {
+.rich-text-editor {
 	max-height: 250px;
 	height: 250px;
 	background-color: white;

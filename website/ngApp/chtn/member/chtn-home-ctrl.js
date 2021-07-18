@@ -7,13 +7,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams) {
+        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams, $sce) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
             this.$routeParams = $routeParams;
+            this.$sce = $sce;
             this.showDiscussionThreads = false;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
@@ -34,6 +35,11 @@ var Ally;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
+            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf("<") > -1;
+            if (this.isWelcomeMessageHtml) {
+                this.welcomeMessage = this.$sce.trustAsHtml(this.welcomeMessage);
+                Ally.RichTextHelper.makeLinksOpenNewTab("welcome-message-panel");
+            }
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
@@ -84,7 +90,7 @@ var Ally;
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
         };
-        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams"];
+        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
         return ChtnHomeController;
     }());
     Ally.ChtnHomeController = ChtnHomeController;

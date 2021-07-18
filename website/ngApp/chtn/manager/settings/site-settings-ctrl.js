@@ -74,6 +74,17 @@ var Ally;
                 _this.isLoading = false;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
+                if (!_this.welcomeRichEditorElem) {
+                    _this.$timeout(function () {
+                        Ally.RichTextHelper.initToolbarBootstrapBindings();
+                        _this.welcomeRichEditorElem = $('#welcome-rich-editor');
+                        _this.welcomeRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+                        // Convert old line breaks to HTML line breaks
+                        if (Ally.HtmlUtil2.isValidString(_this.settings.welcomeMessage) && _this.settings.welcomeMessage.indexOf("<") === -1)
+                            _this.settings.welcomeMessage = _this.settings.welcomeMessage.replace(/\n/g, "<br>");
+                        _this.welcomeRichEditorElem.html(_this.settings.welcomeMessage);
+                    }, 100);
+                }
             });
         };
         /**
@@ -98,6 +109,7 @@ var Ally;
         ChtnSettingsController.prototype.saveAllSettings = function () {
             var _this = this;
             analytics.track("editSettings");
+            this.settings.welcomeMessage = this.welcomeRichEditorElem.html();
             this.isLoading = true;
             this.$http.put("/api/Settings", this.settings).then(function () {
                 _this.isLoading = false;

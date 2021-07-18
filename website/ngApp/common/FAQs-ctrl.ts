@@ -68,59 +68,10 @@ namespace Ally
             // Hook up the rich text editor
             window.setTimeout( function()
             {
-                var showErrorAlert = function( reason: string, detail: any )
-                {
-                    var msg = "";
-                    if( reason === "unsupported-file-type" )
-                        msg = "Unsupported format " + detail;
-                    else
-                        console.log( "error uploading file", reason, detail );
-
-                    $( '<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                        '<strong>File upload error</strong> ' + msg + ' </div>' ).prependTo( '#alerts' );
-                };
-
-                function initToolbarBootstrapBindings()
-                {
-                    var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
-                        'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
-                        'Times New Roman', 'Verdana'],
-                        fontTarget = $( '[title=Font]' ).siblings( '.dropdown-menu' );
-                    $.each( fonts, function( idx, fontName )
-                    {
-                        fontTarget.append( $( '<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>' ) );
-                    });
-                    var tooltipper: any = $( 'a[title]' );
-                    tooltipper.tooltip( { container: 'body' });
-
-                    $( '.dropdown-menu input' )
-                        .click( function() { return false; })
-                        .change( function()
-                        {
-                            let drops:any = $( this ).parent( '.dropdown-menu' ).siblings( '.dropdown-toggle' );
-                            drops.dropdown( 'toggle' );
-                        })
-                        .keydown( 'esc', function() { this.value = ''; $( this ).change(); });
-
-                    $( '[data-role=magic-overlay]' ).each( function()
-                    {
-                        var overlay = $( this ), target = $( overlay.data( 'target' ) );
-                        overlay.css( 'opacity', 0 ).css( 'position', 'absolute' ).offset( target.offset() ).width( target.outerWidth() ).height( target.outerHeight() );
-                    });
-                    if( "onwebkitspeechchange" in document.createElement( "input" ) )
-                    {
-                        var editorOffset = $( '#editor' ).offset();
-                        $( '#voiceBtn' ).css( 'position', 'absolute' ).offset( { top: editorOffset.top, left: editorOffset.left + $( '#editor' ).innerWidth() - 35 });
-                    } else
-                    {
-                        $( '#voiceBtn' ).hide();
-                    }
-                };
-
-                initToolbarBootstrapBindings();
+                RichTextHelper.initToolbarBootstrapBindings();
 
                 var editorElem: any = $( '#editor' );
-                editorElem.wysiwyg( { fileUploadError: showErrorAlert });
+                editorElem.wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert });
             }, 10 );
         }
 
@@ -148,12 +99,7 @@ namespace Ally
                 setTimeout( () =>
                 {
                     for( let i = 0; i < this.infoItems.length; ++i )
-                    {
-                        $( "a", "#info-item-body-" + i ).each( function ()
-                        {
-                            $( this ).attr( 'target', '_blank' );
-                        } );
-                    }
+                        RichTextHelper.makeLinksOpenNewTab( "info-item-body-" + i );
                 }, 500 );
             });
         };
@@ -245,6 +191,73 @@ namespace Ally
                 this.faqsHttpCache.removeAll();
                 this.retrieveInfo();
             });
+        }
+    }
+
+    export class RichTextHelper
+    {
+        static initToolbarBootstrapBindings()
+        {
+            var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
+                'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
+                'Times New Roman', 'Verdana'],
+                fontTarget = $( '[title=Font]' ).siblings( '.dropdown-menu' );
+            $.each( fonts, function( idx, fontName )
+            {
+                fontTarget.append( $( '<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>' ) );
+            } );
+            var tooltipper: any = $( 'a[title]' );
+            tooltipper.tooltip( { container: 'body' } );
+
+            $( '.dropdown-menu input' )
+                .click( function() { return false; } )
+                .change( function()
+                {
+                    let drops: any = $( this ).parent( '.dropdown-menu' ).siblings( '.dropdown-toggle' );
+                    drops.dropdown( 'toggle' );
+                } )
+                .keydown( 'esc', function() { this.value = ''; $( this ).change(); } );
+
+            $( '[data-role=magic-overlay]' ).each( function()
+            {
+                var overlay = $( this ), target = $( overlay.data( 'target' ) );
+                overlay.css( 'opacity', 0 ).css( 'position', 'absolute' ).offset( target.offset() ).width( target.outerWidth() ).height( target.outerHeight() );
+            } );
+            if( "onwebkitspeechchange" in document.createElement( "input" ) )
+            {
+                var editorOffset = $( '#editor' ).offset();
+                $( '#voiceBtn' ).css( 'position', 'absolute' ).offset( { top: editorOffset.top, left: editorOffset.left + $( '#editor' ).innerWidth() - 35 } );
+            } else
+            {
+                $( '#voiceBtn' ).hide();
+            }
+        }
+
+        static showFileUploadAlert( reason: string, detail: any )
+        {
+            var msg = "";
+            if( reason === "unsupported-file-type" )
+                msg = "Unsupported format " + detail;
+            else
+                console.log( "error uploading file", reason, detail );
+
+            $( '<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                '<strong>File upload error</strong> ' + msg + ' </div>' ).prependTo( '#alerts' );
+        }
+
+        static makeLinksOpenNewTab( elemId: string )
+        {
+            window.setTimeout( () =>
+            {
+                // Make links in the welcome message open in a new tab
+                $( "a", "#" + elemId ).each( ( index, elem: HTMLAnchorElement ) =>
+                {
+                    // Let local links modify the current tab
+                    const isLocalLink = elem.href && ( elem.href[0] === "#" || elem.href.indexOf( AppConfig.baseTld ) > -1 );
+                    if( !isLocalLink )
+                        $( elem ).attr( "target", "_blank" );
+                } );
+            }, 100 );
         }
     }
 }
