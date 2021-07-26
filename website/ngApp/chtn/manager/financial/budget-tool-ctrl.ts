@@ -19,7 +19,7 @@
         curBudget: BudgetLocalEdit;
         totalExpense: number = 0;
         totalIncome: number = 0;
-
+        readonly EditAmountTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
 
         /**
         * The constructor for the class
@@ -37,14 +37,12 @@
         */
         $onInit()
         {
-            const amtTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
-
             this.expenseGridOptions =
             {
                 columnDefs:
                     [
-                        { field: 'categoryTreeLabel', displayName: "Category", width: "*" },
-                        { field: 'amount', displayName: 'Amount', width: 120, type: 'number', cellFilter: "currency", cellTemplate: amtTemplate }
+                        { field: "categoryTreeLabel", displayName: "Category", width: "*" },
+                        { field: "amount", displayName: "Amount", width: 120, type: "number", cellFilter: "currency", cellTemplate: this.EditAmountTemplate }
                     ],
                 enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                 enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -143,6 +141,10 @@
             this.curBudget.budgetName = "Unnamed";
 
             this.curBudget.budgetRows = [];
+
+            const amountColumn = this.expenseGridOptions.columnDefs.find( c => c.field === "amount" );
+            amountColumn.cellTemplate = this.EditAmountTemplate;
+
             const visitNode = ( curNode: FinancialCategory, depth: number, isIncomeRow: boolean ) =>
             {
                 const hasChildren = curNode.childCategories != null && curNode.childCategories.length > 0;
@@ -166,7 +168,8 @@
                         category: curNode,
                         parentRow,
                         childRows: [],
-                        isIncomeRow
+                        isIncomeRow,
+                        parentBudgetRowId: null
                     };
 
                     if( parentRow )
@@ -212,6 +215,12 @@
                 return depth;
             }
 
+            const amountColumn = this.expenseGridOptions.columnDefs.find( c => c.field === "amount" );
+            if( budget.finalizedDateUtc )
+                amountColumn.cellTemplate = null;
+            else
+                amountColumn.cellTemplate = this.EditAmountTemplate;
+
             let editRows: BudgetRowLocalEdit[];
             editRows = budget.rows.map( r =>
             {
@@ -233,7 +242,8 @@
                     categoryTreeLabel: labelPrefix + ( cat ? cat.displayName : r.categoryDisplayName ),
                     hasChildren: false,
                     isIncomeRow: false,
-                    parentRow: null
+                    parentRow: null,
+                    parentBudgetRowId: r.parentBudgetRowId
                 };
 
                 return editRow;
@@ -242,20 +252,27 @@
             // Fill in children and set the parent
             for( let i = 0; i < editRows.length; ++i )
             {
-                const curCat = editRows[i].category;
+                const curRow = editRows[i];
+
+                const curCat = curRow.category;
                 if( curCat )
                 {
-                    editRows[i].hasChildren = curCat.childCategories && curCat.childCategories.length > 0;
+                    curRow.hasChildren = curCat.childCategories && curCat.childCategories.length > 0;
 
-                    if( editRows[i].hasChildren )
+                    if( curRow.hasChildren )
                     {
                         const childCatIds = _.map( curCat.childCategories, c => c.financialCategoryId );
-                        editRows[i].childRows = editRows.filter( r => childCatIds.indexOf( r.financialCategoryId ) >= 0 );
+                        curRow.childRows = editRows.filter( r => childCatIds.indexOf( r.financialCategoryId ) >= 0 );
                     }
 
-
                     if( curCat.parentFinancialCategoryId )
-                        editRows[i].parentRow = _.find( editRows, r => r.financialCategoryId === curCat.parentFinancialCategoryId );
+                        curRow.parentRow = _.find( editRows, r => r.financialCategoryId === curCat.parentFinancialCategoryId );
+                }
+                else if( curRow.parentBudgetRowId )
+                {
+                    curRow.parentRow = _.find( editRows, r => r.budgetRowId === curRow.parentBudgetRowId );
+
+                    curRow.childRows = editRows.filter( r => r.parentBudgetRowId === curRow.budgetRowId );
                 }
             }
 
@@ -322,7 +339,7 @@
         }
 
 
-        saveExistingBudget()
+        saveExistingBudget(refreshAfterSave: boolean = true)
         {
             this.isLoading = true;
 
@@ -339,17 +356,20 @@
                     }
                 } )
             };
-
-            this.$http.put( "/api/Budget", putData ).then(
+            
+            return this.$http.put( "/api/Budget", putData ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<BudgetPageInfo> ) =>
                 {
                     this.isLoading = false;
-                    this.completeRefresh();
+
+                    if( refreshAfterSave )
+                        this.completeRefresh();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage );
+                    alert( "Failed to save: " + httpResponse.data.exceptionMessage );
+                    return Promise.reject( null );
                 }
             );
         }
@@ -434,6 +454,43 @@
 
             this.refreshData();
         }
+
+
+        finalizeBudget()
+        {
+            if( !confirm( "This makes the budget permanently read-only. Are you sure you want to finalize the budget?" ) )
+                return;
+
+            this.isLoading = true;
+
+            this.saveExistingBudget( false ).then(
+                () =>
+                {
+                    this.$http.put( "/api/Budget/Finalize/" + this.curBudget.budgetId, null ).then(
+                        ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                        {
+                            this.isLoading = false;
+
+                            this.curBudget = null;
+                            this.selectedBudget = null;
+                            this.incomeGridOptions.data = [];
+                            this.expenseGridOptions.data = [];
+
+                            this.completeRefresh();
+                        },
+                        ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                        {
+                            this.isLoading = false;
+                            alert( "Failed to finalize, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage );
+                        }
+                    );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                }
+            );
+        }
     }
 
 
@@ -452,6 +509,7 @@
         rows: SaveBudgetRow[];
     }
 
+
     class BudgetPageInfo
     {
         budgets: BudgetDto[];
@@ -465,8 +523,11 @@
         budgetName: string;
         createdByUserId: number;
         createdOnDateUtc: Date;
+        finalizedUserId: number;
+        finalizedDateUtc: Date;
         rows: BudgetRowDto[];
     }
+
 
     class BudgetLocalEdit
     {
@@ -483,6 +544,7 @@
         financialCategoryId: number | null;
         categoryDisplayName: string;
         amount: number;
+        parentBudgetRowId: number | null;
     }
 
 
