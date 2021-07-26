@@ -2142,18 +2142,18 @@ var Ally;
             this.financialCategoryMap = new Map();
             this.totalExpense = 0;
             this.totalIncome = 0;
+            this.EditAmountTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         BudgetToolController.prototype.$onInit = function () {
             var _this = this;
-            var amtTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
             this.expenseGridOptions =
                 {
                     columnDefs: [
-                        { field: 'categoryTreeLabel', displayName: "Category", width: "*" },
-                        { field: 'amount', displayName: 'Amount', width: 120, type: 'number', cellFilter: "currency", cellTemplate: amtTemplate }
+                        { field: "categoryTreeLabel", displayName: "Category", width: "*" },
+                        { field: "amount", displayName: "Amount", width: 120, type: "number", cellFilter: "currency", cellTemplate: this.EditAmountTemplate }
                     ],
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -2223,6 +2223,8 @@ var Ally;
             this.curBudget = new BudgetLocalEdit();
             this.curBudget.budgetName = "Unnamed";
             this.curBudget.budgetRows = [];
+            var amountColumn = this.expenseGridOptions.columnDefs.find(function (c) { return c.field === "amount"; });
+            amountColumn.cellTemplate = this.EditAmountTemplate;
             var visitNode = function (curNode, depth, isIncomeRow) {
                 var hasChildren = curNode.childCategories != null && curNode.childCategories.length > 0;
                 isIncomeRow = (depth === 0 && curNode.displayName === "Income") || isIncomeRow;
@@ -2240,7 +2242,8 @@ var Ally;
                         category: curNode,
                         parentRow: parentRow,
                         childRows: [],
-                        isIncomeRow: isIncomeRow
+                        isIncomeRow: isIncomeRow,
+                        parentBudgetRowId: null
                     };
                     if (parentRow)
                         newRow.parentRow.childRows.push(newRow);
@@ -2271,6 +2274,11 @@ var Ally;
                     return getCatDepth(_this.financialCategoryMap.get(category.parentFinancialCategoryId), depth + 1);
                 return depth;
             };
+            var amountColumn = this.expenseGridOptions.columnDefs.find(function (c) { return c.field === "amount"; });
+            if (budget.finalizedDateUtc)
+                amountColumn.cellTemplate = null;
+            else
+                amountColumn.cellTemplate = this.EditAmountTemplate;
             var editRows;
             editRows = budget.rows.map(function (r) {
                 var cat = _this.financialCategoryMap.has(r.financialCategoryId) ? _this.financialCategoryMap.get(r.financialCategoryId) : undefined;
@@ -2289,20 +2297,26 @@ var Ally;
                     categoryTreeLabel: labelPrefix + (cat ? cat.displayName : r.categoryDisplayName),
                     hasChildren: false,
                     isIncomeRow: false,
-                    parentRow: null
+                    parentRow: null,
+                    parentBudgetRowId: r.parentBudgetRowId
                 };
                 return editRow;
             });
             var _loop_1 = function (i) {
-                var curCat = editRows[i].category;
+                var curRow = editRows[i];
+                var curCat = curRow.category;
                 if (curCat) {
-                    editRows[i].hasChildren = curCat.childCategories && curCat.childCategories.length > 0;
-                    if (editRows[i].hasChildren) {
+                    curRow.hasChildren = curCat.childCategories && curCat.childCategories.length > 0;
+                    if (curRow.hasChildren) {
                         var childCatIds_1 = _.map(curCat.childCategories, function (c) { return c.financialCategoryId; });
-                        editRows[i].childRows = editRows.filter(function (r) { return childCatIds_1.indexOf(r.financialCategoryId) >= 0; });
+                        curRow.childRows = editRows.filter(function (r) { return childCatIds_1.indexOf(r.financialCategoryId) >= 0; });
                     }
                     if (curCat.parentFinancialCategoryId)
-                        editRows[i].parentRow = _.find(editRows, function (r) { return r.financialCategoryId === curCat.parentFinancialCategoryId; });
+                        curRow.parentRow = _.find(editRows, function (r) { return r.financialCategoryId === curCat.parentFinancialCategoryId; });
+                }
+                else if (curRow.parentBudgetRowId) {
+                    curRow.parentRow = _.find(editRows, function (r) { return r.budgetRowId === curRow.parentBudgetRowId; });
+                    curRow.childRows = editRows.filter(function (r) { return r.parentBudgetRowId === curRow.budgetRowId; });
                 }
             };
             // Fill in children and set the parent
@@ -2354,8 +2368,9 @@ var Ally;
             else
                 this.saveNewBudget();
         };
-        BudgetToolController.prototype.saveExistingBudget = function () {
+        BudgetToolController.prototype.saveExistingBudget = function (refreshAfterSave) {
             var _this = this;
+            if (refreshAfterSave === void 0) { refreshAfterSave = true; }
             this.isLoading = true;
             // Create a slimmed down version
             var putData = {
@@ -2369,12 +2384,14 @@ var Ally;
                     };
                 })
             };
-            this.$http.put("/api/Budget", putData).then(function (httpResponse) {
+            return this.$http.put("/api/Budget", putData).then(function (httpResponse) {
                 _this.isLoading = false;
-                _this.completeRefresh();
+                if (refreshAfterSave)
+                    _this.completeRefresh();
             }, function (httpResponse) {
                 _this.isLoading = false;
-                alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
+                alert("Failed to save: " + httpResponse.data.exceptionMessage);
+                return Promise.reject(null);
             });
         };
         BudgetToolController.prototype.saveNewBudget = function () {
@@ -2430,6 +2447,27 @@ var Ally;
             this.incomeGridOptions.data = [];
             this.expenseGridOptions.data = [];
             this.refreshData();
+        };
+        BudgetToolController.prototype.finalizeBudget = function () {
+            var _this = this;
+            if (!confirm("This makes the budget permanently read-only. Are you sure you want to finalize the budget?"))
+                return;
+            this.isLoading = true;
+            this.saveExistingBudget(false).then(function () {
+                _this.$http.put("/api/Budget/Finalize/" + _this.curBudget.budgetId, null).then(function (httpResponse) {
+                    _this.isLoading = false;
+                    _this.curBudget = null;
+                    _this.selectedBudget = null;
+                    _this.incomeGridOptions.data = [];
+                    _this.expenseGridOptions.data = [];
+                    _this.completeRefresh();
+                }, function (httpResponse) {
+                    _this.isLoading = false;
+                    alert("Failed to finalize, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
+                });
+            }, function (httpResponse) {
+                _this.isLoading = false;
+            });
         };
         BudgetToolController.$inject = ["$http", "appCacheService", "uiGridConstants", "$rootScope"];
         return BudgetToolController;

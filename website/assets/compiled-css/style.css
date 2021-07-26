@@ -507,6 +507,78 @@ section.header-pill-menu-section nav a.nav-link.active {
 .ui-grid, .ui-grid-viewport {
   height: auto !important; }
 
+/* Font Color for the Rich Text Editor */
+/* Black */
+a[data-edit="foreColor #000000"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #000000;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
+/* Blue */
+a[data-edit="foreColor #0000FF"]::before,
+a[data-edit="backColor #00FFFF"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #0000FF;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
+/* Green */
+a[data-edit="foreColor #30AD23"]::before,
+a[data-edit="backColor #00FF00"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #30AD23;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
+/* Orange */
+a[data-edit="foreColor #FF7F00"]::before,
+a[data-edit="backColor #FF7F00"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #FF7F00;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
+/* Red */
+a[data-edit="foreColor #FF0000"]::before,
+a[data-edit="backColor #FF0000"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #FF0000;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
+/* Yellow */
+a[data-edit="foreColor #FFFF00"]::before,
+a[data-edit="backColor #FFFF00"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #FFFF00;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;

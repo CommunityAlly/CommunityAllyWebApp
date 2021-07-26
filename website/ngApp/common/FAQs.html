@@ -45,6 +45,29 @@
                     <a class="btn" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i class="icon-underline"></i></a>
                 </div>
                 <div class="btn-group">
+                    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Font Color"><i style="color: blue;" class="icon-font"></i>&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <p>&nbsp;&nbsp;&nbsp;Font Color:</p>
+                        <li><a data-edit="foreColor #000000">Black</a></li>
+                        <li><a data-edit="foreColor #FFFF00">Yellow</a></li>
+                        <li><a data-edit="foreColor #FF7F00">Orange</a></li>
+                        <li><a data-edit="foreColor #FF0000">Red</a></li>
+                        <li><a data-edit="foreColor #0000FF">Blue</a></li>
+                        <li><a data-edit="foreColor #30AD23">Green</a></li>
+                    </ul>
+                </div>
+                <div class="btn-group">
+                    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Text Highlight Color"><i style="background-color: blue; color: white;" class="icon-font"></i>&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <p>&nbsp;&nbsp;&nbsp;Text Highlight Color:</p>
+                        <li><a data-edit="backColor #00FFFF">Blue</a></li>
+                        <li><a data-edit="backColor #00FF00">Green</a></li>
+                        <li><a data-edit="backColor #FF7F00">Orange</a></li>
+                        <li><a data-edit="backColor #FF0000">Red</a></li>
+                        <li><a data-edit="backColor #FFFF00">Yellow</a></li>
+                    </ul>
+                </div>
+                <div class="btn-group">
                     <a class="btn" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>
                     <a class="btn" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>
                     <a class="btn" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>
@@ -77,7 +100,7 @@
             </div>
 
             <div id="editor" class="rich-text-editor"></div>
-            
+            <span class="font-weight-bold note-text">Please resize your images to be below 100KB before inserting to keep the page loading fast for your neighbors.</span>
             <p class="text-right margin-top-10">
                 <span data-ng-show="$ctrl.isBodyMissing" class="error">The body is required.</span>
                 <button id="AddNewInfoButton" class="btn btn-primary" type="button" data-ng-click="$ctrl.onSubmitItem();">Submit</button>&nbsp;
