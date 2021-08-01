@@ -48,7 +48,7 @@
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        $onInit()
+        $onInit(): void
         {
             this.isQaSite = false;//HtmlUtil.getSubdomain() === "qa" || HtmlUtil.getSubdomain() === "localtest";
 
@@ -66,13 +66,13 @@
 
 
 
-        displayDiscussModal()
+        displayDiscussModal(): void
         {
             this.showDiscussModal = true;
         }
 
 
-        hideDiscussModal()
+        hideDiscussModal(): void
         {
             //TODO put in a delay before we allow close to avoid the mobile tap-open-close issue
             this.showDiscussModal = false;
@@ -82,70 +82,76 @@
         /**
          * Retrieve the comments from the server for the current thread
          */
-        refreshComments()
+        refreshComments(): void
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/Comment?threadId=" + this.threadId ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.commentList = response.data;
-
-                let processComments = ( c: Comment ) =>
-                {
-                    c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
-
-                    if( c.replies )
-                        _.each( c.replies, processComments );
-                };
-
-                // Convert the UTC dates to local dates and mark the user's comments
-                _.each( this.commentList, processComments );
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            this.$http.get( "/api/Comment?threadId=" + this.threadId ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
-                } );
+                    this.commentList = response.data;
+
+                    const processComments = ( c: Comment ) =>
+                    {
+                        c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
+
+                        if( c.replies )
+                            _.each( c.replies, processComments );
+                    };
+
+                    // Convert the UTC dates to local dates and mark the user's comments
+                    _.each( this.commentList, processComments );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to refresh comments: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Add a comment
         ///////////////////////////////////////////////////////////////////////////////////////////
-        postComment( commentData: any )
+        postComment( commentData: any ): void
         {
             this.isLoading = true;
 
-            var httpFunc = this.$http.post;
+            let httpFunc = this.$http.post;
             if( typeof ( commentData.existingCommentId ) === "number" )
                 httpFunc = this.$http.put;
 
-            httpFunc( "/api/Comment", commentData ).then( () =>
-            {
-                this.isLoading = false;
-                this.editComment = {};
-                this.showReplyBoxId = -1;
-                this.refreshComments();
+            httpFunc( "/api/Comment", commentData ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.editComment = {};
+                    this.showReplyBoxId = -1;
+                    this.refreshComments();
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
 
                     alert( "Failed to post comment: " + response.data.exceptionMessage );
-                } );
+                }
+            );
         }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Add a comment to the current thread
         ///////////////////////////////////////////////////////////////////////////////////////////
-        onPostCommentClicked()
+        onPostCommentClicked(): void
         {
             if( this.editComment.commentText.length === 0 )
                 return;
 
             // Copy the object to avoid updating the UI
-            var commentData: any = {
+            const commentData: any = {
                 threadId: this.threadId,
                 commentText: this.editComment.commentText,
                 replyToCommentId: null,
@@ -159,47 +165,50 @@
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Edit an existing comment
         ///////////////////////////////////////////////////////////////////////////////////////////
-        editMyComment( comment: any )
+        editMyComment( comment: any ): void
         {
             this.editComment = {
                 commentText: comment.commentText,
                 existingCommentId: comment.commentId
             };
-        };
+        }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Delete a comment
         ///////////////////////////////////////////////////////////////////////////////////////////
-        deleteMyComment( comment: any )
+        deleteMyComment( comment: any ): void
         {
             this.isLoading = true;
 
-            this.$http.delete( "/api/Comment?commentId=" + comment.commentId ).then( function()
-            {
-                this.isLoading = false;
-                this.refreshComments();
+            this.$http.delete( "/api/Comment?commentId=" + comment.commentId ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.refreshComments();
 
-            }, function( httpResponse )
+                },
+                ( httpResponse ) =>
                 {
                     this.isLoading = false;
 
-                    var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                     alert( "Failed to post comment: " + errorMessage );
-                } );
+                }
+            );
         }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Add a comment in response to a comment in the current thread
         ///////////////////////////////////////////////////////////////////////////////////////////
-        onPostReplyCommentClicked()
+        onPostReplyCommentClicked(): void
         {
             if( this.editComment.replyText.length === 0 )
                 return;
 
             // Copy the object to avoid updating the UI
-            var commentData = {
+            const commentData = {
                 threadId: this.threadId,
                 commentText: this.editComment.replyText,
                 replyToCommentId: this.editComment.replyToCommentId
@@ -212,7 +221,7 @@
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to reply
         ///////////////////////////////////////////////////////////////////////////////////////////
-        clickReplyToComment( commentId: number )
+        clickReplyToComment( commentId: number ): void
         {
             this.showReplyBoxId = commentId;
 
@@ -223,7 +232,7 @@
         }
     }
 }
-    
+
 
 CA.angularApp.component( "groupComments", {
     bindings: {

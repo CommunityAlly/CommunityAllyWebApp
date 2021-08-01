@@ -10,3 +10,4 @@ App_Data/
 /.vs/
 /packages/
 /deploy-to-aws.ps1
+/lint-output.txt

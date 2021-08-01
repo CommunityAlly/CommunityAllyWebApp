@@ -46,7 +46,7 @@ namespace Ally
         defaultBGImage: string;
         showQaButton: boolean;
         loginImageUrl: string;
-        isLoading: boolean = false;;
+        isLoading: boolean = false;
         showRightColumnSetting: boolean = true;
         showLocalNewsSetting: boolean = false;
         isPta: boolean = false;

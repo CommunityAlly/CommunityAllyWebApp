@@ -20,11 +20,11 @@ var Ally;
             this.refreshAddresses();
         };
         ManageAddressPolysController.prototype.getPolyInfo = function (url, polyType) {
+            var _this = this;
             var deferred = this.$q.defer();
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get(url).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var addresses = httpResponse.data;
                 // Mark address as opposed to group bounds
                 _.each(addresses, function (a) {
@@ -32,11 +32,11 @@ var Ally;
                     if (polyType == "Group")
                         a.oneLiner = a.shortName + ", " + a.appName;
                 });
-                $.merge(innerThis.addresses, addresses);
-                deferred.resolve(innerThis.addresses);
+                $.merge(_this.addresses, addresses);
+                deferred.resolve(_this.addresses);
             }, function (httpResponse) {
-                this.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                _this.isLoading = false;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to retrieve addresses: " + errorMessage);
                 deferred.reject();
             });
@@ -50,29 +50,29 @@ var Ally;
         };
         // Get the addresses that are missing bounding polys
         ManageAddressPolysController.prototype.refreshAddresses = function () {
+            var _this = this;
             this.isLoading = true;
             this.addresses = [];
-            var innerThis = this;
-            this.getAddressPolys().then(function () { return innerThis.getGroupBoundPolys(); }).then(function (addresses) {
-                innerThis.addressPoints = [];
+            this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(function (addresses) {
+                _this.addressPoints = [];
                 _.each(addresses, function (a) {
                     if (a.gpsPos) {
                         // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
                         a.gpsPos.fullAddress = a.oneLiner;
-                        innerThis.addressPoints.push(a.gpsPos);
+                        this.addressPoints.push(a.gpsPos);
                     }
                 });
             });
         };
         ManageAddressPolysController.prototype.onSavePoly = function () {
+            var _this = this;
             this.isLoading = true;
             var serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
             var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
-            var innerThis = this;
             this.$http.put(url, serverVerts).then(function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         // Occurs when the user clicks an address
@@ -87,8 +87,8 @@ var Ally;
                 this.selectedAddress.gpsBounds.vertices = [];
             // If the array is empty then create a default rectangle
             if (this.selectedAddress.gpsBounds.vertices.length == 0 && address.gpsPos) {
-                var southWest = new google.maps.LatLng(address.gpsPos.lat, address.gpsPos.lon);
-                var northEast = new google.maps.LatLng(address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001);
+                //const southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
+                //const northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
                 address.gpsBounds.vertices = [
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon },
                     { lat: address.gpsPos.lat + 0.001, lon: address.gpsPos.lon },

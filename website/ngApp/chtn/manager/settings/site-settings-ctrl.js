@@ -47,7 +47,6 @@ var Ally;
             this.showLocalNewsSetting = false;
             this.isPta = false;
         }
-        ;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */

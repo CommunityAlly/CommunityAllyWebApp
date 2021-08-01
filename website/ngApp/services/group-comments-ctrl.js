@@ -58,6 +58,7 @@ var Ally;
                 _.each(_this.commentList, processComments);
             }, function (response) {
                 _this.isLoading = false;
+                alert("Failed to refresh comments: " + response.data.exceptionMessage);
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -103,18 +104,18 @@ var Ally;
                 existingCommentId: comment.commentId
             };
         };
-        ;
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Delete a comment
         ///////////////////////////////////////////////////////////////////////////////////////////
         GroupCommentsController.prototype.deleteMyComment = function (comment) {
+            var _this = this;
             this.isLoading = true;
             this.$http.delete("/api/Comment?commentId=" + comment.commentId).then(function () {
-                this.isLoading = false;
-                this.refreshComments();
+                _this.isLoading = false;
+                _this.refreshComments();
             }, function (httpResponse) {
-                this.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                _this.isLoading = false;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to post comment: " + errorMessage);
             });
         };

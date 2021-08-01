@@ -34,39 +34,41 @@
 
         getPolyInfo( url: string, polyType: any )
         {
-            var deferred = this.$q.defer();
+            const deferred = this.$q.defer();
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( url ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
-            {
-                innerThis.isLoading = false;
-
-                var addresses = httpResponse.data;
-
-                // Mark address as opposed to group bounds
-                _.each( addresses, function( a:any )
+            this.$http.get( url ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    a.polyType = polyType;
+                    this.isLoading = false;
 
-                    if( polyType == "Group" )
-                        a.oneLiner = a.shortName + ", " + a.appName;
-                } );
+                    const addresses = httpResponse.data;
 
-                $.merge( innerThis.addresses, addresses );
+                    // Mark address as opposed to group bounds
+                    _.each( addresses, function( a:any )
+                    {
+                        a.polyType = polyType;
 
-                deferred.resolve( innerThis.addresses );
+                        if( polyType == "Group" )
+                            a.oneLiner = a.shortName + ", " + a.appName;
+                    } );
 
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                this.isLoading = false;
+                    $.merge( this.addresses, addresses );
 
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to retrieve addresses: " + errorMessage );
+                    deferred.resolve( this.addresses );
 
-                deferred.reject();
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+
+                    const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    alert( "Failed to retrieve addresses: " + errorMessage );
+
+                    deferred.reject();
+                }
+            );
 
             return deferred.promise;
         }
@@ -91,39 +93,41 @@
 
             this.addresses = [];
 
-            var innerThis = this;
-            this.getAddressPolys().then( () => innerThis.getGroupBoundPolys() ).then( function( addresses: any[] )
-            {
-                innerThis.addressPoints = [];
-                _.each( addresses, function( a )
+            this.getAddressPolys().then( () => this.getGroupBoundPolys() ).then(
+                ( addresses: any[] ) =>
                 {
-                    if( a.gpsPos )
-                    { 
-                        // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
-                        a.gpsPos.fullAddress = a.oneLiner;
-                        innerThis.addressPoints.push( a.gpsPos );
-                    }
-                } );
-            } );
+                    this.addressPoints = [];
+                    _.each( addresses, function( a )
+                    {
+                        if( a.gpsPos )
+                        { 
+                            // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
+                            a.gpsPos.fullAddress = a.oneLiner;
+                            this.addressPoints.push( a.gpsPos );
+                        }
+                    } );
+                }
+            );
         }
 
         onSavePoly()
         {
             this.isLoading = true;
 
-            let serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
+            const serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
 
-            var url = this.selectedAddress.polyType === "Address" ? ( "/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId ) : ( "/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId );
+            const url = this.selectedAddress.polyType === "Address" ? ( "/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId ) : ( "/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId );
 
-            var innerThis = this;
-            this.$http.put( url, serverVerts ).then( function()
-            {
-                innerThis.isLoading = false;
-
-            }, function()
-            {
-                innerThis.isLoading = false;
-            } );
+            this.$http.put( url, serverVerts ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                }
+            );
         }
 
         // Occurs when the user clicks an address
@@ -143,8 +147,8 @@
             // If the array is empty then create a default rectangle
             if( this.selectedAddress.gpsBounds.vertices.length == 0 && address.gpsPos )
             {
-                var southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
-                var northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
+                //const southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
+                //const northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
 
                 address.gpsBounds.vertices = [
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon },
