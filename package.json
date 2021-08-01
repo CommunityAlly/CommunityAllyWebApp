@@ -1,23 +1,26 @@
 {
-  "name": "CommunityAllyWebApp",
-  "version": "2.0.1",
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^3.6.0",
-    "@typescript-eslint/parser": "^3.6.0",
-    "eslint": "^7.4.0",
-    "grunt": "^1.3.0",
-    "grunt-angular-templates": "^1.2.0",
-    "grunt-contrib-clean": "^2.0.0",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-cssmin": "^2.2.0",
-    "grunt-contrib-jshint": "^2.1.0",
-    "grunt-contrib-nodeunit": "^2.1.0",
-    "grunt-contrib-uglify": "^3.4.0",
-    "grunt-contrib-watch": "^1.1.0",
-    "grunt-sass": "^3.1.0",
-    "grunt-ts": "^6.0.0-beta.22",
-    "node-sass": "^4.14.1",
-    "typescript": "^2.9.2"
-  }
+    "name": "CommunityAllyWebApp",
+    "version": "2.0.1",
+    "scripts": { "start": "http-server ./website -o -s" },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^3.6.0",
+        "@typescript-eslint/parser": "^3.6.0",
+        "eslint": "^7.4.0",
+        "grunt": "^1.3.0",
+        "grunt-angular-templates": "^1.2.0",
+        "grunt-contrib-clean": "^2.0.0",
+        "grunt-contrib-concat": "^1.0.1",
+        "grunt-contrib-copy": "^1.0.0",
+        "grunt-contrib-cssmin": "^2.2.0",
+        "grunt-contrib-jshint": "^2.1.0",
+        "grunt-contrib-nodeunit": "^2.1.0",
+        "grunt-contrib-uglify": "^3.4.0",
+        "grunt-contrib-watch": "^1.1.0",
+        "grunt-sass": "^3.1.0",
+        "grunt-ts": "^6.0.0-beta.22",
+        "http-server": "^0.12.3",
+        "node-sass": "^4.14.1",
+        "typescript": "^2.9.2"
+    },
+    "dependencies": {}
 }
