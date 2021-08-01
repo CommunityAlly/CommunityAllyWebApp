@@ -579,6 +579,18 @@ a[data-edit="backColor #FFFF00"]::before {
   top: 10px;
   left: 0; }
 
+/* White */
+a[data-edit="foreColor #FFFFFF"]::before,
+a[data-edit="backColor #FFFFFF"]::before {
+  content: "\f0c8  ";
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  color: #FFFFFF;
+  font-size: 18px;
+  top: 10px;
+  left: 0; }
+
 body {
   font-family: "Open Sans",sans-serif;
   font-size: 14px;
