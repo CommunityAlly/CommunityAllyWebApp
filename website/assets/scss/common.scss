@@ -381,7 +381,8 @@ section.header-pill-menu-section nav a.nav-link.active {
 /* Font Color for the Rich Text Editor */
 
 /* Black */
-a[data-edit="foreColor #000000"]::before {
+a[data-edit="foreColor #000000"]::before,
+a[data-edit="backColor #000000"]::before {
     content: "\f0c8  ";
     font-family: FontAwesome;
     font-style: normal;
