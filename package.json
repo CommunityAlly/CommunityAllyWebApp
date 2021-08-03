@@ -1,9 +1,6 @@
 {
     "name": "CommunityAllyWebApp",
     "version": "2.0.1",
-    "scripts": {
-        "start": "http-server ./website -o -s"
-    },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^3.10.1",
         "@typescript-eslint/parser": "^3.10.1",
@@ -12,6 +9,7 @@
         "grunt-angular-templates": "^1.2.0",
         "grunt-contrib-clean": "^2.0.0",
         "grunt-contrib-concat": "^1.0.1",
+        "grunt-contrib-connect": "^3.0.0",
         "grunt-contrib-copy": "^1.0.0",
         "grunt-contrib-cssmin": "^2.2.0",
         "grunt-contrib-jshint": "^2.1.0",
@@ -20,7 +18,6 @@
         "grunt-contrib-watch": "^1.1.0",
         "grunt-sass": "^3.1.0",
         "grunt-ts": "^6.0.0-beta.22",
-        "http-server": "^0.12.3",
         "node-sass": "^4.14.1",
         "typescript": "^2.9.2"
     },

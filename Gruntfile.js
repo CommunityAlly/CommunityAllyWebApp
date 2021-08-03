@@ -178,12 +178,14 @@ grunt.initConfig({
     watch: {
         ts:{
             files: ['**/*.ts'],
-            tasks: ['ally-app-bundle-task']
+            tasks: ['ally-app-bundle-task'],
+            options:{ livereload: true }
         },
         
         templates:{
             files: ['Website/ngApp/**/*.html'],
-            tasks: ['ngtemplates', 'uglify:templates']
+            tasks: ['ngtemplates', 'uglify:templates'],
+            options:{ livereload: true }
         },
 
         // allyAppBundle: {
@@ -199,7 +201,8 @@ grunt.initConfig({
                 'Website/assets/**/*.scss',
                 '!Website/assets/compiled-css/style.css',
                 '!Website/assets/compiled.min.css'],
-            tasks: ['css-only']
+            tasks: ['css-only'],
+            options:{ livereload: true }
         }
     },
 
@@ -247,6 +250,18 @@ grunt.initConfig({
 
     clean: {
         dist: ['dist']
+    },
+
+    connect: {
+        server: {
+            options: {
+                hostname: "localhost",
+                livereload: 35729,
+                base: 'website/',
+                port: 8080,
+                open: true
+            }
+        }
     }
 });
 
@@ -260,6 +275,7 @@ grunt.initConfig({
     grunt.loadNpmTasks('grunt-ts');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-connect');
 
     // Build the Angular templates, app code, and CSS
     grunt.registerTask('default', ['ngtemplates','concat','uglify:allyAppBundleMin','uglify:templates','sass', 'cssmin']);
@@ -277,4 +293,7 @@ grunt.initConfig({
     grunt.registerTask('full', ['ngtemplates','concat','uglify','sass', 'cssmin']);
 
     grunt.registerTask('make-dist', ['clean:dist', 'copy:dist']);
+
+    // Start web server
+    grunt.registerTask('serve', ['connect:server','watch']);
 };

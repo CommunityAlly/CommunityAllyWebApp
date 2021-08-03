@@ -16,7 +16,7 @@ To develop locally, you'll still need an active Community Ally site setup so you
 1. Clone the repo
 1. The site uses the subdomain to determine which group you're viewing. For example, https://123fake.condoally.com is for the 123 Fake St Condo Association and https://BrightElm.hoaally.org is for the Bright Elm HOA site. We need to override this logic while you're developing locally so you can specifiy which group to use while hosting off localhost. At the top of website\ngApp\ally-app.ts (Or ally-app.js if you haven't run 'grunt watch' yet), specify the origin of your Ally site in the OverrideBaseApiPath variable.
 1. Run "npm install"
-1. Run "npm start"
+1. Run "grunt serve"
 
 # File Structure
 
@@ -26,8 +26,8 @@ The main app code is in "website\ngApp". Third-party libraries are in "website\j
 
 # Development
 1. Search the project for DEVLOCAL in website\index.html and follow the instructions indicated.
-1. From a command line, run "npm install" then "grunt watch" in the root directory of the repo.
-1. Run "npm start" in another terminal and verify you can login.
+1. From a command line, run "npm install"
+1. Run "grunt serve" and verify you can login.
 1. Changes you make to the Angular templates or code will take effect as fast as Grunt can compile.
 
 # Tech
