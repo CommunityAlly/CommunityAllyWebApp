@@ -46,6 +46,7 @@ var Ally;
             this.showRightColumnSetting = true;
             this.showLocalNewsSetting = false;
             this.isPta = false;
+            this.shouldShowWelcomeTooLongError = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -122,7 +123,7 @@ var Ally;
                     location.reload();
             }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to save: " + response.data);
+                alert("Failed to save: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -206,6 +207,10 @@ var Ally;
          */
         ChtnSettingsController.prototype.forceRefresh = function () {
             window.location.reload(true);
+        };
+        ChtnSettingsController.prototype.onWelcomeMessageEdit = function () {
+            var welcomeHtml = this.welcomeRichEditorElem.html();
+            this.shouldShowWelcomeTooLongError = welcomeHtml.length > 1000;
         };
         ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return ChtnSettingsController;

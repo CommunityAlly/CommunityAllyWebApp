@@ -51,7 +51,8 @@ namespace Ally
         showLocalNewsSetting: boolean = false;
         isPta: boolean = false;
         frontEndVersion: string;
-        welcomeRichEditorElem: JQuery
+        welcomeRichEditorElem: JQuery;
+        shouldShowWelcomeTooLongError: boolean = false;
 
 
         /**
@@ -158,26 +159,29 @@ namespace Ally
 
             this.isLoading = true;
             
-            this.$http.put( "/api/Settings", this.settings ).then( () =>
-            {
-                this.isLoading = false;
+            this.$http.put( "/api/Settings", this.settings ).then(
+                () =>
+                {
+                    this.isLoading = false;
 
-                // Update the locally-stored values
-                this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
-                this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
-                this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
-                
-                var didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
+                    // Update the locally-stored values
+                    this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
+                    this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
+                    this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
 
-                // Reload the page to show the page title has changed
-                if( didChangeFullName )
-                    location.reload();
+                    var didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to save: " + response.data );
-            } );
+                    // Reload the page to show the page title has changed
+                    if( didChangeFullName )
+                        location.reload();
+
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -296,6 +300,12 @@ namespace Ally
         forceRefresh()
         {
             window.location.reload( true );
+        }
+
+        onWelcomeMessageEdit()
+        {
+            const welcomeHtml = this.welcomeRichEditorElem.html();
+            this.shouldShowWelcomeTooLongError = welcomeHtml.length > 1000;
         }
     }
 }
