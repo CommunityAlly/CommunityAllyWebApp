@@ -177,6 +177,10 @@ var Ally;
                 var pageInfo = httpResponse.data;
                 _this.ledgerAccounts = pageInfo.accounts;
                 _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
+                // Hide the account column if there's only one account
+                var accountColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "accountName"; });
+                if (accountColumn)
+                    accountColumn.visible = _this.ledgerAccounts.length > 1;
                 // Add only the first account needing login for a Plaid item
                 var accountsNeedingLogin = _this.ledgerAccounts.filter(function (a) { return a.plaidNeedsRelogin; });
                 _this.accountsNeedingLogin = [];
@@ -187,7 +191,6 @@ var Ally;
                 for (var i = 0; i < accountsNeedingLogin.length; ++i) {
                     _loop_1(i);
                 }
-                var accountColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "accountName"; })[0];
                 accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
                 _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
                 _this.allEntries = pageInfo.entries;

@@ -224,6 +224,11 @@ namespace Ally
                     this.ledgerAccounts = pageInfo.accounts;
                     _.forEach( this.ledgerAccounts, a => a.shouldShowInGrid = true );
 
+                    // Hide the account column if there's only one account
+                    const accountColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "accountName" );
+                    if( accountColumn )
+                        accountColumn.visible = this.ledgerAccounts.length > 1;
+
                     // Add only the first account needing login for a Plaid item
                     let accountsNeedingLogin = this.ledgerAccounts.filter( a => a.plaidNeedsRelogin );
                     this.accountsNeedingLogin = [];
@@ -233,7 +238,6 @@ namespace Ally
                             this.accountsNeedingLogin.push( accountsNeedingLogin[i] );
                     }
 
-                    const accountColumn = this.ledgerGridOptions.columnDefs.filter( c => c.field === "accountName" )[0];
                     accountColumn.filter.selectOptions = this.ledgerAccounts.map( a => { return { value: a.accountName, label: a.accountName } } );
 
                     this.hasPlaidAccounts = _.any( this.ledgerAccounts, a => a.syncType === 'plaid' );
