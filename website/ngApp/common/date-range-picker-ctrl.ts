@@ -7,7 +7,7 @@
     {
         static $inject = ["appCacheService", "$scope", "$timeout"];
 
-        filterPresetDateRange: string = "last30days";
+        filterPresetDateRange: string = "custom";
         startDate: Date;
         endDate: Date;
         shouldSuppressCustom: boolean = false;
@@ -33,7 +33,8 @@
         */
         $onInit()
         {
-            this.selectPresetDateRange( true );
+            if( !this.startDate && !this.endDate )
+                this.selectPresetDateRange( true );
 
             this.$scope.$watch( "$ctrl.startDate", (newValue: Date, oldValue: Date) =>
             {
@@ -95,9 +96,9 @@
                 window.setTimeout( () => this.onChange(), 50 ); // Delay a bit to let Angular's digests run on the bound dates
         }
 
-        onInternalChange()
+        onInternalChange(suppressChangeEvent: boolean = false)
         {
-            // Only call the change functin if both strings are valid dates
+            // Only call the change function if both strings are valid dates
             if( typeof this.startDate === "string" )
             {
                 if( ( <string>this.startDate ).length !== 10 )
@@ -112,12 +113,15 @@
                 this.endDate = moment( <string>this.endDate, "MM-DD-YYYY" ).toDate();
             }
 
-            // Delay just a touch to let the model update
-            this.$timeout( () =>
+            if( !suppressChangeEvent )
             {
-                if( this.onChange )
-                    this.onChange();
-            }, 10 );
+                // Delay just a touch to let the model update
+                this.$timeout( () =>
+                {
+                    if( this.onChange )
+                        this.onChange();
+                }, 10 );
+            }
         }
     }
 }

@@ -5,12 +5,15 @@
      */
     export class ResidentTransactionsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants"];
+        static $inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants", "$scope"];
         shouldShowModal: boolean = false;
         isLoading: boolean = false;
         transactionGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
         readonly HistoryPageSize: number = 50;
         homeName: string;
+        filterStartDate: Date;
+        filterEndDate: Date;
+        allFinancialTxns: LedgerEntry[];
 
 
         /**
@@ -20,7 +23,8 @@
             private siteInfo: Ally.SiteInfoService,
             private $timeout: ng.ITimeoutService,
             private $rootScope: ng.IRootScopeService,
-            private uiGridConstants: uiGrid.IUiGridConstants )
+            private uiGridConstants: uiGrid.IUiGridConstants,
+            private $scope: ng.IScope )
         {
         }
 
@@ -77,20 +81,35 @@
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerEntry[]> ) =>
                 {
                     this.isLoading = false;
-                    this.transactionGridOptions.data = httpResponse.data;
-
+                    this.allFinancialTxns = httpResponse.data;
+                    
                     // Hide the unit column if the owner only has one unit
-                    const allUnitIds = this.transactionGridOptions.data.map( u => u.associatedUnitId );
+                    const allUnitIds = this.allFinancialTxns.map( u => u.associatedUnitId );
                     const uniqueUnitIds = allUnitIds.filter( ( v, i, a ) => a.indexOf( v ) === i );
                     const unitColumn = this.transactionGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
                     if( unitColumn )
                         unitColumn.visible = uniqueUnitIds.length > 1;
 
-                    if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+                    //this.transactionGridOptions.data = httpResponse.data;
+
+                    //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+                    //{
+                    //    this.transactionGridOptions.enablePagination = false;
+                    //    this.transactionGridOptions.enablePaginationControls = false;
+                    //}
+
+                    // Put this in a slight delay so the date range picker can exist
+                    this.$timeout( () =>
                     {
-                        this.transactionGridOptions.enablePagination = false;
-                        this.transactionGridOptions.enablePaginationControls = false;
-                    }
+                        if( this.allFinancialTxns.length > 1 )
+                        {
+                            // Transactions come down newest first
+                            this.filterEndDate = this.allFinancialTxns[0].transactionDate;
+                            this.filterStartDate = this.allFinancialTxns[this.allFinancialTxns.length - 1].transactionDate;
+                        }
+
+                        this.onFilterDateRangeChange();
+                    }, 100 );
                 },
                 () =>
                 {
@@ -135,6 +154,23 @@
             var csvDataString = Ally.createCsvString( this.transactionGridOptions.data as LedgerEntry[], csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Owner-Transactions.csv" );
+        }
+
+
+        onFilterDateRangeChange()
+        {
+            if( !this.filterStartDate || !this.filterEndDate )
+                return;
+
+            this.transactionGridOptions.data = this.allFinancialTxns.filter( t => t.transactionDate >= this.filterStartDate && t.transactionDate <= this.filterEndDate );
+
+            if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+            {
+                this.transactionGridOptions.enablePagination = false;
+                this.transactionGridOptions.enablePaginationControls = false;
+            }
+
+            this.$scope.$apply();
         }
     }
 }

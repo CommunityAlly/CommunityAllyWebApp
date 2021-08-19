@@ -11,7 +11,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.$scope = $scope;
             this.$timeout = $timeout;
-            this.filterPresetDateRange = "last30days";
+            this.filterPresetDateRange = "custom";
             this.shouldSuppressCustom = false;
             this.thisYearLabel = new Date().getFullYear().toString();
             this.lastYearLabel = (new Date().getFullYear() - 1).toString();
@@ -21,7 +21,8 @@ var Ally;
         */
         DateRangePickerController.prototype.$onInit = function () {
             var _this = this;
-            this.selectPresetDateRange(true);
+            if (!this.startDate && !this.endDate)
+                this.selectPresetDateRange(true);
             this.$scope.$watch("$ctrl.startDate", function (newValue, oldValue) {
                 if (!newValue || newValue === oldValue || _this.shouldSuppressCustom)
                     return;
@@ -68,9 +69,10 @@ var Ally;
             if (!suppressRefresh && this.onChange)
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
         };
-        DateRangePickerController.prototype.onInternalChange = function () {
+        DateRangePickerController.prototype.onInternalChange = function (suppressChangeEvent) {
             var _this = this;
-            // Only call the change functin if both strings are valid dates
+            if (suppressChangeEvent === void 0) { suppressChangeEvent = false; }
+            // Only call the change function if both strings are valid dates
             if (typeof this.startDate === "string") {
                 if (this.startDate.length !== 10)
                     return;
@@ -81,11 +83,13 @@ var Ally;
                     return;
                 this.endDate = moment(this.endDate, "MM-DD-YYYY").toDate();
             }
-            // Delay just a touch to let the model update
-            this.$timeout(function () {
-                if (_this.onChange)
-                    _this.onChange();
-            }, 10);
+            if (!suppressChangeEvent) {
+                // Delay just a touch to let the model update
+                this.$timeout(function () {
+                    if (_this.onChange)
+                        _this.onChange();
+                }, 10);
+            }
         };
         DateRangePickerController.$inject = ["appCacheService", "$scope", "$timeout"];
         return DateRangePickerController;

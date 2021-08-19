@@ -7,12 +7,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants) {
+        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$rootScope = $rootScope;
             this.uiGridConstants = uiGridConstants;
+            this.$scope = $scope;
             this.shouldShowModal = false;
             this.isLoading = false;
             this.HistoryPageSize = 50;
@@ -35,12 +36,12 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 120, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents" >Total: {{col.getAggregationValue() | currency }}</div>' }
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
                     showColumnFooter: true,
-                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableHorizontalScrollbar: window.innerWidth < 640 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false,
                     enablePaginationControls: true,
@@ -58,17 +59,28 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
                 _this.isLoading = false;
-                _this.transactionGridOptions.data = httpResponse.data;
+                _this.allFinancialTxns = httpResponse.data;
                 // Hide the unit column if the owner only has one unit
-                var allUnitIds = _this.transactionGridOptions.data.map(function (u) { return u.associatedUnitId; });
+                var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
                 var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
                 if (unitColumn)
                     unitColumn.visible = uniqueUnitIds.length > 1;
-                if (_this.transactionGridOptions.data.length <= _this.HistoryPageSize) {
-                    _this.transactionGridOptions.enablePagination = false;
-                    _this.transactionGridOptions.enablePaginationControls = false;
-                }
+                //this.transactionGridOptions.data = httpResponse.data;
+                //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+                //{
+                //    this.transactionGridOptions.enablePagination = false;
+                //    this.transactionGridOptions.enablePaginationControls = false;
+                //}
+                // Put this in a slight delay so the date range picker can exist
+                _this.$timeout(function () {
+                    if (_this.allFinancialTxns.length > 1) {
+                        // Transactions come down newest first
+                        _this.filterEndDate = _this.allFinancialTxns[0].transactionDate;
+                        _this.filterStartDate = _this.allFinancialTxns[_this.allFinancialTxns.length - 1].transactionDate;
+                    }
+                    _this.onFilterDateRangeChange();
+                }, 100);
             }, function () {
                 _this.isLoading = false;
             });
@@ -104,7 +116,18 @@ var Ally;
             var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
         };
-        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants"];
+        ResidentTransactionsController.prototype.onFilterDateRangeChange = function () {
+            var _this = this;
+            if (!this.filterStartDate || !this.filterEndDate)
+                return;
+            this.transactionGridOptions.data = this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
+            if (this.transactionGridOptions.data.length <= this.HistoryPageSize) {
+                this.transactionGridOptions.enablePagination = false;
+                this.transactionGridOptions.enablePaginationControls = false;
+            }
+            this.$scope.$apply();
+        };
+        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants", "$scope"];
         return ResidentTransactionsController;
     }());
     Ally.ResidentTransactionsController = ResidentTransactionsController;
