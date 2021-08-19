@@ -59,7 +59,7 @@ var Ally;
                     if (a.gpsPos) {
                         // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
                         a.gpsPos.fullAddress = a.oneLiner;
-                        this.addressPoints.push(a.gpsPos);
+                        _this.addressPoints.push(a.gpsPos);
                     }
                 });
             });

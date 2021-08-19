@@ -46,7 +46,7 @@
                     const addresses = httpResponse.data;
 
                     // Mark address as opposed to group bounds
-                    _.each( addresses, function( a:any )
+                    _.each( addresses, ( a:any ) =>
                     {
                         a.polyType = polyType;
 
@@ -97,7 +97,7 @@
                 ( addresses: any[] ) =>
                 {
                     this.addressPoints = [];
-                    _.each( addresses, function( a )
+                    _.each( addresses, ( a ) =>
                     {
                         if( a.gpsPos )
                         { 
