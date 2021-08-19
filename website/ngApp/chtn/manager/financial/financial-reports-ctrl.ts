@@ -36,8 +36,15 @@
         */
         $onInit()
         {
-            this.startDate = moment().subtract( 30, 'days' ).toDate();
-            this.endDate = moment().toDate();
+            if( window.sessionStorage.getItem( "financialReport_startDate" ) )
+                this.startDate = new Date( parseInt( window.sessionStorage.getItem( "financialReport_startDate" ) ) );
+            if( !this.startDate || isNaN(this.startDate.getTime()) )
+                this.startDate = moment().subtract( 1, 'year' ).toDate();
+
+            if( window.sessionStorage.getItem( "financialReport_endDate" ) )
+                this.endDate = new Date( parseInt( window.sessionStorage.getItem( "financialReport_endDate" ) ) );
+            if( !this.endDate || isNaN( this.endDate.getTime() ) )
+                this.endDate = moment().toDate();
 
             const innerThis = this;
             this.doughnutChartOptions = {
@@ -97,6 +104,9 @@
                     this.expenseByCategoryData = _.map( this.reportData.expenseByCategory, e => e.amount );
                     this.expenseByCategoryLabels = _.map( this.reportData.expenseByCategory, e => e.parentFinancialCategoryName );
                     this.expenseByCategoryCatIds = _.map( this.reportData.expenseByCategory, e => e.parentFinancialCategoryId );
+
+                    window.sessionStorage.setItem( "financialReport_startDate", this.startDate.getTime().toString() );
+                    window.sessionStorage.setItem( "financialReport_endDate", this.endDate.getTime().toString() );
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {

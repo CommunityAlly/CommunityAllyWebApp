@@ -24,8 +24,14 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         FinancialReportsController.prototype.$onInit = function () {
-            this.startDate = moment().subtract(30, 'days').toDate();
-            this.endDate = moment().toDate();
+            if (window.sessionStorage.getItem("financialReport_startDate"))
+                this.startDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_startDate")));
+            if (!this.startDate || isNaN(this.startDate.getTime()))
+                this.startDate = moment().subtract(1, 'year').toDate();
+            if (window.sessionStorage.getItem("financialReport_endDate"))
+                this.endDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_endDate")));
+            if (!this.endDate || isNaN(this.endDate.getTime()))
+                this.endDate = moment().toDate();
             var innerThis = this;
             this.doughnutChartOptions = {
                 onClick: function (event) {
@@ -67,6 +73,8 @@ var Ally;
                 _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return e.amount; });
                 _this.expenseByCategoryLabels = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryName; });
                 _this.expenseByCategoryCatIds = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryId; });
+                window.sessionStorage.setItem("financialReport_startDate", _this.startDate.getTime().toString());
+                window.sessionStorage.setItem("financialReport_endDate", _this.endDate.getTime().toString());
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve report data: " + httpResponse.data.exceptionMessage);
