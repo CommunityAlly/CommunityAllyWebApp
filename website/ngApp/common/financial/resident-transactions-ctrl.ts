@@ -51,7 +51,7 @@
                 enableFiltering: true,
                 enableSorting: true,
                 showColumnFooter: true,
-                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableHorizontalScrollbar: window.innerWidth < 640 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
                 enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                 enableColumnMenus: false,
                 enablePaginationControls: true,
