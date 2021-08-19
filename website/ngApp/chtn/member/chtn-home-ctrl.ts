@@ -101,8 +101,6 @@
             if( this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
                 this.autoOpenDiscussionThreadId = parseInt( this.$routeParams.discussionThreadId );
 
-            var subDomain = HtmlUtil.getSubdomain( window.location.host );
-
             var innerThis = this;
             this.$scope.$on( "homeHasActivePolls", () => innerThis.shouldShowAlertSection = true );
             
