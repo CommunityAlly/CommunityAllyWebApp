@@ -370,7 +370,7 @@ PtaAppConfig.menu = [
 var AppConfig:Ally.AppConfigInfo = null;
 
 let lowerDomain = document.domain.toLowerCase();
-if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
+if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) || lowerDomain === "localhost" )
     lowerDomain = OverrideOriginalUrl;
 
 if( lowerDomain.indexOf( "condo" ) !== -1 )

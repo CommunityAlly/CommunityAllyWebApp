@@ -283,7 +283,7 @@ PtaAppConfig.menu = [
 ];
 var AppConfig = null;
 var lowerDomain = document.domain.toLowerCase();
-if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl))
+if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")
     lowerDomain = OverrideOriginalUrl;
 if (lowerDomain.indexOf("condo") !== -1)
     AppConfig = CondoAllyAppConfig;
