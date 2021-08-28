@@ -230,6 +230,7 @@ var Ally;
                         };
                     }, 100);
                 }
+                _this.unitListEntries = pageInfo.unitListEntries;
                 if (_this.allUnits)
                     _this.populateGridUnitLabels();
             }, function (httpResponse) {
@@ -248,7 +249,9 @@ var Ally;
                     entry.categoryDisplayName = "(split)";
                 if (!entry.associatedUnitId)
                     return;
-                entry.unitGridLabel = _this.allUnits.find(function (u) { return u.unitId === entry.associatedUnitId; }).name;
+                var unit = _this.allUnits.find(function (u) { return u.unitId === entry.associatedUnitId; });
+                var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
+                entry.unitGridLabel = unit.name + " (" + unitListEntry.ownerLast + ")";
             });
         };
         LedgerController.prototype.refreshEntries = function () {
@@ -781,6 +784,11 @@ var Ally;
         function LedgerPageInfo() {
         }
         return LedgerPageInfo;
+    }());
+    var BasicUnitListEntry = /** @class */ (function () {
+        function BasicUnitListEntry() {
+        }
+        return BasicUnitListEntry;
     }());
     var FilterCriteria = /** @class */ (function () {
         function FilterCriteria() {

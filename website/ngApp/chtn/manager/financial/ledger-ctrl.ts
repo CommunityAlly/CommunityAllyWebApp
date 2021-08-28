@@ -48,6 +48,7 @@ namespace Ally
         bulkImportAccountId: number;
         shouldShowImportModal: boolean = false;
         shouldShowOwnerFinanceTxn: boolean = false;
+        unitListEntries: BasicUnitListEntry[];
 
 
         /**
@@ -295,6 +296,8 @@ namespace Ally
                         }, 100 );
                     }
 
+                    this.unitListEntries = pageInfo.unitListEntries;
+
                     if( this.allUnits )
                         this.populateGridUnitLabels();
                 },
@@ -321,7 +324,10 @@ namespace Ally
                 if( !entry.associatedUnitId )
                     return;
 
-                entry.unitGridLabel = this.allUnits.find( u => u.unitId === entry.associatedUnitId ).name;
+                const unit = this.allUnits.find( u => u.unitId === entry.associatedUnitId );
+                const unitListEntry = this.unitListEntries.find( u => u.unitId === entry.associatedUnitId );
+                
+                entry.unitGridLabel = `${unit.name} (${unitListEntry.ownerLast})`;
             } );
         }
 
@@ -1118,6 +1124,15 @@ namespace Ally
         entries: LedgerEntry[];
         pendingEntries: LedgerEntry[];
         rootFinancialCategory: FinancialCategory;
+        unitListEntries: BasicUnitListEntry[];
+    }
+
+    class BasicUnitListEntry
+    {
+        unitId: number;
+        unitName: string;
+        ownersCsv: string;
+        ownerLast: string;
     }
 
     class FilterCriteria
