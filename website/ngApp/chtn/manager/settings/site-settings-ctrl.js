@@ -209,8 +209,9 @@ var Ally;
             window.location.reload(true);
         };
         ChtnSettingsController.prototype.onWelcomeMessageEdit = function () {
+            var MaxWelcomeLength = 2000;
             var welcomeHtml = this.welcomeRichEditorElem.html();
-            this.shouldShowWelcomeTooLongError = welcomeHtml.length > 1000;
+            this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         };
         ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return ChtnSettingsController;

@@ -304,8 +304,9 @@ namespace Ally
 
         onWelcomeMessageEdit()
         {
+            const MaxWelcomeLength = 2000;
             const welcomeHtml = this.welcomeRichEditorElem.html();
-            this.shouldShowWelcomeTooLongError = welcomeHtml.length > 1000;
+            this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         }
     }
 }
