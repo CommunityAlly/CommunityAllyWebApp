@@ -115,7 +115,7 @@
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">{{$ctrl.homeName}}:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editingTransaction.associatedUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
+                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editingTransaction.associatedUnitId" data-ng-options="o.unitId as o.unitWithOwnerLast for o in $ctrl.unitListEntries">
                                 <option value=""></option>
                             </select>
                         </div>
@@ -186,7 +186,7 @@
                                     <input type="text" class="form-control form-control-sm" data-ng-model="curSplit.description" />
                                 </td>
                                 <td>
-                                    <select class="form-control form-control-sm" data-ng-model="curSplit.associatedUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
+                                    <select class="form-control form-control-sm" data-ng-model="curSplit.associatedUnitId" data-ng-options="o.unitId as o.unitWithOwnerLast for o in $ctrl.unitListEntries">
                                         <option value=""></option>
                                     </select>
                                 </td>

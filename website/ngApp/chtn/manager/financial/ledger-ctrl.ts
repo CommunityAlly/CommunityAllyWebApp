@@ -41,7 +41,6 @@ namespace Ally
         preselectCategoryId: number | undefined;
         isSuperAdmin: boolean = false;
         homeName: string;
-        allUnits: Ally.Unit[];
         plaidSuccessProgressMsg: string;
         splitAmountTotal: number;
         isSplitAmountEqual: boolean;
@@ -126,8 +125,8 @@ namespace Ally
                         const catEntry = this.flatCategoryList.find( c => c.financialCategoryId === rowEntity.financialCategoryId );
                         rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
 
-                        const unitEntry = this.allUnits.find( c => c.unitId === rowEntity.associatedUnitId );
-                        rowEntity.unitGridLabel = unitEntry ? unitEntry.name : null;
+                        const unitEntry = this.unitListEntries.find( c => c.unitId === rowEntity.associatedUnitId );
+                        rowEntity.unitGridLabel = unitEntry ? unitEntry.unitWithOwnerLast : null;
 
                         this.$http.put( "/api/Ledger/UpdateEntry", rowEntity ).then( () => this.regenerateDateDonutChart() );
                         //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
@@ -199,8 +198,6 @@ namespace Ally
                 this.filter.endDate = moment().toDate();
 
                 this.fullRefresh();
-
-                this.loadUnits();
             }
         }
 
@@ -298,8 +295,16 @@ namespace Ally
 
                     this.unitListEntries = pageInfo.unitListEntries;
 
-                    if( this.allUnits )
-                        this.populateGridUnitLabels();
+                    // Populate the object used for quick editing the home
+                    const uiGridUnitDropDown = [];
+                    uiGridUnitDropDown.push( { id: null, value: "" } );
+                    for( let i = 0; i < this.unitListEntries.length; ++i )
+                        uiGridUnitDropDown.push( { id: this.unitListEntries[i].unitId, value: this.unitListEntries[i].unitWithOwnerLast } );
+
+                    const unitColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
+                    unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
+
+                    this.populateGridUnitLabels();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -323,11 +328,10 @@ namespace Ally
 
                 if( !entry.associatedUnitId )
                     return;
-
-                const unit = this.allUnits.find( u => u.unitId === entry.associatedUnitId );
+                
                 const unitListEntry = this.unitListEntries.find( u => u.unitId === entry.associatedUnitId );
                 
-                entry.unitGridLabel = `${unit.name} (${unitListEntry.ownerLast})`;
+                entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
             } );
         }
 
@@ -799,42 +803,6 @@ namespace Ally
         }
 
 
-        loadUnits()
-        {
-            this.$http.get( "/api/Unit" ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
-                {
-                    this.allUnits = httpResponse.data;
-
-                    const shouldSortUnitsNumerically = _.every( this.allUnits, u => HtmlUtil.isNumericString( u.name ) );
-
-                    if( shouldSortUnitsNumerically )
-                        this.allUnits = _.sortBy( this.allUnits, u => parseFloat( u.name ) );
-
-                    // Populate the object used for quick editing the home
-                    const uiGridUnitDropDown = [];
-                    uiGridUnitDropDown.push( { id: null, value: "" } );
-                    for( let i = 0; i < this.allUnits.length; ++i )
-                    {
-                        uiGridUnitDropDown.push( { id: this.allUnits[i].unitId, value: this.allUnits[i].name } );
-                    }
-
-                    const unitColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
-                    unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
-
-                    // If we already have entries, populate the label for the grid
-                    if( this.allEntries )
-                        this.populateGridUnitLabels();
-                },
-                () =>
-                {
-                    this.isLoading = false;
-                    alert( "Failed to retrieve your association's home listing, please contact support." );
-                }
-            );
-        }
-
-
         onDeleteAccount()
         {
             if( !confirm( "Are you sure you want to remove this account?" ) )
@@ -924,9 +892,9 @@ namespace Ally
                         const curEntry = this.previewImportGridOptions.data[i];
                         curEntry.ledgerEntryId = i;
 
-                        const unit = this.allUnits.find( u => u.unitId === curEntry.associatedUnitId );
+                        const unit = this.unitListEntries.find( u => u.unitId === curEntry.associatedUnitId );
                         if( unit )
-                            curEntry.unitGridLabel = unit.name;
+                            curEntry.unitGridLabel = unit.unitWithOwnerLast;
 
                         const catEntry = this.flatCategoryList.find( c => c.financialCategoryId === curEntry.financialCategoryId );
                         curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
@@ -1133,6 +1101,7 @@ namespace Ally
         unitName: string;
         ownersCsv: string;
         ownerLast: string;
+        unitWithOwnerLast: string;
     }
 
     class FilterCriteria

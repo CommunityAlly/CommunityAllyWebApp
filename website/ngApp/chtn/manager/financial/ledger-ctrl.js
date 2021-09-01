@@ -99,8 +99,8 @@ var Ally;
                             }
                             var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
                             rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
-                            var unitEntry = _this.allUnits.find(function (c) { return c.unitId === rowEntity.associatedUnitId; });
-                            rowEntity.unitGridLabel = unitEntry ? unitEntry.name : null;
+                            var unitEntry = _this.unitListEntries.find(function (c) { return c.unitId === rowEntity.associatedUnitId; });
+                            rowEntity.unitGridLabel = unitEntry ? unitEntry.unitWithOwnerLast : null;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
@@ -160,7 +160,6 @@ var Ally;
                 this.filter.startDate = moment().subtract(30, 'days').toDate();
                 this.filter.endDate = moment().toDate();
                 this.fullRefresh();
-                this.loadUnits();
             }
         };
         /**
@@ -231,8 +230,14 @@ var Ally;
                     }, 100);
                 }
                 _this.unitListEntries = pageInfo.unitListEntries;
-                if (_this.allUnits)
-                    _this.populateGridUnitLabels();
+                // Populate the object used for quick editing the home
+                var uiGridUnitDropDown = [];
+                uiGridUnitDropDown.push({ id: null, value: "" });
+                for (var i = 0; i < _this.unitListEntries.length; ++i)
+                    uiGridUnitDropDown.push({ id: _this.unitListEntries[i].unitId, value: _this.unitListEntries[i].unitWithOwnerLast });
+                var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+                unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
+                _this.populateGridUnitLabels();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
@@ -249,9 +254,8 @@ var Ally;
                     entry.categoryDisplayName = "(split)";
                 if (!entry.associatedUnitId)
                     return;
-                var unit = _this.allUnits.find(function (u) { return u.unitId === entry.associatedUnitId; });
                 var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
-                entry.unitGridLabel = unit.name + " (" + unitListEntry.ownerLast + ")";
+                entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
             });
         };
         LedgerController.prototype.refreshEntries = function () {
@@ -571,29 +575,6 @@ var Ally;
             if (didMakeChanges)
                 this.fullRefresh();
         };
-        LedgerController.prototype.loadUnits = function () {
-            var _this = this;
-            this.$http.get("/api/Unit").then(function (httpResponse) {
-                _this.allUnits = httpResponse.data;
-                var shouldSortUnitsNumerically = _.every(_this.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
-                if (shouldSortUnitsNumerically)
-                    _this.allUnits = _.sortBy(_this.allUnits, function (u) { return parseFloat(u.name); });
-                // Populate the object used for quick editing the home
-                var uiGridUnitDropDown = [];
-                uiGridUnitDropDown.push({ id: null, value: "" });
-                for (var i = 0; i < _this.allUnits.length; ++i) {
-                    uiGridUnitDropDown.push({ id: _this.allUnits[i].unitId, value: _this.allUnits[i].name });
-                }
-                var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
-                unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
-                // If we already have entries, populate the label for the grid
-                if (_this.allEntries)
-                    _this.populateGridUnitLabels();
-            }, function () {
-                _this.isLoading = false;
-                alert("Failed to retrieve your association's home listing, please contact support.");
-            });
-        };
         LedgerController.prototype.onDeleteAccount = function () {
             var _this = this;
             if (!confirm("Are you sure you want to remove this account?"))
@@ -650,9 +631,9 @@ var Ally;
                 var _loop_3 = function (i) {
                     var curEntry = _this.previewImportGridOptions.data[i];
                     curEntry.ledgerEntryId = i;
-                    var unit = _this.allUnits.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
+                    var unit = _this.unitListEntries.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
                     if (unit)
-                        curEntry.unitGridLabel = unit.name;
+                        curEntry.unitGridLabel = unit.unitWithOwnerLast;
                     var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === curEntry.financialCategoryId; });
                     curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
                 };
