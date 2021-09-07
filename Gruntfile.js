@@ -258,7 +258,7 @@ grunt.initConfig({
                 hostname: "localhost",
                 livereload: 35729,
                 base: 'website/',
-                port: 8080,
+                port: 8085,
                 open: true
             }
         }
