@@ -100,6 +100,7 @@ namespace Ally
     export class UpdateResident extends Resident
     {
         isRenter: boolean;
+        commRestriction: string;
 
         // Not from the server
         fullName: string;

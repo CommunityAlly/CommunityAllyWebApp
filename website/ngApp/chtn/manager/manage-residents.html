@@ -220,6 +220,20 @@
                         <textarea id="manager-notes-text-box" type="text" maxlength="4000" rows="3" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.managerNotes"></textarea>
                     </div>
                 </div>
+
+                <div class="col-12 mt-3">
+                    <label class="font-weight-bold">Communication Restriction:</label>
+                    <div class="col-12">
+                        <select data-ng-model="$ctrl.editUser.commRestriction">
+                            <option value="">Unrestricted (Default)</option>
+                            <option value="BoardOnly">User can only send group emails to the board or property manager groups, cannot use discussion threads</option>
+                            <option value="IndBoardOnly">User can only send group emails to individual board members, cannot use discussion threads</option>
+                            <option value="AdminBan">User can neither send emails nor use discussion threads</option>
+                        </select>
+                        <div class="note-text">You can limit who a user can send to through the site.</div>
+                        <div class="text-error" data-ng-if="$ctrl.editUser.commRestriction && $ctrl.editUser.isSiteManager">This user is a site admin which means they'll be able to adjust this restriction themselves</div>
+                    </div>
+                </div>
             </div>
 
             <hr />
