@@ -1281,6 +1281,8 @@ namespace Ally
 
                 // If this row contains two people
                 let spouseRow = null;
+                if( newRow.firstName && newRow.firstName.toLowerCase().indexOf( " & " ) !== -1 )
+                    newRow.firstName = newRow.firstName.replace( " & ", " and  " );
                 if( newRow.firstName && newRow.firstName.toLowerCase().indexOf( " and " ) !== -1 )
                 {
                     spouseRow = _.clone( newRow );
@@ -1342,7 +1344,7 @@ namespace Ally
             this.isLoading = true;
 
             var innerThis = this;
-            this.$http.post( "/api/Residents/BulkLoad", this.bulkImportRows ).success( function()
+            this.$http.post( "/api/Residents/BulkLoad", this.bulkImportRows, { timeout: 10 * 60 * 1000 } ).success( function()
             {
                 innerThis.isLoading = false;
                 innerThis.bulkImportRows = [new ResidentCsvRow()];
