@@ -147,6 +147,7 @@ var Ally;
             // browsers can display directly
             if (this.getDisplayExtension(curFile) === ".rtf")
                 isForDownload = true;
+            ++curFile.numViews;
             if (!isForDownload) {
                 viewDocWindow = window.open('', '_blank');
                 var wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";

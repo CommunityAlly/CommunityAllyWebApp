@@ -16,6 +16,7 @@ namespace Ally
         fileName: string;
         url: string;
         fileSizeBytes: number;
+        numViews: number;
         uploaderFullName: string;
 
         // Not from server
@@ -234,6 +235,8 @@ namespace Ally
             // browsers can display directly
             if( this.getDisplayExtension( curFile ) === ".rtf" )
                 isForDownload = true;
+
+            ++curFile.numViews;
 
             if( !isForDownload )
             {

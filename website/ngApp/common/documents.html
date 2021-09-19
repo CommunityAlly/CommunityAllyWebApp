@@ -83,10 +83,10 @@
                             <div class="media-content">
                                 <label id="file-name-{{ $index }}" class="file-name">{{ curFile.title }}</label>
                                 <div class="row">
-                                    <div class="col-md-6 uploader">
-                                        Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span> - <span>{{ curFile.fileSizeBytes | filesize }}</span><span data-ng-if="$ctrl.isGenericIcon(curFile)"> - {{ $ctrl.getDisplayExtension( curFile ) }}</span>
+                                    <div class="col-md-7 uploader">
+                                        Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span> - <span>{{ curFile.fileSizeBytes | filesize }}</span><span data-ng-if="$ctrl.isGenericIcon(curFile)"> - {{ $ctrl.getDisplayExtension( curFile ) }}</span><span> - {{ curFile.numViews }} view{{ curFile.numViews === 1 ? '' : 's' }}</span>
                                     </div>
-                                    <div class="col-md-6 text-md-right padding-right">
+                                    <div class="col-md-5 text-md-right padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
                                         - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
                                         <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
