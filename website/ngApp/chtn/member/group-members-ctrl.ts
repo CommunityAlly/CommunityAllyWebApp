@@ -70,8 +70,11 @@ namespace Ally
                 if( !this.allResidents && data.ptaMembers )
                     this.allResidents = <FellowChtnResident[]>data.ptaMembers;
 
-                // Sort by last name
-                this.allResidents = _.sortBy( this.allResidents, function( r ) { return r.lastName; } );
+                // Sort by last name for member lists, first name otherwise
+                if( this.showMemberList )
+                    this.allResidents = _.sortBy( this.allResidents, r => ( r.lastName || "" ).toLowerCase() );
+                else
+                    this.allResidents = _.sortBy( this.allResidents, r => ( r.fullName || "" ).toLowerCase() );
 
                 this.boardMembers = _.filter( this.allResidents, function( r: any ) { return r.boardPosition !== 0; } );
                 this.boardMessageRecipient = null;

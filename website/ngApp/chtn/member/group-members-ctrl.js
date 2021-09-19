@@ -39,8 +39,11 @@ var Ally;
                 _this.committees = data.committees;
                 if (!_this.allResidents && data.ptaMembers)
                     _this.allResidents = data.ptaMembers;
-                // Sort by last name
-                _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
+                // Sort by last name for member lists, first name otherwise
+                if (_this.showMemberList)
+                    _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.lastName || "").toLowerCase(); });
+                else
+                    _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.fullName || "").toLowerCase(); });
                 _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== 0; });
                 _this.boardMessageRecipient = null;
                 if (_this.boardMembers.length > 0) {
