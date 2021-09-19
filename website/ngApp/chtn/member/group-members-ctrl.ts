@@ -33,7 +33,7 @@ namespace Ally
         editGroupEmailInfo: SaveEmailGroupInfo;
         groupEmailsLoadError: string;
         groupEmailSaveError: string;
-        isAdmin: boolean;
+        isSiteManager: boolean;
 
 
         /**
@@ -58,7 +58,7 @@ namespace Ally
         */
         $onInit()
         {
-            this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
 
             this.fellowResidents.getByUnitsAndResidents().then( ( data: FellowResidents ) =>
             {

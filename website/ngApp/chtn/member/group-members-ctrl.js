@@ -31,7 +31,7 @@ var Ally;
         */
         GroupMembersController.prototype.$onInit = function () {
             var _this = this;
-            this.isAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.fellowResidents.getByUnitsAndResidents().then(function (data) {
                 _this.isLoading = false;
                 _this.unitList = data.byUnit;
