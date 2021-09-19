@@ -153,13 +153,13 @@
                 <div class="note-text mt-1" data-ng-if="g.description">
                     Description: {{g.description}}
                 </div>
-                <div>
+                <div data-ng-if="$ctrl.isAdmin">
                     <span class="text-link note-text" data-ng-click="$ctrl.editGroupEmail( g )">Edit</span>
                     <span class="text-link note-text ml-2" style="color: red;" data-ng-click="$ctrl.deleteGroupEmail( g )">Delete</span>
                 </div>
                 <br />
             </div>
-            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
+            <button data-ng-if="$ctrl.isAdmin" type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
 
             <div class="text-bold mt-5">
                 <u>How to Use Group Emails</u>
