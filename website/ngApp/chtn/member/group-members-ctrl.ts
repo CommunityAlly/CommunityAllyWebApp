@@ -8,14 +8,16 @@ namespace Ally
      */
     export class GroupMembersController implements ng.IController
     {
-        static $inject = ["fellowResidents", "SiteInfo", "appCacheService"];
+        static $inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
 
         isLoading: boolean = true;
+        isLoadingGroupEmails: boolean = false;
+        isLoadingSaveEmailGroup: boolean = false;
         allyAppName: string;
         groupShortName: string;
         showMemberList: boolean;
         emailLists: GroupEmailInfo[] = [];
-        customEmailLists: GroupEmailInfo[] = [];
+        customEmailList: CustomEmailGroup[] = [];
         allResidents: FellowChtnResident[];
         unitList: UnitListing[];
         memberSearchTerm: string;
@@ -27,15 +29,22 @@ namespace Ally
         hasMissingEmails: boolean;
         unitPrefix: string = "Unit ";
         groupEmailDomain: string = "";
+        shouldShowNewCustomEmailModal: boolean = false;
+        editGroupEmailInfo: SaveEmailGroupInfo;
+        groupEmailsLoadError: string;
+        groupEmailSaveError: string;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private fellowResidents: Ally.FellowResidentsService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
+        constructor( private fellowResidents: Ally.FellowResidentsService,
+            private siteInfo: Ally.SiteInfoService,
+            private appCacheService: AppCacheService,
+            private $http: ng.IHttpService )
         {
             this.allyAppName = AppConfig.appName;
-            this.groupShortName = HtmlUtil.getSubdomain();
+            this.groupShortName = siteInfo.publicSiteInfo.shortName;
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
 
@@ -191,32 +200,165 @@ namespace Ally
         {
             this.hasMissingEmails = _.some( this.allResidents, function( r ) { return !r.hasEmail; } );
 
-            var innerThis = this;
-            this.fellowResidents.getAllGroupEmails().then( ( emailGroups: GroupEmailGroups ) =>
-            {
-                this.emailLists = emailGroups.standardGroups;
-                this.customEmailLists = emailGroups.customGroups;
+            this.groupEmailsLoadError = null;
+            this.isLoadingGroupEmails = true;
 
-                // Hook up the address copy link
-                setTimeout( function()
+            this.fellowResidents.getAllGroupEmails().then(
+                ( emailGroups: GroupEmailGroups ) =>
                 {
-                    var clipboard = new Clipboard( ".clipboard-button" );
+                    this.isLoadingGroupEmails = false;
 
-                    clipboard.on( "success", function( e: any )
+                    this.emailLists = emailGroups.standardGroups;
+                    this.customEmailList = emailGroups.customGroups;
+
+                    // Populate custom group email names
+                    if( this.customEmailList )
                     {
-                        Ally.HtmlUtil2.showTooltip( e.trigger, "Copied!" );
+                        for( let curGroupEmail of this.customEmailList )
+                            curGroupEmail.usersFullNames = curGroupEmail.members.map( e => this.allResidents.find( r => r.userId === e.userId ).fullName );
+                    }
 
-                        e.clearSelection();
-                    } );
-
-                    clipboard.on( "error", function( e: any )
+                    // Hook up the address copy link
+                    setTimeout( function ()
                     {
-                        Ally.HtmlUtil2.showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
-                    } );
+                        const clipboard = new Clipboard( ".clipboard-button" );
 
-                }, 750 );
-            });
+                        clipboard.on( "success", function ( e: any )
+                        {
+                            Ally.HtmlUtil2.showTooltip( e.trigger, "Copied!" );
+
+                            e.clearSelection();
+                        } );
+
+                        clipboard.on( "error", function ( e: any )
+                        {
+                            Ally.HtmlUtil2.showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
+                        } );
+
+                    }, 750 );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingGroupEmails = false;
+
+                    this.groupEmailsLoadError = "Failed to load group email addresses: " + httpResponse.data.exceptionMessage;
+                }
+            );
         }
+
+
+        /**
+        * Called to open the model to create a new custom group email address
+        */
+        onAddNewCustomEmailGroup()
+        {
+            this.shouldShowNewCustomEmailModal = true;
+            this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.allResidents.forEach( r => r.isAssociated = false );
+
+            window.setTimeout( () => document.getElementById( "custom-group-email-short-name-text" ).focus(), 50 );
+        }
+
+
+        /**
+        * Called to toggle membership in a custom group email address
+        */
+        onGroupEmailMemberClicked(resident:FellowChtnResident)
+        {
+            // Add the user ID if it's not already in the list, remove it if it is
+            const existingMemberIdIndex = this.editGroupEmailInfo.memberUserIds.indexOf( resident.userId );
+            if( existingMemberIdIndex === -1 )
+                this.editGroupEmailInfo.memberUserIds.push( resident.userId );
+            else
+                this.editGroupEmailInfo.memberUserIds.splice( existingMemberIdIndex, 1 );
+        }
+
+
+        /**
+        * Called to save a custom group email address
+        */
+        saveGroupEmailInfo()
+        {
+            this.isLoadingSaveEmailGroup = true;
+            this.groupEmailSaveError = null;
+
+            const onSave = () =>
+            {
+                this.isLoadingSaveEmailGroup = false;
+                this.shouldShowNewCustomEmailModal = false;
+                this.editGroupEmailInfo = null;
+
+                // Refresh the emails, clear the cache first since we added a new group email address
+                this.fellowResidents.clearResidentCache();
+                this.loadGroupEmails();
+            };
+
+            const onError = ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            {
+                this.isLoadingSaveEmailGroup = false;
+
+                this.groupEmailSaveError = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+            };
+
+            if( this.editGroupEmailInfo.existingGroupEmailId )
+                this.$http.put( "/api/BuildingResidents/EditCustomGroupEmail", this.editGroupEmailInfo ).then( onSave, onError );
+            else
+                this.$http.post( "/api/BuildingResidents/NewCustomGroupEmail", this.editGroupEmailInfo ).then( onSave, onError );
+        }
+
+
+        /**
+        * Called when the user clicks the button to edit a custom group email address
+        */
+        editGroupEmail( groupEmail: CustomEmailGroup )
+        {
+            this.shouldShowNewCustomEmailModal = true;
+            this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.editGroupEmailInfo.existingGroupEmailId = groupEmail.customGroupEmailId;
+            this.editGroupEmailInfo.description = groupEmail.description;
+            this.editGroupEmailInfo.shortName = groupEmail.shortName;
+            this.editGroupEmailInfo.memberUserIds = groupEmail.members.map( m => m.userId );
+            this.allResidents.forEach( r => r.isAssociated = this.editGroupEmailInfo.memberUserIds.indexOf( r.userId ) !== -1 );
+
+            window.setTimeout( () => document.getElementById( "custom-group-email-short-name-text" ).focus(), 50 );
+        }
+
+
+        /**
+        * Called when the user clicks the button to delete a custom group email address
+        */
+        deleteGroupEmail( groupEmail: CustomEmailGroup )
+        {
+            if( !confirm( "Are you sure you want to delete this group email address? Emails sent to this address will no longer be delivered." ) )
+                return;
+
+            this.isLoadingGroupEmails = true;
+
+            this.$http.delete( "/api/BuildingResidents/DeleteCustomGroupEmail/" + groupEmail.customGroupEmailId ).then(
+                () =>
+                {
+                    this.isLoadingGroupEmails = false;
+
+                    // Refresh the emails, clear the cache first since we added a new email group
+                    this.fellowResidents.clearResidentCache();
+                    this.loadGroupEmails();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingGroupEmails = false;
+
+                    this.groupEmailSaveError = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+                }
+            );
+        }
+    }
+
+    class SaveEmailGroupInfo
+    {
+        existingGroupEmailId: number;
+        shortName: string;
+        description: string;
+        memberUserIds: string[] = [];
     }
 }
 

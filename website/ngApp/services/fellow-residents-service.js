@@ -25,6 +25,18 @@ var Ally;
         return GroupEmailGroups;
     }());
     Ally.GroupEmailGroups = GroupEmailGroups;
+    var CustomEmailGroup = /** @class */ (function () {
+        function CustomEmailGroup() {
+        }
+        return CustomEmailGroup;
+    }());
+    Ally.CustomEmailGroup = CustomEmailGroup;
+    var CustomEmailGroupMember = /** @class */ (function () {
+        function CustomEmailGroupMember() {
+        }
+        return CustomEmailGroupMember;
+    }());
+    Ally.CustomEmailGroupMember = CustomEmailGroupMember;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -70,13 +82,14 @@ var Ally;
             this.$http = $http;
             this.$q = $q;
             this.$cacheFactory = $cacheFactory;
+            this.httpCache = $cacheFactory("FellowResidentsService");
         }
         /**
          * Get the residents for the current group
          */
         FellowResidentsService.prototype.getResidents = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.residents;
             }, function (httpResponse) {
                 return innerThis.$q.reject(httpResponse);
@@ -96,7 +109,7 @@ var Ally;
          * Determine if a user is a committee member
          */
         FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
-            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -107,7 +120,7 @@ var Ally;
          */
         FellowResidentsService.prototype.getByUnits = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.byUnit;
             }, function (httpResponse) {
                 return innerThis.$q.reject(httpResponse);
@@ -119,7 +132,7 @@ var Ally;
         FellowResidentsService.prototype.getByUnitsAndResidents = function () {
             var _this = this;
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return _this.$q.reject(httpResponse);
@@ -130,7 +143,7 @@ var Ally;
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -148,7 +161,7 @@ var Ally;
          */
         FellowResidentsService.prototype.getAllGroupEmails = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -240,8 +253,7 @@ var Ally;
          * Clear cached values, such as when the user changes values in Manage -> Residents
          */
         FellowResidentsService.prototype.clearResidentCache = function () {
-            this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
-            this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
+            this.httpCache.removeAll();
         };
         FellowResidentsService.BoardPositionNames = [
             { id: 0, name: "None" },

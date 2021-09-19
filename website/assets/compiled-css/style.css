@@ -1000,12 +1000,6 @@ footer {
 .page-calendar #calendarEditEvent h1 {
   margin-top: 0; }
 
-.page-calendar .resident-list {
-  max-height: 137px;
-  overflow-y: auto;
-  border: 1px solid;
-  padding: 3px; }
-
 .page-calendar .grayed {
   color: #AAA; }
 
@@ -1015,6 +1009,12 @@ footer {
   top: 65px;
   font-style: italic;
   left: 3px; }
+
+.resident-list-box {
+  max-height: 137px;
+  overflow-y: auto;
+  border: 1px solid;
+  padding: 3px; }
 
 #WalkScorePanel {
   width: 250px;

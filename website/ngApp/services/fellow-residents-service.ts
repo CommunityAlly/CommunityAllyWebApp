@@ -7,7 +7,7 @@
     {
         recipientType: string;
         displayName: string;
-        usersFullNames: any[];
+        usersFullNames: string[];
         sortOrder: number;
         isRestrictedGroup: boolean;
     }
@@ -16,7 +16,31 @@
     export class GroupEmailGroups
     {
         standardGroups: GroupEmailInfo[];
-        customGroups: GroupEmailInfo[];
+        customGroups: CustomEmailGroup[];
+    }
+
+
+    export class CustomEmailGroup
+    {
+        customGroupEmailId: number;
+        shortName: string;
+        description: string;
+        createdByUserId: string;
+        createdOnDateUtc: Date;
+        members: CustomEmailGroupMember[];
+
+        // Populated locally
+        usersFullNames: string[];
+    }
+
+
+    export class CustomEmailGroupMember
+    {
+        customGroupEmailMemberId: number;
+        customGroupEmailId: number;
+        userId: string;
+        addedByUserId: string;
+        addedOnDateUtc: Date;
     }
 
 
@@ -42,8 +66,9 @@
         includeInDiscussionEmail: boolean;
         isSiteManager: boolean;
 
-        // Not from the server
+        // Not from the server, used locally
         boardPositionName: string;
+        isAssociated: boolean;
     }
 
 

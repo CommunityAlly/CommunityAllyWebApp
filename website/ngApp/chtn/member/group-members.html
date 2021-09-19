@@ -103,10 +103,12 @@
         <br />
     </div>
 
-    <div class="portlet-box white margin-top no-padding">
+    <div class="portlet-box white margin-top no-padding" style="position: relative;">
         <div class="portlet-header">
             <div class="title">Group Email Addresses</div>
         </div>
+        <div class="loading-overlay" data-ng-if="$ctrl.isLoadingGroupEmails"></div>
+        <div class="text-error" data-ng-if="$ctrl.groupEmailsLoadError">{{$ctrl.groupEmailsLoadError}}</div>
 
         <div class="portlet-body">
             <p class="margin-bottom-10">
@@ -116,13 +118,13 @@
 
             <div data-ng-repeat="g in $ctrl.emailLists">
                 <div>
-                    Send an email to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    &bull; Send an email to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
                     {{ g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
                 </div>
                 <div data-ng-if="g.isRestrictedGroup" class="note-text" style="color: blue; font-weight: bold;">
-                    This email group is a restricted group meaning replies will be sent only to you and not the entire group.
+                    This group email address is restricted meaning replies will be sent only to you and not the entire group.
                 </div>
                 <div data-ng-if="g.recipientType ==='Everyone'" class="note-text" style="color: red; font-weight: bold;">
                     In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
@@ -138,17 +140,28 @@
                 <br />
             </div>
 
-            <div data-ng-repeat="g in $ctrl.customEmailLists">
+            <h5 class="mb-0" style="text-decoration: underline;">Custom Group Email Addresses</h5>
+            <div class="note-text mb-1">Here you can define your own group email addresses with your own collection of residents.</div>
+            <div class="mt-2 mb-2" data-ng-if="$ctrl.customEmailList.length === 0">You do not have any custom group email addresses defined.</div>
+            <div data-ng-repeat="g in $ctrl.customEmailList">
                 <div>
-                    Send an email to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    &bull; Send an email to&nbsp;<h5 id="custom-group-email-address-{{ $index }}" style="display: inline;">{{ g.shortName }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="custom-group-email-address-copy-button-{{ $index }}" data-clipboard-target="#custom-group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
-                    {{ g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
+                    <span data-ng-repeat="u in g.usersFullNames"><span data-ng-if="$index > 0">, </span>{{ u }}</span>
+                </div>
+                <div class="note-text mt-1" data-ng-if="g.description">
+                    Description: {{g.description}}
+                </div>
+                <div>
+                    <span class="text-link note-text" data-ng-click="$ctrl.editGroupEmail( g )">Edit</span>
+                    <span class="text-link note-text ml-2" style="color: red;" data-ng-click="$ctrl.deleteGroupEmail( g )">Delete</span>
                 </div>
                 <br />
             </div>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
 
-            <div class="text-bold">
+            <div class="text-bold mt-5">
                 <u>How to Use Group Emails</u>
             </div>
 
@@ -161,6 +174,44 @@
                 <li>Write your email like you would any other email</li>
                 <li>When you send, that email will go to everyone listed for that group email address</li>
             </ol>
+        </div>
+    </div>
+
+    <div class="modal-container" data-ng-if="$ctrl.shouldShowNewCustomEmailModal">
+        <div class="modal-overlay" data-ng-click="$ctrl.closeManager()"></div>
+        <div class="ca-modal-dialog">
+            <div data-ng-show="$ctrl.isLoadingSaveEmailGroup" class="loading-overlay"></div>
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowNewCustomEmailModal = false">&times;</span>
+            <h2 class="mb-3">Custom Group Email Address</h2>
+
+            <div class="form-group">
+                <label>Short Name:</label>
+                <input id="custom-group-email-short-name-text" type="text" data-ng-model="$ctrl.editGroupEmailInfo.shortName" data-ng-enter="$ctrl.saveGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control form-control-sm" maxlength="30" required />
+                <div class="note-text">An alphanumeric identifier that will make up the email address. Must be 3-30 characters and start with a letter.</div>
+                <div data-ng-if="$ctrl.editGroupEmailInfo.shortName">Email address will be: <b>{{ $ctrl.editGroupEmailInfo.shortName }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</b></div>
+            </div>
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea type="text" data-ng-model="$ctrl.editGroupEmailInfo.description" rows="2" data-ng-enter="$ctrl.saveGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control" maxlength="512"></textarea>
+                <div class="note-text">An optiona;, helpful description of this group</div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-xs-12">Members:</label>
+                <div class="col-sm-10 col-xs-12">
+                    <div class="resident-list-box" style="max-height: 250px !important;">
+                        <label data-ng-repeat="resident in $ctrl.allResidents" style="display: block">
+                            <input type="checkbox" data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onGroupEmailMemberClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No e-mail on file)" }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <div class="text-error" data-ng-if="$ctrl.groupEmailSaveError">{{$ctrl.groupEmailSaveError}}</div>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveGroupEmailInfo()">Save Group Email Address</button>
+                <!--&nbsp;<button type="button" class="btn btn-primary" data-ng-click="$ctrl.setDisplayCreateModal(false)">Cancel</button>-->
+            </div>
         </div>
     </div>
 </div>

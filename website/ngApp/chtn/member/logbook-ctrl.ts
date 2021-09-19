@@ -8,7 +8,7 @@ namespace Ally
         static $inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
 
         calendarEvents: any[];
-        residents: any[];
+        residents: FellowChtnResident[];
         viewEvent: any;
         editEvent: any;
         maxDaysBack: number;
@@ -55,7 +55,7 @@ namespace Ally
             
             if( AppConfig.isChtnSite )
             {
-                this.fellowResidents.getResidents().then( ( residents: any[] ) =>
+                this.fellowResidents.getResidents().then( ( residents: FellowChtnResident[] ) =>
                 {
                     this.residents = residents;
                     this.residents = _.sortBy( this.residents, ( r: any ) => r.lastName )
@@ -384,7 +384,7 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks a user in the calendar event modal
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onResidentClicked = function( resident: any )
+        onResidentClicked = function( resident: FellowChtnResident )
         {
             if( !resident.hasEmail )
             {

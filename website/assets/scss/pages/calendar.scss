@@ -20,14 +20,6 @@
         margin-top: 0;
     }
 
-    .resident-list
-    {
-        max-height: 137px;
-        overflow-y: auto;
-        border: 1px solid;
-        padding: 3px;
-    }
-
     .grayed
     {
         color: #AAA;
@@ -41,4 +33,11 @@
         font-style: italic;
         left: 3px;
     }
+}
+
+.resident-list-box {
+    max-height: 137px;
+    overflow-y: auto;
+    border: 1px solid;
+    padding: 3px;
 }

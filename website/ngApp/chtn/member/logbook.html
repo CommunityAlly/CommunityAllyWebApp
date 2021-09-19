@@ -65,7 +65,7 @@
                     <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel">
                         <label class="col-sm-3 col-xs-12">Description:</label>
                         <div class="col-sm-9 col-xs-12">
-                            <textarea class="form-control form-control-sm" data-ng--model="$ctrl.editEvent.description" rows="4"></textarea>
+                            <textarea class="form-control form-control-sm" data-ng--model="$ctrl.editEvent.description" rows="4" maxlength="2000"></textarea>
                         </div>
                     </div>
 
@@ -97,7 +97,7 @@
                             <div class="form-group row" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
                                 <label class="col-sm-3 col-xs-12">Send To:</label>
                                 <div class="col-sm-9 col-xs-12">
-                                    <div class="resident-list">
+                                    <div class="resident-list-box">
                                         <div data-ng-repeat="resident in $ctrl.residents">
                                             <label data-ng-class="{'grayed':!resident.hasEmail}">
                                                 <input type="checkbox" data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
