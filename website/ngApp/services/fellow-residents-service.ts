@@ -87,13 +87,16 @@
             { id: 32, name: "Property Manager" },
             { id: 64, name: "Secretary + Treasurer" }
         ];
+        httpCache: ng.ICacheObject;
 
 
         /**
          * The constructor for the class
          */
         constructor( private $http: ng.IHttpService, private $q: ng.IQService, private $cacheFactory: ng.ICacheFactoryService )
-        { }
+        {
+            this.httpCache = $cacheFactory( "FellowResidentsService" );
+        }
 
 
         /**
@@ -102,7 +105,7 @@
         getResidents()
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> )
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> )
             {
                 return httpResponse.data.residents;
 
@@ -134,7 +137,7 @@
          */
         isCommitteeMember( committeeId: number, userId: string )
         {
-            return this.$http.get( `/api/Committee/${committeeId}/IsMember`, { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) =>
+            return this.$http.get( `/api/Committee/${committeeId}/IsMember`, { cache: this.httpCache } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) =>
             {
                 return httpResponse.data;
 
@@ -151,7 +154,7 @@
         getByUnits(): ng.IPromise<UnitListing[]>
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
             {
                 return httpResponse.data.byUnit;
 
@@ -168,7 +171,7 @@
         getByUnitsAndResidents(): ng.IPromise<FellowResidents>
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: true } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
             {
                 return httpResponse.data;
 
@@ -185,7 +188,7 @@
         getGroupEmailObject(): ng.IPromise<GroupEmailInfo[]>
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents/EmailGroups", { cache: true } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailInfo[]> )
+            return this.$http.get( "/api/BuildingResidents/EmailGroups", { cache: this.httpCache } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailInfo[]> )
             {
                 return httpResponse.data;
 
@@ -211,7 +214,7 @@
         getAllGroupEmails(): ng.IPromise<GroupEmailGroups>
         {
             var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents/AllEmailGroups", { cache: true } ).then( function ( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailGroups> )
+            return this.$http.get( "/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache } ).then( function ( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailGroups> )
             {
                 return httpResponse.data;
 
@@ -343,8 +346,7 @@
          */
         clearResidentCache()
         {
-            this.$cacheFactory.get( "$http" ).remove( "/api/BuildingResidents" );
-            this.$cacheFactory.get( "$http" ).remove( "/api/BuildingResidents/EmailGroups" );
+            this.httpCache.removeAll();
         }
     }
 }
