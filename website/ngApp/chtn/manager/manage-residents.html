@@ -210,8 +210,9 @@
 
                 <div class="col-12">
                     <label class="font-weight-bold">Alternate Mailing Address</label>
-                    <span class="note-text">&nbsp;(Only set this if it differs from their home address)</span>
-                    <street-address-form data-street-address="$ctrl.editUser.mailingAddressObject"></street-address-form>
+                    <div class="note-text">Only set this if it differs from the home address for the owner listed on the 'Primary' tab.
+                    Do not add a different person here. Other persons living at the same address should be added using the 'Add Resident' button.</div>
+                    <street-address-form data-street-address="$ctrl.editUser.mailingAddressObject" data-use-care-of="true"></street-address-form>
                 </div>
 
                 <div class="col-12">

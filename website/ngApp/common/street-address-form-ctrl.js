@@ -34,7 +34,8 @@ CA.angularApp.component("streetAddressForm", {
     bindings: {
         streetAddress: "=",
         onChange: "&",
-        shouldHideName: "<"
+        shouldHideName: "<",
+        useCareOf: "<"
     },
     templateUrl: "/ngApp/common/street-address-form.html",
     controller: Ally.StreetAddressFormController

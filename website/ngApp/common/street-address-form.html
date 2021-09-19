@@ -1,5 +1,8 @@
 ﻿<div class="form-row">
-    <div class="col-5 form-group" data-ng-if="!$ctrl.shouldHideName">Recipient Name: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.recipientName" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
+    <div class="col-5 form-group" data-ng-if="!$ctrl.shouldHideName">
+        <span data-ng-if="!$ctrl.useCareOf">Recipient Name</span><span data-ng-if="$ctrl.useCareOf">Care Of</span>:
+        <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.recipientName" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" />
+    </div>
     <div class="col-5 form-group">Street: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.street1" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
     <div class="col-2 form-group">Apt/Unit: <input type="text" class="form-control" data-ng-model="$ctrl.streetAddress.street2" data-ng-change="$ctrl.onComponentChange()" data-ng-model-options="{ debounce: 500 }" /></div>
     
