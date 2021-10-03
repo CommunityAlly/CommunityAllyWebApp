@@ -136,6 +136,13 @@ var Ally;
                 _this.retrieveInfo();
             });
         };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user wants to cancel editing of an info item
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.cancelInfoItemEdit = function () {
+            this.editingInfoItem = new InfoItem();
+            $("#editor").html("");
+        };
         FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         return FAQsController;
     }());
@@ -170,6 +177,34 @@ var Ally;
             else {
                 $('#voiceBtn').hide();
             }
+            $("#rte-new-link-url").on("keydown", function (evt) {
+                var EnterKey = 13;
+                if (evt.keyCode === 13) {
+                    evt.preventDefault();
+                    // Doesn't seem to work
+                    //$( "#rte-new-link-button" ).click();
+                    //$( "#rte-add-link-button" ).click();
+                }
+            });
+            $("#rte-add-link-parent-button").on("click", function () {
+                console.log("selection: " + window.getSelection().toString());
+                if (!window.getSelection().toString()) {
+                    $("#rte-new-link-no-selection-label").show();
+                    $("#rte-new-link-url").hide();
+                    $("#rte-new-link-button").hide();
+                    return;
+                }
+                $("#rte-new-link-no-selection-label").hide();
+                $("#rte-new-link-url").show();
+                $("#rte-new-link-button").show();
+                window.setTimeout(function () {
+                    //const rte = document.getElementById( "editor" ) as HTMLDivElement;
+                    $("#rte-new-link-url").focus();
+                    //const linkInput = document.getElementById( "rte-new-link-url" ) as HTMLInputElement;
+                    //window.setTimeout( () => linkInput.focus(), 100 );
+                    //linkInput.selectionStart = linkInput.selectionEnd = 10000; // From https://stackoverflow.com/questions/511088/use-javascript-to-place-cursor-at-end-of-text-in-text-input-element
+                }, 200);
+            });
         };
         RichTextHelper.showFileUploadAlert = function (reason, detail) {
             var msg = "";

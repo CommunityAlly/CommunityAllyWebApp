@@ -162,16 +162,18 @@
                     <a class="btn" data-edit="justifyfull" title="Justify (Ctrl/Cmd+J)"><i class="icon-align-justify"></i></a>
                 </div>
                 <div class="btn-group">
-                    <a class="btn dropdown-toggle" data-toggle="dropdown" title="Hyperlink"><i class="icon-link"></i></a>
+                    <a id="rte-add-link-parent-button" class="btn dropdown-toggle" data-toggle="dropdown" title="Hyperlink"><i class="icon-link"></i></a>
                     <div class="dropdown-menu input-append">
-                        <input class="span2" placeholder="URL" value="https://" type="text" data-edit="createLink" />
-                        <button class="btn" type="button">Add</button>
+                        <input id="rte-new-link-url" class="span2" placeholder="URL" value="https://" type="text" data-edit="createLink" />
+                        <span id="rte-new-link-no-selection-label" class="span2 p-1" type="text">Highlight text first</span>
+                        <button id="rte-new-link-button" class="btn" type="button">Add</button>
                     </div>
                     <a class="btn" data-edit="unlink" title="Remove Hyperlink"><i class="icon-cut"></i></a>
                 </div>
                 <div class="btn-group">
                     <a class="btn" data-edit="undo" title="Undo (Ctrl/Cmd+Z)"><i class="icon-undo"></i></a>
                     <a class="btn" data-edit="redo" title="Redo (Ctrl/Cmd+Y)"><i class="icon-repeat"></i></a>
+                    <a class="btn" data-edit="html" title="Toggle HTML"><i class="icon-edit"></i></a>
                 </div>
                 <input type="text" data-edit="inserttext" id="voiceBtn" x-webkit-speech="">
             </div>
