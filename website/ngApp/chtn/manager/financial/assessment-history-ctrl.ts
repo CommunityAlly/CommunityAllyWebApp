@@ -708,7 +708,7 @@
                     Amount: unitPayment.assessment || 0,
                     PaymentDate: new Date(),
                     PayerUserId: this.siteInfo.userInfo.userId,
-                    Notes: "Auto-marking all entries for " + this.selectedFillInPeriod.name,
+                    Notes: "Auto-marking all entries for " + this.selectedFillInPeriod.name.trim(),
                     unitId: unitPayment.unitId
                 };
 

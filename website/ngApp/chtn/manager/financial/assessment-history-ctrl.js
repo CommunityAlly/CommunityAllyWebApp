@@ -500,7 +500,7 @@ var Ally;
                     Amount: unitPayment.assessment || 0,
                     PaymentDate: new Date(),
                     PayerUserId: this_1.siteInfo.userInfo.userId,
-                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name,
+                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name.trim(),
                     unitId: unitPayment.unitId
                 };
                 ++numPosts;
