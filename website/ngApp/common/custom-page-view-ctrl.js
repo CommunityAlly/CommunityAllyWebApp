@@ -7,10 +7,11 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function CustomPageViewController($http, siteInfo, $sce) {
+        function CustomPageViewController($http, siteInfo, $sce, $routeParams) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$sce = $sce;
+            this.$routeParams = $routeParams;
             this.isLoading = false;
         }
         /**
@@ -19,16 +20,18 @@ var Ally;
         CustomPageViewController.prototype.$onInit = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/CustomPage/View/SellPage").then(function (httpResponse) {
+            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.customPage = httpResponse.data;
                 _this.markupHtml = _this.$sce.trustAsHtml(_this.customPage.markupHtml);
+                // Make <a> links open in new tabs
+                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("custom-page-content"); }, 500);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to load page, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
         };
-        CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce"];
+        CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce", "$routeParams"];
         return CustomPageViewController;
     }());
     Ally.CustomPageViewController = CustomPageViewController;

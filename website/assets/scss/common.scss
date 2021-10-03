@@ -471,3 +471,7 @@ a[data-edit="backColor #FFFFFF"]::before {
     top: 10px;
     left: 0;
 }
+
+#custom-page-content img, .rich-text-editor img {
+    max-width: 100%;
+}
