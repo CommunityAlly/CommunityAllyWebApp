@@ -341,7 +341,6 @@ namespace Ally
 
                 return homeList.sort( ( h1, h2 ) => sortByStreet( h1[namePropName], h2[namePropName] ) );
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
-                return 
             }
 
             return _.sortBy( homeList, u => u[namePropName] );

@@ -214,7 +214,6 @@ var Ally;
                 var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
                 return homeList.sort(function (h1, h2) { return sortByStreet_1(h1[namePropName], h2[namePropName]); });
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
-                return;
             }
             return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
