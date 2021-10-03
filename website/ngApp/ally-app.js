@@ -207,13 +207,25 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.appConfig = AppConfig;
         $rootScope.isLoggedIn = false;
         $rootScope.publicSiteInfo = {};
-        $rootScope.hideMenu = false;
+        $rootScope.shouldHideMenu = false;
         $rootScope.isAdmin = false;
         $rootScope.isSiteManager = false;
         $rootScope.menuItems = _.where(AppConfig.menu, function (menuItem) { return !HtmlUtil.isNullOrWhitespace(menuItem.menuTitle); });
         $rootScope.mainMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Authorized; });
         $rootScope.manageMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Manager; });
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
+        $rootScope.publicMenuItems = null;
+        // Populate the custom page list, setting to null if not valid
+        $rootScope.populatePublicPageMenu = function () {
+            $rootScope.publicMenuItems = null;
+            if (!$rootScope.publicSiteInfo || !$rootScope.publicSiteInfo.customPages)
+                return;
+            var customPages = $rootScope.publicSiteInfo.customPages;
+            if (customPages.length == 0)
+                return;
+            customPages.forEach(function (p) { return p.path = "/Page/" + p.pageSlug; });
+            $rootScope.publicMenuItems = customPages;
+        };
         // Test localStorage here, fails in private browsing mode
         // If we have the association's public info cached then use it to load faster
         if (HtmlUtil.isLocalStorageAllowed()) {
@@ -227,6 +239,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                     //if( !HtmlUtil.isNullOrWhitespace( $rootScope.publicSiteInfo.bgImagePath ) )
                     //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + $rootScope.publicSiteInfo.bgImagePath + ")" );
                 }
+                $rootScope.populatePublicPageMenu();
             }
         }
         xdLocalStorage.init({

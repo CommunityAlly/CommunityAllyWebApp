@@ -151,7 +151,7 @@ var Ally;
                     _this.profileInfo.email = "";
                 _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
                 _this.hasAcceptedTerms = !_this.needsToAcceptTerms; // Gets set by the checkbox
-                _this.$rootScope.hideMenu = _this.needsToAcceptTerms;
+                _this.$rootScope.shouldHideMenu = _this.needsToAcceptTerms;
                 // Was used before, here for convenience
                 _this.saveButtonStyle = {
                     width: "100px",
@@ -168,8 +168,8 @@ var Ally;
             this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
                 _this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login
-                if (_this.$rootScope.hideMenu) {
-                    _this.$rootScope.hideMenu = false;
+                if (_this.$rootScope.shouldHideMenu) {
+                    _this.$rootScope.shouldHideMenu = false;
                     _this.$location.path("/Home");
                 }
                 _this.isLoading = false;

@@ -199,7 +199,7 @@ namespace Ally
 
                 this.needsToAcceptTerms = this.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
                 this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
-                this.$rootScope.hideMenu = this.needsToAcceptTerms;
+                this.$rootScope.shouldHideMenu = this.needsToAcceptTerms;
 
                 // Was used before, here for convenience
                 this.saveButtonStyle = {
@@ -222,9 +222,9 @@ namespace Ally
                 this.resultMessage = "Your changes have been saved.";
 
                 // $rootScope.hideMenu is true when this is the user's first login
-                if( this.$rootScope.hideMenu )
+                if( this.$rootScope.shouldHideMenu )
                 {
-                    this.$rootScope.hideMenu = false;
+                    this.$rootScope.shouldHideMenu = false;
                     this.$location.path( "/Home" );
                 }
 

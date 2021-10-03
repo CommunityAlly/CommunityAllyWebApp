@@ -177,6 +177,7 @@ var Ally;
             // Store the site info to the root scope for access by the app module
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
+            $rootScope.populatePublicPageMenu();
             // Handle private (logged-in only) info
             var privateSiteInfo = siteInfo.privateSiteInfo;
             if (!privateSiteInfo)

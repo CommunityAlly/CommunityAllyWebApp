@@ -184,7 +184,8 @@
         </div>
 
         <div class="container-fluid white-bg ng-cloak" data-ng-show="isLoggedIn && !hideMenu">
-            <div class="container">
+        <div class="container-fluid white-bg ng-cloak" data-ng-show="!shouldHideMenu">
+            <div class="container" data-ng-show="isLoggedIn">
                 <nav class="navbar navbar-expand-md navbar-light">
                     <div class="d-flex justify-content-between hidden-lg-up">
                         <button class="navbar-toggler navbar-toggler-left" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -216,6 +217,28 @@
                     <div class="settings pull-right text-right">
                         Hi {{ userInfo.firstName }}<br />
                         <a id="my-profile-link" href="#!/MyProfile">Profile</a> | <span id="log-out-button" class="text-button" data-ng-click="onLogOut();">Log Out</span>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="container" data-ng-if="!isLoggedIn && publicMenuItems">
+                <nav class="navbar navbar-expand-md navbar-light">
+                    <div class="d-flex justify-content-between hidden-lg-up">
+                        <button class="navbar-toggler navbar-toggler-left" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                    </div>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item" data-ng-class="{'active':menu.path === curPath}" data-ng-repeat="menu in publicMenuItems">
+                                <a class="nav-link" href="{{ '#!' + menu.path }}">{{ menu.title }}</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="settings pull-right text-right">
+                        <a href="#!/Login" style="font-size: 16px;">Login</a>
                     </div>
                 </nav>
             </div>
