@@ -2,6 +2,38 @@ const sass = require('node-sass');
 
 module.exports = function(grunt) {
 
+var allyLibTopFiles = [
+    'Website/js/lib/jquery/jquery-1.12.4.js',
+    'Website/js/lib/angular/core/angular.js',
+    'Website/js/lib/angular/core/angular-resource.js',
+    'Website/js/lib/angular/core/angular-route.js',
+    'Website/js/lib/angular/core/angular-sanitize.js',
+    'Website/js/lib/angular/third-party/ng-date.js',
+    'Website/js/lib/angular/third-party/ng-grid-2.0.11.min.js',
+    'Website/js/lib/angular/third-party/ng-grid-flexible-height.js',
+    'Website/js/lib/angular/third-party/ng-tags-input.js',
+    'Website/js/lib/angular/third-party/angular-wizard.min.js',
+    'Website/js/lib/angular/third-party/isteven-multi-select.js',
+    'Website/js/lib/angular/third-party/xd-utils.js',
+    'Website/js/lib/angular/third-party/xdLocalStorage.js',
+    'Website/js/lib/angular/third-party/ng-xdLocalStorage.js',
+    'Website/js/lib/ui-grid/ui-grid.min.js',
+    'Website/js/lib/angular/third-party/angular-google-maps.min.js',
+    'Website/js/lib/charts/Chart.min.js',
+    'Website/js/lib/charts/angular-chart.js',
+    'Website/js/lib/calendar/moment.min.js',
+    'Website/js/lib/calendar/moment-timezone-with-data-10-year-range.js',
+    'Website/js/lib/other/jsnlog.min.js',
+    'Website/js/lib/other/lodash.compat.min.js',
+    'Website/js/HtmlUtil.js',
+    'Website/js/design_v2/jquery.hotkeys.js',
+    'Website/js/design_v2/jquery.selectbox-0.2.min.js',
+    'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
+    'Website/js/design_v2/bootstrap-wysiwyg.js',
+    'Website/js/design_v2/main.js',
+    'Website/js/lib/jquery/jquery-ui-1.11.2.min.js'
+];
+
 // Project configuration.
 grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -60,37 +92,7 @@ grunt.initConfig({
                 }
             },
             files:{
-                'Website/js/AllyLibTop.min.js': [
-                    'Website/js/lib/jquery/jquery-1.12.4.js',
-                    'Website/js/lib/angular/core/angular.js',
-                    'Website/js/lib/angular/core/angular-resource.js',
-                    'Website/js/lib/angular/core/angular-route.js',
-                    'Website/js/lib/angular/core/angular-sanitize.js',
-                    'Website/js/lib/angular/third-party/ng-date.js',
-                    'Website/js/lib/angular/third-party/ng-grid-2.0.11.min.js',
-                    'Website/js/lib/angular/third-party/ng-grid-flexible-height.js',
-                    'Website/js/lib/angular/third-party/ng-tags-input.js',
-                    'Website/js/lib/angular/third-party/angular-wizard.min.js',
-                    'Website/js/lib/angular/third-party/isteven-multi-select.js',
-                    'Website/js/lib/angular/third-party/xd-utils.js',
-                    'Website/js/lib/angular/third-party/xdLocalStorage.js',
-                    'Website/js/lib/angular/third-party/ng-xdLocalStorage.js',
-                    'Website/js/lib/ui-grid/ui-grid.min.js',
-                    'Website/js/lib/angular/third-party/angular-google-maps.min.js',
-                    'Website/js/lib/charts/Chart.min.js',
-                    'Website/js/lib/charts/angular-chart.js',
-                    'Website/js/lib/calendar/moment.min.js',
-                    'Website/js/lib/calendar/moment-timezone-with-data-10-year-range.js',
-                    'Website/js/lib/other/jsnlog.min.js',
-                    'Website/js/lib/other/lodash.compat.min.js',
-                    'Website/js/HtmlUtil.js',
-                    'Website/js/design_v2/jquery.hotkeys.js',
-                    'Website/js/design_v2/jquery.selectbox-0.2.min.js',
-                    'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
-                    'Website/js/design_v2/bootstrap-wysiwyg.js',
-                    'Website/js/design_v2/main.js',
-                    'Website/js/lib/jquery/jquery-ui-1.11.2.min.js'
-                ]
+                'Website/js/AllyLibTop.min.js': allyLibTopFiles
             }
         },
 
@@ -202,6 +204,12 @@ grunt.initConfig({
                 '!Website/assets/compiled-css/style.css',
                 '!Website/assets/compiled.min.css'],
             tasks: ['css-only'],
+            options:{ livereload: true }
+        },
+
+        allyLibTop: {
+            files: allyLibTopFiles,
+            tasks: ['uglify:allyLibTop'],
             options:{ livereload: true }
         }
     },
