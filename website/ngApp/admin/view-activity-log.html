@@ -16,12 +16,12 @@
         </thead>
         <tbody style="font-size:small;">
             <tr data-ng-repeat="entry in $ctrl.filteredLogEntries">
-                <td>{{ entry.userName }}</td>
-                <td>{{ entry.postDate | date:'short' }}</td>
-                <td>{{ entry.activityMessage }}</td>
-                <td>{{ entry.activityData }}</td>
-                <td><a href="{{ entry.url }}">{{ entry.url }}</a></td>
-                <td>{{ entry.ip }}</td>
+                <td>{{ ::entry.userName }}</td>
+                <td>{{ ::entry.postDate | date:'short' }}</td>
+                <td>{{ ::entry.activityMessage }}</td>
+                <td>{{ ::entry.activityData }}</td>
+                <td><a href="{{ ::entry.url }}">{{ ::entry.url }}</a></td>
+                <td>{{ ::entry.ip }}</td>
             </tr>
         </tbody>
     </table>
