@@ -155,7 +155,7 @@ var Ally;
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
             var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
-            this.shouldShowSendAsBoard = this.siteInfo.userInfo.isSiteManager && !isSendingToBoard;
+            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isOfficerBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
         };
         GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
         return GroupSendEmailController;

@@ -219,7 +219,7 @@
             var groupInfo = _.find( this.availableEmailGroups, ( g: GroupEmailInfo ) => g.recipientType === this.messageObject.recipientType );
             this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
 
-            this.shouldShowSendAsBoard = this.siteInfo.userInfo.isSiteManager && !isSendingToBoard;
+            this.shouldShowSendAsBoard = FellowResidentsService.isOfficerBoardPosition( this.siteInfo.userInfo.boardPosition ) && !isSendingToBoard;
         }
     }
 }
