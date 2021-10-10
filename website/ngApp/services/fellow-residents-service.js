@@ -241,11 +241,12 @@ var Ally;
         /**
          * Send an e-mail message to another user
          */
-        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject) {
+        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
             var postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
-                messageSubject: messageSubject
+                messageSubject: messageSubject,
+                shouldSendAsBoard: shouldSendAsBoard
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         };
@@ -254,6 +255,19 @@ var Ally;
          */
         FellowResidentsService.prototype.clearResidentCache = function () {
             this.httpCache.removeAll();
+        };
+        /**
+         * Test if a board position is one of the officer positions
+         */
+        FellowResidentsService.isOfficerBoardPosition = function (boardPosition) {
+            var OfficerPositions = [
+                1,
+                2,
+                4,
+                16,
+                64,
+            ];
+            return OfficerPositions.indexOf(boardPosition) !== -1;
         };
         FellowResidentsService.BoardPositionNames = [
             { id: 0, name: "None" },

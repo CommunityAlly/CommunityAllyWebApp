@@ -9,6 +9,7 @@ namespace Ally
     export class GroupMembersController implements ng.IController
     {
         static $inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
+        static AllBoardUserId = "af615460-d92f-4878-9dfa-d5e4a9b1f488";
 
         isLoading: boolean = true;
         isLoadingGroupEmails: boolean = false;
@@ -88,7 +89,7 @@ namespace Ally
                             fullName: "Entire Board",
                             firstName: "everyone on the board",
                             hasEmail: true,
-                            userId: "af615460-d92f-4878-9dfa-d5e4a9b1f488"
+                            userId: GroupMembersController.AllBoardUserId
                         };
                     }
                 }

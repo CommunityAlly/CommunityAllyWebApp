@@ -2,9 +2,9 @@
     <span data-ng-if="$ctrl.recipientInfo.hasEmail" class="text-link" data-ng-click="$ctrl.showSendModal()"> Send Message</span>
     <span data-ng-if="!$ctrl.recipientInfo.hasEmail">Cannot send message, missing e-mail</span>
 
-    <div class="modal-container" data-ng-if="$ctrl.shouldShowSendModal" data-ng-escape="$ctrl.hideModal()">
+    <div class="modal-container" data-ng-if="$ctrl.shouldShowSendModal" data-ng-escape="$ctrl.hideModal()" style="max-width: 94vw;">
         <div class="modal-overlay" data-ng-click="$ctrl.shouldShowSendModal = false"></div>
-        <form class="ca-modal-dialog modal-md">
+        <div class="ca-modal-dialog modal-md container">
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.hideModal()">&times;</span>
             <h2>Send Message</h2>
 
@@ -12,21 +12,29 @@
                 <div data-ng-hide="$ctrl.sendResultMessage && !$ctrl.sendResultIsError">
 
                     <div class="form-group row">
-                        <label class="col-sm-3 col-xs-12">To:</label>
+                        <label class="col-sm-3 col-xs-12 text-sm-right text-left">To:</label>
                         <div class="col-sm-9 col-xs-12">
                             {{ $ctrl.recipientInfo.fullName }}
                         </div>
                     </div>
 
+                    <div class="form-group row" data-ng-if="$ctrl.shouldShowSendAsBoard">
+                        <label class="col-sm-3 col-xs-12 text-sm-right text-left" for="send-as-board-checkbox">Send As Board:</label>
+                        <div class="col-sm-9 col-xs-12">
+                            <input type="checkbox" id="send-as-board-checkbox" style="height: 20px; width: 20px;" data-ng-model="$ctrl.shouldSendAsBoard" data-ng-change="$ctrl.onSendAsBoardChanged()" />
+                            <div class="note-text">This will set the 'from' address to the board's group email address.</div>
+                        </div>
+                    </div>
+
                     <div class="form-group row">
-                        <label class="col-sm-3 col-xs-12">Subject:</label>
+                        <label class="col-sm-3 col-xs-12 text-sm-right text-left">Subject:</label>
                         <div class="col-sm-9 col-xs-12">
                             <input type="text" id="subject-text-box" class="form-control" data-ng-model="$ctrl.messageSubject" />
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-3 col-xs-12">Message:</label>
+                        <label class="col-sm-3 col-xs-12 text-sm-right text-left">Message:</label>
                         <div class="col-sm-9 col-xs-12">
                             <textarea id="message-text-box" class="form-control" style="height: 170px" data-ng-model="$ctrl.messageBody"></textarea>
                         </div>
@@ -56,6 +64,6 @@
             <div data-ng-if="$ctrl.isSendingToSelf">
                 You cannot send yourself messages. If you're lonely, reach out to a neighbor!
             </div>
-        </form>
+        </div>
     </div>
 </div>

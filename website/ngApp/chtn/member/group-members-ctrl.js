@@ -53,7 +53,7 @@ var Ally;
                             fullName: "Entire Board",
                             firstName: "everyone on the board",
                             hasEmail: true,
-                            userId: "af615460-d92f-4878-9dfa-d5e4a9b1f488"
+                            userId: GroupMembersController.AllBoardUserId
                         };
                     }
                 }
@@ -246,6 +246,7 @@ var Ally;
             });
         };
         GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
+        GroupMembersController.AllBoardUserId = "af615460-d92f-4878-9dfa-d5e4a9b1f488";
         return GroupMembersController;
     }());
     Ally.GroupMembersController = GroupMembersController;

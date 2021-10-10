@@ -354,12 +354,13 @@
         /**
          * Send an e-mail message to another user
          */
-        sendMessage( recipientUserId: string, messageBody: string, messageSubject: string )
+        sendMessage( recipientUserId: string, messageBody: string, messageSubject: string, shouldSendAsBoard: boolean )
         {
             var postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
-                messageSubject: messageSubject
+                messageSubject: messageSubject,
+                shouldSendAsBoard: shouldSendAsBoard
             };
 
             return this.$http.post( "/api/BuildingResidents/SendMessage", postData );
@@ -372,6 +373,23 @@
         clearResidentCache()
         {
             this.httpCache.removeAll();
+        }
+
+
+        /**
+         * Test if a board position is one of the officer positions
+         */
+        static isOfficerBoardPosition( boardPosition: number )
+        {
+            const OfficerPositions: number[] = [
+                1, // President
+                2, // Treasurer
+                4, // Secretary
+                16, // Vice President
+                64, // Secretary + Treasurer
+            ];
+
+            return OfficerPositions.indexOf( boardPosition ) !== -1;
         }
     }
 }
