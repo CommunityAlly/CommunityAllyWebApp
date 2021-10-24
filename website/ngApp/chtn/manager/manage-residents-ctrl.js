@@ -650,7 +650,11 @@ var Ally;
                     headerText: "Alternate Mailing",
                     fieldName: "mailingAddressObject",
                     dataMapper: function (value) {
-                        return !value ? "" : value.oneLiner;
+                        if (!value)
+                            return "";
+                        if (value.recipientName)
+                            return value.recipientName + " " + value.oneLiner;
+                        return value.oneLiner;
                     }
                 },
                 {
