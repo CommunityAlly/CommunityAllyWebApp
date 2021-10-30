@@ -130,8 +130,8 @@
             const incomeParentRow = _.find( this.curBudget.budgetRows, r => !r.parentRow && r.category.displayName === "Income" );
             this.totalIncome = incomeParentRow.amount;
 
-            const expenseParentRows = this.curBudget.budgetRows.filter( r => !r.parentRow && r.category.displayName !== "Income" );
-            this.totalExpense = _.reduce( expenseParentRows, ( memo, r: BudgetRowLocalEdit ) => memo + r.amount, 0 );
+            const expenseLeafRows = this.curBudget.budgetRows.filter( r => !r.parentRow && r.category.displayName !== "Income" );
+            this.totalExpense = _.reduce( expenseLeafRows, ( memo, r: BudgetRowLocalEdit ) => memo + r.amount, 0 );
         }
 
 
@@ -491,6 +491,101 @@
                 }
             );
         }
+
+
+        exportToCsv()
+        {
+            // We're sort of hacking the CSV logic to work for budgets since there's not a clear
+            // column / row structure to it
+            const csvColumns = [
+                {
+                    headerText: "",
+                    fieldName: "col0"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col1"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col2"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col3"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col4"
+                }
+            ];
+
+            const expenseRows = this.expenseGridOptions.data as BudgetRowLocalEdit[];
+            const incomeRows = this.incomeGridOptions.data as BudgetRowLocalEdit[];
+
+            const maxRows = Math.max( expenseRows.length, incomeRows.length );
+
+            const csvRows: BudgetCsvRow[] = [];
+            csvRows.push( new BudgetCsvRow( "Budget:", this.curBudget.budgetName ) );
+            csvRows.push( new BudgetCsvRow() );
+            csvRows.push( new BudgetCsvRow( "Expenses", "", "", "Income" ) );
+
+            const getSlashedLabel = ( row: BudgetRowLocalEdit ): string =>
+            {
+                if( !row.parentRow )
+                    return row.categoryDisplayName;
+
+                return getSlashedLabel( row.parentRow ) + "/" + row.categoryDisplayName;
+            };
+
+            for( let i = 0; i < maxRows; ++i )
+            {
+                const newRow = new BudgetCsvRow();
+                if( i < expenseRows.length )
+                {
+                    newRow.col0 = getSlashedLabel( expenseRows[i] );
+                    newRow.col1 = (expenseRows[i].amount || 0).toString();
+                }
+
+                if( i < incomeRows.length )
+                {
+                    newRow.col3 = getSlashedLabel( incomeRows[i] );
+                    if( newRow.col3.startsWith( "Income/" ) )
+                        newRow.col3 = newRow.col3.substring( "Income/".length );
+                    newRow.col4 = ( incomeRows[i].amount || 0 ).toString();
+                }
+
+                csvRows.push( newRow );
+            }
+
+            csvRows.push( new BudgetCsvRow( "Expense Total", this.totalExpense.toString(), "", "Income Total", this.totalIncome.toString() ) );
+            csvRows.push( new BudgetCsvRow() );
+            csvRows.push( new BudgetCsvRow( "", "Net", ( this.totalIncome - this.totalExpense ).toString() ) );
+
+            var csvDataString = Ally.createCsvString( csvRows, csvColumns, false );
+
+            const fileName = "budget-" + HtmlUtil2.removeNonAlphanumeric( this.curBudget.budgetName ) + ".csv";
+            HtmlUtil2.downloadCsv( csvDataString, fileName );
+        }
+    }
+
+
+    class BudgetCsvRow
+    {
+        constructor( c0: string = "", c1: string = "", c2: string = "", c3: string = "", c4: string = "" )
+        {
+            this.col0 = c0;
+            this.col1 = c1;
+            this.col2 = c2;
+            this.col3 = c3;
+            this.col4 = c4;
+        }
+
+        col0: string;
+        col1: string;
+        col2: string;
+        col3: string;
+        col4: string;
     }
 
 

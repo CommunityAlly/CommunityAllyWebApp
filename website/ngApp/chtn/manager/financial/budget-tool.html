@@ -37,8 +37,8 @@
                     Once you have multiple budgets, you'll be able to see past hisory during input.
                 </div>
                 <div class="mt-4" style="font-size: 1.25em;">
-                    <span>Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
-                    <span class="ml-4">Total Expense: <span class="text-bold">{{$ctrl.totalExpense | currency}}</span></span>
+                    <span>Total Expense: <span class="text-bold">{{$ctrl.totalExpense | currency}}</span></span>
+                    <span class="ml-4">Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
                     <span class="ml-4">Net: <span class="text-bold">{{$ctrl.totalIncome - $ctrl.totalExpense | currency}}</span></span>
                 </div>
             </div>
@@ -52,6 +52,9 @@
                 <h4 class="mb-0">Income</h4>
                 <div data-ui-grid="$ctrl.incomeGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
             </div>
+        </div>
+        <div class="text-right" data-ng-if="$ctrl.curBudget">
+            <span class="note-text text-link" data-ng-click="$ctrl.exportToCsv()">Export to CSV</span>
         </div>
     </div>
     <financial-category-manager data-ng-if="$ctrl.shouldShowCategoryEditModal" data-on-closed="$ctrl.shouldShowCategoryEditModal = false; $ctrl.completeRefresh();"></financial-category-manager>

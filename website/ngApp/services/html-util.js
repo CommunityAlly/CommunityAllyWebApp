@@ -83,6 +83,9 @@ var Ally;
             });
             $(element).qtip("show");
         };
+        HtmlUtil2.removeNonAlphanumeric = function (str) {
+            return str.replace(/\W/g, '');
+        };
         /** Download a CSV string as a file */
         HtmlUtil2.downloadCsv = function (csvText, downloadFileName) {
             HtmlUtil2.downloadFile(csvText, downloadFileName, "text/csv");

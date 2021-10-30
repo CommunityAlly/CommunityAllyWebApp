@@ -154,6 +154,12 @@ namespace Ally
         }
 
 
+        static removeNonAlphanumeric( str: string )
+        {
+            return str.replace( /\W/g, '' );
+        }
+
+
         /** Download a CSV string as a file */
         static downloadCsv( csvText: string, downloadFileName: string ): void
         {
