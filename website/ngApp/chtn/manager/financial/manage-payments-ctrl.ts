@@ -254,18 +254,17 @@ namespace Ally
             // Load the units and assessments
             this.isLoadingUnits = true;
 
-            var innerThis = this;
             this.$http.get( "/api/Unit" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
                 {
-                    innerThis.units = httpResponse.data;
+                    this.units = httpResponse.data;
 
-                    _.each( innerThis.units, function( u: any ) { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
+                    _.each( this.units, function( u: any ) { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
 
-                    innerThis.assessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
-                    innerThis.adjustedAssessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
+                    this.assessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
+                    this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
 
-                    innerThis.isLoadingUnits = false;
+                    this.isLoadingUnits = false;
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {

@@ -162,15 +162,14 @@ var Ally;
             var _this = this;
             // Load the units and assessments
             this.isLoadingUnits = true;
-            var innerThis = this;
             this.$http.get("/api/Unit").then(function (httpResponse) {
-                innerThis.units = httpResponse.data;
-                _.each(innerThis.units, function (u) { if (u.adjustedAssessment === null) {
+                _this.units = httpResponse.data;
+                _.each(_this.units, function (u) { if (u.adjustedAssessment === null) {
                     u.adjustedAssessment = u.assessment;
                 } });
-                innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
-                innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
-                innerThis.isLoadingUnits = false;
+                _this.assessmentSum = _.reduce(_this.units, function (memo, u) { return memo + u.assessment; }, 0);
+                _this.adjustedAssessmentSum = _.reduce(_this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                _this.isLoadingUnits = false;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to load units, please contact technical support. (" + httpResponse.data.exceptionMessage + ")");

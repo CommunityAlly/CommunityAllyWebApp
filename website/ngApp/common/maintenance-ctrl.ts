@@ -625,7 +625,7 @@
             if( typeof ( analytics ) !== "undefined" )
                 analytics.track( 'exportMaintenanceCsv' );
 
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Title",
                     fieldName: "title"
@@ -682,7 +682,7 @@
 
             const projects = _.map( _.filter( this.maintenanceEntries, e => !!e.project ), e => e.project );
             
-            var csvDataString = Ally.createCsvString( projects, csvColumns );
+            const csvDataString = Ally.createCsvString( projects, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Maintenance.csv" );
         }

@@ -41,10 +41,10 @@ var Ally;
                     csvText += ",";
                 csvText += ValueToCsvValue(descriptorArray[i].headerText);
             }
+            csvText += "\n";
         }
         // Write the rows
         for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
-            csvText += "\n";
             var curRow = itemArray[rowIndex];
             for (var columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex) {
                 if (columnIndex > 0)
@@ -55,6 +55,7 @@ var Ally;
                     columnValue = curColumn.dataMapper(columnValue);
                 csvText += ValueToCsvValue(columnValue);
             }
+            csvText += "\n";
         }
         return csvText;
     }

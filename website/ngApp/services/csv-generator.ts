@@ -54,13 +54,13 @@
 
                 csvText += ValueToCsvValue( descriptorArray[i].headerText );
             }
+
+            csvText += "\n";
         }
 
         // Write the rows
         for( let rowIndex = 0; rowIndex < itemArray.length; ++rowIndex )
         {
-            csvText += "\n";
-
             var curRow = itemArray[rowIndex];
 
             for( let columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex )
@@ -77,6 +77,8 @@
 
                 csvText += ValueToCsvValue( columnValue );
             }
+
+            csvText += "\n";
         }
 
         return csvText;
