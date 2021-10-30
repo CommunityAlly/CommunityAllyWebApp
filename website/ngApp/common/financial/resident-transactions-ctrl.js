@@ -50,6 +50,30 @@ var Ally;
                     enableRowHeaderSelection: false
                 };
         };
+        /**
+         * Populate the text that is shown for the unit column in the resident grid
+         */
+        ResidentTransactionsController.prototype.populateGridUnitLabels = function () {
+            var _this = this;
+            var unitColumn = this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+            if (!unitColumn || !unitColumn.visible)
+                return;
+            this.$http.get("/api/Unit").then(function (httpResponse) {
+                var allUnits = httpResponse.data;
+                _.each(_this.allFinancialTxns, function (tx) {
+                    if (!tx.associatedUnitId)
+                        return;
+                    var unit = allUnits.find(function (u) { return u.unitId === tx.associatedUnitId; });
+                    if (!unit)
+                        return;
+                    tx.unitGridLabel = unit.name;
+                });
+            }, function (httpResponse) {
+                //this.isLoading = false;
+                console.log("Failed to load units");
+                //alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
+            });
+        };
         ResidentTransactionsController.prototype.showModal = function () {
             this.shouldShowModal = true;
             this.refreshEntries();
@@ -72,6 +96,7 @@ var Ally;
                 //    this.transactionGridOptions.enablePagination = false;
                 //    this.transactionGridOptions.enablePaginationControls = false;
                 //}
+                _this.$timeout(function () { return _this.populateGridUnitLabels(); }, 150);
                 // Put this in a slight delay so the date range picker can exist
                 _this.$timeout(function () {
                     if (_this.allFinancialTxns.length > 1) {

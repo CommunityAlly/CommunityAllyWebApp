@@ -66,6 +66,42 @@
         }
 
 
+        /**
+         * Populate the text that is shown for the unit column in the resident grid
+         */
+        populateGridUnitLabels()
+        {
+            const unitColumn = this.transactionGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
+            if( !unitColumn || !unitColumn.visible )
+                return;
+
+            this.$http.get( "/api/Unit" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
+                {
+                    const allUnits = httpResponse.data;
+
+                    _.each( this.allFinancialTxns, ( tx ) =>
+                    {
+                        if( !tx.associatedUnitId )
+                            return;
+
+                        const unit = allUnits.find( u => u.unitId === tx.associatedUnitId );
+                        if( !unit )
+                            return;
+
+                        tx.unitGridLabel = unit.name;
+                    } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    //this.isLoading = false;
+                    console.log( "Failed to load units" );
+                    //alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
+                }
+            );
+        }
+
+
         showModal()
         {
             this.shouldShowModal = true;
@@ -97,6 +133,8 @@
                     //    this.transactionGridOptions.enablePagination = false;
                     //    this.transactionGridOptions.enablePaginationControls = false;
                     //}
+
+                    this.$timeout( () => this.populateGridUnitLabels(), 150 );
 
                     // Put this in a slight delay so the date range picker can exist
                     this.$timeout( () =>
