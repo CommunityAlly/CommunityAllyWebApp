@@ -75,7 +75,7 @@
             if( !unitColumn || !unitColumn.visible )
                 return;
 
-            this.$http.get( "/api/Unit" ).then(
+            this.$http.get( "/api/MemberUnit/NamesOnly" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
                 {
                     const allUnits = httpResponse.data;
@@ -124,7 +124,7 @@
                     const uniqueUnitIds = allUnitIds.filter( ( v, i, a ) => a.indexOf( v ) === i );
                     const unitColumn = this.transactionGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
                     if( unitColumn )
-                        unitColumn.visible = uniqueUnitIds.length > 1;
+                        unitColumn.visible = uniqueUnitIds.length > 1 || this.siteInfo.userInfo.usersUnits.length > 1;
 
                     //this.transactionGridOptions.data = httpResponse.data;
 

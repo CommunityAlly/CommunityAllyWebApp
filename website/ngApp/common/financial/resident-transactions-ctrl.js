@@ -58,7 +58,7 @@ var Ally;
             var unitColumn = this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
             if (!unitColumn || !unitColumn.visible)
                 return;
-            this.$http.get("/api/Unit").then(function (httpResponse) {
+            this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
                 var allUnits = httpResponse.data;
                 _.each(_this.allFinancialTxns, function (tx) {
                     if (!tx.associatedUnitId)
@@ -89,7 +89,7 @@ var Ally;
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
                 var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
                 if (unitColumn)
-                    unitColumn.visible = uniqueUnitIds.length > 1;
+                    unitColumn.visible = uniqueUnitIds.length > 1 || _this.siteInfo.userInfo.usersUnits.length > 1;
                 //this.transactionGridOptions.data = httpResponse.data;
                 //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
                 //{
