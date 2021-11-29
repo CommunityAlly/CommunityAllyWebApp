@@ -96,6 +96,7 @@ namespace Ally
         dwollaMicroDepositAmount2String: string;
         dwollaIavToken: string;
         homeName: string;
+        shouldShowPlaidTestSignUpButton: boolean = false;
         readonly HistoryPageSize: number = 50;
 
 
@@ -807,9 +808,21 @@ namespace Ally
         /**
          * Allow the admin to clear the WePay access token for testing
          */
-        admin_ClearAccessToken()
+        clearWePayAccessToken()
         {
-            alert( "TODO hook this up" );
+            this.isLoading = true;
+
+            this.$http.get( "/api/OnlinePayment/ClearWePayAuthToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to disable WePay: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -963,6 +976,23 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to verify: " + httpResponse.data.exceptionMessage );
+                }
+            )
+        }
+
+        addDwollaAccountViaPlaid()
+        {
+            this.isLoading = true;
+
+            this.$http.post( "/api/Dwolla/SignUpGroupFromPlaid/81", null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to use Plaid account: " + httpResponse.data.exceptionMessage );
                 }
             )
         }

@@ -147,10 +147,17 @@
                 </div>
             </div>-->
 
-                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.needsReLogin">
-                    You need to log-in to WePay with your association's account to re-enable access.<br>
+            <div data-ng-if="$ctrl.paymentInfo.isWePaySetup">
+                <div data-ng-if="$ctrl.paymentInfo.needsReLogin" class="mb-3">
+                    You need to log-in to WePay with your association's account if you want to re-enable WePay payments.<br>
                     <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Log-in Now</a>
                 </div>
+
+                <div data-ng-if="!$ctrl.paymentInfo.needsReLogin">
+                    You can disable WePay payments if you'd like to move users to Dwolla. You can always undo this.<br />
+                    <span class="text-link" data-ng-click="$ctrl.clearWePayAccessToken()">Disable WePay</span>
+                </div>
+            </div>
 
                 <!--<div data-ng-hide="$ctrl.paymentInfo.payPalClientId">
                 <h3>Setup PayPal Payments</h3>

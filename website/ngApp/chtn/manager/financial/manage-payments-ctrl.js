@@ -46,6 +46,7 @@ var Ally;
             this.shouldShowDwollaModalClose = false;
             this.isDwollaIavDone = false;
             this.shouldShowMicroDepositModal = false;
+            this.shouldShowPlaidTestSignUpButton = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -531,8 +532,15 @@ var Ally;
         /**
          * Allow the admin to clear the WePay access token for testing
          */
-        ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
-            alert("TODO hook this up");
+        ManagePaymentsController.prototype.clearWePayAccessToken = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to disable WePay: " + httpResponse.data.exceptionMessage);
+            });
         };
         ManagePaymentsController.prototype.showDwollaSignUpModal = function () {
             this.shouldShowDwollaAddAccountModal = true;
@@ -629,6 +637,16 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to verify: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        ManagePaymentsController.prototype.addDwollaAccountViaPlaid = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/Dwolla/SignUpGroupFromPlaid/81", null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to use Plaid account: " + httpResponse.data.exceptionMessage);
             });
         };
         ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
