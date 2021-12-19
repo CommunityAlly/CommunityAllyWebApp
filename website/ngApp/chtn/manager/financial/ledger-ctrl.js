@@ -161,6 +161,7 @@ var Ally;
                 this.filter.endDate = moment().toDate();
                 this.fullRefresh();
             }
+            this.$timeout(function () { return _this.loadImportHistory(); }, 1500);
         };
         /**
          * Load all of the data on the page
@@ -618,14 +619,16 @@ var Ally;
             if (!importTransactionsFile)
                 return;
             this.isLoading = true;
+            this.importTxNotes = "";
             var formData = new FormData();
             formData.append("importFile", importTransactionsFile);
             var postHeaders = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
+            var fileElem = document.getElementById("importTransactionFileInput");
             this.$http.post("/api/Ledger/PreviewImport", formData, postHeaders).then(function (httpResponse) {
                 _this.isLoading = false;
-                var fileElem = document.getElementById("importTransactionFileInput");
+                // Clear the value so the user can re-select the same file and trigger this handler
                 fileElem.value = "";
                 _this.previewImportGridOptions.data = httpResponse.data;
                 var _loop_3 = function (i) {
@@ -644,8 +647,14 @@ var Ally;
                 _this.previewImportGridOptions.virtualizationThreshold = _this.previewImportGridOptions.minRowsToShow;
             }, function (httpResponse) {
                 _this.isLoading = false;
+                // Clear the value so the user can re-select the same file and trigger this handler
+                fileElem.value = "";
                 alert("Failed to upload document: " + httpResponse.data.exceptionMessage);
             });
+        };
+        LedgerController.prototype.selectManualAccount = function () {
+            this.createAccountInfo.type = "manual";
+            setTimeout(function () { return document.getElementById("new-account-name-field").focus(); }, 100);
         };
         /** Bulk import transactions */
         LedgerController.prototype.importPreviewTransactions = function () {
@@ -658,11 +667,16 @@ var Ally;
             var entries = this.previewImportGridOptions.data;
             for (var i = 0; i < entries.length; ++i)
                 entries[i].ledgerAccountId = this.bulkImportAccountId;
-            this.$http.post("/api/Ledger/BulkImport", this.previewImportGridOptions.data).then(function (httpResponse) {
+            var postTx = {
+                notes: this.importTxNotes,
+                entries: this.previewImportGridOptions.data
+            };
+            this.$http.post("/api/Ledger/BulkImport", postTx).then(function (httpResponse) {
                 _this.previewImportGridOptions.data = null;
                 _this.shouldShowImportModal = false;
                 _this.isLoading = false;
                 _this.refreshEntries();
+                _this.$timeout(function () { return _this.loadImportHistory(); }, 1000);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to import: " + httpResponse.data.exceptionMessage);
@@ -722,6 +736,15 @@ var Ally;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /** Retrieve the financial transaction import history */
+        LedgerController.prototype.loadImportHistory = function () {
+            var _this = this;
+            this.$http.get("/api/Ledger/TxImportHistory").then(function (httpResponse) {
+                _this.importHistoryEntries = httpResponse.data;
+            }, function (httpResponse) {
+                console.log("Failed to retrieve tx history: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
@@ -786,6 +809,11 @@ var Ally;
         return FinancialCategory;
     }());
     Ally.FinancialCategory = FinancialCategory;
+    var FinancialTxImportHistoryEntry = /** @class */ (function () {
+        function FinancialTxImportHistoryEntry() {
+        }
+        return FinancialTxImportHistoryEntry;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("ledger", {
     templateUrl: "/ngApp/chtn/manager/financial/ledger.html",

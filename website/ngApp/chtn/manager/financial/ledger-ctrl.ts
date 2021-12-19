@@ -48,6 +48,8 @@ namespace Ally
         shouldShowImportModal: boolean = false;
         shouldShowOwnerFinanceTxn: boolean = false;
         unitListEntries: BasicUnitListEntry[];
+        importHistoryEntries: FinancialTxImportHistoryEntry[];
+        importTxNotes: string;
 
 
         /**
@@ -199,6 +201,8 @@ namespace Ally
 
                 this.fullRefresh();
             }
+
+            this.$timeout( () => this.loadImportHistory(), 1500 );
         }
 
 
@@ -870,6 +874,7 @@ namespace Ally
                 return;
 
             this.isLoading = true;
+            this.importTxNotes = "";
 
             const formData = new FormData();
             formData.append( "importFile", importTransactionsFile );
@@ -878,11 +883,14 @@ namespace Ally
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
 
+            const fileElem = document.getElementById( "importTransactionFileInput" ) as HTMLInputElement;
+
             this.$http.post( "/api/Ledger/PreviewImport", formData, postHeaders ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerEntry[]> ) =>
                 {
                     this.isLoading = false;
-                    const fileElem = document.getElementById( "importTransactionFileInput" ) as HTMLInputElement;
+
+                    // Clear the value so the user can re-select the same file and trigger this handler
                     fileElem.value = "";
 
                     this.previewImportGridOptions.data = httpResponse.data;
@@ -906,9 +914,20 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
+
+                    // Clear the value so the user can re-select the same file and trigger this handler
+                    fileElem.value = "";
+
                     alert( "Failed to upload document: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        selectManualAccount()
+        {
+            this.createAccountInfo.type = "manual";
+            setTimeout( () => document.getElementById( "new-account-name-field" ).focus(), 100 );
         }
 
 
@@ -928,13 +947,19 @@ namespace Ally
             for( let i = 0; i < entries.length; ++i )
                 entries[i].ledgerAccountId = this.bulkImportAccountId;
 
-            this.$http.post( "/api/Ledger/BulkImport", this.previewImportGridOptions.data ).then(
+            const postTx = {
+                notes: this.importTxNotes,
+                entries: this.previewImportGridOptions.data
+            };
+
+            this.$http.post( "/api/Ledger/BulkImport", postTx ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.previewImportGridOptions.data = null;
                     this.shouldShowImportModal = false;
                     this.isLoading = false;
                     this.refreshEntries();
+                    this.$timeout( () => this.loadImportHistory(), 1000 );
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -1015,6 +1040,22 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to change setting: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /** Retrieve the financial transaction import history */
+        loadImportHistory()
+        {
+            this.$http.get( "/api/Ledger/TxImportHistory" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FinancialTxImportHistoryEntry[]> ) =>
+                {
+                    this.importHistoryEntries = httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    console.log( "Failed to retrieve tx history: " + httpResponse.data.exceptionMessage );
                 }
             );
         }
@@ -1120,6 +1161,14 @@ namespace Ally
         plaidCategoryIdMatchRegEx: string;
         childCategories: FinancialCategory[];
         dropDownLabel: string;
+    }
+
+    class FinancialTxImportHistoryEntry
+    {
+        importMessage: string;
+        userNotes: string;
+        importDateUtc: Date;
+        importUserFullName: string;
     }
 }
 
