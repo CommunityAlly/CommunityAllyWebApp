@@ -255,7 +255,7 @@ namespace Ally
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
 
-                    this.nextPaymentText = this.getNextPaymentText( [this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue],
+                    this.nextPaymentText = this.getNextPaymentText( this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue,
                         this.siteInfo.privateSiteInfo.assessmentFrequency );
 
                     this.updatePaymentText();
@@ -558,47 +558,22 @@ namespace Ally
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        getNextPaymentText( payPeriods: Ally.PayPeriod[], assessmentFrequency: number )
+        getNextPaymentText( curPeriod: Ally.PayPeriod, assessmentFrequency: number )
         {
-            if( payPeriods == null )
+            if( !curPeriod )
                 return "";
 
-            // Ensure the periods is an array
-            if( payPeriods.constructor !== Array )
-                payPeriods = [<any>payPeriods];
+            let paymentText = "";
 
-            var paymentText = "";
+            const frequencyInfo = FrequencyIdToInfo( assessmentFrequency );
 
-            var frequencyInfo = FrequencyIdToInfo( assessmentFrequency );
+            const periodNames = GetLongPayPeriodNames( frequencyInfo.intervalName );
+            if( periodNames )
+                paymentText = periodNames[curPeriod.period - 1];
 
-            for( var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
-            {
-                var curPeriod = payPeriods[periodIndex];
+            paymentText += " " + curPeriod.year;
 
-                if( frequencyInfo.intervalName === "month" )
-                {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"];
-
-                    paymentText = monthNames[curPeriod.period - 1];
-                }
-                else if( frequencyInfo.intervalName === "quarter" )
-                {
-                    var periodNames = ["Q1", "Q2", "Q3", "Q4"];
-
-                    paymentText = periodNames[curPeriod.period - 1];
-                }
-                else if( frequencyInfo.intervalName === "half-year" )
-                {
-                    var periodNames = ["First Half", "Second Half"];
-
-                    paymentText = periodNames[curPeriod.period - 1];
-                }
-
-                paymentText += " " + curPeriod.year;
-
-                this.paymentInfo.paysFor = [curPeriod];
-            }
+            this.paymentInfo.paysFor = [curPeriod];
 
             return paymentText;
         }
@@ -895,6 +870,7 @@ namespace Ally
             );
         }
 
+
         submitDwollaMicroDepositAmounts()
         {
             this.isLoading_Payment = true;
@@ -916,6 +892,13 @@ namespace Ally
                     alert( "Failed to verify: " + httpResponse.data.exceptionMessage );
                 }
             )
+        }
+
+
+        reloadPage()
+        {
+            this.isLoading_Payment = true;
+            window.location.reload();
         }
     }
 

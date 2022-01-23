@@ -129,7 +129,7 @@
                 </div>
                 <div class="col-sm-8 memo">
                     <label>Memo</label>
-                    <input class="form-control grey" type="text" placeholder="" data-ng-model="$ctrl.paymentInfo.note" />
+                    <input class="form-control grey" type="text" placeholder="" data-ng-model="$ctrl.paymentInfo.note" autocomplete="off" />
                     <div data-ng-show="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-click="$ctrl.onIncorrectPayDetails()" class="text-link margin-top-10">{{ $ctrl.errorPayInfoText }}</div>
                 </div>
                 <i class="error" ng-show="$ctrl.paymentError">{{$ctrl.paymentErrorMessage}}</i>
@@ -158,7 +158,7 @@
                     <div data-ng-if="$ctrl.dwollaPaymentMessage">
                         <span style="font-size: x-large; color: blue;">{{ $ctrl.dwollaPaymentMessage }}</span>
                         <div class="mt-2">
-                            (<span class="text-link note-text" data-ng-click="$ctrl.dwollaPaymentMessage = null">OK</span>)
+                            (<span class="text-link note-text" data-ng-click="$ctrl.reloadPage()">OK</span>)
                         </div>
                     </div>
                     <div data-ng-if="!$ctrl.dwollaPaymentMessage">

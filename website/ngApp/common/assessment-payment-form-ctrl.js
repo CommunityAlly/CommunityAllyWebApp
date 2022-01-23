@@ -161,7 +161,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -376,32 +376,16 @@ var Ally;
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        AssessmentPaymentFormController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
-            if (payPeriods == null)
+        AssessmentPaymentFormController.prototype.getNextPaymentText = function (curPeriod, assessmentFrequency) {
+            if (!curPeriod)
                 return "";
-            // Ensure the periods is an array
-            if (payPeriods.constructor !== Array)
-                payPeriods = [payPeriods];
             var paymentText = "";
             var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
-            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
-                var curPeriod = payPeriods[periodIndex];
-                if (frequencyInfo.intervalName === "month") {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"];
-                    paymentText = monthNames[curPeriod.period - 1];
-                }
-                else if (frequencyInfo.intervalName === "quarter") {
-                    var periodNames = ["Q1", "Q2", "Q3", "Q4"];
-                    paymentText = periodNames[curPeriod.period - 1];
-                }
-                else if (frequencyInfo.intervalName === "half-year") {
-                    var periodNames = ["First Half", "Second Half"];
-                    paymentText = periodNames[curPeriod.period - 1];
-                }
-                paymentText += " " + curPeriod.year;
-                this.paymentInfo.paysFor = [curPeriod];
-            }
+            var periodNames = GetLongPayPeriodNames(frequencyInfo.intervalName);
+            if (periodNames)
+                paymentText = periodNames[curPeriod.period - 1];
+            paymentText += " " + curPeriod.year;
+            this.paymentInfo.paysFor = [curPeriod];
             return paymentText;
         };
         /**
@@ -611,6 +595,10 @@ var Ally;
                 _this.isLoading_Payment = false;
                 alert("Failed to verify: " + httpResponse.data.exceptionMessage);
             });
+        };
+        AssessmentPaymentFormController.prototype.reloadPage = function () {
+            this.isLoading_Payment = true;
+            window.location.reload();
         };
         AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
         return AssessmentPaymentFormController;
