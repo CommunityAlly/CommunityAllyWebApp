@@ -10,7 +10,7 @@
             <form id="message-form">
                 <div class="form-group" data-ng-if="!$ctrl.committee">
                     <label>Choose Recipient Group</label>
-                    <select class="form-control" data-ng-model="$ctrl.messageObject.recipientType" data-ng-change="$ctrl.onSelectEmailGroup()" data-ng-options="e.recipientType as e.displayName for e in $ctrl.availableEmailGroups"></select>
+                    <select class="form-control" data-ng-model="$ctrl.selectedRecipient" data-ng-change="$ctrl.onSelectEmailGroup()" data-ng-options="e as e.displayName for e in $ctrl.availableEmailGroups"></select>
 
                     <div data-ng-if="$ctrl.showUseDiscussSuggestion" style="color: blue; font-size: large;">
                         Primary use of this group is for announcements, questions, and requests for vendor recommendations. <span style="font-weight: bold;">For matters of discussion

@@ -12,6 +12,7 @@
         subject: string;
         message: string;
         recipientType: string = "board";
+        customRecipientShortName: string;
         committeeId: number;
         shouldSendAsBoard: boolean;
     }
@@ -26,8 +27,9 @@
 
         isLoadingEmail: boolean = false;
         availableEmailGroups: GroupEmailInfo[];
+        selectedRecipient: GroupEmailInfo;
         messageObject: HomeEmailMessage;
-        defaultMessageRecipient: string = "board";
+        defaultMessageRecipient: GroupEmailInfo;
         showDiscussionEveryoneWarning: boolean = false;
         showDiscussionLargeWarning: boolean = false;
         showUseDiscussSuggestion: boolean = false;
@@ -47,7 +49,11 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private fellowResidents: Ally.FellowResidentsService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $scope: ng.IScope )
+        constructor( private $http: ng.IHttpService,
+            private fellowResidents: Ally.FellowResidentsService,
+            private $rootScope: ng.IRootScopeService,
+            private siteInfo: Ally.SiteInfoService,
+            private $scope: ng.IScope )
         {
         }
 
@@ -96,17 +102,16 @@
         {
             this.isLoadingEmail = true;
 
-            var innerThis = this;
-            this.fellowResidents.getGroupEmailObject().then( function( emailList: Ally.GroupEmailInfo[] )
+            this.fellowResidents.getGroupEmailObject().then( ( emailList: Ally.GroupEmailInfo[] ) =>
             {
-                innerThis.isLoadingEmail = false;
-                innerThis.availableEmailGroups = emailList.filter( e => e.recipientType !== "Treasurer" ); // No need to show treasurer in this list since it's a single person
+                this.isLoadingEmail = false;
+                this.availableEmailGroups = emailList.filter( e => e.recipientType !== "Treasurer" ); // No need to show treasurer in this list since it's a single person
 
-                if( innerThis.availableEmailGroups.length > 0 )
+                if( this.availableEmailGroups.length > 0 )
                 {
-                    innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
-                    innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
-                    innerThis.onSelectEmailGroup();
+                    this.defaultMessageRecipient = this.availableEmailGroups[0];
+                    this.selectedRecipient = this.availableEmailGroups[0];
+                    this.onSelectEmailGroup();
                 }
             } );
         }
@@ -163,8 +168,11 @@
                     this.isLoadingEmail = false;
 
                     this.messageObject = new HomeEmailMessage();
-                    this.messageObject.recipientType = this.defaultMessageRecipient;
+                    this.selectedRecipient = this.defaultMessageRecipient;
+                    this.messageObject.recipientType = this.defaultMessageRecipient.recipientType;
                     this.messageObject.subject = this.defaultSubject;
+
+                    this.onSelectEmailGroup();
 
                     if( this.committee )
                         this.messageObject.committeeId = this.committee.committeeId;
@@ -194,6 +202,13 @@
          */
         onSelectEmailGroup()
         {
+            if( !this.selectedRecipient )
+                return;
+
+            this.messageObject.recipientType = this.selectedRecipient.recipientType;
+            const isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === "CUSTOM";
+            this.messageObject.customRecipientShortName = isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : null;
+
             this.groupEmailAddress = this.messageObject.recipientType + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
 
             // No need to show this right now as the showRestrictedGroupWarning is more clear
@@ -214,11 +229,10 @@
 
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
 
-            var groupInfo = _.find( this.availableEmailGroups, ( g: GroupEmailInfo ) => g.recipientType === this.messageObject.recipientType );
-            this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
-
+            this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
+            
             this.shouldShowSendAsBoard = FellowResidentsService.isOfficerBoardPosition( this.siteInfo.userInfo.boardPosition ) && !isSendingToBoard;
         }
     }

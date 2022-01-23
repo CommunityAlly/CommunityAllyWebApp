@@ -25,7 +25,6 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.isLoadingEmail = false;
-            this.defaultMessageRecipient = "board";
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = false;
@@ -68,15 +67,15 @@ var Ally;
          * Populate the group e-mail options
          */
         GroupSendEmailController.prototype.loadGroupEmails = function () {
+            var _this = this;
             this.isLoadingEmail = true;
-            var innerThis = this;
             this.fellowResidents.getGroupEmailObject().then(function (emailList) {
-                innerThis.isLoadingEmail = false;
-                innerThis.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
-                if (innerThis.availableEmailGroups.length > 0) {
-                    innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
-                    innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
-                    innerThis.onSelectEmailGroup();
+                _this.isLoadingEmail = false;
+                _this.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
+                if (_this.availableEmailGroups.length > 0) {
+                    _this.defaultMessageRecipient = _this.availableEmailGroups[0];
+                    _this.selectedRecipient = _this.availableEmailGroups[0];
+                    _this.onSelectEmailGroup();
                 }
             });
         };
@@ -116,8 +115,10 @@ var Ally;
                 _this.$rootScope.dontHandle403 = false;
                 _this.isLoadingEmail = false;
                 _this.messageObject = new HomeEmailMessage();
-                _this.messageObject.recipientType = _this.defaultMessageRecipient;
+                _this.selectedRecipient = _this.defaultMessageRecipient;
+                _this.messageObject.recipientType = _this.defaultMessageRecipient.recipientType;
                 _this.messageObject.subject = _this.defaultSubject;
+                _this.onSelectEmailGroup();
                 if (_this.committee)
                     _this.messageObject.committeeId = _this.committee.committeeId;
                 _this.showSendConfirmation = true;
@@ -136,7 +137,11 @@ var Ally;
          * Occurs when the user selects an e-mail group from the drop-down
          */
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
-            var _this = this;
+            if (!this.selectedRecipient)
+                return;
+            this.messageObject.recipientType = this.selectedRecipient.recipientType;
+            var isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === "CUSTOM";
+            this.messageObject.customRecipientShortName = isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : null;
             this.groupEmailAddress = this.messageObject.recipientType + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
@@ -152,9 +157,8 @@ var Ally;
             var isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
-            var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
-            this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
+            this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
             this.shouldShowSendAsBoard = Ally.FellowResidentsService.isOfficerBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
         };
         GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
