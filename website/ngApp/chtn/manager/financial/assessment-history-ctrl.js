@@ -31,6 +31,7 @@ var Ally;
         }
         return AssessmentPayment;
     }(PeriodicPayment));
+    Ally.AssessmentPayment = AssessmentPayment;
     var PayerInfo = /** @class */ (function () {
         function PayerInfo() {
         }
@@ -65,6 +66,8 @@ var Ally;
             this.shouldColorCodePayments = false;
             this.shouldShowFillInSection = false;
             this.selectedFillInPeriod = null;
+            this.shouldShowNeedsAssessmentSetup = false;
+            this.hasAssessments = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -104,6 +107,11 @@ var Ally;
             var PeriodicPaymentFrequency_Quarterly = 51;
             var PeriodicPaymentFrequency_Semiannually = 52;
             var PeriodicPaymentFrequency_Annually = 53;
+            if (!this.siteInfo.privateSiteInfo.assessmentFrequency) {
+                this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
+                this.shouldShowNeedsAssessmentSetup = true;
+                return;
+            }
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
             if (this.isForMemberGroup)
                 this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
@@ -124,26 +132,34 @@ var Ally;
             else if (this.assessmentFrequency === PeriodicPaymentFrequency_Annually)
                 this.maxPeriodRange = 1;
             // Set the label values
-            this.monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            var shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            var quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
-            var shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
-            var semiannualNames = ["First Half", "Second Half"];
-            var shortSemiannualNames = ["1st Half", "2nd Half"];
-            this.periodNames = this.monthNames;
-            this.shortPeriodNames = shortMonthNames;
-            if (this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly) {
-                this.periodNames = quarterNames;
-                this.shortPeriodNames = shortQuarterNames;
-            }
-            else if (this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually) {
-                this.periodNames = semiannualNames;
-                this.shortPeriodNames = shortSemiannualNames;
-            }
-            else if (this.assessmentFrequency === PeriodicPaymentFrequency_Annually) {
+            //const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            //const shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            //const quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
+            //const shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
+            //const semiannualNames = ["First Half", "Second Half"];
+            //const shortSemiannualNames = ["1st Half", "2nd Half"];
+            var payFrequencyInfo = FrequencyIdToInfo(this.assessmentFrequency);
+            this.periodNames = GetLongPayPeriodNames(payFrequencyInfo.intervalName);
+            this.shortPeriodNames = GetShortPayPeriodNames(payFrequencyInfo.intervalName);
+            if (!this.periodNames) {
                 this.periodNames = [""];
                 this.shortPeriodNames = [""];
             }
+            //if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
+            //{
+            //    this.periodNames = quarterNames;
+            //    this.shortPeriodNames = shortQuarterNames;
+            //}
+            //else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
+            //{
+            //    this.periodNames = semiannualNames;
+            //    this.shortPeriodNames = shortSemiannualNames;
+            //}
+            //else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            //{
+            //    this.periodNames = [""];
+            //    this.shortPeriodNames = [""];
+            //}
             // Set the current period
             this.startPeriodValue = new Date().getMonth() + 2;
             this.startYearValue = new Date().getFullYear();

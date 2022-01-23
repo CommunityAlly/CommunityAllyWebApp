@@ -85,7 +85,8 @@
                     Dwolla is completely free for the association. Payers pay a 0.5% payment fee when your association is on the premium plan ($5 max), 1% when on the free plan ($10 max). For example, 0.5% is $0.50 on a $100 payment, $1 on $200, an $1.50 on $300.
                     <br />
                     <br />
-                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showDwollaSignUpModal()">Sign up Now</button>
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showDwollaSignUpModal()">Sign up to Accept Payments</button>
+                    <button type="button" class="btn btn-primary" data-ng-if="$ctrl.shouldShowPlaidTestSignUpButton" data-ng-click="$ctrl.addDwollaAccountViaPlaid()">Hey Mark, click this to try and use Innovator Checking from TwinStar Credit Union</button>
                 </div>
 
                 <div data-ng-if="!$ctrl.paymentInfo.isWePaySetup">
@@ -114,7 +115,7 @@
                 </div>
 
                 <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2">
-                    <div>Linked Account: <span class="font-weight-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span> ({{$ctrl.paymentInfo.dwollaFundingSourceType}})</div>
+                    <div>Linked Account: <span class="font-weight-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span></div>
                     <div data-ng-if="!$ctrl.paymentInfo.dwollaFundingIsVerified" class="font-weight-bold mt-4 mb-4">
                         Your bank account is still pending micro-deposit verification.
                         <br />
@@ -123,7 +124,7 @@
                     <span class="text-link" data-ng-click="$ctrl.disconnectDwolla()">Unlink Dwolla bank account</span>
                 </div>
 
-                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || $ctrl.paymentInfo.isDwollaSetup">
+                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || ($ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.dwollaFundingIsVerified)">
                     <div class="form-group row">
                         <label for="allow-payments-checkbox" class="col-xs-6 col-sm-4">Allow Online Payments:</label>
                         <div class="col-xs-6 col-sm-8">
@@ -477,17 +478,19 @@
 
         <div data-ng-if="$ctrl.viewingDwollaEntry" class="modal-container" data-ng-escape="$ctrl.showDwollaTransferInfo( null )">
             <div class="modal-overlay" data-ng-click="$ctrl.showDwollaTransferInfo( null )"></div>
-            <div class="ca-modal-dialog modal-sm">
+            <div class="ca-modal-dialog modal-sm" style="width: 550px; margin-left: -275px;">
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCheckoutDetails"></div>
                 <table>
                     <tbody>
-                        <tr><td class="AlignRightBold">Transfer ID: </td><td>{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
-                        <tr><td class="AlignRightBold">Status: </td><td>{{ $ctrl.checkoutInfo.status }}</td></tr>
-                        <tr><td class="AlignRightBold">Amount: </td><td>{{ $ctrl.checkoutInfo.amountString }}</td></tr>
-                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="AlignRightBold">Payer Fee: </td><td>{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
-                        <tr><td class="AlignRightBold">Created : </td><td>{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
-                        <tr><td class="AlignRightBold">Clearing: </td><td>{{ $ctrl.checkoutInfo.clearingSource }}</td></tr>
-                        <tr><td class="AlignRightBold">Cancel: </td><td><span class="text-link" data-ng-if="$ctrl.checkoutInfo.cancelUri" data-ng-click="$ctrl.cancelDwollaTransfer()">Cancel</span><span data-ng-if="$ctrl.checkoutInfo.dwollaTransferId && !$ctrl.checkoutInfo.cancelUri">No longer available</span></td></tr>
+                        <tr><td class="text-right">Transfer ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
+                        <tr><td class="text-right">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
+                        <tr><td class="text-right">Amount: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-right">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr><td class="text-right">Created: </td><td class="text-bold">{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
+                        <tr><td class="text-right">From Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.sourceFundingSourceName }}</td></tr>
+                        <tr><td class="text-right">To Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.destFundingSourceName }}</td></tr>
+                        <tr><td class="text-right">Clearing: </td><td class="text-bold">{{ $ctrl.checkoutInfo.clearingSource }}</td></tr>
+                        <tr><td class="text-right">Cancel: </td><td class="text-bold"><span class="text-link" data-ng-if="$ctrl.checkoutInfo.cancelUri" data-ng-click="$ctrl.cancelDwollaTransfer()">Cancel</span><span data-ng-if="$ctrl.checkoutInfo.dwollaTransferId && !$ctrl.checkoutInfo.cancelUri">No longer available</span></td></tr>
                     </tbody>
                 </table>
                 <br />

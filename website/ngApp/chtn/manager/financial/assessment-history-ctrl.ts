@@ -32,7 +32,7 @@
     }
 
 
-    class AssessmentPayment extends PeriodicPayment
+    export class AssessmentPayment extends PeriodicPayment
     {
         unitId: number;
     }
@@ -77,7 +77,6 @@
         assessmentFrequency: PeriodicPaymentFrequency;
         payPeriodName: string;
         maxPeriodRange: number;
-        monthNames: string[];
         periodNames: string[];
         shortPeriodNames: string[];
         startPeriodValue: number;
@@ -98,6 +97,8 @@
         selectedFillInPeriod: PeriodEntry = null;
         baseApiUri: string;
         viewExportViewId: string;
+        shouldShowNeedsAssessmentSetup: boolean = false;
+        hasAssessments: boolean | null = null;
 
 
         /**
@@ -154,6 +155,13 @@
             const PeriodicPaymentFrequency_Semiannually = 52;
             const PeriodicPaymentFrequency_Annually = 53;
 
+            if( !this.siteInfo.privateSiteInfo.assessmentFrequency )
+            {
+                this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
+                this.shouldShowNeedsAssessmentSetup = true;
+                return;
+            }
+            
             this.assessmentFrequency = <PeriodicPaymentFrequency>this.siteInfo.privateSiteInfo.assessmentFrequency;
             if( this.isForMemberGroup )
                 this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
@@ -178,30 +186,36 @@
                 this.maxPeriodRange = 1;
 
             // Set the label values
-            this.monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
-            const shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
-            const semiannualNames = ["First Half", "Second Half"];
-            const shortSemiannualNames = ["1st Half", "2nd Half"];
+            //const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            //const shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            //const quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
+            //const shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
+            //const semiannualNames = ["First Half", "Second Half"];
+            //const shortSemiannualNames = ["1st Half", "2nd Half"];
 
-            this.periodNames = this.monthNames;
-            this.shortPeriodNames = shortMonthNames;
-            if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
-            {
-                this.periodNames = quarterNames;
-                this.shortPeriodNames = shortQuarterNames;
-            }
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
-            {
-                this.periodNames = semiannualNames;
-                this.shortPeriodNames = shortSemiannualNames;
-            }
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            const payFrequencyInfo = FrequencyIdToInfo( this.assessmentFrequency );
+            this.periodNames = GetLongPayPeriodNames( payFrequencyInfo.intervalName );
+            this.shortPeriodNames = GetShortPayPeriodNames( payFrequencyInfo.intervalName );
+            if( !this.periodNames )
             {
                 this.periodNames = [""];
                 this.shortPeriodNames = [""];
             }
+            //if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
+            //{
+            //    this.periodNames = quarterNames;
+            //    this.shortPeriodNames = shortQuarterNames;
+            //}
+            //else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
+            //{
+            //    this.periodNames = semiannualNames;
+            //    this.shortPeriodNames = shortSemiannualNames;
+            //}
+            //else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            //{
+            //    this.periodNames = [""];
+            //    this.shortPeriodNames = [""];
+            //}
 
             // Set the current period
             this.startPeriodValue = new Date().getMonth() + 2;
@@ -562,6 +576,7 @@
                 alert( "Failed to retrieve payment history: " + response.data.exceptionMessage );
             } );
         }
+
 
         /**
          * Get the amount paid by all units in a pay period

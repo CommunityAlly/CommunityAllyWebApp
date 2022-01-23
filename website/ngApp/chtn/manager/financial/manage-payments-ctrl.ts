@@ -754,14 +754,15 @@ namespace Ally
 
             this.$http.post( "/api/OnlinePayment/BasicInfo", this.signUpInfo ).then( () =>
             {
-                this.isLoading = false;
-
                 // Update the unit assessments
                 this.refreshUnits();
 
                 // Update the assessment flag
                 this.hasAssessments = this.signUpInfo.hasAssessments;
                 this.siteInfo.privateSiteInfo.hasAssessments = this.hasAssessments;
+
+                // Refresh the site info to reflect the assessment frequency
+                window.location.reload();
 
             }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
@@ -1015,6 +1016,8 @@ namespace Ally
         amountString: string;
         feeAmountString: string;
         createdDateUtc: Date;
+        sourceFundingSourceName: string;
+        destFundingSourceName: string;
         clearingSource: string;
         cancelUri: string;
     }

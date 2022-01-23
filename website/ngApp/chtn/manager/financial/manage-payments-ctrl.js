@@ -494,12 +494,13 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.$http.post("/api/OnlinePayment/BasicInfo", this.signUpInfo).then(function () {
-                _this.isLoading = false;
                 // Update the unit assessments
                 _this.refreshUnits();
                 // Update the assessment flag
                 _this.hasAssessments = _this.signUpInfo.hasAssessments;
                 _this.siteInfo.privateSiteInfo.hasAssessments = _this.hasAssessments;
+                // Refresh the site info to reflect the assessment frequency
+                window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)

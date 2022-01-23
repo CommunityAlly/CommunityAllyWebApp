@@ -115,7 +115,49 @@ var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[] = [
 
 function FrequencyIdToInfo( frequencyId: number )
 {
+    if( isNaN( frequencyId ) || frequencyId < 50 )
+        return null;
+
     return PeriodicPaymentFrequencies[frequencyId - 50];
+}
+
+
+function GetLongPayPeriodNames( intervalName: string )
+{
+    if( intervalName === "month" )
+    {
+        return ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+    }
+    else if( intervalName === "quarter" )
+    {
+        return ["Q1", "Q2", "Q3", "Q4"];
+    }
+    else if( intervalName === "half-year" )
+    {
+        return ["First Half", "Second Half"];
+    }
+
+    return null;
+}
+
+
+function GetShortPayPeriodNames( intervalName: string )
+{
+    if( intervalName === "month" )
+    {
+        return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    }
+    else if( intervalName === "quarter" )
+    {
+        return ["Q1", "Q2", "Q3", "Q4"];
+    }
+    else if( intervalName === "half-year" )
+    {
+        return ["1st Half", "2nd Half"];
+    }
+
+    return null;
 }
 
 

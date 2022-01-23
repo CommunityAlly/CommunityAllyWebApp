@@ -132,7 +132,7 @@ namespace Ally
         isDwollaPaymentActive: boolean;
         numUnits: number;
         isEmailSendingRestricted: boolean;
-        hasAssessments: boolean;
+        hasAssessments: boolean | null;
         assessmentFrequency: number;
         isPeriodicPaymentTrackingEnabled: boolean;
         homeRightColumnType: string;

@@ -1,214 +1,225 @@
 <div class="page page-manage-assessmenthistory">
     <h1>{{ $ctrl.pageTitle }}</h1>
-    <p data-ng-if="!$ctrl.isForMemberGroup">
-        <label><input id="enable-tracking-checkbox" type="checkbox" data-ng-change="$ctrl.onChangePeriodicPaymentTracking()" data-ng-model="$ctrl.isPeriodicPaymentTrackingEnabled">Enable Payment History for Residents</label><br>
-        <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
-    </p>
-    <p class="clearfix">
-        <div class="pull-right">
-            Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
+    
+    <div data-ng-if="$ctrl.shouldShowNeedsAssessmentSetup">
+        <div data-ng-if="$ctrl.hasAssessments === false">
+            Assessment tracking can only be enabled if you have regular assessments. You association indicated that you do not have regular assessments on the assessment questionnaire. If you need to change that, visit the bottom of <a href="#!/Financials/OnlinePayments">the online payments page</a>.
         </div>
-
-        <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
-        <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
-        <button class="btn btn-primary" style="display: none;" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
-    </p>
-    <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
-        Since your site is new you can speed things up by marking all homes as paid back to a certain date.<br />
-        <br />
-        Set all homes paid for period:
-        <select data-ng-model="$ctrl.selectedFillInPeriod" data-ng-options="p as p.name for p in $ctrl.visiblePeriodNames"></select>
-        <button type="button" data-ng-click="$ctrl.populatePaidForPeriod()" class="btn btn-primary">Mark As Paid</button>
+        <div data-ng-if="$ctrl.hasAssessments !== false">
+            Before you can start tracking assessments, you need to fill out the assessment questionnaire on <a href="#!/Financials/OnlinePayments">the online payments page</a>.
+        </div>
     </div>
-    <div class="margin-top-10 spinner-effect">
-        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-        <div>
-            <span class="text-link" style="margin-left: 15%;" data-ng-click="$ctrl.browseFuture()">Ahead 6 {{ $ctrl.payPeriodName }}s</span>
-            <span class="text-link pull-right" data-ng-click="$ctrl.browsePast()">Back 6 {{ $ctrl.payPeriodName }}s</span>
+    <div data-ng-if="!$ctrl.shouldShowNeedsAssessmentSetup">
+        <p data-ng-if="!$ctrl.isForMemberGroup">
+            <label><input id="enable-tracking-checkbox" type="checkbox" data-ng-change="$ctrl.onChangePeriodicPaymentTracking()" data-ng-model="$ctrl.isPeriodicPaymentTrackingEnabled">Enable Payment History for Residents</label><br>
+            <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
+        </p>
+        <p class="clearfix">
+            <div class="pull-right">
+                Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
+            </div>
+
+            <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
+            <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
+            <button class="btn btn-primary" style="display: none;" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
+        </p>
+        <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
+            Since your site is new you can speed things up by marking all homes as paid back to a certain date.<br />
+            <br />
+            Set all homes paid for period:
+            <select data-ng-model="$ctrl.selectedFillInPeriod" data-ng-options="p as p.name for p in $ctrl.visiblePeriodNames"></select>
+            <button type="button" data-ng-click="$ctrl.populatePaidForPeriod()" class="btn btn-primary">Mark As Paid</button>
         </div>
+        <div class="margin-top-10 spinner-effect">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-        <span class="note-text">Click on a cell to edit payment</span>
-        <table id="assessment-table" class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th class="text-right" style="width: 15%;">
+            <div>
+                <span class="text-link" style="margin-left: 15%;" data-ng-click="$ctrl.browseFuture()">Ahead 6 {{ $ctrl.payPeriodName }}s</span>
+                <span class="text-link pull-right" data-ng-click="$ctrl.browsePast()">Back 6 {{ $ctrl.payPeriodName }}s</span>
+            </div>
 
-                    </th>
-                    <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : ''}">
-                        {{ period.name }}
-                    </th>
-                </tr>
-            </thead>
+            <span class="note-text">Click on a cell to edit payment</span>
+            <table id="assessment-table" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th class="text-right" style="width: 15%;">
 
-            <tbody data-ng-if="$ctrl.showRowType === 'unit'">
-                <tr data-ng-repeat="unit in $ctrl.unitPayments" ng-init="unitIndex = $index">
-                    <td class="text-bold text-right">
-                        {{ unit.name }}
-                        <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
-                    </td>
-                    <td ng-repeat="payment in unit.payments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
-                        <div data-ng-if="!$ctrl.showPaymentInfo">
-                            <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
-                        </div>
-                        <div data-ng-if="$ctrl.showPaymentInfo">
-                            <div data-ng-if="!payment.isEmptyEntry && payment.amount != 0">
-                                <div data-ng-if="$ctrl.shouldColorCodePayments">
-                                    <span data-ng-style="{'color': payment.amount !== null && payment.amount != undefined && !payment.isPaid ? 'red' : 'black'}">{{ payment.amount | currency }}</span>
-                                </div>
-                                <div data-ng-if="!$ctrl.shouldColorCodePayments">{{ payment.amount | currency }}</div>
+                        </th>
+                        <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : ''}">
+                            {{ period.name }}
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody data-ng-if="$ctrl.showRowType === 'unit'">
+                    <tr data-ng-repeat="unit in $ctrl.unitPayments" ng-init="unitIndex = $index">
+                        <td class="text-bold text-right">
+                            {{ unit.name }}
+                            <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
+                        </td>
+                        <td ng-repeat="payment in unit.payments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
+                            <div data-ng-if="!$ctrl.showPaymentInfo">
+                                <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
                             </div>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-
-            <tbody data-ng-if="$ctrl.showRowType === 'member'">
-                <tr data-ng-repeat="payer in $ctrl.payers" ng-init="memberIndex = $index">
-                    <td class="text-bold text-right">
-                        {{ payer.name }}
-                    </td>
-                    <td ng-repeat="payment in payer.displayPayments" id="pay-cell-{{ memberIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onMemberPaymentCellClick( payer, payment )">
-                        <div data-ng-if="!$ctrl.showPaymentInfo">
-                            <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
-                        </div>
-                        <div data-ng-if="$ctrl.showPaymentInfo">
-                            <span data-ng-show="payment.isPaid">{{ payment.amount | currency }}</span>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-
-            <tfoot>
-                <tr data-ng-if="$ctrl.showPaymentInfo" class="text-bold">
-                    <th class="text-right">Sum:</th>
-                    <th data-ng-repeat="period in $ctrl.visiblePeriodNames" id="bottomsum-cell-{{ unitIndex }}-{{ $index }}" class="month-cell">
-                        {{ $ctrl.getPaymentSumForPayPeriod( $index ) | currency }}
-                    </th>
-                </tr>
-            </tfoot>
-
-        </table>
-    </div>
-
-
-    <div id="edit-payment-container" class="modal-container" data-ng-show="$ctrl.editPayment != null" data-ng-escape="$ctrl.editPayment = null">
-        <div class="modal-overlay" data-ng-click="$ctrl.editPayment = null"></div>
-        <div class="ca-modal-dialog modal-sm">
-            <div class="loading-overlay" data-ng-show="$ctrl.isSavingPayment"></div>
-
-            <span style="float: right;" class="close-x" data-ng-click="$ctrl.editPayment = null">&times;</span>
-            <h3>Payment for {{$ctrl.editPayment.periodName}} {{$ctrl.editPayment.payment.year}}</h3>
-            <form>
-                <div class="form-group row">
-                    <label class="col-xs-6 col-sm-4" for="is-paid-checkbox">PAID:</label>
-                    <div class="col-xs-6 col-sm-8">
-                        <input id="is-paid-checkbox" type="checkbox" data-ng-model="$ctrl.editPayment.payment.isPaid" />
-                    </div>
-                </div>
-
-                <div class="form-group row">
-                    <label class="col-sm-4">Amount:</label>
-                    <div class="col-sm-8">
-                        <input type="text" id="paid-amount-textbox" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.amount" />
-                    </div>
-                </div>
-
-                <div class="form-group row">
-                    <label class="col-sm-4">Check Number:</label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.checkNumber" />
-                        <span class="text-link" data-ng-if="$ctrl.editPayment.payment.wePayCheckoutId && !$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
-                        <span class="text-link" data-ng-if="$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewOnlinePaymentDetails($ctrl.editPayment.payment.paymentsInfoId)">View Online Payment Details</span>
-                    </div>
-                </div>
-
-                <div class="form-group row" data-ng-if="$ctrl.showRowType === 'unit'">
-                    <label class="col-sm-4">Paid By:</label>
-                    <div class="col-sm-8">
-                        <select class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.payerUserId" data-ng-options="p.userId as p.name for p in $ctrl.payers"></select>
-                        <select class="form-control form-control-sm" data-ng-if="false" data-ng-model="$ctrl.editPayment.payment.payerUserId">
-                            <option data-ng-repeat="owner in $ctrl.editPayment.unit.owners" value="{{ owner.userId }}">{{ owner.name }}</option>
-                            <option disabled="disabled">--------------</option>
-                            <option data-ng-repeat="payer in $ctrl.editPayment.filteredPayers" value="{{ payer.userId }}">{{ payer.name }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group row">
-                    <label class="col-sm-4">Payment Date:</label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.paymentDate" data-ui-date />
-                    </div>
-                </div>
-
-                <div>
-                    <label>Payer notes:</label>
-                    <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.payerNotes" rows="2" readonly="readonly" disabled></textarea>
-                </div>
-
-                <div>
-                    <label>Notes:</label>
-                    <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.notes" rows="2"></textarea>
-                </div>
-
-                <div class="text-right mt-3">
-                    <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSavePayment();" />
-                    <!--<input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editPayment = null" />-->
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="create-special-assessment-container" class="modal-container" data-ng-if="$ctrl.shouldShowCreateSpecialAssessment" data-ng-escape="$ctrl.editPayment = null">
-        <div class="modal-overlay" data-ng-click="$ctrl.shouldShowCreateSpecialAssessment = false"></div>
-        <form class="ca-modal-dialog modal-sm">
-            <h3>Create Special Assessment</h3>
-            <table style="width:100%;">
-                <tbody>
-                    <tr>
-                        <td class="text-right">
-                            <label for="create-special-assessment-year" style="font-weight: bold;">Year:</label>
-                        </td>
-                        <td>
-                            <input id="create-special-assessment-year" type="number" style="width: 220px;" data-ng-model="$ctrl.createSpecialAssessment.year" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-right">
-                            <label for="create-special-assessment-month" style="font-weight: bold;">Month:</label>
-                        </td>
-                        <td>
-                            <select id="create-special-assessment-month" data-ng-model="$ctrl.createSpecialAssessment.month" data-ng-options="index as m for (index,m) in $ctrl.monthNames"></select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-right">
-                            <label for="create-special-assessment-amount" style="font-weight: bold;">Amount:</label>
-                        </td>
-                        <td>
-                            <input id="create-special-assessment-amount" type="number" style="width: 220px;" data-ng-model="$ctrl.createSpecialAssessment.amount" />
-                            <br />
-                            <span class="note-text">Leave blank if the amount is different for each unit</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-right">
-                            <label for="create-special-assessment-notes" style="font-weight: bold;">Notes:</label>
-                        </td>
-                        <td>
-                            <textarea data-ng-model="$ctrl.createSpecialAssessment.notes" rows="5"></textarea>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" class="text-right">
-                            <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.addSpecialAssessment();" />
-                            <input id="cancel-edit-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.shouldShowCreateSpecialAssessment = false" />
+                            <div data-ng-if="$ctrl.showPaymentInfo">
+                                <div data-ng-if="!payment.isEmptyEntry && payment.amount != 0">
+                                    <div data-ng-if="$ctrl.shouldColorCodePayments">
+                                        <span data-ng-style="{'color': payment.amount !== null && payment.amount != undefined && !payment.isPaid ? 'red' : 'black'}">{{ payment.amount | currency }}</span>
+                                    </div>
+                                    <div data-ng-if="!$ctrl.shouldColorCodePayments">{{ payment.amount | currency }}</div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
-            </table>
-        </form>
-    </div>
 
+                <tbody data-ng-if="$ctrl.showRowType === 'member'">
+                    <tr data-ng-repeat="payer in $ctrl.payers" ng-init="memberIndex = $index">
+                        <td class="text-bold text-right">
+                            {{ payer.name }}
+                        </td>
+                        <td ng-repeat="payment in payer.displayPayments" id="pay-cell-{{ memberIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onMemberPaymentCellClick( payer, payment )">
+                            <div data-ng-if="!$ctrl.showPaymentInfo">
+                                <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
+                            </div>
+                            <div data-ng-if="$ctrl.showPaymentInfo">
+                                <span data-ng-show="payment.isPaid">{{ payment.amount | currency }}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tfoot>
+                    <tr data-ng-if="$ctrl.showPaymentInfo" class="text-bold">
+                        <th class="text-right">Sum:</th>
+                        <th data-ng-repeat="period in $ctrl.visiblePeriodNames" id="bottomsum-cell-{{ unitIndex }}-{{ $index }}" class="month-cell">
+                            {{ $ctrl.getPaymentSumForPayPeriod( $index ) | currency }}
+                        </th>
+                    </tr>
+                </tfoot>
+
+            </table>
+        </div>
+
+
+        <div id="edit-payment-container" class="modal-container" data-ng-show="$ctrl.editPayment != null" data-ng-escape="$ctrl.editPayment = null">
+            <div class="modal-overlay" data-ng-click="$ctrl.editPayment = null"></div>
+            <div class="ca-modal-dialog modal-sm">
+                <div class="loading-overlay" data-ng-show="$ctrl.isSavingPayment"></div>
+
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.editPayment = null">&times;</span>
+                <h3>Payment for {{$ctrl.editPayment.periodName}} {{$ctrl.editPayment.payment.year}}</h3>
+                <form>
+                    <div class="form-group row">
+                        <label class="col-xs-6 col-sm-4" for="is-paid-checkbox">PAID:</label>
+                        <div class="col-xs-6 col-sm-8">
+                            <input id="is-paid-checkbox" type="checkbox" data-ng-model="$ctrl.editPayment.payment.isPaid" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4">Amount:</label>
+                        <div class="col-sm-8">
+                            <input type="text" id="paid-amount-textbox" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.amount" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4">Check Number:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.checkNumber" />
+                            <span class="text-link" data-ng-if="$ctrl.editPayment.payment.wePayCheckoutId && !$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
+                            <span class="text-link" data-ng-if="$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewOnlinePaymentDetails($ctrl.editPayment.payment.paymentsInfoId)">View Online Payment Details</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row" data-ng-if="$ctrl.showRowType === 'unit'">
+                        <label class="col-sm-4">Paid By:</label>
+                        <div class="col-sm-8">
+                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.payerUserId" data-ng-options="p.userId as p.name for p in $ctrl.payers"></select>
+                            <select class="form-control form-control-sm" data-ng-if="false" data-ng-model="$ctrl.editPayment.payment.payerUserId">
+                                <option data-ng-repeat="owner in $ctrl.editPayment.unit.owners" value="{{ owner.userId }}">{{ owner.name }}</option>
+                                <option disabled="disabled">--------------</option>
+                                <option data-ng-repeat="payer in $ctrl.editPayment.filteredPayers" value="{{ payer.userId }}">{{ payer.name }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4">Payment Date:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.paymentDate" data-ui-date />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label>Payer notes:</label>
+                        <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.payerNotes" rows="2" readonly="readonly" disabled></textarea>
+                    </div>
+
+                    <div>
+                        <label>Notes:</label>
+                        <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.notes" rows="2"></textarea>
+                    </div>
+
+                    <div class="text-right mt-3">
+                        <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSavePayment();" />
+                        <!--<input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editPayment = null" />-->
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="create-special-assessment-container" class="modal-container" data-ng-if="$ctrl.shouldShowCreateSpecialAssessment" data-ng-escape="$ctrl.editPayment = null">
+            <div class="modal-overlay" data-ng-click="$ctrl.shouldShowCreateSpecialAssessment = false"></div>
+            <form class="ca-modal-dialog modal-sm">
+                <h3>Create Special Assessment</h3>
+                <table style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td class="text-right">
+                                <label for="create-special-assessment-year" style="font-weight: bold;">Year:</label>
+                            </td>
+                            <td>
+                                <input id="create-special-assessment-year" type="number" style="width: 220px;" data-ng-model="$ctrl.createSpecialAssessment.year" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-right">
+                                <label for="create-special-assessment-month" style="font-weight: bold;">Month:</label>
+                            </td>
+                            <td>
+                                <select id="create-special-assessment-month" data-ng-model="$ctrl.createSpecialAssessment.month" data-ng-options="index as m for (index,m) in $ctrl.monthNames"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-right">
+                                <label for="create-special-assessment-amount" style="font-weight: bold;">Amount:</label>
+                            </td>
+                            <td>
+                                <input id="create-special-assessment-amount" type="number" style="width: 220px;" data-ng-model="$ctrl.createSpecialAssessment.amount" />
+                                <br />
+                                <span class="note-text">Leave blank if the amount is different for each unit</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-right">
+                                <label for="create-special-assessment-notes" style="font-weight: bold;">Notes:</label>
+                            </td>
+                            <td>
+                                <textarea data-ng-model="$ctrl.createSpecialAssessment.notes" rows="5"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="text-right">
+                                <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.addSpecialAssessment();" />
+                                <input id="cancel-edit-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.shouldShowCreateSpecialAssessment = false" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
 </div>
