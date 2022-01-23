@@ -32,14 +32,14 @@
 
                 <div>
                     <div class="form-group row">
-                        <label class="col-sm-3 col-xs-12" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
-                        <div class="col-sm-9 col-xs-12">
+                        <label class="col-sm-2 col-xs-12 text-right" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
+                        <div class="col-sm-10 col-xs-12">
                             <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" data-ng-model="$ctrl.editEvent.dateOnly" />
                         </div>
                     </div>
 
                     <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
-                        <label class="col-sm-3 col-xs-12">Time:</label>
+                        <label class="col-sm-2 col-xs-12 text-right">Time:</label>
                         <div class="col-sm-3 col-xs-11">
                             <input id="calendar-event-time" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editEvent.timeOnly">
                         </div>
@@ -56,16 +56,63 @@
                     </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-3 col-xs-12">What:</label>
-                        <div class="col-sm-9 col-xs-12">
+                        <label class="col-sm-2 col-xs-12 text-right">What:</label>
+                        <div class="col-sm-10 col-xs-12">
                             <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()">
                         </div>
                     </div>
 
-                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel">
-                        <label class="col-sm-3 col-xs-12">Description:</label>
-                        <div class="col-sm-9 col-xs-12">
-                            <textarea class="form-control form-control-sm" data-ng--model="$ctrl.editEvent.description" rows="4" maxlength="2000"></textarea>
+                    <div class="form-group row" data-ng-if="$ctrl.showExpandedCalendarEventModel">
+                        <label class="col-sm-2 col-xs-12 pt-5 text-right">Description:</label>
+                        <div class="col-sm-10 col-xs-12">
+                            
+                            <div class="btn-toolbar" data-role="editor-toolbar" data-target="#desc-rich-editor">
+                                <div class="btn-group">
+                                    <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font"><i class="icon-font"></i><b class="caret"></b></a>
+                                    <ul class="dropdown-menu"></ul>
+                                </div>
+                                <div class="btn-group">
+                                    <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font Size"><i class="icon-text-height"></i>&nbsp;<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a data-edit="fontSize 5"><font size="5">Huge</font></a></li>
+                                        <li><a data-edit="fontSize 3"><font size="3">Normal</font></a></li>
+                                        <li><a data-edit="fontSize 1"><font size="1">Small</font></a></li>
+                                    </ul>
+                                </div>
+                                <div class="btn-group">
+                                    <a class="btn" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>
+                                    <a class="btn" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i class="icon-italic"></i></a>
+                                    <a class="btn" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i class="icon-underline"></i></a>
+
+                                    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Font Color"><i style="color: blue;" class="icon-font"></i>&nbsp;<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <p>&nbsp;&nbsp;&nbsp;Font Color:</p>
+                                        <li><a data-edit="foreColor #000000">Black</a></li>
+                                        <li><a data-edit="foreColor #FFFF00">Yellow</a></li>
+                                        <li><a data-edit="foreColor #FF7F00">Orange</a></li>
+                                        <li><a data-edit="foreColor #FF0000">Red</a></li>
+                                        <li><a data-edit="foreColor #0000FF">Blue</a></li>
+                                        <li><a data-edit="foreColor #30AD23">Green</a></li>
+                                        <li><a data-edit="foreColor #FFFFFF">White</a></li>
+                                    </ul>
+                                </div>
+                                <div class="btn-group">
+                                    <a class="btn" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>
+                                    <a class="btn" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>
+
+                                    <a id="rte-add-link-parent-button" class="btn dropdown-toggle" data-toggle="dropdown" title="Hyperlink"><i class="icon-link"></i></a>
+                                    <div class="dropdown-menu input-append">
+                                        <input id="rte-new-link-url" class="span2" placeholder="URL" value="https://" type="text" data-edit="createLink" />
+                                        <span id="rte-new-link-no-selection-label" class="span2 p-1" type="text">Highlight text first</span>
+                                        <button id="rte-new-link-button" class="btn" type="button">Add</button>
+                                    </div>
+                                    <a class="btn" data-edit="unlink" title="Remove Hyperlink"><i class="icon-cut"></i></a>
+                                </div>
+                                <input type="text" data-edit="inserttext" id="voiceBtn" x-webkit-speech="">
+                            </div>
+                            <div id="desc-rich-editor" class="rich-text-editor"></div>
+                            
+                            <!--<textarea class="form-control form-control-sm" data-ng--model="$ctrl.editEvent.description" rows="4" maxlength="2000"></textarea>-->
                         </div>
                     </div>
 
@@ -164,7 +211,7 @@
                     <div class="form-group row">
                         <label class="col-sm-4 col-xs-12">Description:</label>
                         <div class="col-sm-8 col-xs-12">
-                            {{ $ctrl.viewEvent.description }}
+                            <div id="view-event-desc" data-ng-bind-html="$ctrl.viewEvent.description"></div>
                         </div>
                     </div>
                 </form>

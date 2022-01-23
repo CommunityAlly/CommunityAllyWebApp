@@ -102,8 +102,11 @@ var Ally;
                         if (event.calendarEventObject) {
                             if (innerThis.$rootScope.isSiteManager)
                                 innerThis.setEditEvent(event.calendarEventObject, true);
-                            else
+                            else {
                                 innerThis.viewEvent = event.calendarEventObject;
+                                // Make <a> links open in new tabs
+                                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("view-event-desc"); }, 500);
+                            }
                         }
                     });
                 },
@@ -290,11 +293,6 @@ var Ally;
                 innerThis.isLoadingCalendarEvents = false;
             });
         };
-        LogbookController.prototype.isUserAssociated = function (userId) {
-            if (this.editEvent && this.editEvent.associatedUserIds)
-                return _.contains(this.editEvent.associatedUserIds, userId);
-            return false;
-        };
         LogbookController.prototype.isDateInPast = function (date) {
             var momentDate = moment(date);
             var today = moment();
@@ -326,6 +324,25 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.expandCalendarEventModel = function () {
             this.showExpandedCalendarEventModel = true;
+            this.hookUpWysiwyg();
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Wire up the WYSIWYG description editor
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        LogbookController.prototype.hookUpWysiwyg = function () {
+            var _this = this;
+            this.$timeout(function () {
+                Ally.RichTextHelper.initToolbarBootstrapBindings();
+                _this.richEditorElem = $('#desc-rich-editor');
+                _this.richEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+                // Convert old line breaks to HTML line breaks
+                //if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
+                //    this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
+                if (_this.editEvent && _this.editEvent.description)
+                    _this.richEditorElem.html(_this.editEvent.description);
+                else
+                    _this.richEditorElem.html("");
+            }, 100);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Set the calendar event for us to edit
@@ -338,12 +355,17 @@ var Ally;
             this.showBadNotificationDateWarning = false;
             if (this.editEvent) {
                 // Simplify the UI logic by transforming this input
-                if (this.residents)
-                    _.each(this.residents, function (r) { return r.isAssociated = _this.isUserAssociated(r.userId); });
+                if (this.residents) {
+                    this.residents.forEach(function (r) { return r.isAssociated = false; });
+                    if (this.editEvent.associatedUserIds)
+                        this.residents.filter(function (r) { return _this.editEvent.associatedUserIds.indexOf(r.userId) !== -1; }).forEach(function (r) { return r.isAssociated = true; });
+                }
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
                 setTimeout(function () { $("#calendar-event-title").focus(); }, 10);
+                if (this.showExpandedCalendarEventModel)
+                    this.hookUpWysiwyg();
             }
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,6 +411,7 @@ var Ally;
                 alert("Please enter a title in the 'what' field");
                 return;
             }
+            this.editEvent.description = this.richEditorElem.html();
             // Ensure the user enters a 'days before' email setting
             if (this.editEvent.shouldSendNotification) {
                 var daysBefore = this.getDaysBeforeValue();

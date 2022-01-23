@@ -22,6 +22,7 @@ namespace Ally
         currentTimeZoneAbbreviation: string = "CT";
         groupTimeZoneAbbreviation: string;
         localTimeZoneDiffersFromGroup: boolean = false;
+        richEditorElem: JQuery;
 
         static DateFormat = "YYYY-MM-DD";
         static TimeFormat = "h:mma";
@@ -111,7 +112,12 @@ namespace Ally
                             if( innerThis.$rootScope.isSiteManager )
                                 innerThis.setEditEvent( event.calendarEventObject, true );
                             else
+                            {
                                 innerThis.viewEvent = event.calendarEventObject;
+                                
+                                // Make <a> links open in new tabs
+                                setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
+                            }
                         }
                     } );
                 },
@@ -402,15 +408,6 @@ namespace Ally
         }
 
 
-        isUserAssociated( userId: string ): boolean
-        {
-            if( this.editEvent && this.editEvent.associatedUserIds )
-                return _.contains( this.editEvent.associatedUserIds, userId );
-
-            return false;
-        }
-
-
         isDateInPast( date: Date ): boolean
         {
             var momentDate = moment( date );
@@ -455,6 +452,32 @@ namespace Ally
         expandCalendarEventModel()
         {
             this.showExpandedCalendarEventModel = true;
+
+            this.hookUpWysiwyg();
+        }
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Wire up the WYSIWYG description editor
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        hookUpWysiwyg()
+        {
+            this.$timeout( () =>
+            {
+                RichTextHelper.initToolbarBootstrapBindings();
+
+                this.richEditorElem = $( '#desc-rich-editor' );
+                ( <any>this.richEditorElem ).wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert } );
+
+                // Convert old line breaks to HTML line breaks
+                //if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
+                //    this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
+
+                if( this.editEvent && this.editEvent.description )
+                    this.richEditorElem.html( this.editEvent.description );
+                else
+                    this.richEditorElem.html( "" );
+            }, 100 );
         }
 
 
@@ -482,13 +505,20 @@ namespace Ally
             {
                 // Simplify the UI logic by transforming this input
                 if( this.residents )
-                    _.each( this.residents, ( r ) => r.isAssociated = this.isUserAssociated( r.userId ) );
+                {
+                    this.residents.forEach( r => r.isAssociated = false );
+                    if( this.editEvent.associatedUserIds )
+                        this.residents.filter( r => this.editEvent.associatedUserIds.indexOf( r.userId ) !== -1 ).forEach( r => r.isAssociated = true );
+                }
 
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
 
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
                 setTimeout( function() { $( "#calendar-event-title" ).focus(); }, 10 );
+
+                if( this.showExpandedCalendarEventModel )
+                    this.hookUpWysiwyg();
             }
         }
 
@@ -553,6 +583,8 @@ namespace Ally
                 alert( "Please enter a title in the 'what' field" );
                 return;
             }
+
+            this.editEvent.description = this.richEditorElem.html();
 
             // Ensure the user enters a 'days before' email setting
             if( this.editEvent.shouldSendNotification )
