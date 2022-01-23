@@ -3,7 +3,6 @@ var Ally;
     var Poll = /** @class */ (function () {
         function Poll() {
             this.isAnonymous = true;
-            this.whoCanVote = 2;
         }
         return Poll;
     }());
@@ -21,9 +20,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManagePollsController($http, siteInfo) {
+        function ManagePollsController($http, siteInfo, fellowResidents) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.editingItem = new Poll();
             this.pollHistory = [];
             this.isLoading = false;
@@ -33,11 +33,13 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManagePollsController.prototype.$onInit = function () {
+            var _this = this;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             var threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
             this.defaultPoll.expirationDate = threeDaysLater;
+            this.defaultPoll.votingGroupShortName = "everyone";
             this.defaultPoll.answers = [
                 {
                     answerText: "Yes"
@@ -48,12 +50,16 @@ var Ally;
             ];
             // The new or existing news item that's being edited by the user
             this.editingItem = angular.copy(this.defaultPoll);
-            this.retrieveItems();
+            this.isLoading = true;
+            this.fellowResidents.getGroupEmailObject().then(function (groupEmails) {
+                _this.groupEmails = _.sortBy(groupEmails, function (e) { return e.displayName.toUpperCase(); });
+                _this.retrievePolls();
+            }, function () { return _this.retrievePolls(); });
         };
         /**
          * Populate the poll data
          */
-        ManagePollsController.prototype.retrieveItems = function () {
+        ManagePollsController.prototype.retrievePolls = function () {
             var AbstainAnswerSortOrder = 101;
             this.isLoading = true;
             var innerThis = this;
@@ -103,7 +109,7 @@ var Ally;
             var onSave = function () {
                 innerThis.isLoading = false;
                 innerThis.editingItem = angular.copy(innerThis.defaultPoll);
-                innerThis.retrieveItems();
+                innerThis.retrievePolls();
             };
             var onFailure = function (response) {
                 innerThis.isLoading = false;
@@ -134,7 +140,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.$http.delete("/api/Poll?pollId=" + item.pollId).then(function () {
-                _this.retrieveItems();
+                _this.retrievePolls();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 if (httpResponse.status === 403)
@@ -188,7 +194,15 @@ var Ally;
             this.chartData = poll.chartData;
             this.viewingPollResults = poll;
         };
-        ManagePollsController.$inject = ["$http", "SiteInfo"];
+        ManagePollsController.prototype.formatVoteGroupName = function (votingGroupShortName) {
+            if (!this.groupEmails)
+                return votingGroupShortName;
+            var emailGroup = this.groupEmails.find(function (g) { return g.recipientTypeName.toLowerCase() === votingGroupShortName; });
+            if (!emailGroup)
+                return votingGroupShortName;
+            return emailGroup.displayName;
+        };
+        ManagePollsController.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return ManagePollsController;
     }());
     Ally.ManagePollsController = ManagePollsController;

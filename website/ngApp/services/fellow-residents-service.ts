@@ -6,6 +6,7 @@
     export class GroupEmailInfo
     {
         recipientType: string;
+        recipientTypeName: string;
         displayName: string;
         usersFullNames: string[];
         sortOrder: number;
@@ -212,7 +213,6 @@
          */
         getGroupEmailObject(): ng.IPromise<GroupEmailInfo[]>
         {
-            var innerThis = this;
             return this.$http.get( "/api/BuildingResidents/EmailGroups", { cache: this.httpCache } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailInfo[]> )
             {
                 return httpResponse.data;

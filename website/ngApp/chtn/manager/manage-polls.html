@@ -1,4 +1,5 @@
 <div class="page page-manage-polls">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <h1>Create a Poll</h1>
 
@@ -14,8 +15,6 @@
     </ul>
 
     <form id="edit-item-form" name="editItemForm" class="spinner-effect margin-top" novalidate>
-        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
-
         <div class="form-group">
             <label>Enter Question:<span class="validation-label" data-ng-show="$ctrl.editItemForm.PollQuestionTextBox.$error.required">Required</span></label>
             <input id="poll-question-textbox" type="text" class="form-control form-control-sm" maxlength="80" name="PollQuestionTextBox" data-ng-model="$ctrl.editingItem.questionText" required />
@@ -81,11 +80,25 @@
         </p>
 
         <p>
-            Who can vote on this poll? <select data-ng-model="$ctrl.editingItem.whoCanVote">
-                <option data-ng-value="1">Board</option>
-                <option data-ng-value="2">Owners</option>
-                <option data-ng-value="3">Everyone</option>
+            Who can vote on this poll?
+            <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.groupEmails">
             </select>
+        </p>
+
+        <p data-ng-if="!$ctrl.editingItem.postDate">
+            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.shouldSendAnnouncementEmail"> Send announcement email</label>
+            <br />
+            <span class="note-text">
+                Checking this will send out an email to residents that a poll has been added. <a class="font-italic" target="_blank" href="https://help.communityally.org/wp-content/uploads/2022/01/sample-poll-email.png">View Sample Email</a>
+            </span>
+        </p>
+
+        <p>
+            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.shouldSendReminderEmail"> Send reminder email</label>
+            <br />
+            <span class="note-text">
+                Checking this will cause an email reminder to be sent out 1 day before the poll's expiration date to anyone that hasn't yet voted.
+            </span>
         </p>
 
         <p class="text-right">
@@ -118,15 +131,13 @@
                         <span id="delete-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onDeleteItem( pollItem );">Delete</span>
                     </td>
                     <!--<td class="poll-entry-{{ $index }}-status"></td>-->
-                    <td class="poll-entry-{{ $index }}-question-text">{{pollItem.questionText}}<span class="note-text ml-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>
+                    <td class="poll-entry-{{ $index }}-question-text">{{::pollItem.questionText}}<span class="note-text ml-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>
                     <td class="poll-entry-{{ $index }}-who">
-                        <span data-ng-if="pollItem.whoCanVote === 1">Board</span>
-                        <span data-ng-if="pollItem.whoCanVote === 2">Owners</span>
-                        <span data-ng-if="pollItem.whoCanVote === 3">Everyone</span>
+                        <span>{{::$ctrl.formatVoteGroupName(pollItem.votingGroupShortName)}}</span>
                     </td>
-                    <td class="poll-entry-{{ $index }}-post-date">{{pollItem.postDate | date:'M/d/yyyy'}}</td>
-                    <td class="poll-entry-{{ $index }}-expiration-date">{{pollItem.expirationDate | date:'M/d/yyyy'}}</td>
-                    <td class="poll-entry-{{ $index }}-author-name">{{pollItem.authorName | date:'M/d/yyyy'}}</td>
+                    <td class="poll-entry-{{ $index }}-post-date">{{::pollItem.postDate | date:'M/d/yyyy'}}</td>
+                    <td class="poll-entry-{{ $index }}-expiration-date">{{::pollItem.expirationDate | date:'M/d/yyyy'}}</td>
+                    <td class="poll-entry-{{ $index }}-author-name">{{::pollItem.authorName | date:'M/d/yyyy'}}</td>
                     <td class="text-center">
                         <span class="text-button" data-ng-click="$ctrl.onViewResults( pollItem )">View</span>
                     </td>

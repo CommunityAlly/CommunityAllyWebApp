@@ -11,10 +11,13 @@
         authorName: string;
         questionText: string;
         detailText: string;
+        votingGroupShortName: string;
+        shouldSendReminderEmail: boolean;
+        shouldAllowEmailVoting: boolean;
+        shouldSendAnnouncementEmail: boolean;
         isComplete: boolean;
         answers: any[];
         responses: PollResponse[];
-        whoCanVote: number = 2;
         hasUsersUnitVoted: boolean;
         unitVoteText: string;
         noResponseCount: number;
@@ -52,7 +55,7 @@
      */
     export class ManagePollsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "fellowResidents"];
 
         defaultPoll: Poll;
         editingItem: Poll = new Poll();
@@ -62,12 +65,15 @@
         chartData: number[];
         chartLabels: string[];
         isSuperAdmin: boolean = false;
+        groupEmails: GroupEmailInfo[];
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService,
+            private siteInfo: Ally.SiteInfoService,
+            private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -84,6 +90,7 @@
 
             this.defaultPoll = new Poll();
             this.defaultPoll.expirationDate = threeDaysLater;
+            this.defaultPoll.votingGroupShortName = "everyone";
             this.defaultPoll.answers = [
                 {
                     answerText: "Yes"
@@ -96,14 +103,22 @@
             // The new or existing news item that's being edited by the user
             this.editingItem = angular.copy( this.defaultPoll );
 
-            this.retrieveItems();
+            this.isLoading = true;
+            this.fellowResidents.getGroupEmailObject().then(
+                ( groupEmails ) =>
+                {
+                    this.groupEmails = _.sortBy( groupEmails, e => e.displayName.toUpperCase() );
+                    this.retrievePolls();
+                },
+                () => this.retrievePolls()
+            );
         }
 
 
         /**
          * Populate the poll data
          */
-        retrieveItems()
+        retrievePolls()
         {
             const AbstainAnswerSortOrder = 101;
 
@@ -177,7 +192,7 @@
             {
                 innerThis.isLoading = false;
                 innerThis.editingItem = angular.copy( innerThis.defaultPoll );
-                innerThis.retrieveItems();
+                innerThis.retrievePolls();
             };
             var onFailure = ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
@@ -220,7 +235,7 @@
             this.$http.delete( "/api/Poll?pollId=" + item.pollId ).then(
                 () =>
                 {
-                    this.retrieveItems();
+                    this.retrievePolls();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -291,6 +306,19 @@
             this.chartData = poll.chartData;
 
             this.viewingPollResults = poll;
+        }
+
+
+        formatVoteGroupName( votingGroupShortName: string )
+        {
+            if( !this.groupEmails )
+                return votingGroupShortName;
+
+            const emailGroup = this.groupEmails.find( g => g.recipientTypeName.toLowerCase() === votingGroupShortName );
+            if( !emailGroup )
+                return votingGroupShortName;
+
+            return emailGroup.displayName;
         }
     }
 }

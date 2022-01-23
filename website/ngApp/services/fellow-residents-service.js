@@ -142,7 +142,6 @@ var Ally;
          * Get the object describing the available group e-mail addresses
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
-            var innerThis = this;
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
