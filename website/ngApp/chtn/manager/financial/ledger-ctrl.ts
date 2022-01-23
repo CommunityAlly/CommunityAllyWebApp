@@ -334,8 +334,11 @@ namespace Ally
                     return;
                 
                 const unitListEntry = this.unitListEntries.find( u => u.unitId === entry.associatedUnitId );
-                
-                entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+
+                if( unitListEntry )
+                    entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                else
+                    entry.unitGridLabel = "UNK";
             } );
         }
 

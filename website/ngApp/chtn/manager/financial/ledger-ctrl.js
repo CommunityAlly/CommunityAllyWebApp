@@ -256,7 +256,10 @@ var Ally;
                 if (!entry.associatedUnitId)
                     return;
                 var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
-                entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                if (unitListEntry)
+                    entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                else
+                    entry.unitGridLabel = "UNK";
             });
         };
         LedgerController.prototype.refreshEntries = function () {
