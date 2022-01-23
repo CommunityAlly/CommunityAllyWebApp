@@ -93,6 +93,8 @@ namespace Ally
         isAdmin: boolean = false;
         numInvalidMailingAddresses: number = 0;
         numAddressesToBulkValidate: number = 0;
+        shouldShowAutoUnselect: boolean = false;
+        autoUnselectLabel: string;
 
 
         /**
@@ -100,7 +102,7 @@ namespace Ally
         */
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService, private wizardHandler: any, private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $location: ng.ILocationService )
         {
-            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
+            const amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
 
             this.homesGridOptions =
                 {
@@ -159,9 +161,9 @@ namespace Ally
                     {
                         this.gridApi = gridApi;
 
-                        var updateFromSelection = () =>
+                        const updateFromSelection = () =>
                         {
-                            var selectedRows = gridApi.selection.getSelectedRows();
+                            const selectedRows = gridApi.selection.getSelectedRows();
                             this.selectedEntries = selectedRows;
 
                             //_.forEach( <InvoiceMailingEntry[]>this.homesGridOptions.data, e => e.shouldIncludeForSending = false );
@@ -204,7 +206,7 @@ namespace Ally
                         //window.dispatchEvent( evt );
 
                         // Update the grid to show the selection based on our internal selection
-                        for( var curRow of this.selectedEntries )
+                        for( let curRow of this.selectedEntries )
                         {
                             this.gridApi.selection.selectRow( curRow );
                         }
@@ -229,8 +231,66 @@ namespace Ally
                     this.numPaperLettersToSend = _.filter( this.selectedEntries, e => e.shouldSendPaperMail ).length;
                 }
             } );
+
+            this.shouldShowAutoUnselect = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled
+                && this.siteInfo.privateSiteInfo.assessmentFrequency >= 50;
+
+            if( this.shouldShowAutoUnselect )
+            {
+                this.autoUnselectLabel = MailingInvoiceController.getCurrentPayPeriodLabel( this.siteInfo.privateSiteInfo.assessmentFrequency )
+
+                if( !this.autoUnselectLabel )
+                    this.shouldShowAutoUnselect = false;
+            }
         }
         
+
+        static getCurrentPayPeriod( assessmentFrequency: number )
+        {
+            const payPeriodInfo = FrequencyIdToInfo( assessmentFrequency );
+            if( !payPeriodInfo )
+                return null;
+
+            const today = new Date();
+
+            const periodInfo = {
+                year: today.getFullYear(),
+                period: -1,
+                period1Based: -1
+            };
+
+            if( payPeriodInfo.intervalName === "month" )
+                periodInfo.period = today.getMonth();
+            else if( payPeriodInfo.intervalName === "quarter" )
+                periodInfo.period = today.getMonth() / 3;
+            else if( payPeriodInfo.intervalName === "half-year" )
+                periodInfo.period = today.getMonth() / 6;
+            else if( payPeriodInfo.intervalName === "year" )
+                periodInfo.period = 0;
+
+            periodInfo.period1Based = periodInfo.period + 1;
+
+            return periodInfo;
+        }
+
+
+        static getCurrentPayPeriodLabel( assessmentFrequency: number ): string
+        {
+            const payPeriodInfo = FrequencyIdToInfo( assessmentFrequency );
+            if( !payPeriodInfo )
+                return null;
+
+            const periodNames = GetLongPayPeriodNames( payPeriodInfo.intervalName );
+            if( !periodNames )
+                return new Date().getFullYear().toString();
+
+            const currentPeriod = MailingInvoiceController.getCurrentPayPeriod( assessmentFrequency );
+
+            const yearString = currentPeriod.year.toString();
+
+            return periodNames[currentPeriod.period] + " " + yearString;
+        }
+
 
         customizeNotes( recipient: InvoiceMailingEntry )
         {
@@ -290,21 +350,24 @@ namespace Ally
             recipient.isValidMailingAddress = null;
             recipient.validationMessage = null;
 
-            return this.$http.post( "/api/Mailing/TestMailability", recipient.streetAddressObject ).then( ( response: ng.IHttpPromiseCallbackArg<AddressVerificationResult> ) =>
-            {
-                recipient.isValidating = false;
-                recipient.isValidMailingAddress = response.data.isValid;
-                recipient.validationMessage = response.data.verificationMessage;
+            return this.$http.post( "/api/Mailing/TestMailability", recipient.streetAddressObject ).then(
+                ( response: ng.IHttpPromiseCallbackArg<AddressVerificationResult> ) =>
+                {
+                    recipient.isValidating = false;
+                    recipient.isValidMailingAddress = response.data.isValid;
+                    recipient.validationMessage = response.data.verificationMessage;
 
-                this.numInvalidMailingAddresses = _.filter( this.selectedEntries, e => e.isValidMailingAddress === false ).length;
+                    this.numInvalidMailingAddresses = _.filter( this.selectedEntries, e => e.isValidMailingAddress === false ).length;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                recipient.isValidating = false;
-                recipient.isValidMailingAddress = false;
-                recipient.validatedAddress = null;
-                recipient.validationMessage = "Address validation failed: " + response.data.exceptionMessage;
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    recipient.isValidating = false;
+                    recipient.isValidMailingAddress = false;
+                    recipient.validatedAddress = null;
+                    recipient.validationMessage = "Address validation failed: " + response.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -316,7 +379,7 @@ namespace Ally
             recipient.isValidating = true;
             recipient.isValidMailingAddress = null;
 
-            var validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent( JSON.stringify( recipient.streetAddressObject ) );
+            const validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent( JSON.stringify( recipient.streetAddressObject ) );
 
             return this.$http.get( validateUri ).then( ( response: ng.IHttpPromiseCallbackArg<AddressVerificationResult> ) =>
             {
@@ -339,7 +402,7 @@ namespace Ally
         
         previewInvoice(entry:InvoiceMailingEntry)
         {
-            var previewPostInfo = new InvoicePreviewInfo();
+            const previewPostInfo = new InvoicePreviewInfo();
             previewPostInfo.invoiceTitleString = this.fullMailingInfo.invoiceTitleString;
             previewPostInfo.dueDateString = this.fullMailingInfo.dueDateString;
             previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
@@ -517,7 +580,7 @@ namespace Ally
                 {
                     let recipientsToVerify = _.clone( this.selectedEntries );
 
-                    var validateAllStep = () =>
+                    const validateAllStep = () =>
                     {
                         this.validateAddress( recipientsToVerify[0] ).then( () =>
                         {
@@ -535,7 +598,7 @@ namespace Ally
 
                     this.numAddressesToBulkValidate = recipientsToVerify.length;
 
-                    var testAddressAllStep = () =>
+                    const testAddressAllStep = () =>
                     {
                         this.testAddressRequiredFields( recipientsToVerify[0] ).then( () =>
                         {
@@ -554,6 +617,40 @@ namespace Ally
                     testAddressAllStep();
                 }
             }
+        }
+
+
+        autoUnselectPaidOwners()
+        {
+            this.isLoading = true;
+
+            const currentPeriod = MailingInvoiceController.getCurrentPayPeriod( this.siteInfo.privateSiteInfo.assessmentFrequency );
+
+            const getUri = `/api/PaymentHistory/RecentPayPeriod/${currentPeriod.year}/${currentPeriod.period1Based}`;
+
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<AssessmentPayment[]> ) =>
+                {
+                    this.isLoading = false;
+
+                    for( let mailingEntry of (<InvoiceMailingEntry[]>this.homesGridOptions.data) )
+                    {
+                        const paidUnits = response.data.filter( u => mailingEntry.unitIds.indexOf( u.unitId ) !== -1 );
+
+                        const isPaid = paidUnits.length > 0;
+
+                        if( isPaid )
+                            this.gridApi.selection.unSelectRow( mailingEntry, null );
+                        else
+                            this.gridApi.selection.selectRow( mailingEntry, null );
+                    }
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve assessment status: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }

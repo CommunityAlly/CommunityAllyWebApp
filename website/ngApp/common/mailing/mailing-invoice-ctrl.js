@@ -55,6 +55,7 @@ var Ally;
             this.isAdmin = false;
             this.numInvalidMailingAddresses = 0;
             this.numAddressesToBulkValidate = 0;
+            this.shouldShowAutoUnselect = false;
             var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
             this.homesGridOptions =
                 {
@@ -164,6 +165,45 @@ var Ally;
                     _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
                 }
             });
+            this.shouldShowAutoUnselect = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled
+                && this.siteInfo.privateSiteInfo.assessmentFrequency >= 50;
+            if (this.shouldShowAutoUnselect) {
+                this.autoUnselectLabel = MailingInvoiceController.getCurrentPayPeriodLabel(this.siteInfo.privateSiteInfo.assessmentFrequency);
+                if (!this.autoUnselectLabel)
+                    this.shouldShowAutoUnselect = false;
+            }
+        };
+        MailingInvoiceController.getCurrentPayPeriod = function (assessmentFrequency) {
+            var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            if (!payPeriodInfo)
+                return null;
+            var today = new Date();
+            var periodInfo = {
+                year: today.getFullYear(),
+                period: -1,
+                period1Based: -1
+            };
+            if (payPeriodInfo.intervalName === "month")
+                periodInfo.period = today.getMonth();
+            else if (payPeriodInfo.intervalName === "quarter")
+                periodInfo.period = today.getMonth() / 3;
+            else if (payPeriodInfo.intervalName === "half-year")
+                periodInfo.period = today.getMonth() / 6;
+            else if (payPeriodInfo.intervalName === "year")
+                periodInfo.period = 0;
+            periodInfo.period1Based = periodInfo.period + 1;
+            return periodInfo;
+        };
+        MailingInvoiceController.getCurrentPayPeriodLabel = function (assessmentFrequency) {
+            var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            if (!payPeriodInfo)
+                return null;
+            var periodNames = GetLongPayPeriodNames(payPeriodInfo.intervalName);
+            if (!periodNames)
+                return new Date().getFullYear().toString();
+            var currentPeriod = MailingInvoiceController.getCurrentPayPeriod(assessmentFrequency);
+            var yearString = currentPeriod.year.toString();
+            return periodNames[currentPeriod.period] + " " + yearString;
         };
         MailingInvoiceController.prototype.customizeNotes = function (recipient) {
             recipient.overrideNotes = this.fullMailingInfo.notes || " ";
@@ -362,30 +402,54 @@ var Ally;
                 // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
-                    var validateAllStep = function () {
+                    var validateAllStep_1 = function () {
                         _this.validateAddress(recipientsToVerify_1[0]).then(function () {
                             recipientsToVerify_1.splice(0, 1);
                             while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
                                 recipientsToVerify_1.splice(0, 1);
                             if (recipientsToVerify_1.length > 0)
-                                validateAllStep();
+                                validateAllStep_1();
                         });
                     };
                     //validateAllStep();
                     this.numAddressesToBulkValidate = recipientsToVerify_1.length;
-                    var testAddressAllStep = function () {
+                    var testAddressAllStep_1 = function () {
                         _this.testAddressRequiredFields(recipientsToVerify_1[0]).then(function () {
                             recipientsToVerify_1.splice(0, 1);
                             while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
                                 recipientsToVerify_1.splice(0, 1);
                             _this.numAddressesToBulkValidate = recipientsToVerify_1.length;
                             if (recipientsToVerify_1.length > 0)
-                                testAddressAllStep();
+                                testAddressAllStep_1();
                         });
                     };
-                    testAddressAllStep();
+                    testAddressAllStep_1();
                 }
             }
+        };
+        MailingInvoiceController.prototype.autoUnselectPaidOwners = function () {
+            var _this = this;
+            this.isLoading = true;
+            var currentPeriod = MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
+            var getUri = "/api/PaymentHistory/RecentPayPeriod/" + currentPeriod.year + "/" + currentPeriod.period1Based;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                var _loop_1 = function (mailingEntry) {
+                    var paidUnits = response.data.filter(function (u) { return mailingEntry.unitIds.indexOf(u.unitId) !== -1; });
+                    var isPaid = paidUnits.length > 0;
+                    if (isPaid)
+                        _this.gridApi.selection.unSelectRow(mailingEntry, null);
+                    else
+                        _this.gridApi.selection.selectRow(mailingEntry, null);
+                };
+                for (var _i = 0, _a = _this.homesGridOptions.data; _i < _a.length; _i++) {
+                    var mailingEntry = _a[_i];
+                    _loop_1(mailingEntry);
+                }
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve assessment status: " + response.data.exceptionMessage);
+            });
         };
         MailingInvoiceController.$inject = ["$http", "SiteInfo", "fellowResidents", "WizardHandler", "$scope", "$timeout", "$location"];
         return MailingInvoiceController;

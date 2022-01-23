@@ -94,6 +94,11 @@
             <div style="text-align: right;">
                 Set all amounts due to: $<input type="number" style="width: 70px;" data-ng-model="$ctrl.allDuesSetAmount" /><button type="button" data-ng-click="$ctrl.setAllDues()">Set</button>
             </div>
+            
+            <div data-ng-if="$ctrl.shouldShowAutoUnselect">
+                <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.autoUnselectPaidOwners()">Unselect all residents that have already paid for {{$ctrl.autoUnselectLabel}}</button>
+                <div class="note-text">This status comes from the <a href="#!/Financials/AssessmentHistory">assessment history</a> page.</div>
+            </div>
             <div>
                 <div data-ng-if="$ctrl.activeStepIndex === 1" data-ui-grid="$ctrl.homesGridOptions" ui-grid-auto-resize ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
                 <div>
