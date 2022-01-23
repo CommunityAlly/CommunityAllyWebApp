@@ -77,10 +77,10 @@ var Ally;
                         },
                         {
                             field: "amountPaid",
-                            displayName: "Amount Paid",
+                            displayName: "Mailing Fee",
                             cellFilter: "currency",
                             type: "number",
-                            width: 110
+                            width: 130
                         },
                         {
                             field: "sendingReason",
