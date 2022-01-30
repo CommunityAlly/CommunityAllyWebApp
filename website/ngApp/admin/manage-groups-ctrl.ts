@@ -103,56 +103,58 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/Association/AdminList" ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.groups = response.data;
+            this.$http.get( "/api/Association/AdminList" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.groups = response.data;
 
-                // Add the app type string
-                _.each( innerThis.groups, function( g: GroupEntry )
+                    // Add the app type string
+                    _.each( this.groups, function( g: GroupEntry )
+                    {
+                        if( g.appName === 0 )
+                        {
+                            g.appNameString = "Condo";
+                            g.baseUrl = "https://" + g.shortName + ".CondoAlly.com/";
+                        }
+                        else if( g.appName === 1 )
+                        {
+                            g.appNameString = "NeighborhoodWatch";
+                            g.baseUrl = "https://" + g.shortName + ".WatchAlly.com/";
+                        }
+                        else if( g.appName === 2 )
+                        {
+                            g.appNameString = "Home";
+                            g.baseUrl = "https://" + g.shortName + ".HomeAlly.org/";
+                        }
+                        else if( g.appName === 3 )
+                        {
+                            g.appNameString = "Hoa";
+                            g.baseUrl = "https://" + g.shortName + ".HoaAlly.org/";
+                        }
+                        else if( g.appName === 4 )
+                        {
+                            g.appNameString = "Neighborhood";
+                            g.baseUrl = "https://" + g.shortName + ".NeighborhoodAlly.org/";
+                        }
+                        else if( g.appName === 5 )
+                        {
+                            g.appNameString = "PTA";
+                            g.baseUrl = "https://" + g.shortName + ".PTAAlly.org/";
+                        }
+                        else if( g.appName === 6 )
+                        {
+                            g.appNameString = "BlockClub";
+                            g.baseUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
+                        }
+                    } );
+                },
+                () =>
                 {
-                    if( g.appName === 0 )
-                    {
-                        g.appNameString = "Condo";
-                        g.baseUrl = "https://" + g.shortName + ".CondoAlly.com/";
-                    }
-                    else if( g.appName === 1 )
-                    {
-                        g.appNameString = "NeighborhoodWatch";
-                        g.baseUrl = "https://" + g.shortName + ".WatchAlly.com/";
-                    }
-                    else if( g.appName === 2 )
-                    {
-                        g.appNameString = "Home";
-                        g.baseUrl = "https://" + g.shortName + ".HomeAlly.org/";
-                    }
-                    else if( g.appName === 3 )
-                    {
-                        g.appNameString = "Hoa";
-                        g.baseUrl = "https://" + g.shortName + ".HoaAlly.org/";
-                    }
-                    else if( g.appName === 4 )
-                    {
-                        g.appNameString = "Neighborhood";
-                        g.baseUrl = "https://" + g.shortName + ".NeighborhoodAlly.org/";
-                    }
-                    else if( g.appName === 5 )
-                    {
-                        g.appNameString = "PTA";
-                        g.baseUrl = "https://" + g.shortName + ".PTAAlly.org/";
-                    }
-                    else if( g.appName === 6 )
-                    {
-                        g.appNameString = "BlockClub";
-                        g.baseUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
-                    }
-                } );
-            }, function()
-                {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
                     alert( "Failed to retrieve groups" );
-                } );
+                }
+            );
         }
 
 
@@ -234,19 +236,21 @@
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.delete( "/api/Association/chtn/" + association.groupId ).then(() =>
-            {
-                innerThis.isLoading = false;
-
-                innerThis.retrieveGroups();
-            }, ( error: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            this.$http.delete( "/api/Association/chtn/" + association.groupId ).then(
+                () =>
                 {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
+
+                    this.retrieveGroups();
+                },
+                ( error: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
 
                     console.log( error.data.exceptionMessage );
                     alert( "Failed to delete group: " + error.data.exceptionMessage );
-                } );
+                }
+            );
         }
 
 
@@ -280,14 +284,13 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.post( "/api/Association", this.newAssociation ).then(() =>
             {
-                innerThis.isLoading = false;
+                this.isLoading = false;
 
-                innerThis.newAssociation = new GroupEntry();
+                this.newAssociation = new GroupEntry();
 
-                innerThis.retrieveGroups();
+                this.retrieveGroups();
             } );
         }
 
@@ -317,16 +320,18 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail ).success( function()
-            {
-                innerThis.isLoading = false;
-                alert( "Successfully sent email" );
-            } ).error( function()
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to send email" );
-            } );
+            this.$http.get( "/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Successfully sent email" );
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to send email" );
+                }
+            );
         }
 
 
@@ -334,16 +339,18 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/AdminHelper/SendTestCalendarEmail" ).success( function()
-            {
-                innerThis.isLoading = false;
-                alert( "Successfully sent email" );
-            } ).error( function()
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to send email" );
-            } );
+            this.$http.get( "/api/AdminHelper/SendTestCalendarEmail" ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Successfully sent email" );
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to send email" );
+                }
+            );
         }
 
 
@@ -368,18 +375,17 @@
         {
             this.isLoadingHelper = true;
 
-            var request;
+            let request;
             if( postData )
                 request = this.$http.post( apiPath, postData );
             else
                 request = this.$http.get( apiPath );
 
-            var innerThis = this;
             request.then(
-                () => innerThis.isLoadingHelper = false,
+                () => this.isLoadingHelper = false,
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    innerThis.isLoadingHelper = false;
+                    this.isLoadingHelper = false;
 
                     const msg = response.data ? response.data.exceptionMessage : "";
                     alert( "Failed: " + msg );

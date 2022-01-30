@@ -89,31 +89,35 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/PreferredVendors" ).success(( vendors: PreferredVendor[] ) =>
-            {
-                this.isLoading = false;
-                this.allVendors = vendors;
-                this.filteredVendors = vendors;
-                this.sortEntries();
-
-                // Process the tags into an array for the ng-tag-input control, build the list of
-                // all used tags, and convert the add dates to local time
-                this.usedServiceTags = [];
-                _.each( this.allVendors, ( v: PreferredVendor ) =>
+            this.$http.get( "/api/PreferredVendors" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<PreferredVendor[]> ) =>
                 {
-                    v.servicesTagArray = [];
-                    _.each( v.servicesProvidedSplit, ( ss ) => v.servicesTagArray.push( { text: ss } ) );
+                    const vendors = response.data;
 
-                    this.usedServiceTags = this.usedServiceTags.concat( v.servicesProvidedSplit );
+                    this.isLoading = false;
+                    this.allVendors = vendors;
+                    this.filteredVendors = vendors;
+                    this.sortEntries();
 
-                    // Convert the added timestamps to local time
-                    v.addedDateUtc = moment.utc( v.addedDateUtc ).toDate();
-                } );
+                    // Process the tags into an array for the ng-tag-input control, build the list of
+                    // all used tags, and convert the add dates to local time
+                    this.usedServiceTags = [];
+                    _.each( this.allVendors, ( v: PreferredVendor ) =>
+                    {
+                        v.servicesTagArray = [];
+                        _.each( v.servicesProvidedSplit, ( ss ) => v.servicesTagArray.push( { text: ss } ) );
 
-                // Remove any duplicate tags
-                this.usedServiceTags = _.uniq( this.usedServiceTags );
-                this.usedServiceTags.sort();
-            } );
+                        this.usedServiceTags = this.usedServiceTags.concat( v.servicesProvidedSplit );
+
+                        // Convert the added timestamps to local time
+                        v.addedDateUtc = moment.utc( v.addedDateUtc ).toDate();
+                    } );
+
+                    // Remove any duplicate tags
+                    this.usedServiceTags = _.uniq( this.usedServiceTags );
+                    this.usedServiceTags.sort();
+                }
+            );
         }
 
 
@@ -125,9 +129,7 @@ namespace Ally
             if( typeof ( analytics ) !== "undefined" )
                 analytics.track( 'exportResidentCsv' );
 
-            var innerThis = this;
-
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Company Name",
                     fieldName: "companyName"
@@ -143,7 +145,7 @@ namespace Ally
                 {
                     headerText: "Address",
                     fieldName: "fullAddress",
-                    dataMapper: function ( value: FullAddress )
+                    dataMapper: ( value: FullAddress ) =>
                     {
                         return !value ? "" : value.oneLiner;
                     }
@@ -207,11 +209,10 @@ namespace Ally
                 this.filteredVendors = [];
 
                 // Grab any vendors that have one of the tags by which we're filtering
-                var innerThis = this;
                 _.each( this.allVendors, ( v ) =>
                 {
-                    if( _.intersection( v.servicesProvidedSplit, innerThis.filterTags ).length > 0 )
-                        innerThis.filteredVendors.push( v );
+                    if( _.intersection( v.servicesProvidedSplit, this.filterTags ).length > 0 )
+                        this.filteredVendors.push( v );
                 } );
             }
         }

@@ -20,11 +20,11 @@ var Ally;
             this.refreshAddresses();
         };
         ManageAddressPolysController.prototype.getPolyInfo = function (url, polyType) {
+            var _this = this;
             var deferred = this.$q.defer();
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get(url).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var addresses = httpResponse.data;
                 // Mark address as opposed to group bounds
                 _.each(addresses, function (a) {
@@ -32,11 +32,11 @@ var Ally;
                     if (polyType == "Group")
                         a.oneLiner = a.shortName + ", " + a.appName;
                 });
-                $.merge(innerThis.addresses, addresses);
-                deferred.resolve(innerThis.addresses);
+                $.merge(_this.addresses, addresses);
+                deferred.resolve(_this.addresses);
             }, function (httpResponse) {
-                this.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                _this.isLoading = false;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to retrieve addresses: " + errorMessage);
                 deferred.reject();
             });
@@ -50,29 +50,29 @@ var Ally;
         };
         // Get the addresses that are missing bounding polys
         ManageAddressPolysController.prototype.refreshAddresses = function () {
+            var _this = this;
             this.isLoading = true;
             this.addresses = [];
-            var innerThis = this;
-            this.getAddressPolys().then(function () { return innerThis.getGroupBoundPolys(); }).then(function (addresses) {
-                innerThis.addressPoints = [];
+            this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(function (addresses) {
+                _this.addressPoints = [];
                 _.each(addresses, function (a) {
                     if (a.gpsPos) {
                         // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
                         a.gpsPos.fullAddress = a.oneLiner;
-                        innerThis.addressPoints.push(a.gpsPos);
+                        _this.addressPoints.push(a.gpsPos);
                     }
                 });
             });
         };
         ManageAddressPolysController.prototype.onSavePoly = function () {
+            var _this = this;
             this.isLoading = true;
             var serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
             var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
-            var innerThis = this;
             this.$http.put(url, serverVerts).then(function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         // Occurs when the user clicks an address
@@ -87,8 +87,8 @@ var Ally;
                 this.selectedAddress.gpsBounds.vertices = [];
             // If the array is empty then create a default rectangle
             if (this.selectedAddress.gpsBounds.vertices.length == 0 && address.gpsPos) {
-                var southWest = new google.maps.LatLng(address.gpsPos.lat, address.gpsPos.lon);
-                var northEast = new google.maps.LatLng(address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001);
+                //const southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
+                //const northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
                 address.gpsBounds.vertices = [
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon },
                     { lat: address.gpsPos.lat + 0.001, lon: address.gpsPos.lon },
@@ -143,13 +143,13 @@ var Ally;
              * Retrieve the active group list
              */
             this.retrieveGroups = function () {
+                var _this = this;
                 this.isLoading = true;
-                var innerThis = this;
                 this.$http.get("/api/Association/AdminList").then(function (response) {
-                    innerThis.isLoading = false;
-                    innerThis.groups = response.data;
+                    _this.isLoading = false;
+                    _this.groups = response.data;
                     // Add the app type string
-                    _.each(innerThis.groups, function (g) {
+                    _.each(_this.groups, function (g) {
                         if (g.appName === 0) {
                             g.appNameString = "Condo";
                             g.baseUrl = "https://" + g.shortName + ".CondoAlly.com/";
@@ -180,7 +180,7 @@ var Ally;
                         }
                     });
                 }, function () {
-                    innerThis.isLoading = false;
+                    _this.isLoading = false;
                     alert("Failed to retrieve groups");
                 });
             };
@@ -261,15 +261,15 @@ var Ally;
          * Delete a CHTN group
          */
         ManageGroupsController.prototype.deleteAssociation = function (association) {
+            var _this = this;
             if (!confirm("Are you sure you want to delete this association?"))
                 return;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.delete("/api/Association/chtn/" + association.groupId).then(function () {
-                innerThis.isLoading = false;
-                innerThis.retrieveGroups();
+                _this.isLoading = false;
+                _this.retrieveGroups();
             }, function (error) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 console.log(error.data.exceptionMessage);
                 alert("Failed to delete group: " + error.data.exceptionMessage);
             });
@@ -293,12 +293,12 @@ var Ally;
          * Occurs when the user presses the button to create a new association
          */
         ManageGroupsController.prototype.onCreateAssociationClick = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Association", this.newAssociation).then(function () {
-                innerThis.isLoading = false;
-                innerThis.newAssociation = new GroupEntry();
-                innerThis.retrieveGroups();
+                _this.isLoading = false;
+                _this.newAssociation = new GroupEntry();
+                _this.retrieveGroups();
             });
         };
         ManageGroupsController.prototype.onSendTestEmail = function () {
@@ -313,24 +313,24 @@ var Ally;
             this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail3");
         };
         ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail).success(function () {
-                innerThis.isLoading = false;
+            this.$http.get("/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail).then(function () {
+                _this.isLoading = false;
                 alert("Successfully sent email");
-            }).error(function () {
-                innerThis.isLoading = false;
+            }, function () {
+                _this.isLoading = false;
                 alert("Failed to send email");
             });
         };
         ManageGroupsController.prototype.onSendTestCalendarEmail = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").success(function () {
-                innerThis.isLoading = false;
+            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").then(function () {
+                _this.isLoading = false;
                 alert("Successfully sent email");
-            }).error(function () {
-                innerThis.isLoading = false;
+            }, function () {
+                _this.isLoading = false;
                 alert("Failed to send email");
             });
         };
@@ -346,6 +346,7 @@ var Ally;
             });
         };
         ManageGroupsController.prototype.makeHelperRequest = function (apiPath, postData) {
+            var _this = this;
             if (postData === void 0) { postData = null; }
             this.isLoadingHelper = true;
             var request;
@@ -353,9 +354,8 @@ var Ally;
                 request = this.$http.post(apiPath, postData);
             else
                 request = this.$http.get(apiPath);
-            var innerThis = this;
-            request.then(function () { return innerThis.isLoadingHelper = false; }, function (response) {
-                innerThis.isLoadingHelper = false;
+            request.then(function () { return _this.isLoadingHelper = false; }, function (response) {
+                _this.isLoadingHelper = false;
                 var msg = response.data ? response.data.exceptionMessage : "";
                 alert("Failed: " + msg);
             });
@@ -913,7 +913,8 @@ CA.angularApp.component("viewResearch", {
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/";
-//OverrideOriginalUrl = "https://qa.condoally.com/";
+OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
+OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -1119,13 +1120,25 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.appConfig = AppConfig;
         $rootScope.isLoggedIn = false;
         $rootScope.publicSiteInfo = {};
-        $rootScope.hideMenu = false;
+        $rootScope.shouldHideMenu = false;
         $rootScope.isAdmin = false;
         $rootScope.isSiteManager = false;
         $rootScope.menuItems = _.where(AppConfig.menu, function (menuItem) { return !HtmlUtil.isNullOrWhitespace(menuItem.menuTitle); });
         $rootScope.mainMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Authorized; });
         $rootScope.manageMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Manager; });
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
+        $rootScope.publicMenuItems = null;
+        // Populate the custom page list, setting to null if not valid
+        $rootScope.populatePublicPageMenu = function () {
+            $rootScope.publicMenuItems = null;
+            if (!$rootScope.publicSiteInfo || !$rootScope.publicSiteInfo.customPages)
+                return;
+            var customPages = $rootScope.publicSiteInfo.customPages;
+            if (customPages.length == 0)
+                return;
+            customPages.forEach(function (p) { return p.path = "/Page/" + p.pageSlug; });
+            $rootScope.publicMenuItems = customPages;
+        };
         // Test localStorage here, fails in private browsing mode
         // If we have the association's public info cached then use it to load faster
         if (HtmlUtil.isLocalStorageAllowed()) {
@@ -1139,6 +1152,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                     //if( !HtmlUtil.isNullOrWhitespace( $rootScope.publicSiteInfo.bgImagePath ) )
                     //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + $rootScope.publicSiteInfo.bgImagePath + ")" );
                 }
+                $rootScope.populatePublicPageMenu();
             }
         }
         xdLocalStorage.init({
@@ -1292,7 +1306,34 @@ var PeriodicPaymentFrequencies = [
     { name: "Annually", intervalName: "year", id: 53 }
 ];
 function FrequencyIdToInfo(frequencyId) {
+    if (isNaN(frequencyId) || frequencyId < 50)
+        return null;
     return PeriodicPaymentFrequencies[frequencyId - 50];
+}
+function GetLongPayPeriodNames(intervalName) {
+    if (intervalName === "month") {
+        return ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+    }
+    else if (intervalName === "quarter") {
+        return ["Q1", "Q2", "Q3", "Q4"];
+    }
+    else if (intervalName === "half-year") {
+        return ["First Half", "Second Half"];
+    }
+    return null;
+}
+function GetShortPayPeriodNames(intervalName) {
+    if (intervalName === "month") {
+        return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    }
+    else if (intervalName === "quarter") {
+        return ["Q1", "Q2", "Q3", "Q4"];
+    }
+    else if (intervalName === "half-year") {
+        return ["1st Half", "2nd Half"];
+    }
+    return null;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Condo Ally
@@ -1324,7 +1365,7 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "NeighborSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All }),
         new Ally.RoutePath_v3({ path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All }),
         new Ally.RoutePath_v3({ path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All }),
-        new Ally.RoutePath_v3({ path: "CPView/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "Page/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
         new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
@@ -1344,6 +1385,7 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Admin }),
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1503,8 +1545,10 @@ PtaAppConfig.menu = [
 ];
 var AppConfig = null;
 var lowerDomain = document.domain.toLowerCase();
-if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl))
+if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")
     lowerDomain = OverrideOriginalUrl;
+if (!lowerDomain)
+    console.log("Unable to find domain, make sure to set OverrideBaseApiPath and OverrideOriginalUrl at the top of ally-app.ts");
 if (lowerDomain.indexOf("condo") !== -1)
     AppConfig = CondoAllyAppConfig;
 //else if( lowerDomain.indexOf( "watchally" ) !== -1 )
@@ -1607,6 +1651,7 @@ var Ally;
         }
         return AssessmentPayment;
     }(PeriodicPayment));
+    Ally.AssessmentPayment = AssessmentPayment;
     var PayerInfo = /** @class */ (function () {
         function PayerInfo() {
         }
@@ -1641,6 +1686,8 @@ var Ally;
             this.shouldColorCodePayments = false;
             this.shouldShowFillInSection = false;
             this.selectedFillInPeriod = null;
+            this.shouldShowNeedsAssessmentSetup = false;
+            this.hasAssessments = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -1680,6 +1727,11 @@ var Ally;
             var PeriodicPaymentFrequency_Quarterly = 51;
             var PeriodicPaymentFrequency_Semiannually = 52;
             var PeriodicPaymentFrequency_Annually = 53;
+            if (!this.siteInfo.privateSiteInfo.assessmentFrequency) {
+                this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
+                this.shouldShowNeedsAssessmentSetup = true;
+                return;
+            }
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
             if (this.isForMemberGroup)
                 this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
@@ -1700,26 +1752,34 @@ var Ally;
             else if (this.assessmentFrequency === PeriodicPaymentFrequency_Annually)
                 this.maxPeriodRange = 1;
             // Set the label values
-            this.monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            var shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            var quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
-            var shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
-            var semiannualNames = ["First Half", "Second Half"];
-            var shortSemiannualNames = ["1st Half", "2nd Half"];
-            this.periodNames = this.monthNames;
-            this.shortPeriodNames = shortMonthNames;
-            if (this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly) {
-                this.periodNames = quarterNames;
-                this.shortPeriodNames = shortQuarterNames;
-            }
-            else if (this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually) {
-                this.periodNames = semiannualNames;
-                this.shortPeriodNames = shortSemiannualNames;
-            }
-            else if (this.assessmentFrequency === PeriodicPaymentFrequency_Annually) {
+            //const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            //const shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            //const quarterNames = ["Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4"];
+            //const shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
+            //const semiannualNames = ["First Half", "Second Half"];
+            //const shortSemiannualNames = ["1st Half", "2nd Half"];
+            var payFrequencyInfo = FrequencyIdToInfo(this.assessmentFrequency);
+            this.periodNames = GetLongPayPeriodNames(payFrequencyInfo.intervalName);
+            this.shortPeriodNames = GetShortPayPeriodNames(payFrequencyInfo.intervalName);
+            if (!this.periodNames) {
                 this.periodNames = [""];
                 this.shortPeriodNames = [""];
             }
+            //if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
+            //{
+            //    this.periodNames = quarterNames;
+            //    this.shortPeriodNames = shortQuarterNames;
+            //}
+            //else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
+            //{
+            //    this.periodNames = semiannualNames;
+            //    this.shortPeriodNames = shortSemiannualNames;
+            //}
+            //else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            //{
+            //    this.periodNames = [""];
+            //    this.shortPeriodNames = [""];
+            //}
             // Set the current period
             this.startPeriodValue = new Date().getMonth() + 2;
             this.startYearValue = new Date().getFullYear();
@@ -2076,7 +2136,7 @@ var Ally;
                     Amount: unitPayment.assessment || 0,
                     PaymentDate: new Date(),
                     PayerUserId: this_1.siteInfo.userInfo.userId,
-                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name,
+                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name.trim(),
                     unitId: unitPayment.unitId
                 };
                 ++numPosts;
@@ -2215,8 +2275,8 @@ var Ally;
             }
             var incomeParentRow = _.find(this.curBudget.budgetRows, function (r) { return !r.parentRow && r.category.displayName === "Income"; });
             this.totalIncome = incomeParentRow.amount;
-            var expenseParentRows = this.curBudget.budgetRows.filter(function (r) { return !r.parentRow && r.category.displayName !== "Income"; });
-            this.totalExpense = _.reduce(expenseParentRows, function (memo, r) { return memo + r.amount; }, 0);
+            var expenseLeafRows = this.curBudget.budgetRows.filter(function (r) { return !r.parentRow && r.category.displayName !== "Income"; });
+            this.totalExpense = _.reduce(expenseLeafRows, function (memo, r) { return memo + r.amount; }, 0);
         };
         BudgetToolController.prototype.createBudget = function () {
             var _this = this;
@@ -2469,10 +2529,83 @@ var Ally;
                 _this.isLoading = false;
             });
         };
+        BudgetToolController.prototype.exportToCsv = function () {
+            // We're sort of hacking the CSV logic to work for budgets since there's not a clear
+            // column / row structure to it
+            var csvColumns = [
+                {
+                    headerText: "",
+                    fieldName: "col0"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col1"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col2"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col3"
+                },
+                {
+                    headerText: "",
+                    fieldName: "col4"
+                }
+            ];
+            var expenseRows = this.expenseGridOptions.data;
+            var incomeRows = this.incomeGridOptions.data;
+            var maxRows = Math.max(expenseRows.length, incomeRows.length);
+            var csvRows = [];
+            csvRows.push(new BudgetCsvRow("Budget:", this.curBudget.budgetName));
+            csvRows.push(new BudgetCsvRow());
+            csvRows.push(new BudgetCsvRow("Expenses", "", "", "Income"));
+            var getSlashedLabel = function (row) {
+                if (!row.parentRow)
+                    return row.categoryDisplayName;
+                return getSlashedLabel(row.parentRow) + "/" + row.categoryDisplayName;
+            };
+            for (var i = 0; i < maxRows; ++i) {
+                var newRow = new BudgetCsvRow();
+                if (i < expenseRows.length) {
+                    newRow.col0 = getSlashedLabel(expenseRows[i]);
+                    newRow.col1 = (expenseRows[i].amount || 0).toString();
+                }
+                if (i < incomeRows.length) {
+                    newRow.col3 = getSlashedLabel(incomeRows[i]);
+                    if (newRow.col3.startsWith("Income/"))
+                        newRow.col3 = newRow.col3.substring("Income/".length);
+                    newRow.col4 = (incomeRows[i].amount || 0).toString();
+                }
+                csvRows.push(newRow);
+            }
+            csvRows.push(new BudgetCsvRow("Expense Total", this.totalExpense.toString(), "", "Income Total", this.totalIncome.toString()));
+            csvRows.push(new BudgetCsvRow());
+            csvRows.push(new BudgetCsvRow("", "Net", (this.totalIncome - this.totalExpense).toString()));
+            var csvDataString = Ally.createCsvString(csvRows, csvColumns, false);
+            var fileName = "budget-" + Ally.HtmlUtil2.removeNonAlphanumeric(this.curBudget.budgetName) + ".csv";
+            Ally.HtmlUtil2.downloadCsv(csvDataString, fileName);
+        };
         BudgetToolController.$inject = ["$http", "appCacheService", "uiGridConstants", "$rootScope"];
         return BudgetToolController;
     }());
     Ally.BudgetToolController = BudgetToolController;
+    var BudgetCsvRow = /** @class */ (function () {
+        function BudgetCsvRow(c0, c1, c2, c3, c4) {
+            if (c0 === void 0) { c0 = ""; }
+            if (c1 === void 0) { c1 = ""; }
+            if (c2 === void 0) { c2 = ""; }
+            if (c3 === void 0) { c3 = ""; }
+            if (c4 === void 0) { c4 = ""; }
+            this.col0 = c0;
+            this.col1 = c1;
+            this.col2 = c2;
+            this.col3 = c3;
+            this.col4 = c4;
+        }
+        return BudgetCsvRow;
+    }());
     var SaveBudgetRow = /** @class */ (function () {
         function SaveBudgetRow() {
         }
@@ -2751,8 +2884,14 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         FinancialReportsController.prototype.$onInit = function () {
-            this.startDate = moment().subtract(30, 'days').toDate();
-            this.endDate = moment().toDate();
+            if (window.sessionStorage.getItem("financialReport_startDate"))
+                this.startDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_startDate")));
+            if (!this.startDate || isNaN(this.startDate.getTime()))
+                this.startDate = moment().subtract(1, 'year').toDate();
+            if (window.sessionStorage.getItem("financialReport_endDate"))
+                this.endDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_endDate")));
+            if (!this.endDate || isNaN(this.endDate.getTime()))
+                this.endDate = moment().toDate();
             var innerThis = this;
             this.doughnutChartOptions = {
                 onClick: function (event) {
@@ -2794,6 +2933,8 @@ var Ally;
                 _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return e.amount; });
                 _this.expenseByCategoryLabels = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryName; });
                 _this.expenseByCategoryCatIds = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryId; });
+                window.sessionStorage.setItem("financialReport_startDate", _this.startDate.getTime().toString());
+                window.sessionStorage.setItem("financialReport_endDate", _this.endDate.getTime().toString());
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve report data: " + httpResponse.data.exceptionMessage);
@@ -2912,7 +3053,7 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' },
                         { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red;">&times;</span></div>' }
                     ],
                     enableFiltering: true,
@@ -2941,8 +3082,8 @@ var Ally;
                             }
                             var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
                             rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
-                            var unitEntry = _this.allUnits.find(function (c) { return c.unitId === rowEntity.associatedUnitId; });
-                            rowEntity.unitGridLabel = unitEntry ? unitEntry.name : null;
+                            var unitEntry = _this.unitListEntries.find(function (c) { return c.unitId === rowEntity.associatedUnitId; });
+                            rowEntity.unitGridLabel = unitEntry ? unitEntry.unitWithOwnerLast : null;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
@@ -2960,7 +3101,7 @@ var Ally;
                             }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
                         },
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum }
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents" >Total: {{col.getAggregationValue() | currency }}</div>' }
                     ],
                     enableSorting: true,
                     enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
@@ -2976,7 +3117,7 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 95, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum },
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents" >Total: {{col.getAggregationValue() | currency }}</div>' },
                         { field: 'id', displayName: '', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 40, cellTemplate: '<div class="ui-grid-cell-contents text-center"><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.removeImportRow( row.entity )" style="color: red;">&times;</span></div>' }
                     ],
                     enableSorting: true,
@@ -3002,8 +3143,8 @@ var Ally;
                 this.filter.startDate = moment().subtract(30, 'days').toDate();
                 this.filter.endDate = moment().toDate();
                 this.fullRefresh();
-                this.loadUnits();
             }
+            this.$timeout(function () { return _this.loadImportHistory(); }, 1500);
         };
         /**
          * Load all of the data on the page
@@ -3019,6 +3160,10 @@ var Ally;
                 var pageInfo = httpResponse.data;
                 _this.ledgerAccounts = pageInfo.accounts;
                 _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
+                // Hide the account column if there's only one account
+                var accountColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "accountName"; });
+                if (accountColumn)
+                    accountColumn.visible = _this.ledgerAccounts.length > 1;
                 // Add only the first account needing login for a Plaid item
                 var accountsNeedingLogin = _this.ledgerAccounts.filter(function (a) { return a.plaidNeedsRelogin; });
                 _this.accountsNeedingLogin = [];
@@ -3029,7 +3174,6 @@ var Ally;
                 for (var i = 0; i < accountsNeedingLogin.length; ++i) {
                     _loop_1(i);
                 }
-                var accountColumn = _this.ledgerGridOptions.columnDefs.filter(function (c) { return c.field === "accountName"; })[0];
                 accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
                 _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
                 _this.allEntries = pageInfo.entries;
@@ -3069,8 +3213,15 @@ var Ally;
                         };
                     }, 100);
                 }
-                if (_this.allUnits)
-                    _this.populateGridUnitLabels();
+                _this.unitListEntries = pageInfo.unitListEntries;
+                // Populate the object used for quick editing the home
+                var uiGridUnitDropDown = [];
+                uiGridUnitDropDown.push({ id: null, value: "" });
+                for (var i = 0; i < _this.unitListEntries.length; ++i)
+                    uiGridUnitDropDown.push({ id: _this.unitListEntries[i].unitId, value: _this.unitListEntries[i].unitWithOwnerLast });
+                var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+                unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
+                _this.populateGridUnitLabels();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
@@ -3087,7 +3238,11 @@ var Ally;
                     entry.categoryDisplayName = "(split)";
                 if (!entry.associatedUnitId)
                     return;
-                entry.unitGridLabel = _this.allUnits.find(function (u) { return u.unitId === entry.associatedUnitId; }).name;
+                var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
+                if (unitListEntry)
+                    entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                else
+                    entry.unitGridLabel = "UNK";
             });
         };
         LedgerController.prototype.refreshEntries = function () {
@@ -3407,29 +3562,6 @@ var Ally;
             if (didMakeChanges)
                 this.fullRefresh();
         };
-        LedgerController.prototype.loadUnits = function () {
-            var _this = this;
-            this.$http.get("/api/Unit").then(function (httpResponse) {
-                _this.allUnits = httpResponse.data;
-                var shouldSortUnitsNumerically = _.every(_this.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
-                if (shouldSortUnitsNumerically)
-                    _this.allUnits = _.sortBy(_this.allUnits, function (u) { return parseFloat(u.name); });
-                // Populate the object used for quick editing the home
-                var uiGridUnitDropDown = [];
-                uiGridUnitDropDown.push({ id: null, value: "" });
-                for (var i = 0; i < _this.allUnits.length; ++i) {
-                    uiGridUnitDropDown.push({ id: _this.allUnits[i].unitId, value: _this.allUnits[i].name });
-                }
-                var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
-                unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
-                // If we already have entries, populate the label for the grid
-                if (_this.allEntries)
-                    _this.populateGridUnitLabels();
-            }, function () {
-                _this.isLoading = false;
-                alert("Failed to retrieve your association's home listing, please contact support.");
-            });
-        };
         LedgerController.prototype.onDeleteAccount = function () {
             var _this = this;
             if (!confirm("Are you sure you want to remove this account?"))
@@ -3473,22 +3605,24 @@ var Ally;
             if (!importTransactionsFile)
                 return;
             this.isLoading = true;
+            this.importTxNotes = "";
             var formData = new FormData();
             formData.append("importFile", importTransactionsFile);
             var postHeaders = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
+            var fileElem = document.getElementById("importTransactionFileInput");
             this.$http.post("/api/Ledger/PreviewImport", formData, postHeaders).then(function (httpResponse) {
                 _this.isLoading = false;
-                var fileElem = document.getElementById("importTransactionFileInput");
+                // Clear the value so the user can re-select the same file and trigger this handler
                 fileElem.value = "";
                 _this.previewImportGridOptions.data = httpResponse.data;
                 var _loop_3 = function (i) {
                     var curEntry = _this.previewImportGridOptions.data[i];
                     curEntry.ledgerEntryId = i;
-                    var unit = _this.allUnits.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
+                    var unit = _this.unitListEntries.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
                     if (unit)
-                        curEntry.unitGridLabel = unit.name;
+                        curEntry.unitGridLabel = unit.unitWithOwnerLast;
                     var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === curEntry.financialCategoryId; });
                     curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
                 };
@@ -3499,8 +3633,14 @@ var Ally;
                 _this.previewImportGridOptions.virtualizationThreshold = _this.previewImportGridOptions.minRowsToShow;
             }, function (httpResponse) {
                 _this.isLoading = false;
+                // Clear the value so the user can re-select the same file and trigger this handler
+                fileElem.value = "";
                 alert("Failed to upload document: " + httpResponse.data.exceptionMessage);
             });
+        };
+        LedgerController.prototype.selectManualAccount = function () {
+            this.createAccountInfo.type = "manual";
+            setTimeout(function () { return document.getElementById("new-account-name-field").focus(); }, 100);
         };
         /** Bulk import transactions */
         LedgerController.prototype.importPreviewTransactions = function () {
@@ -3513,11 +3653,16 @@ var Ally;
             var entries = this.previewImportGridOptions.data;
             for (var i = 0; i < entries.length; ++i)
                 entries[i].ledgerAccountId = this.bulkImportAccountId;
-            this.$http.post("/api/Ledger/BulkImport", this.previewImportGridOptions.data).then(function (httpResponse) {
+            var postTx = {
+                notes: this.importTxNotes,
+                entries: this.previewImportGridOptions.data
+            };
+            this.$http.post("/api/Ledger/BulkImport", postTx).then(function (httpResponse) {
                 _this.previewImportGridOptions.data = null;
                 _this.shouldShowImportModal = false;
                 _this.isLoading = false;
                 _this.refreshEntries();
+                _this.$timeout(function () { return _this.loadImportHistory(); }, 1000);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to import: " + httpResponse.data.exceptionMessage);
@@ -3579,6 +3724,15 @@ var Ally;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
             });
         };
+        /** Retrieve the financial transaction import history */
+        LedgerController.prototype.loadImportHistory = function () {
+            var _this = this;
+            this.$http.get("/api/Ledger/TxImportHistory").then(function (httpResponse) {
+                _this.importHistoryEntries = httpResponse.data;
+            }, function (httpResponse) {
+                console.log("Failed to retrieve tx history: " + httpResponse.data.exceptionMessage);
+            });
+        };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;
     }());
@@ -3621,6 +3775,11 @@ var Ally;
         }
         return LedgerPageInfo;
     }());
+    var BasicUnitListEntry = /** @class */ (function () {
+        function BasicUnitListEntry() {
+        }
+        return BasicUnitListEntry;
+    }());
     var FilterCriteria = /** @class */ (function () {
         function FilterCriteria() {
             this.description = "";
@@ -3636,6 +3795,11 @@ var Ally;
         return FinancialCategory;
     }());
     Ally.FinancialCategory = FinancialCategory;
+    var FinancialTxImportHistoryEntry = /** @class */ (function () {
+        function FinancialTxImportHistoryEntry() {
+        }
+        return FinancialTxImportHistoryEntry;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("ledger", {
     templateUrl: "/ngApp/chtn/manager/financial/ledger.html",
@@ -3690,6 +3854,7 @@ var Ally;
             this.shouldShowDwollaModalClose = false;
             this.isDwollaIavDone = false;
             this.shouldShowMicroDepositModal = false;
+            this.shouldShowPlaidTestSignUpButton = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -3806,15 +3971,14 @@ var Ally;
             var _this = this;
             // Load the units and assessments
             this.isLoadingUnits = true;
-            var innerThis = this;
             this.$http.get("/api/Unit").then(function (httpResponse) {
-                innerThis.units = httpResponse.data;
-                _.each(innerThis.units, function (u) { if (u.adjustedAssessment === null) {
+                _this.units = httpResponse.data;
+                _.each(_this.units, function (u) { if (u.adjustedAssessment === null) {
                     u.adjustedAssessment = u.assessment;
                 } });
-                innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
-                innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
-                innerThis.isLoadingUnits = false;
+                _this.assessmentSum = _.reduce(_this.units, function (memo, u) { return memo + u.assessment; }, 0);
+                _this.adjustedAssessmentSum = _.reduce(_this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                _this.isLoadingUnits = false;
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to load units, please contact technical support. (" + httpResponse.data.exceptionMessage + ")");
@@ -4138,12 +4302,13 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.$http.post("/api/OnlinePayment/BasicInfo", this.signUpInfo).then(function () {
-                _this.isLoading = false;
                 // Update the unit assessments
                 _this.refreshUnits();
                 // Update the assessment flag
                 _this.hasAssessments = _this.signUpInfo.hasAssessments;
                 _this.siteInfo.privateSiteInfo.hasAssessments = _this.hasAssessments;
+                // Refresh the site info to reflect the assessment frequency
+                window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
@@ -4176,8 +4341,15 @@ var Ally;
         /**
          * Allow the admin to clear the WePay access token for testing
          */
-        ManagePaymentsController.prototype.admin_ClearAccessToken = function () {
-            alert("TODO hook this up");
+        ManagePaymentsController.prototype.clearWePayAccessToken = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to disable WePay: " + httpResponse.data.exceptionMessage);
+            });
         };
         ManagePaymentsController.prototype.showDwollaSignUpModal = function () {
             this.shouldShowDwollaAddAccountModal = true;
@@ -4276,6 +4448,16 @@ var Ally;
                 alert("Failed to verify: " + httpResponse.data.exceptionMessage);
             });
         };
+        ManagePaymentsController.prototype.addDwollaAccountViaPlaid = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.post("/api/Dwolla/SignUpGroupFromPlaid/81", null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to use Plaid account: " + httpResponse.data.exceptionMessage);
+            });
+        };
         ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
         return ManagePaymentsController;
     }());
@@ -4359,15 +4541,15 @@ var Ally;
         * Called when the user chooses to deactivate a committee
         */
         ManageCommitteesController.prototype.toggleCommitteeActive = function (committee) {
+            var _this = this;
             this.isLoading = true;
             var putUri = (committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/") + committee.committeeId;
-            var innerThis = this;
-            this.$http.put(putUri, null).success(function (committees) {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to retrieve the modify committee: " + exc.exceptionMessage);
+            this.$http.put(putUri, null).then(function (committees) {
+                _this.isLoading = false;
+                _this.retrieveCommittees();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve the modify committee: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -4376,8 +4558,8 @@ var Ally;
         ManageCommitteesController.prototype.retrieveCommittees = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
+            this.$http.get("/api/Committee?includeInactive=true").then(function (response) {
+                var committees = response.data;
                 _this.isLoading = false;
                 _this.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
                 _this.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
@@ -4385,9 +4567,9 @@ var Ally;
                 _this.inactiveCommittees = _.sortBy(_this.inactiveCommittees, function (c) { return c.name.toLowerCase(); });
                 // Convert the last login timestamps to local time
                 //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
-            }).error(function (exc) {
+            }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to retrieve the committee listing");
+                alert("Failed to retrieve the committee listing: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -4406,13 +4588,13 @@ var Ally;
             this.isLoading = true;
             var saveUri = "/api/Committee" + (this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "") + "?name=" + encodeURIComponent(this.editCommittee.name) + "&type=" + encodeURIComponent(this.editCommittee.committeeType) + "&isPrivate=" + this.editCommittee.isPrivate.toString();
             var httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
-            httpFunc(saveUri, null).success(function () {
+            httpFunc(saveUri, null).then(function () {
                 _this.isLoading = false;
                 _this.editCommittee = null;
                 _this.retrieveCommittees();
-            }).error(function (error) {
+            }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to save the committee: " + error.exceptionMessage);
+                alert("Failed to save the committee: " + response.data.exceptionMessage);
             });
         };
         ManageCommitteesController.$inject = ["$http", "SiteInfo", "$cacheFactory"];
@@ -4425,22 +4607,160 @@ CA.angularApp.component("manageCommittees", {
     controller: Ally.ManageCommitteesController
 });
 
+/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
+/// <reference path="../../../Scripts/typings/underscore/underscore.d.ts" />
+/// <reference path="../../Services/html-util.ts" />
 var Ally;
 (function (Ally) {
-    var Poll = /** @class */ (function () {
-        function Poll() {
-            this.isAnonymous = true;
-            this.whoCanVote = 2;
+    /**
+     * The controller for the page to add, edit, and delete custom pages
+     */
+    var ManageCustomPagesController = /** @class */ (function () {
+        /**
+         * The constructor for the class
+         */
+        function ManageCustomPagesController($http, siteInfo) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.includeInactive = false;
+            this.allPageListings = [];
+            this.selectedPageEntry = null;
+            this.editPage = null;
+            this.isLoading = false;
         }
-        return Poll;
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        ManageCustomPagesController.prototype.$onInit = function () {
+            this.retrievePages();
+            Ally.RichTextHelper.initToolbarBootstrapBindings();
+            this.bodyRichEditorElem = $('#body-rich-editor');
+            this.bodyRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+        };
+        /**
+        * Retrieve the list of custom pages
+        */
+        ManageCustomPagesController.prototype.retrievePages = function () {
+            var _this = this;
+            this.isLoading = true;
+            this.$http.get("/api/CustomPage/AllPages").then(function (response) {
+                _this.isLoading = false;
+                _this.allPageListings = response.data;
+                var addPage = new CustomPage();
+                addPage.customPageId = -5;
+                addPage.title = "Add New Page...";
+                _this.allPageListings.push(addPage);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve the custom pages: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+        * Save the current page
+        */
+        ManageCustomPagesController.prototype.savePage = function () {
+            var _this = this;
+            if (HtmlUtil.isNullOrWhitespace(this.editPage.title)) {
+                alert("Please enter a title for the page");
+                return;
+            }
+            if (HtmlUtil.isNullOrWhitespace(this.editPage.pageSlug)) {
+                alert("Please enter a slug for the page");
+                return;
+            }
+            this.editPage.markupHtml = this.bodyRichEditorElem.html();
+            this.isLoading = true;
+            var httpFunc = this.editPage.customPageId ? this.$http.put : this.$http.post;
+            httpFunc("/api/CustomPage", this.editPage).then(function () {
+                _this.isLoading = false;
+                _this.selectedPageEntry = null;
+                _this.editPage = null;
+                _this.bodyRichEditorElem.html("");
+                _this.retrievePages();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save the page: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+        * Permanently elete the current page
+        */
+        ManageCustomPagesController.prototype.deletePage = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to permanently delete this page? This action CANNOT BE UNDONE."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/CustomPage/" + this.editPage.customPageId).then(function () {
+                _this.isLoading = false;
+                _this.selectedPageEntry = null;
+                _this.editPage = null;
+                _this.bodyRichEditorElem.html("");
+                _this.retrievePages();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete the page: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+        * Occurs when focus leaves the title input field
+        */
+        ManageCustomPagesController.prototype.onTitleBlur = function () {
+            if (!this.editPage || this.editPage.pageSlug || !this.editPage.title)
+                return;
+            this.editPage.pageSlug = (this.editPage.title || "").trim();
+            this.editPage.pageSlug = this.editPage.pageSlug.replace(/[^0-9a-z- ]/gi, ''); // Remove non-alphanumeric+dash
+            this.editPage.pageSlug = this.editPage.pageSlug.replace(/ /g, '-'); // Replace spaces with dashes
+        };
+        /**
+        * Occurs when focus leaves the slug field, sanitizes the slug to be URL-friendly
+        */
+        ManageCustomPagesController.prototype.onSlugBlur = function () {
+            if (!this.editPage)
+                return;
+            this.editPage.pageSlug = (this.editPage.pageSlug || "").trim();
+            this.editPage.pageSlug = this.editPage.pageSlug.replace(/ /g, '-'); // Replace spaces with dashes
+        };
+        ManageCustomPagesController.prototype.onPageSelected = function () {
+            var _this = this;
+            if (this.selectedPageEntry.customPageId > 0) {
+                this.isLoading = true;
+                this.$http.get("/api/CustomPage/" + this.selectedPageEntry.customPageId).then(function (response) {
+                    _this.isLoading = false;
+                    _this.editPage = response.data;
+                    _this.bodyRichEditorElem.html(_this.editPage.markupHtml);
+                }, function (response) {
+                    _this.isLoading = false;
+                    alert("Failed to retrieve custom page: " + response.data.exceptionMessage);
+                });
+            }
+            else {
+                this.editPage = new CustomPage();
+                this.bodyRichEditorElem.html("");
+            }
+        };
+        ManageCustomPagesController.$inject = ["$http", "SiteInfo"];
+        return ManageCustomPagesController;
     }());
-    Ally.Poll = Poll;
-    var PollResponse = /** @class */ (function () {
-        function PollResponse() {
+    Ally.ManageCustomPagesController = ManageCustomPagesController;
+    var CustomPage = /** @class */ (function () {
+        function CustomPage() {
         }
-        return PollResponse;
+        return CustomPage;
     }());
-    Ally.PollResponse = PollResponse;
+    var PublicCustomPageEntry = /** @class */ (function () {
+        function PublicCustomPageEntry() {
+        }
+        return PublicCustomPageEntry;
+    }());
+    Ally.PublicCustomPageEntry = PublicCustomPageEntry;
+})(Ally || (Ally = {}));
+CA.angularApp.component("manageCustomPages", {
+    templateUrl: "/ngApp/chtn/manager/manage-custom-pages.html",
+    controller: Ally.ManageCustomPagesController
+});
+
+var Ally;
+(function (Ally) {
     /**
      * The controller for the manage polls page
      */
@@ -4448,92 +4768,98 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManagePollsController($http, siteInfo) {
+        function ManagePollsController($http, siteInfo, fellowResidents) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.editingItem = new Poll();
             this.pollHistory = [];
             this.isLoading = false;
             this.isSuperAdmin = false;
+            this.shouldAllowMultipleAnswers = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManagePollsController.prototype.$onInit = function () {
+            var _this = this;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             var threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
             this.defaultPoll.expirationDate = threeDaysLater;
+            this.defaultPoll.votingGroupShortName = "everyone";
             this.defaultPoll.answers = [
-                {
-                    answerText: "Yes"
-                },
-                {
-                    answerText: "No"
-                }
+                new PollAnswer("Yes"),
+                new PollAnswer("No"),
             ];
             // The new or existing news item that's being edited by the user
             this.editingItem = angular.copy(this.defaultPoll);
-            this.retrieveItems();
+            this.shouldAllowMultipleAnswers = false;
+            this.isLoading = true;
+            this.fellowResidents.getGroupEmailObject().then(function (groupEmails) {
+                _this.groupEmails = _.sortBy(groupEmails, function (e) { return e.displayName.toUpperCase(); });
+                _this.retrievePolls();
+            }, function () { return _this.retrievePolls(); });
         };
         /**
          * Populate the poll data
          */
-        ManagePollsController.prototype.retrieveItems = function () {
+        ManagePollsController.prototype.retrievePolls = function () {
+            var _this = this;
             var AbstainAnswerSortOrder = 101;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/Poll").then(function (httpResponse) {
-                innerThis.pollHistory = httpResponse.data;
+                _this.pollHistory = httpResponse.data;
                 // Convert the date strings to objects
-                for (var i = 0; i < innerThis.pollHistory.length; ++i) {
+                for (var i = 0; i < _this.pollHistory.length; ++i) {
                     // The date comes down as a string so we need to convert it
-                    innerThis.pollHistory[i].expirationDate = new Date(innerThis.pollHistory[i].expirationDate);
+                    _this.pollHistory[i].expirationDate = new Date(_this.pollHistory[i].expirationDate);
                     // Remove the abstain answer since it can't be edited, but save the full answer
                     // list for displaying results
-                    innerThis.pollHistory[i].fullResultAnswers = innerThis.pollHistory[i].answers;
-                    innerThis.pollHistory[i].answers = _.reject(innerThis.pollHistory[i].answers, function (pa) { return pa.sortOrder === AbstainAnswerSortOrder; });
+                    _this.pollHistory[i].fullResultAnswers = _this.pollHistory[i].answers;
+                    _this.pollHistory[i].answers = _.reject(_this.pollHistory[i].answers, function (pa) { return pa.sortOrder === AbstainAnswerSortOrder; });
                 }
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         /**
          * Add a new answer
          */
         ManagePollsController.prototype.addAnswer = function () {
+            var _this = this;
             if (!this.editingItem.answers)
                 this.editingItem.answers = [];
             if (this.editingItem.answers.length > 19) {
                 alert("You can only have 20 answers maxiumum per poll.");
                 return;
             }
-            this.editingItem.answers.push({ answerText: '' });
+            this.editingItem.answers.push(new PollAnswer(""));
+            window.setTimeout(function () { return document.getElementById("poll-answer-textbox-" + (_this.editingItem.answers.length - 1)).focus(); }, 100);
         };
         /**
          * Stop editing a poll and reset the form
          */
         ManagePollsController.prototype.cancelEdit = function () {
             this.editingItem = angular.copy(this.defaultPoll);
+            this.shouldAllowMultipleAnswers = false;
         };
         /**
          * Occurs when the user presses the button to save a poll
          */
-        ManagePollsController.prototype.onSaveItem = function () {
+        ManagePollsController.prototype.onSavePoll = function () {
+            var _this = this;
             if (this.editingItem === null)
                 return;
-            //$( "#new-item-form" ).validate();
-            //if ( !$( "#new-item-form" ).valid() )
-            //    return;
             this.isLoading = true;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoading = false;
-                innerThis.editingItem = angular.copy(innerThis.defaultPoll);
-                innerThis.retrieveItems();
+                _this.isLoading = false;
+                _this.editingItem = angular.copy(_this.defaultPoll);
+                _this.shouldAllowMultipleAnswers = false;
+                _this.retrievePolls();
             };
             var onFailure = function (response) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to save poll: " + response.data.exceptionMessage);
             };
             // If we're editing an existing news item
@@ -4553,6 +4879,7 @@ var Ally;
         ManagePollsController.prototype.onEditItem = function (item) {
             this.editingItem = angular.copy(item);
             window.scrollTo(0, 0);
+            this.shouldAllowMultipleAnswers = this.editingItem.maxNumResponses > 1;
         };
         /**
          * Occurs when the user wants to delete a poll
@@ -4561,7 +4888,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.$http.delete("/api/Poll?pollId=" + item.pollId).then(function () {
-                _this.retrieveItems();
+                _this.retrievePolls();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 if (httpResponse.status === 403)
@@ -4578,31 +4905,9 @@ var Ally;
                 this.viewingPollResults = null;
                 return;
             }
-            // Group the responses by the answer they selected
-            var responsesGroupedByAnswer = _.groupBy(poll.responses, "answerId");
-            poll.chartData = [];
-            poll.chartLabels = [];
-            var _loop_1 = function () {
-                // Ignore inherited properties
-                if (!responsesGroupedByAnswer.hasOwnProperty(answerIdStr))
-                    return "continue";
-                // for..in provides the keys as strings
-                var answerId = parseInt(answerIdStr);
-                answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === answerId; });
-                if (answer) {
-                    poll.chartLabels.push(answer.answerText);
-                    poll.chartData.push(responsesGroupedByAnswer[answerIdStr].length);
-                }
-            };
-            var answer;
-            // Go through each answer and store the name and count for that answer
-            for (var answerIdStr in responsesGroupedByAnswer) {
-                _loop_1();
-            }
-            if (poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits) {
-                poll.chartLabels.push("No Response");
-                poll.chartData.push(this.siteInfo.privateSiteInfo.numUnits - poll.responses.length);
-            }
+            var chartInfo = Ally.FellowResidentsService.pollReponsesToChart(poll, this.siteInfo);
+            poll.chartData = chartInfo.chartData;
+            poll.chartLabels = chartInfo.chartLabels;
             // Build the array for the counts to the right of the chart
             poll.answerCounts = [];
             for (var i = 0; i < poll.chartLabels.length; ++i) {
@@ -4615,10 +4920,44 @@ var Ally;
             this.chartData = poll.chartData;
             this.viewingPollResults = poll;
         };
-        ManagePollsController.$inject = ["$http", "SiteInfo"];
+        ManagePollsController.prototype.formatVoteGroupName = function (votingGroupShortName) {
+            if (!this.groupEmails)
+                return votingGroupShortName;
+            var emailGroup = this.groupEmails.find(function (g) { return g.recipientTypeName.toLowerCase() === votingGroupShortName; });
+            if (!emailGroup)
+                return votingGroupShortName;
+            return emailGroup.displayName;
+        };
+        ManagePollsController.prototype.onMultiAnswerChange = function () {
+            if (this.shouldAllowMultipleAnswers)
+                this.editingItem.maxNumResponses = 2;
+            else
+                this.editingItem.maxNumResponses = 1;
+        };
+        ManagePollsController.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return ManagePollsController;
     }());
     Ally.ManagePollsController = ManagePollsController;
+    var Poll = /** @class */ (function () {
+        function Poll() {
+            this.isAnonymous = true;
+        }
+        return Poll;
+    }());
+    Ally.Poll = Poll;
+    var PollAnswer = /** @class */ (function () {
+        function PollAnswer(answerText) {
+            this.answerText = answerText;
+        }
+        return PollAnswer;
+    }());
+    Ally.PollAnswer = PollAnswer;
+    var PollResponse = /** @class */ (function () {
+        function PollResponse() {
+        }
+        return PollResponse;
+    }());
+    Ally.PollResponse = PollResponse;
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePolls", {
     templateUrl: "/ngApp/chtn/manager/manage-polls.html",
@@ -4812,7 +5151,6 @@ var Ally;
                     this.residentSortInfo = defaultSort;
             }
             var homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
-            var innerThis = this;
             this.residentGridOptions =
                 {
                     data: [],
@@ -4829,7 +5167,7 @@ var Ally;
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
                             sortingAlgorithm: function (a, b) {
-                                if (innerThis.shouldSortUnitsNumerically) {
+                                if (_this.shouldSortUnitsNumerically) {
                                     return parseInt(a) - parseInt(b);
                                 }
                                 return a.toString().localeCompare(b.toString());
@@ -4856,17 +5194,17 @@ var Ally;
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
-                        innerThis.gridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged(innerThis.$rootScope, function (row) {
+                        _this.gridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function (row) {
                             var msg = 'row selected ' + row.isSelected;
-                            innerThis.setEdit(row.entity);
+                            _this.setEdit(row.entity);
                         });
-                        gridApi.core.on.sortChanged(innerThis.$rootScope, function (grid, sortColumns) {
+                        gridApi.core.on.sortChanged(_this.$rootScope, function (grid, sortColumns) {
                             if (!sortColumns || sortColumns.length === 0)
                                 return;
                             // Remember the sort
-                            innerThis.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
-                            window.localStorage.setItem(LocalKey_ResidentSort, JSON.stringify(innerThis.residentSortInfo));
+                            _this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
+                            window.localStorage.setItem(LocalKey_ResidentSort, JSON.stringify(_this.residentSortInfo));
                         });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
@@ -5017,13 +5355,13 @@ var Ally;
          * Send a resident the welcome email
          */
         ManageResidentsController.prototype.onSendWelcome = function () {
+            var _this = this;
             this.isSavingUser = true;
-            var innerThis = this;
-            this.$http.put("/api/Residents/" + this.editUser.userId + "/SendWelcome", null).success(function () {
-                innerThis.isSavingUser = false;
-                innerThis.sentWelcomeEmail = true;
-            }).error(function () {
-                innerThis.isSavingUser = false;
+            this.$http.put("/api/Residents/" + this.editUser.userId + "/SendWelcome", null).then(function () {
+                _this.isSavingUser = false;
+                _this.sentWelcomeEmail = true;
+            }, function () {
+                _this.isSavingUser = false;
                 alert("Failed to send the welcome email, please contact support if this problem persists.");
             });
         };
@@ -5048,21 +5386,21 @@ var Ally;
         ManageResidentsController.prototype.refreshResidents = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            return this.$http.get("/api/Residents").success(function (residentArray) {
-                innerThis.isLoading = false;
-                innerThis.residentGridOptions.data = residentArray;
-                innerThis.residentGridOptions.minRowsToShow = residentArray.length;
-                innerThis.residentGridOptions.virtualizationThreshold = residentArray.length;
-                innerThis.residentGridOptions.enableFiltering = residentArray.length > 15;
-                innerThis.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
-                innerThis.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
+            return this.$http.get("/api/Residents").then(function (response) {
+                _this.isLoading = false;
+                var residentArray = response.data;
+                _this.residentGridOptions.data = residentArray;
+                _this.residentGridOptions.minRowsToShow = residentArray.length;
+                _this.residentGridOptions.virtualizationThreshold = residentArray.length;
+                _this.residentGridOptions.enableFiltering = residentArray.length > 15;
+                _this.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
+                _this.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
                 //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
                 // If we have sort info to use
-                if (innerThis.residentSortInfo) {
-                    var sortColumn = _.find(innerThis.gridApi.grid.columns, function (col) { return col.field === innerThis.residentSortInfo.field; });
+                if (_this.residentSortInfo) {
+                    var sortColumn = _.find(_this.gridApi.grid.columns, function (col) { return col.field === _this.residentSortInfo.field; });
                     if (sortColumn)
-                        innerThis.gridApi.grid.sortColumn(sortColumn, innerThis.residentSortInfo.direction, false);
+                        _this.gridApi.grid.sortColumn(sortColumn, _this.residentSortInfo.direction, false);
                 }
                 // Build the full name and convert the last login to local time
                 _.forEach(residentArray, function (res) {
@@ -5073,19 +5411,19 @@ var Ally;
                     if (res.lastLoginDateUtc)
                         res.lastLoginDateUtc = moment.utc(res.lastLoginDateUtc).toDate();
                 });
-                innerThis.populateGridUnitLabels();
-                if (!innerThis.allUnits && AppConfig.isChtnSite) {
-                    innerThis.isLoading = true;
-                    innerThis.$http.get("/api/Unit").then(function (httpResponse) {
-                        innerThis.isLoading = false;
-                        innerThis.allUnits = httpResponse.data;
-                        innerThis.shouldSortUnitsNumerically = _.every(innerThis.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
-                        if (innerThis.shouldSortUnitsNumerically)
-                            innerThis.allUnits = _.sortBy(innerThis.allUnits, function (u) { return parseFloat(u.name); });
+                _this.populateGridUnitLabels();
+                if (!_this.allUnits && AppConfig.isChtnSite) {
+                    _this.isLoading = true;
+                    _this.$http.get("/api/Unit").then(function (httpResponse) {
+                        _this.isLoading = false;
+                        _this.allUnits = httpResponse.data;
+                        _this.shouldSortUnitsNumerically = _.every(_this.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
+                        if (_this.shouldSortUnitsNumerically)
+                            _this.allUnits = _.sortBy(_this.allUnits, function (u) { return parseFloat(u.name); });
                         // If we have a lot of units then allow searching
-                        innerThis.multiselectOptions = innerThis.allUnits.length > 20 ? "filter" : "";
+                        _this.multiselectOptions = _this.allUnits.length > 20 ? "filter" : "";
                     }, function () {
-                        innerThis.isLoading = false;
+                        _this.isLoading = false;
                         alert("Failed to retrieve your association's home listing, please contact support.");
                     });
                 }
@@ -5140,6 +5478,7 @@ var Ally;
          * resident
          */
         ManageResidentsController.prototype.onSaveResident = function () {
+            var _this = this;
             if (!this.editUser)
                 return;
             $("#editUserForm").validate();
@@ -5161,21 +5500,20 @@ var Ally;
                     this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
             }
             this.isSavingUser = true;
-            var innerThis = this;
             var onSave = function (response) {
-                innerThis.isSavingUser = false;
+                _this.isSavingUser = false;
                 if (typeof (response.data.errorMessage) === "string") {
                     alert("Failed to add resident: " + response.data.errorMessage);
                     return;
                 }
-                if (innerThis.editUser.pendingMemberId)
-                    innerThis.loadPendingMembers();
-                innerThis.editUser = null;
-                innerThis.refreshResidents();
+                if (_this.editUser.pendingMemberId)
+                    _this.loadPendingMembers();
+                _this.editUser = null;
+                _this.refreshResidents();
             };
             var isAddingNew = false;
             var onError = function (response) {
-                innerThis.isSavingUser = false;
+                _this.isSavingUser = false;
                 var errorMessage = isAddingNew ? "Failed to add new resident" : "Failed to update resident";
                 if (response && response.data && response.data.exceptionMessage)
                     errorMessage += ": " + response.data.exceptionMessage;
@@ -5200,16 +5538,15 @@ var Ally;
          * Occurs when the user presses the button to set a user's password
          */
         ManageResidentsController.prototype.OnAdminSetPassword = function () {
+            var _this = this;
             var setPass = {
                 userName: this.adminSetPass_Username,
                 password: this.adminSetPass_Password
             };
-            var innerThis = this;
-            this.$http.post("/api/AdminHelper/SetPassword", setPass).success(function (resultMessage) {
-                innerThis.adminSetPass_ResultMessage = resultMessage;
-            }).error(function (data) {
-                var errorMessage = data.exceptionMessage ? data.exceptionMessage : data;
-                alert("Failed to set password: " + errorMessage);
+            this.$http.post("/api/AdminHelper/SetPassword", setPass).then(function (response) {
+                _this.adminSetPass_ResultMessage = response.data;
+            }, function (response) {
+                alert("Failed to set password: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -5218,25 +5555,24 @@ var Ally;
         ManageResidentsController.prototype.loadSettings = function () {
             var _this = this;
             this.isLoadingSettings = true;
-            var innerThis = this;
-            this.$http.get("/api/Settings").success(function (data) {
-                innerThis.isLoadingSettings = false;
-                _this.residentSettings = data;
+            this.$http.get("/api/Settings").then(function (response) {
+                _this.isLoadingSettings = false;
+                _this.residentSettings = response.data;
                 // Update the SiteInfoService so the privateSiteInfo properties reflects changes
                 _this.siteInfo.privateSiteInfo.rentersCanViewDocs = _this.residentSettings.rentersCanViewDocs;
                 _this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = _this.residentSettings.whoCanCreateDiscussionThreads;
-            }).error(function (exc) {
-                innerThis.isLoadingSettings = false;
-                console.log("Failed to retrieve settings");
+            }, function (response) {
+                _this.isLoadingSettings = false;
+                console.log("Failed to retrieve settings: " + response.data.exceptionMessage);
             });
         };
         /**
          * Export the resident list as a CSV
          */
         ManageResidentsController.prototype.exportResidentCsv = function () {
+            var _this = this;
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
-            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "First Name",
@@ -5269,15 +5605,17 @@ var Ally;
                 {
                     headerText: "Board Position",
                     fieldName: "boardPosition",
-                    dataMapper: function (value) {
-                        return innerThis.getBoardPositionName(value);
-                    }
+                    dataMapper: function (value) { return _this.getBoardPositionName(value); }
                 },
                 {
                     headerText: "Alternate Mailing",
                     fieldName: "mailingAddressObject",
                     dataMapper: function (value) {
-                        return !value ? "" : value.oneLiner;
+                        if (!value)
+                            return "";
+                        if (value.recipientName)
+                            return value.recipientName + " " + value.oneLiner;
+                        return value.oneLiner;
                     }
                 },
                 {
@@ -5311,7 +5649,6 @@ var Ally;
             }
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportKansasPtaCsv');
-            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "Local_Unit",
@@ -5440,7 +5777,7 @@ var Ally;
             csvLink.setAttribute("download", "pta-members.csv");
             document.body.appendChild(csvLink); // Required for FF
             csvLink.click(); // This will download the file
-            setTimeout(function () { document.body.removeChild(csvLink); }, 500);
+            setTimeout(function () { return document.body.removeChild(csvLink); }, 500);
         };
         /**
          * Save the resident settings to the server
@@ -5449,14 +5786,14 @@ var Ally;
             var _this = this;
             analytics.track("editResidentSettings");
             this.isLoadingSettings = true;
-            this.$http.put("/api/Settings", this.residentSettings).success(function () {
+            this.$http.put("/api/Settings", this.residentSettings).then(function () {
                 _this.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
                 _this.fellowResidents.clearResidentCache();
                 // Update the locally cached settings to match the saved values
                 _this.siteInfo.privateSiteInfo.canHideContactInfo = _this.residentSettings.canHideContactInfo;
                 _this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = _this.residentSettings.isDiscussionEmailGroupEnabled;
-            }).error(function () {
+            }, function () {
                 _this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");
             });
@@ -5465,6 +5802,7 @@ var Ally;
          * Occurs when the user presses the button to delete a resident
          */
         ManageResidentsController.prototype.onDeleteResident = function () {
+            var _this = this;
             if (!confirm("Are you sure you want to remove this person from your building?"))
                 return;
             if (this.siteInfo.userInfo.userId === this.editUser.userId) {
@@ -5472,33 +5810,32 @@ var Ally;
                     return;
             }
             this.isSavingUser = true;
-            var innerThis = this;
-            this.$http.delete("/api/Residents?userId=" + this.editUser.userId).success(function () {
-                innerThis.isSavingUser = false;
-                innerThis.editUser = null;
+            this.$http.delete("/api/Residents?userId=" + this.editUser.userId).then(function () {
+                _this.isSavingUser = false;
+                _this.editUser = null;
                 // Update the fellow residents page next time we're there
-                innerThis.fellowResidents.clearResidentCache();
-                innerThis.refreshResidents();
-            }).error(function () {
+                _this.fellowResidents.clearResidentCache();
+                _this.refreshResidents();
+            }, function () {
                 alert("Failed to remove the resident. Please let support know if this continues to happen.");
-                innerThis.isSavingUser = false;
-                innerThis.editUser = null;
+                _this.isSavingUser = false;
+                _this.editUser = null;
             });
         };
         /**
          * Occurs when the user presses the button to reset everyone's password
          */
         ManageResidentsController.prototype.onSendAllWelcome = function () {
+            var _this = this;
             if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).success(function (data) {
-                innerThis.isLoading = false;
-                innerThis.sentWelcomeEmail = true;
-                innerThis.allEmailsSent = true;
-            }).error(function () {
-                innerThis.isLoading = false;
+            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).then(function () {
+                _this.isLoading = false;
+                _this.sentWelcomeEmail = true;
+                _this.allEmailsSent = true;
+            }, function () {
+                _this.isLoading = false;
                 alert("Failed to send welcome email, please contact support if this problem persists.");
             });
         };
@@ -5527,7 +5864,7 @@ var Ally;
                 for (var i = 0; i < this.allUnits.length; ++i)
                     this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
             }
-            var _loop_1 = function () {
+            var _loop_1 = function (i) {
                 var curRow = bulkRows[i];
                 while (curRow.length < 10)
                     curRow.push("");
@@ -5559,7 +5896,7 @@ var Ally;
                     newRow.unitId = null;
                 else {
                     newRow.csvTestName = simplifyStreetName(newRow.unitName);
-                    unit = _.find(this_1.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
+                    var unit = _.find(this_1.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
                     if (unit)
                         newRow.unitId = unit.unitId;
                     else
@@ -5567,9 +5904,11 @@ var Ally;
                 }
                 // If this row contains two people
                 var spouseRow = null;
+                if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" & ") !== -1)
+                    newRow.firstName = newRow.firstName.replace(" & ", " and  ");
                 if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
                     spouseRow = _.clone(newRow);
-                    splitFirst = newRow.firstName.split(" and ");
+                    var splitFirst = newRow.firstName.split(" and ");
                     newRow.firstName = splitFirst[0];
                     spouseRow.firstName = splitFirst[1];
                     if (newRow.email && newRow.email.indexOf(" / ") !== -1) {
@@ -5600,25 +5939,25 @@ var Ally;
                 if (spouseRow)
                     this_1.bulkImportRows.push(spouseRow);
             };
-            var this_1 = this, unit, splitFirst;
+            var this_1 = this;
             for (var i = 0; i < bulkRows.length; ++i) {
-                _loop_1();
+                _loop_1(i);
             }
         };
         /**
          * Submit the bulk creation rows to the server
          */
         ManageResidentsController.prototype.submitBulkRows = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/Residents/BulkLoad", this.bulkImportRows).success(function () {
-                innerThis.isLoading = false;
-                innerThis.bulkImportRows = [new ResidentCsvRow()];
-                innerThis.bulkImportCsv = "";
+            this.$http.post("/api/Residents/BulkLoad", this.bulkImportRows, { timeout: 10 * 60 * 1000 }).then(function () {
+                _this.isLoading = false;
+                _this.bulkImportRows = [new ResidentCsvRow()];
+                _this.bulkImportCsv = "";
                 alert("Success");
-                innerThis.refreshResidents();
-            }).error(function () {
-                innerThis.isLoading = false;
+                _this.refreshResidents();
+            }, function () {
+                _this.isLoading = false;
                 alert("Bulk upload failed");
             });
         };
@@ -5643,8 +5982,8 @@ var Ally;
             // Try to step to the next unit
             if (this.allUnits) {
                 if (this.bulkImportRows.length > 0) {
-                    var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
-                    var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId; });
+                    var lastUnitId_1 = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
+                    var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId_1; });
                     ++lastUnitIndex;
                     if (lastUnitIndex < this.allUnits.length) {
                         newRow.unitName = this.allUnits[lastUnitIndex].name;
@@ -5818,7 +6157,7 @@ var Ally;
         PremiumPlanSettingsController.prototype.showStripeError = function (errorMessage) {
             var displayError = document.getElementById('card-errors');
             if (HtmlUtil.isNullOrWhitespace(errorMessage))
-                displayError.textContent = 'Unknown Error';
+                displayError.textContent = null; //'Unknown Error';
             else
                 displayError.textContent = errorMessage;
         };
@@ -5843,7 +6182,6 @@ var Ally;
             this.stripeCardElement = elements.create("card", { style: style });
             this.stripeCardElement.mount("#stripe-card-element");
             var onCardChange = function (event) {
-                var displayError = document.getElementById('card-errors');
                 if (event.error)
                     _this.showStripeError(event.error.message);
                 else
@@ -6338,8 +6676,8 @@ var Ally;
             this.showRightColumnSetting = true;
             this.showLocalNewsSetting = false;
             this.isPta = false;
+            this.shouldShowWelcomeTooLongError = false;
         }
-        ;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
@@ -6415,7 +6753,7 @@ var Ally;
                     location.reload();
             }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to save: " + response.data);
+                alert("Failed to save: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -6499,6 +6837,11 @@ var Ally;
          */
         ChtnSettingsController.prototype.forceRefresh = function () {
             window.location.reload(true);
+        };
+        ChtnSettingsController.prototype.onWelcomeMessageEdit = function () {
+            var MaxWelcomeLength = 2000;
+            var welcomeHtml = this.welcomeRichEditorElem.html();
+            this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         };
         ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
         return ChtnSettingsController;
@@ -6664,7 +7007,6 @@ var Ally;
             }
             if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
             this.$http.get("/api/Committee/MyCommittees", { cache: true }).then(function (response) {
@@ -7204,17 +7546,21 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupMembersController(fellowResidents, siteInfo, appCacheService) {
+        function GroupMembersController(fellowResidents, siteInfo, appCacheService, $http) {
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.$http = $http;
             this.isLoading = true;
+            this.isLoadingGroupEmails = false;
+            this.isLoadingSaveEmailGroup = false;
             this.emailLists = [];
-            this.customEmailLists = [];
+            this.customEmailList = [];
             this.unitPrefix = "Unit ";
             this.groupEmailDomain = "";
+            this.shouldShowNewCustomEmailModal = false;
             this.allyAppName = AppConfig.appName;
-            this.groupShortName = HtmlUtil.getSubdomain();
+            this.groupShortName = siteInfo.publicSiteInfo.shortName;
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
@@ -7224,6 +7570,7 @@ var Ally;
         */
         GroupMembersController.prototype.$onInit = function () {
             var _this = this;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.fellowResidents.getByUnitsAndResidents().then(function (data) {
                 _this.isLoading = false;
                 _this.unitList = data.byUnit;
@@ -7231,8 +7578,11 @@ var Ally;
                 _this.committees = data.committees;
                 if (!_this.allResidents && data.ptaMembers)
                     _this.allResidents = data.ptaMembers;
-                // Sort by last name
-                _this.allResidents = _.sortBy(_this.allResidents, function (r) { return r.lastName; });
+                // Sort by last name for member lists, first name otherwise
+                if (_this.showMemberList)
+                    _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.lastName || "").toLowerCase(); });
+                else
+                    _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.fullName || "").toLowerCase(); });
                 _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== 0; });
                 _this.boardMessageRecipient = null;
                 if (_this.boardMembers.length > 0) {
@@ -7242,7 +7592,7 @@ var Ally;
                             fullName: "Entire Board",
                             firstName: "everyone on the board",
                             hasEmail: true,
-                            userId: "af615460-d92f-4878-9dfa-d5e4a9b1f488"
+                            userId: GroupMembersController.AllBoardUserId
                         };
                     }
                 }
@@ -7329,10 +7679,19 @@ var Ally;
         GroupMembersController.prototype.loadGroupEmails = function () {
             var _this = this;
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
-            var innerThis = this;
+            this.groupEmailsLoadError = null;
+            this.isLoadingGroupEmails = true;
             this.fellowResidents.getAllGroupEmails().then(function (emailGroups) {
+                _this.isLoadingGroupEmails = false;
                 _this.emailLists = emailGroups.standardGroups;
-                _this.customEmailLists = emailGroups.customGroups;
+                _this.customEmailList = emailGroups.customGroups;
+                // Populate custom group email names
+                if (_this.customEmailList) {
+                    for (var _i = 0, _a = _this.customEmailList; _i < _a.length; _i++) {
+                        var curGroupEmail = _a[_i];
+                        curGroupEmail.usersFullNames = curGroupEmail.members.map(function (e) { return _this.allResidents.find(function (r) { return r.userId === e.userId; }).fullName; });
+                    }
+                }
                 // Hook up the address copy link
                 setTimeout(function () {
                     var clipboard = new Clipboard(".clipboard-button");
@@ -7344,12 +7703,98 @@ var Ally;
                         Ally.HtmlUtil2.showTooltip(e.trigger, "Auto-copy failed, press CTRL+C now");
                     });
                 }, 750);
+            }, function (httpResponse) {
+                _this.isLoadingGroupEmails = false;
+                _this.groupEmailsLoadError = "Failed to load group email addresses: " + httpResponse.data.exceptionMessage;
             });
         };
-        GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService"];
+        /**
+        * Called to open the model to create a new custom group email address
+        */
+        GroupMembersController.prototype.onAddNewCustomEmailGroup = function () {
+            this.shouldShowNewCustomEmailModal = true;
+            this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.allResidents.forEach(function (r) { return r.isAssociated = false; });
+            window.setTimeout(function () { return document.getElementById("custom-group-email-short-name-text").focus(); }, 50);
+        };
+        /**
+        * Called to toggle membership in a custom group email address
+        */
+        GroupMembersController.prototype.onGroupEmailMemberClicked = function (resident) {
+            // Add the user ID if it's not already in the list, remove it if it is
+            var existingMemberIdIndex = this.editGroupEmailInfo.memberUserIds.indexOf(resident.userId);
+            if (existingMemberIdIndex === -1)
+                this.editGroupEmailInfo.memberUserIds.push(resident.userId);
+            else
+                this.editGroupEmailInfo.memberUserIds.splice(existingMemberIdIndex, 1);
+        };
+        /**
+        * Called to save a custom group email address
+        */
+        GroupMembersController.prototype.saveGroupEmailInfo = function () {
+            var _this = this;
+            this.isLoadingSaveEmailGroup = true;
+            this.groupEmailSaveError = null;
+            var onSave = function () {
+                _this.isLoadingSaveEmailGroup = false;
+                _this.shouldShowNewCustomEmailModal = false;
+                _this.editGroupEmailInfo = null;
+                // Refresh the emails, clear the cache first since we added a new group email address
+                _this.fellowResidents.clearResidentCache();
+                _this.loadGroupEmails();
+            };
+            var onError = function (httpResponse) {
+                _this.isLoadingSaveEmailGroup = false;
+                _this.groupEmailSaveError = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+            };
+            if (this.editGroupEmailInfo.existingGroupEmailId)
+                this.$http.put("/api/BuildingResidents/EditCustomGroupEmail", this.editGroupEmailInfo).then(onSave, onError);
+            else
+                this.$http.post("/api/BuildingResidents/NewCustomGroupEmail", this.editGroupEmailInfo).then(onSave, onError);
+        };
+        /**
+        * Called when the user clicks the button to edit a custom group email address
+        */
+        GroupMembersController.prototype.editGroupEmail = function (groupEmail) {
+            var _this = this;
+            this.shouldShowNewCustomEmailModal = true;
+            this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.editGroupEmailInfo.existingGroupEmailId = groupEmail.customGroupEmailId;
+            this.editGroupEmailInfo.description = groupEmail.description;
+            this.editGroupEmailInfo.shortName = groupEmail.shortName;
+            this.editGroupEmailInfo.memberUserIds = groupEmail.members.map(function (m) { return m.userId; });
+            this.allResidents.forEach(function (r) { return r.isAssociated = _this.editGroupEmailInfo.memberUserIds.indexOf(r.userId) !== -1; });
+            window.setTimeout(function () { return document.getElementById("custom-group-email-short-name-text").focus(); }, 50);
+        };
+        /**
+        * Called when the user clicks the button to delete a custom group email address
+        */
+        GroupMembersController.prototype.deleteGroupEmail = function (groupEmail) {
+            var _this = this;
+            if (!confirm("Are you sure you want to delete this group email address? Emails sent to this address will no longer be delivered."))
+                return;
+            this.isLoadingGroupEmails = true;
+            this.$http.delete("/api/BuildingResidents/DeleteCustomGroupEmail/" + groupEmail.customGroupEmailId).then(function () {
+                _this.isLoadingGroupEmails = false;
+                // Refresh the emails, clear the cache first since we added a new email group
+                _this.fellowResidents.clearResidentCache();
+                _this.loadGroupEmails();
+            }, function (httpResponse) {
+                _this.isLoadingGroupEmails = false;
+                _this.groupEmailSaveError = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+            });
+        };
+        GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
+        GroupMembersController.AllBoardUserId = "af615460-d92f-4878-9dfa-d5e4a9b1f488";
         return GroupMembersController;
     }());
     Ally.GroupMembersController = GroupMembersController;
+    var SaveEmailGroupInfo = /** @class */ (function () {
+        function SaveEmailGroupInfo() {
+            this.memberUserIds = [];
+        }
+        return SaveEmailGroupInfo;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupMembers", {
     templateUrl: "/ngApp/chtn/member/group-members.html",
@@ -7525,8 +7970,11 @@ var Ally;
                         if (event.calendarEventObject) {
                             if (innerThis.$rootScope.isSiteManager)
                                 innerThis.setEditEvent(event.calendarEventObject, true);
-                            else
+                            else {
                                 innerThis.viewEvent = event.calendarEventObject;
+                                // Make <a> links open in new tabs
+                                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("view-event-desc"); }, 500);
+                            }
                         }
                     });
                 },
@@ -7713,11 +8161,6 @@ var Ally;
                 innerThis.isLoadingCalendarEvents = false;
             });
         };
-        LogbookController.prototype.isUserAssociated = function (userId) {
-            if (this.editEvent && this.editEvent.associatedUserIds)
-                return _.contains(this.editEvent.associatedUserIds, userId);
-            return false;
-        };
         LogbookController.prototype.isDateInPast = function (date) {
             var momentDate = moment(date);
             var today = moment();
@@ -7749,6 +8192,25 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.expandCalendarEventModel = function () {
             this.showExpandedCalendarEventModel = true;
+            this.hookUpWysiwyg();
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Wire up the WYSIWYG description editor
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        LogbookController.prototype.hookUpWysiwyg = function () {
+            var _this = this;
+            this.$timeout(function () {
+                Ally.RichTextHelper.initToolbarBootstrapBindings();
+                _this.richEditorElem = $('#desc-rich-editor');
+                _this.richEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+                // Convert old line breaks to HTML line breaks
+                //if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
+                //    this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
+                if (_this.editEvent && _this.editEvent.description)
+                    _this.richEditorElem.html(_this.editEvent.description);
+                else
+                    _this.richEditorElem.html("");
+            }, 100);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Set the calendar event for us to edit
@@ -7761,12 +8223,17 @@ var Ally;
             this.showBadNotificationDateWarning = false;
             if (this.editEvent) {
                 // Simplify the UI logic by transforming this input
-                if (this.residents)
-                    _.each(this.residents, function (r) { return r.isAssociated = _this.isUserAssociated(r.userId); });
+                if (this.residents) {
+                    this.residents.forEach(function (r) { return r.isAssociated = false; });
+                    if (this.editEvent.associatedUserIds)
+                        this.residents.filter(function (r) { return _this.editEvent.associatedUserIds.indexOf(r.userId) !== -1; }).forEach(function (r) { return r.isAssociated = true; });
+                }
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
                 setTimeout(function () { $("#calendar-event-title").focus(); }, 10);
+                if (this.showExpandedCalendarEventModel)
+                    this.hookUpWysiwyg();
             }
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -7812,6 +8279,8 @@ var Ally;
                 alert("Please enter a title in the 'what' field");
                 return;
             }
+            if (this.richEditorElem)
+                this.editEvent.description = this.richEditorElem.html();
             // Ensure the user enters a 'days before' email setting
             if (this.editEvent.shouldSendNotification) {
                 var daysBefore = this.getDaysBeforeValue();
@@ -8191,7 +8660,7 @@ var Ally;
                     _this.profileInfo.email = "";
                 _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
                 _this.hasAcceptedTerms = !_this.needsToAcceptTerms; // Gets set by the checkbox
-                _this.$rootScope.hideMenu = _this.needsToAcceptTerms;
+                _this.$rootScope.shouldHideMenu = _this.needsToAcceptTerms;
                 // Was used before, here for convenience
                 _this.saveButtonStyle = {
                     width: "100px",
@@ -8208,8 +8677,8 @@ var Ally;
             this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
                 _this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login
-                if (_this.$rootScope.hideMenu) {
-                    _this.$rootScope.hideMenu = false;
+                if (_this.$rootScope.shouldHideMenu) {
+                    _this.$rootScope.shouldHideMenu = false;
                     _this.$location.path("/Home");
                 }
                 _this.isLoading = false;
@@ -9634,6 +10103,7 @@ var Ally;
             this.$timeout = $timeout;
             this.$rootScope = $rootScope;
             this.isLoading = false;
+            this.multiSelectWriteInPlaceholder = new Ally.PollAnswer("write-in");
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -9653,24 +10123,9 @@ var Ally;
                 var poll = this.polls[pollIndex];
                 if (poll.hasUsersUnitVoted) {
                     if (poll.canViewResults) {
-                        var answers = _.groupBy(poll.responses, "answerId");
-                        poll.chartData = [];
-                        poll.chartLabels = [];
-                        for (var answerId in answers) {
-                            if (answers.hasOwnProperty(answerId)) {
-                                poll.chartLabels.push(_.find(poll.answers, function (a) { return a.pollAnswerId == answerId; }).answerText);
-                                poll.chartData.push(answers[answerId].length);
-                                //poll.chartData.push(
-                                //{
-                                //    key: _.find( poll.answers, function( a ) { return a.pollAnswerId == answerId; } ).answerText,
-                                //    y: answers[answerId].length
-                                //} );
-                            }
-                        }
-                        if (poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits) {
-                            poll.chartLabels.push("No Response");
-                            poll.chartData.push(this.siteInfo.privateSiteInfo.numUnits - poll.responses.length);
-                        }
+                        var chartInfo = Ally.FellowResidentsService.pollReponsesToChart(poll, this.siteInfo);
+                        poll.chartData = chartInfo.chartData;
+                        poll.chartLabels = chartInfo.chartLabels;
                     }
                 }
             }
@@ -9696,9 +10151,11 @@ var Ally;
         /**
          * Occurs when the user selects a poll answer
          */
-        ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer, writeInAnswer) {
+        ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer) {
             this.isLoading = true;
-            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerId=" + (pollAnswer ? pollAnswer.pollAnswerId : "") + "&writeInAnswer=" + writeInAnswer;
+            var answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
+            var writeInAnswer = poll.writeInAnswer ? encodeURIComponent(poll.writeInAnswer) : "";
+            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + writeInAnswer;
             var innerThis = this;
             this.$http.put(putUri, null).
                 then(function (httpResponse) {
@@ -9709,7 +10166,49 @@ var Ally;
                 innerThis.isLoading = false;
             });
         };
-        ActivePollsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope"];
+        ActivePollsController.prototype.onMultiResponseChange = function (poll, pollAnswer) {
+            var isAbstain = pollAnswer.answerText === "Abstain";
+            if (isAbstain && pollAnswer.isLocalMultiSelect) {
+                poll.answers.filter(function (a) { return a.answerText !== "Abstain"; }).forEach(function (a) { return a.isLocalMultiSelect = false; });
+                poll.isWriteInMultiSelected = false;
+            }
+            // If this is some other answer then unselect abstain
+            if (!isAbstain) {
+                var abstainAnswer = poll.answers.find(function (a) { return a.answerText === "Abstain"; });
+                if (abstainAnswer)
+                    abstainAnswer.isLocalMultiSelect = false;
+            }
+            var numSelectedAnswers = poll.answers.filter(function (a) { return a.isLocalMultiSelect; }).length;
+            if (poll.isWriteInMultiSelected)
+                ++numSelectedAnswers;
+            if (numSelectedAnswers > poll.maxNumResponses) {
+                alert("You can only select at most " + poll.maxNumResponses + " answers");
+                if (pollAnswer === this.multiSelectWriteInPlaceholder)
+                    poll.isWriteInMultiSelected = false;
+                else
+                    pollAnswer.isLocalMultiSelect = false;
+            }
+            poll.localMultiSelectedAnswers = poll.answers.filter(function (a) { return a.isLocalMultiSelect; });
+        };
+        ActivePollsController.prototype.onSubmitMultiAnswer = function (poll) {
+            if (!poll.localMultiSelectedAnswers || poll.localMultiSelectedAnswers.length === 0) {
+                alert("Please select at least one reponse");
+                return;
+            }
+            var answerIdsCsv = poll.localMultiSelectedAnswers.map(function (a) { return a.pollAnswerId; }).join(",");
+            this.isLoading = true;
+            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + ((poll.isWriteInMultiSelected && poll.writeInAnswer) ? encodeURIComponent(poll.writeInAnswer) : '');
+            var innerThis = this;
+            this.$http.put(putUri, null).
+                then(function (httpResponse) {
+                innerThis.polls = httpResponse.data;
+                innerThis.isLoading = false;
+                innerThis.refreshPolls();
+            }, function () {
+                innerThis.isLoading = false;
+            });
+        };
+        ActivePollsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "fellowResidents"];
         return ActivePollsController;
     }());
     Ally.ActivePollsController = ActivePollsController;
@@ -9882,7 +10381,7 @@ var Ally;
                 if (this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
-                    this.nextPaymentText = this.getNextPaymentText([this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue], this.siteInfo.privateSiteInfo.assessmentFrequency);
+                    this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
                     this.updatePaymentText();
                 }
             }
@@ -10097,32 +10596,16 @@ var Ally;
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        AssessmentPaymentFormController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
-            if (payPeriods == null)
+        AssessmentPaymentFormController.prototype.getNextPaymentText = function (curPeriod, assessmentFrequency) {
+            if (!curPeriod)
                 return "";
-            // Ensure the periods is an array
-            if (payPeriods.constructor !== Array)
-                payPeriods = [payPeriods];
             var paymentText = "";
             var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
-            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
-                var curPeriod = payPeriods[periodIndex];
-                if (frequencyInfo.intervalName === "month") {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"];
-                    paymentText = monthNames[curPeriod.period - 1];
-                }
-                else if (frequencyInfo.intervalName === "quarter") {
-                    var periodNames = ["Q1", "Q2", "Q3", "Q4"];
-                    paymentText = periodNames[curPeriod.period - 1];
-                }
-                else if (frequencyInfo.intervalName === "half-year") {
-                    var periodNames = ["First Half", "Second Half"];
-                    paymentText = periodNames[curPeriod.period - 1];
-                }
-                paymentText += " " + curPeriod.year;
-                this.paymentInfo.paysFor = [curPeriod];
-            }
+            var periodNames = GetLongPayPeriodNames(frequencyInfo.intervalName);
+            if (periodNames)
+                paymentText = periodNames[curPeriod.period - 1];
+            paymentText += " " + curPeriod.year;
+            this.paymentInfo.paysFor = [curPeriod];
             return paymentText;
         };
         /**
@@ -10333,6 +10816,10 @@ var Ally;
                 alert("Failed to verify: " + httpResponse.data.exceptionMessage);
             });
         };
+        AssessmentPaymentFormController.prototype.reloadPage = function () {
+            this.isLoading_Payment = true;
+            window.location.reload();
+        };
         AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
         return AssessmentPaymentFormController;
     }());
@@ -10385,10 +10872,11 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function CustomPageViewController($http, siteInfo, $sce) {
+        function CustomPageViewController($http, siteInfo, $sce, $routeParams) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$sce = $sce;
+            this.$routeParams = $routeParams;
             this.isLoading = false;
         }
         /**
@@ -10397,16 +10885,18 @@ var Ally;
         CustomPageViewController.prototype.$onInit = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/CustomPage/View/SellPage").then(function (httpResponse) {
+            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.customPage = httpResponse.data;
                 _this.markupHtml = _this.$sce.trustAsHtml(_this.customPage.markupHtml);
+                // Make <a> links open in new tabs
+                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("custom-page-content"); }, 500);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to load page, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
         };
-        CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce"];
+        CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce", "$routeParams"];
         return CustomPageViewController;
     }());
     Ally.CustomPageViewController = CustomPageViewController;
@@ -10434,7 +10924,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.$scope = $scope;
             this.$timeout = $timeout;
-            this.filterPresetDateRange = "last30days";
+            this.filterPresetDateRange = "custom";
             this.shouldSuppressCustom = false;
             this.thisYearLabel = new Date().getFullYear().toString();
             this.lastYearLabel = (new Date().getFullYear() - 1).toString();
@@ -10444,7 +10934,8 @@ var Ally;
         */
         DateRangePickerController.prototype.$onInit = function () {
             var _this = this;
-            this.selectPresetDateRange(true);
+            if (!this.startDate && !this.endDate)
+                this.selectPresetDateRange(true);
             this.$scope.$watch("$ctrl.startDate", function (newValue, oldValue) {
                 if (!newValue || newValue === oldValue || _this.shouldSuppressCustom)
                     return;
@@ -10491,9 +10982,10 @@ var Ally;
             if (!suppressRefresh && this.onChange)
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
         };
-        DateRangePickerController.prototype.onInternalChange = function () {
+        DateRangePickerController.prototype.onInternalChange = function (suppressChangeEvent) {
             var _this = this;
-            // Only call the change functin if both strings are valid dates
+            if (suppressChangeEvent === void 0) { suppressChangeEvent = false; }
+            // Only call the change function if both strings are valid dates
             if (typeof this.startDate === "string") {
                 if (this.startDate.length !== 10)
                     return;
@@ -10504,11 +10996,13 @@ var Ally;
                     return;
                 this.endDate = moment(this.endDate, "MM-DD-YYYY").toDate();
             }
-            // Delay just a touch to let the model update
-            this.$timeout(function () {
-                if (_this.onChange)
-                    _this.onChange();
-            }, 10);
+            if (!suppressChangeEvent) {
+                // Delay just a touch to let the model update
+                this.$timeout(function () {
+                    if (_this.onChange)
+                        _this.onChange();
+                }, 10);
+            }
         };
         DateRangePickerController.$inject = ["appCacheService", "$scope", "$timeout"];
         return DateRangePickerController;
@@ -10674,6 +11168,7 @@ var Ally;
             // browsers can display directly
             if (this.getDisplayExtension(curFile) === ".rtf")
                 isForDownload = true;
+            ++curFile.numViews;
             if (!isForDownload) {
                 viewDocWindow = window.open('', '_blank');
                 var wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
@@ -11357,6 +11852,13 @@ var Ally;
                 _this.retrieveInfo();
             });
         };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user wants to cancel editing of an info item
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        FAQsController.prototype.cancelInfoItemEdit = function () {
+            this.editingInfoItem = new InfoItem();
+            $("#editor").html("");
+        };
         FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         return FAQsController;
     }());
@@ -11391,6 +11893,34 @@ var Ally;
             else {
                 $('#voiceBtn').hide();
             }
+            $("#rte-new-link-url").on("keydown", function (evt) {
+                var EnterKey = 13;
+                if (evt.keyCode === 13) {
+                    evt.preventDefault();
+                    // Doesn't seem to work
+                    //$( "#rte-new-link-button" ).click();
+                    //$( "#rte-add-link-button" ).click();
+                }
+            });
+            $("#rte-add-link-parent-button").on("click", function () {
+                console.log("selection: " + window.getSelection().toString());
+                if (!window.getSelection().toString()) {
+                    $("#rte-new-link-no-selection-label").show();
+                    $("#rte-new-link-url").hide();
+                    $("#rte-new-link-button").hide();
+                    return;
+                }
+                $("#rte-new-link-no-selection-label").hide();
+                $("#rte-new-link-url").show();
+                $("#rte-new-link-button").show();
+                window.setTimeout(function () {
+                    //const rte = document.getElementById( "editor" ) as HTMLDivElement;
+                    $("#rte-new-link-url").focus();
+                    //const linkInput = document.getElementById( "rte-new-link-url" ) as HTMLInputElement;
+                    //window.setTimeout( () => linkInput.focus(), 100 );
+                    //linkInput.selectionStart = linkInput.selectionEnd = 10000; // From https://stackoverflow.com/questions/511088/use-javascript-to-place-cursor-at-end-of-text-in-text-input-element
+                }, 200);
+            });
         };
         RichTextHelper.showFileUploadAlert = function (reason, detail) {
             var msg = "";
@@ -11433,12 +11963,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants) {
+        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$rootScope = $rootScope;
             this.uiGridConstants = uiGridConstants;
+            this.$scope = $scope;
             this.shouldShowModal = false;
             this.isLoading = false;
             this.HistoryPageSize = 50;
@@ -11461,12 +11992,12 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 120, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents" >Total: {{col.getAggregationValue() | currency }}</div>' }
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
                     showColumnFooter: true,
-                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableHorizontalScrollbar: window.innerWidth < 640 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false,
                     enablePaginationControls: true,
@@ -11474,6 +12005,30 @@ var Ally;
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false
                 };
+        };
+        /**
+         * Populate the text that is shown for the unit column in the resident grid
+         */
+        ResidentTransactionsController.prototype.populateGridUnitLabels = function () {
+            var _this = this;
+            var unitColumn = this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+            if (!unitColumn || !unitColumn.visible)
+                return;
+            this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
+                var allUnits = httpResponse.data;
+                _.each(_this.allFinancialTxns, function (tx) {
+                    if (!tx.associatedUnitId)
+                        return;
+                    var unit = allUnits.find(function (u) { return u.unitId === tx.associatedUnitId; });
+                    if (!unit)
+                        return;
+                    tx.unitGridLabel = unit.name;
+                });
+            }, function (httpResponse) {
+                //this.isLoading = false;
+                console.log("Failed to load units");
+                //alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
+            });
         };
         ResidentTransactionsController.prototype.showModal = function () {
             this.shouldShowModal = true;
@@ -11484,17 +12039,29 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
                 _this.isLoading = false;
-                _this.transactionGridOptions.data = httpResponse.data;
+                _this.allFinancialTxns = httpResponse.data;
                 // Hide the unit column if the owner only has one unit
-                var allUnitIds = _this.transactionGridOptions.data.map(function (u) { return u.associatedUnitId; });
+                var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
                 var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
                 if (unitColumn)
-                    unitColumn.visible = uniqueUnitIds.length > 1;
-                if (_this.transactionGridOptions.data.length <= _this.HistoryPageSize) {
-                    _this.transactionGridOptions.enablePagination = false;
-                    _this.transactionGridOptions.enablePaginationControls = false;
-                }
+                    unitColumn.visible = uniqueUnitIds.length > 1 || _this.siteInfo.userInfo.usersUnits.length > 1;
+                //this.transactionGridOptions.data = httpResponse.data;
+                //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+                //{
+                //    this.transactionGridOptions.enablePagination = false;
+                //    this.transactionGridOptions.enablePaginationControls = false;
+                //}
+                _this.$timeout(function () { return _this.populateGridUnitLabels(); }, 150);
+                // Put this in a slight delay so the date range picker can exist
+                _this.$timeout(function () {
+                    if (_this.allFinancialTxns.length > 1) {
+                        // Transactions come down newest first
+                        _this.filterEndDate = _this.allFinancialTxns[0].transactionDate;
+                        _this.filterStartDate = _this.allFinancialTxns[_this.allFinancialTxns.length - 1].transactionDate;
+                    }
+                    _this.onFilterDateRangeChange();
+                }, 100);
             }, function () {
                 _this.isLoading = false;
             });
@@ -11530,7 +12097,18 @@ var Ally;
             var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
         };
-        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants"];
+        ResidentTransactionsController.prototype.onFilterDateRangeChange = function () {
+            var _this = this;
+            if (!this.filterStartDate || !this.filterEndDate)
+                return;
+            this.transactionGridOptions.data = this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
+            if (this.transactionGridOptions.data.length <= this.HistoryPageSize) {
+                this.transactionGridOptions.enablePagination = false;
+                this.transactionGridOptions.enablePaginationControls = false;
+            }
+            this.$scope.$apply();
+        };
+        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants", "$scope"];
         return ResidentTransactionsController;
     }());
     Ally.ResidentTransactionsController = ResidentTransactionsController;
@@ -11608,7 +12186,6 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.isLoadingEmail = false;
-            this.defaultMessageRecipient = "board";
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = false;
@@ -11651,15 +12228,15 @@ var Ally;
          * Populate the group e-mail options
          */
         GroupSendEmailController.prototype.loadGroupEmails = function () {
+            var _this = this;
             this.isLoadingEmail = true;
-            var innerThis = this;
             this.fellowResidents.getGroupEmailObject().then(function (emailList) {
-                innerThis.isLoadingEmail = false;
-                innerThis.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
-                if (innerThis.availableEmailGroups.length > 0) {
-                    innerThis.defaultMessageRecipient = innerThis.availableEmailGroups[0].recipientType;
-                    innerThis.messageObject.recipientType = innerThis.defaultMessageRecipient;
-                    innerThis.onSelectEmailGroup();
+                _this.isLoadingEmail = false;
+                _this.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
+                if (_this.availableEmailGroups.length > 0) {
+                    _this.defaultMessageRecipient = _this.availableEmailGroups[0];
+                    _this.selectedRecipient = _this.availableEmailGroups[0];
+                    _this.onSelectEmailGroup();
                 }
             });
         };
@@ -11699,8 +12276,10 @@ var Ally;
                 _this.$rootScope.dontHandle403 = false;
                 _this.isLoadingEmail = false;
                 _this.messageObject = new HomeEmailMessage();
-                _this.messageObject.recipientType = _this.defaultMessageRecipient;
+                _this.selectedRecipient = _this.defaultMessageRecipient;
+                _this.messageObject.recipientType = _this.defaultMessageRecipient.recipientType;
                 _this.messageObject.subject = _this.defaultSubject;
+                _this.onSelectEmailGroup();
                 if (_this.committee)
                     _this.messageObject.committeeId = _this.committee.committeeId;
                 _this.showSendConfirmation = true;
@@ -11719,9 +12298,12 @@ var Ally;
          * Occurs when the user selects an e-mail group from the drop-down
          */
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
-            var _this = this;
-            var shortName = HtmlUtil.getSubdomain(window.location.host).toLowerCase();
-            this.groupEmailAddress = this.messageObject.recipientType + "." + shortName + "@inmail." + AppConfig.baseTld;
+            if (!this.selectedRecipient)
+                return;
+            this.messageObject.recipientType = this.selectedRecipient.recipientType;
+            var isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === "CUSTOM";
+            this.messageObject.customRecipientShortName = isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : null;
+            this.groupEmailAddress = this.messageObject.recipientType + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
@@ -11736,10 +12318,9 @@ var Ally;
             var isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite;
-            var groupInfo = _.find(this.availableEmailGroups, function (g) { return g.recipientType === _this.messageObject.recipientType; });
-            this.showRestrictedGroupWarning = groupInfo.isRestrictedGroup;
-            this.shouldShowSendAsBoard = this.siteInfo.userInfo.isSiteManager && !isSendingToBoard;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
+            this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
+            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isOfficerBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
         };
         GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
         return GroupSendEmailController;
@@ -11909,10 +12490,10 @@ var Ally;
                         },
                         {
                             field: "amountPaid",
-                            displayName: "Amount Paid",
+                            displayName: "Mailing Fee",
                             cellFilter: "currency",
                             type: "number",
-                            width: 110
+                            width: 130
                         },
                         {
                             field: "sendingReason",
@@ -12088,6 +12669,7 @@ var Ally;
             this.isAdmin = false;
             this.numInvalidMailingAddresses = 0;
             this.numAddressesToBulkValidate = 0;
+            this.shouldShowAutoUnselect = false;
             var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
             this.homesGridOptions =
                 {
@@ -12197,6 +12779,45 @@ var Ally;
                     _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
                 }
             });
+            this.shouldShowAutoUnselect = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled
+                && this.siteInfo.privateSiteInfo.assessmentFrequency >= 50;
+            if (this.shouldShowAutoUnselect) {
+                this.autoUnselectLabel = MailingInvoiceController.getCurrentPayPeriodLabel(this.siteInfo.privateSiteInfo.assessmentFrequency);
+                if (!this.autoUnselectLabel)
+                    this.shouldShowAutoUnselect = false;
+            }
+        };
+        MailingInvoiceController.getCurrentPayPeriod = function (assessmentFrequency) {
+            var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            if (!payPeriodInfo)
+                return null;
+            var today = new Date();
+            var periodInfo = {
+                year: today.getFullYear(),
+                period: -1,
+                period1Based: -1
+            };
+            if (payPeriodInfo.intervalName === "month")
+                periodInfo.period = today.getMonth();
+            else if (payPeriodInfo.intervalName === "quarter")
+                periodInfo.period = today.getMonth() / 3;
+            else if (payPeriodInfo.intervalName === "half-year")
+                periodInfo.period = today.getMonth() / 6;
+            else if (payPeriodInfo.intervalName === "year")
+                periodInfo.period = 0;
+            periodInfo.period1Based = periodInfo.period + 1;
+            return periodInfo;
+        };
+        MailingInvoiceController.getCurrentPayPeriodLabel = function (assessmentFrequency) {
+            var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            if (!payPeriodInfo)
+                return null;
+            var periodNames = GetLongPayPeriodNames(payPeriodInfo.intervalName);
+            if (!periodNames)
+                return new Date().getFullYear().toString();
+            var currentPeriod = MailingInvoiceController.getCurrentPayPeriod(assessmentFrequency);
+            var yearString = currentPeriod.year.toString();
+            return periodNames[currentPeriod.period] + " " + yearString;
         };
         MailingInvoiceController.prototype.customizeNotes = function (recipient) {
             recipient.overrideNotes = this.fullMailingInfo.notes || " ";
@@ -12395,30 +13016,54 @@ var Ally;
                 // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
-                    var validateAllStep = function () {
+                    var validateAllStep_1 = function () {
                         _this.validateAddress(recipientsToVerify_1[0]).then(function () {
                             recipientsToVerify_1.splice(0, 1);
                             while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
                                 recipientsToVerify_1.splice(0, 1);
                             if (recipientsToVerify_1.length > 0)
-                                validateAllStep();
+                                validateAllStep_1();
                         });
                     };
                     //validateAllStep();
                     this.numAddressesToBulkValidate = recipientsToVerify_1.length;
-                    var testAddressAllStep = function () {
+                    var testAddressAllStep_1 = function () {
                         _this.testAddressRequiredFields(recipientsToVerify_1[0]).then(function () {
                             recipientsToVerify_1.splice(0, 1);
                             while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
                                 recipientsToVerify_1.splice(0, 1);
                             _this.numAddressesToBulkValidate = recipientsToVerify_1.length;
                             if (recipientsToVerify_1.length > 0)
-                                testAddressAllStep();
+                                testAddressAllStep_1();
                         });
                     };
-                    testAddressAllStep();
+                    testAddressAllStep_1();
                 }
             }
+        };
+        MailingInvoiceController.prototype.autoUnselectPaidOwners = function () {
+            var _this = this;
+            this.isLoading = true;
+            var currentPeriod = MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
+            var getUri = "/api/PaymentHistory/RecentPayPeriod/" + currentPeriod.year + "/" + currentPeriod.period1Based;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                var _loop_1 = function (mailingEntry) {
+                    var paidUnits = response.data.filter(function (u) { return mailingEntry.unitIds.indexOf(u.unitId) !== -1; });
+                    var isPaid = paidUnits.length > 0;
+                    if (isPaid)
+                        _this.gridApi.selection.unSelectRow(mailingEntry, null);
+                    else
+                        _this.gridApi.selection.selectRow(mailingEntry, null);
+                };
+                for (var _i = 0, _a = _this.homesGridOptions.data; _i < _a.length; _i++) {
+                    var mailingEntry = _a[_i];
+                    _loop_1(mailingEntry);
+                }
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve assessment status: " + response.data.exceptionMessage);
+            });
         };
         MailingInvoiceController.$inject = ["$http", "SiteInfo", "fellowResidents", "WizardHandler", "$scope", "$timeout", "$location"];
         return MailingInvoiceController;
@@ -12945,7 +13590,7 @@ var Ally;
                 else
                     return e.getCreatedDate();
             };
-            console.log("Sort by " + this.entriesSortField + ", dir " + this.entriesSortAscending);
+            //console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
             this.maintenanceEntries = _.sortBy(this.maintenanceEntries, sortEntry);
             var shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
             if (shouldReverse)
@@ -13391,6 +14036,7 @@ var Ally;
          * Attach the Google Places auto-complete logic to the address text box
          */
         PreferredVendorItemController.prototype.hookupAddressAutocomplete = function () {
+            var _this = this;
             // Also mask phone numbers
             if (this.siteInfo.privateSiteInfo.country === "US" || this.siteInfo.privateSiteInfo.country === "CA") {
                 var phoneFields = $(".mask-phone");
@@ -13410,12 +14056,11 @@ var Ally;
             }
             var addressInput = document.getElementById("vendor-" + (this.vendorItem.preferredVendorId || "") + "-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
             google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                if (!innerThis.editVendorItem.fullAddress)
-                    innerThis.editVendorItem.fullAddress = new Ally.FullAddress();
-                innerThis.editVendorItem.fullAddress.oneLiner = place.formatted_address;
+                var place = _this.addressAutocomplete.getPlace();
+                if (!_this.editVendorItem.fullAddress)
+                    _this.editVendorItem.fullAddress = new Ally.FullAddress();
+                _this.editVendorItem.fullAddress.oneLiner = place.formatted_address;
             });
         };
         /**
@@ -13445,20 +14090,19 @@ var Ally;
             });
             servicesProvidedString += "|";
             this.editVendorItem.servicesProvided = servicesProvidedString;
-            var innerThis = this;
-            saveMethod("/api/PreferredVendors", this.editVendorItem).success(function () {
-                innerThis.isLoading = false;
+            saveMethod("/api/PreferredVendors", this.editVendorItem).then(function () {
+                _this.isLoading = false;
                 if (_this.isAddForm) {
-                    innerThis.editVendorItem = new Ally.PreferredVendor();
-                    if (innerThis.onAddNewVendor)
-                        innerThis.onAddNewVendor();
+                    _this.editVendorItem = new Ally.PreferredVendor();
+                    if (_this.onAddNewVendor)
+                        _this.onAddNewVendor();
                 }
                 else
-                    innerThis.isInEditMode = false;
-                if (innerThis.onParentDataNeedsRefresh)
-                    innerThis.onParentDataNeedsRefresh();
-            }).error(function (exception) {
-                innerThis.isLoading = false;
+                    _this.isInEditMode = false;
+                if (_this.onParentDataNeedsRefresh)
+                    _this.onParentDataNeedsRefresh();
+            }, function (exception) {
+                _this.isLoading = false;
                 alert("Failed to save the vendor information: " + exception.exceptionMessage);
             });
         };
@@ -13466,24 +14110,24 @@ var Ally;
             this.isInEditMode = false;
         };
         PreferredVendorItemController.prototype.onEditItem = function () {
+            var _this = this;
             // Deep clone the vendor item
             this.editVendorItem = JSON.parse(JSON.stringify(this.vendorItem));
             this.isInEditMode = true;
-            var innerThis = this;
-            window.setTimeout(function () { innerThis.hookupAddressAutocomplete(); }, 500);
+            window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 500);
         };
         PreferredVendorItemController.prototype.deleteItem = function () {
+            var _this = this;
             if (!confirm("Are you sure you want to remove this vendor?"))
                 return;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.delete("/api/PreferredVendors/" + this.vendorItem.preferredVendorId).success(function () {
-                innerThis.isLoading = false;
-                if (innerThis.onParentDataNeedsRefresh)
-                    innerThis.onParentDataNeedsRefresh();
-            }).error(function (exception) {
-                innerThis.isLoading = false;
-                alert("Failed to delete the vendor: " + exception.exceptionMessage);
+            this.$http.delete("/api/PreferredVendors/" + this.vendorItem.preferredVendorId).then(function () {
+                _this.isLoading = false;
+                if (_this.onParentDataNeedsRefresh)
+                    _this.onParentDataNeedsRefresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete the vendor: " + response.data.exceptionMessage);
             });
         };
         PreferredVendorItemController.prototype.getServiceAutocomplete = function (enteredText) {
@@ -13581,7 +14225,8 @@ var Ally;
         PreferredVendorsController.prototype.retrieveVendors = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/PreferredVendors").success(function (vendors) {
+            this.$http.get("/api/PreferredVendors").then(function (response) {
+                var vendors = response.data;
                 _this.isLoading = false;
                 _this.allVendors = vendors;
                 _this.filteredVendors = vendors;
@@ -13607,7 +14252,6 @@ var Ally;
         PreferredVendorsController.prototype.exportVendorCsv = function () {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
-            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "Company Name",
@@ -13663,6 +14307,7 @@ var Ally;
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Vendors.csv");
         };
         PreferredVendorsController.prototype.onTagFilterToggle = function (tagName) {
+            var _this = this;
             // Add if the tag to our filter list if it's not there, remove it if it is
             var tagCurrentIndex = this.filterTags.indexOf(tagName);
             if (tagCurrentIndex === -1)
@@ -13674,10 +14319,9 @@ var Ally;
             else {
                 this.filteredVendors = [];
                 // Grab any vendors that have one of the tags by which we're filtering
-                var innerThis = this;
                 _.each(this.allVendors, function (v) {
-                    if (_.intersection(v.servicesProvidedSplit, innerThis.filterTags).length > 0)
-                        innerThis.filteredVendors.push(v);
+                    if (_.intersection(v.servicesProvidedSplit, _this.filterTags).length > 0)
+                        _this.filteredVendors.push(v);
                 });
             }
         };
@@ -13763,7 +14407,8 @@ CA.angularApp.component("streetAddressForm", {
     bindings: {
         streetAddress: "=",
         onChange: "&",
-        shouldHideName: "<"
+        shouldHideName: "<",
+        useCareOf: "<"
     },
     templateUrl: "/ngApp/common/street-address-form.html",
     controller: Ally.StreetAddressFormController
@@ -14528,10 +15173,10 @@ var Ally;
                     csvText += ",";
                 csvText += ValueToCsvValue(descriptorArray[i].headerText);
             }
+            csvText += "\n";
         }
         // Write the rows
         for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
-            csvText += "\n";
             var curRow = itemArray[rowIndex];
             for (var columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex) {
                 if (columnIndex > 0)
@@ -14542,6 +15187,7 @@ var Ally;
                     columnValue = curColumn.dataMapper(columnValue);
                 csvText += ValueToCsvValue(columnValue);
             }
+            csvText += "\n";
         }
         return csvText;
     }
@@ -14575,6 +15221,18 @@ var Ally;
         return GroupEmailGroups;
     }());
     Ally.GroupEmailGroups = GroupEmailGroups;
+    var CustomEmailGroup = /** @class */ (function () {
+        function CustomEmailGroup() {
+        }
+        return CustomEmailGroup;
+    }());
+    Ally.CustomEmailGroup = CustomEmailGroup;
+    var CustomEmailGroupMember = /** @class */ (function () {
+        function CustomEmailGroupMember() {
+        }
+        return CustomEmailGroupMember;
+    }());
+    Ally.CustomEmailGroupMember = CustomEmailGroupMember;
     var HomeEntry = /** @class */ (function () {
         function HomeEntry() {
         }
@@ -14620,13 +15278,14 @@ var Ally;
             this.$http = $http;
             this.$q = $q;
             this.$cacheFactory = $cacheFactory;
+            this.httpCache = $cacheFactory("FellowResidentsService");
         }
         /**
          * Get the residents for the current group
          */
         FellowResidentsService.prototype.getResidents = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.residents;
             }, function (httpResponse) {
                 return innerThis.$q.reject(httpResponse);
@@ -14646,7 +15305,7 @@ var Ally;
          * Determine if a user is a committee member
          */
         FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
-            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -14657,7 +15316,7 @@ var Ally;
          */
         FellowResidentsService.prototype.getByUnits = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.byUnit;
             }, function (httpResponse) {
                 return innerThis.$q.reject(httpResponse);
@@ -14669,7 +15328,7 @@ var Ally;
         FellowResidentsService.prototype.getByUnitsAndResidents = function () {
             var _this = this;
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return _this.$q.reject(httpResponse);
@@ -14679,8 +15338,7 @@ var Ally;
          * Get the object describing the available group e-mail addresses
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
-            var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -14698,7 +15356,7 @@ var Ally;
          */
         FellowResidentsService.prototype.getAllGroupEmails = function () {
             var innerThis = this;
-            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: true }).then(function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
                 return this.$q.reject(httpResponse);
@@ -14778,11 +15436,12 @@ var Ally;
         /**
          * Send an e-mail message to another user
          */
-        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject) {
+        FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
             var postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
-                messageSubject: messageSubject
+                messageSubject: messageSubject,
+                shouldSendAsBoard: shouldSendAsBoard
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         };
@@ -14790,8 +15449,54 @@ var Ally;
          * Clear cached values, such as when the user changes values in Manage -> Residents
          */
         FellowResidentsService.prototype.clearResidentCache = function () {
-            this.$cacheFactory.get("$http").remove("/api/BuildingResidents");
-            this.$cacheFactory.get("$http").remove("/api/BuildingResidents/EmailGroups");
+            this.httpCache.removeAll();
+        };
+        /**
+         * Test if a board position is one of the officer positions
+         */
+        FellowResidentsService.isOfficerBoardPosition = function (boardPosition) {
+            var OfficerPositions = [
+                1,
+                2,
+                4,
+                16,
+                64,
+            ];
+            return OfficerPositions.indexOf(boardPosition) !== -1;
+        };
+        FellowResidentsService.pollReponsesToChart = function (poll, siteInfo) {
+            var talliedVotes = [];
+            var logVote = function (answerId) {
+                var count = talliedVotes.find(function (tv) { return tv.answerId === answerId; });
+                if (!count) {
+                    count = new PollAnswerCount(answerId);
+                    talliedVotes.push(count);
+                }
+                ++count.numVotes;
+            };
+            var logVotes = function (answerIds) { return answerIds.forEach(function (aid) { return logVote(aid); }); };
+            poll.responses.forEach(function (r) { return logVotes(r.answerIds); });
+            var results = {
+                chartData: [],
+                chartLabels: []
+            };
+            var _loop_1 = function (curAnswer) {
+                var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === curAnswer.answerId; });
+                if (answer) {
+                    results.chartLabels.push(answer.answerText);
+                    results.chartData.push(curAnswer.numVotes);
+                }
+            };
+            // Go through each answer and store the name and count for that answer
+            for (var _i = 0, talliedVotes_1 = talliedVotes; _i < talliedVotes_1.length; _i++) {
+                var curAnswer = talliedVotes_1[_i];
+                _loop_1(curAnswer);
+            }
+            if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
+                results.chartLabels.push("No Response");
+                results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
+            }
+            return results;
         };
         FellowResidentsService.BoardPositionNames = [
             { id: 0, name: "None" },
@@ -14806,6 +15511,13 @@ var Ally;
         return FellowResidentsService;
     }());
     Ally.FellowResidentsService = FellowResidentsService;
+    var PollAnswerCount = /** @class */ (function () {
+        function PollAnswerCount(answerId) {
+            this.numVotes = 0;
+            this.answerId = answerId;
+        }
+        return PollAnswerCount;
+    }());
 })(Ally || (Ally = {}));
 angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);
 
@@ -15658,6 +16370,7 @@ var Ally;
                 _.each(_this.commentList, processComments);
             }, function (response) {
                 _this.isLoading = false;
+                alert("Failed to refresh comments: " + response.data.exceptionMessage);
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -15703,18 +16416,18 @@ var Ally;
                 existingCommentId: comment.commentId
             };
         };
-        ;
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Delete a comment
         ///////////////////////////////////////////////////////////////////////////////////////////
         GroupCommentsController.prototype.deleteMyComment = function (comment) {
+            var _this = this;
             this.isLoading = true;
             this.$http.delete("/api/Comment?commentId=" + comment.commentId).then(function () {
-                this.isLoading = false;
-                this.refreshComments();
+                _this.isLoading = false;
+                _this.refreshComments();
             }, function (httpResponse) {
-                this.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                _this.isLoading = false;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to post comment: " + errorMessage);
             });
         };
@@ -15839,6 +16552,9 @@ var Ally;
                 }
             });
             $(element).qtip("show");
+        };
+        HtmlUtil2.removeNonAlphanumeric = function (str) {
+            return str.replace(/\W/g, '');
         };
         /** Download a CSV string as a file */
         HtmlUtil2.downloadCsv = function (csvText, downloadFileName) {
@@ -15971,7 +16687,6 @@ var Ally;
                 var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
                 return homeList.sort(function (h1, h2) { return sortByStreet_1(h1[namePropName], h2[namePropName]); });
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
-                return;
             }
             return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
@@ -16078,16 +16793,18 @@ var Ally;
             this.sendResultIsError = false;
             this.isPremiumPlanActive = false;
             this.isSendingToSelf = false;
+            this.shouldShowSendAsBoard = false;
+            this.shouldSendAsBoard = false;
             this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
         }
-        /**
-        * Called on each controller after all the controllers on an element have been constructed
-        */
+        /// Called on each controller after all the controllers on an element have been constructed
         SendMessageController.prototype.$onInit = function () {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
+            var isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
+            this.shouldShowSendAsBoard = !isRecipientWholeBoard && Ally.FellowResidentsService.isOfficerBoardPosition(this.siteInfo.userInfo.boardPosition);
         };
-        // Display the send modal
+        /// Display the send modal
         SendMessageController.prototype.showSendModal = function () {
             this.shouldShowSendModal = true;
             this.sendResultMessage = "";
@@ -16096,18 +16813,18 @@ var Ally;
             if (this.isPremiumPlanActive)
                 setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 100);
         };
-        // Hide the send modal
+        /// Hide the send modal
         SendMessageController.prototype.hideModal = function () {
             this.shouldShowSendModal = false;
             this.messageBody = "";
         };
-        // Send the user's message
+        /// Send the user's message
         SendMessageController.prototype.sendMessage = function () {
             var _this = this;
             this.shouldShowButtons = false;
             this.isSending = true;
             this.sendResultMessage = "";
-            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject).then(function (response) {
+            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.shouldSendAsBoard).then(function (response) {
                 _this.isSending = false;
                 _this.sendResultIsError = false;
                 _this.messageBody = "";
@@ -16119,7 +16836,13 @@ var Ally;
                 _this.sendResultMessage = "Failed to send: " + response.data.exceptionMessage;
             });
         };
-        ;
+        /// Occurs when the user clicks the checkbox to toggle if they're sending as the board
+        SendMessageController.prototype.onSendAsBoardChanged = function () {
+            if (this.shouldSendAsBoard)
+                this.messageSubject = "Your " + this.siteInfo.publicSiteInfo.fullName + " board has sent you a message via your " + AppConfig.appName + " site";
+            else
+                this.messageSubject = this.siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
+        };
         SendMessageController.$inject = ["$rootScope", "fellowResidents", "SiteInfo"];
         return SendMessageController;
     }());
@@ -16447,6 +17170,7 @@ var Ally;
             // Store the site info to the root scope for access by the app module
             $rootScope.publicSiteInfo = siteInfo.publicSiteInfo;
             this.publicSiteInfo = siteInfo.publicSiteInfo;
+            $rootScope.populatePublicPageMenu();
             // Handle private (logged-in only) info
             var privateSiteInfo = siteInfo.privateSiteInfo;
             if (!privateSiteInfo)

@@ -250,16 +250,16 @@ namespace Ally
                 // Hook up the address copy link
                 setTimeout( () =>
                 {
-                    var clipboard = new Clipboard( ".clipboard-button" );
+                    const clipboard = new Clipboard( ".clipboard-button" );
 
-                    clipboard.on( "success", function( e: any )
+                    clipboard.on( "success", ( e: any ) =>
                     {
                         Ally.HtmlUtil2.showTooltip( e.trigger, "Copied!" );
 
                         e.clearSelection();
                     } );
 
-                    clipboard.on( "error", function( e: any )
+                    clipboard.on( "error", ( e: any ) =>
                     {
                         Ally.HtmlUtil2.showTooltip( e.trigger, "Auto-copy failed, press CTRL+C now" );
                     } );
@@ -276,13 +276,13 @@ namespace Ally
 
             this.editUser = null;
 
-            var LocalKey_ResidentSort = "residentSort_v2";
+            const LocalKey_ResidentSort = "residentSort_v2";
 
-            var defaultSort = { field: "lastName", direction: this.uiGridConstants.ASC };
+            const defaultSort = { field: "lastName", direction: this.uiGridConstants.ASC };
             this.residentSortInfo = defaultSort;
             if( window.localStorage )
             {
-                var sortOptions = window.localStorage.getItem( LocalKey_ResidentSort );
+                const sortOptions = window.localStorage.getItem( LocalKey_ResidentSort );
                 if( sortOptions )
                     this.residentSortInfo = JSON.parse( sortOptions );
 
@@ -290,9 +290,8 @@ namespace Ally
                     this.residentSortInfo = defaultSort;
             }
 
-            var homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
+            const homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
 
-            var innerThis = this;
             this.residentGridOptions =
                 {
                     data: [],
@@ -309,9 +308,9 @@ namespace Ally
                             cellClass: "resident-cell-unit",
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
-                            sortingAlgorithm: function( a: string, b: string )
+                            sortingAlgorithm: ( a: string, b: string ) =>
                             {
-                                if( innerThis.shouldSortUnitsNumerically )
+                                if( this.shouldSortUnitsNumerically )
                                 {
                                     return parseInt( a ) - parseInt( b );
                                 }
@@ -339,23 +338,23 @@ namespace Ally
                     enableFullRowSelection: true,
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function( gridApi )
+                    onRegisterApi: ( gridApi ) =>
                     {
-                        innerThis.gridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged( innerThis.$rootScope, function( row )
+                        this.gridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
                         {
-                            var msg = 'row selected ' + row.isSelected;
-                            innerThis.setEdit( row.entity );
+                            const msg = 'row selected ' + row.isSelected;
+                            this.setEdit( row.entity );
                         } );
 
-                        gridApi.core.on.sortChanged( innerThis.$rootScope, function( grid, sortColumns )
+                        gridApi.core.on.sortChanged( this.$rootScope, ( grid, sortColumns ) =>
                         {
                             if( !sortColumns || sortColumns.length === 0 )
                                 return;
 
                             // Remember the sort
-                            innerThis.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
-                            window.localStorage.setItem( LocalKey_ResidentSort, JSON.stringify( innerThis.residentSortInfo ) );
+                            this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
+                            window.localStorage.setItem( LocalKey_ResidentSort, JSON.stringify( this.residentSortInfo ) );
                         } );
 
                         // Fix dumb scrolling
@@ -395,7 +394,7 @@ namespace Ally
 
             if( window.innerWidth < 769 )
             {
-                for( var i = 2; i < this.residentGridOptions.columnDefs.length; ++i )
+                for( let i = 2; i < this.residentGridOptions.columnDefs.length; ++i )
                     this.residentGridOptions.columnDefs[i].visible = false;
             }
 
@@ -455,7 +454,7 @@ namespace Ally
             if( !boardValue )
                 return "";
 
-            var boardPosition = jQuery.grep( FellowResidentsService.BoardPositionNames, function( pos, i ) { return pos.id === boardValue; } )[0];
+            const boardPosition = jQuery.grep( FellowResidentsService.BoardPositionNames, ( pos, i ) => pos.id === boardValue )[0];
 
             if( !boardPosition )
                 return "";
@@ -471,7 +470,7 @@ namespace Ally
         {
             this.pendingMemberGridApi.selection.clearSelectedRows();
 
-            var newUserInfo = new UpdateResident();
+            const newUserInfo = new UpdateResident();
             newUserInfo.firstName = pendingMember.firstName;
             newUserInfo.lastName = pendingMember.lastName;
             newUserInfo.email = pendingMember.email;
@@ -509,7 +508,7 @@ namespace Ally
             this.selectedResidentDetailsView = "Primary";
             this.editUserForm.$setPristine();
 
-            var copiedUser = jQuery.extend( {}, resident );
+            const copiedUser = jQuery.extend( {}, resident );
             this.editUser = copiedUser;
 
             // Initialize the home picker state
@@ -534,7 +533,7 @@ namespace Ally
                 // Add an empty entry since the multi-select control doesn't allow deselection
                 if( this.allUnits[0].unitId !== -5 )
                 {
-                    var emptyUnit = new Ally.Unit();
+                    const emptyUnit = new Ally.Unit();
                     emptyUnit.name = "None Selected";
                     emptyUnit.unitId = -5;
                     this.allUnits.unshift( emptyUnit );
@@ -544,7 +543,7 @@ namespace Ally
             // Set the selected units
             _.each( this.allUnits, ( allUnit ) =>
             {
-                var isSelected = _.find( this.editUser.units, function( userUnit: any ) { return userUnit.unitId === allUnit.unitId; } ) !== undefined;
+                const isSelected = _.find( this.editUser.units, ( userUnit: any ) => userUnit.unitId === allUnit.unitId ) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             } );
 
@@ -562,16 +561,18 @@ namespace Ally
         {
             this.isSavingUser = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/Residents/" + this.editUser.userId + "/SendWelcome", null ).success( function()
-            {
-                innerThis.isSavingUser = false;
-                innerThis.sentWelcomeEmail = true;
-            } ).error( function()
-            {
-                innerThis.isSavingUser = false;
-                alert( "Failed to send the welcome email, please contact support if this problem persists." );
-            } );
+            this.$http.put( "/api/Residents/" + this.editUser.userId + "/SendWelcome", null ).then(
+                () =>
+                {
+                    this.isSavingUser = false;
+                    this.sentWelcomeEmail = true;
+                },
+                () =>
+                {
+                    this.isSavingUser = false;
+                    alert( "Failed to send the welcome email, please contact support if this problem persists." );
+                }
+            );
         }
 
 
@@ -581,9 +582,9 @@ namespace Ally
         populateGridUnitLabels()
         {
             // Populate the unit names for the grid
-            _.each( <Ally.UpdateResident[]>this.residentGridOptions.data, function( res )
+            _.each( <Ally.UpdateResident[]>this.residentGridOptions.data, ( res ) =>
             {
-                var unitLabel = _.reduce( res.units, function( memo: string, u: Ally.HomeEntryWithName )
+                const unitLabel = _.reduce( res.units, ( memo: string, u: Ally.HomeEntryWithName ) =>
                 {
                     if( memo.length > 0 )
                         return memo + "," + u.name;
@@ -603,70 +604,73 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            return this.$http.get( "/api/Residents" ).success(( residentArray: Ally.UpdateResident[] ) =>
-            {
-                innerThis.isLoading = false;
-
-                innerThis.residentGridOptions.data = residentArray;
-                innerThis.residentGridOptions.minRowsToShow = residentArray.length;
-                innerThis.residentGridOptions.virtualizationThreshold = residentArray.length;
-
-                innerThis.residentGridOptions.enableFiltering = residentArray.length > 15;
-                innerThis.gridApi.core.notifyDataChange( this.uiGridConstants.dataChange.COLUMN );
-
-                innerThis.hasOneAdmin = _.filter( residentArray, r => r.isSiteManager ).length === 1 && residentArray.length > 1;
-
-                //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
-
-                // If we have sort info to use
-                if( innerThis.residentSortInfo )
+            return this.$http.get( "/api/Residents" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<Ally.UpdateResident[]> ) =>
                 {
-                    var sortColumn = _.find( innerThis.gridApi.grid.columns, function( col ) { return col.field === innerThis.residentSortInfo.field; } );
+                    this.isLoading = false;
+                    const residentArray = response.data;
+                    this.residentGridOptions.data = residentArray;
+                    this.residentGridOptions.minRowsToShow = residentArray.length;
+                    this.residentGridOptions.virtualizationThreshold = residentArray.length;
 
-                    if( sortColumn )
-                        innerThis.gridApi.grid.sortColumn( sortColumn, innerThis.residentSortInfo.direction, false );
-                }
+                    this.residentGridOptions.enableFiltering = residentArray.length > 15;
+                    this.gridApi.core.notifyDataChange( this.uiGridConstants.dataChange.COLUMN );
 
-                // Build the full name and convert the last login to local time
-                _.forEach( residentArray, function( res )
-                {
-                    res.fullName = res.firstName + " " + res.lastName;
-                    if( typeof ( res.email ) === "string" && res.email.indexOf( "@condoally.com" ) !== -1 )
-                        res.email = "";
+                    this.hasOneAdmin = _.filter( residentArray, r => r.isSiteManager ).length === 1 && residentArray.length > 1;
 
-                    // Convert the last login timestamps to local time
-                    if( res.lastLoginDateUtc )
-                        res.lastLoginDateUtc = moment.utc( res.lastLoginDateUtc ).toDate();
-                } );
+                    //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
 
-                innerThis.populateGridUnitLabels();
-
-                if( !innerThis.allUnits && AppConfig.isChtnSite )
-                {
-                    innerThis.isLoading = true;
-
-                    innerThis.$http.get( "/api/Unit" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> )
+                    // If we have sort info to use
+                    if( this.residentSortInfo )
                     {
-                        innerThis.isLoading = false;
-                        innerThis.allUnits = httpResponse.data;
-                        
-                        innerThis.shouldSortUnitsNumerically = _.every( innerThis.allUnits, u => HtmlUtil.isNumericString( u.name ) );
+                        const sortColumn = _.find( this.gridApi.grid.columns, ( col ) => col.field === this.residentSortInfo.field );
 
-                        if( innerThis.shouldSortUnitsNumerically )
-                            innerThis.allUnits = _.sortBy( innerThis.allUnits, u => parseFloat( u.name ) );
-                        
-                        // If we have a lot of units then allow searching
-                        innerThis.multiselectOptions = innerThis.allUnits.length > 20 ? "filter" : "";
-                    },
-                    function()
+                        if( sortColumn )
+                            this.gridApi.grid.sortColumn( sortColumn, this.residentSortInfo.direction, false );
+                    }
+
+                    // Build the full name and convert the last login to local time
+                    _.forEach( residentArray, ( res ) =>
                     {
-                        innerThis.isLoading = false;
-                        alert( "Failed to retrieve your association's home listing, please contact support." );
+                        res.fullName = res.firstName + " " + res.lastName;
+                        if( typeof ( res.email ) === "string" && res.email.indexOf( "@condoally.com" ) !== -1 )
+                            res.email = "";
+
+                        // Convert the last login timestamps to local time
+                        if( res.lastLoginDateUtc )
+                            res.lastLoginDateUtc = moment.utc( res.lastLoginDateUtc ).toDate();
                     } );
-                }
 
-            } );
+                    this.populateGridUnitLabels();
+
+                    if( !this.allUnits && AppConfig.isChtnSite )
+                    {
+                        this.isLoading = true;
+
+                        this.$http.get( "/api/Unit" ).then(
+                            ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
+                            {
+                                this.isLoading = false;
+                                this.allUnits = httpResponse.data;
+
+                                this.shouldSortUnitsNumerically = _.every( this.allUnits, u => HtmlUtil.isNumericString( u.name ) );
+
+                                if( this.shouldSortUnitsNumerically )
+                                    this.allUnits = _.sortBy( this.allUnits, u => parseFloat( u.name ) );
+
+                                // If we have a lot of units then allow searching
+                                this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
+                            },
+                            () =>
+                            {
+                                this.isLoading = false;
+                                alert( "Failed to retrieve your association's home listing, please contact support." );
+                            }
+                        );
+                    }
+
+                }
+            );
         }
 
 
@@ -768,10 +772,9 @@ namespace Ally
 
             this.isSavingUser = true;
 
-            var innerThis = this;
-            var onSave = function( response: ng.IHttpPromiseCallbackArg<any> )
+            const onSave = ( response: ng.IHttpPromiseCallbackArg<any> ) =>
             {
-                innerThis.isSavingUser = false;
+                this.isSavingUser = false;
 
                 if( typeof ( response.data.errorMessage ) === "string" )
                 {
@@ -779,20 +782,20 @@ namespace Ally
                     return;
                 }
 
-                if( innerThis.editUser.pendingMemberId )
-                    innerThis.loadPendingMembers();
+                if( this.editUser.pendingMemberId )
+                    this.loadPendingMembers();
 
-                innerThis.editUser = null;
-                innerThis.refreshResidents();
+                this.editUser = null;
+                this.refreshResidents();
             };
 
-            var isAddingNew = false;
+            let isAddingNew = false;
 
-            var onError = function( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+            const onError = ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
-                innerThis.isSavingUser = false;
+                this.isSavingUser = false;
 
-                var errorMessage = isAddingNew ? "Failed to add new resident" : "Failed to update resident";
+                let errorMessage = isAddingNew ? "Failed to add new resident" : "Failed to update resident";
                 if( response && response.data && response.data.exceptionMessage )
                     errorMessage += ": " + response.data.exceptionMessage;
 
@@ -824,21 +827,22 @@ namespace Ally
          */
         OnAdminSetPassword()
         {
-            var setPass =
+            const setPass =
                 {
                     userName: this.adminSetPass_Username,
                     password: this.adminSetPass_Password
                 };
 
-            var innerThis = this;
-            this.$http.post( "/api/AdminHelper/SetPassword", setPass ).success( function( resultMessage: string )
-            {
-                innerThis.adminSetPass_ResultMessage = resultMessage;
-            } ).error( function( data )
-            {
-                var errorMessage = data.exceptionMessage ? data.exceptionMessage : data;
-                alert( "Failed to set password: " + errorMessage );
-            } );
+            this.$http.post( "/api/AdminHelper/SetPassword", setPass ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.adminSetPass_ResultMessage = response.data;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    alert( "Failed to set password: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -849,21 +853,23 @@ namespace Ally
         {
             this.isLoadingSettings = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/Settings" ).success( ( data: ChtnSiteSettings ) =>
-            {
-                innerThis.isLoadingSettings = false;
-                this.residentSettings = data;
+            this.$http.get( "/api/Settings" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
+                {
+                    this.isLoadingSettings = false;
+                    this.residentSettings = response.data;
 
-                // Update the SiteInfoService so the privateSiteInfo properties reflects changes
-                this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
-                this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
+                    // Update the SiteInfoService so the privateSiteInfo properties reflects changes
+                    this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
+                    this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
 
-            } ).error(( exc: any ) =>
-            {
-                innerThis.isLoadingSettings = false;
-                console.log( "Failed to retrieve settings" );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingSettings = false;
+                    console.log( "Failed to retrieve settings: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -875,9 +881,7 @@ namespace Ally
             if( typeof ( analytics ) !== "undefined" )
                 analytics.track( 'exportResidentCsv' );
 
-            var innerThis = this;
-
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "First Name",
                     fieldName: "firstName"
@@ -909,15 +913,12 @@ namespace Ally
                 {
                     headerText: "Board Position",
                     fieldName: "boardPosition",
-                    dataMapper: function( value: number )
-                    {
-                        return innerThis.getBoardPositionName( value );
-                    }
+                    dataMapper: ( value: number ) => this.getBoardPositionName( value )
                 },
                 {
                     headerText: "Alternate Mailing",
                     fieldName: "mailingAddressObject",
-                    dataMapper: function( value: FullAddress )
+                    dataMapper: ( value: FullAddress ) =>
                     {
                         if( !value )
                             return "";
@@ -939,7 +940,7 @@ namespace Ally
                 {
                     headerText: "Last Login Date",
                     fieldName: "lastLoginDateUtc",
-                    dataMapper: function( value: Date )
+                    dataMapper: ( value: Date ) =>
                     {
                         if( !value )
                             return "Has not logged-in";
@@ -949,7 +950,7 @@ namespace Ally
                 }
             ];
 
-            var csvDataString = Ally.createCsvString( <any[]>this.residentGridOptions.data, csvColumns );
+            const csvDataString = Ally.createCsvString( <any[]>this.residentGridOptions.data, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Residents.csv" );
         }
@@ -969,9 +970,7 @@ namespace Ally
             if( typeof ( analytics ) !== "undefined" )
                 analytics.track( 'exportKansasPtaCsv' );
 
-            var innerThis = this;
-
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Local_Unit",
                     fieldName: "Local_Unit"
@@ -1082,7 +1081,7 @@ namespace Ally
                 }
             ];
 
-            var copiedMembers = _.clone( <any[]>this.residentGridOptions.data );
+            const copiedMembers = _.clone( <any[]>this.residentGridOptions.data );
             for( let member of copiedMembers )
             {
                 member.Local_Unit = this.siteInfo.privateSiteInfo.ptaUnitId.toString();
@@ -1092,22 +1091,22 @@ namespace Ally
                     member.Position = this.getBoardPositionName( member.boardPosition );
             }
 
-            var csvDataString = Ally.createCsvString( <any[]>this.residentGridOptions.data, csvColumns );
+            let csvDataString = Ally.createCsvString( <any[]>this.residentGridOptions.data, csvColumns );
             csvDataString = "data:text/csv;charset=utf-8," + csvDataString;
 
-            var encodedUri = encodeURI( csvDataString );
+            const encodedUri = encodeURI( csvDataString );
 
             // Works, but can't set the file name
             //window.open( encodedUri );
 
-            var csvLink = document.createElement( "a" );
+            const csvLink = document.createElement( "a" );
             csvLink.setAttribute( "href", encodedUri );
             csvLink.setAttribute( "download", "pta-members.csv" );
             document.body.appendChild( csvLink ); // Required for FF
 
             csvLink.click(); // This will download the file
 
-            setTimeout( function() { document.body.removeChild( csvLink ); }, 500 );
+            setTimeout( () => document.body.removeChild( csvLink ), 500 );
         }
 
 
@@ -1120,7 +1119,7 @@ namespace Ally
 
             this.isLoadingSettings = true;
 
-            this.$http.put( "/api/Settings", this.residentSettings ).success(
+            this.$http.put( "/api/Settings", this.residentSettings ).then(
                 () => 
                 {
                     this.isLoadingSettings = false;
@@ -1132,7 +1131,8 @@ namespace Ally
                     this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
                     this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
 
-                } ).error(() =>
+                },
+                () =>
                 {
                     this.isLoadingSettings = false;
                     alert( "Failed to update settings, please try again or contact support." );
@@ -1157,22 +1157,24 @@ namespace Ally
 
             this.isSavingUser = true;
 
-            var innerThis = this;
-            this.$http.delete( "/api/Residents?userId=" + this.editUser.userId ).success(() =>
-            {
-                innerThis.isSavingUser = false;
-                innerThis.editUser = null;
+            this.$http.delete( "/api/Residents?userId=" + this.editUser.userId ).then(
+                () =>
+                {
+                    this.isSavingUser = false;
+                    this.editUser = null;
 
-                // Update the fellow residents page next time we're there
-                innerThis.fellowResidents.clearResidentCache();
+                    // Update the fellow residents page next time we're there
+                    this.fellowResidents.clearResidentCache();
 
-                innerThis.refreshResidents();
-            } ).error(() =>
-            {
-                alert( "Failed to remove the resident. Please let support know if this continues to happen." );
-                innerThis.isSavingUser = false;
-                innerThis.editUser = null;
-            } );
+                    this.refreshResidents();
+                },
+                () =>
+                {
+                    alert( "Failed to remove the resident. Please let support know if this continues to happen." );
+                    this.isSavingUser = false;
+                    this.editUser = null;
+                }
+            );
         }
 
 
@@ -1186,17 +1188,19 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/Residents/UserAction?userId&action=launchsite", null ).success( function( data: any )
-            {
-                innerThis.isLoading = false;
-                innerThis.sentWelcomeEmail = true;
-                innerThis.allEmailsSent = true;
-            } ).error( function()
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to send welcome email, please contact support if this problem persists." )
-            } );
+            this.$http.put( "/api/Residents/UserAction?userId&action=launchsite", null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.sentWelcomeEmail = true;
+                    this.allEmailsSent = true;
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to send welcome email, please contact support if this problem persists." )
+                }
+            );
         }
 
 
@@ -1205,17 +1209,17 @@ namespace Ally
          */
         parseBulkCsv()
         {
-            var csvParser = ( <any>$ ).csv;
-            var bulkRows = csvParser.toArrays( this.bulkImportCsv );
+            const csvParser = ( <any>$ ).csv;
+            const bulkRows = csvParser.toArrays( this.bulkImportCsv );
 
             this.bulkImportRows = [];
 
-            var simplifyStreetName = function( streetAddress: string )
+            const simplifyStreetName = ( streetAddress: string ) =>
             {
                 if( !streetAddress )
                     streetAddress = "";
 
-                var simplifiedName = streetAddress.toLowerCase();
+                let simplifiedName = streetAddress.toLowerCase();
 
                 simplifiedName = simplifiedName.replace( /0th /g, "0 " ).replace( /1st /g, "1 " );
                 simplifiedName = simplifiedName.replace( /2nd /g, "2 " ).replace( /3rd /g, "3 " );
@@ -1233,11 +1237,11 @@ namespace Ally
 
             if( this.allUnits )
             {
-                for( var i = 0; i < this.allUnits.length; ++i )
+                for( let i = 0; i < this.allUnits.length; ++i )
                     this.allUnits[i].csvTestName = simplifyStreetName( this.allUnits[i].name );
             }
 
-            for( var i = 0; i < bulkRows.length; ++i )
+            for( let i = 0; i < bulkRows.length; ++i )
             {
                 let curRow = <string[]>bulkRows[i];
 
@@ -1278,7 +1282,7 @@ namespace Ally
                 {
                     newRow.csvTestName = simplifyStreetName( newRow.unitName );
 
-                    var unit = _.find( this.allUnits, function( u ) { return u.csvTestName === newRow.csvTestName; } );
+                    const unit = _.find( this.allUnits, ( u ) => u.csvTestName === newRow.csvTestName );
                     if( unit )
                         newRow.unitId = unit.unitId;
                     else
@@ -1293,7 +1297,7 @@ namespace Ally
                 {
                     spouseRow = _.clone( newRow );
 
-                    var splitFirst = newRow.firstName.split( " and " );
+                    const splitFirst = newRow.firstName.split( " and " );
 
                     newRow.firstName = splitFirst[0];
                     spouseRow.firstName = splitFirst[1];
@@ -1349,20 +1353,21 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/Residents/BulkLoad", this.bulkImportRows, { timeout: 10 * 60 * 1000 } ).success( function()
-            {
-                innerThis.isLoading = false;
-                innerThis.bulkImportRows = [new ResidentCsvRow()];
-                innerThis.bulkImportCsv = "";
-                alert( "Success" );
-                innerThis.refreshResidents();
-
-            } ).error( function()
-            {
-                innerThis.isLoading = false;
-                alert( "Bulk upload failed" );
-            } );
+            this.$http.post( "/api/Residents/BulkLoad", this.bulkImportRows, { timeout: 10 * 60 * 1000 } ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.bulkImportRows = [new ResidentCsvRow()];
+                    this.bulkImportCsv = "";
+                    alert( "Success" );
+                    this.refreshResidents();
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Bulk upload failed" );
+                }
+            );
         }
 
 
@@ -1371,7 +1376,7 @@ namespace Ally
          */
         addBulkRow()
         {
-            var newRow: ResidentCsvRow = {
+            const newRow: ResidentCsvRow = {
                 unitName: "",
                 unitId: <number>null,
                 email: "",
@@ -1391,8 +1396,8 @@ namespace Ally
             {
                 if( this.bulkImportRows.length > 0 )
                 {
-                    var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
-                    var lastUnitIndex = _.findIndex( this.allUnits, function( u ) { return u.unitId === lastUnitId; } );
+                    const lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
+                    let lastUnitIndex = _.findIndex( this.allUnits, ( u ) => u.unitId === lastUnitId );
 
                     ++lastUnitIndex;
 

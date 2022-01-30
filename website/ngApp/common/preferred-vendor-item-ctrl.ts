@@ -89,17 +89,17 @@ namespace Ally
             // Also mask phone numbers
             if( this.siteInfo.privateSiteInfo.country === "US" || this.siteInfo.privateSiteInfo.country === "CA" )
             {
-                var phoneFields: any = $( ".mask-phone" );
+                const phoneFields: any = $( ".mask-phone" );
                 phoneFields.mask( "(999) 999-9999? x999", { autoclear: false } );
             }
 
             // If we know our group's position, let's tighten the auto-complete suggestion radius
-            var autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
+            let autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
             if( this.siteInfo.privateSiteInfo.googleGpsPosition )
             {
                 const TwentyFiveMilesInMeters = 40234;
 
-                var circle = new google.maps.Circle( {
+                const circle = new google.maps.Circle( {
                     center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 } );
@@ -109,19 +109,21 @@ namespace Ally
                 };
             }
 
-            var addressInput = document.getElementById( "vendor-" + ( this.vendorItem.preferredVendorId || "" ) + "-address-text-box" ) as HTMLInputElement;
+            const addressInput = document.getElementById( "vendor-" + ( this.vendorItem.preferredVendorId || "" ) + "-address-text-box" ) as HTMLInputElement;
             this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput, autocompleteOptions );
 
-            var innerThis = this;
-            google.maps.event.addListener( this.addressAutocomplete, "place_changed", function()
-            {
-                var place = innerThis.addressAutocomplete.getPlace();
+            google.maps.event.addListener( this.addressAutocomplete,
+                "place_changed",
+                () =>
+                {
+                    const place = this.addressAutocomplete.getPlace();
 
-                if( !innerThis.editVendorItem.fullAddress )
-                    innerThis.editVendorItem.fullAddress = new FullAddress();
+                    if( !this.editVendorItem.fullAddress )
+                        this.editVendorItem.fullAddress = new FullAddress();
 
-                innerThis.editVendorItem.fullAddress.oneLiner = place.formatted_address;
-            } );
+                    this.editVendorItem.fullAddress.oneLiner = place.formatted_address;
+                }
+            );
         }
 
 
@@ -149,7 +151,7 @@ namespace Ally
                     this.editVendorItem.companyWeb = "http://" + this.editVendorItem.companyWeb;
             }
 
-            var saveMethod = this.editVendorItem.preferredVendorId == null ? this.$http.post : this.$http.put;
+            const saveMethod = this.editVendorItem.preferredVendorId == null ? this.$http.post : this.$http.put;
 
             this.isLoading = true;
 
@@ -162,29 +164,31 @@ namespace Ally
             servicesProvidedString += "|";
             this.editVendorItem.servicesProvided = servicesProvidedString;
 
-            var innerThis = this;
-            saveMethod( "/api/PreferredVendors", this.editVendorItem ).success(() =>
-            {
-                innerThis.isLoading = false;
-
-                if( this.isAddForm )
+            saveMethod( "/api/PreferredVendors", this.editVendorItem ).then(
+                () =>
                 {
-                    innerThis.editVendorItem = new PreferredVendor();
+                    this.isLoading = false;
 
-                    if( innerThis.onAddNewVendor )
-                        innerThis.onAddNewVendor();
+                    if( this.isAddForm )
+                    {
+                        this.editVendorItem = new PreferredVendor();
+
+                        if( this.onAddNewVendor )
+                            this.onAddNewVendor();
+                    }
+                    else
+                        this.isInEditMode = false;
+
+                    if( this.onParentDataNeedsRefresh )
+                        this.onParentDataNeedsRefresh();
+
+                },
+                ( exception: ExceptionResult ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save the vendor information: " + exception.exceptionMessage );
                 }
-                else
-                    innerThis.isInEditMode = false;
-
-                if( innerThis.onParentDataNeedsRefresh )
-                    innerThis.onParentDataNeedsRefresh();
-
-            } ).error(( exception: ExceptionResult ) =>
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to save the vendor information: " + exception.exceptionMessage );
-            } );
+            );
         }
 
 
@@ -200,8 +204,7 @@ namespace Ally
             this.editVendorItem = JSON.parse( JSON.stringify( this.vendorItem ) );
             this.isInEditMode = true;
 
-            var innerThis = this;
-            window.setTimeout(() => { innerThis.hookupAddressAutocomplete(); }, 500 );
+            window.setTimeout(() => this.hookupAddressAutocomplete(), 500 );
         }
 
 
@@ -212,19 +215,21 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.delete( "/api/PreferredVendors/" + this.vendorItem.preferredVendorId ).success(() =>
-            {
-                innerThis.isLoading = false;
+            this.$http.delete( "/api/PreferredVendors/" + this.vendorItem.preferredVendorId ).then(
+                () =>
+                {
+                    this.isLoading = false;
 
-                if( innerThis.onParentDataNeedsRefresh )
-                    innerThis.onParentDataNeedsRefresh();
+                    if( this.onParentDataNeedsRefresh )
+                        this.onParentDataNeedsRefresh();
 
-            } ).error(( exception: ExceptionResult ) =>
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to delete the vendor: " + exception.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete the vendor: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 

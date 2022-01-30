@@ -75,19 +75,20 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var putUri = ( committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/" ) + committee.committeeId;
+            const putUri = ( committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/" ) + committee.committeeId;
 
-            var innerThis = this;
-            this.$http.put( putUri, null ).success(( committees: Committee[] ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
-
-            } ).error(( exc: Ally.ExceptionResult ) =>
-            {
-                innerThis.isLoading = false;
-                alert( "Failed to retrieve the modify committee: " + exc.exceptionMessage );
-            } );
+            this.$http.put( putUri, null ).then(
+                ( committees: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.retrieveCommittees();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve the modify committee: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -98,24 +99,28 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/Committee?includeInactive=true" ).success(( committees: Committee[] ) =>
-            {
-                this.isLoading = false;
-                this.activeCommittees = _.filter( committees, c => !c.deactivationDateUtc );
-                this.inactiveCommittees = _.filter( committees, c => !!c.deactivationDateUtc );
+            this.$http.get( "/api/Committee?includeInactive=true" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<Committee[]> ) =>
+                {
+                    const committees = response.data;
 
-                this.activeCommittees = _.sortBy( this.activeCommittees, c => c.name.toLowerCase() );
-                this.inactiveCommittees = _.sortBy( this.inactiveCommittees, c => c.name.toLowerCase() );
+                    this.isLoading = false;
+                    this.activeCommittees = _.filter( committees, c => !c.deactivationDateUtc );
+                    this.inactiveCommittees = _.filter( committees, c => !!c.deactivationDateUtc );
 
-                // Convert the last login timestamps to local time
-                //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
+                    this.activeCommittees = _.sortBy( this.activeCommittees, c => c.name.toLowerCase() );
+                    this.inactiveCommittees = _.sortBy( this.inactiveCommittees, c => c.name.toLowerCase() );
 
-            } ).error(( exc: Ally.ExceptionResult ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to retrieve the committee listing" );
-            } );
+                    // Convert the last login timestamps to local time
+                    //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
+
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve the committee listing: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -141,17 +146,19 @@ namespace Ally
             var saveUri = `/api/Committee${( this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "" )}?name=${encodeURIComponent( this.editCommittee.name )}&type=${encodeURIComponent( this.editCommittee.committeeType )}&isPrivate=${this.editCommittee.isPrivate.toString()}`;
 
             let httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
-            httpFunc( saveUri, null ).success(() =>
-            {
-                this.isLoading = false;
-                this.editCommittee = null;
-                this.retrieveCommittees();
-
-            } ).error(( error: ExceptionResult ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to save the committee: " + error.exceptionMessage );
-            } );
+            httpFunc( saveUri, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.editCommittee = null;
+                    this.retrieveCommittees();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save the committee: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }

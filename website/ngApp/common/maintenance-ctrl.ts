@@ -703,7 +703,7 @@
                     return e.getCreatedDate();
             };
 
-            console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
+            //console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
             this.maintenanceEntries = _.sortBy( this.maintenanceEntries, sortEntry );
 
             const shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;

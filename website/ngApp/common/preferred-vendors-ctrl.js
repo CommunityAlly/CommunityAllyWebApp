@@ -50,7 +50,8 @@ var Ally;
         PreferredVendorsController.prototype.retrieveVendors = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/PreferredVendors").success(function (vendors) {
+            this.$http.get("/api/PreferredVendors").then(function (response) {
+                var vendors = response.data;
                 _this.isLoading = false;
                 _this.allVendors = vendors;
                 _this.filteredVendors = vendors;
@@ -76,7 +77,6 @@ var Ally;
         PreferredVendorsController.prototype.exportVendorCsv = function () {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
-            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "Company Name",
@@ -132,6 +132,7 @@ var Ally;
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Vendors.csv");
         };
         PreferredVendorsController.prototype.onTagFilterToggle = function (tagName) {
+            var _this = this;
             // Add if the tag to our filter list if it's not there, remove it if it is
             var tagCurrentIndex = this.filterTags.indexOf(tagName);
             if (tagCurrentIndex === -1)
@@ -143,10 +144,9 @@ var Ally;
             else {
                 this.filteredVendors = [];
                 // Grab any vendors that have one of the tags by which we're filtering
-                var innerThis = this;
                 _.each(this.allVendors, function (v) {
-                    if (_.intersection(v.servicesProvidedSplit, innerThis.filterTags).length > 0)
-                        innerThis.filteredVendors.push(v);
+                    if (_.intersection(v.servicesProvidedSplit, _this.filterTags).length > 0)
+                        _this.filteredVendors.push(v);
                 });
             }
         };

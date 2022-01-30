@@ -51,15 +51,15 @@ var Ally;
         * Called when the user chooses to deactivate a committee
         */
         ManageCommitteesController.prototype.toggleCommitteeActive = function (committee) {
+            var _this = this;
             this.isLoading = true;
             var putUri = (committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/") + committee.committeeId;
-            var innerThis = this;
-            this.$http.put(putUri, null).success(function (committees) {
-                innerThis.isLoading = false;
-                innerThis.retrieveCommittees();
-            }).error(function (exc) {
-                innerThis.isLoading = false;
-                alert("Failed to retrieve the modify committee: " + exc.exceptionMessage);
+            this.$http.put(putUri, null).then(function (committees) {
+                _this.isLoading = false;
+                _this.retrieveCommittees();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to retrieve the modify committee: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -68,8 +68,8 @@ var Ally;
         ManageCommitteesController.prototype.retrieveCommittees = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/Committee?includeInactive=true").success(function (committees) {
+            this.$http.get("/api/Committee?includeInactive=true").then(function (response) {
+                var committees = response.data;
                 _this.isLoading = false;
                 _this.activeCommittees = _.filter(committees, function (c) { return !c.deactivationDateUtc; });
                 _this.inactiveCommittees = _.filter(committees, function (c) { return !!c.deactivationDateUtc; });
@@ -77,9 +77,9 @@ var Ally;
                 _this.inactiveCommittees = _.sortBy(_this.inactiveCommittees, function (c) { return c.name.toLowerCase(); });
                 // Convert the last login timestamps to local time
                 //_.forEach( committees, c => c.creationDateUtc = moment.utc( c.creationDateUtc ).toDate() );
-            }).error(function (exc) {
+            }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to retrieve the committee listing");
+                alert("Failed to retrieve the committee listing: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -98,13 +98,13 @@ var Ally;
             this.isLoading = true;
             var saveUri = "/api/Committee" + (this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "") + "?name=" + encodeURIComponent(this.editCommittee.name) + "&type=" + encodeURIComponent(this.editCommittee.committeeType) + "&isPrivate=" + this.editCommittee.isPrivate.toString();
             var httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
-            httpFunc(saveUri, null).success(function () {
+            httpFunc(saveUri, null).then(function () {
                 _this.isLoading = false;
                 _this.editCommittee = null;
                 _this.retrieveCommittees();
-            }).error(function (error) {
+            }, function (response) {
                 _this.isLoading = false;
-                alert("Failed to save the committee: " + error.exceptionMessage);
+                alert("Failed to save the committee: " + response.data.exceptionMessage);
             });
         };
         ManageCommitteesController.$inject = ["$http", "SiteInfo", "$cacheFactory"];

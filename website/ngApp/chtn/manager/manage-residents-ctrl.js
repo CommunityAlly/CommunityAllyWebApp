@@ -185,7 +185,6 @@ var Ally;
                     this.residentSortInfo = defaultSort;
             }
             var homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
-            var innerThis = this;
             this.residentGridOptions =
                 {
                     data: [],
@@ -202,7 +201,7 @@ var Ally;
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
                             sortingAlgorithm: function (a, b) {
-                                if (innerThis.shouldSortUnitsNumerically) {
+                                if (_this.shouldSortUnitsNumerically) {
                                     return parseInt(a) - parseInt(b);
                                 }
                                 return a.toString().localeCompare(b.toString());
@@ -229,17 +228,17 @@ var Ally;
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
-                        innerThis.gridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged(innerThis.$rootScope, function (row) {
+                        _this.gridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function (row) {
                             var msg = 'row selected ' + row.isSelected;
-                            innerThis.setEdit(row.entity);
+                            _this.setEdit(row.entity);
                         });
-                        gridApi.core.on.sortChanged(innerThis.$rootScope, function (grid, sortColumns) {
+                        gridApi.core.on.sortChanged(_this.$rootScope, function (grid, sortColumns) {
                             if (!sortColumns || sortColumns.length === 0)
                                 return;
                             // Remember the sort
-                            innerThis.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
-                            window.localStorage.setItem(LocalKey_ResidentSort, JSON.stringify(innerThis.residentSortInfo));
+                            _this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
+                            window.localStorage.setItem(LocalKey_ResidentSort, JSON.stringify(_this.residentSortInfo));
                         });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
@@ -390,13 +389,13 @@ var Ally;
          * Send a resident the welcome email
          */
         ManageResidentsController.prototype.onSendWelcome = function () {
+            var _this = this;
             this.isSavingUser = true;
-            var innerThis = this;
-            this.$http.put("/api/Residents/" + this.editUser.userId + "/SendWelcome", null).success(function () {
-                innerThis.isSavingUser = false;
-                innerThis.sentWelcomeEmail = true;
-            }).error(function () {
-                innerThis.isSavingUser = false;
+            this.$http.put("/api/Residents/" + this.editUser.userId + "/SendWelcome", null).then(function () {
+                _this.isSavingUser = false;
+                _this.sentWelcomeEmail = true;
+            }, function () {
+                _this.isSavingUser = false;
                 alert("Failed to send the welcome email, please contact support if this problem persists.");
             });
         };
@@ -421,21 +420,21 @@ var Ally;
         ManageResidentsController.prototype.refreshResidents = function () {
             var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            return this.$http.get("/api/Residents").success(function (residentArray) {
-                innerThis.isLoading = false;
-                innerThis.residentGridOptions.data = residentArray;
-                innerThis.residentGridOptions.minRowsToShow = residentArray.length;
-                innerThis.residentGridOptions.virtualizationThreshold = residentArray.length;
-                innerThis.residentGridOptions.enableFiltering = residentArray.length > 15;
-                innerThis.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
-                innerThis.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
+            return this.$http.get("/api/Residents").then(function (response) {
+                _this.isLoading = false;
+                var residentArray = response.data;
+                _this.residentGridOptions.data = residentArray;
+                _this.residentGridOptions.minRowsToShow = residentArray.length;
+                _this.residentGridOptions.virtualizationThreshold = residentArray.length;
+                _this.residentGridOptions.enableFiltering = residentArray.length > 15;
+                _this.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
+                _this.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
                 //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
                 // If we have sort info to use
-                if (innerThis.residentSortInfo) {
-                    var sortColumn = _.find(innerThis.gridApi.grid.columns, function (col) { return col.field === innerThis.residentSortInfo.field; });
+                if (_this.residentSortInfo) {
+                    var sortColumn = _.find(_this.gridApi.grid.columns, function (col) { return col.field === _this.residentSortInfo.field; });
                     if (sortColumn)
-                        innerThis.gridApi.grid.sortColumn(sortColumn, innerThis.residentSortInfo.direction, false);
+                        _this.gridApi.grid.sortColumn(sortColumn, _this.residentSortInfo.direction, false);
                 }
                 // Build the full name and convert the last login to local time
                 _.forEach(residentArray, function (res) {
@@ -446,19 +445,19 @@ var Ally;
                     if (res.lastLoginDateUtc)
                         res.lastLoginDateUtc = moment.utc(res.lastLoginDateUtc).toDate();
                 });
-                innerThis.populateGridUnitLabels();
-                if (!innerThis.allUnits && AppConfig.isChtnSite) {
-                    innerThis.isLoading = true;
-                    innerThis.$http.get("/api/Unit").then(function (httpResponse) {
-                        innerThis.isLoading = false;
-                        innerThis.allUnits = httpResponse.data;
-                        innerThis.shouldSortUnitsNumerically = _.every(innerThis.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
-                        if (innerThis.shouldSortUnitsNumerically)
-                            innerThis.allUnits = _.sortBy(innerThis.allUnits, function (u) { return parseFloat(u.name); });
+                _this.populateGridUnitLabels();
+                if (!_this.allUnits && AppConfig.isChtnSite) {
+                    _this.isLoading = true;
+                    _this.$http.get("/api/Unit").then(function (httpResponse) {
+                        _this.isLoading = false;
+                        _this.allUnits = httpResponse.data;
+                        _this.shouldSortUnitsNumerically = _.every(_this.allUnits, function (u) { return HtmlUtil.isNumericString(u.name); });
+                        if (_this.shouldSortUnitsNumerically)
+                            _this.allUnits = _.sortBy(_this.allUnits, function (u) { return parseFloat(u.name); });
                         // If we have a lot of units then allow searching
-                        innerThis.multiselectOptions = innerThis.allUnits.length > 20 ? "filter" : "";
+                        _this.multiselectOptions = _this.allUnits.length > 20 ? "filter" : "";
                     }, function () {
-                        innerThis.isLoading = false;
+                        _this.isLoading = false;
                         alert("Failed to retrieve your association's home listing, please contact support.");
                     });
                 }
@@ -513,6 +512,7 @@ var Ally;
          * resident
          */
         ManageResidentsController.prototype.onSaveResident = function () {
+            var _this = this;
             if (!this.editUser)
                 return;
             $("#editUserForm").validate();
@@ -534,21 +534,20 @@ var Ally;
                     this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
             }
             this.isSavingUser = true;
-            var innerThis = this;
             var onSave = function (response) {
-                innerThis.isSavingUser = false;
+                _this.isSavingUser = false;
                 if (typeof (response.data.errorMessage) === "string") {
                     alert("Failed to add resident: " + response.data.errorMessage);
                     return;
                 }
-                if (innerThis.editUser.pendingMemberId)
-                    innerThis.loadPendingMembers();
-                innerThis.editUser = null;
-                innerThis.refreshResidents();
+                if (_this.editUser.pendingMemberId)
+                    _this.loadPendingMembers();
+                _this.editUser = null;
+                _this.refreshResidents();
             };
             var isAddingNew = false;
             var onError = function (response) {
-                innerThis.isSavingUser = false;
+                _this.isSavingUser = false;
                 var errorMessage = isAddingNew ? "Failed to add new resident" : "Failed to update resident";
                 if (response && response.data && response.data.exceptionMessage)
                     errorMessage += ": " + response.data.exceptionMessage;
@@ -573,16 +572,15 @@ var Ally;
          * Occurs when the user presses the button to set a user's password
          */
         ManageResidentsController.prototype.OnAdminSetPassword = function () {
+            var _this = this;
             var setPass = {
                 userName: this.adminSetPass_Username,
                 password: this.adminSetPass_Password
             };
-            var innerThis = this;
-            this.$http.post("/api/AdminHelper/SetPassword", setPass).success(function (resultMessage) {
-                innerThis.adminSetPass_ResultMessage = resultMessage;
-            }).error(function (data) {
-                var errorMessage = data.exceptionMessage ? data.exceptionMessage : data;
-                alert("Failed to set password: " + errorMessage);
+            this.$http.post("/api/AdminHelper/SetPassword", setPass).then(function (response) {
+                _this.adminSetPass_ResultMessage = response.data;
+            }, function (response) {
+                alert("Failed to set password: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -591,25 +589,24 @@ var Ally;
         ManageResidentsController.prototype.loadSettings = function () {
             var _this = this;
             this.isLoadingSettings = true;
-            var innerThis = this;
-            this.$http.get("/api/Settings").success(function (data) {
-                innerThis.isLoadingSettings = false;
-                _this.residentSettings = data;
+            this.$http.get("/api/Settings").then(function (response) {
+                _this.isLoadingSettings = false;
+                _this.residentSettings = response.data;
                 // Update the SiteInfoService so the privateSiteInfo properties reflects changes
                 _this.siteInfo.privateSiteInfo.rentersCanViewDocs = _this.residentSettings.rentersCanViewDocs;
                 _this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = _this.residentSettings.whoCanCreateDiscussionThreads;
-            }).error(function (exc) {
-                innerThis.isLoadingSettings = false;
-                console.log("Failed to retrieve settings");
+            }, function (response) {
+                _this.isLoadingSettings = false;
+                console.log("Failed to retrieve settings: " + response.data.exceptionMessage);
             });
         };
         /**
          * Export the resident list as a CSV
          */
         ManageResidentsController.prototype.exportResidentCsv = function () {
+            var _this = this;
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
-            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "First Name",
@@ -642,9 +639,7 @@ var Ally;
                 {
                     headerText: "Board Position",
                     fieldName: "boardPosition",
-                    dataMapper: function (value) {
-                        return innerThis.getBoardPositionName(value);
-                    }
+                    dataMapper: function (value) { return _this.getBoardPositionName(value); }
                 },
                 {
                     headerText: "Alternate Mailing",
@@ -688,7 +683,6 @@ var Ally;
             }
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportKansasPtaCsv');
-            var innerThis = this;
             var csvColumns = [
                 {
                     headerText: "Local_Unit",
@@ -817,7 +811,7 @@ var Ally;
             csvLink.setAttribute("download", "pta-members.csv");
             document.body.appendChild(csvLink); // Required for FF
             csvLink.click(); // This will download the file
-            setTimeout(function () { document.body.removeChild(csvLink); }, 500);
+            setTimeout(function () { return document.body.removeChild(csvLink); }, 500);
         };
         /**
          * Save the resident settings to the server
@@ -826,14 +820,14 @@ var Ally;
             var _this = this;
             analytics.track("editResidentSettings");
             this.isLoadingSettings = true;
-            this.$http.put("/api/Settings", this.residentSettings).success(function () {
+            this.$http.put("/api/Settings", this.residentSettings).then(function () {
                 _this.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
                 _this.fellowResidents.clearResidentCache();
                 // Update the locally cached settings to match the saved values
                 _this.siteInfo.privateSiteInfo.canHideContactInfo = _this.residentSettings.canHideContactInfo;
                 _this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = _this.residentSettings.isDiscussionEmailGroupEnabled;
-            }).error(function () {
+            }, function () {
                 _this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");
             });
@@ -842,6 +836,7 @@ var Ally;
          * Occurs when the user presses the button to delete a resident
          */
         ManageResidentsController.prototype.onDeleteResident = function () {
+            var _this = this;
             if (!confirm("Are you sure you want to remove this person from your building?"))
                 return;
             if (this.siteInfo.userInfo.userId === this.editUser.userId) {
@@ -849,33 +844,32 @@ var Ally;
                     return;
             }
             this.isSavingUser = true;
-            var innerThis = this;
-            this.$http.delete("/api/Residents?userId=" + this.editUser.userId).success(function () {
-                innerThis.isSavingUser = false;
-                innerThis.editUser = null;
+            this.$http.delete("/api/Residents?userId=" + this.editUser.userId).then(function () {
+                _this.isSavingUser = false;
+                _this.editUser = null;
                 // Update the fellow residents page next time we're there
-                innerThis.fellowResidents.clearResidentCache();
-                innerThis.refreshResidents();
-            }).error(function () {
+                _this.fellowResidents.clearResidentCache();
+                _this.refreshResidents();
+            }, function () {
                 alert("Failed to remove the resident. Please let support know if this continues to happen.");
-                innerThis.isSavingUser = false;
-                innerThis.editUser = null;
+                _this.isSavingUser = false;
+                _this.editUser = null;
             });
         };
         /**
          * Occurs when the user presses the button to reset everyone's password
          */
         ManageResidentsController.prototype.onSendAllWelcome = function () {
+            var _this = this;
             if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).success(function (data) {
-                innerThis.isLoading = false;
-                innerThis.sentWelcomeEmail = true;
-                innerThis.allEmailsSent = true;
-            }).error(function () {
-                innerThis.isLoading = false;
+            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).then(function () {
+                _this.isLoading = false;
+                _this.sentWelcomeEmail = true;
+                _this.allEmailsSent = true;
+            }, function () {
+                _this.isLoading = false;
                 alert("Failed to send welcome email, please contact support if this problem persists.");
             });
         };
@@ -904,7 +898,7 @@ var Ally;
                 for (var i = 0; i < this.allUnits.length; ++i)
                     this.allUnits[i].csvTestName = simplifyStreetName(this.allUnits[i].name);
             }
-            var _loop_1 = function () {
+            var _loop_1 = function (i) {
                 var curRow = bulkRows[i];
                 while (curRow.length < 10)
                     curRow.push("");
@@ -936,7 +930,7 @@ var Ally;
                     newRow.unitId = null;
                 else {
                     newRow.csvTestName = simplifyStreetName(newRow.unitName);
-                    unit = _.find(this_1.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
+                    var unit = _.find(this_1.allUnits, function (u) { return u.csvTestName === newRow.csvTestName; });
                     if (unit)
                         newRow.unitId = unit.unitId;
                     else
@@ -948,7 +942,7 @@ var Ally;
                     newRow.firstName = newRow.firstName.replace(" & ", " and  ");
                 if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
                     spouseRow = _.clone(newRow);
-                    splitFirst = newRow.firstName.split(" and ");
+                    var splitFirst = newRow.firstName.split(" and ");
                     newRow.firstName = splitFirst[0];
                     spouseRow.firstName = splitFirst[1];
                     if (newRow.email && newRow.email.indexOf(" / ") !== -1) {
@@ -979,25 +973,25 @@ var Ally;
                 if (spouseRow)
                     this_1.bulkImportRows.push(spouseRow);
             };
-            var this_1 = this, unit, splitFirst;
+            var this_1 = this;
             for (var i = 0; i < bulkRows.length; ++i) {
-                _loop_1();
+                _loop_1(i);
             }
         };
         /**
          * Submit the bulk creation rows to the server
          */
         ManageResidentsController.prototype.submitBulkRows = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/Residents/BulkLoad", this.bulkImportRows, { timeout: 10 * 60 * 1000 }).success(function () {
-                innerThis.isLoading = false;
-                innerThis.bulkImportRows = [new ResidentCsvRow()];
-                innerThis.bulkImportCsv = "";
+            this.$http.post("/api/Residents/BulkLoad", this.bulkImportRows, { timeout: 10 * 60 * 1000 }).then(function () {
+                _this.isLoading = false;
+                _this.bulkImportRows = [new ResidentCsvRow()];
+                _this.bulkImportCsv = "";
                 alert("Success");
-                innerThis.refreshResidents();
-            }).error(function () {
-                innerThis.isLoading = false;
+                _this.refreshResidents();
+            }, function () {
+                _this.isLoading = false;
                 alert("Bulk upload failed");
             });
         };
@@ -1022,8 +1016,8 @@ var Ally;
             // Try to step to the next unit
             if (this.allUnits) {
                 if (this.bulkImportRows.length > 0) {
-                    var lastUnitId = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
-                    var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId; });
+                    var lastUnitId_1 = this.bulkImportRows[this.bulkImportRows.length - 1].unitId;
+                    var lastUnitIndex = _.findIndex(this.allUnits, function (u) { return u.unitId === lastUnitId_1; });
                     ++lastUnitIndex;
                     if (lastUnitIndex < this.allUnits.length) {
                         newRow.unitName = this.allUnits[lastUnitIndex].name;

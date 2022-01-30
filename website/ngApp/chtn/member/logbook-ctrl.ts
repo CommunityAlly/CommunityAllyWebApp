@@ -584,7 +584,8 @@ namespace Ally
                 return;
             }
 
-            this.editEvent.description = this.richEditorElem.html();
+            if( this.richEditorElem )
+                this.editEvent.description = this.richEditorElem.html();
 
             // Ensure the user enters a 'days before' email setting
             if( this.editEvent.shouldSendNotification )

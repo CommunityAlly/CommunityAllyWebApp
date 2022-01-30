@@ -37,6 +37,7 @@ var Ally;
          * Attach the Google Places auto-complete logic to the address text box
          */
         PreferredVendorItemController.prototype.hookupAddressAutocomplete = function () {
+            var _this = this;
             // Also mask phone numbers
             if (this.siteInfo.privateSiteInfo.country === "US" || this.siteInfo.privateSiteInfo.country === "CA") {
                 var phoneFields = $(".mask-phone");
@@ -56,12 +57,11 @@ var Ally;
             }
             var addressInput = document.getElementById("vendor-" + (this.vendorItem.preferredVendorId || "") + "-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
             google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                if (!innerThis.editVendorItem.fullAddress)
-                    innerThis.editVendorItem.fullAddress = new Ally.FullAddress();
-                innerThis.editVendorItem.fullAddress.oneLiner = place.formatted_address;
+                var place = _this.addressAutocomplete.getPlace();
+                if (!_this.editVendorItem.fullAddress)
+                    _this.editVendorItem.fullAddress = new Ally.FullAddress();
+                _this.editVendorItem.fullAddress.oneLiner = place.formatted_address;
             });
         };
         /**
@@ -91,20 +91,19 @@ var Ally;
             });
             servicesProvidedString += "|";
             this.editVendorItem.servicesProvided = servicesProvidedString;
-            var innerThis = this;
-            saveMethod("/api/PreferredVendors", this.editVendorItem).success(function () {
-                innerThis.isLoading = false;
+            saveMethod("/api/PreferredVendors", this.editVendorItem).then(function () {
+                _this.isLoading = false;
                 if (_this.isAddForm) {
-                    innerThis.editVendorItem = new Ally.PreferredVendor();
-                    if (innerThis.onAddNewVendor)
-                        innerThis.onAddNewVendor();
+                    _this.editVendorItem = new Ally.PreferredVendor();
+                    if (_this.onAddNewVendor)
+                        _this.onAddNewVendor();
                 }
                 else
-                    innerThis.isInEditMode = false;
-                if (innerThis.onParentDataNeedsRefresh)
-                    innerThis.onParentDataNeedsRefresh();
-            }).error(function (exception) {
-                innerThis.isLoading = false;
+                    _this.isInEditMode = false;
+                if (_this.onParentDataNeedsRefresh)
+                    _this.onParentDataNeedsRefresh();
+            }, function (exception) {
+                _this.isLoading = false;
                 alert("Failed to save the vendor information: " + exception.exceptionMessage);
             });
         };
@@ -112,24 +111,24 @@ var Ally;
             this.isInEditMode = false;
         };
         PreferredVendorItemController.prototype.onEditItem = function () {
+            var _this = this;
             // Deep clone the vendor item
             this.editVendorItem = JSON.parse(JSON.stringify(this.vendorItem));
             this.isInEditMode = true;
-            var innerThis = this;
-            window.setTimeout(function () { innerThis.hookupAddressAutocomplete(); }, 500);
+            window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 500);
         };
         PreferredVendorItemController.prototype.deleteItem = function () {
+            var _this = this;
             if (!confirm("Are you sure you want to remove this vendor?"))
                 return;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.delete("/api/PreferredVendors/" + this.vendorItem.preferredVendorId).success(function () {
-                innerThis.isLoading = false;
-                if (innerThis.onParentDataNeedsRefresh)
-                    innerThis.onParentDataNeedsRefresh();
-            }).error(function (exception) {
-                innerThis.isLoading = false;
-                alert("Failed to delete the vendor: " + exception.exceptionMessage);
+            this.$http.delete("/api/PreferredVendors/" + this.vendorItem.preferredVendorId).then(function () {
+                _this.isLoading = false;
+                if (_this.onParentDataNeedsRefresh)
+                    _this.onParentDataNeedsRefresh();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to delete the vendor: " + response.data.exceptionMessage);
             });
         };
         PreferredVendorItemController.prototype.getServiceAutocomplete = function (enteredText) {

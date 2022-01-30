@@ -32,13 +32,13 @@ var Ally;
              * Retrieve the active group list
              */
             this.retrieveGroups = function () {
+                var _this = this;
                 this.isLoading = true;
-                var innerThis = this;
                 this.$http.get("/api/Association/AdminList").then(function (response) {
-                    innerThis.isLoading = false;
-                    innerThis.groups = response.data;
+                    _this.isLoading = false;
+                    _this.groups = response.data;
                     // Add the app type string
-                    _.each(innerThis.groups, function (g) {
+                    _.each(_this.groups, function (g) {
                         if (g.appName === 0) {
                             g.appNameString = "Condo";
                             g.baseUrl = "https://" + g.shortName + ".CondoAlly.com/";
@@ -69,7 +69,7 @@ var Ally;
                         }
                     });
                 }, function () {
-                    innerThis.isLoading = false;
+                    _this.isLoading = false;
                     alert("Failed to retrieve groups");
                 });
             };
@@ -150,15 +150,15 @@ var Ally;
          * Delete a CHTN group
          */
         ManageGroupsController.prototype.deleteAssociation = function (association) {
+            var _this = this;
             if (!confirm("Are you sure you want to delete this association?"))
                 return;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.delete("/api/Association/chtn/" + association.groupId).then(function () {
-                innerThis.isLoading = false;
-                innerThis.retrieveGroups();
+                _this.isLoading = false;
+                _this.retrieveGroups();
             }, function (error) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 console.log(error.data.exceptionMessage);
                 alert("Failed to delete group: " + error.data.exceptionMessage);
             });
@@ -182,12 +182,12 @@ var Ally;
          * Occurs when the user presses the button to create a new association
          */
         ManageGroupsController.prototype.onCreateAssociationClick = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/Association", this.newAssociation).then(function () {
-                innerThis.isLoading = false;
-                innerThis.newAssociation = new GroupEntry();
-                innerThis.retrieveGroups();
+                _this.isLoading = false;
+                _this.newAssociation = new GroupEntry();
+                _this.retrieveGroups();
             });
         };
         ManageGroupsController.prototype.onSendTestEmail = function () {
@@ -202,24 +202,24 @@ var Ally;
             this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail3");
         };
         ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail).success(function () {
-                innerThis.isLoading = false;
+            this.$http.get("/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail).then(function () {
+                _this.isLoading = false;
                 alert("Successfully sent email");
-            }).error(function () {
-                innerThis.isLoading = false;
+            }, function () {
+                _this.isLoading = false;
                 alert("Failed to send email");
             });
         };
         ManageGroupsController.prototype.onSendTestCalendarEmail = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").success(function () {
-                innerThis.isLoading = false;
+            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").then(function () {
+                _this.isLoading = false;
                 alert("Successfully sent email");
-            }).error(function () {
-                innerThis.isLoading = false;
+            }, function () {
+                _this.isLoading = false;
                 alert("Failed to send email");
             });
         };
@@ -235,6 +235,7 @@ var Ally;
             });
         };
         ManageGroupsController.prototype.makeHelperRequest = function (apiPath, postData) {
+            var _this = this;
             if (postData === void 0) { postData = null; }
             this.isLoadingHelper = true;
             var request;
@@ -242,9 +243,8 @@ var Ally;
                 request = this.$http.post(apiPath, postData);
             else
                 request = this.$http.get(apiPath);
-            var innerThis = this;
-            request.then(function () { return innerThis.isLoadingHelper = false; }, function (response) {
-                innerThis.isLoadingHelper = false;
+            request.then(function () { return _this.isLoadingHelper = false; }, function (response) {
+                _this.isLoadingHelper = false;
                 var msg = response.data ? response.data.exceptionMessage : "";
                 alert("Failed: " + msg);
             });
