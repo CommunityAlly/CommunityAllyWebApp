@@ -76,7 +76,8 @@
 
 .polls {
   margin-top: 16px; }
-  .polls div.poll-answer {
+  .polls .poll-answer {
+    display: block;
     background: #eeeeee;
     /* Old browsers */
     background: -moz-linear-gradient(top, #eeeeee 0%, #e9e7e6 100%);
@@ -100,7 +101,7 @@
     margin-bottom: 6px;
     cursor: pointer;
     font-size: 1.25rem; }
-    .polls div.poll-answer:hover {
+    .polls .poll-answer:hover {
       background: #e9e7e6;
       /* Old browsers */
       background: -moz-linear-gradient(top, #e9e7e6 0%, #cccccc 100%);
@@ -117,7 +118,7 @@
       /* W3C */
       filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e9e7e6', endColorstr='#cccccc',GradientType=0 );
       /* IE6-9 */ }
-    .polls div.poll-answer div.poll-answer-detail {
+    .polls .poll-answer .poll-answer-detail {
       font-size: 1rem; }
   .polls p {
     display: none;

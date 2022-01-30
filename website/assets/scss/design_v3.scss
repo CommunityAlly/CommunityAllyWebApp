@@ -98,8 +98,9 @@
 {
     margin-top: 16px;
 
-    div.poll-answer
+    .poll-answer
     {
+        display: block;
         background: #eeeeee;
         /* Old browsers */
         background: -moz-linear-gradient(top, #eeeeee 0%, #e9e7e6 100%);
@@ -144,7 +145,7 @@
             /* IE6-9 */
         }
 
-        div.poll-answer-detail
+        .poll-answer-detail
         {
             font-size: 1rem; 
         }

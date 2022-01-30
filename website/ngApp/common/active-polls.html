@@ -14,12 +14,13 @@
             <span data-ng-if="!poll.isAnonymous" class="note-text">This is NOT an anonymous poll. Your identity will be shown with your response.</span>
         </p>
 
-        <!--Show the poll responses-->
-        <div data-ng-hide="poll.hasUsersUnitVoted">
+        <!--Show the poll responses for the user to vote on-->
+        <div data-ng-if="!poll.hasUsersUnitVoted">
             <div>
                 <div id="poll-detail-{{ $index }}" data-ng-show="poll.detailText.length > 0" style="font-size: small;">{{ poll.detailText }}</div>
             </div>
-            <div class="polls">
+
+            <div class="polls" data-ng-if="poll.maxNumResponses<2">
                 <div class="poll-answer" data-ng-repeat="pollAnswer in poll.answers" id="poll-answer-{{ $parent.$index }}-{{ $index }}" data-ng-click="$ctrl.onPollAnswer( poll, pollAnswer, null )">
                     <span id="poll-answer-text-{{ $parent.$index }}-{{ $index }}">{{ pollAnswer.answerText }}</span>
                     <div id="poll-answer-detail-text-{{ $parent.$index }}-{{ $index }}" class="poll-answer-detail" data-ng-show="pollAnswer.detailText.length > 0">
@@ -29,14 +30,42 @@
 
                 <div class="row" data-ng-if="poll.allowOtherAnswer">
                     <div class="col-sm-3 text-right" style="color: #4583b6;">Or write in your own response:</div>
-                    <div class="col-sm-6"><input type="text" style="width: 100%;" data-ng-model="poll.otherAnswer" /></div>
-                    <div class="col-sm-3 text-left"><button class="btn btn-primary" type="button" data-ng-click="$ctrl.onPollAnswer( poll, null, poll.otherAnswer )">Submit Write-in Response</button></div>
+                    <div class="col-sm-6">
+                        <input type="text" style="width: 100%;" maxlength="80" data-ng-model="poll.writeInAnswer" />
+                    </div>
+                    <div class="col-sm-3 text-left"><button class="btn btn-primary" type="button" data-ng-click="$ctrl.onPollAnswer( poll, null )">Submit Write-in Response</button></div>
                 </div>
             </div>
+
+            <!-- Multi-response -->
+            <div class="polls" data-ng-if="poll.maxNumResponses>1">
+                <div class="note-text">
+                    You may select up to {{poll.maxNumResponses}} options.
+                </div>
+
+                <label class="poll-answer" data-ng-repeat="pollAnswer in poll.answers" id="poll-answer-{{ $parent.$index }}-{{ $index }}" data-ng-style="{'background':pollAnswer.isLocalMultiSelect ? 'lightgreen' : null}">
+                    <input type="checkbox" data-ng-change="$ctrl.onMultiResponseChange(poll, pollAnswer)" data-ng-model="pollAnswer.isLocalMultiSelect" />
+                    <span id="poll-answer-text-{{ $parent.$index }}-{{ $index }}">{{ pollAnswer.answerText }}</span>
+                    <span id="poll-answer-detail-text-{{ $parent.$index }}-{{ $index }}" class="poll-answer-detail" data-ng-show="pollAnswer.detailText.length > 0">
+                        {{ pollAnswer.detailText }}
+                    </span>
+                </label>
+
+                <label class="poll-answer" data-ng-if="poll.allowOtherAnswer" data-ng-style="{'background':poll.isWriteInMultiSelected ? 'lightgreen' : null}">
+                    <input type="checkbox" data-ng-change="$ctrl.onMultiResponseChange(poll, $ctrl.multiSelectWriteInPlaceholder)" data-ng-model="poll.isWriteInMultiSelected" />
+                    <span style="color: #4583b6;">Or write in your own response:</span>
+                    <input type="text" style="width: 55%;" maxlength="80" data-ng-model="poll.writeInAnswer" />
+                </label>
+
+                <div class="text-center">
+                    <button class="btn btn-primary" type="button" data-ng-click="$ctrl.onSubmitMultiAnswer(poll)">Submit {{poll.localMultiSelectedAnswers.length}} Vote{{poll.localMultiSelectedAnswers.length===1?'':'s'}}</button>
+                </div>
+            </div>
+
         </div>
 
         <!-- The user has voted, show results or a wait message -->
-        <div data-ng-show="poll.hasUsersUnitVoted">
+        <div data-ng-if="poll.hasUsersUnitVoted">
 
             <!-- Show the results -->
             <div data-ng-show="poll.canViewResults">

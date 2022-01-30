@@ -56,22 +56,6 @@
         </p>
 
         <p class="margin-top-20">
-            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.allowOtherAnswer"> Allow users to type in their own responses</label><br />
-            <span class="note-text">
-                If selected, users will be able to enter their own text as a reponse from the poll. If not selected, users
-                can only select from the list of answers specified here.
-            </span>
-        </p>
-
-        <p class="margin-top-20">
-            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.isAnonymous"> Responses are anonymous</label><br />
-            <span class="note-text">
-                If selected, you will not be able to see how units voted, only total response counts. Anonymous polls can help to provide
-                more votes and/or more honest feedback.
-            </span>
-        </p>
-
-        <p>
             Enter the date at which this poll will close:<input class="form-control form-control-sm d-inline-block" style="width: 100px" id="poll-expiration-textbox" name="PollExpirationDateTextBox" type="text" data-ui-date data-ng-model="$ctrl.editingItem.expirationDate" required />
             <span class="validation-label" data-ng-show="$ctrl.editItemForm.PollExpirationDateTextBox.$error.required">Required</span><br />
             <span class="note-text">
@@ -83,6 +67,30 @@
             Who can vote on this poll?
             <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.groupEmails">
             </select>
+        </p>
+
+        <p>
+            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.allowOtherAnswer"> Allow users to type in their own responses</label><br />
+            <span class="note-text">
+                If selected, users will be able to enter their own text as a reponse from the poll. If not selected, users
+                can only select from the list of answers specified here.
+            </span>
+        </p>
+
+        <p>
+            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.shouldAllowMultipleAnswers" data-ng-change="$ctrl.onMultiAnswerChange()"> Allow users to choose more than one answer</label>
+            <br />
+            <span class="note-text" data-ng-if="$ctrl.shouldAllowMultipleAnswers">
+                Users can choose up to <input type="number" min="2" max="20" data-ng-model="$ctrl.editingItem.maxNumResponses" /> answers.
+            </span>
+        </p>
+
+        <p data-ng-if="!$ctrl.editingItem.postDate">
+            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.isAnonymous"> Responses are anonymous</label><br />
+            <span class="note-text">
+                If selected, you will not be able to see how units voted, only total response counts. Anonymous polls can help to provide
+                more votes and/or more honest feedback.
+            </span>
         </p>
 
         <p data-ng-if="!$ctrl.editingItem.postDate">
@@ -102,7 +110,7 @@
         </p>
 
         <p class="text-right">
-            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDate != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSaveItem();" />
+            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDate != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSavePoll();" />
             <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDate != null" data-ng-click="$ctrl.cancelEdit()" />
         </p>
     </form>

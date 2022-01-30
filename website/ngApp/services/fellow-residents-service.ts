@@ -391,6 +391,64 @@
 
             return OfficerPositions.indexOf( boardPosition ) !== -1;
         }
+
+
+        static pollReponsesToChart( poll: Poll, siteInfo: SiteInfoService )
+        {
+            const talliedVotes: PollAnswerCount[] = [];
+
+            const logVote = function( answerId: number )
+            {
+                let count = talliedVotes.find( tv => tv.answerId === answerId );
+                if( !count )
+                {
+                    count = new PollAnswerCount( answerId );
+                    talliedVotes.push( count );
+                }
+
+                ++count.numVotes;
+            };
+
+            const logVotes = ( answerIds: number[] ) => answerIds.forEach( aid => logVote( aid ) );
+
+            poll.responses.forEach( r => logVotes( r.answerIds ) );
+
+            const results = {
+                chartData: [] as number[],
+                chartLabels: [] as string[]
+            };
+
+            // Go through each answer and store the name and count for that answer
+            for( let curAnswer of talliedVotes )
+            {
+                const answer = _.find( poll.fullResultAnswers, ( a ) => a.pollAnswerId === curAnswer.answerId );
+
+                if( answer )
+                {
+                    results.chartLabels.push( answer.answerText );
+                    results.chartData.push( curAnswer.numVotes );
+                }
+            }
+
+            if( poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits )
+            {
+                results.chartLabels.push( "No Response" );
+                results.chartData.push( siteInfo.privateSiteInfo.numUnits - poll.responses.length );
+            }
+
+            return results;
+        }
+    }
+
+    class PollAnswerCount
+    {
+        constructor( answerId: number )
+        {
+            this.answerId = answerId;
+        }
+
+        answerId: number;
+        numVotes: number = 0;
     }
 }
 

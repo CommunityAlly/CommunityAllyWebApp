@@ -5,16 +5,20 @@
      */
     export class ActivePollsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$rootScope"];
+        static $inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "fellowResidents"];
 
         polls: Poll[];        
         isLoading: boolean = false;
+        multiSelectWriteInPlaceholder: PollAnswer = new PollAnswer( "write-in" );
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService, private $rootScope: ng.IRootScopeService )
+        constructor( private $http: ng.IHttpService,
+            private siteInfo: Ally.SiteInfoService,
+            private $timeout: ng.ITimeoutService,
+            private $rootScope: ng.IRootScopeService )
         {
         }
 
@@ -47,31 +51,10 @@
                 {
                     if( poll.canViewResults )
                     {
-                        var answers = _.groupBy( poll.responses, "answerId" );
+                        const chartInfo = FellowResidentsService.pollReponsesToChart( poll, this.siteInfo );
 
-                        poll.chartData = [];
-                        poll.chartLabels = [];
-
-                        for( var answerId in answers )
-                        {
-                            if( answers.hasOwnProperty( answerId ) )
-                            {
-                                poll.chartLabels.push( _.find( poll.answers, function( a: any ) { return a.pollAnswerId == answerId; } ).answerText );
-                                poll.chartData.push( answers[answerId].length );
-
-                                //poll.chartData.push(
-                                //{
-                                //    key: _.find( poll.answers, function( a ) { return a.pollAnswerId == answerId; } ).answerText,
-                                //    y: answers[answerId].length
-                                //} );
-                            }
-                        }
-
-                        if( poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits )
-                        {
-                            poll.chartLabels.push( "No Response" );
-                            poll.chartData.push( this.siteInfo.privateSiteInfo.numUnits - poll.responses.length );
-                        }
+                        poll.chartData = chartInfo.chartData;
+                        poll.chartLabels = chartInfo.chartLabels;
                     }
                 }
             }
@@ -107,15 +90,82 @@
         /**
          * Occurs when the user selects a poll answer
          */
-        onPollAnswer( poll:any, pollAnswer:any, writeInAnswer:any )
+        onPollAnswer( poll: Poll, pollAnswer: PollAnswer )
         {
             this.isLoading = true;
 
-            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerId=" + ( pollAnswer ? pollAnswer.pollAnswerId : "" ) + "&writeInAnswer=" + writeInAnswer;
+            const answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
+            const writeInAnswer = poll.writeInAnswer ? encodeURIComponent( poll.writeInAnswer ) : "";
+
+            var putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${writeInAnswer}`;
 
             var innerThis = this;
             this.$http.put( putUri, null ).
                 then( function( httpResponse:any )
+                {
+                    innerThis.polls = httpResponse.data;
+                    innerThis.isLoading = false;
+
+                    innerThis.refreshPolls();
+                }, function()
+                {
+                    innerThis.isLoading = false;
+                } );
+        }
+
+
+        onMultiResponseChange( poll: Poll, pollAnswer: PollAnswer)
+        {
+            const isAbstain = pollAnswer.answerText === "Abstain";
+
+            if( isAbstain && pollAnswer.isLocalMultiSelect )
+            {
+                poll.answers.filter( a => a.answerText !== "Abstain" ).forEach( a => a.isLocalMultiSelect = false );
+                poll.isWriteInMultiSelected = false;
+            }
+
+            // If this is some other answer then unselect abstain
+            if( !isAbstain )
+            {
+                const abstainAnswer = poll.answers.find( a => a.answerText === "Abstain" );
+                if( abstainAnswer )
+                    abstainAnswer.isLocalMultiSelect = false;
+            }
+            
+            let numSelectedAnswers = poll.answers.filter( a => a.isLocalMultiSelect ).length;
+            if( poll.isWriteInMultiSelected )
+                ++numSelectedAnswers;
+
+            if( numSelectedAnswers > poll.maxNumResponses )
+            {
+                alert( `You can only select at most ${poll.maxNumResponses} answers` );
+                if( pollAnswer === this.multiSelectWriteInPlaceholder )
+                    poll.isWriteInMultiSelected = false;
+                else
+                    pollAnswer.isLocalMultiSelect = false;
+            }
+
+            poll.localMultiSelectedAnswers = poll.answers.filter( a => a.isLocalMultiSelect );
+        }
+
+
+        onSubmitMultiAnswer(poll: Poll)
+        {
+            if( !poll.localMultiSelectedAnswers || poll.localMultiSelectedAnswers.length === 0 )
+            {
+                alert( "Please select at least one reponse" );
+                return;
+            }
+
+            const answerIdsCsv = poll.localMultiSelectedAnswers.map( a => a.pollAnswerId ).join( "," );
+            
+            this.isLoading = true;
+            
+            var putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${( poll.isWriteInMultiSelected && poll.writeInAnswer ) ? encodeURIComponent( poll.writeInAnswer ) : ''}`;
+
+            var innerThis = this;
+            this.$http.put( putUri, null ).
+                then( function( httpResponse: any )
                 {
                     innerThis.polls = httpResponse.data;
                     innerThis.isLoading = false;

@@ -268,6 +268,40 @@ var Ally;
             ];
             return OfficerPositions.indexOf(boardPosition) !== -1;
         };
+        FellowResidentsService.pollReponsesToChart = function (poll, siteInfo) {
+            var talliedVotes = [];
+            var logVote = function (answerId) {
+                var count = talliedVotes.find(function (tv) { return tv.answerId === answerId; });
+                if (!count) {
+                    count = new PollAnswerCount(answerId);
+                    talliedVotes.push(count);
+                }
+                ++count.numVotes;
+            };
+            var logVotes = function (answerIds) { return answerIds.forEach(function (aid) { return logVote(aid); }); };
+            poll.responses.forEach(function (r) { return logVotes(r.answerIds); });
+            var results = {
+                chartData: [],
+                chartLabels: []
+            };
+            var _loop_1 = function (curAnswer) {
+                var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === curAnswer.answerId; });
+                if (answer) {
+                    results.chartLabels.push(answer.answerText);
+                    results.chartData.push(curAnswer.numVotes);
+                }
+            };
+            // Go through each answer and store the name and count for that answer
+            for (var _i = 0, talliedVotes_1 = talliedVotes; _i < talliedVotes_1.length; _i++) {
+                var curAnswer = talliedVotes_1[_i];
+                _loop_1(curAnswer);
+            }
+            if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
+                results.chartLabels.push("No Response");
+                results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
+            }
+            return results;
+        };
         FellowResidentsService.BoardPositionNames = [
             { id: 0, name: "None" },
             { id: 1, name: "President" },
@@ -281,5 +315,12 @@ var Ally;
         return FellowResidentsService;
     }());
     Ally.FellowResidentsService = FellowResidentsService;
+    var PollAnswerCount = /** @class */ (function () {
+        function PollAnswerCount(answerId) {
+            this.numVotes = 0;
+            this.answerId = answerId;
+        }
+        return PollAnswerCount;
+    }());
 })(Ally || (Ally = {}));
 angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);

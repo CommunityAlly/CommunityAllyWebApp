@@ -1,18 +1,5 @@
 var Ally;
 (function (Ally) {
-    var Poll = /** @class */ (function () {
-        function Poll() {
-            this.isAnonymous = true;
-        }
-        return Poll;
-    }());
-    Ally.Poll = Poll;
-    var PollResponse = /** @class */ (function () {
-        function PollResponse() {
-        }
-        return PollResponse;
-    }());
-    Ally.PollResponse = PollResponse;
     /**
      * The controller for the manage polls page
      */
@@ -28,6 +15,7 @@ var Ally;
             this.pollHistory = [];
             this.isLoading = false;
             this.isSuperAdmin = false;
+            this.shouldAllowMultipleAnswers = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -41,15 +29,12 @@ var Ally;
             this.defaultPoll.expirationDate = threeDaysLater;
             this.defaultPoll.votingGroupShortName = "everyone";
             this.defaultPoll.answers = [
-                {
-                    answerText: "Yes"
-                },
-                {
-                    answerText: "No"
-                }
+                new PollAnswer("Yes"),
+                new PollAnswer("No"),
             ];
             // The new or existing news item that's being edited by the user
             this.editingItem = angular.copy(this.defaultPoll);
+            this.shouldAllowMultipleAnswers = false;
             this.isLoading = true;
             this.fellowResidents.getGroupEmailObject().then(function (groupEmails) {
                 _this.groupEmails = _.sortBy(groupEmails, function (e) { return e.displayName.toUpperCase(); });
@@ -60,59 +45,60 @@ var Ally;
          * Populate the poll data
          */
         ManagePollsController.prototype.retrievePolls = function () {
+            var _this = this;
             var AbstainAnswerSortOrder = 101;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/Poll").then(function (httpResponse) {
-                innerThis.pollHistory = httpResponse.data;
+                _this.pollHistory = httpResponse.data;
                 // Convert the date strings to objects
-                for (var i = 0; i < innerThis.pollHistory.length; ++i) {
+                for (var i = 0; i < _this.pollHistory.length; ++i) {
                     // The date comes down as a string so we need to convert it
-                    innerThis.pollHistory[i].expirationDate = new Date(innerThis.pollHistory[i].expirationDate);
+                    _this.pollHistory[i].expirationDate = new Date(_this.pollHistory[i].expirationDate);
                     // Remove the abstain answer since it can't be edited, but save the full answer
                     // list for displaying results
-                    innerThis.pollHistory[i].fullResultAnswers = innerThis.pollHistory[i].answers;
-                    innerThis.pollHistory[i].answers = _.reject(innerThis.pollHistory[i].answers, function (pa) { return pa.sortOrder === AbstainAnswerSortOrder; });
+                    _this.pollHistory[i].fullResultAnswers = _this.pollHistory[i].answers;
+                    _this.pollHistory[i].answers = _.reject(_this.pollHistory[i].answers, function (pa) { return pa.sortOrder === AbstainAnswerSortOrder; });
                 }
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         /**
          * Add a new answer
          */
         ManagePollsController.prototype.addAnswer = function () {
+            var _this = this;
             if (!this.editingItem.answers)
                 this.editingItem.answers = [];
             if (this.editingItem.answers.length > 19) {
                 alert("You can only have 20 answers maxiumum per poll.");
                 return;
             }
-            this.editingItem.answers.push({ answerText: '' });
+            this.editingItem.answers.push(new PollAnswer(""));
+            window.setTimeout(function () { return document.getElementById("poll-answer-textbox-" + (_this.editingItem.answers.length - 1)).focus(); }, 100);
         };
         /**
          * Stop editing a poll and reset the form
          */
         ManagePollsController.prototype.cancelEdit = function () {
             this.editingItem = angular.copy(this.defaultPoll);
+            this.shouldAllowMultipleAnswers = false;
         };
         /**
          * Occurs when the user presses the button to save a poll
          */
-        ManagePollsController.prototype.onSaveItem = function () {
+        ManagePollsController.prototype.onSavePoll = function () {
+            var _this = this;
             if (this.editingItem === null)
                 return;
-            //$( "#new-item-form" ).validate();
-            //if ( !$( "#new-item-form" ).valid() )
-            //    return;
             this.isLoading = true;
-            var innerThis = this;
             var onSave = function () {
-                innerThis.isLoading = false;
-                innerThis.editingItem = angular.copy(innerThis.defaultPoll);
-                innerThis.retrievePolls();
+                _this.isLoading = false;
+                _this.editingItem = angular.copy(_this.defaultPoll);
+                _this.shouldAllowMultipleAnswers = false;
+                _this.retrievePolls();
             };
             var onFailure = function (response) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to save poll: " + response.data.exceptionMessage);
             };
             // If we're editing an existing news item
@@ -132,6 +118,7 @@ var Ally;
         ManagePollsController.prototype.onEditItem = function (item) {
             this.editingItem = angular.copy(item);
             window.scrollTo(0, 0);
+            this.shouldAllowMultipleAnswers = this.editingItem.maxNumResponses > 1;
         };
         /**
          * Occurs when the user wants to delete a poll
@@ -157,31 +144,9 @@ var Ally;
                 this.viewingPollResults = null;
                 return;
             }
-            // Group the responses by the answer they selected
-            var responsesGroupedByAnswer = _.groupBy(poll.responses, "answerId");
-            poll.chartData = [];
-            poll.chartLabels = [];
-            var _loop_1 = function () {
-                // Ignore inherited properties
-                if (!responsesGroupedByAnswer.hasOwnProperty(answerIdStr))
-                    return "continue";
-                // for..in provides the keys as strings
-                var answerId = parseInt(answerIdStr);
-                answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === answerId; });
-                if (answer) {
-                    poll.chartLabels.push(answer.answerText);
-                    poll.chartData.push(responsesGroupedByAnswer[answerIdStr].length);
-                }
-            };
-            var answer;
-            // Go through each answer and store the name and count for that answer
-            for (var answerIdStr in responsesGroupedByAnswer) {
-                _loop_1();
-            }
-            if (poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits) {
-                poll.chartLabels.push("No Response");
-                poll.chartData.push(this.siteInfo.privateSiteInfo.numUnits - poll.responses.length);
-            }
+            var chartInfo = Ally.FellowResidentsService.pollReponsesToChart(poll, this.siteInfo);
+            poll.chartData = chartInfo.chartData;
+            poll.chartLabels = chartInfo.chartLabels;
             // Build the array for the counts to the right of the chart
             poll.answerCounts = [];
             for (var i = 0; i < poll.chartLabels.length; ++i) {
@@ -202,10 +167,36 @@ var Ally;
                 return votingGroupShortName;
             return emailGroup.displayName;
         };
+        ManagePollsController.prototype.onMultiAnswerChange = function () {
+            if (this.shouldAllowMultipleAnswers)
+                this.editingItem.maxNumResponses = 2;
+            else
+                this.editingItem.maxNumResponses = 1;
+        };
         ManagePollsController.$inject = ["$http", "SiteInfo", "fellowResidents"];
         return ManagePollsController;
     }());
     Ally.ManagePollsController = ManagePollsController;
+    var Poll = /** @class */ (function () {
+        function Poll() {
+            this.isAnonymous = true;
+        }
+        return Poll;
+    }());
+    Ally.Poll = Poll;
+    var PollAnswer = /** @class */ (function () {
+        function PollAnswer(answerText) {
+            this.answerText = answerText;
+        }
+        return PollAnswer;
+    }());
+    Ally.PollAnswer = PollAnswer;
+    var PollResponse = /** @class */ (function () {
+        function PollResponse() {
+        }
+        return PollResponse;
+    }());
+    Ally.PollResponse = PollResponse;
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePolls", {
     templateUrl: "/ngApp/chtn/manager/manage-polls.html",

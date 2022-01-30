@@ -13,6 +13,7 @@ var Ally;
             this.$timeout = $timeout;
             this.$rootScope = $rootScope;
             this.isLoading = false;
+            this.multiSelectWriteInPlaceholder = new Ally.PollAnswer("write-in");
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -32,24 +33,9 @@ var Ally;
                 var poll = this.polls[pollIndex];
                 if (poll.hasUsersUnitVoted) {
                     if (poll.canViewResults) {
-                        var answers = _.groupBy(poll.responses, "answerId");
-                        poll.chartData = [];
-                        poll.chartLabels = [];
-                        for (var answerId in answers) {
-                            if (answers.hasOwnProperty(answerId)) {
-                                poll.chartLabels.push(_.find(poll.answers, function (a) { return a.pollAnswerId == answerId; }).answerText);
-                                poll.chartData.push(answers[answerId].length);
-                                //poll.chartData.push(
-                                //{
-                                //    key: _.find( poll.answers, function( a ) { return a.pollAnswerId == answerId; } ).answerText,
-                                //    y: answers[answerId].length
-                                //} );
-                            }
-                        }
-                        if (poll.responses && poll.responses.length < this.siteInfo.privateSiteInfo.numUnits) {
-                            poll.chartLabels.push("No Response");
-                            poll.chartData.push(this.siteInfo.privateSiteInfo.numUnits - poll.responses.length);
-                        }
+                        var chartInfo = Ally.FellowResidentsService.pollReponsesToChart(poll, this.siteInfo);
+                        poll.chartData = chartInfo.chartData;
+                        poll.chartLabels = chartInfo.chartLabels;
                     }
                 }
             }
@@ -75,9 +61,11 @@ var Ally;
         /**
          * Occurs when the user selects a poll answer
          */
-        ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer, writeInAnswer) {
+        ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer) {
             this.isLoading = true;
-            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerId=" + (pollAnswer ? pollAnswer.pollAnswerId : "") + "&writeInAnswer=" + writeInAnswer;
+            var answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
+            var writeInAnswer = poll.writeInAnswer ? encodeURIComponent(poll.writeInAnswer) : "";
+            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + writeInAnswer;
             var innerThis = this;
             this.$http.put(putUri, null).
                 then(function (httpResponse) {
@@ -88,7 +76,49 @@ var Ally;
                 innerThis.isLoading = false;
             });
         };
-        ActivePollsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope"];
+        ActivePollsController.prototype.onMultiResponseChange = function (poll, pollAnswer) {
+            var isAbstain = pollAnswer.answerText === "Abstain";
+            if (isAbstain && pollAnswer.isLocalMultiSelect) {
+                poll.answers.filter(function (a) { return a.answerText !== "Abstain"; }).forEach(function (a) { return a.isLocalMultiSelect = false; });
+                poll.isWriteInMultiSelected = false;
+            }
+            // If this is some other answer then unselect abstain
+            if (!isAbstain) {
+                var abstainAnswer = poll.answers.find(function (a) { return a.answerText === "Abstain"; });
+                if (abstainAnswer)
+                    abstainAnswer.isLocalMultiSelect = false;
+            }
+            var numSelectedAnswers = poll.answers.filter(function (a) { return a.isLocalMultiSelect; }).length;
+            if (poll.isWriteInMultiSelected)
+                ++numSelectedAnswers;
+            if (numSelectedAnswers > poll.maxNumResponses) {
+                alert("You can only select at most " + poll.maxNumResponses + " answers");
+                if (pollAnswer === this.multiSelectWriteInPlaceholder)
+                    poll.isWriteInMultiSelected = false;
+                else
+                    pollAnswer.isLocalMultiSelect = false;
+            }
+            poll.localMultiSelectedAnswers = poll.answers.filter(function (a) { return a.isLocalMultiSelect; });
+        };
+        ActivePollsController.prototype.onSubmitMultiAnswer = function (poll) {
+            if (!poll.localMultiSelectedAnswers || poll.localMultiSelectedAnswers.length === 0) {
+                alert("Please select at least one reponse");
+                return;
+            }
+            var answerIdsCsv = poll.localMultiSelectedAnswers.map(function (a) { return a.pollAnswerId; }).join(",");
+            this.isLoading = true;
+            var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + ((poll.isWriteInMultiSelected && poll.writeInAnswer) ? encodeURIComponent(poll.writeInAnswer) : '');
+            var innerThis = this;
+            this.$http.put(putUri, null).
+                then(function (httpResponse) {
+                innerThis.polls = httpResponse.data;
+                innerThis.isLoading = false;
+                innerThis.refreshPolls();
+            }, function () {
+                innerThis.isLoading = false;
+            });
+        };
+        ActivePollsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "fellowResidents"];
         return ActivePollsController;
     }());
     Ally.ActivePollsController = ActivePollsController;
