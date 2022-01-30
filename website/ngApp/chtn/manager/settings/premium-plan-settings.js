@@ -76,7 +76,7 @@ var Ally;
         PremiumPlanSettingsController.prototype.showStripeError = function (errorMessage) {
             var displayError = document.getElementById('card-errors');
             if (HtmlUtil.isNullOrWhitespace(errorMessage))
-                displayError.textContent = 'Unknown Error';
+                displayError.textContent = null; //'Unknown Error';
             else
                 displayError.textContent = errorMessage;
         };
@@ -101,7 +101,6 @@ var Ally;
             this.stripeCardElement = elements.create("card", { style: style });
             this.stripeCardElement.mount("#stripe-card-element");
             var onCardChange = function (event) {
-                var displayError = document.getElementById('card-errors');
                 if (event.error)
                     _this.showStripeError(event.error.message);
                 else

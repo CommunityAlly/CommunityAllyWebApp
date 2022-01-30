@@ -112,7 +112,7 @@ namespace Ally
             let displayError = document.getElementById( 'card-errors' );
 
             if( HtmlUtil.isNullOrWhitespace( errorMessage ) )
-                displayError.textContent = 'Unknown Error';
+                displayError.textContent = null;//'Unknown Error';
             else
                 displayError.textContent = errorMessage;
         }
@@ -143,7 +143,6 @@ namespace Ally
 
             const onCardChange = ( event: any ) =>
             {
-                let displayError = document.getElementById( 'card-errors' );
                 if( event.error )
                     this.showStripeError( event.error.message );
                 else
