@@ -413,8 +413,12 @@ PtaAppConfig.menu = [
 var AppConfig:Ally.AppConfigInfo = null;
 
 let lowerDomain = document.domain.toLowerCase();
+
 if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) || lowerDomain === "localhost" )
     lowerDomain = OverrideOriginalUrl;
+
+if( !lowerDomain )
+    console.log( "Unable to find domain, make sure to set OverrideBaseApiPath and OverrideOriginalUrl at the top of ally-app.ts" );
 
 if( lowerDomain.indexOf( "condo" ) !== -1 )
     AppConfig = CondoAllyAppConfig;
