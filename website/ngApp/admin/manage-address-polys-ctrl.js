@@ -11,6 +11,7 @@ var Ally;
             this.$http = $http;
             this.$q = $q;
             this.isLoading = false;
+            this.includeAddresses = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -53,7 +54,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.addresses = [];
-            this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(function (addresses) {
+            var handleAddrs = function (addresses) {
                 _this.addressPoints = [];
                 _.each(addresses, function (a) {
                     if (a.gpsPos) {
@@ -62,7 +63,11 @@ var Ally;
                         _this.addressPoints.push(a.gpsPos);
                     }
                 });
-            });
+            };
+            if (this.includeAddresses)
+                this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(handleAddrs);
+            else
+                this.getGroupBoundPolys().then(handleAddrs);
         };
         ManageAddressPolysController.prototype.onSavePoly = function () {
             var _this = this;

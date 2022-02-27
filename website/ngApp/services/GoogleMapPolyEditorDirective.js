@@ -18,6 +18,8 @@
             }
         };
 
+        scope.markerClusterer = null;
+
         // Convert Google bounds to a Community Ally GpsBounds object
         scope.googlePolyToGpsBounds = function ( verts )
         {
@@ -252,6 +254,17 @@
             } );
 
             scope.fitBoundsForPoints();
+
+            if( scope.enableClustering )
+            {
+                if( scope.markerClusterer )
+                    markerCluster.setMap( null );
+
+                scope.markerCluster = new markerClusterer.MarkerClusterer( {
+                    markers: scope.currentVisiblePoints,
+                    map: scope.mapInstance
+                } );
+            }
         };
 
 
@@ -386,7 +399,8 @@
             groupBoundsPoly: "=",
             mapCenter: "=",
             onMapEditorReady: "&",
-            enableMapControls: "="
+            enableMapControls: "=",
+            enableClustering: "="
         },
         restrict: 'E',
         replace: 'true',

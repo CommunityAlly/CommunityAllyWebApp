@@ -12,6 +12,7 @@
         addressPoints: any[];
         selectedAddress: any;
         selectedGpsPoly: any;
+        includeAddresses: boolean = false;
 
 
         /**
@@ -93,21 +94,24 @@
 
             this.addresses = [];
 
-            this.getAddressPolys().then( () => this.getGroupBoundPolys() ).then(
-                ( addresses: any[] ) =>
+            const handleAddrs = ( addresses: any[] ) =>
+            {
+                this.addressPoints = [];
+                _.each( addresses, ( a ) =>
                 {
-                    this.addressPoints = [];
-                    _.each( addresses, ( a ) =>
+                    if( a.gpsPos )
                     {
-                        if( a.gpsPos )
-                        { 
-                            // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
-                            a.gpsPos.fullAddress = a.oneLiner;
-                            this.addressPoints.push( a.gpsPos );
-                        }
-                    } );
-                }
-            );
+                        // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
+                        a.gpsPos.fullAddress = a.oneLiner;
+                        this.addressPoints.push( a.gpsPos );
+                    }
+                } );
+            };
+
+            if( this.includeAddresses )
+                this.getAddressPolys().then( () => this.getGroupBoundPolys() ).then( handleAddrs );
+            else
+                this.getGroupBoundPolys().then( handleAddrs );
         }
 
         onSavePoly()

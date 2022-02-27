@@ -3,7 +3,7 @@
     <!--<ui-gmap-google-map center="$ctrl.mapInfo.center" draggable="true" options="$ctrl.mapInfo.options" events="$ctrl.mapInfo.events" zoom="$ctrl.mapInfo.zoom">
     </ui-gmap-google-map>-->
     <!--<div id="map-canvas" style="width:100%; height:400px;"></div>-->
-    <google-map-poly-editor visible-points="$ctrl.addressPoints" edit-poly-verts="$ctrl.selectedGpsPoly"></google-map-poly-editor>
+    <google-map-poly-editor visible-points="$ctrl.addressPoints" edit-poly-verts="$ctrl.selectedGpsPoly" enable-clustering="true"></google-map-poly-editor>
     <button data-ng-click="$ctrl.onSavePoly()">Save Polygon for Address</button>
     <div>
         <h2>Selected Address</h2>
@@ -18,6 +18,8 @@
                 <option value="currentSite">Current Site</option>
                 <option value="">All</option>
             </select>
+
+            <label><input type="checkbox" data-ng-model="$ctrl.includeAddresses" data-ng-change="$ctrl.refreshAddresses()" />Include Address Markers</label>
         </p>
         <h2>Addresses</h2>
         <div>
