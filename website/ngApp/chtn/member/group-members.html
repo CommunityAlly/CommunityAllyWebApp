@@ -143,12 +143,12 @@
             <h5 class="mb-0" style="text-decoration: underline;">Custom Group Email Addresses</h5>
             <div class="note-text mb-1">Here you can define your own group email addresses with your own collection of residents.</div>
             <div class="mt-2 mb-2" data-ng-if="$ctrl.customEmailList.length === 0">You do not have any custom group email addresses defined.</div>
-            <div data-ng-repeat="g in $ctrl.customEmailList">
+            <div data-ng-repeat="g in $ctrl.customEmailList track by $index">
                 <div>
                     &bull; Send an email to&nbsp;<h5 id="custom-group-email-address-{{ $index }}" style="display: inline;">{{ g.shortName }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="custom-group-email-address-copy-button-{{ $index }}" data-clipboard-target="#custom-group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
-                    <span data-ng-repeat="u in g.usersFullNames"><span data-ng-if="$index > 0">, </span>{{ u }}</span>
+                    <span data-ng-repeat="u in g.usersFullNames track by $index"><span data-ng-if="$index > 0">, </span>{{ u }}</span>
                 </div>
                 <div class="note-text mt-1" data-ng-if="g.description">
                     Description: {{g.description}}
