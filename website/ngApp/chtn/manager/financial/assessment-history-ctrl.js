@@ -539,6 +539,10 @@ var Ally;
             analytics.track('exportAssessment' + type);
             return true;
         };
+        AssessmentHistoryController.prototype.showBulkSet = function () {
+            this.shouldShowFillInSection = true;
+            window.scrollTo(0, 0);
+        };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         return AssessmentHistoryController;
     }());

@@ -749,6 +749,13 @@
             analytics.track( 'exportAssessment' + type );
             return true;
         }
+
+
+        showBulkSet()
+        {
+            this.shouldShowFillInSection = true;
+            window.scrollTo( 0, 0 );
+        }
     }
 
 
