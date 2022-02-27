@@ -50,6 +50,7 @@ namespace Ally
         unitListEntries: BasicUnitListEntry[];
         importHistoryEntries: FinancialTxImportHistoryEntry[];
         importTxNotes: string;
+        ownerFinanceTxNote: string;
 
 
         /**
@@ -203,6 +204,11 @@ namespace Ally
             }
 
             this.$timeout( () => this.loadImportHistory(), 1500 );
+
+            this.$http.get( "/api/Ledger/OwnerTxNote" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) => this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote,
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) => console.log( "Failed to load owner tx note: " + httpResponse.data.exceptionMessage )
+            );
         }
 
 
@@ -1059,6 +1065,28 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     console.log( "Failed to retrieve tx history: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        saveOwnerTxNote()
+        {
+            const putData = {
+                ownerFinanceTxNote: this.ownerFinanceTxNote
+            };
+
+            this.isLoading = true;
+
+            this.$http.put( "/api/Ledger/OwnerTxNote", putData ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save note: " + httpResponse.data.exceptionMessage );
                 }
             );
         }

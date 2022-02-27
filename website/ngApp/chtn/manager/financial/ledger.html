@@ -50,7 +50,7 @@
                             <div style="width: 200px; height: 150px; display: inline-block;">
                                 <canvas data-ng-if="$ctrl.showDonut" width="200" height="150" class="chart chart-doughnut" data-chart-data="$ctrl.spendingChartData" data-chart-labels="$ctrl.spendingChartLabels" legend="true"></canvas>
                             </div>
-                            <div style="display: inline-block; width: 200px;">
+                            <div style="display: inline-block; height: 150px; width: 200px; overflow-y: auto;">
                                 <div data-ng-repeat="curEntry in $ctrl.spendingChartLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.spendingChartData[$index] | currency}}</div>
                             </div>
                         </div>
@@ -81,9 +81,19 @@
         <span class="note-text text-link pull-right" data-ng-click="$ctrl.exportTransactionsCsv()">Export To CSV</span>
     </div>
 
-    <div class="mb-2">
+    <div>
         <label><input type="checkbox" data-ng-change="$ctrl.onShowOwnerTxnsChange()" data-ng-model="$ctrl.shouldShowOwnerFinanceTxn" /> Allow owners to view their transaction history</label>
         <a class="note-text" href="https://help.communityally.org/sharing-owner-financial-transactions/" target="_blank">Learn More</a>
+    </div>
+
+    <div data-ng-if="$ctrl.shouldShowOwnerFinanceTxn" class="mb-2">
+        Owner Transaction History Note:
+        <br />
+        <textarea rows="2" data-ng-model="$ctrl.ownerFinanceTxNote" maxlength="1024" style="width: 100%;"></textarea>
+        <span class="note-text">This optional note will show above the owner's transaction history. You can use this to explain details about
+        the transactions such as the last time it was updated or who to contact with questions.</span>
+        <br />
+        <button type="button" data-ng-click="$ctrl.saveOwnerTxNote()" class="btn btn-primary">Save Note</button>
     </div>
 
     <div data-ng-if="$ctrl.importHistoryEntries.length > 0" class="mt-4">

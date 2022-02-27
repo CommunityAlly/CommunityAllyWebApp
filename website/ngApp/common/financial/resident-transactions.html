@@ -7,6 +7,9 @@
         <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
         <span style="float:right" class="close-x" data-ng-click="$ctrl.shouldShowModal = false">×</span>
         <h2>Owner Financial Transactions</h2>
+        <div data-ng-if="$ctrl.ownerFinanceTxNote" class="mt-1 mb-1">
+            <b>Board Note:</b> {{$ctrl.ownerFinanceTxNote}}
+        </div>
         <div data-ng-if="$ctrl.allFinancialTxns.length > 0">
             <div class="mt-4 mb-2">
                 <b class="mr-1">Date Range:</b> <date-range-picker data-on-change="$ctrl.onFilterDateRangeChange()" data-start-date="$ctrl.filterStartDate" data-end-date="$ctrl.filterEndDate"></date-range-picker>

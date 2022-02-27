@@ -83,7 +83,8 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
                 _this.isLoading = false;
-                _this.allFinancialTxns = httpResponse.data;
+                _this.allFinancialTxns = httpResponse.data.entries;
+                _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
                 // Hide the unit column if the owner only has one unit
                 var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
@@ -156,6 +157,11 @@ var Ally;
         return ResidentTransactionsController;
     }());
     Ally.ResidentTransactionsController = ResidentTransactionsController;
+    var OwnerTxInfo = /** @class */ (function () {
+        function OwnerTxInfo() {
+        }
+        return OwnerTxInfo;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("residentTransactions", {
     templateUrl: "/ngApp/common/financial/resident-transactions.html",

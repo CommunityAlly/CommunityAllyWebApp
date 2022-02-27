@@ -14,6 +14,7 @@
         filterStartDate: Date;
         filterEndDate: Date;
         allFinancialTxns: LedgerEntry[];
+        ownerFinanceTxNote: string;
 
 
         /**
@@ -114,11 +115,12 @@
             this.isLoading = true;
 
             this.$http.get( `/api/OwnerLedger/MyTransactions` ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerEntry[]> ) =>
+                ( httpResponse: ng.IHttpPromiseCallbackArg<OwnerTxInfo> ) =>
                 {
                     this.isLoading = false;
-                    this.allFinancialTxns = httpResponse.data;
-                    
+                    this.allFinancialTxns = httpResponse.data.entries;
+                    this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
+
                     // Hide the unit column if the owner only has one unit
                     const allUnitIds = this.allFinancialTxns.map( u => u.associatedUnitId );
                     const uniqueUnitIds = allUnitIds.filter( ( v, i, a ) => a.indexOf( v ) === i );
@@ -210,6 +212,13 @@
 
             this.$scope.$apply();
         }
+    }
+
+
+    class OwnerTxInfo
+    {
+        ownerFinanceTxNote: string;
+        entries: LedgerEntry[];
     }
 }
 

@@ -162,6 +162,7 @@ var Ally;
                 this.fullRefresh();
             }
             this.$timeout(function () { return _this.loadImportHistory(); }, 1500);
+            this.$http.get("/api/Ledger/OwnerTxNote").then(function (httpResponse) { return _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote; }, function (httpResponse) { return console.log("Failed to load owner tx note: " + httpResponse.data.exceptionMessage); });
         };
         /**
          * Load all of the data on the page
@@ -748,6 +749,19 @@ var Ally;
                 _this.importHistoryEntries = httpResponse.data;
             }, function (httpResponse) {
                 console.log("Failed to retrieve tx history: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.saveOwnerTxNote = function () {
+            var _this = this;
+            var putData = {
+                ownerFinanceTxNote: this.ownerFinanceTxNote
+            };
+            this.isLoading = true;
+            this.$http.put("/api/Ledger/OwnerTxNote", putData).then(function () {
+                _this.isLoading = false;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save note: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
