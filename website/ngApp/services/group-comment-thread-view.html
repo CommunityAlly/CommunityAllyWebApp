@@ -56,7 +56,7 @@
                         </span>
                     </p>
 
-                    <p data-ng-if="comment.commentId !== $ctrl.editCommentId" ng-bind-html="comment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
+                    <p data-ng-if="comment.commentId !== $ctrl.editCommentId" style="white-space: pre-wrap;" ng-bind-html="comment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
                     <div data-ng-if="comment.commentId === $ctrl.editCommentId">
                         <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'edit')" data-ng-model="$ctrl.editCommentText" class="form-control"></textarea>
                         <div style="text-align: right;">
@@ -87,7 +87,7 @@
                         </span>
                     </p>
 
-                    <p data-ng-if="replyComment.commentId !== $ctrl.editCommentId" ng-bind-html="replyComment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
+                    <p data-ng-if="replyComment.commentId !== $ctrl.editCommentId" style="white-space: pre-wrap;" ng-bind-html="replyComment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
                     <div data-ng-if="replyComment.commentId === $ctrl.editCommentId">
                         <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'edit')" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="1000"></textarea>
                         <div style="text-align: right;">
