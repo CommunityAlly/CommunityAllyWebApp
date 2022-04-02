@@ -158,17 +158,20 @@
                 committeeId: this.committeeId
             };
 
-            this.$http.post( "/api/CommentThread", createInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.showCreateNewModal = false;
-                this.refreshCommentThreads( false );
+            this.$http.post( "/api/CommentThread", createInfo ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.showCreateNewModal = false;
+                    this.refreshCommentThreads( false );
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                this.newThreadErrorMessage = response.data.exceptionMessage
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    this.newThreadErrorMessage = response.data.exceptionMessage
+                }
+            );
         }
 
 
