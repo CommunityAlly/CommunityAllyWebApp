@@ -99,7 +99,7 @@
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">First Name:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" />
+                            <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" />
                             <div class="validation-label" data-ng-show="$ctrl.editUserForm.editUserFirstTextBox.$error.required">Required</div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@
                     <div class="form-group row">
                         <label for="edit-user-last-name-text-box" class="col-sm-4 col-xs-12">Last Name:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" />
+                            <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" />
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                     <div class="form-group row">
                         <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" />
+                            <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" />
                             <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">Email address was reported undeliverable.</div>
                         </div>
                     </div>
@@ -263,7 +263,7 @@
                 <div class="col-sm-6 text-sm-right">
                     <button id="save-edit-button" class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$invalid" type="button" data-ng-click="$ctrl.onSaveResident();">{{ $ctrl.editUser.pendingMemberId ? "Approve" : "Save" }}</button>
                     <button id="cancel-edit-button" class="btn btn-secondary" data-ng-if="!$ctrl.editUser.pendingMemberId" type="button" data-ng-click="$ctrl.setEdit( null )">Cancel</button>
-                    <button id="remove-resident-button" class="btn btn-danger" data-ng-show="$ctrl.editUser.userId.length > 0" data-ng-click="$ctrl.onDeleteResident();">Remove Resident</button>
+                    <button id="remove-resident-button" class="btn btn-danger" data-ng-if="$ctrl.editUser.userId.length > 0" type="button" data-ng-click="$ctrl.onDeleteResident();">Remove Resident</button>
                     <button class="btn btn-secondary" data-ng-if="$ctrl.editUser.pendingMemberId" data-ng-click="$ctrl.rejectPendingMember();">Reject</button>
 
                     <input type="hidden" value="{{$ctrl.editUser.userId}}" />
@@ -405,7 +405,10 @@
                             Invalid unit
                         </div>
                     </td>
-                    <td><input style="width:97%;" type="text" data-ng-model="row.email" /></td>
+                    <td>
+                        <input style="width:97%;" type="text" data-ng-model="row.email" />
+                        <div data-ng-if="row.emailHasDupe" style="color: #F00; font-weight: bold;">Duplicate Email</div>
+                    </td>
                     <td><input style="width:97%;" data-ng-style="{'background-color':row.firstName?'white':'red'}" type="text" data-ng-model="row.firstName" /></td>
                     <td><input style="width:97%;" type="text" data-ng-model="row.lastName" /></td>
                     <td><input style="width:97%;" type="text" data-ng-model="row.phoneNumber" /></td>

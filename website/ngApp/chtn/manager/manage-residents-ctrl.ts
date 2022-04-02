@@ -138,6 +138,7 @@ namespace Ally
         mailingAddress: string;
         alternatePhone: string;
         managerNotes: string;
+        emailHasDupe: boolean;
     }
 
 
@@ -250,7 +251,7 @@ namespace Ally
                 // Hook up the address copy link
                 setTimeout( () =>
                 {
-                    const clipboard = new Clipboard( ".clipboard-button" );
+                    const clipboard: any = new Clipboard( ".clipboard-button" );
 
                     clipboard.on( "success", ( e: any ) =>
                     {
@@ -293,10 +294,10 @@ namespace Ally
             const homeColumnWidth = AppConfig.appShortName === "hoa" ? 140 : (this.showIsRenter ? 62 : 175);
 
             this.residentGridOptions =
-                {
-                    data: [],
-                    enableFiltering: false,
-                    columnDefs:
+            {
+                data: [],
+                enableFiltering: false,
+                columnDefs:
                     [
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
@@ -329,68 +330,74 @@ namespace Ally
                             enableFiltering: false
                         },
                         { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>', enableFiltering: false },
-                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false }
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false },
+                        { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                     ],
-                    multiSelect: false,
-                    enableSorting: true,
-                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
-                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
-                    enableFullRowSelection: true,
-                    enableColumnMenus: false,
-                    enableRowHeaderSelection: false,
-                    onRegisterApi: ( gridApi ) =>
+                multiSelect: false,
+                enableSorting: true,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableFullRowSelection: true,
+                enableColumnMenus: false,
+                enableGridMenu: true,
+                enableRowHeaderSelection: false,
+                onRegisterApi: ( gridApi ) =>
+                {
+                    this.gridApi = gridApi;
+                    gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
                     {
-                        this.gridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
-                        {
-                            const msg = 'row selected ' + row.isSelected;
-                            this.setEdit( row.entity );
-                        } );
+                        const msg = 'row selected ' + row.isSelected;
+                        this.setEdit( row.entity );
+                    } );
 
-                        gridApi.core.on.sortChanged( this.$rootScope, ( grid, sortColumns ) =>
-                        {
-                            if( !sortColumns || sortColumns.length === 0 )
-                                return;
+                    gridApi.core.on.sortChanged( this.$rootScope, ( grid, sortColumns ) =>
+                    {
+                        if( !sortColumns || sortColumns.length === 0 )
+                            return;
 
-                            // Remember the sort
-                            this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
-                            window.localStorage.setItem( LocalKey_ResidentSort, JSON.stringify( this.residentSortInfo ) );
-                        } );
+                        // Remember the sort
+                        this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
+                        window.localStorage.setItem( LocalKey_ResidentSort, JSON.stringify( this.residentSortInfo ) );
+                    } );
 
-                        // Fix dumb scrolling
-                        HtmlUtil.uiGridFixScroll();
-                    }
-                };
+                    // Fix dumb scrolling
+                    HtmlUtil.uiGridFixScroll();
+                }
+            };
+
+            // Need to cast to any because property is missing from typed file
+            (this.residentGridOptions as any).gridMenuShowHideColumns = true;
 
             this.pendingMemberGridOptions =
+            {
+                data: [],
+                columnDefs:
+                    [
+                        { field: 'firstName', displayName: 'First Name' },
+                        { field: 'lastName', displayName: 'Last Name' },
+                        { field: 'email', displayName: 'Email' },
+                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
+                    ],
+                multiSelect: false,
+                enableSorting: true,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableFullRowSelection: true,
+                enableColumnMenus: false,
+                enableRowHeaderSelection: false,
+                onRegisterApi: ( gridApi ) =>
                 {
-                    data: [],
-                    columnDefs:
-                        [
-                            { field: 'firstName', displayName: 'First Name' },
-                            { field: 'lastName', displayName: 'Last Name' },
-                            { field: 'email', displayName: 'Email' },
-                            { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>' },
-                        ],
-                    multiSelect: false,
-                    enableSorting: true,
-                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
-                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
-                    enableFullRowSelection: true,
-                    enableColumnMenus: false,
-                    enableRowHeaderSelection: false,
-                    onRegisterApi: ( gridApi ) =>
+                    this.pendingMemberGridApi = gridApi;
+                    gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
                     {
-                        this.pendingMemberGridApi = gridApi;
-                        gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
-                        {
-                            this.selectPendingMember( row.entity );
-                        } );
+                        this.selectPendingMember( row.entity );
+                    } );
 
-                        // Fix dumb scrolling
-                        HtmlUtil.uiGridFixScroll();
-                    }
-                };
+                    // Fix dumb scrolling
+                    HtmlUtil.uiGridFixScroll();
+                }
+            };
 
             if( window.innerWidth < 769 )
             {
@@ -1273,7 +1280,8 @@ namespace Ally
                     csvTestName: "",
                     mailingAddress: curRow[7],
                     alternatePhone: curRow[8],
-                    managerNotes: curRow[9]
+                    managerNotes: curRow[9],
+                    emailHasDupe: false
                 };
 
                 if( HtmlUtil.isNullOrWhitespace( newRow.unitName ) )
@@ -1343,6 +1351,10 @@ namespace Ally
                 if( spouseRow )
                     this.bulkImportRows.push( spouseRow );
             }
+
+            // Find any duplicate email addresses
+            for( let curRow of this.bulkImportRows )
+                curRow.emailHasDupe = curRow.email && this.bulkImportRows.filter( r => r.email === curRow.email ).length > 1;
         }
 
 
@@ -1388,7 +1400,8 @@ namespace Ally
                 csvTestName: undefined,
                 mailingAddress: "",
                 alternatePhone: "",
-                managerNotes: ""
+                managerNotes: "",
+                emailHasDupe: false
             };
 
             // Try to step to the next unit

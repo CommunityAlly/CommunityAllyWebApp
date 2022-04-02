@@ -218,7 +218,9 @@ var Ally;
                             enableFiltering: false
                         },
                         { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>', enableFiltering: false },
-                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false }
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false },
+                        { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -226,6 +228,7 @@ var Ally;
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableFullRowSelection: true,
                     enableColumnMenus: false,
+                    enableGridMenu: true,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
                         _this.gridApi = gridApi;
@@ -244,6 +247,8 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            // Need to cast to any because property is missing from typed file
+            this.residentGridOptions.gridMenuShowHideColumns = true;
             this.pendingMemberGridOptions =
                 {
                     data: [],
@@ -924,7 +929,8 @@ var Ally;
                     csvTestName: "",
                     mailingAddress: curRow[7],
                     alternatePhone: curRow[8],
-                    managerNotes: curRow[9]
+                    managerNotes: curRow[9],
+                    emailHasDupe: false
                 };
                 if (HtmlUtil.isNullOrWhitespace(newRow.unitName))
                     newRow.unitId = null;
@@ -977,6 +983,15 @@ var Ally;
             for (var i = 0; i < bulkRows.length; ++i) {
                 _loop_1(i);
             }
+            var _loop_2 = function (curRow) {
+                curRow.emailHasDupe = curRow.email && this_2.bulkImportRows.filter(function (r) { return r.email === curRow.email; }).length > 1;
+            };
+            var this_2 = this;
+            // Find any duplicate email addresses
+            for (var _i = 0, _a = this.bulkImportRows; _i < _a.length; _i++) {
+                var curRow = _a[_i];
+                _loop_2(curRow);
+            }
         };
         /**
          * Submit the bulk creation rows to the server
@@ -1011,7 +1026,8 @@ var Ally;
                 csvTestName: undefined,
                 mailingAddress: "",
                 alternatePhone: "",
-                managerNotes: ""
+                managerNotes: "",
+                emailHasDupe: false
             };
             // Try to step to the next unit
             if (this.allUnits) {
