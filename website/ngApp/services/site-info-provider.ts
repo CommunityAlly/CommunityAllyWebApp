@@ -76,6 +76,7 @@ namespace Ally
         siteLogo: string;
         siteTitleText: string;
         loginImageUrl: string;
+        customLandingPagePath: string;
 
         /** The root URI for this group's API, looks like "https://0.webappapi.communityally.org/api/" */
         baseApiUrl: string;
@@ -373,7 +374,10 @@ namespace Ally
 
                         // Need to set the hash "manually" as $location is not available in the config
                         // block and GlobalRedirect will go to the wrong TLD when working locally
-                        window.location.hash = LoginPath;
+                        if( this.publicSiteInfo.customLandingPagePath )
+                            window.location.hash = this.publicSiteInfo.customLandingPagePath;
+                        else
+                            window.location.hash = LoginPath;
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
 

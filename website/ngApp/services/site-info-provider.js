@@ -233,7 +233,10 @@ var Ally;
                         }
                         // Need to set the hash "manually" as $location is not available in the config
                         // block and GlobalRedirect will go to the wrong TLD when working locally
-                        window.location.hash = LoginPath;
+                        if (this.publicSiteInfo.customLandingPagePath)
+                            window.location.hash = this.publicSiteInfo.customLandingPagePath;
+                        else
+                            window.location.hash = LoginPath;
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
                         return;
