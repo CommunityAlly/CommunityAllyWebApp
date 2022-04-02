@@ -12,12 +12,15 @@ namespace Ally
     {
         static $inject = ["$http", "SiteInfo"];
 
+        isLoading = false;
         includeInactive = false;
         allPageListings: CustomPage[] = [];
+        menuPageListings: CustomPage[] = [];
         selectedPageEntry: CustomPage = null;
         editPage: CustomPage = null;
-        isLoading = false;
         bodyRichEditorElem: JQuery;
+        groupBaseUrl: string;
+        selectedLandingPageId: number | null = null;
 
 
         /**
@@ -25,6 +28,7 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
         {
+            this.groupBaseUrl = this.siteInfo.publicSiteInfo.baseUrl;
         }
 
 
@@ -39,6 +43,17 @@ namespace Ally
 
             this.bodyRichEditorElem = $( '#body-rich-editor' );
             ( <any>this.bodyRichEditorElem ).wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert } );
+
+            this.$http.get( "/api/CustomPage/GroupLandingPage" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<number | null> ) =>
+                {
+                    this.selectedLandingPageId = response.data ? response.data : null;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    console.log( "Failed to retrieve current landing page: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -54,11 +69,12 @@ namespace Ally
                 {
                     this.isLoading = false;
                     this.allPageListings = response.data;
+                    this.menuPageListings = _.clone( response.data );
 
                     const addPage = new CustomPage();
                     addPage.customPageId = -5;
                     addPage.title = "Add New Page...";
-                    this.allPageListings.push( addPage );
+                    this.menuPageListings.push( addPage );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -163,6 +179,9 @@ namespace Ally
         }
 
 
+        /**
+         * Occurs when the user selects a page to edit
+         */
         onPageSelected()
         {
             if( this.selectedPageEntry.customPageId > 0 )
@@ -188,6 +207,40 @@ namespace Ally
                 this.editPage = new CustomPage();
                 this.bodyRichEditorElem.html( "" );
             }
+        }
+
+
+        /**
+         * Occurs when the user selects a new landing page for the group
+         */
+        onLandingPageSelected()
+        {
+            let putUri = "/api/CustomPage/SetGroupLandingPage";
+            if( this.selectedLandingPageId )
+                putUri += "?customPageId=" + this.selectedLandingPageId;
+
+            this.isLoading = true;
+
+            this.$http.put( putUri, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+
+                    if( this.selectedLandingPageId )
+                        this.siteInfo.publicSiteInfo.customLandingPagePath = null;
+                    else
+                    {
+                        const selectedPage = this.allPageListings.find( p => p.customPageId === this.selectedLandingPageId );
+                        if( selectedPage )
+                            this.siteInfo.publicSiteInfo.customLandingPagePath = "#!/Page/" + selectedPage.pageSlug;
+                    }
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to update landing page: " + response.data.exceptionMessage );
+                }
+            )
         }
     }
 

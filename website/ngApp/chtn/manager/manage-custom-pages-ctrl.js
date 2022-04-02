@@ -13,20 +13,29 @@ var Ally;
         function ManageCustomPagesController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.isLoading = false;
             this.includeInactive = false;
             this.allPageListings = [];
+            this.menuPageListings = [];
             this.selectedPageEntry = null;
             this.editPage = null;
-            this.isLoading = false;
+            this.selectedLandingPageId = null;
+            this.groupBaseUrl = this.siteInfo.publicSiteInfo.baseUrl;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageCustomPagesController.prototype.$onInit = function () {
+            var _this = this;
             this.retrievePages();
             Ally.RichTextHelper.initToolbarBootstrapBindings();
             this.bodyRichEditorElem = $('#body-rich-editor');
             this.bodyRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+            this.$http.get("/api/CustomPage/GroupLandingPage").then(function (response) {
+                _this.selectedLandingPageId = response.data ? response.data : null;
+            }, function (response) {
+                console.log("Failed to retrieve current landing page: " + response.data.exceptionMessage);
+            });
         };
         /**
         * Retrieve the list of custom pages
@@ -37,10 +46,11 @@ var Ally;
             this.$http.get("/api/CustomPage/AllPages").then(function (response) {
                 _this.isLoading = false;
                 _this.allPageListings = response.data;
+                _this.menuPageListings = _.clone(response.data);
                 var addPage = new CustomPage();
                 addPage.customPageId = -5;
                 addPage.title = "Add New Page...";
-                _this.allPageListings.push(addPage);
+                _this.menuPageListings.push(addPage);
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve the custom pages: " + response.data.exceptionMessage);
@@ -111,6 +121,9 @@ var Ally;
             this.editPage.pageSlug = (this.editPage.pageSlug || "").trim();
             this.editPage.pageSlug = this.editPage.pageSlug.replace(/ /g, '-'); // Replace spaces with dashes
         };
+        /**
+         * Occurs when the user selects a page to edit
+         */
         ManageCustomPagesController.prototype.onPageSelected = function () {
             var _this = this;
             if (this.selectedPageEntry.customPageId > 0) {
@@ -128,6 +141,29 @@ var Ally;
                 this.editPage = new CustomPage();
                 this.bodyRichEditorElem.html("");
             }
+        };
+        /**
+         * Occurs when the user selects a new landing page for the group
+         */
+        ManageCustomPagesController.prototype.onLandingPageSelected = function () {
+            var _this = this;
+            var putUri = "/api/CustomPage/SetGroupLandingPage";
+            if (this.selectedLandingPageId)
+                putUri += "?customPageId=" + this.selectedLandingPageId;
+            this.isLoading = true;
+            this.$http.put(putUri, null).then(function (response) {
+                _this.isLoading = false;
+                if (_this.selectedLandingPageId)
+                    _this.siteInfo.publicSiteInfo.customLandingPagePath = null;
+                else {
+                    var selectedPage = _this.allPageListings.find(function (p) { return p.customPageId === _this.selectedLandingPageId; });
+                    if (selectedPage)
+                        _this.siteInfo.publicSiteInfo.customLandingPagePath = "#!/Page/" + selectedPage.pageSlug;
+                }
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to update landing page: " + response.data.exceptionMessage);
+            });
         };
         ManageCustomPagesController.$inject = ["$http", "SiteInfo"];
         return ManageCustomPagesController;

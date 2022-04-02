@@ -341,8 +341,10 @@ else {
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 window.AppConfig = AppConfig;
 AppConfig.isPublicRoute = function (path) {
+    // Default to the current hash
     if (!path)
         path = window.location.hash;
+    // Remove the leading hashbang
     if (HtmlUtil.startsWith(path, "#!"))
         path = path.substr(2);
     // If the path has a parameter, only test the first word

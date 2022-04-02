@@ -27,22 +27,16 @@ CA.angularApp.config(
 {
     $locationProvider.hashPrefix( '!' );
 
-    //var subdomain = HtmlUtil.getSubdomain( OverrideBaseApiPath );      
-    //if( subdomain === null && window.location.hash !== "#!/Login" )
-    //{
-    //    GlobalRedirect( AppConfig.baseUrl );
-    //    return;
-    //}
-
-    var isLoginRequired = function( $location: ng.ILocationService, $q: ng.IQService, siteInfo: Ally.SiteInfoService, appCacheService: AppCacheService )
+    const isLoginRequired = function( $location: ng.ILocationService, $q: ng.IQService, siteInfo: Ally.SiteInfoService, appCacheService: AppCacheService )
     {
         var deferred = $q.defer();
 
         // We have no user information so they must login
-        if( !siteInfo.userInfo )
+        const isPublicHash = $location.path() === "/Home" || $location.path() === "/Login" || AppConfig.isPublicRoute( $location.path() );
+        if( !siteInfo.userInfo && !isPublicHash )
         {
             // Home, the default page, and login don't need special redirection or user messaging
-            if( $location.path() !== "/Home" && $location.path() !== "/Login" )
+            if( $location.path() !== "/Home" || $location.path() !== "/Login" )
             {
                 appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
                 appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );

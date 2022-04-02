@@ -451,9 +451,11 @@ else
 
 AppConfig.isPublicRoute = function( path: string )
 {
+    // Default to the current hash
     if( !path )
         path = window.location.hash;
 
+    // Remove the leading hashbang
     if( HtmlUtil.startsWith( path, "#!" ) )
         path = path.substr( 2 );
 

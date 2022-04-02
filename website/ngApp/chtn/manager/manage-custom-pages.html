@@ -3,16 +3,33 @@
         <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
         <h3>Custom Pages</h3>
         <p>
-            Here you can create general-use pages that can be used to share data internally or publicly. You can simply define the 
+            Here you can create general-use pages that can be accessed by both residents and the general public, unlike the rest of your site which
+            requires users be registered and logged-in. You can simply define the page contents using the rich text editor below. The page will
+            then be accessible when visiting the site and not logged-in. You can test this by using another browser or using your current browser's
+            private/incognito mode.
         </p>
         
-        <div>
-            Select Page:
-            <select data-ng-options="p as p.title for p in $ctrl.allPageListings" data-ng-model="$ctrl.selectedPageEntry" data-ng-change="$ctrl.onPageSelected()">
-                <option></option>
-            </select>
-            <button class="btn btn-primary" data-ng-if="$ctrl.editPage" data-ng-click="$ctrl.savePage()">Save Page</button>
-            <button class="btn btn-danger" data-ng-if="$ctrl.editPage.customPageId" data-ng-click="$ctrl.deletePage()">Delete Page</button>
+        <div style="min-height: 140px;">
+            <fieldset class="float-right" style="width: 40%;">
+                <legend style="font-size: 20px;">Site Landing Page</legend>
+                When users visit your site and are not yet logged-in, you can customize what page they land on with this setting.
+                <br />
+                <br />
+                <b>Page:</b>
+                <select title="landing page" data-ng-model="$ctrl.selectedLandingPageId" data-ng-change="$ctrl.onLandingPageSelected()">
+                    <option ng-value="null">Default - Login Page</option>
+                    <option data-ng-repeat="curPage in $ctrl.allPageListings" ng-value="curPage.customPageId">{{curPage.title}}</option>
+                </select>
+            </fieldset>
+
+            <div>
+                Select Page:
+                <select data-ng-options="p as p.title for p in $ctrl.menuPageListings" data-ng-model="$ctrl.selectedPageEntry" data-ng-change="$ctrl.onPageSelected()" title="current edit page">
+                    <option></option>
+                </select>
+                <button class="btn btn-primary" data-ng-if="$ctrl.editPage" data-ng-click="$ctrl.savePage()">Save Page</button>
+                <button class="btn btn-danger" data-ng-if="$ctrl.editPage.customPageId" data-ng-click="$ctrl.deletePage()">Delete Page</button>
+            </div>
         </div>
 
         <div data-ng-if="$ctrl.editPage" class="mt-3">
@@ -25,7 +42,7 @@
             <div class="mt-3">
                 Slug:
                 <input type="text" maxlength="64" data-ng-model="$ctrl.editPage.pageSlug" data-ng-blur="$ctrl.onSlugBlur()" />
-                <div class="note-text">The alphanumeric+dash identifier for this page. Used in the URL.</div>
+                <div class="note-text">The alphanumeric+dash identifier for this page. Used in the URL: <a target="_blank" href="{{$ctrl.groupBaseUrl}}#!/Page/{{$ctrl.editPage.pageSlug}}">{{$ctrl.groupBaseUrl}}#!/Page/{{$ctrl.editPage.pageSlug}}</a></div>
             </div>
             <div class="mt-3">
                 <label>
