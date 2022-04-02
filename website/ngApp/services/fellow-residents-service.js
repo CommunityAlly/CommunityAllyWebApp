@@ -296,7 +296,11 @@ var Ally;
             }
             if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
                 results.chartLabels.push("No Response");
-                results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
+                var isMemberBasedGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+                if (isMemberBasedGroup)
+                    results.chartData.push(siteInfo.privateSiteInfo.numMembers - poll.responses.length);
+                else
+                    results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
             }
             return results;
         };

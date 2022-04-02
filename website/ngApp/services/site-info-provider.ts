@@ -132,6 +132,7 @@ namespace Ally
         isWePayPaymentActive: boolean;
         isDwollaPaymentActive: boolean;
         numUnits: number;
+        numMembers: number;
         isEmailSendingRestricted: boolean;
         hasAssessments: boolean | null;
         assessmentFrequency: number;
@@ -378,6 +379,7 @@ namespace Ally
                             window.location.hash = this.publicSiteInfo.customLandingPagePath;
                         else
                             window.location.hash = LoginPath;
+
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
 
