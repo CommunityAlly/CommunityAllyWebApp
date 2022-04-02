@@ -7,17 +7,18 @@
 
         <!--Show the question text-->
         <div class="text-12 text-bold">POLL<span data-ng-if="poll.hasUsersUnitVoted && poll.canViewResults"> RESULTS</span>:</div>
-        <p id="poll-question-text-{{ $index }}" class="no-margin text-large">{{ poll.questionText }}</p>
-        <p class="no-margin">
-            <small><u>Posted by {{ poll.authorName }}, {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</u></small><br />
-            <span data-ng-if="poll.isAnonymous" class="note-text">This is an anonymous poll. Your identity will not be shown with your response.</span>
-            <span data-ng-if="!poll.isAnonymous" class="note-text">This is NOT an anonymous poll. Your identity will be shown with your response.</span>
+        <p id="poll-question-text-{{ $index }}" class="no-margin text-large text-bold">{{ poll.questionText }}</p>
+        <p class="no-margin note-text">
+            <span>Posted by {{ poll.authorName }} on {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</span>
+             - 
+            <span data-ng-if="poll.isAnonymous">This is an anonymous poll. Your identity will not be shown with your response.</span>
+            <span data-ng-if="!poll.isAnonymous">This is NOT an anonymous poll. Your identity will be shown with your response.</span>
         </p>
 
         <!--Show the poll responses for the user to vote on-->
         <div data-ng-if="!poll.hasUsersUnitVoted">
             <div>
-                <div id="poll-detail-{{ $index }}" data-ng-show="poll.detailText.length > 0" style="font-size: small;">{{ poll.detailText }}</div>
+                <div id="poll-detail-{{ $index }}" data-ng-show="poll.detailText.length > 0" style="font-size: 16px;" class="mt-3 mb-4">{{ poll.detailText }}</div>
             </div>
 
             <div class="polls" data-ng-if="poll.maxNumResponses<2">
