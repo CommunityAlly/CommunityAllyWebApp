@@ -103,14 +103,17 @@
      */
     export class FellowResidentsService
     {
+        public static readonly BoardPos_None: number = 0;
+        public static readonly BoardPos_PropertyManager = 32;
+
         static BoardPositionNames: { id: number, name: string }[] = [
-            { id: 0, name: "None" },
+            { id: FellowResidentsService.BoardPos_None, name: "None" },
             { id: 1, name: "President" },
             { id: 2, name: "Treasurer" },
             { id: 4, name: "Secretary" },
             { id: 8, name: "Director/Member at Large" },
             { id: 16, name: "Vice President" },
-            { id: 32, name: "Property Manager" },
+            { id: FellowResidentsService.BoardPos_PropertyManager, name: "Property Manager" },
             { id: 64, name: "Secretary + Treasurer" }
         ];
         httpCache: ng.ICacheObject;
@@ -286,14 +289,11 @@
                 var displayName = r.fullName + ( r.hasEmail ? "" : "*" );
 
                 emailLists.everyone.push( displayName );
-
-                var BoardPos_None = 0;
-                var BoardPos_PropertyManager = 32;
-
-                if( r.boardPosition !== BoardPos_None && r.boardPosition !== BoardPos_PropertyManager )
+                
+                if( r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager )
                     emailLists.board.push( displayName );
 
-                if( r.boardPosition === BoardPos_PropertyManager )
+                if( r.boardPosition === FellowResidentsService.BoardPos_PropertyManager )
                     emailLists.propertyManagers.push( displayName );
 
                 if( r.includeInDiscussionEmail )
