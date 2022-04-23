@@ -116,26 +116,13 @@ var Ally;
             });
         };
         GroupMembersController.prototype.updateMemberFilter = function () {
-            var lowerFilter = angular.lowercase(this.memberSearchTerm) || '';
+            var lowerFilter = (this.memberSearchTerm || '').toLowerCase();
             var filterSearchFiles = function (unitListing) {
-                if (angular.lowercase(unitListing.name || '').indexOf(lowerFilter) !== -1)
+                if ((unitListing.name || '').toLowerCase().indexOf(lowerFilter) !== -1)
                     return true;
                 return false;
-                //if( _.any(unitListing.owners) )
-                //return angular.lowercase( unitListing.name || '' ).indexOf( lowerFilter ) !== -1
-                //    || angular.lowercase( file.uploadDateString || '' ).indexOf( lowerFilter ) !== -1
-                //    || angular.lowercase( file.uploaderFullName || '' ).indexOf( lowerFilter ) !== -1;
             };
             //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
-            //setTimeout( function()
-            //{
-            //    // Force redraw of the document. Not sure why, but the file list disappears on Chrome
-            //    var element = document.getElementById( "documents-area" );
-            //    var disp = element.style.display;
-            //    element.style.display = 'none';
-            //    var trick = element.offsetHeight;
-            //    element.style.display = disp;
-            //}, 50 );
         };
         GroupMembersController.prototype.loadGroupEmails = function () {
             var _this = this;

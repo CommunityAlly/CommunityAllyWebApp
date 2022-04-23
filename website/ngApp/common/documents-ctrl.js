@@ -260,11 +260,11 @@ var Ally;
             return curDir;
         };
         DocumentsController.prototype.updateFileFilter = function () {
-            var lowerFilter = angular.lowercase(this.fileSearch.all) || '';
+            var lowerFilter = (this.fileSearch.all || '').toLowerCase();
             var filterSearchFiles = function (file) {
-                return angular.lowercase(file.localFilePath || '').indexOf(lowerFilter) !== -1
-                    || angular.lowercase(file.uploadDateString || '').indexOf(lowerFilter) !== -1
-                    || angular.lowercase(file.uploaderFullName || '').indexOf(lowerFilter) !== -1;
+                return (file.localFilePath || '').toLowerCase().indexOf(lowerFilter) !== -1
+                    || (file.uploadDateString || '').toLowerCase().indexOf(lowerFilter) !== -1
+                    || (file.uploaderFullName || '').toLowerCase().indexOf(lowerFilter) !== -1;
             };
             this.searchFileList = _.filter(this.fullSearchFileList, filterSearchFiles);
             setTimeout(function () {

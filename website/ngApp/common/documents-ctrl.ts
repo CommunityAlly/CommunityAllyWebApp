@@ -403,12 +403,12 @@ namespace Ally
 
         updateFileFilter()
         {
-            var lowerFilter = angular.lowercase( this.fileSearch.all ) || '';
+            var lowerFilter = ( this.fileSearch.all || '' ).toLowerCase();
             let filterSearchFiles = ( file: DocumentTreeFile ) =>
             {
-                return angular.lowercase( file.localFilePath || '' ).indexOf( lowerFilter ) !== -1
-                    || angular.lowercase( file.uploadDateString || '' ).indexOf( lowerFilter ) !== -1
-                    || angular.lowercase( file.uploaderFullName || '' ).indexOf( lowerFilter ) !== -1;
+                return ( file.localFilePath || '' ).toLowerCase().indexOf( lowerFilter ) !== -1
+                    || ( file.uploadDateString || '' ).toLowerCase().indexOf( lowerFilter ) !== -1
+                    || ( file.uploaderFullName || '' ).toLowerCase().indexOf( lowerFilter ) !== -1;
             };
 
             this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
