@@ -32,6 +32,7 @@ var Ally;
             this.defaultDigestFrequency = this.siteInfo.userInfo.defaultDigestFrequency;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.retrieveComments();
         };
         /**
