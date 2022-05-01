@@ -17,6 +17,7 @@
         isSuperAdmin: boolean = false;
         groupEmails: GroupEmailInfo[];
         shouldAllowMultipleAnswers: boolean = false;
+        isPremiumPlanActive: boolean = false;
 
 
         /**
@@ -35,6 +36,7 @@
         $onInit()
         {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             const threeDaysLater = new Date();
             threeDaysLater.setDate( new Date().getDate() + 3 );

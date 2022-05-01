@@ -94,14 +94,19 @@
         </p>
 
         <p data-ng-if="!$ctrl.editingItem.postDate">
-            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.shouldSendAnnouncementEmail"> Send announcement email</label>
-            <br />
-            <span class="note-text">
-                Checking this will send out an email to residents that a poll has been added. <a class="font-italic" target="_blank" href="https://help.communityally.org/wp-content/uploads/2022/01/sample-poll-email.png">View Sample Email</a>
-            </span>
+            <div data-ng-if="$ctrl.isPremiumPlanActive">
+                <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.shouldSendAnnouncementEmail"> Send announcement email</label>
+                <br />
+                <span class="note-text">
+                    Checking this will send out an email to residents that a poll has been added. <a class="font-italic" target="_blank" href="https://help.communityally.org/wp-content/uploads/2022/01/sample-poll-email.png">View Sample Email</a>
+                </span>
+            </div>
+            <div class="note-text" data-ng-if="!$ctrl.isPremiumPlanActive">
+                You can send out poll email notifications on our premium plan.
+            </div>
         </p>
 
-        <p>
+        <p data-ng-if="$ctrl.isPremiumPlanActive">
             <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.shouldSendReminderEmail"> Send reminder email</label>
             <br />
             <span class="note-text">

@@ -16,6 +16,7 @@ var Ally;
             this.isLoading = false;
             this.isSuperAdmin = false;
             this.shouldAllowMultipleAnswers = false;
+            this.isPremiumPlanActive = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -23,6 +24,7 @@ var Ally;
         ManagePollsController.prototype.$onInit = function () {
             var _this = this;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             var threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
