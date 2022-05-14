@@ -11,6 +11,7 @@ var Ally;
             this.$http = $http;
             this.$q = $q;
             this.isLoading = false;
+            this.includeAddresses = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -53,7 +54,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.addresses = [];
-            this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(function (addresses) {
+            var handleAddrs = function (addresses) {
                 _this.addressPoints = [];
                 _.each(addresses, function (a) {
                     if (a.gpsPos) {
@@ -62,7 +63,11 @@ var Ally;
                         _this.addressPoints.push(a.gpsPos);
                     }
                 });
-            });
+            };
+            if (this.includeAddresses)
+                this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(handleAddrs);
+            else
+                this.getGroupBoundPolys().then(handleAddrs);
         };
         ManageAddressPolysController.prototype.onSavePoly = function () {
             var _this = this;
@@ -912,26 +917,18 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-//OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/";
-OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
-OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
         $locationProvider.hashPrefix('!');
-        //var subdomain = HtmlUtil.getSubdomain( OverrideBaseApiPath );      
-        //if( subdomain === null && window.location.hash !== "#!/Login" )
-        //{
-        //    GlobalRedirect( AppConfig.baseUrl );
-        //    return;
-        //}
         var isLoginRequired = function ($location, $q, siteInfo, appCacheService) {
             var deferred = $q.defer();
             // We have no user information so they must login
-            if (!siteInfo.userInfo) {
+            var isPublicHash = $location.path() === "/Home" || $location.path() === "/Login" || AppConfig.isPublicRoute($location.path());
+            if (!siteInfo.userInfo && !isPublicHash) {
                 // Home, the default page, and login don't need special redirection or user messaging
-                if ($location.path() !== "/Home" && $location.path() !== "/Login") {
+                if ($location.path() !== "/Home" || $location.path() !== "/Login") {
                     appCacheService.set(AppCacheService.Key_AfterLoginRedirect, $location.path());
                     appCacheService.set(AppCacheService.Key_WasLoggedIn401, "true");
                 }
@@ -1575,8 +1572,10 @@ else {
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 window.AppConfig = AppConfig;
 AppConfig.isPublicRoute = function (path) {
+    // Default to the current hash
     if (!path)
         path = window.location.hash;
+    // Remove the leading hashbang
     if (HtmlUtil.startsWith(path, "#!"))
         path = path.substr(2);
     // If the path has a parameter, only test the first word
@@ -2158,6 +2157,10 @@ var Ally;
             window.setTimeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewExportViewId = response.data.vid; }); }, 500);
             analytics.track('exportAssessment' + type);
             return true;
+        };
+        AssessmentHistoryController.prototype.showBulkSet = function () {
+            this.shouldShowFillInSection = true;
+            window.scrollTo(0, 0);
         };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         return AssessmentHistoryController;
@@ -3145,6 +3148,7 @@ var Ally;
                 this.fullRefresh();
             }
             this.$timeout(function () { return _this.loadImportHistory(); }, 1500);
+            this.$http.get("/api/Ledger/OwnerTxNote").then(function (httpResponse) { return _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote; }, function (httpResponse) { return console.log("Failed to load owner tx note: " + httpResponse.data.exceptionMessage); });
         };
         /**
          * Load all of the data on the page
@@ -3731,6 +3735,19 @@ var Ally;
                 _this.importHistoryEntries = httpResponse.data;
             }, function (httpResponse) {
                 console.log("Failed to retrieve tx history: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        LedgerController.prototype.saveOwnerTxNote = function () {
+            var _this = this;
+            var putData = {
+                ownerFinanceTxNote: this.ownerFinanceTxNote
+            };
+            this.isLoading = true;
+            this.$http.put("/api/Ledger/OwnerTxNote", putData).then(function () {
+                _this.isLoading = false;
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to save note: " + httpResponse.data.exceptionMessage);
             });
         };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
@@ -4622,20 +4639,27 @@ var Ally;
         function ManageCustomPagesController($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.isLoading = false;
             this.includeInactive = false;
             this.allPageListings = [];
+            this.menuPageListings = [];
             this.selectedPageEntry = null;
             this.editPage = null;
-            this.isLoading = false;
+            this.selectedLandingPageId = null;
+            this.groupBaseUrl = this.siteInfo.publicSiteInfo.baseUrl;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageCustomPagesController.prototype.$onInit = function () {
+            var _this = this;
             this.retrievePages();
-            Ally.RichTextHelper.initToolbarBootstrapBindings();
-            this.bodyRichEditorElem = $('#body-rich-editor');
-            this.bodyRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(function (e) { return _this.pageContentTinyMce = e; });
+            this.$http.get("/api/CustomPage/GroupLandingPage").then(function (response) {
+                _this.selectedLandingPageId = response.data ? response.data : null;
+            }, function (response) {
+                console.log("Failed to retrieve current landing page: " + response.data.exceptionMessage);
+            });
         };
         /**
         * Retrieve the list of custom pages
@@ -4646,10 +4670,11 @@ var Ally;
             this.$http.get("/api/CustomPage/AllPages").then(function (response) {
                 _this.isLoading = false;
                 _this.allPageListings = response.data;
+                _this.menuPageListings = _.clone(response.data);
                 var addPage = new CustomPage();
                 addPage.customPageId = -5;
                 addPage.title = "Add New Page...";
-                _this.allPageListings.push(addPage);
+                _this.menuPageListings.push(addPage);
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve the custom pages: " + response.data.exceptionMessage);
@@ -4668,14 +4693,14 @@ var Ally;
                 alert("Please enter a slug for the page");
                 return;
             }
-            this.editPage.markupHtml = this.bodyRichEditorElem.html();
+            this.editPage.markupHtml = this.pageContentTinyMce.getContent();
             this.isLoading = true;
             var httpFunc = this.editPage.customPageId ? this.$http.put : this.$http.post;
             httpFunc("/api/CustomPage", this.editPage).then(function () {
                 _this.isLoading = false;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
-                _this.bodyRichEditorElem.html("");
+                _this.pageContentTinyMce.setContent("");
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -4694,7 +4719,7 @@ var Ally;
                 _this.isLoading = false;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
-                _this.bodyRichEditorElem.html("");
+                _this.pageContentTinyMce.setContent("");
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -4720,6 +4745,9 @@ var Ally;
             this.editPage.pageSlug = (this.editPage.pageSlug || "").trim();
             this.editPage.pageSlug = this.editPage.pageSlug.replace(/ /g, '-'); // Replace spaces with dashes
         };
+        /**
+         * Occurs when the user selects a page to edit
+         */
         ManageCustomPagesController.prototype.onPageSelected = function () {
             var _this = this;
             if (this.selectedPageEntry.customPageId > 0) {
@@ -4727,7 +4755,7 @@ var Ally;
                 this.$http.get("/api/CustomPage/" + this.selectedPageEntry.customPageId).then(function (response) {
                     _this.isLoading = false;
                     _this.editPage = response.data;
-                    _this.bodyRichEditorElem.html(_this.editPage.markupHtml);
+                    _this.pageContentTinyMce.setContent(_this.editPage.markupHtml);
                 }, function (response) {
                     _this.isLoading = false;
                     alert("Failed to retrieve custom page: " + response.data.exceptionMessage);
@@ -4735,8 +4763,31 @@ var Ally;
             }
             else {
                 this.editPage = new CustomPage();
-                this.bodyRichEditorElem.html("");
+                this.pageContentTinyMce.setContent("");
             }
+        };
+        /**
+         * Occurs when the user selects a new landing page for the group
+         */
+        ManageCustomPagesController.prototype.onLandingPageSelected = function () {
+            var _this = this;
+            var putUri = "/api/CustomPage/SetGroupLandingPage";
+            if (this.selectedLandingPageId)
+                putUri += "?customPageId=" + this.selectedLandingPageId;
+            this.isLoading = true;
+            this.$http.put(putUri, null).then(function (response) {
+                _this.isLoading = false;
+                if (_this.selectedLandingPageId)
+                    _this.siteInfo.publicSiteInfo.customLandingPagePath = null;
+                else {
+                    var selectedPage = _this.allPageListings.find(function (p) { return p.customPageId === _this.selectedLandingPageId; });
+                    if (selectedPage)
+                        _this.siteInfo.publicSiteInfo.customLandingPagePath = "#!/Page/" + selectedPage.pageSlug;
+                }
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to update landing page: " + response.data.exceptionMessage);
+            });
         };
         ManageCustomPagesController.$inject = ["$http", "SiteInfo"];
         return ManageCustomPagesController;
@@ -4777,6 +4828,7 @@ var Ally;
             this.isLoading = false;
             this.isSuperAdmin = false;
             this.shouldAllowMultipleAnswers = false;
+            this.isPremiumPlanActive = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -4784,6 +4836,7 @@ var Ally;
         ManagePollsController.prototype.$onInit = function () {
             var _this = this;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             var threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
@@ -5184,7 +5237,9 @@ var Ally;
                             enableFiltering: false
                         },
                         { field: 'boardPosition', displayName: 'Board', width: 125, cellClass: "resident-cell-board", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ grid.appScope.$ctrl.getBoardPositionName(row.entity.boardPosition) }}</span></div>', enableFiltering: false },
-                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false }
+                        { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false },
+                        { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -5192,6 +5247,7 @@ var Ally;
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableFullRowSelection: true,
                     enableColumnMenus: false,
+                    enableGridMenu: true,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
                         _this.gridApi = gridApi;
@@ -5210,6 +5266,8 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            // Need to cast to any because property is missing from typed file
+            this.residentGridOptions.gridMenuShowHideColumns = true;
             this.pendingMemberGridOptions =
                 {
                     data: [],
@@ -5890,7 +5948,8 @@ var Ally;
                     csvTestName: "",
                     mailingAddress: curRow[7],
                     alternatePhone: curRow[8],
-                    managerNotes: curRow[9]
+                    managerNotes: curRow[9],
+                    emailHasDupe: false
                 };
                 if (HtmlUtil.isNullOrWhitespace(newRow.unitName))
                     newRow.unitId = null;
@@ -5943,6 +6002,15 @@ var Ally;
             for (var i = 0; i < bulkRows.length; ++i) {
                 _loop_1(i);
             }
+            var _loop_2 = function (curRow) {
+                curRow.emailHasDupe = curRow.email && this_2.bulkImportRows.filter(function (r) { return r.email === curRow.email; }).length > 1;
+            };
+            var this_2 = this;
+            // Find any duplicate email addresses
+            for (var _i = 0, _a = this.bulkImportRows; _i < _a.length; _i++) {
+                var curRow = _a[_i];
+                _loop_2(curRow);
+            }
         };
         /**
          * Submit the bulk creation rows to the server
@@ -5977,7 +6045,8 @@ var Ally;
                 csvTestName: undefined,
                 mailingAddress: "",
                 alternatePhone: "",
-                managerNotes: ""
+                managerNotes: "",
+                emailHasDupe: false
             };
             // Try to step to the next unit
             if (this.allUnits) {
@@ -6704,16 +6773,16 @@ var Ally;
                 _this.isLoading = false;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
-                if (!_this.welcomeRichEditorElem) {
-                    _this.$timeout(function () {
-                        Ally.RichTextHelper.initToolbarBootstrapBindings();
-                        _this.welcomeRichEditorElem = $('#welcome-rich-editor');
-                        _this.welcomeRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
-                        // Convert old line breaks to HTML line breaks
-                        if (Ally.HtmlUtil2.isValidString(_this.settings.welcomeMessage) && _this.settings.welcomeMessage.indexOf("<") === -1)
-                            _this.settings.welcomeMessage = _this.settings.welcomeMessage.replace(/\n/g, "<br>");
-                        _this.welcomeRichEditorElem.html(_this.settings.welcomeMessage);
-                    }, 100);
+                if (!_this.tinyMceEditor) {
+                    Ally.HtmlUtil2.initTinyMce().then(function (e) {
+                        _this.tinyMceEditor = e;
+                        _this.tinyMceEditor.setContent(_this.settings.welcomeMessage);
+                        _this.tinyMceEditor.on("keyup", function (e) {
+                            _this.$scope.$apply(function () {
+                                _this.onWelcomeMessageEdit();
+                            });
+                        });
+                    });
                 }
             });
         };
@@ -6739,7 +6808,7 @@ var Ally;
         ChtnSettingsController.prototype.saveAllSettings = function () {
             var _this = this;
             analytics.track("editSettings");
-            this.settings.welcomeMessage = this.welcomeRichEditorElem.html();
+            this.settings.welcomeMessage = this.tinyMceEditor.getContent();
             this.isLoading = true;
             this.$http.put("/api/Settings", this.settings).then(function () {
                 _this.isLoading = false;
@@ -6839,8 +6908,8 @@ var Ally;
             window.location.reload(true);
         };
         ChtnSettingsController.prototype.onWelcomeMessageEdit = function () {
-            var MaxWelcomeLength = 2000;
-            var welcomeHtml = this.welcomeRichEditorElem.html();
+            var MaxWelcomeLength = 4000;
+            var welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         };
         ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
@@ -7655,26 +7724,13 @@ var Ally;
             });
         };
         GroupMembersController.prototype.updateMemberFilter = function () {
-            var lowerFilter = angular.lowercase(this.memberSearchTerm) || '';
+            var lowerFilter = (this.memberSearchTerm || '').toLowerCase();
             var filterSearchFiles = function (unitListing) {
-                if (angular.lowercase(unitListing.name || '').indexOf(lowerFilter) !== -1)
+                if ((unitListing.name || '').toLowerCase().indexOf(lowerFilter) !== -1)
                     return true;
                 return false;
-                //if( _.any(unitListing.owners) )
-                //return angular.lowercase( unitListing.name || '' ).indexOf( lowerFilter ) !== -1
-                //    || angular.lowercase( file.uploadDateString || '' ).indexOf( lowerFilter ) !== -1
-                //    || angular.lowercase( file.uploaderFullName || '' ).indexOf( lowerFilter ) !== -1;
             };
             //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
-            //setTimeout( function()
-            //{
-            //    // Force redraw of the document. Not sure why, but the file list disappears on Chrome
-            //    var element = document.getElementById( "documents-area" );
-            //    var disp = element.style.display;
-            //    element.style.display = 'none';
-            //    var trick = element.offsetHeight;
-            //    element.style.display = disp;
-            //}, 50 );
         };
         GroupMembersController.prototype.loadGroupEmails = function () {
             var _this = this;
@@ -7973,7 +8029,7 @@ var Ally;
                             else {
                                 innerThis.viewEvent = event.calendarEventObject;
                                 // Make <a> links open in new tabs
-                                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("view-event-desc"); }, 500);
+                                //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
                             }
                         }
                     });
@@ -8200,16 +8256,13 @@ var Ally;
         LogbookController.prototype.hookUpWysiwyg = function () {
             var _this = this;
             this.$timeout(function () {
-                Ally.RichTextHelper.initToolbarBootstrapBindings();
-                _this.richEditorElem = $('#desc-rich-editor');
-                _this.richEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
-                // Convert old line breaks to HTML line breaks
-                //if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
-                //    this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
-                if (_this.editEvent && _this.editEvent.description)
-                    _this.richEditorElem.html(_this.editEvent.description);
-                else
-                    _this.richEditorElem.html("");
+                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 300).then(function (e) {
+                    _this.tinyMceEditor = e;
+                    if (_this.editEvent && _this.editEvent.description)
+                        _this.tinyMceEditor.setContent(_this.editEvent.description);
+                    else
+                        _this.tinyMceEditor.setContent("");
+                });
             }, 100);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -8279,8 +8332,8 @@ var Ally;
                 alert("Please enter a title in the 'what' field");
                 return;
             }
-            if (this.richEditorElem)
-                this.editEvent.description = this.richEditorElem.html();
+            if (this.tinyMceEditor)
+                this.editEvent.description = this.tinyMceEditor.getContent();
             // Ensure the user enters a 'days before' email setting
             if (this.editEvent.shouldSendNotification) {
                 var daysBefore = this.getDaysBeforeValue();
@@ -11281,11 +11334,11 @@ var Ally;
             return curDir;
         };
         DocumentsController.prototype.updateFileFilter = function () {
-            var lowerFilter = angular.lowercase(this.fileSearch.all) || '';
+            var lowerFilter = (this.fileSearch.all || '').toLowerCase();
             var filterSearchFiles = function (file) {
-                return angular.lowercase(file.localFilePath || '').indexOf(lowerFilter) !== -1
-                    || angular.lowercase(file.uploadDateString || '').indexOf(lowerFilter) !== -1
-                    || angular.lowercase(file.uploaderFullName || '').indexOf(lowerFilter) !== -1;
+                return (file.localFilePath || '').toLowerCase().indexOf(lowerFilter) !== -1
+                    || (file.uploadDateString || '').toLowerCase().indexOf(lowerFilter) !== -1
+                    || (file.uploaderFullName || '').toLowerCase().indexOf(lowerFilter) !== -1;
             };
             this.searchFileList = _.filter(this.fullSearchFileList, filterSearchFiles);
             setTimeout(function () {
@@ -11757,11 +11810,7 @@ var Ally;
             this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
-            window.setTimeout(function () {
-                RichTextHelper.initToolbarBootstrapBindings();
-                var editorElem = $('#editor');
-                editorElem.wysiwyg({ fileUploadError: RichTextHelper.showFileUploadAlert });
-            }, 10);
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 500).then(function (e) { return _this.tinyMceEditor = e; });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Populate the info section
@@ -11798,7 +11847,7 @@ var Ally;
         FAQsController.prototype.onStartEditInfoItem = function (infoItem) {
             // Clone the object
             this.editingInfoItem = jQuery.extend({}, infoItem);
-            $("#editor").html(this.editingInfoItem.body);
+            this.tinyMceEditor.setContent(this.editingInfoItem.body);
             // Scroll down to the editor
             window.scrollTo(0, document.body.scrollHeight);
         };
@@ -11808,7 +11857,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.onSubmitItem = function () {
             var _this = this;
-            this.editingInfoItem.body = $("#editor").html();
+            this.editingInfoItem.body = this.tinyMceEditor.getContent();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
             var validateable = $("#info-item-edit-form");
             validateable.validate();
@@ -11819,7 +11868,7 @@ var Ally;
             this.isLoadingInfo = true;
             var onSave = function () {
                 _this.isLoadingInfo = false;
-                $("#editor").html("");
+                _this.tinyMceEditor.setContent("");
                 _this.editingInfoItem = new InfoItem();
                 // Switched to removeAll because when we switched to the new back-end, the cache
                 // key is the full request URI, not just the "/api/InfoItem" form
@@ -11857,7 +11906,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.cancelInfoItemEdit = function () {
             this.editingInfoItem = new InfoItem();
-            $("#editor").html("");
+            this.tinyMceEditor.setContent("");
         };
         FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         return FAQsController;
@@ -12039,7 +12088,8 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
                 _this.isLoading = false;
-                _this.allFinancialTxns = httpResponse.data;
+                _this.allFinancialTxns = httpResponse.data.entries;
+                _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
                 // Hide the unit column if the owner only has one unit
                 var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
@@ -12112,6 +12162,11 @@ var Ally;
         return ResidentTransactionsController;
     }());
     Ally.ResidentTransactionsController = ResidentTransactionsController;
+    var OwnerTxInfo = /** @class */ (function () {
+        function OwnerTxInfo() {
+        }
+        return OwnerTxInfo;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("residentTransactions", {
     templateUrl: "/ngApp/common/financial/resident-transactions.html",
@@ -15390,11 +15445,9 @@ var Ally;
                 var r = allResidents[i];
                 var displayName = r.fullName + (r.hasEmail ? "" : "*");
                 emailLists.everyone.push(displayName);
-                var BoardPos_None = 0;
-                var BoardPos_PropertyManager = 32;
-                if (r.boardPosition !== BoardPos_None && r.boardPosition !== BoardPos_PropertyManager)
+                if (r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager)
                     emailLists.board.push(displayName);
-                if (r.boardPosition === BoardPos_PropertyManager)
+                if (r.boardPosition === FellowResidentsService.BoardPos_PropertyManager)
                     emailLists.propertyManagers.push(displayName);
                 if (r.includeInDiscussionEmail)
                     emailLists.discussion.push(displayName);
@@ -15494,18 +15547,24 @@ var Ally;
             }
             if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
                 results.chartLabels.push("No Response");
-                results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
+                var isMemberBasedGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+                if (isMemberBasedGroup)
+                    results.chartData.push(siteInfo.privateSiteInfo.numMembers - poll.responses.length);
+                else
+                    results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
             }
             return results;
         };
+        FellowResidentsService.BoardPos_None = 0;
+        FellowResidentsService.BoardPos_PropertyManager = 32;
         FellowResidentsService.BoardPositionNames = [
-            { id: 0, name: "None" },
+            { id: FellowResidentsService.BoardPos_None, name: "None" },
             { id: 1, name: "President" },
             { id: 2, name: "Treasurer" },
             { id: 4, name: "Secretary" },
             { id: 8, name: "Director/Member at Large" },
             { id: 16, name: "Vice President" },
-            { id: 32, name: "Property Manager" },
+            { id: FellowResidentsService.BoardPos_PropertyManager, name: "Property Manager" },
             { id: 64, name: "Secretary + Treasurer" }
         ];
         return FellowResidentsService;
@@ -15540,6 +15599,8 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
                 }
             }
         };
+
+        scope.markerClusterer = null;
 
         // Convert Google bounds to a Community Ally GpsBounds object
         scope.googlePolyToGpsBounds = function ( verts )
@@ -15775,6 +15836,17 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
             } );
 
             scope.fitBoundsForPoints();
+
+            if( scope.enableClustering )
+            {
+                if( scope.markerClusterer )
+                    markerCluster.setMap( null );
+
+                scope.markerCluster = new markerClusterer.MarkerClusterer( {
+                    markers: scope.currentVisiblePoints,
+                    map: scope.mapInstance
+                } );
+            }
         };
 
 
@@ -15909,7 +15981,8 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
             groupBoundsPoly: "=",
             mapCenter: "=",
             onMapEditorReady: "&",
-            enableMapControls: "="
+            enableMapControls: "=",
+            enableClustering: "="
         },
         restrict: 'E',
         replace: 'true',
@@ -15951,6 +16024,7 @@ var Ally;
             this.defaultDigestFrequency = this.siteInfo.userInfo.defaultDigestFrequency;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.retrieveComments();
         };
         /**
@@ -16690,6 +16764,72 @@ var Ally;
             }
             return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
+        HtmlUtil2.initTinyMce = function (elemId, heightPixels) {
+            if (elemId === void 0) { elemId = "tiny-mce-editor"; }
+            if (heightPixels === void 0) { heightPixels = 400; }
+            var mcePromise = new Promise(function (resolve, reject) {
+                var loadRtes = function () {
+                    tinymce.remove();
+                    tinymce.init({
+                        selector: '#' + elemId,
+                        //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
+                        plugins: 'advcode export image link linkchecker autolink lists checklist media mediaembed powerpaste table tinymcespellchecker',
+                        //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
+                        toolbar: 'styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
+                        //toolbar_mode: 'floating',
+                        //tinycomments_mode: 'embedded',
+                        //tinycomments_author: 'Author name',
+                        height: heightPixels,
+                        file_picker_types: 'image',
+                        image_description: false,
+                        file_picker_callback: function (cb, value, meta) {
+                            var input = document.createElement('input');
+                            input.setAttribute('type', 'file');
+                            input.setAttribute('accept', 'image/*');
+                            /*
+                              Note: In modern browsers input[type="file"] is functional without
+                              even adding it to the DOM, but that might not be the case in some older
+                              or quirky browsers like IE, so you might want to add it to the DOM
+                              just in case, and visually hide it. And do not forget do remove it
+                              once you do not need it anymore.
+                            */
+                            input.onchange = function (evt) {
+                                // debugger; // This code gets called on uploaded file selection
+                                var file = evt.target.files[0];
+                                var reader = new FileReader();
+                                reader.onload = function () {
+                                    /*
+                                      Note: Now we need to register the blob in TinyMCEs image blob
+                                      registry. In the next release this part hopefully won't be
+                                      necessary, as we are looking to handle it internally.
+                                    */
+                                    var id = 'blobid' + (new Date()).getTime();
+                                    var blobCache = tinymce.activeEditor.editorUpload.blobCache;
+                                    var base64 = reader.result.split(',')[1];
+                                    var blobInfo = blobCache.create(id, file, base64);
+                                    blobCache.add(blobInfo);
+                                    /* call the callback and populate the Title field with the file name */
+                                    cb(blobInfo.blobUri(), { title: file.name });
+                                };
+                                reader.readAsDataURL(file);
+                            };
+                            input.click();
+                        },
+                    }).then(function (e) {
+                        resolve(e[0]);
+                    });
+                };
+                // Need to delay a bit for TinyMCE to load in case the user is started from a fresh
+                // page reload
+                setTimeout(function () {
+                    if (typeof (tinymce) === "undefined")
+                        setTimeout(function () { return loadRtes(); }, 400);
+                    else
+                        loadRtes();
+                }, 100);
+            });
+            return mcePromise;
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
@@ -16802,7 +16942,8 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
             var isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
-            this.shouldShowSendAsBoard = !isRecipientWholeBoard && Ally.FellowResidentsService.isOfficerBoardPosition(this.siteInfo.userInfo.boardPosition);
+            this.shouldShowSendAsBoard = !isRecipientWholeBoard
+                && (this.siteInfo.userInfo.boardPosition !== Ally.FellowResidentsService.BoardPos_None && this.siteInfo.userInfo.boardPosition !== Ally.FellowResidentsService.BoardPos_PropertyManager);
         };
         /// Display the send modal
         SendMessageController.prototype.showSendModal = function () {
@@ -17226,7 +17367,10 @@ var Ally;
                         }
                         // Need to set the hash "manually" as $location is not available in the config
                         // block and GlobalRedirect will go to the wrong TLD when working locally
-                        window.location.hash = LoginPath;
+                        if (this.publicSiteInfo.customLandingPagePath)
+                            window.location.hash = this.publicSiteInfo.customLandingPagePath;
+                        else
+                            window.location.hash = LoginPath;
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
                         return;

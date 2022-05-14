@@ -225,6 +225,7 @@ var Ally;
             if (heightPixels === void 0) { heightPixels = 400; }
             var mcePromise = new Promise(function (resolve, reject) {
                 var loadRtes = function () {
+                    tinymce.remove();
                     tinymce.init({
                         selector: '#' + elemId,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
