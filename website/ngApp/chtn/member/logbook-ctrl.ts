@@ -22,7 +22,7 @@ namespace Ally
         currentTimeZoneAbbreviation: string = "CT";
         groupTimeZoneAbbreviation: string;
         localTimeZoneDiffersFromGroup: boolean = false;
-        richEditorElem: JQuery;
+        tinyMceEditor: ITinyMce;
 
         static DateFormat = "YYYY-MM-DD";
         static TimeFormat = "h:mma";
@@ -116,7 +116,7 @@ namespace Ally
                                 innerThis.viewEvent = event.calendarEventObject;
                                 
                                 // Make <a> links open in new tabs
-                                setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
+                                //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
                             }
                         }
                     } );
@@ -464,19 +464,15 @@ namespace Ally
         {
             this.$timeout( () =>
             {
-                RichTextHelper.initToolbarBootstrapBindings();
+                HtmlUtil2.initTinyMce( "tiny-mce-editor", 300 ).then( e =>
+                {
+                    this.tinyMceEditor = e;
 
-                this.richEditorElem = $( '#desc-rich-editor' );
-                ( <any>this.richEditorElem ).wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert } );
-
-                // Convert old line breaks to HTML line breaks
-                //if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
-                //    this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
-
-                if( this.editEvent && this.editEvent.description )
-                    this.richEditorElem.html( this.editEvent.description );
-                else
-                    this.richEditorElem.html( "" );
+                    if( this.editEvent && this.editEvent.description )
+                        this.tinyMceEditor.setContent( this.editEvent.description );
+                    else
+                        this.tinyMceEditor.setContent( "" );
+                } );
             }, 100 );
         }
 
@@ -584,8 +580,8 @@ namespace Ally
                 return;
             }
 
-            if( this.richEditorElem )
-                this.editEvent.description = this.richEditorElem.html();
+            if( this.tinyMceEditor )
+                this.editEvent.description = this.tinyMceEditor.getContent();
 
             // Ensure the user enters a 'days before' email setting
             if( this.editEvent.shouldSendNotification )

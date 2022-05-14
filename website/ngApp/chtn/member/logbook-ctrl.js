@@ -105,7 +105,7 @@ var Ally;
                             else {
                                 innerThis.viewEvent = event.calendarEventObject;
                                 // Make <a> links open in new tabs
-                                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("view-event-desc"); }, 500);
+                                //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
                             }
                         }
                     });
@@ -332,16 +332,13 @@ var Ally;
         LogbookController.prototype.hookUpWysiwyg = function () {
             var _this = this;
             this.$timeout(function () {
-                Ally.RichTextHelper.initToolbarBootstrapBindings();
-                _this.richEditorElem = $('#desc-rich-editor');
-                _this.richEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
-                // Convert old line breaks to HTML line breaks
-                //if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
-                //    this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
-                if (_this.editEvent && _this.editEvent.description)
-                    _this.richEditorElem.html(_this.editEvent.description);
-                else
-                    _this.richEditorElem.html("");
+                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 300).then(function (e) {
+                    _this.tinyMceEditor = e;
+                    if (_this.editEvent && _this.editEvent.description)
+                        _this.tinyMceEditor.setContent(_this.editEvent.description);
+                    else
+                        _this.tinyMceEditor.setContent("");
+                });
             }, 100);
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -411,8 +408,8 @@ var Ally;
                 alert("Please enter a title in the 'what' field");
                 return;
             }
-            if (this.richEditorElem)
-                this.editEvent.description = this.richEditorElem.html();
+            if (this.tinyMceEditor)
+                this.editEvent.description = this.tinyMceEditor.getContent();
             // Ensure the user enters a 'days before' email setting
             if (this.editEvent.shouldSendNotification) {
                 var daysBefore = this.getDaysBeforeValue();
