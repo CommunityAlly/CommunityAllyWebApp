@@ -74,16 +74,16 @@ var Ally;
                 _this.isLoading = false;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
-                if (!_this.welcomeRichEditorElem) {
-                    _this.$timeout(function () {
-                        Ally.RichTextHelper.initToolbarBootstrapBindings();
-                        _this.welcomeRichEditorElem = $('#welcome-rich-editor');
-                        _this.welcomeRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
-                        // Convert old line breaks to HTML line breaks
-                        if (Ally.HtmlUtil2.isValidString(_this.settings.welcomeMessage) && _this.settings.welcomeMessage.indexOf("<") === -1)
-                            _this.settings.welcomeMessage = _this.settings.welcomeMessage.replace(/\n/g, "<br>");
-                        _this.welcomeRichEditorElem.html(_this.settings.welcomeMessage);
-                    }, 100);
+                if (!_this.tinyMceEditor) {
+                    Ally.HtmlUtil2.initTinyMce().then(function (e) {
+                        _this.tinyMceEditor = e;
+                        _this.tinyMceEditor.setContent(_this.settings.welcomeMessage);
+                        _this.tinyMceEditor.on("keyup", function (e) {
+                            _this.$scope.$apply(function () {
+                                _this.onWelcomeMessageEdit();
+                            });
+                        });
+                    });
                 }
             });
         };
@@ -109,7 +109,7 @@ var Ally;
         ChtnSettingsController.prototype.saveAllSettings = function () {
             var _this = this;
             analytics.track("editSettings");
-            this.settings.welcomeMessage = this.welcomeRichEditorElem.html();
+            this.settings.welcomeMessage = this.tinyMceEditor.getContent();
             this.isLoading = true;
             this.$http.put("/api/Settings", this.settings).then(function () {
                 _this.isLoading = false;
@@ -209,8 +209,8 @@ var Ally;
             window.location.reload(true);
         };
         ChtnSettingsController.prototype.onWelcomeMessageEdit = function () {
-            var MaxWelcomeLength = 2000;
-            var welcomeHtml = this.welcomeRichEditorElem.html();
+            var MaxWelcomeLength = 4000;
+            var welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         };
         ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];

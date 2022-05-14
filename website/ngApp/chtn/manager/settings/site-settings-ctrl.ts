@@ -53,6 +53,7 @@ namespace Ally
         frontEndVersion: string;
         welcomeRichEditorElem: JQuery;
         shouldShowWelcomeTooLongError: boolean = false;
+        tinyMceEditor: ITinyMce;
 
 
         /**
@@ -105,21 +106,20 @@ namespace Ally
                 this.settings = response.data;
                 this.originalSettings = _.clone( response.data );
 
-                if( !this.welcomeRichEditorElem )
+                if( !this.tinyMceEditor )
                 {
-                    this.$timeout( () =>
+                    HtmlUtil2.initTinyMce().then( e =>
                     {
-                        RichTextHelper.initToolbarBootstrapBindings();
-
-                        this.welcomeRichEditorElem = $( '#welcome-rich-editor' );
-                        ( <any>this.welcomeRichEditorElem ).wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert } );
-
-                        // Convert old line breaks to HTML line breaks
-                        if( HtmlUtil2.isValidString( this.settings.welcomeMessage ) && this.settings.welcomeMessage.indexOf( "<" ) === -1 )
-                            this.settings.welcomeMessage = this.settings.welcomeMessage.replace( /\n/g, "<br>" );
-
-                        this.welcomeRichEditorElem.html( this.settings.welcomeMessage );
-                    }, 100 );
+                        this.tinyMceEditor = e;
+                        this.tinyMceEditor.setContent( this.settings.welcomeMessage );
+                        this.tinyMceEditor.on( "keyup", ( e: any ) =>
+                        {
+                            this.$scope.$apply( () =>
+                            {
+                                this.onWelcomeMessageEdit();
+                            } );
+                        } );
+                    } );
                 }
             } );
         }
@@ -155,8 +155,8 @@ namespace Ally
         {
             analytics.track( "editSettings" );
 
-            this.settings.welcomeMessage = this.welcomeRichEditorElem.html();
-
+            this.settings.welcomeMessage = this.tinyMceEditor.getContent();
+            
             this.isLoading = true;
             
             this.$http.put( "/api/Settings", this.settings ).then(
@@ -304,8 +304,8 @@ namespace Ally
 
         onWelcomeMessageEdit()
         {
-            const MaxWelcomeLength = 2000;
-            const welcomeHtml = this.welcomeRichEditorElem.html();
+            const MaxWelcomeLength = 4000;
+            const welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         }
     }
