@@ -386,7 +386,7 @@ namespace Ally
 
                             input.onchange = function( evt: any )
                             {
-                                debugger;
+                                // debugger; // This code gets called on uploaded file selection
                                 var file = evt.target.files[0];
 
                                 var reader = new FileReader();

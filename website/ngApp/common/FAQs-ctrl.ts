@@ -32,6 +32,7 @@ namespace Ally
         committee: Ally.Committee;
         headerText: string = "Information and Frequently Asked Questions (FAQs)";
         faqsHttpCache: ng.ICacheObject;
+        tinyMceEditor: ITinyMce;
 
         
         /**
@@ -66,13 +67,7 @@ namespace Ally
             this.retrieveInfo();
 
             // Hook up the rich text editor
-            window.setTimeout( function()
-            {
-                RichTextHelper.initToolbarBootstrapBindings();
-
-                var editorElem: any = $( '#editor' );
-                editorElem.wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert });
-            }, 10 );
+            HtmlUtil2.initTinyMce( "tiny-mce-editor", 500 ).then( e => this.tinyMceEditor = e );
         }
 
 
@@ -121,7 +116,7 @@ namespace Ally
         {
             // Clone the object
             this.editingInfoItem = jQuery.extend( {}, infoItem ) as InfoItem;
-            $( "#editor" ).html( this.editingInfoItem.body );
+            this.tinyMceEditor.setContent( this.editingInfoItem.body );
 
             // Scroll down to the editor
             window.scrollTo( 0, document.body.scrollHeight );
@@ -133,7 +128,7 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onSubmitItem()
         {
-            this.editingInfoItem.body = $( "#editor" ).html();
+            this.editingInfoItem.body = this.tinyMceEditor.getContent();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace( this.editingInfoItem.body );
 
             var validateable: any = $( "#info-item-edit-form" );
@@ -149,7 +144,7 @@ namespace Ally
             var onSave = () =>
             {
                 this.isLoadingInfo = false;
-                $( "#editor" ).html( "" );
+                this.tinyMceEditor.setContent( "" );
                 this.editingInfoItem = new InfoItem();
 
                 // Switched to removeAll because when we switched to the new back-end, the cache
@@ -200,7 +195,7 @@ namespace Ally
         cancelInfoItemEdit()
         {
             this.editingInfoItem = new InfoItem();
-            $( "#editor" ).html( "" );
+            this.tinyMceEditor.setContent( "" );
         }
     }
 

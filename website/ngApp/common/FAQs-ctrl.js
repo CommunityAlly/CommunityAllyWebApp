@@ -41,11 +41,7 @@ var Ally;
             this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
-            window.setTimeout(function () {
-                RichTextHelper.initToolbarBootstrapBindings();
-                var editorElem = $('#editor');
-                editorElem.wysiwyg({ fileUploadError: RichTextHelper.showFileUploadAlert });
-            }, 10);
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 500).then(function (e) { return _this.tinyMceEditor = e; });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Populate the info section
@@ -82,7 +78,7 @@ var Ally;
         FAQsController.prototype.onStartEditInfoItem = function (infoItem) {
             // Clone the object
             this.editingInfoItem = jQuery.extend({}, infoItem);
-            $("#editor").html(this.editingInfoItem.body);
+            this.tinyMceEditor.setContent(this.editingInfoItem.body);
             // Scroll down to the editor
             window.scrollTo(0, document.body.scrollHeight);
         };
@@ -92,7 +88,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.onSubmitItem = function () {
             var _this = this;
-            this.editingInfoItem.body = $("#editor").html();
+            this.editingInfoItem.body = this.tinyMceEditor.getContent();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
             var validateable = $("#info-item-edit-form");
             validateable.validate();
@@ -103,7 +99,7 @@ var Ally;
             this.isLoadingInfo = true;
             var onSave = function () {
                 _this.isLoadingInfo = false;
-                $("#editor").html("");
+                _this.tinyMceEditor.setContent("");
                 _this.editingInfoItem = new InfoItem();
                 // Switched to removeAll because when we switched to the new back-end, the cache
                 // key is the full request URI, not just the "/api/InfoItem" form
@@ -141,7 +137,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         FAQsController.prototype.cancelInfoItemEdit = function () {
             this.editingInfoItem = new InfoItem();
-            $("#editor").html("");
+            this.tinyMceEditor.setContent("");
         };
         FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
         return FAQsController;

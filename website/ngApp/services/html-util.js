@@ -249,7 +249,7 @@ var Ally;
                               once you do not need it anymore.
                             */
                             input.onchange = function (evt) {
-                                debugger;
+                                // debugger; // This code gets called on uploaded file selection
                                 var file = evt.target.files[0];
                                 var reader = new FileReader();
                                 reader.onload = function () {
