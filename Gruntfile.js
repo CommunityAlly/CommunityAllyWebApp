@@ -229,28 +229,34 @@ grunt.initConfig({
     copy: {
         dist: {
             files: [
-                {expand: true, cwd: 'website/', src: ["404.html",
-                    "error-page.html",
-                    "favicon.ico",
-                    "index.html",
-                    "ngTemplates.min.js",
-                    "PrivacyPolicy.html",
-                    "robots.txt",
-                    "sitemap.xml",
-                    "TermsOfService.html",
-                    "js/AllyLibBottom.min.js",
-                    "js/AllyLibTop.min.js",
-                    "js/AllyLibBottom.min.js",
-                    "assets/compiled.min.css",
-                    "assets/images/**",
-                    "assets/files/**",
-                    "ngApp/ally-app-bundle.js",
-                    "ngApp/ally-app-bundle.min.js",
-                    "third-party-css/fontawesome-webfont.woff",
-                    "third-party-css/fontawesome-webfont.ttf",
-                    "js/lib/ui-grid/ui-grid.woff",
-                    "js/lib/ui-grid/ui-grid.ttf"], dest: 'dist/'},
-
+                {
+                    expand: true,
+                    cwd: 'website/',
+                    src: [
+                        "404.html",
+                        "error-page.html",
+                        "favicon.ico",
+                        "index.html",
+                        "ngTemplates.min.js",
+                        "PrivacyPolicy.html",
+                        "robots.txt",
+                        "sitemap.xml",
+                        "TermsOfService.html",
+                        "js/AllyLibBottom.min.js",
+                        "js/AllyLibTop.min.js",
+                        "js/AllyLibBottom.min.js",
+                        "assets/compiled.min.css",
+                        "assets/images/**",
+                        "assets/files/**",
+                        "ngApp/ally-app-bundle.js",
+                        "ngApp/ally-app-bundle.min.js",
+                        "third-party-css/fontawesome-webfont.woff",
+                        "third-party-css/fontawesome-webfont.ttf",
+                        "js/lib/ui-grid/ui-grid.woff",
+                        "js/lib/ui-grid/ui-grid.ttf",
+                    ],
+                    dest: 'dist/'
+                },
                 {expand: true, src: ['path/*'], dest: 'dest/', filter: 'isFile'}
             ]
         }
