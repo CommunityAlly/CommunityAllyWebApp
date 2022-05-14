@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 /// <reference path="../../../Scripts/typings/underscore/underscore.d.ts" />
 /// <reference path="../../Services/html-util.ts" />
-
+declare var tinymce: any;
 
 namespace Ally
 {
@@ -18,10 +18,10 @@ namespace Ally
         menuPageListings: CustomPage[] = [];
         selectedPageEntry: CustomPage = null;
         editPage: CustomPage = null;
-        bodyRichEditorElem: JQuery;
         groupBaseUrl: string;
         selectedLandingPageId: number | null = null;
-
+        pageContentTinyMce: ITinyMce;
+        
 
         /**
          * The constructor for the class
@@ -39,11 +39,8 @@ namespace Ally
         {
             this.retrievePages();
 
-            RichTextHelper.initToolbarBootstrapBindings();
-
-            this.bodyRichEditorElem = $( '#body-rich-editor' );
-            ( <any>this.bodyRichEditorElem ).wysiwyg( { fileUploadError: RichTextHelper.showFileUploadAlert } );
-
+            HtmlUtil2.initTinyMce( "tiny-mce-editor", 900 ).then( e => this.pageContentTinyMce = e );
+            
             this.$http.get( "/api/CustomPage/GroupLandingPage" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<number | null> ) =>
                 {
@@ -102,7 +99,7 @@ namespace Ally
                 return;
             }
 
-            this.editPage.markupHtml = this.bodyRichEditorElem.html();
+            this.editPage.markupHtml = this.pageContentTinyMce.getContent();
             this.isLoading = true;
 
             let httpFunc = this.editPage.customPageId ? this.$http.put : this.$http.post;
@@ -112,7 +109,7 @@ namespace Ally
                     this.isLoading = false;
                     this.selectedPageEntry = null;
                     this.editPage = null;
-                    this.bodyRichEditorElem.html("");
+                    this.pageContentTinyMce.setContent( "" );
                     this.retrievePages();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -140,7 +137,7 @@ namespace Ally
                     this.isLoading = false;
                     this.selectedPageEntry = null;
                     this.editPage = null;
-                    this.bodyRichEditorElem.html( "" );
+                    this.pageContentTinyMce.setContent( "" );
                     this.retrievePages();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -193,7 +190,7 @@ namespace Ally
                     {
                         this.isLoading = false;
                         this.editPage = response.data;
-                        this.bodyRichEditorElem.html( this.editPage.markupHtml );
+                        this.pageContentTinyMce.setContent( this.editPage.markupHtml );
                     },
                     ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                     {
@@ -205,7 +202,7 @@ namespace Ally
             else
             {
                 this.editPage = new CustomPage();
-                this.bodyRichEditorElem.html( "" );
+                this.pageContentTinyMce.setContent( "" );
             }
         }
 

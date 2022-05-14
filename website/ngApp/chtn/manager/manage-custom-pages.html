@@ -8,7 +8,7 @@
             then be accessible when visiting the site and not logged-in. You can test this by using another browser or using your current browser's
             private/incognito mode.
         </p>
-        
+
         <div style="min-height: 140px;">
             <fieldset class="float-right" style="width: 40%;">
                 <legend style="font-size: 20px;">Site Landing Page</legend>
@@ -54,91 +54,8 @@
         </div>
 
         <div data-ng-show="$ctrl.editPage" class="mt-3">
-            <!--<div class="col-12">
-                <textarea class="form-control" type="text" id="welcome-message-textbox" data-ng-model="$ctrl.settings.welcomeMessage" rows="5" maxlength="1024"></textarea>
-            </div>-->
             <div class="col-12">
-                <div class="btn-toolbar" data-role="editor-toolbar" data-target="#welcome-rich-editor">
-                    <div class="btn-group">
-                        <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font"><i class="icon-font"></i><b class="caret"></b></a>
-                        <ul class="dropdown-menu"></ul>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font Size"><i class="icon-text-height"></i>&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a data-edit="fontSize 5"><font size="5">Huge</font></a></li>
-                            <li><a data-edit="fontSize 3"><font size="3">Normal</font></a></li>
-                            <li><a data-edit="fontSize 1"><font size="1">Small</font></a></li>
-                        </ul>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>
-                        <a class="btn" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i class="icon-italic"></i></a>
-                        <a class="btn" data-edit="strikethrough" title="Strikethrough"><i class="icon-strikethrough"></i></a>
-                        <a class="btn" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i class="icon-underline"></i></a>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Font Color"><i style="color: blue;" class="icon-font"></i>&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <p>&nbsp;&nbsp;&nbsp;Font Color:</p>
-                            <li><a data-edit="foreColor #000000">Black</a></li>
-                            <li><a data-edit="foreColor #FFFF00">Yellow</a></li>
-                            <li><a data-edit="foreColor #FF7F00">Orange</a></li>
-                            <li><a data-edit="foreColor #FF0000">Red</a></li>
-                            <li><a data-edit="foreColor #0000FF">Blue</a></li>
-                            <li><a data-edit="foreColor #30AD23">Green</a></li>
-                            <li><a data-edit="foreColor #FFFFFF">White</a></li>
-                        </ul>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Text Highlight Color"><i style="background-color: blue; color: white;" class="icon-font"></i>&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <p>&nbsp;&nbsp;&nbsp;Text Highlight Color:</p>
-                            <li><a data-edit="backColor #00FFFF">Blue</a></li>
-                            <li><a data-edit="backColor #00FF00">Green</a></li>
-                            <li><a data-edit="backColor #FF7F00">Orange</a></li>
-                            <li><a data-edit="backColor #FF0000">Red</a></li>
-                            <li><a data-edit="backColor #FFFF00">Yellow</a></li>
-                            <li><a data-edit="backColor #000000">Black</a></li>
-                            <li><a data-edit="backColor #FFFFFF">White</a></li>
-                        </ul>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>
-                        <a class="btn" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>
-                        <a class="btn" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>
-                        <a class="btn" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>
-                        <a class="btn" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>
-                        <a class="btn" data-edit="justifyright" title="Align Right (Ctrl/Cmd+R)"><i class="icon-align-right"></i></a>
-                        <a class="btn" data-edit="justifyfull" title="Justify (Ctrl/Cmd+J)"><i class="icon-align-justify"></i></a>
-                    </div>
-                    <div class="btn-group">
-                        <a id="rte-add-link-parent-button" class="btn dropdown-toggle" data-toggle="dropdown" title="Hyperlink"><i class="icon-link"></i></a>
-                        <div class="dropdown-menu input-append">
-                            <input id="rte-new-link-url" class="span2" placeholder="URL" value="https://" type="text" data-edit="createLink" />
-                            <span id="rte-new-link-no-selection-label" class="span2 p-1" type="text">Highlight text first</span>
-                            <button id="rte-new-link-button" class="btn" type="button">Add</button>
-                        </div>
-                        <a class="btn" data-edit="unlink" title="Remove Hyperlink"><i class="icon-cut"></i></a>
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn" title="Insert picture (or just drag & drop)" id="pictureBtn"><i class="icon-picture"></i></a>
-                        <input type="file" data-role="magic-overlay" data-target="#pictureBtn" data-edit="insertImage" />
-                    </div>
-                    <div class="btn-group">
-                        <a class="btn" data-edit="undo" title="Undo (Ctrl/Cmd+Z)"><i class="icon-undo"></i></a>
-                        <a class="btn" data-edit="redo" title="Redo (Ctrl/Cmd+Y)"><i class="icon-repeat"></i></a>
-                        <a class="btn" data-edit="html" title="Toggle HTML"><i class="icon-edit"></i></a>
-                    </div>
-                    <input type="text" data-edit="inserttext" id="voiceBtn" x-webkit-speech="">
-                    
-                </div>
-
-                <div id="body-rich-editor" data-ng-keypress="$ctrl.onWelcomeMessageEdit($event)" class="rich-text-editor" style="height: 1000px; max-height: 1000px;"></div>
-                <div class="text-error" data-ng-if="$ctrl.shouldShowWelcomeTooLongError">Your welcome message is too long. It must be less than 2,000 characters. Formatting uses characters.</div>
+                <textarea id="tiny-mce-editor"></textarea>
             </div>
         </div>
     </section>

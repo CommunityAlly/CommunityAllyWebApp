@@ -220,6 +220,71 @@ var Ally;
             }
             return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
+        HtmlUtil2.initTinyMce = function (elemId, heightPixels) {
+            if (elemId === void 0) { elemId = "tiny-mce-editor"; }
+            if (heightPixels === void 0) { heightPixels = 400; }
+            var mcePromise = new Promise(function (resolve, reject) {
+                var loadRtes = function () {
+                    tinymce.init({
+                        selector: '#' + elemId,
+                        //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
+                        plugins: 'advcode export image link linkchecker autolink lists checklist media mediaembed powerpaste table tinymcespellchecker',
+                        //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
+                        toolbar: 'styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
+                        //toolbar_mode: 'floating',
+                        //tinycomments_mode: 'embedded',
+                        //tinycomments_author: 'Author name',
+                        height: heightPixels,
+                        file_picker_types: 'image',
+                        image_description: false,
+                        file_picker_callback: function (cb, value, meta) {
+                            var input = document.createElement('input');
+                            input.setAttribute('type', 'file');
+                            input.setAttribute('accept', 'image/*');
+                            /*
+                              Note: In modern browsers input[type="file"] is functional without
+                              even adding it to the DOM, but that might not be the case in some older
+                              or quirky browsers like IE, so you might want to add it to the DOM
+                              just in case, and visually hide it. And do not forget do remove it
+                              once you do not need it anymore.
+                            */
+                            input.onchange = function (evt) {
+                                debugger;
+                                var file = evt.target.files[0];
+                                var reader = new FileReader();
+                                reader.onload = function () {
+                                    /*
+                                      Note: Now we need to register the blob in TinyMCEs image blob
+                                      registry. In the next release this part hopefully won't be
+                                      necessary, as we are looking to handle it internally.
+                                    */
+                                    var id = 'blobid' + (new Date()).getTime();
+                                    var blobCache = tinymce.activeEditor.editorUpload.blobCache;
+                                    var base64 = reader.result.split(',')[1];
+                                    var blobInfo = blobCache.create(id, file, base64);
+                                    blobCache.add(blobInfo);
+                                    /* call the callback and populate the Title field with the file name */
+                                    cb(blobInfo.blobUri(), { title: file.name });
+                                };
+                                reader.readAsDataURL(file);
+                            };
+                            input.click();
+                        },
+                    }).then(function (e) {
+                        resolve(e[0]);
+                    });
+                };
+                // Need to delay a bit for TinyMCE to load in case the user is started from a fresh
+                // page reload
+                setTimeout(function () {
+                    if (typeof (tinymce) === "undefined")
+                        setTimeout(function () { return loadRtes(); }, 400);
+                    else
+                        loadRtes();
+                }, 100);
+            });
+            return mcePromise;
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;

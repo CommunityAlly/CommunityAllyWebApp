@@ -28,9 +28,7 @@ var Ally;
         ManageCustomPagesController.prototype.$onInit = function () {
             var _this = this;
             this.retrievePages();
-            Ally.RichTextHelper.initToolbarBootstrapBindings();
-            this.bodyRichEditorElem = $('#body-rich-editor');
-            this.bodyRichEditorElem.wysiwyg({ fileUploadError: Ally.RichTextHelper.showFileUploadAlert });
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(function (e) { return _this.pageContentTinyMce = e; });
             this.$http.get("/api/CustomPage/GroupLandingPage").then(function (response) {
                 _this.selectedLandingPageId = response.data ? response.data : null;
             }, function (response) {
@@ -69,14 +67,14 @@ var Ally;
                 alert("Please enter a slug for the page");
                 return;
             }
-            this.editPage.markupHtml = this.bodyRichEditorElem.html();
+            this.editPage.markupHtml = this.pageContentTinyMce.getContent();
             this.isLoading = true;
             var httpFunc = this.editPage.customPageId ? this.$http.put : this.$http.post;
             httpFunc("/api/CustomPage", this.editPage).then(function () {
                 _this.isLoading = false;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
-                _this.bodyRichEditorElem.html("");
+                _this.pageContentTinyMce.setContent("");
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -95,7 +93,7 @@ var Ally;
                 _this.isLoading = false;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
-                _this.bodyRichEditorElem.html("");
+                _this.pageContentTinyMce.setContent("");
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -131,7 +129,7 @@ var Ally;
                 this.$http.get("/api/CustomPage/" + this.selectedPageEntry.customPageId).then(function (response) {
                     _this.isLoading = false;
                     _this.editPage = response.data;
-                    _this.bodyRichEditorElem.html(_this.editPage.markupHtml);
+                    _this.pageContentTinyMce.setContent(_this.editPage.markupHtml);
                 }, function (response) {
                     _this.isLoading = false;
                     alert("Failed to retrieve custom page: " + response.data.exceptionMessage);
@@ -139,7 +137,7 @@ var Ally;
             }
             else {
                 this.editPage = new CustomPage();
-                this.bodyRichEditorElem.html("");
+                this.pageContentTinyMce.setContent("");
             }
         };
         /**
