@@ -20,6 +20,7 @@ namespace Ally
         boundsGpsVertices: any[];
         referralSource: string = "";
         recaptchaKey: string = "";
+        numHomes: string;
     }
 
 
