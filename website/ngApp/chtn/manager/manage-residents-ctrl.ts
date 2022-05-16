@@ -241,8 +241,8 @@ namespace Ally
             this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
 
-            // Show the add home article link if the site isn't launched and is less than 5 days old
-            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 5, "days" ) );
+            // Show the add home article link if the site isn't launched and is less than 8 days old
+            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 8, "days" ) );
 
             if( this.showPendingMembers )
             {
@@ -667,6 +667,9 @@ namespace Ally
 
                                 // If we have a lot of units then allow searching
                                 this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
+
+                                // Show the note on how to add homes if there's only one home
+                                this.showAddHomeLink = this.allUnits.length === 1;
                             },
                             () =>
                             {
