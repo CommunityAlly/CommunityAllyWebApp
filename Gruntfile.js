@@ -181,13 +181,13 @@ grunt.initConfig({
         ts:{
             files: ['**/*.ts'],
             tasks: ['ally-app-bundle-task'],
-            options:{ livereload: true }
+            options:{ livereload: 35735 }
         },
         
         templates:{
             files: ['Website/ngApp/**/*.html'],
             tasks: ['ngtemplates', 'uglify:templates'],
-            options:{ livereload: true }
+            options:{ livereload: 35735 }
         },
 
         // allyAppBundle: {
@@ -204,13 +204,13 @@ grunt.initConfig({
                 '!Website/assets/compiled-css/style.css',
                 '!Website/assets/compiled.min.css'],
             tasks: ['css-only'],
-            options:{ livereload: true }
+            options:{ livereload: 35735 }
         },
 
         allyLibTop: {
             files: allyLibTopFiles,
             tasks: ['uglify:allyLibTop'],
-            options:{ livereload: true }
+            options:{ livereload: 35735 }
         }
     },
 
@@ -270,7 +270,7 @@ grunt.initConfig({
         server: {
             options: {
                 hostname: "localhost",
-                livereload: 35729,
+                livereload: 35735,
                 base: 'website/',
                 port: 8085,
                 open: true
