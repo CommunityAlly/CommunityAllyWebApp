@@ -229,7 +229,7 @@ var Ally;
                     tinymce.init({
                         selector: '#' + elemId,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
-                        plugins: 'advcode export image link linkchecker autolink lists checklist media mediaembed powerpaste table tinymcespellchecker',
+                        plugins: 'image link autolink lists media table',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
                         toolbar: 'styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
                         //toolbar_mode: 'floating',
