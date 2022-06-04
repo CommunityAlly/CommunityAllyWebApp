@@ -56,6 +56,8 @@
         premiumUpdateGroupId: number;
         premiumNewCost: number;
         premiumNewExpiration: Date;
+        deactivateGroupId: number;
+        reactivateGroupId: number;
 
 
         /**
@@ -528,6 +530,48 @@
                 {
                     this.isLoading = false;
                     alert( "Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        onDeactivateGroup()
+        {
+            this.isLoading = true;
+
+            const getUri = `/api/AdminHelper/DeactivateGroup?groupId=${this.deactivateGroupId}`;
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    this.deactivateGroupId = null;
+                    alert( "Deactivate Succeeded: " + response.data );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Deactivate Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        onReactivateGroup()
+        {
+            this.isLoading = true;
+
+            const getUri = `/api/AdminHelper/ReactivateGroup?groupId=${this.reactivateGroupId}`;
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    this.reactivateGroupId = null;
+                    alert( "Reactivate Succeeded: " + response.data );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Reactivate Failed: " + response.data.exceptionMessage );
                 }
             );
         }

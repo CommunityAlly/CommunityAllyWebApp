@@ -332,6 +332,32 @@ var Ally;
                 alert("Failed: " + response.data.exceptionMessage);
             });
         };
+        ManageGroupsController.prototype.onDeactivateGroup = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/AdminHelper/DeactivateGroup?groupId=" + this.deactivateGroupId;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                _this.deactivateGroupId = null;
+                alert("Deactivate Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Deactivate Failed: " + response.data.exceptionMessage);
+            });
+        };
+        ManageGroupsController.prototype.onReactivateGroup = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/AdminHelper/ReactivateGroup?groupId=" + this.reactivateGroupId;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                _this.reactivateGroupId = null;
+                alert("Reactivate Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Reactivate Failed: " + response.data.exceptionMessage);
+            });
+        };
         ManageGroupsController.$inject = ["$http", "SiteInfo"];
         return ManageGroupsController;
     }());

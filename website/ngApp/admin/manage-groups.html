@@ -188,7 +188,17 @@
         <input type="text" data-ng-model="$ctrl.testTaylorEmailRecipient"><input type="button" value="Send Test E-mail from Taylor at CA" data-ng-click="$ctrl.onSendTaylorTestEmail()"><br />
         <input type="button" value="Send Taylor Bulk Email" data-ng-click="$ctrl.onSendTaylorBulkUpdateEmail()"><br />
         <input type="text" data-ng-model="$ctrl.testPostmarkEmail"><input type="button" value="Send Test Postmark E-mail" data-ng-click="$ctrl.onSendTestPostmarkEmail()"><br />
-        <input type="button" value="Send Test Calendar E-mail" data-ng-click="$ctrl.onSendTestCalendarEmail()"><br />
+        <input type="button" value="Send Test Calendar E-mail" data-ng-click="$ctrl.onSendTestCalendarEmail()">
+        <br />
+        <div>
+            <input type="number" data-ng-model="$ctrl.deactivateGroupId" autocomplete="off" data-lpignore="true" data-form-type="other">
+            <input type="button" value="Deactivate Group by ID" data-ng-click="$ctrl.onDeactivateGroup()">
+        </div>
+        <div>
+            <input type="number" data-ng-model="$ctrl.reactivateGroupId" autocomplete="off" data-lpignore="true" data-form-type="other">
+            <input type="button" value="Reactivate Group by ID" data-ng-click="$ctrl.onReactivateGroup()">
+        </div>
+        <br />
         <fieldset>
             <legend>No Reply Email</legend>
             <table style="width: 75%;">
