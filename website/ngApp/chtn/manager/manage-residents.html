@@ -99,7 +99,7 @@
                     <div class="form-group row">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">First Name:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" />
+                            <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="validation-label" data-ng-show="$ctrl.editUserForm.editUserFirstTextBox.$error.required">Required</div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@
                     <div class="form-group row">
                         <label for="edit-user-last-name-text-box" class="col-sm-4 col-xs-12">Last Name:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" />
+                            <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                     <div class="form-group row">
                         <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" />
+                            <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">Email address was reported undeliverable.</div>
                         </div>
                     </div>
@@ -177,7 +177,7 @@
                     <div class="form-group row">
                         <label for="phone-number-text-box" class="col-sm-4 col-xs-12">Phone Number:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.phoneNumber" />
+                            <input id="phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.phoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
                 </div>
@@ -197,7 +197,7 @@
                     <div class="form-group row">
                         <label for="alternate-phone-number-text-box" class="col-sm-4 col-xs-12 font-weight-bold">Alternate Phone:</label>
                         <div class="col-sm-8 col-xs-12">
-                            <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.alternatePhoneNumber" />
+                            <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.alternatePhoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
                 </div>
