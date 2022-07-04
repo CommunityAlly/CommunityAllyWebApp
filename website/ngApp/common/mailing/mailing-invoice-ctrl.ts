@@ -262,9 +262,9 @@ namespace Ally
             if( payPeriodInfo.intervalName === "month" )
                 periodInfo.period = today.getMonth();
             else if( payPeriodInfo.intervalName === "quarter" )
-                periodInfo.period = today.getMonth() / 3;
+                periodInfo.period = Math.floor( today.getMonth() / 3 );
             else if( payPeriodInfo.intervalName === "half-year" )
-                periodInfo.period = today.getMonth() / 6;
+                periodInfo.period = Math.floor( today.getMonth() / 6 );
             else if( payPeriodInfo.intervalName === "year" )
                 periodInfo.period = 0;
 
