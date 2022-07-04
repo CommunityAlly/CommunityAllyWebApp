@@ -626,12 +626,6 @@ header {
       display: inline-block; }
     header .logo-container h4 {
       font-size: 46px; }
-    header .logo-container .premium-plan-label {
-      font-weight: bold;
-      color: #ffd700;
-      text-shadow: 1px 1px 4px grey;
-      margin-left: 15px;
-      font-size: 1.15em; }
   header nav {
     /*padding: 14px 0px !important;
         flex-direction: row !important;
@@ -715,6 +709,14 @@ header {
       @media (max-width: 1200px) {
         header .settings a, header .settings .text-button {
           font-size: 12px; } }
+
+.premium-plan-label, .premium-plan-label:hover {
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 1px 1px 4px grey;
+  margin-left: 15px;
+  font-size: 1.15em;
+  text-decoration: none; }
 
 .can-edit-inline-no-pencil {
   border-bottom-style: none !important;

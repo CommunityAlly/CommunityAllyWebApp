@@ -28,15 +28,8 @@ header {
         h4 {
             font-size: 46px;
         }
-
-        .premium-plan-label {
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 1px 1px 4px grey;
-            margin-left: 15px;
-            font-size: 1.15em;
-        }
     }
+
     /*.navbar-brand
     {
         visibility: hidden;
@@ -146,6 +139,14 @@ header {
     }
 }
 
+.premium-plan-label, .premium-plan-label:hover {
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 1px 1px 4px grey;
+    margin-left: 15px;
+    font-size: 1.15em;
+    text-decoration: none;
+}
 
 .can-edit-inline-no-pencil {
     :hover {
