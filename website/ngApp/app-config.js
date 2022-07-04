@@ -140,6 +140,7 @@ var CondoAllyAppConfig = {
         //new Ally.RoutePath_v3( { path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager } ),
         //new Ally.RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager } ),
         new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/:viewName", templateHtml: "<settings-parent></settings-parent>", role: Role_Manager }),
@@ -151,7 +152,6 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
-        new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Admin }),
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
