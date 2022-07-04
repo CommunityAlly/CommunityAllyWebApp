@@ -386,6 +386,19 @@ var Ally;
                 var isSelected = _.find(_this.editUser.units, function (userUnit) { return userUnit.unitId === allUnit.unitId; }) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             });
+            if (this.editUser.postmarkReportedBadEmailUtc && Ally.HtmlUtil2.isValidString(this.editUser.postmarkReportedBadEmailReason)) {
+                if (this.editUser.postmarkReportedBadEmailReason === "SpamComplaint"
+                    || this.editUser.postmarkReportedBadEmailReason === "SpamComplaint")
+                    this.editUser.friendlyBadEmailReason = "SpamReport";
+                else if (this.editUser.postmarkReportedBadEmailReason === "InactiveRecipient")
+                    this.editUser.friendlyBadEmailReason = "Inactive";
+                else if (this.editUser.postmarkReportedBadEmailReason === "HardBounce")
+                    this.editUser.friendlyBadEmailReason = "Bounce";
+                else if (this.editUser.postmarkReportedBadEmailReason === "FailedDuringSend")
+                    this.editUser.friendlyBadEmailReason = "FailedSend";
+                else
+                    this.editUser.friendlyBadEmailReason = this.editUser.postmarkReportedBadEmailReason;
+            }
             //this.residentGridOptions.selectAll( false );
             this.gridApi.selection.clearSelectedRows();
             setTimeout("$( '#edit-user-first-text-box' ).focus();", 100);

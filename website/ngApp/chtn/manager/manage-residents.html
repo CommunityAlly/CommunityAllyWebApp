@@ -119,7 +119,11 @@
                         <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
-                            <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">Email address was reported undeliverable.</div>
+                            <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">
+                                Email undeliverable:
+                                <b>{{$ctrl.editUser.friendlyBadEmailReason}}</b>
+                                <a href="https://help.communityally.org/undeliverable-email-addresses/" target="_blank">Learn More</a>
+                            </div>
                         </div>
                     </div>
                 </div>

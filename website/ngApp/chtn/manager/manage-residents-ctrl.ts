@@ -79,6 +79,7 @@ namespace Ally
         boardPosition: number;
         lastLoginDateUtc: Date;
         postmarkReportedBadEmailUtc: Date;
+        postmarkReportedBadEmailReason: string;
         mailingAddressObject: FullAddress;
         alternatePhoneNumber: string;
         managerNotes: string;
@@ -101,6 +102,7 @@ namespace Ally
     {
         isRenter: boolean;
         commRestriction: string;
+        friendlyBadEmailReason: string;
 
         // Not from the server
         fullName: string;
@@ -553,6 +555,21 @@ namespace Ally
                 const isSelected = _.find( this.editUser.units, ( userUnit: any ) => userUnit.unitId === allUnit.unitId ) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             } );
+
+            if( this.editUser.postmarkReportedBadEmailUtc && HtmlUtil2.isValidString( this.editUser.postmarkReportedBadEmailReason ) )
+            {
+                if( this.editUser.postmarkReportedBadEmailReason === "SpamComplaint"
+                    || this.editUser.postmarkReportedBadEmailReason === "SpamComplaint" )
+                    this.editUser.friendlyBadEmailReason = "SpamReport";
+                else if( this.editUser.postmarkReportedBadEmailReason === "InactiveRecipient" )
+                    this.editUser.friendlyBadEmailReason = "Inactive";
+                else if( this.editUser.postmarkReportedBadEmailReason === "HardBounce" )
+                    this.editUser.friendlyBadEmailReason = "Bounce";
+                else if( this.editUser.postmarkReportedBadEmailReason === "FailedDuringSend" )
+                    this.editUser.friendlyBadEmailReason = "FailedSend";
+                else
+                    this.editUser.friendlyBadEmailReason = this.editUser.postmarkReportedBadEmailReason;
+            }
 
             //this.residentGridOptions.selectAll( false );
             this.gridApi.selection.clearSelectedRows();
