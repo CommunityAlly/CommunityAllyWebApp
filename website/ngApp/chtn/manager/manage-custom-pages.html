@@ -60,6 +60,12 @@
             <div class="col-12">
                 <textarea id="tiny-mce-editor"></textarea>
             </div>
+            <div class="col-12" data-ng-class="{ 'text-error' : $ctrl.pageSizeBytes > 1048576 }">
+                Page Download Size: {{$ctrl.pageSizeString}}
+                <div class="note-text">
+                    Try to keep this under 1MB
+                </div>
+            </div>
         </div>
     </section>
 </div>  

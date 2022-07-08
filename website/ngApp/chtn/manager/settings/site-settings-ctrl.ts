@@ -114,6 +114,7 @@ namespace Ally
                         this.tinyMceEditor.setContent( this.settings.welcomeMessage );
                         this.tinyMceEditor.on( "keyup", ( e: any ) =>
                         {
+                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                             this.$scope.$apply( () =>
                             {
                                 this.onWelcomeMessageEdit();

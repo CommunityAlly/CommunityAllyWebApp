@@ -10,9 +10,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageCustomPagesController($http, siteInfo) {
+        function ManageCustomPagesController($http, siteInfo, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$scope = $scope;
             this.isLoading = false;
             this.includeInactive = false;
             this.allPageListings = [];
@@ -20,6 +21,8 @@ var Ally;
             this.selectedPageEntry = null;
             this.editPage = null;
             this.selectedLandingPageId = null;
+            this.pageSizeString = "0 bytes";
+            this.pageSizeBytes = 0;
             this.groupBaseUrl = this.siteInfo.publicSiteInfo.baseUrl;
         }
         /**
@@ -28,12 +31,36 @@ var Ally;
         ManageCustomPagesController.prototype.$onInit = function () {
             var _this = this;
             this.retrievePages();
-            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(function (e) { return _this.pageContentTinyMce = e; });
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(function (e) {
+                _this.pageContentTinyMce = e;
+                _this.pageContentTinyMce.on("change", function (e) {
+                    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                    _this.$scope.$apply(function () {
+                        _this.updatePageSizeLabel();
+                    });
+                });
+            });
             this.$http.get("/api/CustomPage/GroupLandingPage").then(function (response) {
                 _this.selectedLandingPageId = response.data ? response.data : null;
             }, function (response) {
                 console.log("Failed to retrieve current landing page: " + response.data.exceptionMessage);
             });
+        };
+        /**
+         * Update the label under the editor showing the size of the page to download
+         */
+        ManageCustomPagesController.prototype.updatePageSizeLabel = function () {
+            if (!this.pageContentTinyMce)
+                return;
+            var bodyText = this.pageContentTinyMce.getContent() || "";
+            this.pageSizeBytes = bodyText.length;
+            this.pageSizeString = (this.pageSizeBytes / 1048576).toFixed(2) + " MB";
+            //if( this.pageSizeBytes < 5 * 1024 )
+            //    this.pageSizeString = this.pageSizeBytes.toString() + " bytes";
+            //else if( this.pageSizeBytes < 1 * 1024 * 1024 )
+            //    this.pageSizeString = Math.round( this.pageSizeBytes / 1024 ).toString() + " KB";
+            //else
+            //    this.pageSizeString = Math.round( this.pageSizeBytes / 1048576 ).toString() + " MB";
         };
         /**
         * Retrieve the list of custom pages
@@ -75,6 +102,7 @@ var Ally;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
                 _this.pageContentTinyMce.setContent("");
+                _this.updatePageSizeLabel();
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -94,6 +122,7 @@ var Ally;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
                 _this.pageContentTinyMce.setContent("");
+                _this.updatePageSizeLabel();
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -130,6 +159,7 @@ var Ally;
                     _this.isLoading = false;
                     _this.editPage = response.data;
                     _this.pageContentTinyMce.setContent(_this.editPage.markupHtml);
+                    _this.updatePageSizeLabel();
                 }, function (response) {
                     _this.isLoading = false;
                     alert("Failed to retrieve custom page: " + response.data.exceptionMessage);
@@ -138,6 +168,7 @@ var Ally;
             else {
                 this.editPage = new CustomPage();
                 this.pageContentTinyMce.setContent("");
+                this.updatePageSizeLabel();
             }
         };
         /**
@@ -163,7 +194,7 @@ var Ally;
                 alert("Failed to update landing page: " + response.data.exceptionMessage);
             });
         };
-        ManageCustomPagesController.$inject = ["$http", "SiteInfo"];
+        ManageCustomPagesController.$inject = ["$http", "SiteInfo", "$scope"];
         return ManageCustomPagesController;
     }());
     Ally.ManageCustomPagesController = ManageCustomPagesController;

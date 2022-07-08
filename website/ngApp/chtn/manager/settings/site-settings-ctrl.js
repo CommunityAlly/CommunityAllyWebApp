@@ -79,6 +79,7 @@ var Ally;
                         _this.tinyMceEditor = e;
                         _this.tinyMceEditor.setContent(_this.settings.welcomeMessage);
                         _this.tinyMceEditor.on("keyup", function (e) {
+                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                             _this.$scope.$apply(function () {
                                 _this.onWelcomeMessageEdit();
                             });

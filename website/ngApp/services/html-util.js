@@ -220,6 +220,62 @@ var Ally;
             }
             return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
+        /**
+         * Resize a base 64 image. From https://stackoverflow.com/a/63348962/10315651
+         * @param {String} base64 - The base64 string (must include MIME type)
+         * @param {Number} newWidth - The width of the image in pixels
+         * @param {Number} newHeight - The height of the image in pixels
+         */
+        HtmlUtil2.resizeBase64Img = function (base64, newWidth, newHeight) {
+            return new Promise(function (resolve, reject) {
+                var canvas = document.createElement("canvas");
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                var context = canvas.getContext("2d");
+                var image = document.createElement("img");
+                image.onload = function () {
+                    context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
+                    resolve(canvas.toDataURL());
+                };
+                image.src = base64;
+            });
+        };
+        /**
+         * Resize an image
+         * @param {HTMLImageElement} image - The image to resize
+         * @param {Number} newWidth - The width of the image in pixels
+         * @param {Number} newHeight - The height of the image in pixels
+         */
+        HtmlUtil2.resizeFromImg = function (image, newWidth, newHeight) {
+            return new Promise(function (resolve, reject) {
+                var canvas = document.createElement("canvas");
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                var context = canvas.getContext("2d");
+                context.scale(newWidth / image.width, newHeight / image.height);
+                context.drawImage(image, 0, 0);
+                resolve(canvas.toDataURL());
+            });
+        };
+        /**
+         * Resize an image and output a blob
+         * @param {HTMLImageElement} image - The image to resize
+         * @param {Number} newWidth - The width of the image in pixels
+         * @param {Number} newHeight - The height of the image in pixels
+         */
+        HtmlUtil2.resizeFromImgToBlob = function (image, newWidth, newHeight, mimeType) {
+            if (mimeType === void 0) { mimeType = "image/jpeg"; }
+            return new Promise(function (resolve, reject) {
+                var canvas = document.createElement("canvas");
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                var context = canvas.getContext("2d");
+                context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
+                canvas.toBlob(function (blob) {
+                    resolve(blob);
+                }, mimeType, 0.75);
+            });
+        };
         HtmlUtil2.initTinyMce = function (elemId, heightPixels) {
             if (elemId === void 0) { elemId = "tiny-mce-editor"; }
             if (heightPixels === void 0) { heightPixels = 400; }
@@ -251,23 +307,73 @@ var Ally;
                             */
                             input.onchange = function (evt) {
                                 // debugger; // This code gets called on uploaded file selection
-                                var file = evt.target.files[0];
+                                var selectedFile = evt.target.files[0];
                                 var reader = new FileReader();
-                                reader.onload = function () {
+                                reader.onload = function (fileObject) {
                                     /*
                                       Note: Now we need to register the blob in TinyMCEs image blob
                                       registry. In the next release this part hopefully won't be
                                       necessary, as we are looking to handle it internally.
                                     */
-                                    var id = 'blobid' + (new Date()).getTime();
+                                    var newBlobId = 'blobid' + (new Date()).getTime();
                                     var blobCache = tinymce.activeEditor.editorUpload.blobCache;
                                     var base64 = reader.result.split(',')[1];
-                                    var blobInfo = blobCache.create(id, file, base64);
-                                    blobCache.add(blobInfo);
-                                    /* call the callback and populate the Title field with the file name */
-                                    cb(blobInfo.blobUri(), { title: file.name });
+                                    //console.log( "Image base64 size: " + base64.length );
+                                    // If the image is larger than 1MB, let's downsize
+                                    var OneMB = 1024 * 1024;
+                                    if (base64.length > OneMB) {
+                                        var tempImage_1 = new Image();
+                                        tempImage_1.onload = function () {
+                                            // access image size here 
+                                            //console.log( "image width", tempImage.width );
+                                            // Resize so the largest edge is 1k pixels
+                                            var xScalar = 1000 / tempImage_1.width;
+                                            var yScalar = 1000 / tempImage_1.height;
+                                            var imageScalar = xScalar;
+                                            if (yScalar < xScalar)
+                                                imageScalar = yScalar;
+                                            HtmlUtil2.resizeFromImgToBlob(tempImage_1, Math.round(tempImage_1.width * imageScalar), Math.round(tempImage_1.height * imageScalar), selectedFile.type).then(function (resizedBlob) {
+                                                //console.log( "Resized image base64 size: " + resizedBlob.size );
+                                                //const resizedTempImage = new Image();
+                                                //resizedTempImage.onload = function()
+                                                //{
+                                                //    //console.log( "resized image width", resizedTempImage.width );
+                                                //    var resizedReader = new FileReader();
+                                                //    resizedReader.readAsDataURL( resizedBlob );
+                                                //    resizedReader.onloadend = function()
+                                                //    {
+                                                //        const resizedFile = new File( [resizedBlob], selectedFile.name, resizedBlob )
+                                                //        const resizedBase64 = ( resizedReader.result as string ).split( ',' )[1];
+                                                //        const blobInfo = blobCache.create( newBlobId, resizedFile, resizedBase64 );
+                                                //        blobCache.add( blobInfo );
+                                                //        /* call the callback and populate the Title field with the file name */
+                                                //        cb( blobInfo.blobUri(), { title: selectedFile.name } );
+                                                //    }
+                                                //};
+                                                //var resizedImgUrl = URL.createObjectURL( resizedBlob );
+                                                //resizedTempImage.src = resizedImgUrl;
+                                                var resizedReader = new FileReader();
+                                                resizedReader.readAsDataURL(resizedBlob);
+                                                resizedReader.onloadend = function () {
+                                                    var resizedFileObject = new File([resizedBlob], selectedFile.name, resizedBlob);
+                                                    var resizedBase64 = resizedReader.result.split(',')[1];
+                                                    var blobInfo = blobCache.create(newBlobId, resizedFileObject, resizedBase64);
+                                                    blobCache.add(blobInfo);
+                                                    /* call the callback and populate the Title field with the file name */
+                                                    cb(blobInfo.blobUri(), { title: selectedFile.name });
+                                                };
+                                            });
+                                        };
+                                        tempImage_1.src = fileObject.target.result;
+                                    }
+                                    else {
+                                        var blobInfo = blobCache.create(newBlobId, selectedFile, base64);
+                                        blobCache.add(blobInfo);
+                                        /* call the callback and populate the Title field with the file name */
+                                        cb(blobInfo.blobUri(), { title: selectedFile.name });
+                                    }
                                 };
-                                reader.readAsDataURL(file);
+                                reader.readAsDataURL(selectedFile);
                             };
                             input.click();
                         },

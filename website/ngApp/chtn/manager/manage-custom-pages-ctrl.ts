@@ -10,7 +10,7 @@ namespace Ally
      */
     export class ManageCustomPagesController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "$scope"];
 
         isLoading = false;
         includeInactive = false;
@@ -21,12 +21,14 @@ namespace Ally
         groupBaseUrl: string;
         selectedLandingPageId: number | null = null;
         pageContentTinyMce: ITinyMce;
-        
+        pageSizeString: string = "0 bytes";
+        pageSizeBytes: number = 0;
+
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $scope: ng.IScope )
         {
             this.groupBaseUrl = this.siteInfo.publicSiteInfo.baseUrl;
         }
@@ -39,7 +41,19 @@ namespace Ally
         {
             this.retrievePages();
 
-            HtmlUtil2.initTinyMce( "tiny-mce-editor", 900 ).then( e => this.pageContentTinyMce = e );
+            HtmlUtil2.initTinyMce( "tiny-mce-editor", 900 ).then( e =>
+            {
+                this.pageContentTinyMce = e;                
+
+                this.pageContentTinyMce.on( "change", ( e: any ) =>
+                {
+                    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                    this.$scope.$apply( () =>
+                    {
+                        this.updatePageSizeLabel();
+                    } );
+                } );
+            } );
             
             this.$http.get( "/api/CustomPage/GroupLandingPage" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<number | null> ) =>
@@ -51,6 +65,28 @@ namespace Ally
                     console.log( "Failed to retrieve current landing page: " + response.data.exceptionMessage );
                 }
             );
+        }
+
+
+        /**
+         * Update the label under the editor showing the size of the page to download
+         */
+        updatePageSizeLabel()
+        {
+            if( !this.pageContentTinyMce )
+                return;
+
+            const bodyText = this.pageContentTinyMce.getContent() || "";
+            this.pageSizeBytes = bodyText.length;
+
+            this.pageSizeString = ( this.pageSizeBytes / 1048576 ).toFixed( 2 ) + " MB";
+
+            //if( this.pageSizeBytes < 5 * 1024 )
+            //    this.pageSizeString = this.pageSizeBytes.toString() + " bytes";
+            //else if( this.pageSizeBytes < 1 * 1024 * 1024 )
+            //    this.pageSizeString = Math.round( this.pageSizeBytes / 1024 ).toString() + " KB";
+            //else
+            //    this.pageSizeString = Math.round( this.pageSizeBytes / 1048576 ).toString() + " MB";
         }
 
 
@@ -110,6 +146,7 @@ namespace Ally
                     this.selectedPageEntry = null;
                     this.editPage = null;
                     this.pageContentTinyMce.setContent( "" );
+                    this.updatePageSizeLabel();
                     this.retrievePages();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -138,6 +175,7 @@ namespace Ally
                     this.selectedPageEntry = null;
                     this.editPage = null;
                     this.pageContentTinyMce.setContent( "" );
+                    this.updatePageSizeLabel();
                     this.retrievePages();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -191,6 +229,7 @@ namespace Ally
                         this.isLoading = false;
                         this.editPage = response.data;
                         this.pageContentTinyMce.setContent( this.editPage.markupHtml );
+                        this.updatePageSizeLabel();
                     },
                     ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                     {
@@ -203,6 +242,7 @@ namespace Ally
             {
                 this.editPage = new CustomPage();
                 this.pageContentTinyMce.setContent( "" );
+                this.updatePageSizeLabel();
             }
         }
 
