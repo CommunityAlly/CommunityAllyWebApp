@@ -56,7 +56,7 @@
         premiumUpdateGroupId: number;
         premiumNewCost: number;
         premiumNewExpiration: Date;
-        deactivateGroupId: number;
+        deactivateGroupIdsCsv: string;
         reactivateGroupId: number;
 
 
@@ -539,12 +539,12 @@
         {
             this.isLoading = true;
 
-            const getUri = `/api/AdminHelper/DeactivateGroup?groupId=${this.deactivateGroupId}`;
+            const getUri = `/api/AdminHelper/DeactivateGroups?groupIdsCsv=${this.deactivateGroupIdsCsv}`;
             this.$http.get( getUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading = false;
-                    this.deactivateGroupId = null;
+                    this.deactivateGroupIdsCsv = null;
                     alert( "Deactivate Succeeded: " + response.data );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>

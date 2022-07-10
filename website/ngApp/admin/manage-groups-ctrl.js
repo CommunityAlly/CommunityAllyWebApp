@@ -335,10 +335,10 @@ var Ally;
         ManageGroupsController.prototype.onDeactivateGroup = function () {
             var _this = this;
             this.isLoading = true;
-            var getUri = "/api/AdminHelper/DeactivateGroup?groupId=" + this.deactivateGroupId;
+            var getUri = "/api/AdminHelper/DeactivateGroups?groupIdsCsv=" + this.deactivateGroupIdsCsv;
             this.$http.get(getUri).then(function (response) {
                 _this.isLoading = false;
-                _this.deactivateGroupId = null;
+                _this.deactivateGroupIdsCsv = null;
                 alert("Deactivate Succeeded: " + response.data);
             }, function (response) {
                 _this.isLoading = false;

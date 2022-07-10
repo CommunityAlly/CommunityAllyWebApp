@@ -191,12 +191,12 @@
         <input type="button" value="Send Test Calendar E-mail" data-ng-click="$ctrl.onSendTestCalendarEmail()">
         <br />
         <div>
-            <input type="number" data-ng-model="$ctrl.deactivateGroupId" autocomplete="off" data-lpignore="true" data-form-type="other">
-            <input type="button" value="Deactivate Group by ID" data-ng-click="$ctrl.onDeactivateGroup()">
+            <input type="text" data-ng-model="$ctrl.deactivateGroupIdsCsv" data-ng-enter="$ctrl.onDeactivateGroup()" autocomplete="off" data-lpignore="true" data-form-type="other">
+            <input type="button" value="Deactivate Groups by CSV IDs" data-ng-click="$ctrl.onDeactivateGroup()">
         </div>
         <div>
-            <input type="number" data-ng-model="$ctrl.reactivateGroupId" autocomplete="off" data-lpignore="true" data-form-type="other">
-            <input type="button" value="Reactivate Group by ID" data-ng-click="$ctrl.onReactivateGroup()">
+            <input type="number" data-ng-model="$ctrl.reactivateGroupId" data-ng-enter="$ctrl.onReactivateGroup()" autocomplete="off" data-lpignore="true" data-form-type="other">
+            <input type="button" value="Reactivate Single Group by ID" data-ng-click="$ctrl.onReactivateGroup()">
         </div>
         <br />
         <fieldset>
