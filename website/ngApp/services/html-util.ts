@@ -231,6 +231,29 @@ namespace Ally
         }
 
 
+        /** Determine if a string ends with a numeric string */
+        static endsWithNumber( testString: string, shouldTrim: boolean = true ): boolean
+        {
+            if( HtmlUtil.isNullOrWhitespace( testString ) )
+                return false;
+
+            if( shouldTrim )
+                testString = testString.trim();
+
+            return /[0-9]+$/.test( testString );
+        }
+
+
+        /** Get the number at the end of a string, null if the string doesn't end with a number */
+        static getNumberAtEnd( testString: string )
+        {
+            if( HtmlUtil2.endsWithNumber( testString ) )
+                return parseInt( testString.match( /[0-9]+$/ )[0] );
+
+            return null;
+        }
+
+
         static isAndroid(): boolean
         {
             const ua = navigator.userAgent.toLowerCase();
@@ -322,6 +345,18 @@ namespace Ally
 
             if( allHaveNumericPrefix && allHaveSameSuffix )
                 return _.sortBy( homeList, u => parseInt( u[namePropName].substr( 0, u[namePropName].indexOf( " " ) ) ) );
+
+            // And the flip, if all names start with the same string "Unit #" and end with a number, sort by that number
+            const firstNumberIndex = homeList[0][namePropName].search( /[0-9]/ );
+            if( firstNumberIndex >= 0 )
+            {
+                const firstPrefix = homeList[0][namePropName].substr( 0, firstNumberIndex );
+                const allHaveSamePrefix = _.every( homeList, u => HtmlUtil.startsWith( u[namePropName], firstPrefix ) );
+                const allEndWithNumber = _.every( homeList, u => HtmlUtil2.endsWithNumber( u[namePropName] ) );
+
+                if( allHaveSamePrefix && allEndWithNumber )
+                    return _.sortBy( homeList, u => HtmlUtil2.getNumberAtEnd( u[namePropName] ) );
+            }
 
             // If all units start with a number and end with a string (Like,
             // 123 Elm St) then first sort by the street, then number

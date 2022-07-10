@@ -132,6 +132,21 @@ var Ally;
             testString = testString.substring(0, firstWhitespaceIndex - 1);
             return HtmlUtil.isNumericString(testString);
         };
+        /** Determine if a string ends with a numeric string */
+        HtmlUtil2.endsWithNumber = function (testString, shouldTrim) {
+            if (shouldTrim === void 0) { shouldTrim = true; }
+            if (HtmlUtil.isNullOrWhitespace(testString))
+                return false;
+            if (shouldTrim)
+                testString = testString.trim();
+            return /[0-9]+$/.test(testString);
+        };
+        /** Get the number at the end of a string, null if the string doesn't end with a number */
+        HtmlUtil2.getNumberAtEnd = function (testString) {
+            if (HtmlUtil2.endsWithNumber(testString))
+                return parseInt(testString.match(/[0-9]+$/)[0]);
+            return null;
+        };
         HtmlUtil2.isAndroid = function () {
             var ua = navigator.userAgent.toLowerCase();
             return ua.indexOf("android") > -1;
@@ -201,6 +216,15 @@ var Ally;
             var allHaveSameSuffix = _.every(homeList, function (u) { return HtmlUtil.endsWith(u[namePropName], firstSuffix); });
             if (allHaveNumericPrefix && allHaveSameSuffix)
                 return _.sortBy(homeList, function (u) { return parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))); });
+            // And the flip, if all names start with the same string "Unit #" and end with a number, sort by that number
+            var firstNumberIndex = homeList[0][namePropName].search(/[0-9]/);
+            if (firstNumberIndex >= 0) {
+                var firstPrefix_1 = homeList[0][namePropName].substr(0, firstNumberIndex);
+                var allHaveSamePrefix = _.every(homeList, function (u) { return HtmlUtil.startsWith(u[namePropName], firstPrefix_1); });
+                var allEndWithNumber = _.every(homeList, function (u) { return HtmlUtil2.endsWithNumber(u[namePropName]); });
+                if (allHaveSamePrefix && allEndWithNumber)
+                    return _.sortBy(homeList, function (u) { return HtmlUtil2.getNumberAtEnd(u[namePropName]); });
+            }
             // If all units start with a number and end with a string (Like,
             // 123 Elm St) then first sort by the street, then number
             if (allHaveNumericPrefix) {
