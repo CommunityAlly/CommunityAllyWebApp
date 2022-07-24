@@ -89,12 +89,12 @@
             </div>
 
             <div class="form-group row">
-                <label for="phoneNumberTextBox" class="col-4">
-                    Phone Number:
+                <label for="phoneNumberTextBox" class="col-4 text-right">
+                    Cell Phone Number:
                 </label>
                 <div class="col-8">
                     <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
-                    <span class="note-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association.</span>
+                    <span class="note-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association. You can add an alternate phone number in the secondary tab.</span>
                     <div data-ng-if="$ctrl.canHideContactInfo">
                         <br />
                         <label><input type="checkbox" id="showMyPhoneNumber" data-ng-model="$ctrl.profileInfo.showPhoneInMeetNeighbors" /> Show my phone number and e-mail address on the <a href="#!/BuildingResidents">Residents</a> page.</label>

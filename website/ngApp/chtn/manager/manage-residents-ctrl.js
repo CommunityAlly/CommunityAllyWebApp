@@ -193,7 +193,7 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
                         { field: 'email', displayName: 'Email', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
+                        { field: 'phoneNumber', displayName: 'Cell Phone', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
                         {
                             field: 'unitGridLabel',
                             displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Residence',
@@ -637,7 +637,7 @@ var Ally;
                     fieldName: "lastName"
                 },
                 {
-                    headerText: "Phone",
+                    headerText: "CellPhone",
                     fieldName: "phoneNumber"
                 },
                 {
