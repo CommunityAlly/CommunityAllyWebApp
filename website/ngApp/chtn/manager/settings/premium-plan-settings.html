@@ -30,7 +30,18 @@
                 You're currently on the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <br />
-            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">View Premium Plan Renewal Options</button>
+            
+            <button data-ng-if="$ctrl.settings.premiumPlanCostDollars >= 3" class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">View Premium Plan Renewal Options</button>
+            <div data-ng-if="$ctrl.settings.premiumPlanCostDollars < 3" class="mt-2 mb-2 alert alert-warning">
+                It looks like you have not yet setup your homes. Our pricing is based on number of homes so we need that information before you can sign-up for our premium plan.
+                <br />
+                <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">How to Add or Edit Homes</a>
+                <br />
+                <br />
+                We'd be happy to help you bulk load your data in. Simply fill out this spreadsheet and email it to <a href="mailto:hello@communityally.org">hello@CommunityAlly.org</a>:
+                <br />
+                <a href="/assets/files/AllyResidentsImport.csv" download="AllyResidentsImport.csv">Download Bulk Import Spreadsheet</a>
+            </div>
         </div>
         <br />
         <br />
