@@ -228,7 +228,7 @@
                     </div>
 
                     <div class="settings pull-right text-right">
-                        Hi {{ userInfo.firstName }}<br />
+                        Hi <span class="notranslate">{{ userInfo.firstName }}</span><br />
                         <a id="my-profile-link" href="#!/MyProfile">Profile</a> | <span id="log-out-button" class="text-button" data-ng-click="onLogOut();">Log Out</span>
                     </div>
                 </nav>
@@ -269,6 +269,9 @@
     </div>
 
     <footer class="clearfix">
+        <div class="container">
+            <div id="google_translate_element"></div>
+        </div>
         <div class="container">
             <div class="pull-left">
                 Part of the <a href="http://www.communityally.org/">Community Ally</a> suite of tools.
@@ -338,6 +341,35 @@
 
         $( 'meta[name=application-name]' ).attr( "content", AppConfig.appName );
         $( 'meta[name=apple-mobile-web-app-title]' ).attr( "content", AppConfig.appName );
+    </script>
+    <script type="text/javascript">
+        function googleTranslateElementInit()
+        {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                },
+                'google_translate_element'
+            );
+        }
+
+        // Delay add Google Translate
+        function enableGoogleTranslate()
+        {
+            setTimeout( function()
+            {
+                var translateScriptElem = document.createElement( 'script' );
+                translateScriptElem.setAttribute( "type", "text/javascript" );
+                translateScriptElem.setAttribute( "src", "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" );
+
+                document.head.appendChild( translateScriptElem );
+            }, 1000 );
+        }
+
+        // Enable Google Translate if English is not the default browser language
+        if( navigator.languages && navigator.languages.length > 0 && navigator.languages[0] && navigator.languages[0].toLowerCase().indexOf( "en" ) !== 0 )
+            enableGoogleTranslate();
     </script>
     <script src="https://checkout.stripe.com/checkout.js" defer></script>
     <script src="https://js.stripe.com/v3/?advancedFraudSignals=false" defer></script>
