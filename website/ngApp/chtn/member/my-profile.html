@@ -39,7 +39,7 @@
 
         <form data-ng-if="$ctrl.selectedProfileView==='Primary'">
             <div class="form-group row">
-                <label for="firstNameTextBox" class="col-4">
+                <label for="firstNameTextBox" class="col-4 text-right">
                     First Name:
                 </label>
                 <div class="col-8">
@@ -48,7 +48,7 @@
             </div>
 
             <div class="form-group row">
-                <label for="lastNameTextBox" class="col-4">
+                <label for="lastNameTextBox" class="col-4 text-right">
                     Last Name:
                 </label>
                 <div class="col-8">
@@ -57,7 +57,7 @@
             </div>
 
             <div class="form-group row">
-                <label for="emailTextBox" class="col-4">
+                <label for="emailTextBox" class="col-4 text-right">
                     Email:
                 </label>
                 <div class="col-8">
@@ -67,7 +67,7 @@
             </div>
 
             <div class="form-group row">
-                <label for="passwordTextBox" class="col-4">
+                <label for="passwordTextBox" class="col-4 text-right">
                     Password:
                 </label>
                 <div class="col-8">
@@ -115,7 +115,7 @@
             </div>
 
             <div class="form-group row">
-                <label class="col-4" for="includeInDiscussionEmailTextBox">
+                <label class="col-4 text-right" for="includeInDiscussionEmailTextBox">
                     Discussion Threads:
                 </label>
                 <div class="col-8">
@@ -132,8 +132,8 @@
         <form data-ng-if="$ctrl.selectedProfileView==='Secondary'">
             <div class="col-md-6 col-sm-12">
                 <div class="form-group row">
-                    <label for="alternate-phone-number-text-box" class="col-sm-4 col-xs-12 font-weight-bold">Alternate Phone:</label>
-                    <div class="col-sm-8 col-xs-12">
+                    <label for="alternate-phone-number-text-box" class="col-sm-5 col-xs-12 font-weight-bold text-right"">Alternate Phone:</label>
+                    <div class="col-sm-7 col-xs-12">
                         <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.alternatePhoneNumber" />
                     </div>
                 </div>

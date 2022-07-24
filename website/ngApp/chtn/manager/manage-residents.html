@@ -33,7 +33,7 @@
         <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">How to Add or Edit Homes</a>
         <br />
         <br />
-        We'd be happy to help you bulk load your data in. Simply fill out this spreadsheet and email it to hello@CommunityAlly.org:
+        We'd be happy to help you bulk load your data in. Simply fill out this spreadsheet and email it to <a href="mailto:hello@communityally.org">hello@CommunityAlly.org</a>:
         <br />
         <a href="/assets/files/AllyResidentsImport.csv" download="AllyResidentsImport.csv">Download Bulk Import Spreadsheet</a>
     </div>
@@ -97,7 +97,7 @@
             <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Primary'">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">First Name:</label>
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12 text-sm-right">First Name:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="validation-label" data-ng-show="$ctrl.editUserForm.editUserFirstTextBox.$error.required">Required</div>
@@ -107,7 +107,7 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-last-name-text-box" class="col-sm-4 col-xs-12">Last Name:</label>
+                        <label for="edit-user-last-name-text-box" class="col-sm-4 col-xs-12 text-sm-right">Last Name:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
@@ -116,7 +116,7 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
+                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12 text-sm-right">Email:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">
@@ -130,7 +130,7 @@
 
                 <div class="col-md-6 col-sm-12" data-ng-if="$ctrl.shouldShowHomePicker">
                     <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">{{ $ctrl.homeName }}:</label>
+                        <label class="col-sm-4 col-xs-12 text-sm-right">{{ $ctrl.homeName }}:</label>
                         <div class="col-sm-8 col-xs-12">
                             <div data-ng-if="!$ctrl.editUser.showAdvancedHomePicker">
                                 <select class="form-control form-control-sm" data-ng-model="$ctrl.editUser.singleUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
@@ -158,7 +158,7 @@
 
                 <div class="col-md-6 col-sm-12" data-ng-if="$ctrl.showIsRenter">
                     <div class="form-group row">
-                        <label for="is-renter-checkbox" class="col-sm-4 col-xs-12">Is a Renter/Manager:</label>
+                        <label for="is-renter-checkbox" class="col-sm-4 col-xs-12 text-sm-right">Is a Renter/Manager:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="is-renter-checkbox" class="validation-label" type="checkbox" data-ng-model="$ctrl.editUser.isRenter" />
                             <br />
@@ -169,7 +169,7 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="is-site-manager-checkbox" class="col-sm-4 col-xs-12">Is Admin:</label>
+                        <label for="is-site-manager-checkbox" class="col-sm-4 col-xs-12 text-sm-right">Is Admin:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="is-site-manager-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.isSiteManager" /><br>
                             <span class="note-text">Admin users can edit site information.</span>
@@ -179,7 +179,6 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="phone-number-text-box" class="col-sm-4 col-xs-12">Phone Number:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.phoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
@@ -188,7 +187,7 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">Board Position:</label>
+                        <label class="col-sm-4 col-xs-12 text-sm-right">Board Position:</label>
                         <div class="col-sm-8 col-xs-12">
                             <select class="form-control form-control-sm" data-ng-model="$ctrl.editUser.boardPosition" data-ng-options="bp.id as bp.name for bp in $ctrl.boardPositions"></select>
                         </div>
@@ -199,8 +198,8 @@
             <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Secondary'">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="alternate-phone-number-text-box" class="col-sm-4 col-xs-12 font-weight-bold">Alternate Phone:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="alternate-phone-number-text-box" class="col-sm-5 col-xs-12 font-weight-bold">Alternate Phone:</label>
+                        <div class="col-sm-7 col-xs-12">
                             <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.alternatePhoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
