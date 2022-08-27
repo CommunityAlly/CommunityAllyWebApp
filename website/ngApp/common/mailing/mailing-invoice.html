@@ -48,7 +48,7 @@
                         Invoice Title:
                     </label>
                     <div class="col-5">
-                        <input type="text" class="form-control" id="invoice-title-textbox" data-ng-model="$ctrl.fullMailingInfo.invoiceTitleString">
+                        <input type="text" class="form-control" id="invoice-title-textbox" data-ng-model="$ctrl.fullMailingInfo.invoiceTitleString" autocomplete="off" data-lpignore="true" data-form-type="other">
                     </div>
                 </div>
 
@@ -57,7 +57,7 @@
                         Due Date:
                     </label>
                     <div class="col-5">
-                        <input type="text" class="form-control" id="due-date-textbox" data-ng-model="$ctrl.fullMailingInfo.dueDateString">
+                        <input type="text" class="form-control" id="due-date-textbox" data-ng-model="$ctrl.fullMailingInfo.dueDateString" autocomplete="off" data-lpignore="true" data-form-type="other">
                     </div>
                 </div>
 
@@ -66,7 +66,7 @@
                         Dues Label:
                     </label>
                     <div class="col-5">
-                        <input type="text" class="form-control" id="dues-label-textbox" data-ng-model="$ctrl.fullMailingInfo.duesLabel">
+                        <input type="text" class="form-control" id="dues-label-textbox" data-ng-model="$ctrl.fullMailingInfo.duesLabel" autocomplete="off" data-lpignore="true" data-form-type="other">
                     </div>
                 </div>
 
@@ -75,7 +75,7 @@
                         <label for="notes-textbox" class="col-form-label">
                             Notes:
                         </label><br />
-                        <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.notes" rows="4"></textarea>
+                        <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.notes" rows="4" maxlength="500"></textarea>
                         <span class="note-text">
                             These notes will appear at the bottom of the invoice. For example, use them to provide payment instructions and/or thank your member.
                         </span>
@@ -159,7 +159,7 @@
                                     <label><input type="checkbox" data-ng-model="recipient.shouldSendEmail" />Send E-mail</label>
                                 </td>
                                 <td style="width: 600px;">
-                                    <input type="text" class="form-control form-control-sm" data-ng-model="recipient.emailAddresses" />
+                                    <input type="text" class="form-control form-control-sm" data-ng-model="recipient.emailAddresses" autocomplete="off" data-lpignore="true" data-form-type="other" />
                                     <div class="text-error" data-ng-if="recipient.shouldSendEmail && (!recipient.emailAddresses || recipient.emailAddresses.length === 0)">E-mail Required</div>
                                 </td>
                                 <td></td>
@@ -188,7 +188,7 @@
                                 <td colspan="3">
                                     <span data-ng-if="!recipient.overrideNotes" data-ng-click="$ctrl.customizeNotes( recipient )" class="text-link note-text">Customize Notes</span>
                                     <div data-ng-if="recipient.overrideNotes">
-                                        <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="recipient.overrideNotes" rows="4"></textarea>
+                                        <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="recipient.overrideNotes" rows="4" maxlength="500"></textarea>
                                         <div data-ng-click="$ctrl.uncustomizeNotes( recipient )" class="text-link">Uncustomize Notes</div>
                                     </div>
                                 </td>

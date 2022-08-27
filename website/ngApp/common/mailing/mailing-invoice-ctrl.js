@@ -56,7 +56,7 @@ var Ally;
             this.numInvalidMailingAddresses = 0;
             this.numAddressesToBulkValidate = 0;
             this.shouldShowAutoUnselect = false;
-            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
+            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" autocomplete="off" data-lpignore="true" data-form-type="other" /></div>';
             this.homesGridOptions =
                 {
                     data: [],
