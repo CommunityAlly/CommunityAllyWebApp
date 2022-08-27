@@ -289,8 +289,10 @@ CA.angularApp.config(
                     // Add the auth token
                     reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
 
-                    if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
-                        reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl;
+                    // Certain folks with ad-blockers or using private browsing mode will not send
+                    // the referrer up so we need to send it ourselves
+                    //if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
+                        reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl || window.location.href;
                 }
 
                 return reqConfig;
