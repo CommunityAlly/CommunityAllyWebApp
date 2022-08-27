@@ -329,9 +329,11 @@
                 <div id="AssessmentsPanel" data-ng-if="$ctrl.hasAssessments">
                     <h3 class="margin-top">{{$ctrl.homeName}} Assessments</h3>
                     <p>
-                        The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. If you need to make an adjustment to a base assessment, please
+                        The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. Click the assessment amount to adjust it.
+                        
+                        <!--If you need to make an adjustment to a base assessment, please
                         contact support and they'll be happy to help you. If a unit receives a discount, you can use the adjusted assessment and
-                        reason column to indicate as such. For example, some associations compensate their board members for their duty via a discount on their assessment.
+                        reason column to indicate as such. For example, some associations compensate their board members for their duty via a discount on their assessment.-->
                     </p>
                     <div class="wide_tble_wrap">
                         <table class="table table-bordered">
@@ -362,6 +364,11 @@
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+                    <div>
+                        Or you can set all {{$ctrl.homeName.toLowerCase()}}s to the same amount here:
+                        $<input type="number" style="width: 90px;" data-ng-model="$ctrl.setAllAssessmentAmount" />
+                        <input id="save-edit-button" class="btn btn-primary" type="button" value="Set All Assessments" data-ng-click="$ctrl.setAllUnitAssessments()" />
                     </div>
                     <div data-ng-show="$ctrl.isLoadingUnits" style="z-index:100;" class="container-overlay"></div>
 

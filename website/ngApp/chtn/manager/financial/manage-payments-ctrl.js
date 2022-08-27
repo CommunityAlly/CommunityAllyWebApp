@@ -16,6 +16,11 @@ var Ally;
         }
         return UpdateAssessmentInfo;
     }());
+    var PeriodInfo = /** @class */ (function () {
+        function PeriodInfo() {
+        }
+        return PeriodInfo;
+    }());
     /**
      * The controller for the page to view online payment information
      */
@@ -287,6 +292,27 @@ var Ally;
                 innerThis.isLoadingUnits = false;
                 innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
                 innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+            });
+        };
+        /**
+         * Occurs when the user presses the button to set all units to the assessment
+         */
+        ManagePaymentsController.prototype.setAllUnitAssessments = function () {
+            var _this = this;
+            if (!this.setAllAssessmentAmount || isNaN(this.setAllAssessmentAmount) || this.setAllAssessmentAmount < 0) {
+                alert("Enter a valid assessment amount");
+                return;
+            }
+            this.isLoadingUnits = true;
+            var updateInfo = {
+                unitId: -1,
+                assessment: this.setAllAssessmentAmount,
+                assessmentNote: null
+            };
+            var innerThis = this;
+            this.$http.put("/api/Unit/SetAllAssessments", updateInfo).then(function () {
+                innerThis.isLoadingUnits = false;
+                _this.refreshUnits();
             });
         };
         /**

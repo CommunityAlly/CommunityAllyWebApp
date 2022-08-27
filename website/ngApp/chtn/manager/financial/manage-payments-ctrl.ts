@@ -45,6 +45,13 @@ namespace Ally
     }
 
 
+    class PeriodInfo
+    {
+        info: Ally.PeriodicPaymentFrequency;
+        note: string;
+    }
+
+
     /**
      * The controller for the page to view online payment information
      */
@@ -97,8 +104,9 @@ namespace Ally
         dwollaIavToken: string;
         homeName: string;
         shouldShowPlaidTestSignUpButton: boolean = false;
+        setAllAssessmentAmount: number;
         readonly HistoryPageSize: number = 50;
-
+        
 
         /**
         * The constructor for the class
@@ -441,6 +449,36 @@ namespace Ally
 
                 innerThis.assessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
                 innerThis.adjustedAssessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
+            } );
+        }
+
+
+        /**
+         * Occurs when the user presses the button to set all units to the assessment
+         */
+        setAllUnitAssessments()
+        {
+            if( !this.setAllAssessmentAmount || isNaN( this.setAllAssessmentAmount ) || this.setAllAssessmentAmount < 0 )
+            {
+                alert( "Enter a valid assessment amount" );
+                return;
+            }
+
+            this.isLoadingUnits = true;
+
+            var updateInfo: UpdateAssessmentInfo =
+            {
+                unitId: -1,
+                assessment: this.setAllAssessmentAmount,
+                assessmentNote: null
+            };
+
+            var innerThis = this;
+            this.$http.put( "/api/Unit/SetAllAssessments", updateInfo ).then( () =>
+            {
+                innerThis.isLoadingUnits = false;
+
+                this.refreshUnits();
             } );
         }
 
