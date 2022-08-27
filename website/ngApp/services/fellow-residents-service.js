@@ -266,6 +266,14 @@ var Ally;
             ];
             return OfficerPositions.indexOf(boardPosition) !== -1;
         };
+        /**
+         * Test if a board position is any except the property manager
+         */
+        FellowResidentsService.isNonPropMgrBoardPosition = function (boardPosition) {
+            if (boardPosition < 1 || boardPosition === FellowResidentsService.BoardPos_PropertyManager)
+                return false;
+            return true;
+        };
         FellowResidentsService.pollReponsesToChart = function (poll, siteInfo) {
             var talliedVotes = [];
             var logVote = function (answerId) {

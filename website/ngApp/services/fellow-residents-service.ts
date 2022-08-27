@@ -28,6 +28,7 @@
         description: string;
         createdByUserId: string;
         createdOnDateUtc: Date;
+        allowPublicIncoming: boolean;
         members: CustomEmailGroupMember[];
 
         // Populated locally
@@ -390,6 +391,18 @@
             ];
 
             return OfficerPositions.indexOf( boardPosition ) !== -1;
+        }
+
+
+        /**
+         * Test if a board position is any except the property manager
+         */
+        static isNonPropMgrBoardPosition( boardPosition: number )
+        {
+            if( boardPosition < 1 || boardPosition === FellowResidentsService.BoardPos_PropertyManager )
+                return false;
+
+            return true;
         }
 
 
