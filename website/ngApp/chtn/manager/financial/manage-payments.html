@@ -24,8 +24,9 @@
 
                     <div ng-switch-when="1">
                         <span>How often do residents pay assessments?</span><br>
-                        <div data-ng-repeat="timeUnit in $ctrl.PeriodicPaymentFrequencies">
-                            <span class="text-link" data-ng-click="$ctrl.signUp_AssessmentFrequency( $index )">{{ timeUnit.name }}</span>
+                        <div data-ng-repeat="timeUnit in $ctrl.PeriodicPaymentFrequencies" style="margin-bottom: 10px;">
+                            <div class="text-link" data-ng-click="$ctrl.signUp_AssessmentFrequency( $index )">{{ timeUnit.name }}</div>
+                            <div class="note-text" data-ng-if="timeUnit.signUpNote">{{ timeUnit.signUpNote }}</div>
                         </div>
                     </div>
 

@@ -66,10 +66,10 @@ var Role_Manager = "manager";
 var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
 var PeriodicPaymentFrequencies = [
-    { name: "Monthly", intervalName: "month", id: 50 },
-    { name: "Quarterly", intervalName: "quarter", id: 51 },
-    { name: "Semiannually", intervalName: "half-year", id: 52 },
-    { name: "Annually", intervalName: "year", id: 53 }
+    { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
+    { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
+    { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
+    { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
 ];
 function FrequencyIdToInfo(frequencyId) {
     if (isNaN(frequencyId) || frequencyId < 50)

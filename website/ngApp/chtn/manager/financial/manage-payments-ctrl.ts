@@ -57,7 +57,7 @@ namespace Ally
         showPaymentPage: boolean = true; //AppConfig.appShortName === "condo";
         highlightWePayCheckoutId: string;
         highlightPaymentsInfoId: number;
-        PeriodicPaymentFrequencies: any[] = PeriodicPaymentFrequencies;
+        PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[] = PeriodicPaymentFrequencies;
         AssociationPaysAch: boolean = true;
         AssociationPaysCC: boolean = false; // Payer pays credit card fees
         lateFeeInfo: any = {};
