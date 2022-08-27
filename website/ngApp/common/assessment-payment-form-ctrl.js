@@ -42,6 +42,9 @@ var Ally;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowDwollaAutoPayArea = true;
+            this.currentDwollaAutoPayAmount = null;
+            this.newDwollaAutoPayAmount = null;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -59,64 +62,69 @@ var Ally;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
-            this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
-            if (this.isDwollaUserAccountVerified) {
-                this.dwollaUserStatus = "verified";
-                this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
-                if (!this.hasDwollaFundingSource) {
-                    this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
-                }
-                else {
-                    this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
-                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
-                    if (this.isDwollaReadyForPayment) {
-                        // Check the user's Dwolla balance, delayed since it's not important
-                        this.$timeout(function () {
-                            _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
-                        }, 1000);
+            this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
+            if (this.isDwollaEnabledOnGroup) {
+                this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+                if (this.isDwollaUserAccountVerified) {
+                    this.dwollaUserStatus = "verified";
+                    this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
+                    if (!this.hasDwollaFundingSource) {
+                        this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
+                    }
+                    else {
+                        this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
+                        this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
+                        this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                        if (this.isDwollaReadyForPayment) {
+                            // Check the user's Dwolla balance, delayed since it's not important
+                            this.$timeout(function () {
+                                _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
+                            }, 1000);
+                            this.shouldShowDwollaAutoPayArea = (this.isDwollaReadyForPayment && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com")
+                                || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
+                        }
                     }
                 }
-            }
-            else {
-                this.dwollaUserStatus = "checking";
-                this.userFullName = this.siteInfo.userInfo.fullName;
-                this.userEmail = this.siteInfo.userInfo.emailAddress;
-                var getDwollaDocUploadToken = function () {
-                    _this.$http.get("/api/Dwolla/DocumentUploadToken").then(function (response) {
-                        var uploadToken = response.data;
-                        window.setTimeout(function () {
-                            dwolla.configure({
-                                environment: Ally.AppConfigInfo.dwollaEnvironmentName,
-                                styles: "/main.css",
-                                token: function () {
-                                    var deferred = _this.$q.defer();
-                                    deferred.resolve(uploadToken);
-                                    return deferred.promise;
-                                },
-                                //token: () => Promise.resolve( uploadToken ),
-                                success: function (res) { return alert(res); },
-                                error: function (err) { return alert(err); }
-                            });
-                        }, 200);
-                    }, function (errorResponse) {
-                        _this.dwollaUserStatus = "error";
-                    });
-                };
-                var checkDwollaStatus_1 = function () {
-                    _this.$http.get("/api/Dwolla/MyAccountStatus").then(function (response) {
-                        _this.dwollaUserStatus = response.data.status;
-                        _this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
-                        //if( this.dwollaUserStatus === "document" )
-                        //    getDwollaDocUploadToken();
-                    }, function (errorResponse) {
-                        _this.dwollaUserStatus = "error";
-                    });
-                };
-                this.$timeout(function () { return checkDwollaStatus_1(); }, 500);
+                else {
+                    this.dwollaUserStatus = "checking";
+                    this.userFullName = this.siteInfo.userInfo.fullName;
+                    this.userEmail = this.siteInfo.userInfo.emailAddress;
+                    var getDwollaDocUploadToken = function () {
+                        _this.$http.get("/api/Dwolla/DocumentUploadToken").then(function (response) {
+                            var uploadToken = response.data;
+                            window.setTimeout(function () {
+                                dwolla.configure({
+                                    environment: Ally.AppConfigInfo.dwollaEnvironmentName,
+                                    styles: "/main.css",
+                                    token: function () {
+                                        var deferred = _this.$q.defer();
+                                        deferred.resolve(uploadToken);
+                                        return deferred.promise;
+                                    },
+                                    //token: () => Promise.resolve( uploadToken ),
+                                    success: function (res) { return alert(res); },
+                                    error: function (err) { return alert(err); }
+                                });
+                            }, 200);
+                        }, function (errorResponse) {
+                            _this.dwollaUserStatus = "error";
+                        });
+                    };
+                    var checkDwollaStatus_1 = function () {
+                        _this.$http.get("/api/Dwolla/MyAccountStatus").then(function (response) {
+                            _this.dwollaUserStatus = response.data.status;
+                            _this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
+                            //if( this.dwollaUserStatus === "document" )
+                            //    getDwollaDocUploadToken();
+                        }, function (errorResponse) {
+                            _this.dwollaUserStatus = "error";
+                        });
+                    };
+                    this.$timeout(function () { return checkDwollaStatus_1(); }, 500);
+                }
             }
             this.allyAppName = AppConfig.appName;
-            this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
+            this.isWePayAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
             this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "Service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
@@ -124,9 +132,9 @@ var Ally;
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
             this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
-            if (!this.isAutoPayActive && HtmlUtil.isNumericString(HtmlUtil.GetQueryStringParameter("preapproval_id"))) {
+            if (!this.isWePayAutoPayActive && HtmlUtil.isNumericString(HtmlUtil.GetQueryStringParameter("preapproval_id"))) {
                 // The user just set up auto-pay and it may take a second
-                this.isAutoPayActive = true;
+                this.isWePayAutoPayActive = true;
             }
             this.nextAutoPayText = this.siteInfo.userInfo.nextAutoPayText;
             // Grab the assessment from the user's unit (TODO handle multiple units)
@@ -150,8 +158,8 @@ var Ally;
                 if (this.historicPayments.length > MaxNumRecentPayments)
                     this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
                 // Fill up the list so there's always MaxNumRecentPayments
-                while (this.historicPayments.length < MaxNumRecentPayments)
-                    this.historicPayments.push({});
+                //while( this.historicPayments.length < MaxNumRecentPayments )
+                //    this.historicPayments.push( {} );
             }
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
@@ -287,7 +295,7 @@ var Ally;
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
-        AssessmentPaymentFormController.prototype.makeWePayPayment = function (fundingTypeName) {
+        AssessmentPaymentFormController.prototype.submitWePayPayment = function (fundingTypeName) {
             var _this = this;
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
@@ -391,7 +399,7 @@ var Ally;
         /**
          * Occurs when the user presses the button to setup auto-pay for assessments
          */
-        AssessmentPaymentFormController.prototype.onSetupAutoPay = function (fundingTypeName) {
+        AssessmentPaymentFormController.prototype.onSetupWePayAutoPay = function (fundingTypeName) {
             var _this = this;
             this.isLoading_Payment = true;
             this.$http.get("/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName).then(function (httpResponse) {
@@ -418,7 +426,7 @@ var Ally;
             this.isLoading_Payment = true;
             this.$http.get("/api/WePayPayment/DisableAutoPay").then(function () {
                 _this.isLoading_Payment = false;
-                _this.isAutoPayActive = false;
+                _this.isWePayAutoPayActive = false;
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
@@ -503,9 +511,21 @@ var Ally;
             this.$http.post("/api/Dwolla/MakePayment", this.paymentInfo).then(function (response) {
                 _this.isLoading_Payment = false;
                 _this.dwollaPaymentMessage = "Payment Successfully Processed";
+                _this.refreshHistoricPayments();
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
                 _this.dwollaPaymentMessage = "Payment failed: " + errorResponse.data.exceptionMessage;
+            });
+        };
+        AssessmentPaymentFormController.prototype.refreshHistoricPayments = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.get("/api/MyProfile/RecentPayments").then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.historicPayments = response.data;
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                console.log("Failed to refresh rescent payments: " + errorResponse.data.exceptionMessage);
             });
         };
         /**
@@ -599,6 +619,26 @@ var Ally;
         AssessmentPaymentFormController.prototype.reloadPage = function () {
             this.isLoading_Payment = true;
             window.location.reload();
+        };
+        AssessmentPaymentFormController.prototype.enableDwollaAutoPay = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.put("/api/Dwolla/EnableAutoPay/" + encodeURIComponent(this.newDwollaAutoPayAmount), null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to enable Dwolla auto-pay: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.prototype.disableDwollaAutoPay = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.put("/api/Dwolla/DisableAutoPay", null).then(function (httpResponse) {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to disable Dwolla auto-pay: " + httpResponse.data.exceptionMessage);
+            });
         };
         AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
         return AssessmentPaymentFormController;

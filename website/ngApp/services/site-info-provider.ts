@@ -52,6 +52,7 @@ namespace Ally
         dwollaFundingSourceName: string;
         dwollaFundingSourceIsVerified: boolean;
         defaultDigestFrequency: string;
+        dwollaAutoPayAmount: number | null;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];
@@ -87,7 +88,7 @@ namespace Ally
     export class RecentPayment
     {
         electronic: any;
-        Periodic: any;
+        periodic: any;
         date: Date;
         amount: number;
     }

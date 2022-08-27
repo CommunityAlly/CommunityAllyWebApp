@@ -25,7 +25,7 @@
                 <button type="button" class="btn btn-primary" data-ng-click="$ctrl.shouldShowMicroDepositModal = true">Enter Micro-Deposit Amounts</button>
                 <br />
                 <span class="note-text">(If you're seeing this but are not expecting to enter micro-deposits, please contact support.)</span>
-                <div class="mt-3 text-right">
+                <div class="mt-3 text-left note-text">
                     Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
                 </div>
             </div>
@@ -127,11 +127,11 @@
             <div class="amount_field row">
                 <div class="col-sm-4 pay_check">
                     <label>Amount</label>
-                    <input class="form-control grey" type="text" value="" data-ng-disabled="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-model="$ctrl.paymentInfo.amount" data-ng-change="$ctrl.onPaymentAmountChange()" />
+                    <input class="form-control grey" type="text" value="" data-ng-disabled="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-model="$ctrl.paymentInfo.amount" data-ng-change="$ctrl.onPaymentAmountChange()" autocomplete="off" data-lpignore="true" data-form-type="other" />
                 </div>
                 <div class="col-sm-8 memo">
                     <label>Memo</label>
-                    <input class="form-control grey" type="text" placeholder="" data-ng-model="$ctrl.paymentInfo.note" autocomplete="off" />
+                    <input class="form-control grey" type="text" placeholder="" data-ng-model="$ctrl.paymentInfo.note" autocomplete="off" data-lpignore="true" data-form-type="other" />
                     <div data-ng-show="$ctrl.paymentInfo.paymentType == 'periodic'" data-ng-click="$ctrl.onIncorrectPayDetails()" class="text-link margin-top-10">{{ $ctrl.errorPayInfoText }}</div>
                 </div>
                 <i class="error" ng-show="$ctrl.paymentError">{{$ctrl.paymentErrorMessage}}</i>
@@ -141,12 +141,12 @@
                 <p class="margin-top-30" style="margin-bottom: 0;">You can use <a target="_blank" href="https://www.wepay.com/">WePay</a> to safely and securely handle payments.</p>
                 <p class="buttons">
                     <span class="text-center d-inline-block">
-                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.makeWePayPayment('ach');" value="Pay with E-Check">
+                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitWePayPayment('ach');" value="Pay with E-Check">
                         <br />
                         {{ $ctrl.assessmentAchFeeLabel }}
                     </span>
                     <span class="text-center d-inline-block">
-                        <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.makeWePayPayment('cc');" value="Pay with Debit/Credit Card">
+                        <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.submitWePayPayment('cc');" value="Pay with Debit/Credit Card">
                         <br />
                         {{ $ctrl.assessmentCreditCardFeeLabel }}
                     </span>
@@ -154,7 +154,7 @@
             </div>
 
             <div class="buttons margin-top-30 text-center" ng-if="$ctrl.isDwollaReadyForPayment">
-                <p class="text-left margin-top-30" style="margin-bottom: 0;">You can use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely handle payments.</p>
+                <p class="text-left margin-top-30" style="margin-bottom: 0;">You are setup to use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely handle payments.</p>
 
                 <div class="text-center d-inline-block">
                     <div data-ng-if="$ctrl.dwollaPaymentMessage">
@@ -166,9 +166,15 @@
                     <div data-ng-if="!$ctrl.dwollaPaymentMessage">
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitDwollaPayment()" value="Submit Payment">
                         <br />
-                        Clicking this button will submit payment. {{$ctrl.dwollaFeePercent}}% fee (max ${{$ctrl.dwollaMaxFee}}) ({{$ctrl.dwollaFeeAmountString}}) applies.
-                        <div class="mt-3 text-right">
-                            Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
+                        <b>Clicking this button will submit payment.</b>
+                        <div data-ng-if="$ctrl.currentDwollaAutoPayAmount > 0" class="text-error" style="color: blue;">
+                            NOTE: You have auto-pay setup so be careful of double payments.
+                        </div>
+                        <div>
+                            You can cancel within 24 hours of payment. {{$ctrl.dwollaFeePercent}}% fee (max ${{$ctrl.dwollaMaxFee}}) ({{$ctrl.dwollaFeeAmountString}}) applies.
+                            <div class="mt-3 text-right note-text">
+                                Account: <b>{{$ctrl.dwollaFundingSourceName}}</b> - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -297,23 +303,23 @@
                 </div>
             </div>
 
-            <fieldset data-ng-style="{'display': $ctrl.isAutoPayActive ? 'block':'none'}">
-                <legend>Auto-Pay</legend>
-                <div data-ng-show="$ctrl.isAutoPayActive">
+            <fieldset data-ng-style="{'display': $ctrl.isWePayAutoPayActive ? 'block':'none'}">
+                <legend>WePay Auto-Pay</legend>
+                <div data-ng-show="$ctrl.isWePayAutoPayActive">
                     Auto-pay is successfully enabled. {{ $ctrl.nextAutoPayText }}<br />
                     <span class="text-button" data-ng-click="$ctrl.onDisableAutoPay()">Disable Auto-pay</span>
                 </div>
-                <div data-ng-hide="$ctrl.isAutoPayActive">
+                <div data-ng-hide="$ctrl.isWePayAutoPayActive">
                     <p>You can automatically send your assessment payment. {{ $ctrl.nextAutoPayText }}</p>
                     <div>
                         <div style="display:inline-block; text-align: center;">
-                            <input type="button" class="btn btn-primary" data-ng-click="$ctrl.onSetupAutoPay('ach');" value="Setup with E-Check">
+                            <input type="button" class="btn btn-primary" data-ng-click="$ctrl.onSetupWePayAutoPay('ach');" value="Setup with E-Check">
                             <br />
                             {{ $ctrl.assessmentAchFeeLabel }}
                         </div>
 
                         <div style="display:inline-block; text-align: center;">
-                            <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.onSetupAutoPay('cc');" value="Setup with Debit/Credit Card">
+                            <input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.onSetupWePayAutoPay('cc');" value="Setup with Debit/Credit Card">
                             <br />
                             {{ $ctrl.assessmentCreditCardFeeLabel }}
                         </div>
@@ -324,6 +330,36 @@
                         on ACH pre-approvals. We'll update this as soon as we hear an update. In the meantime, consider making manual
                         payments.
                     </p>
+                    <br />
+                    <p class="note-text">
+                        <cite>
+                            Unfortunately, we cannot make any guarantees regarding the automatic payment system as that is handled by our
+                            secure third-party payment provider. You are responsible for making sure your payments are made on time to
+                            avoid any late penalties that your association may enforce.
+                        </cite>
+                    </p>
+                </div>
+            </fieldset>
+
+            <fieldset class="mt-3" data-ng-if="$ctrl.shouldShowDwollaAutoPayArea">
+                <legend style="font-size: large;">Auto-Pay</legend>
+                <div data-ng-if="$ctrl.currentDwollaAutoPayAmount > 0">
+                    Auto-pay is enabled for <b>{{ $ctrl.currentDwollaAutoPayAmount | currency }}</b>. {{ $ctrl.nextAutoPayText }}
+                    <br />
+                    <br />
+                    <span class="text-button" data-ng-click="$ctrl.disableDwollaAutoPay()">Disable Auto-pay</span>
+                </div>
+                <div data-ng-if="!$ctrl.currentDwollaAutoPayAmount">
+                    <p>You can setup automatic payments here. You will receive an email a few days before payment occurs. {{ $ctrl.nextAutoPayText }}</p>
+                    <div>
+                        <div style="display:inline-block; text-align: center;">
+                            $<input class="form-control grey" type="number" data-ng-model="$ctrl.newDwollaAutoPayAmount" style="display: inline; width: 200px;" data-ng-enter="$ctrl.enableDwollaAutoPay()" autocomplete="off" data-lpignore="true" data-form-type="other" />
+
+                            <input type="button" class="btn btn-primary" data-ng-click="$ctrl.enableDwollaAutoPay()" value="Enable Auto-Pay">
+                            <br />
+                            {{$ctrl.dwollaFeePercent}}% fee (max ${{$ctrl.dwollaMaxFee}}) ({{$ctrl.dwollaFeeAmountString}}) applies.
+                        </div>
+                    </div>
                     <br />
                     <p class="note-text">
                         <cite>
@@ -360,11 +396,11 @@
 
         <div class="mt-3">
             <div class="manage_pannel text-right">
-                <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">View Payment History</span>
-                <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">View Payment Information</span>
+                <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">Payment History</span>
+                <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">Payment Information</span>
+                <resident-transactions class="ml-3" data-ng-if="$ctrl.shouldShowOwnerFinanceTxn"></resident-transactions>
             </div>
-            <resident-transactions data-ng-if="$ctrl.shouldShowOwnerFinanceTxn"></resident-transactions>
-
+            
             <div class="mt-4">
                 <div id="payment_history" data-ng-if="$ctrl.showExtraInfo === 'payment-history'">
                     <h4>Payment History</h4>
@@ -376,6 +412,7 @@
                         </div>
                     </div>
                     <p data-ng-if="!$ctrl.historicPayments.length">You have no payment history.</p>
+                    <!--<span class="text-link" data-ng-click="$ctrl.refreshHistoricPayments()">refresh</span>-->
                 </div>
 
                 <div id="pm_info" data-ng-if="$ctrl.showExtraInfo === 'payment-info'">

@@ -19,11 +19,11 @@ namespace Ally
         hasAssessments: boolean;
         assessmentFrequency: number;
         allyAppName: string;
-        isAutoPayActive: boolean;
+        isWePayAutoPayActive: boolean;
         nextAutoPayText: string;
         paymentInfo: MakePaymentRequest;
         myRecentPayments: ElectronicPayment[];
-        historicPayments: any[];
+        historicPayments: RecentPayment[];
         assessmentAmount: number;
         nextPaymentText: string;
         knowsNextPayment: boolean;
@@ -72,6 +72,9 @@ namespace Ally
         dwollaMicroDepositAmount1String: string = "0.01";
         dwollaMicroDepositAmount2String: string = "0.01";
         shouldShowOwnerFinanceTxn: boolean = false;
+        shouldShowDwollaAutoPayArea: boolean = true;
+        currentDwollaAutoPayAmount: number | null = null;
+        newDwollaAutoPayAmount: string | null = null;
 
 
         /**
@@ -104,98 +107,105 @@ namespace Ally
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
 
-            this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
-            if( this.isDwollaUserAccountVerified )
+            if( this.isDwollaEnabledOnGroup )
             {
-                this.dwollaUserStatus = "verified";
-                this.hasDwollaFundingSource = HtmlUtil2.isValidString( this.siteInfo.userInfo.dwollaFundingSourceName );
-
-                if( !this.hasDwollaFundingSource )
+                this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+                if( this.isDwollaUserAccountVerified )
                 {
-                    this.$http.get( "/api/Dwolla/HasComplexPassword" ).then(
-                        ( response: ng.IHttpPromiseCallbackArg<boolean> ) => this.hasComplexPassword = response.data
-                    );
+                    this.dwollaUserStatus = "verified";
+                    this.hasDwollaFundingSource = HtmlUtil2.isValidString( this.siteInfo.userInfo.dwollaFundingSourceName );
+
+                    if( !this.hasDwollaFundingSource )
+                    {
+                        this.$http.get( "/api/Dwolla/HasComplexPassword" ).then(
+                            ( response: ng.IHttpPromiseCallbackArg<boolean> ) => this.hasComplexPassword = response.data
+                        );
+                    }
+                    else
+                    {
+                        this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
+                        this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
+                        this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+
+                        if( this.isDwollaReadyForPayment )
+                        {
+                            // Check the user's Dwolla balance, delayed since it's not important
+                            this.$timeout( () =>
+                            {
+                                this.$http.get( "/api/Dwolla/DwollaBalance" ).then(
+                                    ( response: ng.IHttpPromiseCallbackArg<any> ) => this.dwollaBalance = response.data.balanceAmount
+                                );
+                            }, 1000 );
+
+                            this.shouldShowDwollaAutoPayArea = ( this.isDwollaReadyForPayment && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com" )
+                                || ( typeof this.currentDwollaAutoPayAmount === "number" && !isNaN( this.currentDwollaAutoPayAmount ) && this.currentDwollaAutoPayAmount > 1 );
+                        }
+
+                    }
                 }
                 else
                 {
-                    this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
-                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                    this.dwollaUserStatus = "checking";
+                    this.userFullName = this.siteInfo.userInfo.fullName;
+                    this.userEmail = this.siteInfo.userInfo.emailAddress;
 
-                    if( this.isDwollaReadyForPayment )
+                    const getDwollaDocUploadToken = () =>
                     {
-                        // Check the user's Dwolla balance, delayed since it's not important
-                        this.$timeout( () =>
-                        {
-                            this.$http.get( "/api/Dwolla/DwollaBalance" ).then(
-                                ( response: ng.IHttpPromiseCallbackArg<any> ) => this.dwollaBalance = response.data.balanceAmount
-                            );
-                        }, 1000 );
-                    }
-
-                }
-            }
-            else
-            {
-                this.dwollaUserStatus = "checking";
-                this.userFullName = this.siteInfo.userInfo.fullName;
-                this.userEmail = this.siteInfo.userInfo.emailAddress;
-
-                const getDwollaDocUploadToken = () =>
-                {
-                    this.$http.get( "/api/Dwolla/DocumentUploadToken" ).then(
-                        ( response: ng.IHttpPromiseCallbackArg<string> ) =>
-                        {
-                            const uploadToken = response.data;
-
-                            window.setTimeout( () =>
+                        this.$http.get( "/api/Dwolla/DocumentUploadToken" ).then(
+                            ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                             {
-                                dwolla.configure( {
-                                    environment: AppConfigInfo.dwollaEnvironmentName,
-                                    styles: "/main.css",
-                                    token: () =>
-                                    {
-                                        const deferred = this.$q.defer();
-                                        deferred.resolve( uploadToken );
-                                        return deferred.promise;
-                                    },
-                                    //token: () => Promise.resolve( uploadToken ),
-                                    success: ( res: any ) => alert( res ),
-                                    error: ( err: any ) => alert( err )
-                                } );
-                            }, 200 );
-                        },
-                        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                        {
-                            this.dwollaUserStatus = "error";
-                        }
-                    );
-                };
+                                const uploadToken = response.data;
 
-                const checkDwollaStatus = () =>
-                {
-                    this.$http.get( "/api/Dwolla/MyAccountStatus" ).then(
-                        ( response: ng.IHttpPromiseCallbackArg<DwollaAccountStatusInfo> ) =>
-                        {
-                            this.dwollaUserStatus = response.data.status;
-                            this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
+                                window.setTimeout( () =>
+                                {
+                                    dwolla.configure( {
+                                        environment: AppConfigInfo.dwollaEnvironmentName,
+                                        styles: "/main.css",
+                                        token: () =>
+                                        {
+                                            const deferred = this.$q.defer();
+                                            deferred.resolve( uploadToken );
+                                            return deferred.promise;
+                                        },
+                                        //token: () => Promise.resolve( uploadToken ),
+                                        success: ( res: any ) => alert( res ),
+                                        error: ( err: any ) => alert( err )
+                                    } );
+                                }, 200 );
+                            },
+                            ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                            {
+                                this.dwollaUserStatus = "error";
+                            }
+                        );
+                    };
 
-                            //if( this.dwollaUserStatus === "document" )
-                            //    getDwollaDocUploadToken();
-                        },
-                        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                        {
-                            this.dwollaUserStatus = "error";
-                        }
-                    );
-                };
+                    const checkDwollaStatus = () =>
+                    {
+                        this.$http.get( "/api/Dwolla/MyAccountStatus" ).then(
+                            ( response: ng.IHttpPromiseCallbackArg<DwollaAccountStatusInfo> ) =>
+                            {
+                                this.dwollaUserStatus = response.data.status;
+                                this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
 
-                this.$timeout( () => checkDwollaStatus(), 500 );
+                                //if( this.dwollaUserStatus === "document" )
+                                //    getDwollaDocUploadToken();
+                            },
+                            ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                            {
+                                this.dwollaUserStatus = "error";
+                            }
+                        );
+                    };
+
+                    this.$timeout( () => checkDwollaStatus(), 500 );
+                }
             }
 
             this.allyAppName = AppConfig.appName;
-            this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
+            this.isWePayAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
             this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "Service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
@@ -204,10 +214,10 @@ namespace Ally
             this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
 
-            if( !this.isAutoPayActive && HtmlUtil.isNumericString( HtmlUtil.GetQueryStringParameter( "preapproval_id" ) ) )
+            if( !this.isWePayAutoPayActive && HtmlUtil.isNumericString( HtmlUtil.GetQueryStringParameter( "preapproval_id" ) ) )
             {
                 // The user just set up auto-pay and it may take a second
-                this.isAutoPayActive = true;
+                this.isWePayAutoPayActive = true;
             }
 
             this.nextAutoPayText = this.siteInfo.userInfo.nextAutoPayText;
@@ -239,8 +249,8 @@ namespace Ally
                     this.historicPayments = this.historicPayments.slice( 0, MaxNumRecentPayments );
 
                 // Fill up the list so there's always MaxNumRecentPayments
-                while( this.historicPayments.length < MaxNumRecentPayments )
-                    this.historicPayments.push( {} );
+                //while( this.historicPayments.length < MaxNumRecentPayments )
+                //    this.historicPayments.push( {} );
             }
 
             // If the user lives in a unit and assessments are enabled
@@ -430,7 +440,7 @@ namespace Ally
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
-        makeWePayPayment( fundingTypeName: string )
+        submitWePayPayment( fundingTypeName: string )
         {
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
@@ -582,7 +592,7 @@ namespace Ally
         /**
          * Occurs when the user presses the button to setup auto-pay for assessments
          */
-        onSetupAutoPay( fundingTypeName: string )
+        onSetupWePayAutoPay( fundingTypeName: string )
         {
             this.isLoading_Payment = true;
 
@@ -621,7 +631,7 @@ namespace Ally
             this.$http.get( "/api/WePayPayment/DisableAutoPay" ).then( () =>
             {
                 this.isLoading_Payment = false;
-                this.isAutoPayActive = false;
+                this.isWePayAutoPayActive = false;
 
             }, ( httpResponse ) =>
             {
@@ -750,16 +760,39 @@ namespace Ally
 
             this.isLoading_Payment = true;
 
-            this.$http.post( "/api/Dwolla/MakePayment", this.paymentInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.dwollaPaymentMessage = "Payment Successfully Processed";
+            this.$http.post( "/api/Dwolla/MakePayment", this.paymentInfo ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.dwollaPaymentMessage = "Payment Successfully Processed";
 
-            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.dwollaPaymentMessage = "Payment failed: " + errorResponse.data.exceptionMessage;
-            } );
+                    this.refreshHistoricPayments();
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.dwollaPaymentMessage = "Payment failed: " + errorResponse.data.exceptionMessage;
+                }
+            );
+        }
+
+
+        refreshHistoricPayments()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.get( "/api/MyProfile/RecentPayments" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<RecentPayment[]> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.historicPayments = response.data;
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    console.log( "Failed to refresh rescent payments: " + errorResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -899,6 +932,42 @@ namespace Ally
         {
             this.isLoading_Payment = true;
             window.location.reload();
+        }
+
+
+        enableDwollaAutoPay()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.put( "/api/Dwolla/EnableAutoPay/" + encodeURIComponent( this.newDwollaAutoPayAmount ), null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();                    
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to enable Dwolla auto-pay: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        disableDwollaAutoPay()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.put( "/api/Dwolla/DisableAutoPay", null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to disable Dwolla auto-pay: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
     }
 
