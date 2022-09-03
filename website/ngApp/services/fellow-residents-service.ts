@@ -399,7 +399,9 @@
          */
         static isNonPropMgrBoardPosition( boardPosition: number )
         {
-            if( boardPosition < 1 || boardPosition === FellowResidentsService.BoardPos_PropertyManager )
+            if( boardPosition < 1 // Handle invalid values
+                || boardPosition === FellowResidentsService.BoardPos_None
+                || boardPosition === FellowResidentsService.BoardPos_PropertyManager )
                 return false;
 
             return true;

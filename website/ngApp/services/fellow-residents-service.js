@@ -270,7 +270,9 @@ var Ally;
          * Test if a board position is any except the property manager
          */
         FellowResidentsService.isNonPropMgrBoardPosition = function (boardPosition) {
-            if (boardPosition < 1 || boardPosition === FellowResidentsService.BoardPos_PropertyManager)
+            if (boardPosition < 1 // Handle invalid values
+                || boardPosition === FellowResidentsService.BoardPos_None
+                || boardPosition === FellowResidentsService.BoardPos_PropertyManager)
                 return false;
             return true;
         };
