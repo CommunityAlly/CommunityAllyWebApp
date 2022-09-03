@@ -15,6 +15,7 @@
                     <h5 class="text-link" style="display: inline;" data-ng-click="$ctrl.displayDiscussModal( thread )">{{ thread.title }}</h5>
                     <img alt="toggle thread pinning" title="Pin threads to make them show up at the top" data-ng-if="$ctrl.showBoardOnly" style="cursor: pointer; width: 15px; vertical-align: text-top; margin-left: 6px;" data-ng-click="$ctrl.onClickPin( thread )" data-ng-src="{{thread.pinnedDateUtc ? '/assets/images/pin-24-blue.png' : '/assets/images/pin-24-gray.png'}}" />
                     <img alt="thread is pinned" title="This thread has been pinned to the top" data-ng-if="!$ctrl.showBoardOnly && thread.pinnedDateUtc" style="width: 15px; vertical-align: text-top; margin-left: 6px;" src="/assets/images/pin-24-blue.png" />
+                    <span data-ng-if="thread.isBoardOnly" class="badge badge-secondary">Board-Only</span>
                 </div>
 
                 <span class="note-text" style="display: block;" data-ng-if="thread.numCommentsSinceLastRead === 0">
