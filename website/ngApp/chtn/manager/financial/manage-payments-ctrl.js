@@ -36,7 +36,7 @@ var Ally;
             this.PaymentHistory = [];
             this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
-            this.PeriodicPaymentFrequencies = PeriodicPaymentFrequencies;
+            this.periodicPaymentFrequencies = PeriodicPaymentFrequencies;
             this.AssociationPaysAch = true;
             this.AssociationPaysCC = false; // Payer pays credit card fees
             this.lateFeeInfo = {};

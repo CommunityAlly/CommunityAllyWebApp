@@ -24,7 +24,7 @@
 
                     <div ng-switch-when="1">
                         <span>How often do residents pay assessments?</span><br>
-                        <div data-ng-repeat="timeUnit in $ctrl.PeriodicPaymentFrequencies" style="margin-bottom: 10px;">
+                        <div data-ng-repeat="timeUnit in $ctrl.periodicPaymentFrequencies" style="margin-bottom: 10px;">
                             <div class="text-link" data-ng-click="$ctrl.signUp_AssessmentFrequency( $index )">{{ timeUnit.name }}</div>
                             <div class="note-text" data-ng-if="timeUnit.signUpNote">{{ timeUnit.signUpNote }}</div>
                         </div>
@@ -41,7 +41,7 @@
                         </div>
                         <br>
                         <div data-ng-show="$ctrl.signUpInfo.allPayTheSame">
-                            Every unit pays <input class="form-control form-control-sm" style="width: 90px;" data-ng-model="$ctrl.signUpInfo.allPayTheSameAmount" type="number"> per <span>{{ $ctrl.PeriodicPaymentFrequencies[ $ctrl.signUpInfo.frequencyIndex ].intervalName }}</span>.<br>
+                            Every unit pays <input class="form-control form-control-sm" style="width: 90px;" data-ng-model="$ctrl.signUpInfo.allPayTheSameAmount" type="number"> per <span>{{ $ctrl.periodicPaymentFrequencies[ $ctrl.signUpInfo.frequencyIndex ].intervalName }}</span>.<br>
                             <span class="text-link" data-ng-click="$ctrl.signUpInfo.allPayTheSame=false">Click here if each unit pays a different amount.</span>
                         </div>
                         <div data-ng-hide="$ctrl.signUpInfo.allPayTheSame">
