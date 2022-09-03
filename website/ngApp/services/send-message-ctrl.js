@@ -28,8 +28,7 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
             var isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
-            this.shouldShowSendAsBoard = !isRecipientWholeBoard
-                && (this.siteInfo.userInfo.boardPosition !== Ally.FellowResidentsService.BoardPos_None && this.siteInfo.userInfo.boardPosition !== Ally.FellowResidentsService.BoardPos_PropertyManager);
+            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isRecipientWholeBoard;
         };
         /// Display the send modal
         SendMessageController.prototype.showSendModal = function () {

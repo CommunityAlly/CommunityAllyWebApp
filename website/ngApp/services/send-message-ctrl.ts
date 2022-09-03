@@ -36,8 +36,7 @@
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
 
             const isRecipientWholeBoard = this.recipientInfo.userId === GroupMembersController.AllBoardUserId;
-            this.shouldShowSendAsBoard = !isRecipientWholeBoard
-                && ( this.siteInfo.userInfo.boardPosition !== FellowResidentsService.BoardPos_None && this.siteInfo.userInfo.boardPosition !== FellowResidentsService.BoardPos_PropertyManager );
+            this.shouldShowSendAsBoard = FellowResidentsService.isNonPropMgrBoardPosition( this.siteInfo.userInfo.boardPosition ) && !isRecipientWholeBoard;
         }
 
 
