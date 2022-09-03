@@ -1,4 +1,5 @@
 ﻿declare var dwolla: any;
+declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 
 namespace Ally
 {
@@ -21,6 +22,8 @@ namespace Ally
         allyAppName: string;
         isWePayAutoPayActive: boolean;
         nextAutoPayText: string;
+        autoPayFrequencyLabel: string;
+        assessmentFrequencyInfo: PeriodicPaymentFrequency;
         paymentInfo: MakePaymentRequest;
         myRecentPayments: ElectronicPayment[];
         historicPayments: RecentPayment[];
@@ -74,8 +77,7 @@ namespace Ally
         shouldShowOwnerFinanceTxn: boolean = false;
         shouldShowDwollaAutoPayArea: boolean = true;
         currentDwollaAutoPayAmount: number | null = null;
-        newDwollaAutoPayAmount: string | null = null;
-
+        
 
         /**
          * The constructor for the class
@@ -138,9 +140,6 @@ namespace Ally
                                     ( response: ng.IHttpPromiseCallbackArg<any> ) => this.dwollaBalance = response.data.balanceAmount
                                 );
                             }, 1000 );
-
-                            this.shouldShowDwollaAutoPayArea = ( this.isDwollaReadyForPayment && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com" )
-                                || ( typeof this.currentDwollaAutoPayAmount === "number" && !isNaN( this.currentDwollaAutoPayAmount ) && this.currentDwollaAutoPayAmount > 1 );
                         }
 
                     }
@@ -221,14 +220,29 @@ namespace Ally
             }
 
             this.nextAutoPayText = this.siteInfo.userInfo.nextAutoPayText;
-
+            
             // Grab the assessment from the user's unit (TODO handle multiple units)
             if( this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0 )
             {
-                this.assessmentAmount = this.siteInfo.userInfo.usersUnits[0].assessment;
+                this.assessmentAmount = this.siteInfo.userInfo.usersUnits
+                    .filter( uu => !uu.isRenter )
+                    .reduce( ( total, uu ) => total + ( uu.assessment || 0 ), 0 );
             }
             else
                 this.assessmentAmount = 0;
+
+            // Show the Dwolla auto-pay area if the group's Dwolla is setup and
+            // assessment frequncy is defined, or if the user already has auto-pay
+            this.shouldShowDwollaAutoPayArea = ( this.isDwollaReadyForPayment
+                && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com"
+                && this.siteInfo.privateSiteInfo.assessmentFrequency != null
+                && this.assessmentAmount > 0 )
+                || ( typeof this.currentDwollaAutoPayAmount === "number" && !isNaN( this.currentDwollaAutoPayAmount ) && this.currentDwollaAutoPayAmount > 1 );
+
+            if( this.shouldShowDwollaAutoPayArea )
+            {
+                this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find( ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency );
+            }
 
             this.paymentInfo =
             {
@@ -559,7 +573,7 @@ namespace Ally
         {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
-
+            
             this.updatePaymentText();
             this.onPaymentAmountChange();
         }
@@ -820,18 +834,26 @@ namespace Ally
         }
 
 
+        getFeeAmount( amount: number )
+        {
+            // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
+            // So we only need to divide by 100 to get our rounded fee
+            let feeAmount = Math.ceil( amount * this.dwollaFeePercent ) / 100;
+
+            // Cap the fee at $5 for premium, $10 for free plan groups
+            if( feeAmount > this.dwollaMaxFee )
+                feeAmount = this.dwollaMaxFee;
+
+            return feeAmount;
+        }
+
+
         /**
          * Occurs when the amount to pay changes
          */
         onPaymentAmountChange()
         {
-            // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
-            // So we only need to divide by 100 to get our rounded fee
-            var feeAmount = Math.ceil( this.paymentInfo.amount * this.dwollaFeePercent ) / 100;
-
-            // Cap the fee at $5 for premium, $10 for free plan groups
-            if( feeAmount > this.dwollaMaxFee )
-                feeAmount = this.dwollaMaxFee;
+            const feeAmount = this.getFeeAmount( this.paymentInfo.amount );
 
             this.dwollaFeeAmountString = "$" + feeAmount.toFixed( 2 );
         }
@@ -939,7 +961,7 @@ namespace Ally
         {
             this.isLoading_Payment = true;
 
-            this.$http.put( "/api/Dwolla/EnableAutoPay/" + encodeURIComponent( this.newDwollaAutoPayAmount ), null ).then(
+            this.$http.put( "/api/Dwolla/EnableAutoPay/" + encodeURIComponent( this.assessmentAmount.toString() ), null ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     window.location.reload();                    
