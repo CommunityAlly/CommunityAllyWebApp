@@ -36,7 +36,7 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/PublicCustomPage/View/" + this.$routeParams.slug ).then(
+            this.$http.get( "/api/PublicCustomPage/View/" + this.$routeParams.slug, { cache: true } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<CustomPage> ) =>
                 {
                     this.isLoading = false;

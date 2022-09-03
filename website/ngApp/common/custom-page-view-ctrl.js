@@ -20,7 +20,7 @@ var Ally;
         CustomPageViewController.prototype.$onInit = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug).then(function (httpResponse) {
+            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug, { cache: true }).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.customPage = httpResponse.data;
                 _this.markupHtml = _this.$sce.trustAsHtml(_this.customPage.markupHtml);
