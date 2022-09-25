@@ -44,36 +44,32 @@ var Ally;
          * Populate the polls section from the server
          */
         ActivePollsController.prototype.refreshPolls = function () {
-            // Grab the polls
+            var _this = this;
+            // Grab the polls from the server
             this.isLoading = true;
-            var innerThis = this;
-            this.$http({ method: 'GET', url: '/api/Poll?getActive=1' }).
-                then(function (httpResponse) {
-                innerThis.isLoading = false;
+            this.$http.get("/api/Poll?getActive=1").then(function (httpResponse) {
+                _this.isLoading = false;
                 // Delay the processing a bit to help the home page load faster
-                innerThis.$timeout(function () {
-                    innerThis.populatePollData(httpResponse.data);
-                }, 100);
+                _this.$timeout(function () { return _this.populatePollData(httpResponse.data); }, 100);
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         /**
          * Occurs when the user selects a poll answer
          */
         ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer) {
+            var _this = this;
             this.isLoading = true;
             var answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
             var writeInAnswer = poll.writeInAnswer ? encodeURIComponent(poll.writeInAnswer) : "";
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + writeInAnswer;
-            var innerThis = this;
-            this.$http.put(putUri, null).
-                then(function (httpResponse) {
-                innerThis.polls = httpResponse.data;
-                innerThis.isLoading = false;
-                innerThis.refreshPolls();
-            }, function () {
-                innerThis.isLoading = false;
+            this.$http.put(putUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.refreshPolls();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to submit vote: " + response.data.exceptionMessage);
             });
         };
         ActivePollsController.prototype.onMultiResponseChange = function (poll, pollAnswer) {
@@ -101,6 +97,7 @@ var Ally;
             poll.localMultiSelectedAnswers = poll.answers.filter(function (a) { return a.isLocalMultiSelect; });
         };
         ActivePollsController.prototype.onSubmitMultiAnswer = function (poll) {
+            var _this = this;
             if (!poll.localMultiSelectedAnswers || poll.localMultiSelectedAnswers.length === 0) {
                 alert("Please select at least one reponse");
                 return;
@@ -108,14 +105,12 @@ var Ally;
             var answerIdsCsv = poll.localMultiSelectedAnswers.map(function (a) { return a.pollAnswerId; }).join(",");
             this.isLoading = true;
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + ((poll.isWriteInMultiSelected && poll.writeInAnswer) ? encodeURIComponent(poll.writeInAnswer) : '');
-            var innerThis = this;
-            this.$http.put(putUri, null).
-                then(function (httpResponse) {
-                innerThis.polls = httpResponse.data;
-                innerThis.isLoading = false;
-                innerThis.refreshPolls();
-            }, function () {
-                innerThis.isLoading = false;
+            this.$http.put(putUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.refreshPolls();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to submit vote: " + response.data.exceptionMessage);
             });
         };
         ActivePollsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "fellowResidents"];

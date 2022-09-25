@@ -41,11 +41,11 @@
 
             // If there are polls then tell the home to display the poll area
             if( pollData && pollData.length > 0 )
-                this.$rootScope.$broadcast("homeHasActivePolls");
+                this.$rootScope.$broadcast( "homeHasActivePolls" );
 
-            for( var pollIndex = 0; pollIndex < this.polls.length; ++pollIndex )
+            for( let pollIndex = 0; pollIndex < this.polls.length; ++pollIndex )
             {
-                var poll = this.polls[pollIndex];
+                const poll = this.polls[pollIndex];
 
                 if( poll.hasUsersUnitVoted )
                 {
@@ -66,24 +66,22 @@
          */
         refreshPolls()
         {
-            // Grab the polls
+            // Grab the polls from the server
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http( { method: 'GET', url: '/api/Poll?getActive=1' } ).
-                then( ( httpResponse:ng.IHttpPromiseCallbackArg<any[]> ) =>
+            this.$http.get( "/api/Poll?getActive=1" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Poll[]> ) =>
                 {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
 
                     // Delay the processing a bit to help the home page load faster
-                    innerThis.$timeout( function()
-                    {
-                        innerThis.populatePollData( httpResponse.data );
-                    }, 100 );
-                }, () =>
+                    this.$timeout( () => this.populatePollData( httpResponse.data ), 100 );
+                },
+                () =>
                 {
-                    innerThis.isLoading = false;
-                } );
+                    this.isLoading = false;
+                }
+            );
         }
 
 
@@ -97,20 +95,20 @@
             const answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
             const writeInAnswer = poll.writeInAnswer ? encodeURIComponent( poll.writeInAnswer ) : "";
 
-            var putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${writeInAnswer}`;
+            const putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${writeInAnswer}`;
 
-            var innerThis = this;
-            this.$http.put( putUri, null ).
-                then( function( httpResponse:any )
+            this.$http.put( putUri, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    innerThis.polls = httpResponse.data;
-                    innerThis.isLoading = false;
-
-                    innerThis.refreshPolls();
-                }, function()
+                    this.isLoading = false;
+                    this.refreshPolls();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
-                    innerThis.isLoading = false;
-                } );
+                    this.isLoading = false;
+                    alert( "Failed to submit vote: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -161,20 +159,20 @@
             
             this.isLoading = true;
             
-            var putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${( poll.isWriteInMultiSelected && poll.writeInAnswer ) ? encodeURIComponent( poll.writeInAnswer ) : ''}`;
+            const putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${( poll.isWriteInMultiSelected && poll.writeInAnswer ) ? encodeURIComponent( poll.writeInAnswer ) : ''}`;
 
-            var innerThis = this;
-            this.$http.put( putUri, null ).
-                then( function( httpResponse: any )
+            this.$http.put( putUri, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    innerThis.polls = httpResponse.data;
-                    innerThis.isLoading = false;
-
-                    innerThis.refreshPolls();
-                }, function()
+                    this.isLoading = false;
+                    this.refreshPolls();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
-                    innerThis.isLoading = false;
-                } );
+                    this.isLoading = false;
+                    alert( "Failed to submit vote: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }
