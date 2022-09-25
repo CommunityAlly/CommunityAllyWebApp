@@ -126,6 +126,11 @@ var Ally;
                 _this.isLoading = false;
                 _this.hasLoadedPage = true;
                 _this.hasAssessments = _this.siteInfo.privateSiteInfo.hasAssessments;
+                if (_this.hasAssessments) {
+                    var assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(function (ppf) { return ppf.id === _this.siteInfo.privateSiteInfo.assessmentFrequency; });
+                    if (assessmentFrequencyInfo)
+                        _this.assessmentFrequencyLabel = assessmentFrequencyInfo.name;
+                }
                 var data = httpResponse.data;
                 _this.paymentInfo = data;
                 _this.paymentsGridOptions.data = _this.paymentInfo.electronicPayments;

@@ -105,6 +105,7 @@ namespace Ally
         homeName: string;
         shouldShowPlaidTestSignUpButton: boolean = false;
         setAllAssessmentAmount: number;
+        assessmentFrequencyLabel: string;
         readonly HistoryPageSize: number = 50;
         
 
@@ -207,6 +208,12 @@ namespace Ally
                     this.hasLoadedPage = true;
 
                     this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
+                    if( this.hasAssessments )
+                    {
+                        const assessmentFrequencyInfo = PeriodicPaymentFrequencies.find( ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency );
+                        if( assessmentFrequencyInfo )
+                            this.assessmentFrequencyLabel = assessmentFrequencyInfo.name;
+                    }
 
                     var data = httpResponse.data;
                     this.paymentInfo = data;

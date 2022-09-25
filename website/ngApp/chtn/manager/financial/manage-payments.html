@@ -329,12 +329,15 @@
                 <div id="AssessmentsPanel" data-ng-if="$ctrl.hasAssessments">
                     <h3 class="margin-top">{{$ctrl.homeName}} Assessments</h3>
                     <p>
-                        The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. Click the assessment amount to adjust it.
+                        The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. Click the assessment amount below to adjust.
                         
                         <!--If you need to make an adjustment to a base assessment, please
                         contact support and they'll be happy to help you. If a unit receives a discount, you can use the adjusted assessment and
                         reason column to indicate as such. For example, some associations compensate their board members for their duty via a discount on their assessment.-->
                     </p>
+                    <div>
+                        Assessment Frequency: <b>{{$ctrl.assessmentFrequencyLabel}}</b>
+                    </div>
                     <div class="wide_tble_wrap">
                         <table class="table table-bordered">
                             <thead>
