@@ -387,6 +387,7 @@ var Ally;
                 allUnit.isSelectedForEditUser = isSelected;
             });
             if (this.editUser.postmarkReportedBadEmailUtc && Ally.HtmlUtil2.isValidString(this.editUser.postmarkReportedBadEmailReason)) {
+                this.editUser.badEmailDate = this.editUser.postmarkReportedBadEmailUtc;
                 if (this.editUser.postmarkReportedBadEmailReason === "SpamComplaint"
                     || this.editUser.postmarkReportedBadEmailReason === "SpamComplaint")
                     this.editUser.friendlyBadEmailReason = "SpamReport";

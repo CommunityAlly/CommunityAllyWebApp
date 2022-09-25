@@ -103,6 +103,7 @@ namespace Ally
         isRenter: boolean;
         commRestriction: string;
         friendlyBadEmailReason: string;
+        badEmailDate: Date|null;
 
         // Not from the server
         fullName: string;
@@ -558,6 +559,8 @@ namespace Ally
 
             if( this.editUser.postmarkReportedBadEmailUtc && HtmlUtil2.isValidString( this.editUser.postmarkReportedBadEmailReason ) )
             {
+                this.editUser.badEmailDate = this.editUser.postmarkReportedBadEmailUtc;
+
                 if( this.editUser.postmarkReportedBadEmailReason === "SpamComplaint"
                     || this.editUser.postmarkReportedBadEmailReason === "SpamComplaint" )
                     this.editUser.friendlyBadEmailReason = "SpamReport";
