@@ -78,6 +78,7 @@ var Ally;
                 var uploader = $('#JQDocsFileUploader');
                 uploader.fileupload({
                     autoUpload: true,
+                    pasteZone: null,
                     add: function (e, data) {
                         //var scopeElement = document.getElementById( 'documents-area' );
                         //var scope = angular.element( scopeElement ).scope();

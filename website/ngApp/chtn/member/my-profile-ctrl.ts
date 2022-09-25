@@ -86,6 +86,8 @@ namespace Ally
             {
                 const uploader: any = $( '#JQFileUploader' );
                 uploader.fileupload( {
+                    dropZone: null, // Disable dropping of files
+                    pasteZone: null, // Disable paste of data causing a file upload
                     add: ( e: any, data: any ) =>
                     {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + this.siteInfo.authToken;

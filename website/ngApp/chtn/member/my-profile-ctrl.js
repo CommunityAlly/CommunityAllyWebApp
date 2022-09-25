@@ -70,6 +70,8 @@ var Ally;
             var hookUpPhotoFileUpload = function () {
                 var uploader = $('#JQFileUploader');
                 uploader.fileupload({
+                    dropZone: null,
+                    pasteZone: null,
                     add: function (e, data) {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + _this.siteInfo.authToken;
                         if (_this.siteInfo.publicSiteInfo.baseApiUrl)

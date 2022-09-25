@@ -245,6 +245,8 @@ namespace Ally
             $( () =>
             {
                 $( '#JQLoginImageFileUploader' ).fileupload( {
+                    dropZone: null, // Disable dropping of files
+                    pasteZone: null, // Disable paste of data causing a file upload
                     autoUpload: true,
                     add: ( e: any, data: any ) =>
                     {

@@ -166,6 +166,8 @@ var Ally;
             var _this = this;
             $(function () {
                 $('#JQLoginImageFileUploader').fileupload({
+                    dropZone: null,
+                    pasteZone: null,
                     autoUpload: true,
                     add: function (e, data) {
                         _this.$scope.$apply(function () {

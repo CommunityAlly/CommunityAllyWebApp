@@ -142,6 +142,7 @@ namespace Ally
 
                 uploader.fileupload( {
                     autoUpload: true,
+                    pasteZone: null, // Disable paste causing upload
                     add: ( e: any, data: any ) =>
                     {
                         //var scopeElement = document.getElementById( 'documents-area' );
