@@ -33,7 +33,7 @@ var Ally;
             this.emailUsageAverageNumMonths = 0;
             this.emailUsageAverageSent = 0;
             this.showInvoiceSection = false;
-            this.paymentType = "creditCard";
+            this.paymentType = "ach";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;

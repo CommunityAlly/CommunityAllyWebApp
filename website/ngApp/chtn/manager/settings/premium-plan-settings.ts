@@ -39,7 +39,7 @@ namespace Ally
         meteredUsage: MeteredFeaturesUsage;
         viewPremiumInvoiceViewId: string;
         showInvoiceSection: boolean = false;
-        paymentType: string = "creditCard";
+        paymentType: string = "ach";
 
 
         /**
