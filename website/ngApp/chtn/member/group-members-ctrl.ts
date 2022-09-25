@@ -23,6 +23,7 @@ namespace Ally
         unitList: UnitListing[];
         memberSearchTerm: string;
         boardMembers: FellowChtnResident[];
+        boardPropMgrs: FellowChtnResident[];
         committees: CommitteeListingInfo[];
         boardMessageRecipient: any;
         allOwners: any[];
@@ -77,7 +78,9 @@ namespace Ally
                 else
                     this.allResidents = _.sortBy( this.allResidents, r => ( r.fullName || "" ).toLowerCase() );
 
-                this.boardMembers = _.filter( this.allResidents, function( r: any ) { return r.boardPosition !== 0; } );
+                this.boardMembers = _.filter( this.allResidents, ( r: FellowChtnResident ) => r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager );
+                this.boardPropMgrs = _.filter( this.allResidents, ( r: FellowChtnResident ) => r.boardPosition === FellowResidentsService.BoardPos_PropertyManager );
+
                 this.boardMessageRecipient = null;
                 if( this.boardMembers.length > 0 )
                 {
@@ -97,10 +100,10 @@ namespace Ally
                 if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
                     this.allResidents = _.filter( this.allResidents, function( r ) { return r.boardPosition === 0; } );
                 
-                for( var i = 0; i < this.boardMembers.length; ++i )
-                {
-                    this.boardMembers[i].boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => { return bm.id === this.boardMembers[i].boardPosition; } ).name;
-                }
+                for( let i = 0; i < this.boardMembers.length; ++i )
+                    this.boardMembers[i].boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === this.boardMembers[i].boardPosition ).name;
+
+                this.boardPropMgrs.forEach( bpm => bpm.boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === bpm.boardPosition ).name );
 
                 var boardSortOrder = [
                     1,

@@ -44,7 +44,8 @@ var Ally;
                     _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.lastName || "").toLowerCase(); });
                 else
                     _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.fullName || "").toLowerCase(); });
-                _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== 0; });
+                _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== Ally.FellowResidentsService.BoardPos_None && r.boardPosition !== Ally.FellowResidentsService.BoardPos_PropertyManager; });
+                _this.boardPropMgrs = _.filter(_this.allResidents, function (r) { return r.boardPosition === Ally.FellowResidentsService.BoardPos_PropertyManager; });
                 _this.boardMessageRecipient = null;
                 if (_this.boardMembers.length > 0) {
                     var hasBoardEmail = _.some(_this.boardMembers, function (m) { return m.hasEmail; });
@@ -60,9 +61,13 @@ var Ally;
                 // Remove board members from the member list
                 if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                     _this.allResidents = _.filter(_this.allResidents, function (r) { return r.boardPosition === 0; });
-                for (var i = 0; i < _this.boardMembers.length; ++i) {
+                var _loop_1 = function (i) {
                     _this.boardMembers[i].boardPositionName = _.find(Ally.FellowResidentsService.BoardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
+                };
+                for (var i = 0; i < _this.boardMembers.length; ++i) {
+                    _loop_1(i);
                 }
+                _this.boardPropMgrs.forEach(function (bpm) { return bpm.boardPositionName = _.find(Ally.FellowResidentsService.BoardPositionNames, function (bm) { return bm.id === bpm.boardPosition; }).name; });
                 var boardSortOrder = [
                     1,
                     64,
