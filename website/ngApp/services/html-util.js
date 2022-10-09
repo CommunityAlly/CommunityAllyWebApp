@@ -300,14 +300,17 @@ var Ally;
                 }, mimeType, 0.75);
             });
         };
-        HtmlUtil2.initTinyMce = function (elemId, heightPixels) {
+        HtmlUtil2.initTinyMce = function (elemId, heightPixels, overrideOptions) {
             if (elemId === void 0) { elemId = "tiny-mce-editor"; }
             if (heightPixels === void 0) { heightPixels = 400; }
+            if (overrideOptions === void 0) { overrideOptions = null; }
             var mcePromise = new Promise(function (resolve, reject) {
                 var loadRtes = function () {
                     tinymce.remove();
+                    var menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
                     tinymce.init({
                         selector: '#' + elemId,
+                        menubar: menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',

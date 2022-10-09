@@ -461,7 +461,7 @@ namespace Ally
         }
 
 
-        static initTinyMce( elemId: string = "tiny-mce-editor", heightPixels: number = 400 ): Promise<ITinyMce>
+        static initTinyMce( elemId: string = "tiny-mce-editor", heightPixels: number = 400, overrideOptions: any = null ): Promise<ITinyMce>
         {
             const mcePromise = new Promise<ITinyMce>( ( resolve, reject ) =>
             {
@@ -469,8 +469,11 @@ namespace Ally
                 {
                     tinymce.remove();
 
+                    const menubar = ( overrideOptions && overrideOptions.menubar !== undefined ) ? overrideOptions.menubar : "edit insert format table";
+
                     tinymce.init( {
                         selector: '#' + elemId,
+                        menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
