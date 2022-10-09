@@ -206,10 +206,10 @@
                 return;
 
             this.messageObject.recipientType = this.selectedRecipient.recipientType;
-            const isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === "CUSTOM";
+            const isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === FellowResidentsService.CustomRecipientType;
             this.messageObject.customRecipientShortName = isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : null;
 
-            this.groupEmailAddress = this.messageObject.recipientType + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
+            this.groupEmailAddress = ( isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : this.selectedRecipient.recipientType ) + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
 
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";

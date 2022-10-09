@@ -106,6 +106,7 @@
     {
         public static readonly BoardPos_None: number = 0;
         public static readonly BoardPos_PropertyManager = 32;
+        public static readonly CustomRecipientType = "CUSTOM";
 
         static BoardPositionNames: { id: number, name: string }[] = [
             { id: FellowResidentsService.BoardPos_None, name: "None" },
