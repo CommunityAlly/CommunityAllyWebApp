@@ -321,6 +321,10 @@ var Ally;
         };
         ManageGroupsController.prototype.updatePremiumExpiration = function () {
             var _this = this;
+            if (!this.premiumNewExpiration) {
+                alert("Hey, dummy, enter a date. Ha!");
+                return;
+            }
             this.isLoading = true;
             var postUri = "/api/AdminHelper/SetPremiumExpiration/" + this.premiumUpdateGroupId + "?expirationDate=" + encodeURIComponent(this.premiumNewExpiration.toISOString());
             this.$http.put(postUri, null).then(function (response) {

@@ -516,6 +516,12 @@
 
         updatePremiumExpiration()
         {
+            if( !this.premiumNewExpiration )
+            {
+                alert( "Hey, dummy, enter a date. Ha!" );
+                return;
+            }
+
             this.isLoading = true;
 
             const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
