@@ -354,7 +354,7 @@
         <p id="toggle-email-history-link" class="text-link mt-4" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} Email History</p>
         <div data-ng-if="$ctrl.showEmailHistory" class="mb-5">
             <h4>Group Email History</h4>
-            <span class="note-text">Here you can view group emails sent in the last 6 months.</span>
+            <span class="note-text">Here you can view group emails sent in the last {{$ctrl.emailHistoryNumMonths}} months.</span> <span class="text-link note-text" data-ng-click="$ctrl.loadMoreRecentEmails()">Load 6 more months</span>
             <div data-ui-grid="$ctrl.emailHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
             <br />
         </div>

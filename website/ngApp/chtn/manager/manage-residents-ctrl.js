@@ -124,6 +124,8 @@ var Ally;
             this.isLoadingSettings = false;
             this.shouldSortUnitsNumerically = false;
             this.showEmailHistory = false;
+            this.emailHistorySinceDate = new Date();
+            this.emailHistoryNumMonths = 6;
             this.bulkParseNormalizeNameCase = false;
             this.showLaunchSite = true;
             this.showPendingMembers = false;
@@ -1076,6 +1078,23 @@ var Ally;
                     alert("Failed to load emails: " + response.data.exceptionMessage);
                 });
             }
+        };
+        /**
+         * Load 6 more months of email history
+         */
+        ManageResidentsController.prototype.loadMoreRecentEmails = function () {
+            var _this = this;
+            this.isLoadingSettings = true;
+            var NumMonthsStep = 6;
+            this.emailHistoryNumMonths += NumMonthsStep;
+            this.emailHistorySinceDate = moment(this.emailHistorySinceDate).subtract(NumMonthsStep, "months").toDate();
+            this.$http.get("/api/Email/RecentGroupEmails?sinceDateUtc=" + this.emailHistorySinceDate.toISOString()).then(function (response) {
+                _this.isLoadingSettings = false;
+                _this.emailHistoryGridOptions.data = _this.emailHistoryGridOptions.data.concat(response.data);
+            }, function (response) {
+                _this.isLoadingSettings = false;
+                alert("Failed to load emails: " + response.data.exceptionMessage);
+            });
         };
         ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
         return ManageResidentsController;

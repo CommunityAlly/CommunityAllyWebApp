@@ -204,6 +204,8 @@ namespace Ally
         hasOneAdmin: boolean;
         shouldSortUnitsNumerically: boolean = false;
         showEmailHistory: boolean = false;
+        emailHistorySinceDate: Date = new Date();
+        emailHistoryNumMonths: number = 6;
         bulkParseNormalizeNameCase: boolean = false;
         memberTypeLabel: string;
         showLaunchSite: boolean = true;
@@ -1461,17 +1463,46 @@ namespace Ally
             {
                 this.isLoadingSettings = true;
 
-                this.$http.get( "/api/Email/RecentGroupEmails" ).then( ( response: ng.IHttpPromiseCallbackArg<RecentEmail[]> ) =>
+                this.$http.get( "/api/Email/RecentGroupEmails" ).then(
+                    ( response: ng.IHttpPromiseCallbackArg<RecentEmail[]> ) =>
+                    {
+                        this.isLoadingSettings = false;
+                        this.emailHistoryGridOptions.data = response.data;
+
+                    },
+                    ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                    {
+                        this.isLoadingSettings = false;
+                        alert( "Failed to load emails: " + response.data.exceptionMessage );
+                    }
+                );
+            }
+        }
+
+
+        /**
+         * Load 6 more months of email history
+         */
+        loadMoreRecentEmails()
+        {
+            this.isLoadingSettings = true;
+
+            const NumMonthsStep = 6;
+            this.emailHistoryNumMonths += NumMonthsStep;
+            this.emailHistorySinceDate = moment( this.emailHistorySinceDate ).subtract( NumMonthsStep, "months" ).toDate();
+            
+            this.$http.get( "/api/Email/RecentGroupEmails?sinceDateUtc=" + this.emailHistorySinceDate.toISOString() ).then(
+                ( response: ng.IHttpPromiseCallbackArg<RecentEmail[]> ) =>
                 {
                     this.isLoadingSettings = false;
-                    this.emailHistoryGridOptions.data = response.data;
-
-                }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                    this.emailHistoryGridOptions.data = ( this.emailHistoryGridOptions.data as RecentEmail[] ).concat( response.data );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoadingSettings = false;
                     alert( "Failed to load emails: " + response.data.exceptionMessage );
-                } );
-            }
+                }
+            );
         }
     }
 }
