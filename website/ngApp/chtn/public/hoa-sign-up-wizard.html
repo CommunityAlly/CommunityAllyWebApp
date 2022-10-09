@@ -65,16 +65,19 @@
                 <div style="position: relative;">
                     <div id="map-loading-overlay" class="loading-overlay" data-ng-show="$ctrl.isLoadingMap"></div>
                     <p>
-                        Enter your home street address. If you don't live in the HOA, enter the address of any home in the association. It
+                        First, enter your home street address. If you don't live in the HOA, enter the address of any home in the association. It
                         is required that you enter a valid street address.
                     </p>
                     <label style="font-weight: bold;">Your Address:</label> <input id="association-address-text-box" type="text" style="width:100%;" data-ng-change="$ctrl.checkAddress()" data-ng-model-options="{ debounce: 750 }" data-ng-model="$ctrl.signUpInfo.address" /><br />
 
                     <br />
                     <p>
-                        Define the boundries of your HOA. Move the points of the blue box so that it covers your
+                        Next, define the boundries of your HOA. Move the points of the red box so that it covers your
                         entire HOA, as accurately as possible, but you don't need to be perfect. Drag the edit mid-points
-                        in order to adjust the shape. An HOA Ally representative
+                        in order to adjust the shape.
+                    </p>
+                    <p>
+                        An HOA Ally representative
                         will reach out to you after sign-up to review list of homes in your HOA. If you already have a list of all
                         addresses in your HOA, please complete sign-up and provide the list to the representative when contacted.
                     </p>

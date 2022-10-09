@@ -286,13 +286,13 @@ namespace Ally
         onFinishedWizard()
         {
             this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
-
+            
             if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.recaptchaKey ) )
             {
                 alert( "Please complete the reCAPTCHA field" );
                 return;
             }
-
+            
             this.isLoading = true;
 
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
