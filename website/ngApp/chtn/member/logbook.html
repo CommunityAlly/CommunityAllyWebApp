@@ -76,14 +76,30 @@
 
                         <p class="text-center">
                             <label>
-                                <input type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )" data-ng-change="$ctrl.onShouldSendChange()"
+                                <input type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )"
+                                       data-ng-change="$ctrl.onShouldSendChange()"
                                        data-ng-disabled="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )"
-                                       data-ng-model="$ctrl.editEvent.shouldSendNotification" />Send a reminder e-mail
+                                       data-ng-model="$ctrl.editEvent.shouldSendNotification" />
+                                Send a reminder e-mail
+
+                                <span style="display: inline" data-ng-if="$ctrl.editEvent.shouldSendNotification" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                                    <input class="form-control form-control-sm d-inline-block"
+                                           style="width: 40px;" type="text"
+                                           data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
+                                           data-ng-disabled="!$ctrl.editEvent.shouldSendNotification"
+                                           data-ng-change="$ctrl.onChangeEmailDaysBefore()"
+                                           data-ng-model="$ctrl.editEvent.notificationEmailDaysBefore"
+                                           autocomplete="off">
+                                    {{ $ctrl.editEvent.notificationEmailDaysBefore == 1 ? 'day' : 'days' }} before event
+                                </span>
+                                <span data-ng-show="$ctrl.showBadNotificationDateWarning" class="text-warning" style="display: block">
+                                    You can only go back {{ $ctrl.maxDaysBack }} {{ $ctrl.maxDaysBack == 1 ? 'day' : 'days' }} for the reminder to be sent.
+                                </span>
                             </label>
                         </p>
 
                         <div data-ng-if="$ctrl.editEvent.shouldSendNotification">
-                            <div class="text-center" data-ng-show="!$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )">
+                            <!--<div class="text-center" data-ng-show="!$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )">
                                 <p data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
                                     <input class="form-control form-control-sm d-inline-block" style="width: 40px;" type="text" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
                                            data-ng-disabled="!$ctrl.editEvent.shouldSendNotification" data-ng-change="$ctrl.onChangeEmailDaysBefore()"
@@ -92,18 +108,90 @@
                                 <p data-ng-show="$ctrl.showBadNotificationDateWarning" class="text-warning">
                                     You can only go back {{ $ctrl.maxDaysBack }} {{ $ctrl.maxDaysBack == 1 ? 'day' : 'days' }} for the reminder to be sent.
                                 </p>
-                            </div>
+                            </div>-->
 
                             <div class="form-group row" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                <label class="col-sm-3 col-xs-12">Send To:</label>
-                                <div class="col-sm-9 col-xs-12">
-                                    <div class="resident-list-box">
-                                        <div data-ng-repeat="resident in $ctrl.residents">
-                                            <label data-ng-class="{'grayed':!resident.hasEmail}">
-                                                <input type="checkbox" data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
-                                                       data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onResidentClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No e-mail on file)" }}
+                                <label class="col-sm-2 col-xs-12">Send To:</label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <select class="form-control" data-ng-model="$ctrl.editEvent.emailGroupShortName" data-ng-options="g.groupShortName as g.displayLabel for g in $ctrl.associatedGroups">
+                                        <option></option>
+                                    </select>
+                                <!--</div>
+                            </div>
+
+                            <div class="form-group row" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                                <label class="col-sm-2 col-xs-12">Send To2:</label>
+                                <div class="col-sm-10 col-xs-12">-->
+                                    <div class="resident-list-box" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'">
+
+                                        <!--<div id="accordion">
+        <div class="card">
+            <div class="card-header" style="padding: 0;" id="headingGroups">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseGroups" aria-expanded="true" aria-controls="collapseGroups">
+                        Groups
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseGroups" class="collapse" aria-labelledby="headingGroups" data-parent="#accordion">
+                <div class="card-body">
+                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" style="padding: 0;" id="headingIndividuals">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseIndividuals" aria-expanded="false" aria-controls="collapseIndividuals">
+                        Individuals <span class="note-text">({{$ctrl.residents.filter(r=>r.isAssociated).length}} selected)</span>
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseIndividuals" class="collapse" aria-labelledby="headingIndividuals" data-parent="#accordion">
+                <div class="card-body">
+
+                    <div data-ng-repeat="resident in $ctrl.residents">
+                        <label data-ng-class="{'grayed':!resident.hasEmail}">
+                            <input type="checkbox" data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
+                                   data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onResidentClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No e-mail on file)" }}
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>-->
+
+                                        <!--<div class="mb-1">
+                                            <h5 style="display:inline; text-decoration: underline;">Groups</h5>
+                                            <span class="note-text ml-2">({{$ctrl.getNumSelectedGroups()}} selected)</span>
+                                        </div>
+                                        <div data-ng-repeat="curGroup in $ctrl.associatedGroups">
+                                            <label>
+                                                <input type="checkbox"
+                                                       data-ng-disabled="!$ctrl.editEvent.shouldSendNotification"
+                                                       data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
+                                                       data-ng-model="curGroup.isAssociated">
+                                                {{curGroup.displayLabel}}
                                             </label>
                                         </div>
+
+                                        <div class="mb-1 mt-2">
+                                            <h5 style="display: inline; text-decoration: underline;">Individuals</h5>
+                                            <span class="note-text ml-2">({{$ctrl.getNumSelectedIndividuals()}} selected)</span>
+                                        </div>-->
+                                        <div data-ng-repeat="resident in $ctrl.residents">
+                                            <label data-ng-class="{'grayed':!resident.hasEmail}">
+                                                <input type="checkbox"
+                                                       data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
+                                                       data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
+                                                       data-ng-model="resident.isAssociated"
+                                                       data-ng-click="$ctrl.onResidentClicked( resident )">
+                                                {{resident.fullName}} {{ resident.hasEmail ? "" : "(No e-mail on file)" }}
+                                            </label>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>

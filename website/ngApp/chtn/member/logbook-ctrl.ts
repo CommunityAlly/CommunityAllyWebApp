@@ -7,10 +7,10 @@ namespace Ally
     {
         static $inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
 
-        calendarEvents: any[];
+        calendarEvents: uiCalendarEntry[];
         residents: FellowChtnResident[];
         viewEvent: any;
-        editEvent: any;
+        editEvent: CalendarEvent;
         maxDaysBack: number;
         showBadNotificationDateWarning: boolean = false;
         isLoadingNews: boolean = false;
@@ -23,6 +23,8 @@ namespace Ally
         groupTimeZoneAbbreviation: string;
         localTimeZoneDiffersFromGroup: boolean = false;
         tinyMceEditor: ITinyMce;
+        associatedGroups: AssociatedGroup[] = [];
+        readonly GroupShortNameIndividuals = "Individuals";
 
         static DateFormat = "YYYY-MM-DD";
         static TimeFormat = "h:mma";
@@ -42,8 +44,8 @@ namespace Ally
         */
         $onInit()
         {
-            let tempMoment = <any>moment();
-            let localTimeZone: string = ( <any>moment ).tz.guess();
+            const tempMoment = <any>moment();
+            const localTimeZone: string = ( <any>moment ).tz.guess();
             this.currentTimeZoneAbbreviation = tempMoment.tz( localTimeZone ).format( 'z' );
 
             if( this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
@@ -75,7 +77,7 @@ namespace Ally
                     center: 'title',
                     right: 'month listYear'
                 },
-                viewRender: function( view: any, element: JQuery )
+                viewRender: ( view: any, element: JQuery ) =>
                 {
                     $( element ).css( "cursor", "pointer" );
                 },
@@ -168,60 +170,76 @@ namespace Ally
 
                 $( ".fc-bg td.fc-today" ).append( "<div class='today-note'>Today</div>" );
             } );
+
+            this.fellowResidents.getGroupEmailObject().then( ( emailList: Ally.GroupEmailInfo[] ) =>
+            {
+                this.associatedGroups = emailList.map( e =>
+                {
+                    const isCustomRecipientGroup = e.recipientType.toUpperCase() === FellowResidentsService.CustomRecipientType;
+                    
+                    return {
+                        groupShortName: isCustomRecipientGroup ? ( "custom:" + e.recipientTypeName ) : e.recipientType,
+                        displayLabel: e.displayName,
+                        isAssociated: false
+                    };
+                } );
+
+                this.associatedGroups.push( { displayLabel: this.GroupShortNameIndividuals, groupShortName: this.GroupShortNameIndividuals, isAssociated: false } );
+            } );
         }
 
 
         getAllEvents( startDate: moment.Moment, endDate: moment.Moment )
         {
             var loadNewsToCalendar = false;
-            var loadLogbookToCalendar = true;
+            const loadLogbookToCalendar = false;
             var loadPollsToCalendar = AppConfig.isChtnSite;
 
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
 
-            var firstDay = startDate.format( LogbookController.DateFormat );
-            var lastDay = endDate.format( LogbookController.DateFormat );
+            const firstDay = startDate.format( LogbookController.DateFormat );
+            const lastDay = endDate.format( LogbookController.DateFormat );
 
-            var newsDeferred = this.$q.defer();
-            var logbookDeferred = this.$q.defer();
-            var pollDeferred = this.$q.defer();
-
+            const newsDeferred = this.$q.defer();
+            const logbookDeferred = this.$q.defer();
+            const pollDeferred = this.$q.defer();
 
             if( loadNewsToCalendar )
             {
                 this.isLoadingNews = true;
 
-                var innerThis = this;
-                this.$http.get( "/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
-                {
-                    var data = <any[]>httpResponse.data;
-
-                    innerThis.isLoadingNews = false;
-
-                    _.each( data, function( entry: any )
+                this.$http.get( "/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay ).then(
+                    ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                     {
-                        var shortText = entry.text;
-                        if( shortText.length > 10 )
-                            shortText = shortText.substring( 0, 10 ) + "...";
+                        var data = <any[]>httpResponse.data;
 
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        this.isLoadingNews = false;
 
-                        innerThis.calendarEvents.push( {
-                            title: "Notice: " + shortText,
-                            start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
-                            toolTipTitle: "Notice Added",
-                            fullDescription: fullDescription
+                        _.each( data, function( entry: any )
+                        {
+                            var shortText = entry.text;
+                            if( shortText.length > 10 )
+                                shortText = shortText.substring( 0, 10 ) + "...";
+
+                            var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+
+                            this.calendarEvents.push( {
+                                title: "Notice: " + shortText,
+                                start: moment( entry.postDate ).toDate(),
+                                toolTipTitle: "Notice Added",
+                                fullDescription: fullDescription
+                            } );
                         } );
-                    } );
 
-                    newsDeferred.resolve();
-
-                }, function()
-                    {
-                        innerThis.isLoadingNews = false;
                         newsDeferred.resolve();
-                    } );
+                    },
+                    () =>
+                    {
+                        this.isLoadingNews = false;
+                        newsDeferred.resolve();
+                    }
+                );
             }
             else
                 newsDeferred.resolve();
@@ -230,36 +248,38 @@ namespace Ally
             {
                 this.isLoadingLogbookForCalendar = true;
 
-                var innerThis = this;
-                this.$http.get( "/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
-                {
-                    var data = httpResponse.data;
-
-                    innerThis.isLoadingLogbookForCalendar = false;
-
-                    _.each( data, function( entry: any )
+                this.$http.get( "/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay ).then(
+                    ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                     {
-                        var shortText = entry.text;
-                        if( shortText.length > 10 )
-                            shortText = shortText.substring( 0, 10 ) + "...";
+                        var data = httpResponse.data;
 
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        this.isLoadingLogbookForCalendar = false;
 
-                        innerThis.calendarEvents.push( {
-                            title: "Logbook: " + shortText,
-                            start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
-                            toolTipTitle: "Logbook Entry Added",
-                            fullDescription: fullDescription
+                        _.each( data, function( entry: any )
+                        {
+                            var shortText = entry.text;
+                            if( shortText.length > 10 )
+                                shortText = shortText.substring( 0, 10 ) + "...";
+
+                            var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+
+                            this.calendarEvents.push( {
+                                title: "Logbook: " + shortText,
+                                start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
+                                toolTipTitle: "Logbook Entry Added",
+                                fullDescription: fullDescription
+                            } );
                         } );
-                    } );
 
-                    logbookDeferred.resolve();
+                        logbookDeferred.resolve();
 
-                }, function()
-                {
-                    innerThis.isLoadingLogbookForCalendar = false;
-                    logbookDeferred.resolve();
-                } );
+                    },
+                    () =>
+                    {
+                        this.isLoadingLogbookForCalendar = false;
+                        logbookDeferred.resolve();
+                    }
+                );
             }
             else
                 logbookDeferred.resolve();
@@ -268,35 +288,40 @@ namespace Ally
             {
                 this.isLoadingPolls = true;
                 
-                this.$http.get( "/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-                {
-                    var data = httpResponse.data;
-
-                    this.isLoadingPolls = false;
-
-                    _.each( data, ( entry: any ) =>
+                this.$http.get( "/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay ).then(
+                    ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                     {
-                        var shortText = entry.text;
-                        if( shortText.length > 10 )
-                            shortText = shortText.substring( 0, 10 ) + "...";
+                        var data = httpResponse.data;
 
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        
-                        this.calendarEvents.push( {
-                            title: "Poll: " + shortText,
-                            start: moment( entry.postDate ).format( "YYYY-MM-DD" ),
-                            toolTipTitle: "Poll Added",
-                            fullDescription: fullDescription
+                        this.isLoadingPolls = false;
+
+                        _.each( data, ( entry: any ) =>
+                        {
+                            var shortText = entry.text;
+                            if( shortText.length > 10 )
+                                shortText = shortText.substring( 0, 10 ) + "...";
+
+                            var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+
+                            this.calendarEvents.push( {
+                                title: "Poll: " + shortText,
+                                start: moment( entry.postDate ).toDate(),
+                                calendarEventObject: null,
+                                toolTipTitle: "Poll Added",
+                                fullDescription: fullDescription,
+                                allDay: false
+                            } );
                         } );
-                    } );
 
-                    pollDeferred.resolve();
+                        pollDeferred.resolve();
 
-                }, () =>
-                {
-                    this.isLoadingPolls = false;
-                    pollDeferred.resolve();
-                } );
+                    },
+                    () =>
+                    {
+                        this.isLoadingPolls = false;
+                        pollDeferred.resolve();
+                    }
+                );
             }
             else
                 pollDeferred.resolve();
@@ -316,10 +341,9 @@ namespace Ally
 
             this.calendarEvents = [];
 
-            var innerThis = this;
-            this.getAllEvents( start, end ).then( function()
+            this.getAllEvents( start, end ).then( () =>
             {
-                callback( innerThis.calendarEvents );
+                callback( this.calendarEvents );
             } );
         }
 
@@ -328,69 +352,67 @@ namespace Ally
         {
             this.isLoadingCalendarEvents = true;
 
-            var firstDay = start.format( LogbookController.DateFormat );
-            var lastDay = end.format( LogbookController.DateFormat );
+            const firstDay = start.format( LogbookController.DateFormat );
+            const lastDay = end.format( LogbookController.DateFormat );
 
-            var innerThis = this;
-            this.$http.get( "/api/CalendarEvent?startDate=" + firstDay + "&endDate=" + lastDay ).then( function( httpResponse )
-            {
-                var data = <any[]>httpResponse.data;
-
-                var associationEvents: any[] = [];
-
-                innerThis.isLoadingCalendarEvents = false;
-
-                _.each( data, function( entry )
+            this.$http.get( "/api/CalendarEvent?startDate=" + firstDay + "&endDate=" + lastDay ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<CalendarEvent[]> ) =>
                 {
-                    var utcEventDate = moment.utc( entry.eventDateUtc );
-                    var utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
-                    var isAllDay = utcTimeOnly == LogbookController.NoTime;
+                    var associationEvents: uiCalendarEntry[] = [];
 
-                    var dateEntry;
-                    if( isAllDay )
+                    this.isLoadingCalendarEvents = false;
+
+                    _.each( httpResponse.data, ( entry: CalendarEvent ) =>
                     {
-                        entry.timeOnly = "";
-                        entry.dateOnly = new Date( utcEventDate.year(), utcEventDate.month(), utcEventDate.date() );
-                        dateEntry = new Date( utcEventDate.year(), utcEventDate.month(), utcEventDate.date() );
-                    }
-                    else
-                    {
-                        var localDate = moment.utc( entry.eventDateUtc ).local();
-                        entry.timeOnly = localDate.format( LogbookController.TimeFormat );
-                        entry.dateOnly = localDate.clone().startOf( 'day' ).toDate();
-                        dateEntry = localDate.toDate();
-                    }
+                        const utcEventDate = moment.utc( entry.eventDateUtc );
+                        const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
+                        const isAllDay = utcTimeOnly == LogbookController.NoTime;
 
-                    var shortText = entry.title;
-                    if( shortText && shortText.length > 10 )
-                        shortText = shortText.substring( 0, 10 ) + "...";
+                        let dateEntry: Date;
+                        if( isAllDay )
+                        {
+                            entry.timeOnly = "";
+                            entry.dateOnly = new Date( utcEventDate.year(), utcEventDate.month(), utcEventDate.date() );
+                            dateEntry = new Date( utcEventDate.year(), utcEventDate.month(), utcEventDate.date() );
+                        }
+                        else
+                        {
+                            const localDate = moment.utc( entry.eventDateUtc ).local();
+                            entry.timeOnly = localDate.format( LogbookController.TimeFormat );
+                            entry.dateOnly = localDate.clone().startOf( 'day' ).toDate();
+                            dateEntry = localDate.toDate();
+                        }
 
-                    var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
+                        var shortText = entry.title;
+                        if( shortText && shortText.length > 10 )
+                            shortText = shortText.substring( 0, 10 ) + "...";
 
-                    associationEvents.push( {
-                        //title: "Event: " + shortText,
-                        title: shortText,
-                        start: dateEntry,
-                        toolTipTitle: "Event",
-                        fullDescription: fullDescription,
-                        calendarEventObject: entry,
-                        allDay: isAllDay
+                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
+
+                        associationEvents.push( {
+                            title: shortText,
+                            start: dateEntry,
+                            toolTipTitle: "Event",
+                            fullDescription: fullDescription,
+                            calendarEventObject: entry,
+                            allDay: isAllDay
+                        } );
                     } );
-                } );
 
-                callback( associationEvents );
-
-            }, function()
+                    callback( associationEvents );
+                },
+                () =>
                 {
-                    innerThis.isLoadingCalendarEvents = false;
-                } );
+                    this.isLoadingCalendarEvents = false;
+                }
+            );
         }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks a user in the calendar event modal
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onResidentClicked = function( resident: FellowChtnResident )
+        onResidentClicked( resident: FellowChtnResident )
         {
             if( !resident.hasEmail )
             {
@@ -431,8 +453,8 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onChangeEmailDaysBefore()
         {
-            var notificationDate = moment( this.editEvent.dateOnly ).subtract( this.editEvent.notificationEmailDaysBefore, 'day' );
-            var today = moment();
+            const notificationDate = moment( this.editEvent.dateOnly ).subtract( this.editEvent.notificationEmailDaysBefore, 'day' );
+            const today = moment();
             this.showBadNotificationDateWarning = notificationDate.isBefore( today, 'day' ) || notificationDate.isSame( today, 'day' );
 
             if( this.showBadNotificationDateWarning )
@@ -440,8 +462,7 @@ namespace Ally
                 this.maxDaysBack = moment( this.editEvent.dateOnly ).diff( today, 'day' );
                 this.editEvent.notificationEmailDaysBefore = this.maxDaysBack;
 
-                var innerThis = this;
-                this.$timeout( function() { innerThis.showBadNotificationDateWarning = false; }, 10000 );
+                this.$timeout( function() { this.showBadNotificationDateWarning = false; }, 10000 );
             }
         }
 
@@ -464,7 +485,7 @@ namespace Ally
         {
             this.$timeout( () =>
             {
-                HtmlUtil2.initTinyMce( "tiny-mce-editor", 300 ).then( e =>
+                HtmlUtil2.initTinyMce( "tiny-mce-editor", 200, { menubar: false } ).then( e =>
                 {
                     this.tinyMceEditor = e;
 
@@ -506,6 +527,19 @@ namespace Ally
                     if( this.editEvent.associatedUserIds )
                         this.residents.filter( r => this.editEvent.associatedUserIds.indexOf( r.userId ) !== -1 ).forEach( r => r.isAssociated = true );
                 }
+
+                // Set the checked status for the associated groups
+                if( this.editEvent.associatedGroupShortNames )
+                {
+                    this.associatedGroups.forEach( ag =>
+                    {
+                        ag.isAssociated = this.editEvent.associatedGroupShortNames.indexOf( ag.groupShortName ) !== -1;
+                    } );
+                }
+                else
+                    this.associatedGroups.forEach( ag => ag.isAssociated = false );
+
+                this.editEvent.associatedGroupShortNames = this.associatedGroups.filter( ag => ag.isAssociated ).map( ag => ag.groupShortName );
 
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
 
@@ -616,7 +650,9 @@ namespace Ally
             if( !this.editEvent.shouldSendNotification )
                 this.editEvent.notificationEmailDaysBefore = null;
 
-            var httpFunc;
+            this.editEvent.associatedGroupShortNames = this.associatedGroups.filter( ag => ag.isAssociated ).map( ag => ag.groupShortName );
+
+            let httpFunc;
             if( this.editEvent.eventId )
                 httpFunc = this.$http.put;
             else
@@ -641,7 +677,62 @@ namespace Ally
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert( "Failed to save the calendar event: " + errorMessage );
             } );
-        };
+        }
+
+
+        getNumSelectedIndividuals()
+        {
+            return this.residents.filter( r => r.isAssociated ).length;
+        }
+
+
+        getNumSelectedGroups()
+        {
+            return this.associatedGroups.filter( g => g.isAssociated ).length;
+        }
+    }
+
+
+    class AssociatedGroup
+    {
+        groupShortName: string;
+        displayLabel: string;
+        isAssociated: boolean;
+    }
+
+
+    interface uiCalendarEntry
+    {
+        title: string;
+        start: Date;
+        toolTipTitle: string;
+        fullDescription: string;
+        calendarEventObject: CalendarEvent;
+        allDay: boolean;
+    }
+
+
+    class CalendarEvent
+    {
+        eventId: number;
+        eventDateUtc: Date;
+        title: string;
+        description: string;
+        notificationEmailDaysBefore: number | null;
+        groupId: number;
+        authorUserId: string;
+        authorName: string;
+        postDate: string;
+        associatedUserIds: string[];
+        associatedGroupShortNames: string[];
+        additionalEmailsString: string;
+        calendarEventId: string;
+        emailGroupShortName: string;
+
+        // Not from server
+        timeOnly: string;
+        dateOnly: Date;
+        shouldSendNotification: boolean;
     }
 }
 

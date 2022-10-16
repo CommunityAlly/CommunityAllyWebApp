@@ -24,21 +24,8 @@ var Ally;
             this.showExpandedCalendarEventModel = false;
             this.currentTimeZoneAbbreviation = "CT";
             this.localTimeZoneDiffersFromGroup = false;
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            // Occurs when the user clicks a user in the calendar event modal
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            this.onResidentClicked = function (resident) {
-                if (!resident.hasEmail) {
-                    alert("That user cannot be included because they do not have an e-mail address on file.");
-                    resident.isAssociated = false;
-                    return;
-                }
-                var alreadyExists = _.contains(this.editEvent.associatedUserIds, resident.userId);
-                if (alreadyExists)
-                    this.editEvent.associatedUserIds = _.without(this.editEvent.associatedUserIds, resident.userId);
-                else
-                    this.editEvent.associatedUserIds.push(resident.userId);
-            };
+            this.associatedGroups = [];
+            this.GroupShortNameIndividuals = "Individuals";
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // Hide the read-only calendar event view
             ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,11 +132,22 @@ var Ally;
                 $('#calendar-event-time').timepicker({ 'scrollDefault': '10:00am' });
                 $(".fc-bg td.fc-today").append("<div class='today-note'>Today</div>");
             });
+            this.fellowResidents.getGroupEmailObject().then(function (emailList) {
+                _this.associatedGroups = emailList.map(function (e) {
+                    var isCustomRecipientGroup = e.recipientType.toUpperCase() === Ally.FellowResidentsService.CustomRecipientType;
+                    return {
+                        groupShortName: isCustomRecipientGroup ? ("custom:" + e.recipientTypeName) : e.recipientType,
+                        displayLabel: e.displayName,
+                        isAssociated: false
+                    };
+                });
+                _this.associatedGroups.push({ displayLabel: _this.GroupShortNameIndividuals, groupShortName: _this.GroupShortNameIndividuals, isAssociated: false });
+            });
         };
         LogbookController.prototype.getAllEvents = function (startDate, endDate) {
             var _this = this;
             var loadNewsToCalendar = false;
-            var loadLogbookToCalendar = true;
+            var loadLogbookToCalendar = false;
             var loadPollsToCalendar = AppConfig.isChtnSite;
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
@@ -160,25 +158,24 @@ var Ally;
             var pollDeferred = this.$q.defer();
             if (loadNewsToCalendar) {
                 this.isLoadingNews = true;
-                var innerThis = this;
                 this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
-                    innerThis.isLoadingNews = false;
+                    _this.isLoadingNews = false;
                     _.each(data, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        innerThis.calendarEvents.push({
+                        this.calendarEvents.push({
                             title: "Notice: " + shortText,
-                            start: moment(entry.postDate).format("YYYY-MM-DD"),
+                            start: moment(entry.postDate).toDate(),
                             toolTipTitle: "Notice Added",
                             fullDescription: fullDescription
                         });
                     });
                     newsDeferred.resolve();
                 }, function () {
-                    innerThis.isLoadingNews = false;
+                    _this.isLoadingNews = false;
                     newsDeferred.resolve();
                 });
             }
@@ -186,16 +183,15 @@ var Ally;
                 newsDeferred.resolve();
             if (loadLogbookToCalendar) {
                 this.isLoadingLogbookForCalendar = true;
-                var innerThis = this;
                 this.$http.get("/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
-                    innerThis.isLoadingLogbookForCalendar = false;
+                    _this.isLoadingLogbookForCalendar = false;
                     _.each(data, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        innerThis.calendarEvents.push({
+                        this.calendarEvents.push({
                             title: "Logbook: " + shortText,
                             start: moment(entry.postDate).format("YYYY-MM-DD"),
                             toolTipTitle: "Logbook Entry Added",
@@ -204,7 +200,7 @@ var Ally;
                     });
                     logbookDeferred.resolve();
                 }, function () {
-                    innerThis.isLoadingLogbookForCalendar = false;
+                    _this.isLoadingLogbookForCalendar = false;
                     logbookDeferred.resolve();
                 });
             }
@@ -222,9 +218,11 @@ var Ally;
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         _this.calendarEvents.push({
                             title: "Poll: " + shortText,
-                            start: moment(entry.postDate).format("YYYY-MM-DD"),
+                            start: moment(entry.postDate).toDate(),
+                            calendarEventObject: null,
                             toolTipTitle: "Poll Added",
-                            fullDescription: fullDescription
+                            fullDescription: fullDescription,
+                            allDay: false
                         });
                     });
                     pollDeferred.resolve();
@@ -238,27 +236,26 @@ var Ally;
             return this.$q.all([newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise]);
         };
         LogbookController.prototype.getAssociationEvents = function (start, end, timezone, callback) {
+            var _this = this;
             if (this.onlyRefreshCalendarEvents) {
                 this.onlyRefreshCalendarEvents = undefined;
                 callback(this.calendarEvents);
                 return;
             }
             this.calendarEvents = [];
-            var innerThis = this;
             this.getAllEvents(start, end).then(function () {
-                callback(innerThis.calendarEvents);
+                callback(_this.calendarEvents);
             });
         };
         LogbookController.prototype.getCalendarEvents = function (start, end, timezone, callback) {
+            var _this = this;
             this.isLoadingCalendarEvents = true;
             var firstDay = start.format(LogbookController.DateFormat);
             var lastDay = end.format(LogbookController.DateFormat);
-            var innerThis = this;
             this.$http.get("/api/CalendarEvent?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
-                var data = httpResponse.data;
                 var associationEvents = [];
-                innerThis.isLoadingCalendarEvents = false;
-                _.each(data, function (entry) {
+                _this.isLoadingCalendarEvents = false;
+                _.each(httpResponse.data, function (entry) {
                     var utcEventDate = moment.utc(entry.eventDateUtc);
                     var utcTimeOnly = utcEventDate.format(LogbookController.TimeFormat);
                     var isAllDay = utcTimeOnly == LogbookController.NoTime;
@@ -279,7 +276,6 @@ var Ally;
                         shortText = shortText.substring(0, 10) + "...";
                     var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
                     associationEvents.push({
-                        //title: "Event: " + shortText,
                         title: shortText,
                         start: dateEntry,
                         toolTipTitle: "Event",
@@ -290,8 +286,23 @@ var Ally;
                 });
                 callback(associationEvents);
             }, function () {
-                innerThis.isLoadingCalendarEvents = false;
+                _this.isLoadingCalendarEvents = false;
             });
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks a user in the calendar event modal
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        LogbookController.prototype.onResidentClicked = function (resident) {
+            if (!resident.hasEmail) {
+                alert("That user cannot be included because they do not have an e-mail address on file.");
+                resident.isAssociated = false;
+                return;
+            }
+            var alreadyExists = _.contains(this.editEvent.associatedUserIds, resident.userId);
+            if (alreadyExists)
+                this.editEvent.associatedUserIds = _.without(this.editEvent.associatedUserIds, resident.userId);
+            else
+                this.editEvent.associatedUserIds.push(resident.userId);
         };
         LogbookController.prototype.isDateInPast = function (date) {
             var momentDate = moment(date);
@@ -315,8 +326,7 @@ var Ally;
             if (this.showBadNotificationDateWarning) {
                 this.maxDaysBack = moment(this.editEvent.dateOnly).diff(today, 'day');
                 this.editEvent.notificationEmailDaysBefore = this.maxDaysBack;
-                var innerThis = this;
-                this.$timeout(function () { innerThis.showBadNotificationDateWarning = false; }, 10000);
+                this.$timeout(function () { this.showBadNotificationDateWarning = false; }, 10000);
             }
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,7 +342,7 @@ var Ally;
         LogbookController.prototype.hookUpWysiwyg = function () {
             var _this = this;
             this.$timeout(function () {
-                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 300).then(function (e) {
+                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 200, { menubar: false }).then(function (e) {
                     _this.tinyMceEditor = e;
                     if (_this.editEvent && _this.editEvent.description)
                         _this.tinyMceEditor.setContent(_this.editEvent.description);
@@ -357,6 +367,15 @@ var Ally;
                     if (this.editEvent.associatedUserIds)
                         this.residents.filter(function (r) { return _this.editEvent.associatedUserIds.indexOf(r.userId) !== -1; }).forEach(function (r) { return r.isAssociated = true; });
                 }
+                // Set the checked status for the associated groups
+                if (this.editEvent.associatedGroupShortNames) {
+                    this.associatedGroups.forEach(function (ag) {
+                        ag.isAssociated = _this.editEvent.associatedGroupShortNames.indexOf(ag.groupShortName) !== -1;
+                    });
+                }
+                else
+                    this.associatedGroups.forEach(function (ag) { return ag.isAssociated = false; });
+                this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(function (ag) { return ag.isAssociated; }).map(function (ag) { return ag.groupShortName; });
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
@@ -434,6 +453,7 @@ var Ally;
             }
             if (!this.editEvent.shouldSendNotification)
                 this.editEvent.notificationEmailDaysBefore = null;
+            this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(function (ag) { return ag.isAssociated; }).map(function (ag) { return ag.groupShortName; });
             var httpFunc;
             if (this.editEvent.eventId)
                 httpFunc = this.$http.put;
@@ -452,7 +472,12 @@ var Ally;
                 alert("Failed to save the calendar event: " + errorMessage);
             });
         };
-        ;
+        LogbookController.prototype.getNumSelectedIndividuals = function () {
+            return this.residents.filter(function (r) { return r.isAssociated; }).length;
+        };
+        LogbookController.prototype.getNumSelectedGroups = function () {
+            return this.associatedGroups.filter(function (g) { return g.isAssociated; }).length;
+        };
         LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
         LogbookController.DateFormat = "YYYY-MM-DD";
         LogbookController.TimeFormat = "h:mma";
@@ -460,6 +485,16 @@ var Ally;
         return LogbookController;
     }());
     Ally.LogbookController = LogbookController;
+    var AssociatedGroup = /** @class */ (function () {
+        function AssociatedGroup() {
+        }
+        return AssociatedGroup;
+    }());
+    var CalendarEvent = /** @class */ (function () {
+        function CalendarEvent() {
+        }
+        return CalendarEvent;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("logbookPage", {
     templateUrl: "/ngApp/chtn/member/logbook.html",
