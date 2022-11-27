@@ -138,7 +138,7 @@ namespace Ally
             this.editPage.markupHtml = this.pageContentTinyMce.getContent();
             this.isLoading = true;
 
-            let httpFunc = this.editPage.customPageId ? this.$http.put : this.$http.post;
+            const httpFunc = this.editPage.customPageId ? this.$http.put : this.$http.post;
             httpFunc( `/api/CustomPage`, this.editPage ).then(
                 () =>
                 {
