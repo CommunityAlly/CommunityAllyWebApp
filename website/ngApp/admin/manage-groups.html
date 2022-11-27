@@ -95,7 +95,7 @@
 
     <form>
         <fieldset>
-            <legend>Add New Association</legend>
+            <legend>Add New Group</legend>
             <table>
                 <tr>
                     <td class="AlignRight">Short Name:</td>
@@ -167,7 +167,7 @@
                     </td>
                 </tr>
             </table>
-            <input type="button" value="Create New Association" data-ng-click="$ctrl.onCreateAssociationClick();" />
+            <input type="button" value="Create New Group" data-ng-click="$ctrl.onCreateAssociationClick();" />
         </fieldset>
     </form>
     <br />
@@ -224,8 +224,9 @@
         <input type="button" value="Clear Current App Group Cache" data-ng-click="$ctrl.onClearCurrentAppGroupCache()"><br />
         <input type="button" value="Clear Entire App Group Cache" data-ng-click="$ctrl.onClearEntireAppGroupCache()"><br />
         <input type="text" data-ng-model="$ctrl.logInAsEmail" /><button value="Clear App Group Cache" data-ng-click="$ctrl.logInAs()">Log-in As</button><br />
-        <input type="button" value="Populate Document Usage" data-ng-click="$ctrl.populateEmptyDocumentUsage()">
-        Force Group ID: <input type="number" data-ng-model="$ctrl.populateDocUsageGroupId" style="width: 70px;" />
+        <input type="button" value="Populate Empty Document Usage" data-ng-click="$ctrl.populateEmptyDocumentUsage()">
+        Force Group ID: <input type="number" data-ng-model="$ctrl.populateDocUsageGroupId" style="width: 70px;" /><br />
+        <input type="button" value="Refresh Current Group Document Usage" data-ng-click="$ctrl.refreshCurGroupDocumentUsage()">
         <br />
         <br />
         <textarea data-ng-model="$ctrl.inactiveShortNames" rows="10"></textarea><br />

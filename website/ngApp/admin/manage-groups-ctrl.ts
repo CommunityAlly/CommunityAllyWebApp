@@ -471,6 +471,28 @@
         }
 
 
+        refreshCurGroupDocumentUsage()
+        {
+            this.isLoading = true;
+
+            const getUri = "/api/AdminHelper/RecalcGroupDocumentUsage?groupId=" + this.curGroupId;
+
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    console.log( "Recalc Succeeded", response.data );
+                    alert( "Succeeded: " + response.data );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
         onAddAllyPayment()
         {
             this.isLoading = true;

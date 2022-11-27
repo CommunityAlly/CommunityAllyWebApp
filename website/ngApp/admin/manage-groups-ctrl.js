@@ -292,6 +292,19 @@ var Ally;
                 alert("Failed: " + response.data.exceptionMessage);
             });
         };
+        ManageGroupsController.prototype.refreshCurGroupDocumentUsage = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/AdminHelper/RecalcGroupDocumentUsage?groupId=" + this.curGroupId;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                console.log("Recalc Succeeded", response.data);
+                alert("Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
         ManageGroupsController.prototype.onAddAllyPayment = function () {
             var _this = this;
             this.isLoading = true;
