@@ -34,6 +34,7 @@ namespace Ally
         groupDwollaFundingSourceName: string;
         dwollaFundingSourceType: string;
         dwollaFundingIsVerified: boolean;
+        customFinancialInstructions: string;
     }
 
 
@@ -45,19 +46,12 @@ namespace Ally
     }
 
 
-    class PeriodInfo
-    {
-        info: Ally.PeriodicPaymentFrequency;
-        note: string;
-    }
-
-
     /**
      * The controller for the page to view online payment information
      */
     export class ManagePaymentsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
+        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope"];
 
         PaymentHistory: any[] = [];
         errorMessage = "";
@@ -106,6 +100,8 @@ namespace Ally
         shouldShowPlaidTestSignUpButton: boolean = false;
         setAllAssessmentAmount: number;
         assessmentFrequencyLabel: string;
+        shouldShowCustomInstructions: boolean = false;
+        pageContentTinyMce: ITinyMce;
         readonly HistoryPageSize: number = 50;
         
 
@@ -115,7 +111,8 @@ namespace Ally
         constructor( private $http: ng.IHttpService,
             private siteInfo: Ally.SiteInfoService,
             private appCacheService: AppCacheService,
-            private uiGridConstants: uiGrid.IUiGridConstants )
+            private uiGridConstants: uiGrid.IUiGridConstants,
+            private $scope: ng.IScope )
         {
         }
 
@@ -134,7 +131,7 @@ namespace Ally
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
 
             // Allow a single HOA to try WePay
-            let wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
+            const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
             this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
 
             this.payments = [
@@ -182,7 +179,7 @@ namespace Ally
                 paginationPageSize: this.HistoryPageSize,
                 paginationPageSizes: [this.HistoryPageSize],
                 enableRowHeaderSelection: false,
-                onRegisterApi: ( gridApi ) =>
+                onRegisterApi: () =>
                 {
                     // Fix dumb scrolling
                     HtmlUtil.uiGridFixScroll();
@@ -206,7 +203,7 @@ namespace Ally
                 {
                     this.isLoading = false;
                     this.hasLoadedPage = true;
-
+                    
                     this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
                     if( this.hasAssessments )
                     {
@@ -215,12 +212,15 @@ namespace Ally
                             this.assessmentFrequencyLabel = assessmentFrequencyInfo.name;
                     }
 
-                    var data = httpResponse.data;
+                    const data = httpResponse.data;
                     this.paymentInfo = data;
                     this.paymentsGridOptions.data = this.paymentInfo.electronicPayments;
                     this.paymentsGridOptions.enablePaginationControls = this.paymentInfo.electronicPayments.length > this.HistoryPageSize;
                     this.paymentsGridOptions.minRowsToShow = Math.min( this.paymentInfo.electronicPayments.length, this.HistoryPageSize );
                     this.paymentsGridOptions.virtualizationThreshold = this.paymentsGridOptions.minRowsToShow;
+
+                    if( HtmlUtil2.isValidString( this.paymentInfo.customFinancialInstructions ) )
+                        this.showCustomInstructionsEditor();
 
                     this.lateFeeInfo =
                     {
@@ -293,7 +293,7 @@ namespace Ally
 
         getLateFeeDateSuper()
         {
-            var dayOfMonth = this.lateFeeInfo.lateFeeDayOfMonth;
+            let dayOfMonth = this.lateFeeInfo.lateFeeDayOfMonth;
 
             if( typeof ( dayOfMonth ) === "string" )
             {
@@ -304,7 +304,7 @@ namespace Ally
                 this.lateFeeInfo.lateFeeDayOfMonth = dayOfMonth;
             }
 
-            if( dayOfMonth == NaN || dayOfMonth < 1 )
+            if( isNaN( dayOfMonth ) || dayOfMonth < 1 )
             {
                 dayOfMonth = "";
                 return "";
@@ -320,7 +320,7 @@ namespace Ally
             if( dayOfMonth >= 10 && dayOfMonth <= 20 )
                 return "th";
 
-            var onesDigit = dayOfMonth % 10;
+            const onesDigit = dayOfMonth % 10;
 
             if( onesDigit === 1 )
                 return "st";
@@ -353,7 +353,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.put( "/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
 
@@ -375,22 +375,25 @@ namespace Ally
             this.isLoading = true;
             this.payPalSignUpErrorMessage = null;
 
-            let enableInfo = {
+            const enableInfo = {
                 clientId: this.payPalSignUpClientId,
                 clientSecret: this.payPalSignUpClientSecret
             };
 
-            this.$http.put( "/api/OnlinePayment/EnablePayPal", enableInfo ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.payPalSignUpClientId = "";
-                this.payPalSignUpClientSecret = "";
-                window.location.reload();
+            this.$http.put( "/api/OnlinePayment/EnablePayPal", enableInfo ).then(
+                () =>
+                {
+                    this.payPalSignUpClientId = "";
+                    this.payPalSignUpClientSecret = "";
+                    window.location.reload();
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                this.payPalSignUpErrorMessage = httpResponse.data.exceptionMessage;
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    this.payPalSignUpErrorMessage = httpResponse.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -415,7 +418,7 @@ namespace Ally
             this.$http.get( "/api/OnlinePayment/PerformAction?action=withdrawal" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    var withdrawalInfo = httpResponse.data;
+                    const withdrawalInfo = httpResponse.data;
 
                     if( withdrawalInfo.redirectUri )
                         window.location.href = withdrawalInfo.redirectUri;
@@ -442,21 +445,26 @@ namespace Ally
             if( typeof ( unit.adjustedAssessment ) === "string" )
                 unit.adjustedAssessment = parseFloat( unit.adjustedAssessment )
 
-            var updateInfo: UpdateAssessmentInfo =
+            const updateInfo: UpdateAssessmentInfo =
             {
                 unitId: unit.unitId,
                 assessment: unit.adjustedAssessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
 
-            var innerThis = this;
-            this.$http.put( "/api/Unit/UpdateAssessment", updateInfo ).then( () =>
-            {
-                innerThis.isLoadingUnits = false;
+            this.$http.put( "/api/Unit/UpdateAssessment", updateInfo ).then(
+                () =>
+                {
+                    this.isLoadingUnits = false;
 
-                innerThis.assessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
-                innerThis.adjustedAssessmentSum = _.reduce( innerThis.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
-            } );
+                    this.assessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
+                    this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
+                },
+                (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+                {
+                    alert( "Failed to update: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -473,20 +481,25 @@ namespace Ally
 
             this.isLoadingUnits = true;
 
-            var updateInfo: UpdateAssessmentInfo =
+            const updateInfo: UpdateAssessmentInfo =
             {
                 unitId: -1,
                 assessment: this.setAllAssessmentAmount,
                 assessmentNote: null
             };
 
-            var innerThis = this;
-            this.$http.put( "/api/Unit/SetAllAssessments", updateInfo ).then( () =>
-            {
-                innerThis.isLoadingUnits = false;
+            this.$http.put( "/api/Unit/SetAllAssessments", updateInfo ).then(
+                () =>
+                {
+                    this.isLoadingUnits = false;
 
-                this.refreshUnits();
-            } );
+                    this.refreshUnits();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    alert( "Failed to update: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -496,14 +509,14 @@ namespace Ally
         onChangeFeePayerInfo( payTypeUpdated: string )
         {
             // See if any users have auto-pay setup for this payment type
-            var needsFullRefresh = false;
-            var needsReloadOfPage = false;
+            let needsFullRefresh = false;
+            let needsReloadOfPage = false;
             if( this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0 )
             {
-                var AchDBString = "ACH";
-                var CreditDBString = "Credit Card";
+                const AchDBString = "ACH";
+                const CreditDBString = "Credit Card";
 
-                var usersAffected: any[] = [];
+                let usersAffected: any[] = [];
                 if( payTypeUpdated === "ach" )
                     usersAffected = _.where( this.paymentInfo.usersWithAutoPay, ( u: any ) => u.wePayAutoPayFundingSource === AchDBString );
                 else if( payTypeUpdated === "cc" )
@@ -518,7 +531,7 @@ namespace Ally
 
                     needsFullRefresh = true;
 
-                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
+                    let message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
 
                     _.each( usersAffected, ( u: any ) => message += u.ownerName + "\n" );
 
@@ -539,20 +552,25 @@ namespace Ally
 
             this.isLoadingPayment = true;
 
-            var innerThis = this;
-            this.$http.put( "/api/OnlinePayment", this.paymentInfo ).then( () =>
+            this.$http.put( "/api/OnlinePayment", this.paymentInfo ).then(
+                () =>
             {
                 if( needsReloadOfPage )
                     window.location.reload();
                 else
                 {
-                    innerThis.isLoadingPayment = false;
+                    this.isLoadingPayment = false;
 
                     // We need to refresh our data so we don't pop-up the auto-pay cancel warning again
                     if( needsFullRefresh )
-                        innerThis.refresh();
+                        this.refresh();
                 }
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    alert( "Failed to update: " + response.data.exceptionMessage );
+                }
+            );
 
             this.updateTestFee();
         }
@@ -613,7 +631,7 @@ namespace Ally
                 {
                     this.isLoadingLateFee = false;
 
-                    var lateFeeResult = httpResponse.data;
+                    const lateFeeResult = httpResponse.data;
 
                     if( !lateFeeResult || !lateFeeResult.feeAmount || lateFeeResult.feeType === 0 )
                     {
@@ -639,7 +657,7 @@ namespace Ally
                 {
                     this.isLoadingLateFee = false;
 
-                    var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                     alert( "Failed to update late fee: " + errorMessage );
                 }
             );
@@ -824,7 +842,7 @@ namespace Ally
          */
         updateTestFee()
         {
-            var numericAmount = parseFloat( this.testFee.amount );
+            const numericAmount = parseFloat( this.testFee.amount );
 
             if( this.paymentInfo.payerPaysAchFee )
             {
@@ -837,7 +855,7 @@ namespace Ally
                 this.testFee.achAssociationReceives = numericAmount - 1.5;
             }
 
-            var ccFee = 1.3 + ( numericAmount * 0.029 );
+            const ccFee = 1.3 + ( numericAmount * 0.029 );
             if( this.paymentInfo.payerPaysCCFee )
             {
                 this.testFee.ccResidentPays = numericAmount + ccFee;
@@ -859,7 +877,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.get( "/api/OnlinePayment/ClearWePayAuthToken" ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },
@@ -923,15 +941,15 @@ namespace Ally
 
                             // Tell the server
                             this.$http.put( "/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri } ).then(
-                                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                () =>
                                 {
                                     this.isDwollaIavDone = true;
                                 },
-                                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                                 {
                                     this.isLoading = false;
                                     this.shouldShowDwollaModalClose = true;
-                                    alert( "Failed to complete sign-up" )
+                                    alert( "Failed to complete sign-up: " + response.data.exceptionMessage );
                                 }
                             );
                         }
@@ -984,7 +1002,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.put( "/api/Dwolla/DisconnectGroupFundingSource", null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },
@@ -1014,7 +1032,7 @@ namespace Ally
             };
 
             this.$http.post( "/api/Dwolla/VerifyMicroDeposit", postData ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },
@@ -1031,7 +1049,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.post( "/api/Dwolla/SignUpGroupFromPlaid/81", null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },
@@ -1041,6 +1059,54 @@ namespace Ally
                     alert( "Failed to use Plaid account: " + httpResponse.data.exceptionMessage );
                 }
             )
+        }
+
+        showCustomInstructionsEditor()
+        {
+            this.shouldShowCustomInstructions = true;
+
+            window.setTimeout( () =>
+            {
+                HtmlUtil2.initTinyMce( "tiny-mce-editor", 220, { menubar: false } ).then( e =>
+                {
+                    this.pageContentTinyMce = e;
+
+                    this.pageContentTinyMce.setContent( this.paymentInfo.customFinancialInstructions || "" );
+
+                    //this.pageContentTinyMce.on( "change", ( e: any ) =>
+                    //{
+                    //    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                    //    this.$scope.$apply( () =>
+                    //    {
+                            
+                    //    } );
+                    //} );
+                } );
+            }, 25 );
+        }
+
+
+        saveCustomInstructions()
+        {
+            this.isLoading = true;
+
+            const putBody = {
+                newInstructions: this.pageContentTinyMce.getContent()
+            };
+
+            this.$http.put( "/api/OnlinePayment/UpdateCustomFinancialInstructions", putBody ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    if( !putBody.newInstructions )
+                        this.shouldShowCustomInstructions = false;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 

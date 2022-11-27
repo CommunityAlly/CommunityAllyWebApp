@@ -6,6 +6,11 @@
     <div class="portlet-body">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
 
+        <div data-ng-if="$ctrl.customFinancialInstructions">
+            <div style="font-family: inherit; font-size: 1rem;" data-ng-bind-html="$ctrl.customFinancialInstructions"></div>
+            <hr />
+        </div>
+
         <div id="dwolla-form" class="mb-4" data-ng-if="$ctrl.isDwollaEnabledOnGroup">
             <div data-ng-if="$ctrl.isDwollaUserAccountVerified && !$ctrl.hasDwollaFundingSource">
                 Your Dwolla user account is verified, you can now associate a bank account (savings or checking) to make payments:
@@ -188,6 +193,7 @@
                 <div class="text-center d-inline-block" data-ng-if="$ctrl.paragonCheckingLast4 || $ctrl.paragonCardLast4">
                     <!--<a id="paragon-pay-button" onclick="if( $ctrl.paymentInfo.amount < 1 ) return false; $( this ).hide(); $( '#paragon-spinner' ).show(); return true;" data-ng-href="https://stage.paragonsolutions.com/ws/hosted2.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&Amount={{$ctrl.paymentInfo.amount}}{{$ctrl.paragonPaymentParams}}" class="btn btn-info" role="button">Pay Now</a>-->
                     <!--<input type="button" style="margin-left:1em;" class="btn btn-primary" data-ng-click="$ctrl.showParagonCheckingSignUpModal = true" value="Pay Modal">-->
+                    ra
                     <div data-ng-if="$ctrl.paragonPaymentMessage" style="font-size: x-large; color: blue;">{{ $ctrl.paragonPaymentMessage }}</div>
                     <div data-ng-if="$ctrl.paragonCheckingLast4">
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitParagonPayment('check')" value="Complete eCheck Payment Now Via Paragon">
@@ -401,7 +407,7 @@
                 <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">Payment Information</span>
                 <resident-transactions class="ml-3" data-ng-if="$ctrl.shouldShowOwnerFinanceTxn"></resident-transactions>
             </div>
-            
+
             <div class="mt-4">
                 <div id="payment_history" data-ng-if="$ctrl.showExtraInfo === 'payment-history'">
                     <h4>Payment History</h4>

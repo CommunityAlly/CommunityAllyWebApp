@@ -62,6 +62,8 @@ var Ally;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
+            if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
+                this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);
             if (this.isDwollaEnabledOnGroup) {
                 this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
                 if (this.isDwollaUserAccountVerified) {
@@ -86,27 +88,36 @@ var Ally;
                     this.dwollaUserStatus = "checking";
                     this.userFullName = this.siteInfo.userInfo.fullName;
                     this.userEmail = this.siteInfo.userInfo.emailAddress;
-                    var getDwollaDocUploadToken = function () {
-                        _this.$http.get("/api/Dwolla/DocumentUploadToken").then(function (response) {
-                            var uploadToken = response.data;
-                            window.setTimeout(function () {
-                                dwolla.configure({
-                                    environment: Ally.AppConfigInfo.dwollaEnvironmentName,
-                                    styles: "/main.css",
-                                    token: function () {
-                                        var deferred = _this.$q.defer();
-                                        deferred.resolve(uploadToken);
-                                        return deferred.promise;
-                                    },
-                                    //token: () => Promise.resolve( uploadToken ),
-                                    success: function (res) { return alert(res); },
-                                    error: function (err) { return alert(err); }
-                                });
-                            }, 200);
-                        }, function (errorResponse) {
-                            _this.dwollaUserStatus = "error";
-                        });
-                    };
+                    //const getDwollaDocUploadToken = () =>
+                    //{
+                    //    this.$http.get( "/api/Dwolla/DocumentUploadToken" ).then(
+                    //        ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                    //        {
+                    //            const uploadToken = response.data;
+                    //            window.setTimeout( () =>
+                    //            {
+                    //                dwolla.configure( {
+                    //                    environment: AppConfigInfo.dwollaEnvironmentName,
+                    //                    styles: "/main.css",
+                    //                    token: () =>
+                    //                    {
+                    //                        const deferred = this.$q.defer();
+                    //                        deferred.resolve( uploadToken );
+                    //                        return deferred.promise;
+                    //                    },
+                    //                    //token: () => Promise.resolve( uploadToken ),
+                    //                    success: ( res: any ) => alert( res ),
+                    //                    error: ( err: any ) => alert( err )
+                    //                } );
+                    //            }, 200 );
+                    //        },
+                    //        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                    //        {
+                    //            this.dwollaUserStatus = "error";
+                    //            console.log( "DocumentUploadToken failed: " + errorResponse.data.exceptionMessage );
+                    //        }
+                    //    );
+                    //};
                     var checkDwollaStatus_1 = function () {
                         _this.$http.get("/api/Dwolla/MyAccountStatus").then(function (response) {
                             _this.dwollaUserStatus = response.data.status;
@@ -115,6 +126,7 @@ var Ally;
                             //    getDwollaDocUploadToken();
                         }, function (errorResponse) {
                             _this.dwollaUserStatus = "error";
+                            console.log("Failed to get Dwolla account status: " + errorResponse.data.exceptionMessage);
                         });
                     };
                     this.$timeout(function () { return checkDwollaStatus_1(); }, 500);
@@ -216,6 +228,7 @@ var Ally;
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
                 _this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
+                console.log("Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage);
             });
         };
         /**
@@ -236,6 +249,7 @@ var Ally;
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
                 _this.paragonCardTokenizationMessage = "There was an error connecting to the server. Please close this window and try again. If this has happened more than once please contact support.";
+                console.log("Failed in CardTokenizationKey: " + errorResponse.data.exceptionMessage);
             });
         };
         /**
@@ -254,7 +268,7 @@ var Ally;
             var _this = this;
             this.isLoading_Payment = true;
             this.paragonSignUpError = null;
-            this.$http.post("/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo).then(function (response) {
+            this.$http.post("/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo).then(function () {
                 // Reload the page to refresh the payment info. We don't really need to do this,
                 // but makes sure the UI is up to date a little better as well updates the
                 // siteInfo object.
@@ -278,7 +292,7 @@ var Ally;
             paymentInfo.paysFor = this.paymentInfo.paysFor;
             paymentInfo.paySource = paySource;
             this.isLoading_Payment = true;
-            this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function (response) {
+            this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function () {
                 _this.isLoading_Payment = false;
                 _this.paragonPaymentMessage = "Payment Successfully Processed";
             }, function (errorResponse) {
@@ -292,7 +306,7 @@ var Ally;
         AssessmentPaymentFormController.prototype.unenrollParagonAccount = function (paySource) {
             var _this = this;
             this.isLoading_Payment = true;
-            this.$http.get("/api/Paragon/UnenrollPayment?paySource=" + paySource).then(function (response) {
+            this.$http.get("/api/Paragon/UnenrollPayment?paySource=" + paySource).then(function () {
                 // Reload the page to see the change
                 window.location.reload();
             }, function (errorResponse) {
@@ -483,12 +497,12 @@ var Ally;
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server
-                        _this.$http.put("/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                        _this.$http.put("/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function () {
                             _this.isDwollaIavDone = true;
                         }, function (httpResponse) {
                             _this.isLoadingDwolla = false;
                             _this.shouldShowDwollaModalClose = true;
-                            alert("Failed to complete sign-up");
+                            alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
                         });
                     }
                 });
@@ -517,7 +531,7 @@ var Ally;
             var _this = this;
             this.dwollaPaymentMessage = null;
             this.isLoading_Payment = true;
-            this.$http.post("/api/Dwolla/MakePayment", this.paymentInfo).then(function (response) {
+            this.$http.post("/api/Dwolla/MakePayment", this.paymentInfo).then(function () {
                 _this.isLoading_Payment = false;
                 _this.dwollaPaymentMessage = "Payment Successfully Processed";
                 _this.refreshHistoricPayments();
@@ -545,7 +559,7 @@ var Ally;
             if (!confirm("Are you sure you want to disconnect the bank account? You will no longer be able to make payments."))
                 return;
             this.isLoading_Payment = true;
-            this.$http.put("/api/Dwolla/DisconnectUserFundingSource", null).then(function (httpResponse) {
+            this.$http.put("/api/Dwolla/DisconnectUserFundingSource", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
@@ -581,7 +595,7 @@ var Ally;
             var postHeaders = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
-            this.$http.post("/api/Dwolla/UploadCustomerDocument", formData, postHeaders).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/UploadCustomerDocument", formData, postHeaders).then(function () {
                 _this.isLoading_Payment = false;
                 _this.dwollaDocUploadFile = null;
                 _this.dwollaDocUploadMessage = "Your document has been successfully uploaded. You will be notified when it is reviewed.";
@@ -606,7 +620,7 @@ var Ally;
             var _this = this;
             this.isLoading_Payment = true;
             this.dwollaBalanceMessage = null;
-            this.$http.get("/api/Dwolla/WithdrawDwollaBalance").then(function (httpResponse) {
+            this.$http.get("/api/Dwolla/WithdrawDwollaBalance").then(function () {
                 _this.isLoading_Payment = false;
                 _this.dwollaBalanceMessage = "Balance withdraw successfully initiated. Expect the transfer to complete in 1-2 business days.";
             }, function (httpResponse) {
@@ -622,7 +636,7 @@ var Ally;
                 amount2String: this.dwollaMicroDepositAmount2String,
                 isForGroup: false
             };
-            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
@@ -636,7 +650,7 @@ var Ally;
         AssessmentPaymentFormController.prototype.enableDwollaAutoPay = function () {
             var _this = this;
             this.isLoading_Payment = true;
-            this.$http.put("/api/Dwolla/EnableAutoPay/" + encodeURIComponent(this.assessmentAmount.toString()), null).then(function (httpResponse) {
+            this.$http.put("/api/Dwolla/EnableAutoPay/" + encodeURIComponent(this.assessmentAmount.toString()), null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
@@ -646,7 +660,7 @@ var Ally;
         AssessmentPaymentFormController.prototype.disableDwollaAutoPay = function () {
             var _this = this;
             this.isLoading_Payment = true;
-            this.$http.put("/api/Dwolla/DisableAutoPay", null).then(function (httpResponse) {
+            this.$http.put("/api/Dwolla/DisableAutoPay", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;

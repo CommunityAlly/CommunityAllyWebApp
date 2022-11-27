@@ -11,6 +11,7 @@
 
         <div data-ng-if="$ctrl.hasLoadedPage" class="row">
 
+            
             <div id="sign-up-panel" data-ng-if="$ctrl.hasAssessments == null" class="col-lg-9 col-md-12">
                 <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
 
@@ -73,13 +74,15 @@
             </div>
 
             <div data-ng-if="$ctrl.hasAssessments != null">
+                <h3>Online Payment Settings</h3>
 
                 <div data-ng-if="!$ctrl.paymentInfo.isDwollaSetup">
                     We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to allow residents to make payments to your association via checking accounts (credit cards are not supported). Dwolla securely handles all of our payment transactions to offer you
                     an incredible layer of security. To start receiving payments you need to associate a bank account (savings or checking)
                     for your association via Dwolla. Payments will be automatically sent to this bank account once a Dwolla payment has cleared which takes about a week. Payment
                     notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">
-                    the bottom of your residents page</a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
+                        the bottom of your residents page
+                    </a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
                     <a href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>.
                     <br>
                     <br>
@@ -109,9 +112,9 @@
                     </div>
 
                     <!--<div data-ng-if="!$ctrl.allowNewWePaySignUp">
-                    We are in the process of changing our payment provider so sign-up is currently disabled. If you would like to sign-up anyway, please
-                    contact support.
-                </div>-->
+            We are in the process of changing our payment provider so sign-up is currently disabled. If you would like to sign-up anyway, please
+            contact support.
+        </div>-->
 
                 </div>
 
@@ -135,101 +138,105 @@
                 </form>
 
                 <!--<div data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.needsReLogin">
-                <table style="width:100%;">
-                    <tr>
-                        <td style="width:50%;">WePay Balance: {{ $ctrl.paymentInfo.balanceDetail.availableBalance | currency }}</td>
-                        <td style="width:50%;">WePay Pending Balance: {{ $ctrl.paymentInfo.balanceDetail.pendingBalance | currency }}</td>
-                        <td style="width:33%; display: none;">
-                            <input type="button" value="Withdrawal" data-ng-click="$ctrl.onWithdrawalClick();" />
-                        </td>
-                    </tr>
-                </table>
-                <div data-ng-if="isAdmin">
-                    <span class="text-link" data-ng-click="">Clear access token</span>
-                </div>
-            </div>-->
+        <table style="width:100%;">
+            <tr>
+                <td style="width:50%;">WePay Balance: {{ $ctrl.paymentInfo.balanceDetail.availableBalance | currency }}</td>
+                <td style="width:50%;">WePay Pending Balance: {{ $ctrl.paymentInfo.balanceDetail.pendingBalance | currency }}</td>
+                <td style="width:33%; display: none;">
+                    <input type="button" value="Withdrawal" data-ng-click="$ctrl.onWithdrawalClick();" />
+                </td>
+            </tr>
+        </table>
+        <div data-ng-if="isAdmin">
+            <span class="text-link" data-ng-click="">Clear access token</span>
+        </div>
+    </div>-->
 
-            <div data-ng-if="$ctrl.paymentInfo.isWePaySetup">
-                <div data-ng-if="$ctrl.paymentInfo.needsReLogin" class="mb-3">
-                    You need to log-in to WePay with your association's account if you want to re-enable WePay payments.<br>
-                    <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Log-in Now</a>
-                </div>
+                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup">
+                    <div data-ng-if="$ctrl.paymentInfo.needsReLogin" class="mb-3">
+                        You need to log-in to WePay with your association's account if you want to re-enable WePay payments.<br>
+                        <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Log-in Now</a>
+                    </div>
 
-                <div data-ng-if="!$ctrl.paymentInfo.needsReLogin">
-                    You can disable WePay payments if you'd like to move users to Dwolla. You can always undo this.<br />
-                    <span class="text-link" data-ng-click="$ctrl.clearWePayAccessToken()">Disable WePay</span>
+                    <div data-ng-if="!$ctrl.paymentInfo.needsReLogin">
+                        You can disable WePay payments if you'd like to move users to Dwolla. You can always undo this.<br />
+                        <span class="text-link" data-ng-click="$ctrl.clearWePayAccessToken()">Disable WePay</span>
+                    </div>
                 </div>
-            </div>
 
                 <!--<div data-ng-hide="$ctrl.paymentInfo.payPalClientId">
-                <h3>Setup PayPal Payments</h3>
-                In order to accept payments via PayPal you need to sign-up for a PayPal business account. It only takes a few
-                minutes and we've written a helpful guide to walk you through the process.<br />
-                <a href="https://help.communityally.org/accept-payments-through-paypal/" target="_blank">Accept Payments Through PayPal Guide</a><br />
-                <br />
-                Once you get near the end of sign-up you'll need to paste in your PayPal client ID and secret API value here to
-                enable payments.<br />
-                <form>
-                    <div class="form-group row">
-                        <label class="col-sm-4">Client ID:</label>
-                        <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientId"></div>
-                    </div>
+        <h3>Setup PayPal Payments</h3>
+        In order to accept payments via PayPal you need to sign-up for a PayPal business account. It only takes a few
+        minutes and we've written a helpful guide to walk you through the process.<br />
+        <a href="https://help.communityally.org/accept-payments-through-paypal/" target="_blank">Accept Payments Through PayPal Guide</a><br />
+        <br />
+        Once you get near the end of sign-up you'll need to paste in your PayPal client ID and secret API value here to
+        enable payments.<br />
+        <form>
+            <div class="form-group row">
+                <label class="col-sm-4">Client ID:</label>
+                <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientId"></div>
+            </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4">Client Secret:</label>
-                        <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientSecret"></div>
-                    </div>
+            <div class="form-group row">
+                <label class="col-sm-4">Client Secret:</label>
+                <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientSecret"></div>
+            </div>
 
-                    <div data-ng-if="$ctrl.payPalSignUpErrorMessage" class="text-error">
-                        {{ $ctrl.payPalSignUpErrorMessage }}
-                    </div>
+            <div data-ng-if="$ctrl.payPalSignUpErrorMessage" class="text-error">
+                {{ $ctrl.payPalSignUpErrorMessage }}
+            </div>
 
-                    <div class="text-right mt-3">
-                        <input class="btn btn-primary" type="button" value="Enable PayPal Payments" data-ng-click="$ctrl.enablePayPal();">
-                    </div>
-                </form>
-            </div>-->
+            <div class="text-right mt-3">
+                <input class="btn btn-primary" type="button" value="Enable PayPal Payments" data-ng-click="$ctrl.enablePayPal();">
+            </div>
+        </form>
+    </div>-->
 
-                <h3 class="margin-top">Electronic Payment History</h3>
-                
+                <h3 class="margin-top-50">Electronic Payment History</h3>
+
                 <div class="wide_tble_wrap">
-                    
+
                     <div data-ng-if="!$ctrl.paymentInfo.electronicPayments || $ctrl.paymentInfo.electronicPayments.length === 0">
                         No electronic payments have yet been made.
                     </div>
 
                     <!--<table class="table table-bordered" data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Unit</th>
-                            <th>Resident</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Notes</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr data-ng-repeat="payment in $ctrl.paymentInfo.electronicPayments" data-ng-class="{ 'highlight': (payment.wePayCheckoutId == $ctrl.highlightWePayCheckoutId) }">
-                            <td>{{ payment.submitDateUtc | date }}</td>
-                            <td>{{ payment.unitName }}</td>
-                            <td>{{ payment.resident }}</td>
-                            <td>{{ payment.amount | currency }}</td>
-                            <td>{{ payment.status }}</td>
-                            <td>{{ payment.notes }}</td>
-                            <td>
-                                <span class="text-link" data-ng-if="payment.wePayCheckoutId" data-ng-click="$ctrl.showWePayCheckoutInfo( payment.wePayCheckoutId )">WePay Details</span>
-                                <span class="text-link" data-ng-if="payment.payPalCheckoutId" data-ng-click="$ctrl.showPayPalCheckoutInfo( payment.payPalCheckoutId )">PayPal Details</span>
-                                <span class="text-link" data-ng-if="payment.paragonReferenceNumber" data-ng-click="$ctrl.showParagonCheckoutInfo( payment.paragonReferenceNumber )">Paragon Details</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>-->
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Unit</th>
+                    <th>Resident</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-ng-repeat="payment in $ctrl.paymentInfo.electronicPayments" data-ng-class="{ 'highlight': (payment.wePayCheckoutId == $ctrl.highlightWePayCheckoutId) }">
+                    <td>{{ payment.submitDateUtc | date }}</td>
+                    <td>{{ payment.unitName }}</td>
+                    <td>{{ payment.resident }}</td>
+                    <td>{{ payment.amount | currency }}</td>
+                    <td>{{ payment.status }}</td>
+                    <td>{{ payment.notes }}</td>
+                    <td>
+                        <span class="text-link" data-ng-if="payment.wePayCheckoutId" data-ng-click="$ctrl.showWePayCheckoutInfo( payment.wePayCheckoutId )">WePay Details</span>
+                        <span class="text-link" data-ng-if="payment.payPalCheckoutId" data-ng-click="$ctrl.showPayPalCheckoutInfo( payment.payPalCheckoutId )">PayPal Details</span>
+                        <span class="text-link" data-ng-if="payment.paragonReferenceNumber" data-ng-click="$ctrl.showParagonCheckoutInfo( payment.paragonReferenceNumber )">Paragon Details</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>-->
 
                     <div data-ui-grid="$ctrl.paymentsGridOptions" ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
                     <div style="height: 20px;"></div>
                 </div>
+
+
+
+
 
                 <div data-ng-if="$ctrl.paymentInfo.payPalClientId">
                     <h3 class="margin-top">PayPal Settings</h3>
@@ -267,8 +274,28 @@
                     </div>
                 </div>
 
+
+
+                <h3 class="margin-top-50">Custom Payment Instructions</h3>
+                <p>
+                    You can add optional payment information that is shown at the top of the online payment section on your home page. Useful payment information such as
+                    amounts and due dates as well as links to online third-party payment providers can be entered here.
+                </p>
+
+                <div data-ng-if="!$ctrl.shouldShowCustomInstructions" class="text-link" style="width: 100%;" data-ng-click="$ctrl.showCustomInstructionsEditor()">
+                    Add Custom Payment Information
+                </div>
+
+                <!--Not sure why we need width 100% on this DIVs-->
+                <div data-ng-if="$ctrl.shouldShowCustomInstructions" style="width: 100%;">
+                    <textarea id="tiny-mce-editor"></textarea>
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveCustomInstructions()">Save Instructions</button>
+                </div>
+
+
+
                 <div data-ng-if="$ctrl.paymentInfo.isWePaySetup">
-                    <h3 class="margin-top">Manage WePay Fees</h3>
+                    <h3 class="margin-top-50">Manage WePay Fees</h3>
                     <p>
                         WePay charges a fee to handle online payments. You can choose how those transaction fees
                         are paid. Dwolla fees are 0.5% for associations on the premium plan, 1% for associations on the free plan.
@@ -326,14 +353,17 @@
                     </div>
                 </div>
 
+
+
+
                 <div id="AssessmentsPanel" data-ng-if="$ctrl.hasAssessments">
-                    <h3 class="margin-top">{{$ctrl.homeName}} Assessments</h3>
+                    <h3 class="margin-top-50">{{$ctrl.homeName}} Assessments</h3>
                     <p>
                         The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. Click the assessment amount below to adjust.
-                        
+
                         <!--If you need to make an adjustment to a base assessment, please
-                        contact support and they'll be happy to help you. If a unit receives a discount, you can use the adjusted assessment and
-                        reason column to indicate as such. For example, some associations compensate their board members for their duty via a discount on their assessment.-->
+            contact support and they'll be happy to help you. If a unit receives a discount, you can use the adjusted assessment and
+            reason column to indicate as such. For example, some associations compensate their board members for their duty via a discount on their assessment.-->
                     </p>
                     <div>
                         Assessment Frequency: <b>{{$ctrl.assessmentFrequencyLabel}}</b>
@@ -351,9 +381,9 @@
                                 <tr data-ng-repeat="unit in $ctrl.units">
                                     <td class="text-right">{{ unit.name }}</td>
                                     <!--<td class="text-center">
-                                    <span data-ng-if="$ctrl.userInfo.isAdmin" class="text-button test1" data-onshow="selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.assessment">{{ unit.assessment | currency }}</span>
-                                    <span data-ng-if="!$ctrl.userInfo.isAdmin">{{ unit.assessment | currency }}</span>
-                                </td>-->
+                            <span data-ng-if="$ctrl.userInfo.isAdmin" class="text-button test1" data-onshow="selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.assessment">{{ unit.assessment | currency }}</span>
+                            <span data-ng-if="!$ctrl.userInfo.isAdmin">{{ unit.assessment | currency }}</span>
+                        </td>-->
                                     <td class="text-center"><span class="text-button" data-onshow="$ctrl.selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessment">{{ (unit.adjustedAssessment || 0) | currency }}</span></td>
                                     <td class="text-left"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
                                 </tr>
@@ -376,7 +406,7 @@
                     <div data-ng-show="$ctrl.isLoadingUnits" style="z-index:100;" class="container-overlay"></div>
 
 
-                    <h3 class="margin-top">Late Fees</h3>
+                    <h3 class="margin-top-50">Late Fees</h3>
                     <div class="error-text" data-ng-if="!$ctrl.isAssessmentTrackingEnabled">
                         Late fees can only be enabled if assessment tracking is enabled.<br />
                         <a href="#!/AssessmentHistory">Visit the Assessment History page</a>

@@ -77,7 +77,8 @@ namespace Ally
         shouldShowOwnerFinanceTxn: boolean = false;
         shouldShowDwollaAutoPayArea: boolean = true;
         currentDwollaAutoPayAmount: number | null = null;
-        
+        customFinancialInstructions: string;
+
 
         /**
          * The constructor for the class
@@ -110,6 +111,8 @@ namespace Ally
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
+            if( this.siteInfo.privateSiteInfo.customFinancialInstructions )
+                this.customFinancialInstructions = this.$sce.trustAsHtml( this.siteInfo.privateSiteInfo.customFinancialInstructions );
 
             if( this.isDwollaEnabledOnGroup )
             {
@@ -150,36 +153,37 @@ namespace Ally
                     this.userFullName = this.siteInfo.userInfo.fullName;
                     this.userEmail = this.siteInfo.userInfo.emailAddress;
 
-                    const getDwollaDocUploadToken = () =>
-                    {
-                        this.$http.get( "/api/Dwolla/DocumentUploadToken" ).then(
-                            ( response: ng.IHttpPromiseCallbackArg<string> ) =>
-                            {
-                                const uploadToken = response.data;
+                    //const getDwollaDocUploadToken = () =>
+                    //{
+                    //    this.$http.get( "/api/Dwolla/DocumentUploadToken" ).then(
+                    //        ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                    //        {
+                    //            const uploadToken = response.data;
 
-                                window.setTimeout( () =>
-                                {
-                                    dwolla.configure( {
-                                        environment: AppConfigInfo.dwollaEnvironmentName,
-                                        styles: "/main.css",
-                                        token: () =>
-                                        {
-                                            const deferred = this.$q.defer();
-                                            deferred.resolve( uploadToken );
-                                            return deferred.promise;
-                                        },
-                                        //token: () => Promise.resolve( uploadToken ),
-                                        success: ( res: any ) => alert( res ),
-                                        error: ( err: any ) => alert( err )
-                                    } );
-                                }, 200 );
-                            },
-                            ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                            {
-                                this.dwollaUserStatus = "error";
-                            }
-                        );
-                    };
+                    //            window.setTimeout( () =>
+                    //            {
+                    //                dwolla.configure( {
+                    //                    environment: AppConfigInfo.dwollaEnvironmentName,
+                    //                    styles: "/main.css",
+                    //                    token: () =>
+                    //                    {
+                    //                        const deferred = this.$q.defer();
+                    //                        deferred.resolve( uploadToken );
+                    //                        return deferred.promise;
+                    //                    },
+                    //                    //token: () => Promise.resolve( uploadToken ),
+                    //                    success: ( res: any ) => alert( res ),
+                    //                    error: ( err: any ) => alert( err )
+                    //                } );
+                    //            }, 200 );
+                    //        },
+                    //        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                    //        {
+                    //            this.dwollaUserStatus = "error";
+                    //            console.log( "DocumentUploadToken failed: " + errorResponse.data.exceptionMessage );
+                    //        }
+                    //    );
+                    //};
 
                     const checkDwollaStatus = () =>
                     {
@@ -195,6 +199,7 @@ namespace Ally
                             ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                             {
                                 this.dwollaUserStatus = "error";
+                                console.log( "Failed to get Dwolla account status: " + errorResponse.data.exceptionMessage );
                             }
                         );
                     };
@@ -255,7 +260,7 @@ namespace Ally
 
             this.onPaymentAmountChange();
 
-            var MaxNumRecentPayments: number = 24;
+            const MaxNumRecentPayments: number = 24;
             this.historicPayments = this.siteInfo.userInfo.recentPayments;
             if( this.historicPayments && this.historicPayments.length > 0 )
             {
@@ -322,16 +327,20 @@ namespace Ally
             // Pre-populate the user's info
             this.isLoading_Payment = true;
 
-            this.$http.get( "/api/Paragon/SignUpPrefill" ).then( ( response: ng.IHttpPromiseCallbackArg<ParagonPayerSignUpInfo> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonSignUpInfo = response.data;
+            this.$http.get( "/api/Paragon/SignUpPrefill" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<ParagonPayerSignUpInfo> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonSignUpInfo = response.data;
 
-            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
-            } );
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
+                    console.log( "Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -349,17 +358,21 @@ namespace Ally
             //this.isLoading_Payment = false;
 
 
-            this.$http.get( "/api/Paragon/CardTokenizationKey" ).then( ( response: ng.IHttpPromiseCallbackArg<string> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonCardTokenizedUrl = this.$sce.trustAsResourceUrl( "https://stage.paragonsolutions.com/ws/hosted.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&InvNum=" + response.data );
-                this.paragonCardTokenizationMessage = null;
+            this.$http.get( "/api/Paragon/CardTokenizationKey" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonCardTokenizedUrl = this.$sce.trustAsResourceUrl( "https://stage.paragonsolutions.com/ws/hosted.aspx?Username=54cE7DU2p%2bBh7h9uwJWW8Q%3d%3d&Password=jYvmN41tt1lz%2bpiazUqQYK9Abl73Z%2bHoBG4vOZImo%2bYlKTbPeNPwOcMB0%2bmIS3%2bs&MerchantKey=1293&InvNum=" + response.data );
+                    this.paragonCardTokenizationMessage = null;
 
-            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonCardTokenizationMessage = "There was an error connecting to the server. Please close this window and try again. If this has happened more than once please contact support.";
-            } );
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonCardTokenizationMessage = "There was an error connecting to the server. Please close this window and try again. If this has happened more than once please contact support.";
+                    console.log( "Failed in CardTokenizationKey: " + errorResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -384,18 +397,21 @@ namespace Ally
             this.isLoading_Payment = true;
             this.paragonSignUpError = null;
 
-            this.$http.post( "/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                // Reload the page to refresh the payment info. We don't really need to do this,
-                // but makes sure the UI is up to date a little better as well updates the
-                // siteInfo object.
-                window.location.reload();
+            this.$http.post( "/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo ).then(
+                () =>
+                {
+                    // Reload the page to refresh the payment info. We don't really need to do this,
+                    // but makes sure the UI is up to date a little better as well updates the
+                    // siteInfo object.
+                    window.location.reload();
 
-            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonSignUpError = errorResponse.data.exceptionMessage;
-            } );
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonSignUpError = errorResponse.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -409,7 +425,7 @@ namespace Ally
 
             this.paragonPaymentMessage = null;
 
-            var paymentInfo = new ParagonPaymentRequest();
+            const paymentInfo = new ParagonPaymentRequest();
             paymentInfo.notes = this.paymentInfo.note;
             paymentInfo.paymentAmount = this.paymentInfo.amount;
             paymentInfo.paysFor = this.paymentInfo.paysFor;
@@ -417,16 +433,19 @@ namespace Ally
 
             this.isLoading_Payment = true;
 
-            this.$http.post( "/api/Paragon/MakePayment", paymentInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonPaymentMessage = "Payment Successfully Processed";
+            this.$http.post( "/api/Paragon/MakePayment", paymentInfo ).then(
+                () =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonPaymentMessage = "Payment Successfully Processed";
 
-            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading_Payment = false;
-                this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
-            } );
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -437,17 +456,20 @@ namespace Ally
         {
             this.isLoading_Payment = true;
 
-            this.$http.get( "/api/Paragon/UnenrollPayment?paySource=" + paySource ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                // Reload the page to see the change
-                window.location.reload();
+            this.$http.get( "/api/Paragon/UnenrollPayment?paySource=" + paySource ).then(
+                () =>
+                {
+                    // Reload the page to see the change
+                    window.location.reload();
 
-            }, ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading_Payment = false;
-                alert( "Failed to un-enroll: " + errorResponse.data.exceptionMessage );
-                this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
-            } );
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to un-enroll: " + errorResponse.data.exceptionMessage );
+                    this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -460,7 +482,7 @@ namespace Ally
             this.paymentInfo.fundingType = fundingTypeName;
 
             // Remove leading dollar signs
-            let testAmount = this.paymentInfo.amount as any;
+            const testAmount = this.paymentInfo.amount as any;
             if( HtmlUtil.isValidString( testAmount ) && ( testAmount as string )[0] === '$' )
                 this.paymentInfo.amount = parseFloat( testAmount.substr( 1 ) );
 
@@ -471,7 +493,7 @@ namespace Ally
             this.$http.post( "/api/WePayPayment/MakeNewPayment", this.paymentInfo ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<CheckoutRequest> ) =>
                 {
-                    var checkoutInfo = httpResponse.data;
+                    const checkoutInfo = httpResponse.data;
 
                     if( checkoutInfo !== null && typeof ( checkoutInfo.checkoutUri ) === "string" && checkoutInfo.checkoutUri.length > 0 )
                     {
@@ -610,25 +632,28 @@ namespace Ally
         {
             this.isLoading_Payment = true;
 
-            this.$http.get( "/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
-            {
-                var redirectUrl = httpResponse.data;
+            this.$http.get( "/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    const redirectUrl = httpResponse.data;
 
-                if( typeof ( redirectUrl ) === "string" && redirectUrl.length > 0 )
-                    window.location.href = redirectUrl;
-                else
+                    if( typeof ( redirectUrl ) === "string" && redirectUrl.length > 0 )
+                        window.location.href = redirectUrl;
+                    else
+                    {
+                        this.isLoading_Payment = false;
+                        alert( "Unable to initiate WePay auto-pay setup" );
+                    }
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading_Payment = false;
-                    alert( "Unable to initiate WePay auto-pay setup" );
+
+                    if( httpResponse.data && httpResponse.data.exceptionMessage )
+                        alert( httpResponse.data.exceptionMessage );
                 }
-
-            }, ( httpResponse ) =>
-            {
-                this.isLoading_Payment = false;
-
-                if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    alert( httpResponse.data.exceptionMessage );
-            } );
+            );
         }
 
 
@@ -717,7 +742,7 @@ namespace Ally
 
                             // Tell the server
                             this.$http.put( "/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri } ).then(
-                                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                () =>
                                 {
                                     this.isDwollaIavDone = true;
                                 },
@@ -725,7 +750,7 @@ namespace Ally
                                 {
                                     this.isLoadingDwolla = false;
                                     this.shouldShowDwollaModalClose = true;
-                                    alert( "Failed to complete sign-up" )
+                                    alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
                                 }
                             );
                         }
@@ -775,7 +800,7 @@ namespace Ally
             this.isLoading_Payment = true;
 
             this.$http.post( "/api/Dwolla/MakePayment", this.paymentInfo ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading_Payment = false;
                     this.dwollaPaymentMessage = "Payment Successfully Processed";
@@ -821,7 +846,7 @@ namespace Ally
             this.isLoading_Payment = true;
 
             this.$http.put( "/api/Dwolla/DisconnectUserFundingSource", null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },
@@ -876,7 +901,7 @@ namespace Ally
             };
 
             this.$http.post( "/api/Dwolla/UploadCustomerDocument", formData, postHeaders ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading_Payment = false;
                     this.dwollaDocUploadFile = null;
@@ -912,7 +937,7 @@ namespace Ally
             this.dwollaBalanceMessage = null;
 
             this.$http.get( "/api/Dwolla/WithdrawDwollaBalance" ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading_Payment = false;
                     this.dwollaBalanceMessage = "Balance withdraw successfully initiated. Expect the transfer to complete in 1-2 business days.";
@@ -937,7 +962,7 @@ namespace Ally
             };
 
             this.$http.post( "/api/Dwolla/VerifyMicroDeposit", postData ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },
@@ -962,7 +987,7 @@ namespace Ally
             this.isLoading_Payment = true;
 
             this.$http.put( "/api/Dwolla/EnableAutoPay/" + encodeURIComponent( this.assessmentAmount.toString() ), null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();                    
                 },
@@ -980,7 +1005,7 @@ namespace Ally
             this.isLoading_Payment = true;
 
             this.$http.put( "/api/Dwolla/DisableAutoPay", null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     window.location.reload();
                 },

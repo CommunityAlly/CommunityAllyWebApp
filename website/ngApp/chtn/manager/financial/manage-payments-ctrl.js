@@ -16,11 +16,6 @@ var Ally;
         }
         return UpdateAssessmentInfo;
     }());
-    var PeriodInfo = /** @class */ (function () {
-        function PeriodInfo() {
-        }
-        return PeriodInfo;
-    }());
     /**
      * The controller for the page to view online payment information
      */
@@ -28,11 +23,12 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManagePaymentsController($http, siteInfo, appCacheService, uiGridConstants) {
+        function ManagePaymentsController($http, siteInfo, appCacheService, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
+            this.$scope = $scope;
             this.PaymentHistory = [];
             this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
@@ -52,6 +48,7 @@ var Ally;
             this.isDwollaIavDone = false;
             this.shouldShowMicroDepositModal = false;
             this.shouldShowPlaidTestSignUpButton = false;
+            this.shouldShowCustomInstructions = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -108,7 +105,7 @@ var Ally;
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function (gridApi) {
+                    onRegisterApi: function () {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -137,6 +134,8 @@ var Ally;
                 _this.paymentsGridOptions.enablePaginationControls = _this.paymentInfo.electronicPayments.length > _this.HistoryPageSize;
                 _this.paymentsGridOptions.minRowsToShow = Math.min(_this.paymentInfo.electronicPayments.length, _this.HistoryPageSize);
                 _this.paymentsGridOptions.virtualizationThreshold = _this.paymentsGridOptions.minRowsToShow;
+                if (Ally.HtmlUtil2.isValidString(_this.paymentInfo.customFinancialInstructions))
+                    _this.showCustomInstructionsEditor();
                 _this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
@@ -194,7 +193,7 @@ var Ally;
                 dayOfMonth = parseInt(dayOfMonth);
                 this.lateFeeInfo.lateFeeDayOfMonth = dayOfMonth;
             }
-            if (dayOfMonth == NaN || dayOfMonth < 1) {
+            if (isNaN(dayOfMonth) || dayOfMonth < 1) {
                 dayOfMonth = "";
                 return "";
             }
@@ -229,7 +228,7 @@ var Ally;
         ManagePaymentsController.prototype.saveAllowSetting = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(function (httpResponse) {
+            this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -247,7 +246,7 @@ var Ally;
                 clientId: this.payPalSignUpClientId,
                 clientSecret: this.payPalSignUpClientSecret
             };
-            this.$http.put("/api/OnlinePayment/EnablePayPal", enableInfo).then(function (httpResponse) {
+            this.$http.put("/api/OnlinePayment/EnablePayPal", enableInfo).then(function () {
                 _this.payPalSignUpClientId = "";
                 _this.payPalSignUpClientSecret = "";
                 window.location.reload();
@@ -284,6 +283,7 @@ var Ally;
          * Occurs when the user presses the button to edit a unit's assessment
          */
         ManagePaymentsController.prototype.onUnitAssessmentChanged = function (unit) {
+            var _this = this;
             this.isLoadingUnits = true;
             if (typeof (unit.adjustedAssessment) === "string")
                 unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
@@ -292,11 +292,12 @@ var Ally;
                 assessment: unit.adjustedAssessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
-            var innerThis = this;
             this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(function () {
-                innerThis.isLoadingUnits = false;
-                innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
-                innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                _this.isLoadingUnits = false;
+                _this.assessmentSum = _.reduce(_this.units, function (memo, u) { return memo + u.assessment; }, 0);
+                _this.adjustedAssessmentSum = _.reduce(_this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+            }, function (response) {
+                alert("Failed to update: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -314,10 +315,11 @@ var Ally;
                 assessment: this.setAllAssessmentAmount,
                 assessmentNote: null
             };
-            var innerThis = this;
             this.$http.put("/api/Unit/SetAllAssessments", updateInfo).then(function () {
-                innerThis.isLoadingUnits = false;
+                _this.isLoadingUnits = false;
                 _this.refreshUnits();
+            }, function (response) {
+                alert("Failed to update: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -329,23 +331,23 @@ var Ally;
             var needsFullRefresh = false;
             var needsReloadOfPage = false;
             if (this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0) {
-                var AchDBString = "ACH";
-                var CreditDBString = "Credit Card";
+                var AchDBString_1 = "ACH";
+                var CreditDBString_1 = "Credit Card";
                 var usersAffected = [];
                 if (payTypeUpdated === "ach")
-                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === AchDBString; });
+                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === AchDBString_1; });
                 else if (payTypeUpdated === "cc")
-                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === CreditDBString; });
+                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === CreditDBString_1; });
                 // If users will be affected then display an error message to the user
                 if (usersAffected.length > 0) {
                     // We need to reload the site if the user is affected so the home page updates that
                     // the user does not have auto-pay enabled
                     needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
-                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
-                    _.each(usersAffected, function (u) { return message += u.ownerName + "\n"; });
-                    message += "\nDo you want to continue?";
-                    if (!confirm(message)) {
+                    var message_1 = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
+                    _.each(usersAffected, function (u) { return message_1 += u.ownerName + "\n"; });
+                    message_1 += "\nDo you want to continue?";
+                    if (!confirm(message_1)) {
                         // Reset the setting
                         if (payTypeUpdated === "ach")
                             this.paymentInfo.payerPaysAchFee = !this.paymentInfo.payerPaysAchFee;
@@ -356,16 +358,17 @@ var Ally;
                 }
             }
             this.isLoadingPayment = true;
-            var innerThis = this;
             this.$http.put("/api/OnlinePayment", this.paymentInfo).then(function () {
                 if (needsReloadOfPage)
                     window.location.reload();
                 else {
-                    innerThis.isLoadingPayment = false;
+                    _this.isLoadingPayment = false;
                     // We need to refresh our data so we don't pop-up the auto-pay cancel warning again
                     if (needsFullRefresh)
-                        innerThis.refresh();
+                        _this.refresh();
                 }
+            }, function (response) {
+                alert("Failed to update: " + response.data.exceptionMessage);
             });
             this.updateTestFee();
         };
@@ -425,7 +428,7 @@ var Ally;
                 }
             }, function (httpResponse) {
                 _this.isLoadingLateFee = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to update late fee: " + errorMessage);
             });
         };
@@ -567,7 +570,7 @@ var Ally;
         ManagePaymentsController.prototype.clearWePayAccessToken = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(function (httpResponse) {
+            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -607,12 +610,12 @@ var Ally;
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server
-                        _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                        _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function () {
                             _this.isDwollaIavDone = true;
-                        }, function (httpResponse) {
+                        }, function (response) {
                             _this.isLoading = false;
                             _this.shouldShowDwollaModalClose = true;
-                            alert("Failed to complete sign-up");
+                            alert("Failed to complete sign-up: " + response.data.exceptionMessage);
                         });
                     }
                 });
@@ -644,7 +647,7 @@ var Ally;
             if (!confirm("Are you sure you want to disconnect the bank account? Residents will no longer be able to make payments."))
                 return;
             this.isLoading = true;
-            this.$http.put("/api/Dwolla/DisconnectGroupFundingSource", null).then(function (httpResponse) {
+            this.$http.put("/api/Dwolla/DisconnectGroupFundingSource", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -664,7 +667,7 @@ var Ally;
                 amount2String: this.dwollaMicroDepositAmount2String,
                 isForGroup: true
             };
-            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -674,14 +677,46 @@ var Ally;
         ManagePaymentsController.prototype.addDwollaAccountViaPlaid = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.post("/api/Dwolla/SignUpGroupFromPlaid/81", null).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/SignUpGroupFromPlaid/81", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to use Plaid account: " + httpResponse.data.exceptionMessage);
             });
         };
-        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
+        ManagePaymentsController.prototype.showCustomInstructionsEditor = function () {
+            var _this = this;
+            this.shouldShowCustomInstructions = true;
+            window.setTimeout(function () {
+                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 220, { menubar: false }).then(function (e) {
+                    _this.pageContentTinyMce = e;
+                    _this.pageContentTinyMce.setContent(_this.paymentInfo.customFinancialInstructions || "");
+                    //this.pageContentTinyMce.on( "change", ( e: any ) =>
+                    //{
+                    //    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                    //    this.$scope.$apply( () =>
+                    //    {
+                    //    } );
+                    //} );
+                });
+            }, 25);
+        };
+        ManagePaymentsController.prototype.saveCustomInstructions = function () {
+            var _this = this;
+            this.isLoading = true;
+            var putBody = {
+                newInstructions: this.pageContentTinyMce.getContent()
+            };
+            this.$http.put("/api/OnlinePayment/UpdateCustomFinancialInstructions", putBody).then(function () {
+                _this.isLoading = false;
+                if (!putBody.newInstructions)
+                    _this.shouldShowCustomInstructions = false;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data.exceptionMessage);
+            });
+        };
+        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope"];
         return ManagePaymentsController;
     }());
     Ally.ManagePaymentsController = ManagePaymentsController;
