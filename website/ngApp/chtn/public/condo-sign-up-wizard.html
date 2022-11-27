@@ -24,7 +24,7 @@
                     <div style="position: relative;">
                         <div id="map-loading-overlay" class="loading-overlay" data-ng-show="$ctrl.isLoadingMap"></div>
                         <label style="font-weight: bold;">Association's Name:</label> <input id="association-name-text-box" type="text" style="width:100%;" data-ng-focus="$ctrl.checkAddress()" data-ng-model="$ctrl.signUpInfo.name" data-ng-keyup="$ctrl.onAssociationNameChanged()" /><br />
-                        <div data-ng-if="$ctrl.shouldShowHoaMessage" style="font-weight: bold; font-size: 1.2em;">
+                        <div data-ng-if="$ctrl.shouldShowHoaMessage" class="alert alert-warning mt-2" style="font-weight: bold; font-size: 1.2em;">
                             Are you an HOA rather than a condo association? If so, you'd probably prefer to <a href="https://login.hoaally.org/#!/HoaSignUp">sign-up for HOA Ally</a> instead.
                         </div>
                         <br />

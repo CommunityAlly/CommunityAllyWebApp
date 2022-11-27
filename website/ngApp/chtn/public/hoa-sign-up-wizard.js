@@ -73,7 +73,7 @@ var Ally;
             }
             var shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf("condo") !== -1;
             if (shouldShowCondoMessage && !this.shouldShowCondoMessage)
-                $("#suggestCondoMessageLabel").css("font-size", "1.3em").css("margin", "25px auto").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
+                $("#suggestCondoMessageLabel").css("font-size", "1.3em").css("margin", "25px auto").addClass("alert alert-warning").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeIn(200).fadeOut(200).fadeIn(200);
             this.shouldShowCondoMessage = shouldShowCondoMessage;
         };
         /**
