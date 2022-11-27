@@ -92,9 +92,10 @@
                                                 { text: "Back Yard" },
                                                 { text: "Basement" },
                                                 { text: "Front Yard" },
-                                                { text: "Inside" },
+                                                { text: "Garage" },
+                                                { text: "Interior" },
                                                 { text: "Kitchen" },
-                                                { text: "Outside" },
+                                                { text: "Exterior" },
                                                 { text: "Side of Building" },
                                                 { text: "Structural" }];
 
