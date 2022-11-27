@@ -141,6 +141,7 @@ namespace Ally
         homeRightColumnType: string;
         siteLaunchedDateUtc: Date;
         rentersCanViewDocs: boolean;
+        customFinancialInstructions: string;
         //payPalClientId: string;
 
         // Only on PTAs
@@ -332,16 +333,21 @@ namespace Ally
 
             if( this.isLoggedIn )
             {
-                if( typeof ( $zopim ) !== "undefined" )
+                const prepopulateZopim = () =>
                 {
-                    $zopim( function()
+                    if( typeof ( $zopim ) !== "undefined" )
                     {
-                        $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
+                        $zopim( function()
+                        {
+                            $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
 
-                        if( $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
-                            $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
-                    } );
-                }
+                            if( $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                                $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
+                        } );
+                    }
+                };
+
+                setTimeout( prepopulateZopim, 8000 ); // Zopim delays 5sec before setup so wait longer than than
 
                 $rootScope.isAdmin = $rootScope.userInfo.isAdmin;
                 $rootScope.isSiteManager = $rootScope.userInfo.isSiteManager;

@@ -201,13 +201,16 @@ var Ally;
             if (!HtmlUtil.isNullOrWhitespace(this.publicSiteInfo.bgImagePath))
                 $(document.documentElement).css("background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")");
             if (this.isLoggedIn) {
-                if (typeof ($zopim) !== "undefined") {
-                    $zopim(function () {
-                        $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
-                        if ($rootScope.userInfo.emailAddress.indexOf("@") !== -1)
-                            $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
-                    });
-                }
+                var prepopulateZopim = function () {
+                    if (typeof ($zopim) !== "undefined") {
+                        $zopim(function () {
+                            $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
+                            if ($rootScope.userInfo.emailAddress.indexOf("@") !== -1)
+                                $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
+                        });
+                    }
+                };
+                setTimeout(prepopulateZopim, 8000); // Zopim delays 5sec before setup so wait longer than than
                 $rootScope.isAdmin = $rootScope.userInfo.isAdmin;
                 $rootScope.isSiteManager = $rootScope.userInfo.isSiteManager;
                 // Tell Segment we know who the user is
