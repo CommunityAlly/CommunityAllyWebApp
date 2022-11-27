@@ -711,6 +711,8 @@ var Ally;
                 _this.isLoading = false;
                 if (!putBody.newInstructions)
                     _this.shouldShowCustomInstructions = false;
+                // Update the local value
+                _this.siteInfo.privateSiteInfo.customFinancialInstructions = putBody.newInstructions;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);

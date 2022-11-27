@@ -1100,6 +1100,9 @@ namespace Ally
                     this.isLoading = false;
                     if( !putBody.newInstructions )
                         this.shouldShowCustomInstructions = false;
+
+                    // Update the local value
+                    this.siteInfo.privateSiteInfo.customFinancialInstructions = putBody.newInstructions;
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
