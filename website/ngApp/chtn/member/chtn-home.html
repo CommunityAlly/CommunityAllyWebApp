@@ -43,7 +43,15 @@
             </div>
 
             <assessment-payment-form data-ng-if="$ctrl.canMakePayment"></assessment-payment-form>
-            
+
+            <!--Show this box if payments are disabled but custom payment instructions are set-->
+            <div class="portlet-box white payment_bl margin-vertical" data-ng-if="!$ctrl.canMakePayment && $ctrl.siteInfo.privateSiteInfo.customFinancialInstructions">
+                <div class="portlet-header"><div class="title">Payment</div></div>
+                <div class="portlet-body">
+                    <div style="font-family: inherit; font-size: 1rem;" data-ng-bind-html="$ctrl.siteInfo.privateSiteInfo.customFinancialInstructions"></div>
+                </div>
+            </div>
+
             <div data-ng-if="!$ctrl.canMakePayment && $ctrl.shouldShowOwnerFinanceTxn" class="portlet-box white margin-vertical">
                 <div class="portlet-header">
                     <h3 class="title">Financial Transactions</h3>

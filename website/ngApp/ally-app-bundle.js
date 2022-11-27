@@ -408,6 +408,19 @@ var Ally;
                 alert("Failed: " + response.data.exceptionMessage);
             });
         };
+        ManageGroupsController.prototype.refreshCurGroupDocumentUsage = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/AdminHelper/RecalcGroupDocumentUsage?groupId=" + this.curGroupId;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                console.log("Recalc Succeeded", response.data);
+                alert("Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
         ManageGroupsController.prototype.onAddAllyPayment = function () {
             var _this = this;
             this.isLoading = true;
@@ -437,6 +450,10 @@ var Ally;
         };
         ManageGroupsController.prototype.updatePremiumExpiration = function () {
             var _this = this;
+            if (!this.premiumNewExpiration) {
+                alert("Hey, dummy, enter a date. Ha!");
+                return;
+            }
             this.isLoading = true;
             var postUri = "/api/AdminHelper/SetPremiumExpiration/" + this.premiumUpdateGroupId + "?expirationDate=" + encodeURIComponent(this.premiumNewExpiration.toISOString());
             this.$http.put(postUri, null).then(function (response) {
@@ -446,6 +463,32 @@ var Ally;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed: " + response.data.exceptionMessage);
+            });
+        };
+        ManageGroupsController.prototype.onDeactivateGroup = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/AdminHelper/DeactivateGroups?groupIdsCsv=" + this.deactivateGroupIdsCsv;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                _this.deactivateGroupIdsCsv = null;
+                alert("Deactivate Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Deactivate Failed: " + response.data.exceptionMessage);
+            });
+        };
+        ManageGroupsController.prototype.onReactivateGroup = function () {
+            var _this = this;
+            this.isLoading = true;
+            var getUri = "/api/AdminHelper/ReactivateGroup?groupId=" + this.reactivateGroupId;
+            this.$http.get(getUri).then(function (response) {
+                _this.isLoading = false;
+                _this.reactivateGroupId = null;
+                alert("Reactivate Succeeded: " + response.data);
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Reactivate Failed: " + response.data.exceptionMessage);
             });
         };
         ManageGroupsController.$inject = ["$http", "SiteInfo"];
@@ -1102,8 +1145,10 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             }
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
-                            if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl))
-                                reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl;
+                            // Certain folks with ad-blockers or using private browsing mode will not send
+                            // the referrer up so we need to send it ourselves
+                            //if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
+                            reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl || window.location.href;
                         }
                         return reqConfig;
                     }
@@ -1297,10 +1342,10 @@ var Role_Manager = "manager";
 var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
 var PeriodicPaymentFrequencies = [
-    { name: "Monthly", intervalName: "month", id: 50 },
-    { name: "Quarterly", intervalName: "quarter", id: 51 },
-    { name: "Semiannually", intervalName: "half-year", id: 52 },
-    { name: "Annually", intervalName: "year", id: 53 }
+    { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
+    { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
+    { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
+    { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
 ];
 function FrequencyIdToInfo(frequencyId) {
     if (isNaN(frequencyId) || frequencyId < 50)
@@ -1371,6 +1416,7 @@ var CondoAllyAppConfig = {
         //new Ally.RoutePath_v3( { path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager } ),
         //new Ally.RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager } ),
         new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/:viewName", templateHtml: "<settings-parent></settings-parent>", role: Role_Manager }),
@@ -1382,7 +1428,6 @@ var CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "/Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "/Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
-        new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Admin }),
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3848,15 +3893,16 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManagePaymentsController($http, siteInfo, appCacheService, uiGridConstants) {
+        function ManagePaymentsController($http, siteInfo, appCacheService, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
+            this.$scope = $scope;
             this.PaymentHistory = [];
             this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
-            this.PeriodicPaymentFrequencies = PeriodicPaymentFrequencies;
+            this.periodicPaymentFrequencies = PeriodicPaymentFrequencies;
             this.AssociationPaysAch = true;
             this.AssociationPaysCC = false; // Payer pays credit card fees
             this.lateFeeInfo = {};
@@ -3872,6 +3918,7 @@ var Ally;
             this.isDwollaIavDone = false;
             this.shouldShowMicroDepositModal = false;
             this.shouldShowPlaidTestSignUpButton = false;
+            this.shouldShowCustomInstructions = false;
             this.HistoryPageSize = 50;
         }
         /**
@@ -3928,7 +3975,7 @@ var Ally;
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function (gridApi) {
+                    onRegisterApi: function () {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -3946,12 +3993,19 @@ var Ally;
                 _this.isLoading = false;
                 _this.hasLoadedPage = true;
                 _this.hasAssessments = _this.siteInfo.privateSiteInfo.hasAssessments;
+                if (_this.hasAssessments) {
+                    var assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(function (ppf) { return ppf.id === _this.siteInfo.privateSiteInfo.assessmentFrequency; });
+                    if (assessmentFrequencyInfo)
+                        _this.assessmentFrequencyLabel = assessmentFrequencyInfo.name;
+                }
                 var data = httpResponse.data;
                 _this.paymentInfo = data;
                 _this.paymentsGridOptions.data = _this.paymentInfo.electronicPayments;
                 _this.paymentsGridOptions.enablePaginationControls = _this.paymentInfo.electronicPayments.length > _this.HistoryPageSize;
                 _this.paymentsGridOptions.minRowsToShow = Math.min(_this.paymentInfo.electronicPayments.length, _this.HistoryPageSize);
                 _this.paymentsGridOptions.virtualizationThreshold = _this.paymentsGridOptions.minRowsToShow;
+                if (Ally.HtmlUtil2.isValidString(_this.paymentInfo.customFinancialInstructions))
+                    _this.showCustomInstructionsEditor();
                 _this.lateFeeInfo =
                     {
                         lateFeeDayOfMonth: data.lateFeeDayOfMonth,
@@ -4009,7 +4063,7 @@ var Ally;
                 dayOfMonth = parseInt(dayOfMonth);
                 this.lateFeeInfo.lateFeeDayOfMonth = dayOfMonth;
             }
-            if (dayOfMonth == NaN || dayOfMonth < 1) {
+            if (isNaN(dayOfMonth) || dayOfMonth < 1) {
                 dayOfMonth = "";
                 return "";
             }
@@ -4044,7 +4098,7 @@ var Ally;
         ManagePaymentsController.prototype.saveAllowSetting = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(function (httpResponse) {
+            this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -4062,7 +4116,7 @@ var Ally;
                 clientId: this.payPalSignUpClientId,
                 clientSecret: this.payPalSignUpClientSecret
             };
-            this.$http.put("/api/OnlinePayment/EnablePayPal", enableInfo).then(function (httpResponse) {
+            this.$http.put("/api/OnlinePayment/EnablePayPal", enableInfo).then(function () {
                 _this.payPalSignUpClientId = "";
                 _this.payPalSignUpClientSecret = "";
                 window.location.reload();
@@ -4099,6 +4153,7 @@ var Ally;
          * Occurs when the user presses the button to edit a unit's assessment
          */
         ManagePaymentsController.prototype.onUnitAssessmentChanged = function (unit) {
+            var _this = this;
             this.isLoadingUnits = true;
             if (typeof (unit.adjustedAssessment) === "string")
                 unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
@@ -4107,11 +4162,34 @@ var Ally;
                 assessment: unit.adjustedAssessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
-            var innerThis = this;
             this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(function () {
-                innerThis.isLoadingUnits = false;
-                innerThis.assessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + u.assessment; }, 0);
-                innerThis.adjustedAssessmentSum = _.reduce(innerThis.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                _this.isLoadingUnits = false;
+                _this.assessmentSum = _.reduce(_this.units, function (memo, u) { return memo + u.assessment; }, 0);
+                _this.adjustedAssessmentSum = _.reduce(_this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+            }, function (response) {
+                alert("Failed to update: " + response.data.exceptionMessage);
+            });
+        };
+        /**
+         * Occurs when the user presses the button to set all units to the assessment
+         */
+        ManagePaymentsController.prototype.setAllUnitAssessments = function () {
+            var _this = this;
+            if (!this.setAllAssessmentAmount || isNaN(this.setAllAssessmentAmount) || this.setAllAssessmentAmount < 0) {
+                alert("Enter a valid assessment amount");
+                return;
+            }
+            this.isLoadingUnits = true;
+            var updateInfo = {
+                unitId: -1,
+                assessment: this.setAllAssessmentAmount,
+                assessmentNote: null
+            };
+            this.$http.put("/api/Unit/SetAllAssessments", updateInfo).then(function () {
+                _this.isLoadingUnits = false;
+                _this.refreshUnits();
+            }, function (response) {
+                alert("Failed to update: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -4123,23 +4201,23 @@ var Ally;
             var needsFullRefresh = false;
             var needsReloadOfPage = false;
             if (this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0) {
-                var AchDBString = "ACH";
-                var CreditDBString = "Credit Card";
+                var AchDBString_1 = "ACH";
+                var CreditDBString_1 = "Credit Card";
                 var usersAffected = [];
                 if (payTypeUpdated === "ach")
-                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === AchDBString; });
+                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === AchDBString_1; });
                 else if (payTypeUpdated === "cc")
-                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === CreditDBString; });
+                    usersAffected = _.where(this.paymentInfo.usersWithAutoPay, function (u) { return u.wePayAutoPayFundingSource === CreditDBString_1; });
                 // If users will be affected then display an error message to the user
                 if (usersAffected.length > 0) {
                     // We need to reload the site if the user is affected so the home page updates that
                     // the user does not have auto-pay enabled
                     needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
-                    var message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
-                    _.each(usersAffected, function (u) { return message += u.ownerName + "\n"; });
-                    message += "\nDo you want to continue?";
-                    if (!confirm(message)) {
+                    var message_1 = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
+                    _.each(usersAffected, function (u) { return message_1 += u.ownerName + "\n"; });
+                    message_1 += "\nDo you want to continue?";
+                    if (!confirm(message_1)) {
                         // Reset the setting
                         if (payTypeUpdated === "ach")
                             this.paymentInfo.payerPaysAchFee = !this.paymentInfo.payerPaysAchFee;
@@ -4150,16 +4228,17 @@ var Ally;
                 }
             }
             this.isLoadingPayment = true;
-            var innerThis = this;
             this.$http.put("/api/OnlinePayment", this.paymentInfo).then(function () {
                 if (needsReloadOfPage)
                     window.location.reload();
                 else {
-                    innerThis.isLoadingPayment = false;
+                    _this.isLoadingPayment = false;
                     // We need to refresh our data so we don't pop-up the auto-pay cancel warning again
                     if (needsFullRefresh)
-                        innerThis.refresh();
+                        _this.refresh();
                 }
+            }, function (response) {
+                alert("Failed to update: " + response.data.exceptionMessage);
             });
             this.updateTestFee();
         };
@@ -4219,7 +4298,7 @@ var Ally;
                 }
             }, function (httpResponse) {
                 _this.isLoadingLateFee = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to update late fee: " + errorMessage);
             });
         };
@@ -4361,7 +4440,7 @@ var Ally;
         ManagePaymentsController.prototype.clearWePayAccessToken = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(function (httpResponse) {
+            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -4401,12 +4480,12 @@ var Ally;
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server
-                        _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                        _this.$http.put("/api/Dwolla/SetGroupFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function () {
                             _this.isDwollaIavDone = true;
-                        }, function (httpResponse) {
+                        }, function (response) {
                             _this.isLoading = false;
                             _this.shouldShowDwollaModalClose = true;
-                            alert("Failed to complete sign-up");
+                            alert("Failed to complete sign-up: " + response.data.exceptionMessage);
                         });
                     }
                 });
@@ -4438,7 +4517,7 @@ var Ally;
             if (!confirm("Are you sure you want to disconnect the bank account? Residents will no longer be able to make payments."))
                 return;
             this.isLoading = true;
-            this.$http.put("/api/Dwolla/DisconnectGroupFundingSource", null).then(function (httpResponse) {
+            this.$http.put("/api/Dwolla/DisconnectGroupFundingSource", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -4458,7 +4537,7 @@ var Ally;
                 amount2String: this.dwollaMicroDepositAmount2String,
                 isForGroup: true
             };
-            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -4468,14 +4547,48 @@ var Ally;
         ManagePaymentsController.prototype.addDwollaAccountViaPlaid = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.post("/api/Dwolla/SignUpGroupFromPlaid/81", null).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/SignUpGroupFromPlaid/81", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to use Plaid account: " + httpResponse.data.exceptionMessage);
             });
         };
-        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants"];
+        ManagePaymentsController.prototype.showCustomInstructionsEditor = function () {
+            var _this = this;
+            this.shouldShowCustomInstructions = true;
+            window.setTimeout(function () {
+                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 220, { menubar: false }).then(function (e) {
+                    _this.pageContentTinyMce = e;
+                    _this.pageContentTinyMce.setContent(_this.paymentInfo.customFinancialInstructions || "");
+                    //this.pageContentTinyMce.on( "change", ( e: any ) =>
+                    //{
+                    //    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                    //    this.$scope.$apply( () =>
+                    //    {
+                    //    } );
+                    //} );
+                });
+            }, 25);
+        };
+        ManagePaymentsController.prototype.saveCustomInstructions = function () {
+            var _this = this;
+            this.isLoading = true;
+            var putBody = {
+                newInstructions: this.pageContentTinyMce.getContent()
+            };
+            this.$http.put("/api/OnlinePayment/UpdateCustomFinancialInstructions", putBody).then(function () {
+                _this.isLoading = false;
+                if (!putBody.newInstructions)
+                    _this.shouldShowCustomInstructions = false;
+                // Update the local value
+                _this.siteInfo.privateSiteInfo.customFinancialInstructions = putBody.newInstructions;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to save: " + response.data.exceptionMessage);
+            });
+        };
+        ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope"];
         return ManagePaymentsController;
     }());
     Ally.ManagePaymentsController = ManagePaymentsController;
@@ -4636,9 +4749,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ManageCustomPagesController($http, siteInfo) {
+        function ManageCustomPagesController($http, siteInfo, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$scope = $scope;
             this.isLoading = false;
             this.includeInactive = false;
             this.allPageListings = [];
@@ -4646,6 +4760,8 @@ var Ally;
             this.selectedPageEntry = null;
             this.editPage = null;
             this.selectedLandingPageId = null;
+            this.pageSizeString = "0 bytes";
+            this.pageSizeBytes = 0;
             this.groupBaseUrl = this.siteInfo.publicSiteInfo.baseUrl;
         }
         /**
@@ -4654,12 +4770,36 @@ var Ally;
         ManageCustomPagesController.prototype.$onInit = function () {
             var _this = this;
             this.retrievePages();
-            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(function (e) { return _this.pageContentTinyMce = e; });
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(function (e) {
+                _this.pageContentTinyMce = e;
+                _this.pageContentTinyMce.on("change", function (e) {
+                    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                    _this.$scope.$apply(function () {
+                        _this.updatePageSizeLabel();
+                    });
+                });
+            });
             this.$http.get("/api/CustomPage/GroupLandingPage").then(function (response) {
                 _this.selectedLandingPageId = response.data ? response.data : null;
             }, function (response) {
                 console.log("Failed to retrieve current landing page: " + response.data.exceptionMessage);
             });
+        };
+        /**
+         * Update the label under the editor showing the size of the page to download
+         */
+        ManageCustomPagesController.prototype.updatePageSizeLabel = function () {
+            if (!this.pageContentTinyMce)
+                return;
+            var bodyText = this.pageContentTinyMce.getContent() || "";
+            this.pageSizeBytes = bodyText.length;
+            this.pageSizeString = (this.pageSizeBytes / 1048576).toFixed(2) + " MB";
+            //if( this.pageSizeBytes < 5 * 1024 )
+            //    this.pageSizeString = this.pageSizeBytes.toString() + " bytes";
+            //else if( this.pageSizeBytes < 1 * 1024 * 1024 )
+            //    this.pageSizeString = Math.round( this.pageSizeBytes / 1024 ).toString() + " KB";
+            //else
+            //    this.pageSizeString = Math.round( this.pageSizeBytes / 1048576 ).toString() + " MB";
         };
         /**
         * Retrieve the list of custom pages
@@ -4701,6 +4841,7 @@ var Ally;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
                 _this.pageContentTinyMce.setContent("");
+                _this.updatePageSizeLabel();
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -4720,6 +4861,7 @@ var Ally;
                 _this.selectedPageEntry = null;
                 _this.editPage = null;
                 _this.pageContentTinyMce.setContent("");
+                _this.updatePageSizeLabel();
                 _this.retrievePages();
             }, function (response) {
                 _this.isLoading = false;
@@ -4756,6 +4898,7 @@ var Ally;
                     _this.isLoading = false;
                     _this.editPage = response.data;
                     _this.pageContentTinyMce.setContent(_this.editPage.markupHtml);
+                    _this.updatePageSizeLabel();
                 }, function (response) {
                     _this.isLoading = false;
                     alert("Failed to retrieve custom page: " + response.data.exceptionMessage);
@@ -4764,6 +4907,7 @@ var Ally;
             else {
                 this.editPage = new CustomPage();
                 this.pageContentTinyMce.setContent("");
+                this.updatePageSizeLabel();
             }
         };
         /**
@@ -4789,7 +4933,7 @@ var Ally;
                 alert("Failed to update landing page: " + response.data.exceptionMessage);
             });
         };
-        ManageCustomPagesController.$inject = ["$http", "SiteInfo"];
+        ManageCustomPagesController.$inject = ["$http", "SiteInfo", "$scope"];
         return ManageCustomPagesController;
     }());
     Ally.ManageCustomPagesController = ManageCustomPagesController;
@@ -5143,6 +5287,8 @@ var Ally;
             this.isLoadingSettings = false;
             this.shouldSortUnitsNumerically = false;
             this.showEmailHistory = false;
+            this.emailHistorySinceDate = new Date();
+            this.emailHistoryNumMonths = 6;
             this.bulkParseNormalizeNameCase = false;
             this.showLaunchSite = true;
             this.showPendingMembers = false;
@@ -5171,8 +5317,8 @@ var Ally;
             this.showLaunchSite = AppConfig.appShortName !== "pta";
             this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
-            // Show the add home article link if the site isn't launched and is less than 5 days old
-            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(5, "days"));
+            // Show the add home article link if the site isn't launched and is less than 8 days old
+            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(8, "days"));
             if (this.showPendingMembers) {
                 this.pendingMemberSignUpUrl = "https://" + HtmlUtil.getSubdomain() + "." + AppConfig.baseTld + "/#!/MemberSignUp";
                 // Hook up the address copy link
@@ -5212,7 +5358,7 @@ var Ally;
                         { field: 'firstName', displayName: 'First Name', cellClass: "resident-cell-first", enableFiltering: true },
                         { field: 'lastName', displayName: 'Last Name', cellClass: "resident-cell-last", enableFiltering: true },
                         { field: 'email', displayName: 'Email', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text class="resident-cell-email" data-ng-style="{ \'color\': row.entity.postmarkReportedBadEmailUtc ? \'#F00\' : \'auto\' }">{{ row.entity.email }}</span></div>', enableFiltering: true },
-                        { field: 'phoneNumber', displayName: 'Phone Number', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
+                        { field: 'phoneNumber', displayName: 'Cell Phone', width: 150, cellClass: "resident-cell-phone", cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><span ng-cell-text>{{ row.entity.phoneNumber | tel }}</span></div>', enableFiltering: true },
                         {
                             field: 'unitGridLabel',
                             displayName: AppConfig.appShortName === 'condo' ? 'Unit' : 'Residence',
@@ -5405,6 +5551,20 @@ var Ally;
                 var isSelected = _.find(_this.editUser.units, function (userUnit) { return userUnit.unitId === allUnit.unitId; }) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             });
+            if (this.editUser.postmarkReportedBadEmailUtc && Ally.HtmlUtil2.isValidString(this.editUser.postmarkReportedBadEmailReason)) {
+                this.editUser.badEmailDate = this.editUser.postmarkReportedBadEmailUtc;
+                if (this.editUser.postmarkReportedBadEmailReason === "SpamComplaint"
+                    || this.editUser.postmarkReportedBadEmailReason === "SpamComplaint")
+                    this.editUser.friendlyBadEmailReason = "SpamReport";
+                else if (this.editUser.postmarkReportedBadEmailReason === "InactiveRecipient")
+                    this.editUser.friendlyBadEmailReason = "Inactive";
+                else if (this.editUser.postmarkReportedBadEmailReason === "HardBounce")
+                    this.editUser.friendlyBadEmailReason = "Bounce";
+                else if (this.editUser.postmarkReportedBadEmailReason === "FailedDuringSend")
+                    this.editUser.friendlyBadEmailReason = "FailedSend";
+                else
+                    this.editUser.friendlyBadEmailReason = this.editUser.postmarkReportedBadEmailReason;
+            }
             //this.residentGridOptions.selectAll( false );
             this.gridApi.selection.clearSelectedRows();
             setTimeout("$( '#edit-user-first-text-box' ).focus();", 100);
@@ -5480,6 +5640,8 @@ var Ally;
                             _this.allUnits = _.sortBy(_this.allUnits, function (u) { return parseFloat(u.name); });
                         // If we have a lot of units then allow searching
                         _this.multiselectOptions = _this.allUnits.length > 20 ? "filter" : "";
+                        // Show the note on how to add homes if there's only one home
+                        _this.showAddHomeLink = _this.allUnits.length === 1;
                     }, function () {
                         _this.isLoading = false;
                         alert("Failed to retrieve your association's home listing, please contact support.");
@@ -5641,7 +5803,7 @@ var Ally;
                     fieldName: "lastName"
                 },
                 {
-                    headerText: "Phone",
+                    headerText: "CellPhone",
                     fieldName: "phoneNumber"
                 },
                 {
@@ -6080,6 +6242,23 @@ var Ally;
                 });
             }
         };
+        /**
+         * Load 6 more months of email history
+         */
+        ManageResidentsController.prototype.loadMoreRecentEmails = function () {
+            var _this = this;
+            this.isLoadingSettings = true;
+            var NumMonthsStep = 6;
+            this.emailHistoryNumMonths += NumMonthsStep;
+            this.emailHistorySinceDate = moment(this.emailHistorySinceDate).subtract(NumMonthsStep, "months").toDate();
+            this.$http.get("/api/Email/RecentGroupEmails?sinceDateUtc=" + this.emailHistorySinceDate.toISOString()).then(function (response) {
+                _this.isLoadingSettings = false;
+                _this.emailHistoryGridOptions.data = _this.emailHistoryGridOptions.data.concat(response.data);
+            }, function (response) {
+                _this.isLoadingSettings = false;
+                alert("Failed to load emails: " + response.data.exceptionMessage);
+            });
+        };
         ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
         return ManageResidentsController;
     }());
@@ -6183,7 +6362,7 @@ var Ally;
             this.emailUsageAverageNumMonths = 0;
             this.emailUsageAverageSent = 0;
             this.showInvoiceSection = false;
-            this.paymentType = "creditCard";
+            this.paymentType = "ach";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
@@ -6778,6 +6957,7 @@ var Ally;
                         _this.tinyMceEditor = e;
                         _this.tinyMceEditor.setContent(_this.settings.welcomeMessage);
                         _this.tinyMceEditor.on("keyup", function (e) {
+                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                             _this.$scope.$apply(function () {
                                 _this.onWelcomeMessageEdit();
                             });
@@ -6864,6 +7044,8 @@ var Ally;
             var _this = this;
             $(function () {
                 $('#JQLoginImageFileUploader').fileupload({
+                    dropZone: null,
+                    pasteZone: null,
                     autoUpload: true,
                     add: function (e, data) {
                         _this.$scope.$apply(function () {
@@ -7652,7 +7834,8 @@ var Ally;
                     _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.lastName || "").toLowerCase(); });
                 else
                     _this.allResidents = _.sortBy(_this.allResidents, function (r) { return (r.fullName || "").toLowerCase(); });
-                _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== 0; });
+                _this.boardMembers = _.filter(_this.allResidents, function (r) { return r.boardPosition !== Ally.FellowResidentsService.BoardPos_None && r.boardPosition !== Ally.FellowResidentsService.BoardPos_PropertyManager; });
+                _this.boardPropMgrs = _.filter(_this.allResidents, function (r) { return r.boardPosition === Ally.FellowResidentsService.BoardPos_PropertyManager; });
                 _this.boardMessageRecipient = null;
                 if (_this.boardMembers.length > 0) {
                     var hasBoardEmail = _.some(_this.boardMembers, function (m) { return m.hasEmail; });
@@ -7668,9 +7851,13 @@ var Ally;
                 // Remove board members from the member list
                 if (AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club")
                     _this.allResidents = _.filter(_this.allResidents, function (r) { return r.boardPosition === 0; });
-                for (var i = 0; i < _this.boardMembers.length; ++i) {
+                var _loop_1 = function (i) {
                     _this.boardMembers[i].boardPositionName = _.find(Ally.FellowResidentsService.BoardPositionNames, function (bm) { return bm.id === _this.boardMembers[i].boardPosition; }).name;
+                };
+                for (var i = 0; i < _this.boardMembers.length; ++i) {
+                    _loop_1(i);
                 }
+                _this.boardPropMgrs.forEach(function (bpm) { return bpm.boardPositionName = _.find(Ally.FellowResidentsService.BoardPositionNames, function (bm) { return bm.id === bpm.boardPosition; }).name; });
                 var boardSortOrder = [
                     1,
                     64,
@@ -7948,21 +8135,8 @@ var Ally;
             this.showExpandedCalendarEventModel = false;
             this.currentTimeZoneAbbreviation = "CT";
             this.localTimeZoneDiffersFromGroup = false;
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            // Occurs when the user clicks a user in the calendar event modal
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-            this.onResidentClicked = function (resident) {
-                if (!resident.hasEmail) {
-                    alert("That user cannot be included because they do not have an e-mail address on file.");
-                    resident.isAssociated = false;
-                    return;
-                }
-                var alreadyExists = _.contains(this.editEvent.associatedUserIds, resident.userId);
-                if (alreadyExists)
-                    this.editEvent.associatedUserIds = _.without(this.editEvent.associatedUserIds, resident.userId);
-                else
-                    this.editEvent.associatedUserIds.push(resident.userId);
-            };
+            this.associatedGroups = [];
+            this.GroupShortNameIndividuals = "Individuals";
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // Hide the read-only calendar event view
             ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -8069,11 +8243,22 @@ var Ally;
                 $('#calendar-event-time').timepicker({ 'scrollDefault': '10:00am' });
                 $(".fc-bg td.fc-today").append("<div class='today-note'>Today</div>");
             });
+            this.fellowResidents.getGroupEmailObject().then(function (emailList) {
+                _this.associatedGroups = emailList.map(function (e) {
+                    var isCustomRecipientGroup = e.recipientType.toUpperCase() === Ally.FellowResidentsService.CustomRecipientType;
+                    return {
+                        groupShortName: isCustomRecipientGroup ? ("custom:" + e.recipientTypeName) : e.recipientType,
+                        displayLabel: e.displayName,
+                        isAssociated: false
+                    };
+                });
+                _this.associatedGroups.push({ displayLabel: _this.GroupShortNameIndividuals, groupShortName: _this.GroupShortNameIndividuals, isAssociated: false });
+            });
         };
         LogbookController.prototype.getAllEvents = function (startDate, endDate) {
             var _this = this;
             var loadNewsToCalendar = false;
-            var loadLogbookToCalendar = true;
+            var loadLogbookToCalendar = false;
             var loadPollsToCalendar = AppConfig.isChtnSite;
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
@@ -8084,25 +8269,24 @@ var Ally;
             var pollDeferred = this.$q.defer();
             if (loadNewsToCalendar) {
                 this.isLoadingNews = true;
-                var innerThis = this;
                 this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
-                    innerThis.isLoadingNews = false;
+                    _this.isLoadingNews = false;
                     _.each(data, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        innerThis.calendarEvents.push({
+                        this.calendarEvents.push({
                             title: "Notice: " + shortText,
-                            start: moment(entry.postDate).format("YYYY-MM-DD"),
+                            start: moment(entry.postDate).toDate(),
                             toolTipTitle: "Notice Added",
                             fullDescription: fullDescription
                         });
                     });
                     newsDeferred.resolve();
                 }, function () {
-                    innerThis.isLoadingNews = false;
+                    _this.isLoadingNews = false;
                     newsDeferred.resolve();
                 });
             }
@@ -8110,16 +8294,15 @@ var Ally;
                 newsDeferred.resolve();
             if (loadLogbookToCalendar) {
                 this.isLoadingLogbookForCalendar = true;
-                var innerThis = this;
                 this.$http.get("/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
                     var data = httpResponse.data;
-                    innerThis.isLoadingLogbookForCalendar = false;
+                    _this.isLoadingLogbookForCalendar = false;
                     _.each(data, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
-                        innerThis.calendarEvents.push({
+                        this.calendarEvents.push({
                             title: "Logbook: " + shortText,
                             start: moment(entry.postDate).format("YYYY-MM-DD"),
                             toolTipTitle: "Logbook Entry Added",
@@ -8128,7 +8311,7 @@ var Ally;
                     });
                     logbookDeferred.resolve();
                 }, function () {
-                    innerThis.isLoadingLogbookForCalendar = false;
+                    _this.isLoadingLogbookForCalendar = false;
                     logbookDeferred.resolve();
                 });
             }
@@ -8146,9 +8329,11 @@ var Ally;
                         var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         _this.calendarEvents.push({
                             title: "Poll: " + shortText,
-                            start: moment(entry.postDate).format("YYYY-MM-DD"),
+                            start: moment(entry.postDate).toDate(),
+                            calendarEventObject: null,
                             toolTipTitle: "Poll Added",
-                            fullDescription: fullDescription
+                            fullDescription: fullDescription,
+                            allDay: false
                         });
                     });
                     pollDeferred.resolve();
@@ -8162,27 +8347,26 @@ var Ally;
             return this.$q.all([newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise]);
         };
         LogbookController.prototype.getAssociationEvents = function (start, end, timezone, callback) {
+            var _this = this;
             if (this.onlyRefreshCalendarEvents) {
                 this.onlyRefreshCalendarEvents = undefined;
                 callback(this.calendarEvents);
                 return;
             }
             this.calendarEvents = [];
-            var innerThis = this;
             this.getAllEvents(start, end).then(function () {
-                callback(innerThis.calendarEvents);
+                callback(_this.calendarEvents);
             });
         };
         LogbookController.prototype.getCalendarEvents = function (start, end, timezone, callback) {
+            var _this = this;
             this.isLoadingCalendarEvents = true;
             var firstDay = start.format(LogbookController.DateFormat);
             var lastDay = end.format(LogbookController.DateFormat);
-            var innerThis = this;
             this.$http.get("/api/CalendarEvent?startDate=" + firstDay + "&endDate=" + lastDay).then(function (httpResponse) {
-                var data = httpResponse.data;
                 var associationEvents = [];
-                innerThis.isLoadingCalendarEvents = false;
-                _.each(data, function (entry) {
+                _this.isLoadingCalendarEvents = false;
+                _.each(httpResponse.data, function (entry) {
                     var utcEventDate = moment.utc(entry.eventDateUtc);
                     var utcTimeOnly = utcEventDate.format(LogbookController.TimeFormat);
                     var isAllDay = utcTimeOnly == LogbookController.NoTime;
@@ -8203,7 +8387,6 @@ var Ally;
                         shortText = shortText.substring(0, 10) + "...";
                     var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
                     associationEvents.push({
-                        //title: "Event: " + shortText,
                         title: shortText,
                         start: dateEntry,
                         toolTipTitle: "Event",
@@ -8214,8 +8397,23 @@ var Ally;
                 });
                 callback(associationEvents);
             }, function () {
-                innerThis.isLoadingCalendarEvents = false;
+                _this.isLoadingCalendarEvents = false;
             });
+        };
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks a user in the calendar event modal
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        LogbookController.prototype.onResidentClicked = function (resident) {
+            if (!resident.hasEmail) {
+                alert("That user cannot be included because they do not have an e-mail address on file.");
+                resident.isAssociated = false;
+                return;
+            }
+            var alreadyExists = _.contains(this.editEvent.associatedUserIds, resident.userId);
+            if (alreadyExists)
+                this.editEvent.associatedUserIds = _.without(this.editEvent.associatedUserIds, resident.userId);
+            else
+                this.editEvent.associatedUserIds.push(resident.userId);
         };
         LogbookController.prototype.isDateInPast = function (date) {
             var momentDate = moment(date);
@@ -8239,8 +8437,7 @@ var Ally;
             if (this.showBadNotificationDateWarning) {
                 this.maxDaysBack = moment(this.editEvent.dateOnly).diff(today, 'day');
                 this.editEvent.notificationEmailDaysBefore = this.maxDaysBack;
-                var innerThis = this;
-                this.$timeout(function () { innerThis.showBadNotificationDateWarning = false; }, 10000);
+                this.$timeout(function () { this.showBadNotificationDateWarning = false; }, 10000);
             }
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -8256,7 +8453,7 @@ var Ally;
         LogbookController.prototype.hookUpWysiwyg = function () {
             var _this = this;
             this.$timeout(function () {
-                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 300).then(function (e) {
+                Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 200, { menubar: false }).then(function (e) {
                     _this.tinyMceEditor = e;
                     if (_this.editEvent && _this.editEvent.description)
                         _this.tinyMceEditor.setContent(_this.editEvent.description);
@@ -8281,6 +8478,15 @@ var Ally;
                     if (this.editEvent.associatedUserIds)
                         this.residents.filter(function (r) { return _this.editEvent.associatedUserIds.indexOf(r.userId) !== -1; }).forEach(function (r) { return r.isAssociated = true; });
                 }
+                // Set the checked status for the associated groups
+                if (this.editEvent.associatedGroupShortNames) {
+                    this.associatedGroups.forEach(function (ag) {
+                        ag.isAssociated = _this.editEvent.associatedGroupShortNames.indexOf(ag.groupShortName) !== -1;
+                    });
+                }
+                else
+                    this.associatedGroups.forEach(function (ag) { return ag.isAssociated = false; });
+                this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(function (ag) { return ag.isAssociated; }).map(function (ag) { return ag.groupShortName; });
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
@@ -8358,6 +8564,7 @@ var Ally;
             }
             if (!this.editEvent.shouldSendNotification)
                 this.editEvent.notificationEmailDaysBefore = null;
+            this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(function (ag) { return ag.isAssociated; }).map(function (ag) { return ag.groupShortName; });
             var httpFunc;
             if (this.editEvent.eventId)
                 httpFunc = this.$http.put;
@@ -8376,7 +8583,12 @@ var Ally;
                 alert("Failed to save the calendar event: " + errorMessage);
             });
         };
-        ;
+        LogbookController.prototype.getNumSelectedIndividuals = function () {
+            return this.residents.filter(function (r) { return r.isAssociated; }).length;
+        };
+        LogbookController.prototype.getNumSelectedGroups = function () {
+            return this.associatedGroups.filter(function (g) { return g.isAssociated; }).length;
+        };
         LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
         LogbookController.DateFormat = "YYYY-MM-DD";
         LogbookController.TimeFormat = "h:mma";
@@ -8384,6 +8596,16 @@ var Ally;
         return LogbookController;
     }());
     Ally.LogbookController = LogbookController;
+    var AssociatedGroup = /** @class */ (function () {
+        function AssociatedGroup() {
+        }
+        return AssociatedGroup;
+    }());
+    var CalendarEvent = /** @class */ (function () {
+        function CalendarEvent() {
+        }
+        return CalendarEvent;
+    }());
 })(Ally || (Ally = {}));
 CA.angularApp.component("logbookPage", {
     templateUrl: "/ngApp/chtn/member/logbook.html",
@@ -8632,6 +8854,8 @@ var Ally;
             var hookUpPhotoFileUpload = function () {
                 var uploader = $('#JQFileUploader');
                 uploader.fileupload({
+                    dropZone: null,
+                    pasteZone: null,
                     add: function (e, data) {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + _this.siteInfo.authToken;
                         if (_this.siteInfo.publicSiteInfo.baseApiUrl)
@@ -9291,7 +9515,7 @@ var Ally;
             }
             var shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf("condo") !== -1;
             if (shouldShowCondoMessage && !this.shouldShowCondoMessage)
-                $("#suggestCondoMessageLabel").css("font-size", "1.3em").css("margin", "25px auto").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
+                $("#suggestCondoMessageLabel").css("font-size", "1.3em").css("margin", "25px auto").addClass("alert alert-warning").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeIn(200).fadeOut(200).fadeIn(200);
             this.shouldShowCondoMessage = shouldShowCondoMessage;
         };
         /**
@@ -10187,36 +10411,32 @@ var Ally;
          * Populate the polls section from the server
          */
         ActivePollsController.prototype.refreshPolls = function () {
-            // Grab the polls
+            var _this = this;
+            // Grab the polls from the server
             this.isLoading = true;
-            var innerThis = this;
-            this.$http({ method: 'GET', url: '/api/Poll?getActive=1' }).
-                then(function (httpResponse) {
-                innerThis.isLoading = false;
+            this.$http.get("/api/Poll?getActive=1").then(function (httpResponse) {
+                _this.isLoading = false;
                 // Delay the processing a bit to help the home page load faster
-                innerThis.$timeout(function () {
-                    innerThis.populatePollData(httpResponse.data);
-                }, 100);
+                _this.$timeout(function () { return _this.populatePollData(httpResponse.data); }, 100);
             }, function () {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
             });
         };
         /**
          * Occurs when the user selects a poll answer
          */
         ActivePollsController.prototype.onPollAnswer = function (poll, pollAnswer) {
+            var _this = this;
             this.isLoading = true;
             var answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
             var writeInAnswer = poll.writeInAnswer ? encodeURIComponent(poll.writeInAnswer) : "";
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + writeInAnswer;
-            var innerThis = this;
-            this.$http.put(putUri, null).
-                then(function (httpResponse) {
-                innerThis.polls = httpResponse.data;
-                innerThis.isLoading = false;
-                innerThis.refreshPolls();
-            }, function () {
-                innerThis.isLoading = false;
+            this.$http.put(putUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.refreshPolls();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to submit vote: " + response.data.exceptionMessage);
             });
         };
         ActivePollsController.prototype.onMultiResponseChange = function (poll, pollAnswer) {
@@ -10244,6 +10464,7 @@ var Ally;
             poll.localMultiSelectedAnswers = poll.answers.filter(function (a) { return a.isLocalMultiSelect; });
         };
         ActivePollsController.prototype.onSubmitMultiAnswer = function (poll) {
+            var _this = this;
             if (!poll.localMultiSelectedAnswers || poll.localMultiSelectedAnswers.length === 0) {
                 alert("Please select at least one reponse");
                 return;
@@ -10251,14 +10472,12 @@ var Ally;
             var answerIdsCsv = poll.localMultiSelectedAnswers.map(function (a) { return a.pollAnswerId; }).join(",");
             this.isLoading = true;
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + ((poll.isWriteInMultiSelected && poll.writeInAnswer) ? encodeURIComponent(poll.writeInAnswer) : '');
-            var innerThis = this;
-            this.$http.put(putUri, null).
-                then(function (httpResponse) {
-                innerThis.polls = httpResponse.data;
-                innerThis.isLoading = false;
-                innerThis.refreshPolls();
-            }, function () {
-                innerThis.isLoading = false;
+            this.$http.put(putUri, null).then(function (response) {
+                _this.isLoading = false;
+                _this.refreshPolls();
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to submit vote: " + response.data.exceptionMessage);
             });
         };
         ActivePollsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "fellowResidents"];
@@ -10315,6 +10534,8 @@ var Ally;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowDwollaAutoPayArea = true;
+            this.currentDwollaAutoPayAmount = null;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -10332,64 +10553,79 @@ var Ally;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
-            this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
-            if (this.isDwollaUserAccountVerified) {
-                this.dwollaUserStatus = "verified";
-                this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
-                if (!this.hasDwollaFundingSource) {
-                    this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
-                }
-                else {
-                    this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
-                    this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
-                    this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
-                    if (this.isDwollaReadyForPayment) {
-                        // Check the user's Dwolla balance, delayed since it's not important
-                        this.$timeout(function () {
-                            _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
-                        }, 1000);
+            this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
+            if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
+                this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);
+            if (this.isDwollaEnabledOnGroup) {
+                this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
+                if (this.isDwollaUserAccountVerified) {
+                    this.dwollaUserStatus = "verified";
+                    this.hasDwollaFundingSource = Ally.HtmlUtil2.isValidString(this.siteInfo.userInfo.dwollaFundingSourceName);
+                    if (!this.hasDwollaFundingSource) {
+                        this.$http.get("/api/Dwolla/HasComplexPassword").then(function (response) { return _this.hasComplexPassword = response.data; });
+                    }
+                    else {
+                        this.dwollaFundingSourceName = this.siteInfo.userInfo.dwollaFundingSourceName;
+                        this.dwollaFundingSourceIsVerified = this.siteInfo.userInfo.dwollaFundingSourceIsVerified;
+                        this.isDwollaReadyForPayment = this.isDwollaUserAccountVerified && this.dwollaFundingSourceIsVerified && this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+                        if (this.isDwollaReadyForPayment) {
+                            // Check the user's Dwolla balance, delayed since it's not important
+                            this.$timeout(function () {
+                                _this.$http.get("/api/Dwolla/DwollaBalance").then(function (response) { return _this.dwollaBalance = response.data.balanceAmount; });
+                            }, 1000);
+                        }
                     }
                 }
-            }
-            else {
-                this.dwollaUserStatus = "checking";
-                this.userFullName = this.siteInfo.userInfo.fullName;
-                this.userEmail = this.siteInfo.userInfo.emailAddress;
-                var getDwollaDocUploadToken = function () {
-                    _this.$http.get("/api/Dwolla/DocumentUploadToken").then(function (response) {
-                        var uploadToken = response.data;
-                        window.setTimeout(function () {
-                            dwolla.configure({
-                                environment: Ally.AppConfigInfo.dwollaEnvironmentName,
-                                styles: "/main.css",
-                                token: function () {
-                                    var deferred = _this.$q.defer();
-                                    deferred.resolve(uploadToken);
-                                    return deferred.promise;
-                                },
-                                //token: () => Promise.resolve( uploadToken ),
-                                success: function (res) { return alert(res); },
-                                error: function (err) { return alert(err); }
-                            });
-                        }, 200);
-                    }, function (errorResponse) {
-                        _this.dwollaUserStatus = "error";
-                    });
-                };
-                var checkDwollaStatus_1 = function () {
-                    _this.$http.get("/api/Dwolla/MyAccountStatus").then(function (response) {
-                        _this.dwollaUserStatus = response.data.status;
-                        _this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
-                        //if( this.dwollaUserStatus === "document" )
-                        //    getDwollaDocUploadToken();
-                    }, function (errorResponse) {
-                        _this.dwollaUserStatus = "error";
-                    });
-                };
-                this.$timeout(function () { return checkDwollaStatus_1(); }, 500);
+                else {
+                    this.dwollaUserStatus = "checking";
+                    this.userFullName = this.siteInfo.userInfo.fullName;
+                    this.userEmail = this.siteInfo.userInfo.emailAddress;
+                    //const getDwollaDocUploadToken = () =>
+                    //{
+                    //    this.$http.get( "/api/Dwolla/DocumentUploadToken" ).then(
+                    //        ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                    //        {
+                    //            const uploadToken = response.data;
+                    //            window.setTimeout( () =>
+                    //            {
+                    //                dwolla.configure( {
+                    //                    environment: AppConfigInfo.dwollaEnvironmentName,
+                    //                    styles: "/main.css",
+                    //                    token: () =>
+                    //                    {
+                    //                        const deferred = this.$q.defer();
+                    //                        deferred.resolve( uploadToken );
+                    //                        return deferred.promise;
+                    //                    },
+                    //                    //token: () => Promise.resolve( uploadToken ),
+                    //                    success: ( res: any ) => alert( res ),
+                    //                    error: ( err: any ) => alert( err )
+                    //                } );
+                    //            }, 200 );
+                    //        },
+                    //        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                    //        {
+                    //            this.dwollaUserStatus = "error";
+                    //            console.log( "DocumentUploadToken failed: " + errorResponse.data.exceptionMessage );
+                    //        }
+                    //    );
+                    //};
+                    var checkDwollaStatus_1 = function () {
+                        _this.$http.get("/api/Dwolla/MyAccountStatus").then(function (response) {
+                            _this.dwollaUserStatus = response.data.status;
+                            _this.dwollaSignUpInfo.streetAddress = response.data.streetAddress;
+                            //if( this.dwollaUserStatus === "document" )
+                            //    getDwollaDocUploadToken();
+                        }, function (errorResponse) {
+                            _this.dwollaUserStatus = "error";
+                            console.log("Failed to get Dwolla account status: " + errorResponse.data.exceptionMessage);
+                        });
+                    };
+                    this.$timeout(function () { return checkDwollaStatus_1(); }, 500);
+                }
             }
             this.allyAppName = AppConfig.appName;
-            this.isAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
+            this.isWePayAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
             this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
             this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "Service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
@@ -10397,17 +10633,29 @@ var Ally;
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
             this.hasAssessments = this.siteInfo.privateSiteInfo.hasAssessments;
             this.assessmentFrequency = this.siteInfo.privateSiteInfo.assessmentFrequency;
-            if (!this.isAutoPayActive && HtmlUtil.isNumericString(HtmlUtil.GetQueryStringParameter("preapproval_id"))) {
+            if (!this.isWePayAutoPayActive && HtmlUtil.isNumericString(HtmlUtil.GetQueryStringParameter("preapproval_id"))) {
                 // The user just set up auto-pay and it may take a second
-                this.isAutoPayActive = true;
+                this.isWePayAutoPayActive = true;
             }
             this.nextAutoPayText = this.siteInfo.userInfo.nextAutoPayText;
             // Grab the assessment from the user's unit (TODO handle multiple units)
             if (this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0) {
-                this.assessmentAmount = this.siteInfo.userInfo.usersUnits[0].assessment;
+                this.assessmentAmount = this.siteInfo.userInfo.usersUnits
+                    .filter(function (uu) { return !uu.isRenter; })
+                    .reduce(function (total, uu) { return total + (uu.assessment || 0); }, 0);
             }
             else
                 this.assessmentAmount = 0;
+            // Show the Dwolla auto-pay area if the group's Dwolla is setup and
+            // assessment frequncy is defined, or if the user already has auto-pay
+            this.shouldShowDwollaAutoPayArea = (this.isDwollaReadyForPayment
+                && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com"
+                && this.siteInfo.privateSiteInfo.assessmentFrequency != null
+                && this.assessmentAmount > 0)
+                || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
+            if (this.shouldShowDwollaAutoPayArea) {
+                this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(function (ppf) { return ppf.id === _this.siteInfo.privateSiteInfo.assessmentFrequency; });
+            }
             this.paymentInfo =
                 {
                     paymentType: "other",
@@ -10423,8 +10671,8 @@ var Ally;
                 if (this.historicPayments.length > MaxNumRecentPayments)
                     this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
                 // Fill up the list so there's always MaxNumRecentPayments
-                while (this.historicPayments.length < MaxNumRecentPayments)
-                    this.historicPayments.push({});
+                //while( this.historicPayments.length < MaxNumRecentPayments )
+                //    this.historicPayments.push( {} );
             }
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
@@ -10472,6 +10720,7 @@ var Ally;
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
                 _this.paragonSignUpInfo = new ParagonPayerSignUpInfo();
+                console.log("Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage);
             });
         };
         /**
@@ -10492,6 +10741,7 @@ var Ally;
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
                 _this.paragonCardTokenizationMessage = "There was an error connecting to the server. Please close this window and try again. If this has happened more than once please contact support.";
+                console.log("Failed in CardTokenizationKey: " + errorResponse.data.exceptionMessage);
             });
         };
         /**
@@ -10510,7 +10760,7 @@ var Ally;
             var _this = this;
             this.isLoading_Payment = true;
             this.paragonSignUpError = null;
-            this.$http.post("/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo).then(function (response) {
+            this.$http.post("/api/Paragon/CheckPaymentSignUp", this.paragonSignUpInfo).then(function () {
                 // Reload the page to refresh the payment info. We don't really need to do this,
                 // but makes sure the UI is up to date a little better as well updates the
                 // siteInfo object.
@@ -10534,7 +10784,7 @@ var Ally;
             paymentInfo.paysFor = this.paymentInfo.paysFor;
             paymentInfo.paySource = paySource;
             this.isLoading_Payment = true;
-            this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function (response) {
+            this.$http.post("/api/Paragon/MakePayment", paymentInfo).then(function () {
                 _this.isLoading_Payment = false;
                 _this.paragonPaymentMessage = "Payment Successfully Processed";
             }, function (errorResponse) {
@@ -10548,7 +10798,7 @@ var Ally;
         AssessmentPaymentFormController.prototype.unenrollParagonAccount = function (paySource) {
             var _this = this;
             this.isLoading_Payment = true;
-            this.$http.get("/api/Paragon/UnenrollPayment?paySource=" + paySource).then(function (response) {
+            this.$http.get("/api/Paragon/UnenrollPayment?paySource=" + paySource).then(function () {
                 // Reload the page to see the change
                 window.location.reload();
             }, function (errorResponse) {
@@ -10560,7 +10810,7 @@ var Ally;
         /**
          * Occurs when the user presses the button to make a payment to their organization
          */
-        AssessmentPaymentFormController.prototype.makeWePayPayment = function (fundingTypeName) {
+        AssessmentPaymentFormController.prototype.submitWePayPayment = function (fundingTypeName) {
             var _this = this;
             this.isLoading_Payment = true;
             this.paymentInfo.fundingType = fundingTypeName;
@@ -10664,7 +10914,7 @@ var Ally;
         /**
          * Occurs when the user presses the button to setup auto-pay for assessments
          */
-        AssessmentPaymentFormController.prototype.onSetupAutoPay = function (fundingTypeName) {
+        AssessmentPaymentFormController.prototype.onSetupWePayAutoPay = function (fundingTypeName) {
             var _this = this;
             this.isLoading_Payment = true;
             this.$http.get("/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName).then(function (httpResponse) {
@@ -10691,7 +10941,7 @@ var Ally;
             this.isLoading_Payment = true;
             this.$http.get("/api/WePayPayment/DisableAutoPay").then(function () {
                 _this.isLoading_Payment = false;
-                _this.isAutoPayActive = false;
+                _this.isWePayAutoPayActive = false;
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
                 if (httpResponse.data && httpResponse.data.exceptionMessage)
@@ -10739,12 +10989,12 @@ var Ally;
                     if (res && res._links && res._links["funding-source"] && res._links["funding-source"].href) {
                         var fundingSourceUri = res._links["funding-source"].href;
                         // Tell the server
-                        _this.$http.put("/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function (httpResponse) {
+                        _this.$http.put("/api/Dwolla/SetUserFundingSourceUri", { fundingSourceUri: fundingSourceUri }).then(function () {
                             _this.isDwollaIavDone = true;
                         }, function (httpResponse) {
                             _this.isLoadingDwolla = false;
                             _this.shouldShowDwollaModalClose = true;
-                            alert("Failed to complete sign-up");
+                            alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
                         });
                     }
                 });
@@ -10773,12 +11023,24 @@ var Ally;
             var _this = this;
             this.dwollaPaymentMessage = null;
             this.isLoading_Payment = true;
-            this.$http.post("/api/Dwolla/MakePayment", this.paymentInfo).then(function (response) {
+            this.$http.post("/api/Dwolla/MakePayment", this.paymentInfo).then(function () {
                 _this.isLoading_Payment = false;
                 _this.dwollaPaymentMessage = "Payment Successfully Processed";
+                _this.refreshHistoricPayments();
             }, function (errorResponse) {
                 _this.isLoading_Payment = false;
                 _this.dwollaPaymentMessage = "Payment failed: " + errorResponse.data.exceptionMessage;
+            });
+        };
+        AssessmentPaymentFormController.prototype.refreshHistoricPayments = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.get("/api/MyProfile/RecentPayments").then(function (response) {
+                _this.isLoading_Payment = false;
+                _this.historicPayments = response.data;
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                console.log("Failed to refresh rescent payments: " + errorResponse.data.exceptionMessage);
             });
         };
         /**
@@ -10789,23 +11051,27 @@ var Ally;
             if (!confirm("Are you sure you want to disconnect the bank account? You will no longer be able to make payments."))
                 return;
             this.isLoading_Payment = true;
-            this.$http.put("/api/Dwolla/DisconnectUserFundingSource", null).then(function (httpResponse) {
+            this.$http.put("/api/Dwolla/DisconnectUserFundingSource", null).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
                 alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
             });
         };
+        AssessmentPaymentFormController.prototype.getFeeAmount = function (amount) {
+            // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
+            // So we only need to divide by 100 to get our rounded fee
+            var feeAmount = Math.ceil(amount * this.dwollaFeePercent) / 100;
+            // Cap the fee at $5 for premium, $10 for free plan groups
+            if (feeAmount > this.dwollaMaxFee)
+                feeAmount = this.dwollaMaxFee;
+            return feeAmount;
+        };
         /**
          * Occurs when the amount to pay changes
          */
         AssessmentPaymentFormController.prototype.onPaymentAmountChange = function () {
-            // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
-            // So we only need to divide by 100 to get our rounded fee
-            var feeAmount = Math.ceil(this.paymentInfo.amount * this.dwollaFeePercent) / 100;
-            // Cap the fee at $5 for premium, $10 for free plan groups
-            if (feeAmount > this.dwollaMaxFee)
-                feeAmount = this.dwollaMaxFee;
+            var feeAmount = this.getFeeAmount(this.paymentInfo.amount);
             this.dwollaFeeAmountString = "$" + feeAmount.toFixed(2);
         };
         /**
@@ -10821,7 +11087,7 @@ var Ally;
             var postHeaders = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
-            this.$http.post("/api/Dwolla/UploadCustomerDocument", formData, postHeaders).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/UploadCustomerDocument", formData, postHeaders).then(function () {
                 _this.isLoading_Payment = false;
                 _this.dwollaDocUploadFile = null;
                 _this.dwollaDocUploadMessage = "Your document has been successfully uploaded. You will be notified when it is reviewed.";
@@ -10846,7 +11112,7 @@ var Ally;
             var _this = this;
             this.isLoading_Payment = true;
             this.dwollaBalanceMessage = null;
-            this.$http.get("/api/Dwolla/WithdrawDwollaBalance").then(function (httpResponse) {
+            this.$http.get("/api/Dwolla/WithdrawDwollaBalance").then(function () {
                 _this.isLoading_Payment = false;
                 _this.dwollaBalanceMessage = "Balance withdraw successfully initiated. Expect the transfer to complete in 1-2 business days.";
             }, function (httpResponse) {
@@ -10862,7 +11128,7 @@ var Ally;
                 amount2String: this.dwollaMicroDepositAmount2String,
                 isForGroup: false
             };
-            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function (httpResponse) {
+            this.$http.post("/api/Dwolla/VerifyMicroDeposit", postData).then(function () {
                 window.location.reload();
             }, function (httpResponse) {
                 _this.isLoading_Payment = false;
@@ -10872,6 +11138,26 @@ var Ally;
         AssessmentPaymentFormController.prototype.reloadPage = function () {
             this.isLoading_Payment = true;
             window.location.reload();
+        };
+        AssessmentPaymentFormController.prototype.enableDwollaAutoPay = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.put("/api/Dwolla/EnableAutoPay/" + encodeURIComponent(this.assessmentAmount.toString()), null).then(function () {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to enable Dwolla auto-pay: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.prototype.disableDwollaAutoPay = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.put("/api/Dwolla/DisableAutoPay", null).then(function () {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to disable Dwolla auto-pay: " + httpResponse.data.exceptionMessage);
+            });
         };
         AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
         return AssessmentPaymentFormController;
@@ -10938,7 +11224,7 @@ var Ally;
         CustomPageViewController.prototype.$onInit = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug).then(function (httpResponse) {
+            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug, { cache: true }).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.customPage = httpResponse.data;
                 _this.markupHtml = _this.$sce.trustAsHtml(_this.customPage.markupHtml);
@@ -11152,6 +11438,7 @@ var Ally;
                 var uploader = $('#JQDocsFileUploader');
                 uploader.fileupload({
                     autoUpload: true,
+                    pasteZone: null,
                     add: function (e, data) {
                         //var scopeElement = document.getElementById( 'documents-area' );
                         //var scope = angular.element( scopeElement ).scope();
@@ -12310,7 +12597,7 @@ var Ally;
             if (nextPaymentText)
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my next payment of $" + assessmentAmount + " will cover " + nextPaymentText + ", but I believe that is incorrect. My records indicate my next payment of $" + assessmentAmount + " should pay for [INSERT PROPER DATE HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             else
-                this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
+                this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $INSERT_PROPER_AMOUNT_HERE. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
         };
         /**
@@ -12356,9 +12643,9 @@ var Ally;
             if (!this.selectedRecipient)
                 return;
             this.messageObject.recipientType = this.selectedRecipient.recipientType;
-            var isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === "CUSTOM";
+            var isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === Ally.FellowResidentsService.CustomRecipientType;
             this.messageObject.customRecipientShortName = isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : null;
-            this.groupEmailAddress = this.messageObject.recipientType + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
+            this.groupEmailAddress = (isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : this.selectedRecipient.recipientType) + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
             var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
@@ -12375,7 +12662,7 @@ var Ally;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
-            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isOfficerBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
+            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
         };
         GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
         return GroupSendEmailController;
@@ -12725,7 +13012,7 @@ var Ally;
             this.numInvalidMailingAddresses = 0;
             this.numAddressesToBulkValidate = 0;
             this.shouldShowAutoUnselect = false;
-            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" /></div>';
+            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" autocomplete="off" data-lpignore="true" data-form-type="other" /></div>';
             this.homesGridOptions =
                 {
                     data: [],
@@ -12855,9 +13142,9 @@ var Ally;
             if (payPeriodInfo.intervalName === "month")
                 periodInfo.period = today.getMonth();
             else if (payPeriodInfo.intervalName === "quarter")
-                periodInfo.period = today.getMonth() / 3;
+                periodInfo.period = Math.floor(today.getMonth() / 3);
             else if (payPeriodInfo.intervalName === "half-year")
-                periodInfo.period = today.getMonth() / 6;
+                periodInfo.period = Math.floor(today.getMonth() / 6);
             else if (payPeriodInfo.intervalName === "year")
                 periodInfo.period = 0;
             periodInfo.period1Based = periodInfo.period + 1;
@@ -13675,9 +13962,10 @@ var Ally;
             { text: "Back Yard" },
             { text: "Basement" },
             { text: "Front Yard" },
-            { text: "Inside" },
+            { text: "Garage" },
+            { text: "Interior" },
             { text: "Kitchen" },
-            { text: "Outside" },
+            { text: "Exterior" },
             { text: "Side of Building" },
             { text: "Structural" }];
         MaintenanceController.AutocompleteEquipmentTypeOptions = [{ text: "Appliance" },
@@ -15517,6 +15805,16 @@ var Ally;
             ];
             return OfficerPositions.indexOf(boardPosition) !== -1;
         };
+        /**
+         * Test if a board position is any except the property manager
+         */
+        FellowResidentsService.isNonPropMgrBoardPosition = function (boardPosition) {
+            if (boardPosition < 1 // Handle invalid values
+                || boardPosition === FellowResidentsService.BoardPos_None
+                || boardPosition === FellowResidentsService.BoardPos_PropertyManager)
+                return false;
+            return true;
+        };
         FellowResidentsService.pollReponsesToChart = function (poll, siteInfo) {
             var talliedVotes = [];
             var logVote = function (answerId) {
@@ -15557,6 +15855,7 @@ var Ally;
         };
         FellowResidentsService.BoardPos_None = 0;
         FellowResidentsService.BoardPos_PropertyManager = 32;
+        FellowResidentsService.CustomRecipientType = "CUSTOM";
         FellowResidentsService.BoardPositionNames = [
             { id: FellowResidentsService.BoardPos_None, name: "None" },
             { id: 1, name: "President" },
@@ -16676,6 +16975,21 @@ var Ally;
             testString = testString.substring(0, firstWhitespaceIndex - 1);
             return HtmlUtil.isNumericString(testString);
         };
+        /** Determine if a string ends with a numeric string */
+        HtmlUtil2.endsWithNumber = function (testString, shouldTrim) {
+            if (shouldTrim === void 0) { shouldTrim = true; }
+            if (HtmlUtil.isNullOrWhitespace(testString))
+                return false;
+            if (shouldTrim)
+                testString = testString.trim();
+            return /[0-9]+$/.test(testString);
+        };
+        /** Get the number at the end of a string, null if the string doesn't end with a number */
+        HtmlUtil2.getNumberAtEnd = function (testString) {
+            if (HtmlUtil2.endsWithNumber(testString))
+                return parseInt(testString.match(/[0-9]+$/)[0]);
+            return null;
+        };
         HtmlUtil2.isAndroid = function () {
             var ua = navigator.userAgent.toLowerCase();
             return ua.indexOf("android") > -1;
@@ -16745,6 +17059,15 @@ var Ally;
             var allHaveSameSuffix = _.every(homeList, function (u) { return HtmlUtil.endsWith(u[namePropName], firstSuffix); });
             if (allHaveNumericPrefix && allHaveSameSuffix)
                 return _.sortBy(homeList, function (u) { return parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))); });
+            // And the flip, if all names start with the same string "Unit #" and end with a number, sort by that number
+            var firstNumberIndex = homeList[0][namePropName].search(/[0-9]/);
+            if (firstNumberIndex >= 0) {
+                var firstPrefix_1 = homeList[0][namePropName].substr(0, firstNumberIndex);
+                var allHaveSamePrefix = _.every(homeList, function (u) { return HtmlUtil.startsWith(u[namePropName], firstPrefix_1); });
+                var allEndWithNumber = _.every(homeList, function (u) { return HtmlUtil2.endsWithNumber(u[namePropName]); });
+                if (allHaveSamePrefix && allEndWithNumber)
+                    return _.sortBy(homeList, function (u) { return HtmlUtil2.getNumberAtEnd(u[namePropName]); });
+            }
             // If all units start with a number and end with a string (Like,
             // 123 Elm St) then first sort by the street, then number
             if (allHaveNumericPrefix) {
@@ -16764,16 +17087,75 @@ var Ally;
             }
             return _.sortBy(homeList, function (u) { return u[namePropName]; });
         };
-        HtmlUtil2.initTinyMce = function (elemId, heightPixels) {
+        /**
+         * Resize a base 64 image. From https://stackoverflow.com/a/63348962/10315651
+         * @param {String} base64 - The base64 string (must include MIME type)
+         * @param {Number} newWidth - The width of the image in pixels
+         * @param {Number} newHeight - The height of the image in pixels
+         */
+        HtmlUtil2.resizeBase64Img = function (base64, newWidth, newHeight) {
+            return new Promise(function (resolve, reject) {
+                var canvas = document.createElement("canvas");
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                var context = canvas.getContext("2d");
+                var image = document.createElement("img");
+                image.onload = function () {
+                    context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
+                    resolve(canvas.toDataURL());
+                };
+                image.src = base64;
+            });
+        };
+        /**
+         * Resize an image
+         * @param {HTMLImageElement} image - The image to resize
+         * @param {Number} newWidth - The width of the image in pixels
+         * @param {Number} newHeight - The height of the image in pixels
+         */
+        HtmlUtil2.resizeFromImg = function (image, newWidth, newHeight) {
+            return new Promise(function (resolve, reject) {
+                var canvas = document.createElement("canvas");
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                var context = canvas.getContext("2d");
+                context.scale(newWidth / image.width, newHeight / image.height);
+                context.drawImage(image, 0, 0);
+                resolve(canvas.toDataURL());
+            });
+        };
+        /**
+         * Resize an image and output a blob
+         * @param {HTMLImageElement} image - The image to resize
+         * @param {Number} newWidth - The width of the image in pixels
+         * @param {Number} newHeight - The height of the image in pixels
+         */
+        HtmlUtil2.resizeFromImgToBlob = function (image, newWidth, newHeight, mimeType) {
+            if (mimeType === void 0) { mimeType = "image/jpeg"; }
+            return new Promise(function (resolve, reject) {
+                var canvas = document.createElement("canvas");
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                var context = canvas.getContext("2d");
+                context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
+                canvas.toBlob(function (blob) {
+                    resolve(blob);
+                }, mimeType, 0.75);
+            });
+        };
+        HtmlUtil2.initTinyMce = function (elemId, heightPixels, overrideOptions) {
             if (elemId === void 0) { elemId = "tiny-mce-editor"; }
             if (heightPixels === void 0) { heightPixels = 400; }
+            if (overrideOptions === void 0) { overrideOptions = null; }
             var mcePromise = new Promise(function (resolve, reject) {
                 var loadRtes = function () {
                     tinymce.remove();
+                    var menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
                     tinymce.init({
                         selector: '#' + elemId,
+                        menubar: menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
-                        plugins: 'advcode export image link linkchecker autolink lists checklist media mediaembed powerpaste table tinymcespellchecker',
+                        plugins: 'image link autolink lists media table code',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
                         toolbar: 'styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
                         //toolbar_mode: 'floating',
@@ -16795,23 +17177,73 @@ var Ally;
                             */
                             input.onchange = function (evt) {
                                 // debugger; // This code gets called on uploaded file selection
-                                var file = evt.target.files[0];
+                                var selectedFile = evt.target.files[0];
                                 var reader = new FileReader();
-                                reader.onload = function () {
+                                reader.onload = function (fileObject) {
                                     /*
                                       Note: Now we need to register the blob in TinyMCEs image blob
                                       registry. In the next release this part hopefully won't be
                                       necessary, as we are looking to handle it internally.
                                     */
-                                    var id = 'blobid' + (new Date()).getTime();
+                                    var newBlobId = 'blobid' + (new Date()).getTime();
                                     var blobCache = tinymce.activeEditor.editorUpload.blobCache;
                                     var base64 = reader.result.split(',')[1];
-                                    var blobInfo = blobCache.create(id, file, base64);
-                                    blobCache.add(blobInfo);
-                                    /* call the callback and populate the Title field with the file name */
-                                    cb(blobInfo.blobUri(), { title: file.name });
+                                    //console.log( "Image base64 size: " + base64.length );
+                                    // If the image is larger than 1MB, let's downsize
+                                    var OneMB = 1024 * 1024;
+                                    if (base64.length > OneMB) {
+                                        var tempImage_1 = new Image();
+                                        tempImage_1.onload = function () {
+                                            // access image size here 
+                                            //console.log( "image width", tempImage.width );
+                                            // Resize so the largest edge is 1k pixels
+                                            var xScalar = 1000 / tempImage_1.width;
+                                            var yScalar = 1000 / tempImage_1.height;
+                                            var imageScalar = xScalar;
+                                            if (yScalar < xScalar)
+                                                imageScalar = yScalar;
+                                            HtmlUtil2.resizeFromImgToBlob(tempImage_1, Math.round(tempImage_1.width * imageScalar), Math.round(tempImage_1.height * imageScalar), selectedFile.type).then(function (resizedBlob) {
+                                                //console.log( "Resized image base64 size: " + resizedBlob.size );
+                                                //const resizedTempImage = new Image();
+                                                //resizedTempImage.onload = function()
+                                                //{
+                                                //    //console.log( "resized image width", resizedTempImage.width );
+                                                //    var resizedReader = new FileReader();
+                                                //    resizedReader.readAsDataURL( resizedBlob );
+                                                //    resizedReader.onloadend = function()
+                                                //    {
+                                                //        const resizedFile = new File( [resizedBlob], selectedFile.name, resizedBlob )
+                                                //        const resizedBase64 = ( resizedReader.result as string ).split( ',' )[1];
+                                                //        const blobInfo = blobCache.create( newBlobId, resizedFile, resizedBase64 );
+                                                //        blobCache.add( blobInfo );
+                                                //        /* call the callback and populate the Title field with the file name */
+                                                //        cb( blobInfo.blobUri(), { title: selectedFile.name } );
+                                                //    }
+                                                //};
+                                                //var resizedImgUrl = URL.createObjectURL( resizedBlob );
+                                                //resizedTempImage.src = resizedImgUrl;
+                                                var resizedReader = new FileReader();
+                                                resizedReader.readAsDataURL(resizedBlob);
+                                                resizedReader.onloadend = function () {
+                                                    var resizedFileObject = new File([resizedBlob], selectedFile.name, resizedBlob);
+                                                    var resizedBase64 = resizedReader.result.split(',')[1];
+                                                    var blobInfo = blobCache.create(newBlobId, resizedFileObject, resizedBase64);
+                                                    blobCache.add(blobInfo);
+                                                    /* call the callback and populate the Title field with the file name */
+                                                    cb(blobInfo.blobUri(), { title: selectedFile.name });
+                                                };
+                                            });
+                                        };
+                                        tempImage_1.src = fileObject.target.result;
+                                    }
+                                    else {
+                                        var blobInfo = blobCache.create(newBlobId, selectedFile, base64);
+                                        blobCache.add(blobInfo);
+                                        /* call the callback and populate the Title field with the file name */
+                                        cb(blobInfo.blobUri(), { title: selectedFile.name });
+                                    }
                                 };
-                                reader.readAsDataURL(file);
+                                reader.readAsDataURL(selectedFile);
                             };
                             input.click();
                         },
@@ -16942,8 +17374,7 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
             var isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
-            this.shouldShowSendAsBoard = !isRecipientWholeBoard
-                && (this.siteInfo.userInfo.boardPosition !== Ally.FellowResidentsService.BoardPos_None && this.siteInfo.userInfo.boardPosition !== Ally.FellowResidentsService.BoardPos_PropertyManager);
+            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isRecipientWholeBoard;
         };
         /// Display the send modal
         SendMessageController.prototype.showSendModal = function () {
@@ -17335,13 +17766,16 @@ var Ally;
             if (!HtmlUtil.isNullOrWhitespace(this.publicSiteInfo.bgImagePath))
                 $(document.documentElement).css("background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")");
             if (this.isLoggedIn) {
-                if (typeof ($zopim) !== "undefined") {
-                    $zopim(function () {
-                        $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
-                        if ($rootScope.userInfo.emailAddress.indexOf("@") !== -1)
-                            $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
-                    });
-                }
+                var prepopulateZopim = function () {
+                    if (typeof ($zopim) !== "undefined") {
+                        $zopim(function () {
+                            $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
+                            if ($rootScope.userInfo.emailAddress.indexOf("@") !== -1)
+                                $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
+                        });
+                    }
+                };
+                setTimeout(prepopulateZopim, 8000); // Zopim delays 5sec before setup so wait longer than than
                 $rootScope.isAdmin = $rootScope.userInfo.isAdmin;
                 $rootScope.isSiteManager = $rootScope.userInfo.isSiteManager;
                 // Tell Segment we know who the user is
