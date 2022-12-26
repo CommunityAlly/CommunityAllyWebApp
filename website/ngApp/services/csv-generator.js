@@ -21,7 +21,7 @@ var Ally;
             || value.indexOf('\n') !== -1;
         if (needsEscaping) {
             // Double the double quotes
-            value = value.replace("\"", "\"\"");
+            value = value.replace(/"/g, "\"\"");
             // Wrap the whole thing in quotes
             value = "\"" + value + "\"";
         }
