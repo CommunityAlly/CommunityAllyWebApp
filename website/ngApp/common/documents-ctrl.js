@@ -668,7 +668,9 @@ var Ally;
                 }
                 _this.hookUpFileDragging();
             }, function (response) {
+                alert("Failed to retrieve documents, please contact technical support. No need to worry, no documents have been lost.");
                 _this.isLoading = false;
+                console.log("Failed to retrieve docs: " + response.data.exceptionMessage);
                 //$( "#FileTreePanel" ).hide();
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });

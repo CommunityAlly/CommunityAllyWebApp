@@ -967,8 +967,8 @@ namespace Ally
                     } );
 
                     // Build an array of all local files
-                    let allFiles: DocumentTreeFile[] = [];
-                    let processDir = ( subdir: DocumentDirectory ) =>
+                    const allFiles: DocumentTreeFile[] = [];
+                    const processDir = ( subdir: DocumentDirectory ) =>
                     {
                         _.each( subdir.files, ( f: DocumentTreeFile ) =>
                         {
@@ -995,7 +995,9 @@ namespace Ally
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
+                    alert( "Failed to retrieve documents, please contact technical support. No need to worry, no documents have been lost." );
                     this.isLoading = false;
+                    console.log( "Failed to retrieve docs: " + response.data.exceptionMessage );
                     //$( "#FileTreePanel" ).hide();
                     //innerThis.errorMessage = "Failed to retrieve the building documents.";
                 }
