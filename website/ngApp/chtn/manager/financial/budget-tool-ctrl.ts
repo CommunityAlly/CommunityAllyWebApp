@@ -562,7 +562,7 @@
             csvRows.push( new BudgetCsvRow() );
             csvRows.push( new BudgetCsvRow( "", "Net", ( this.totalIncome - this.totalExpense ).toString() ) );
 
-            var csvDataString = Ally.createCsvString( csvRows, csvColumns, false );
+            const csvDataString = Ally.createCsvString( csvRows, csvColumns, false );
 
             const fileName = "budget-" + HtmlUtil2.removeNonAlphanumeric( this.curBudget.budgetName ) + ".csv";
             HtmlUtil2.downloadCsv( csvDataString, fileName );
