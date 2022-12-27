@@ -168,6 +168,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
+                _this.profileInfo.password = null;
                 _this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login
                 if (_this.$rootScope.shouldHideMenu) {

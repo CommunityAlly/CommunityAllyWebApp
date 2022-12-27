@@ -221,6 +221,7 @@ namespace Ally
 
             this.$http.put( "/api/MyProfile", this.profileInfo ).then( () =>
             {
+                this.profileInfo.password = null;
                 this.resultMessage = "Your changes have been saved.";
 
                 // $rootScope.hideMenu is true when this is the user's first login
