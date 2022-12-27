@@ -1,15 +1,15 @@
 ﻿{
-    "compileOnSave": false,
-    "compilerOptions": {
-        "allowJs": false,
-        "noImplicitAny": true,
-        "target": "ES5",
-        "lib": [
-            "ES5",
-            "DOM",
-            "ScriptHost",
-            "ES2015"
-        ]
-    },
-    "exclude": [ "*.js", "**/*.js", "obj", "bin" ]
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowJs": false,
+    "noImplicitAny": true,
+    "target": "ES5",
+    "lib": [
+      "ES5",
+      "DOM",
+      "ScriptHost",
+      "ES2015"
+    ]
+  },
+  "exclude": [ "*.js", "**/*.js", "obj", "bin" ]
 }

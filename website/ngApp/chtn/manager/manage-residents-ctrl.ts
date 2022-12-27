@@ -39,10 +39,12 @@ namespace Ally
 
     export class UnitWithPayment extends UnitWithOwner
     {
+        // Not from server
         owners: PayerInfo[];
         displayOwners: any[];
-        payments: any[];
-        estBalance: number;
+        allPayments: AssessmentPayment[];
+        payments: AssessmentPayment[]; // The payments visible in the assessment grid
+        estBalance: number | undefined;
     }
 
     export class HomeEntry

@@ -384,7 +384,7 @@ namespace Ally
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
             }
 
-            return _.sortBy( homeList, u => u[namePropName] );
+            return _.sortBy( homeList, u => ( u[namePropName] as string || "" ).toLowerCase() );
         }
 
 

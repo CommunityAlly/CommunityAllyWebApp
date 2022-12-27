@@ -67,6 +67,13 @@
 
         LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
         LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
+        LocalStorageKey_ShowBalanceCol = "AssessmentHistory_ShowBalanceCol";
+
+        static readonly PeriodicPaymentFrequency_Monthly = 50;
+        static readonly PeriodicPaymentFrequency_Quarterly = 51;
+        static readonly PeriodicPaymentFrequency_Semiannually = 52;
+        static readonly PeriodicPaymentFrequency_Annually = 53;
+
 
         // The number of pay periods that are visible on the grid
         NumPeriodsVisible = 10;
@@ -74,6 +81,7 @@
         pageTitle: string;
         authToken: string;
         showPaymentInfo: boolean;
+        shouldShowBalanceCol = false;
         assessmentFrequency: PeriodicPaymentFrequency;
         payPeriodName: string;
         maxPeriodRange: number;
@@ -86,7 +94,8 @@
         shouldShowCreateSpecialAssessment: boolean = false;
         createSpecialAssessment: any;
         visiblePeriodNames: PeriodEntry[];
-        unitPayments: any = {};
+        unitPayments: Map<number, UnitWithPayment>;
+        nameSortedUnitPayments: UnitWithPayment[];
         payers: PayerInfo[];
         editPayment: any;
         showRowType: "unit" | "member" = "unit";
@@ -99,6 +108,8 @@
         viewExportViewId: string;
         shouldShowNeedsAssessmentSetup: boolean = false;
         hasAssessments: boolean | null = null;
+        todaysPayPeriod: { periodValue: number, yearValue: number };
+
 
 
         /**
@@ -149,11 +160,7 @@
 
             this.showPaymentInfo = window.localStorage[this.LocalStorageKey_ShowPaymentInfo] === "true";
             this.shouldColorCodePayments = window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] === "true";
-
-            const PeriodicPaymentFrequency_Monthly = 50;
-            const PeriodicPaymentFrequency_Quarterly = 51;
-            const PeriodicPaymentFrequency_Semiannually = 52;
-            const PeriodicPaymentFrequency_Annually = 53;
+            this.shouldShowBalanceCol = window.localStorage[this.LocalStorageKey_ShowBalanceCol] === "true";
 
             if( !this.siteInfo.privateSiteInfo.assessmentFrequency )
             {
@@ -164,26 +171,28 @@
             
             this.assessmentFrequency = <PeriodicPaymentFrequency>this.siteInfo.privateSiteInfo.assessmentFrequency;
             if( this.isForMemberGroup )
-                this.assessmentFrequency = PeriodicPaymentFrequency_Annually;
+                this.assessmentFrequency = AssessmentHistoryController.PeriodicPaymentFrequency_Annually;
 
             // Set the period name
             this.payPeriodName = "month";
-            if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
+            if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly )
                 this.payPeriodName = "quarter";
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually )
                 this.payPeriodName = "half-year";
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually )
                 this.payPeriodName = "year";
 
 
             // Set the range values
             this.maxPeriodRange = 12;
-            if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
+            if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly )
                 this.maxPeriodRange = 4;
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually )
                 this.maxPeriodRange = 2;
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually )
                 this.maxPeriodRange = 1;
+
+            this.todaysPayPeriod = this.getTodaysPayPeriod();
 
             // Set the label values
             //const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -217,23 +226,25 @@
             //    this.shortPeriodNames = [""];
             //}
 
-            // Set the current period
+            // Set the current period. We add 2 to the period so we have a buffer ahead of today's
+            // date so we can show some future payments.
             this.startPeriodValue = new Date().getMonth() + 2;
             this.startYearValue = new Date().getFullYear();
-            if( this.assessmentFrequency === PeriodicPaymentFrequency_Quarterly )
+            if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly )
             {
                 this.startPeriodValue = Math.floor( new Date().getMonth() / 4 ) + 2;
             }
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Semiannually )
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually )
             {
                 this.startPeriodValue = Math.floor( new Date().getMonth() / 6 ) + 2;
             }
-            else if( this.assessmentFrequency === PeriodicPaymentFrequency_Annually )
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually )
             {
                 this.startPeriodValue = 1;
                 this.startYearValue = new Date().getFullYear() + 1;
             }
 
+            // If we're past the year's number of pay periods, go to the next year
             if( this.startPeriodValue > this.maxPeriodRange )
             {
                 this.startPeriodValue = 1;
@@ -245,6 +256,36 @@
             this.retrievePaymentHistory();
 
             window.setTimeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewExportViewId = response.data.vid ), 250 );
+
+            // Hook up Bootstrap v4 tooltips
+            window.setTimeout( () => $( '[data-toggle="tooltip"]' ).tooltip(), 1000 );
+        }
+
+
+        getTodaysPayPeriod()
+        {
+            // We add 1's to periods because pay periods are 1-based, but Date.getMonth() is 0-based
+            let periodValue = new Date().getMonth() + 1;
+            let yearValue = new Date().getFullYear();
+
+            if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly )
+            {
+                periodValue = Math.floor( new Date().getMonth() / 4 ) + 1;
+            }
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually )
+            {
+                periodValue = Math.floor( new Date().getMonth() / 6 ) + 1;
+            }
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually )
+            {
+                periodValue = 1; // Years only have one pay period
+                yearValue = new Date().getFullYear();
+            }
+
+            return {
+                periodValue,
+                yearValue
+            };
         }
 
 
@@ -282,7 +323,7 @@
         /**
          * Add in entries to the payments array so every period has an entry
          */
-        fillInEmptyPaymentsForUnit( unit: any )
+        fillInEmptyPaymentsForUnit( unit: UnitWithPayment )
         {
             const defaultOwnerUserId = ( unit.owners !== null && unit.owners.length > 0 ) ? unit.owners[0].userId : null;
 
@@ -299,6 +340,7 @@
 
                 let curPeriodPayment = _.find( unit.allPayments, ( p: any ) => p.period === curPeriod && p.year === curYearValue );
 
+                // If this pay period has not payment entry then add a filler
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
                     curPeriodPayment = {
@@ -469,14 +511,16 @@
         displayPaymentsForRange( startYear: number, startPeriod: number ): void
         {
             this.startYearValue = startYear;
-            this.startPeriodValue = startPeriod;
+            this.startPeriodValue = startPeriod; // Pay period values start at 1, not 0
 
             this.visiblePeriodNames = [];
             let year = this.startYearValue;
 
+            // Step from left to right in the output columns, going back a pay period each time
             let currentPeriod = this.startPeriodValue;
             for( let columnIndex = 0; columnIndex < this.NumPeriodsVisible; ++columnIndex )
             {
+                // If we stepped passed the first period, go the previous year
                 if( currentPeriod < 1 )
                 {
                     currentPeriod = this.maxPeriodRange;
@@ -492,9 +536,10 @@
 
                 this.visiblePeriodNames.push( {
                     name: headerName,
-                    periodIndex: currentPeriod,
+                    periodValue: currentPeriod,
                     arrayIndex: columnIndex,
-                    year: year
+                    year: year,
+                    isTodaysPeriod: year === this.todaysPayPeriod.yearValue && currentPeriod === this.todaysPayPeriod.periodValue
                 } );
 
                 --currentPeriod;
@@ -504,7 +549,7 @@
             if( this.isForMemberGroup )
                 _.each( this.payers, payer => payer.displayPayments = this.fillInEmptyPaymentsForMember( payer ) );
             else
-                _.each( this.unitPayments, ( unit: UnitWithPayment ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
+                this.unitPayments.forEach( ( unit: UnitWithPayment ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
         }
 
 
@@ -522,11 +567,11 @@
                 this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || ( paymentInfo.payments.length < 2 && paymentInfo.units.length > 3 );
 
                 // Build the map of unit ID to unit information
-                this.unitPayments = {};
+                this.unitPayments = new Map<number, UnitWithPayment>();
                 _.each( paymentInfo.units, ( unit: UnitWithOwner ) =>
                 {
-                    this.unitPayments[unit.unitId] = unit;
-                    const curEntry: UnitWithPayment = this.unitPayments[unit.unitId];
+                    this.unitPayments.set( unit.unitId, unit as UnitWithPayment );
+                    const curEntry: UnitWithPayment = this.unitPayments.get( unit.unitId );
 
                     // Only take the first two owners for now
                     curEntry.displayOwners = _.first( unit.owners, 2 );
@@ -548,21 +593,34 @@
                 // Add the payment information to the units
                 _.each( paymentInfo.payments, ( payment: AssessmentPayment ) =>
                 {
-                    if( this.unitPayments[payment.unitId] )
-                        this.unitPayments[payment.unitId].payments.push( payment );
+                    if( this.unitPayments.has(payment.unitId) )
+                        this.unitPayments.get(payment.unitId).payments.push( payment );
                 } );
 
                 // Store all of the payments rather than just what is visible
-                _.each( paymentInfo.units, ( unit: any ) =>
+                _.each( paymentInfo.units, ( unit: UnitWithPayment ) =>
                 {
+                    // The newest payment will be at the end
+                    unit.payments = _.sortBy( unit.payments, p => p.year * 100 + p.period );
+                    
                     unit.allPayments = unit.payments;
+
+                    if( unit.allPayments.length > 0 )
+                    {
+                        const mostRecentPayment = unit.allPayments[unit.allPayments.length - 1];
+                        let numMissedPayments = this.getNumMissedPayments( mostRecentPayment );
+
+                        // If the person is ahead on payments, still show 0 rather than negative due
+                        if( numMissedPayments <= 0 )
+                            numMissedPayments = 0;
+
+                        unit.estBalance = numMissedPayments * unit.assessment;
+                    }
                 } );
 
                 // Sort the units by name
-                const sortedUnits: UnitWithPayment[] = [];
-                for( const key in this.unitPayments )
-                    sortedUnits.push( this.unitPayments[key] );
-                this.unitPayments = HtmlUtil2.smartSortStreetAddresses( sortedUnits, "name" );
+                const sortedUnits: UnitWithPayment[] = Array.from( this.unitPayments.values() );
+                this.nameSortedUnitPayments = HtmlUtil2.smartSortStreetAddresses( sortedUnits, "name" );
 
                 this.payers = _.sortBy( paymentInfo.payers, payer => payer.name );
 
@@ -578,6 +636,26 @@
         }
 
 
+        getNumMissedPayments( mostRecentPayment: AssessmentPayment )
+        {
+            const todaysPayPeriod = this.getTodaysPayPeriod();
+
+            if( mostRecentPayment.year === todaysPayPeriod.yearValue )
+            {
+                return todaysPayPeriod.periodValue - mostRecentPayment.period;
+            }
+            else
+            {
+                const numYearsBack = todaysPayPeriod.yearValue - mostRecentPayment.year;
+                const yearsPaymentsMissed = ( numYearsBack - 1 ) * this.maxPeriodRange;
+                const periodsMissedForRecentYear = this.maxPeriodRange - mostRecentPayment.period;
+                return todaysPayPeriod.periodValue + yearsPaymentsMissed + periodsMissedForRecentYear;
+            }
+
+            return 0;
+        }
+
+
         /**
          * Get the amount paid by all units in a pay period
          */
@@ -587,13 +665,13 @@
 
             if( AppConfig.isChtnSite )
             {
-                const unitIds: string[] = _.keys( this.unitPayments );
+                const unitIds = Array.from( this.unitPayments.keys() );
 
                 for( let i = 0; i < unitIds.length; ++i )
                 {
                     const unitId = unitIds[i];
 
-                    const paymentInfo = this.unitPayments[unitId].payments[periodIndex];
+                    const paymentInfo = this.unitPayments.get(unitId).payments[periodIndex];
                     if( paymentInfo && paymentInfo.isPaid )
                         sum += paymentInfo.amount;
                 }
@@ -619,6 +697,15 @@
         {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
             window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
+        }
+
+
+        /**
+         * Occurs when the user toggles whether or not to show the balance column
+         */
+        onshowBalanceCol(): void
+        {
+            window.localStorage[this.LocalStorageKey_ShowBalanceCol] = this.shouldShowBalanceCol;
         }
 
 
@@ -699,17 +786,16 @@
             if( !this.selectedFillInPeriod )
                 return;
 
-            const unitIds: string[] = _.keys( this.unitPayments );
+            const unitIds: number[] = Array.from( this.unitPayments.keys() );
 
             this.isLoading = true;
-
 
             let numPosts = 0;
             for( let i = 0; i < unitIds.length; ++i )
             {
-                const unitPayment: UnitWithPayment = this.unitPayments[unitIds[i]];
+                const unitPayment: UnitWithPayment = this.unitPayments.get(unitIds[i]);
 
-                const paymentEntry = _.find( unitPayment.payments, p => p.year === this.selectedFillInPeriod.year && p.period === this.selectedFillInPeriod.periodIndex );
+                const paymentEntry = _.find( unitPayment.payments, p => p.year === this.selectedFillInPeriod.year && p.period === this.selectedFillInPeriod.periodValue );
                 if( paymentEntry )
                 {
                     if( paymentEntry.isPaid )
@@ -718,7 +804,7 @@
 
                 const postData = {
                     Year: this.selectedFillInPeriod.year,
-                    Period: this.selectedFillInPeriod.periodIndex,
+                    Period: this.selectedFillInPeriod.periodValue,
                     IsPaid: true,
                     Amount: unitPayment.assessment || 0,
                     PaymentDate: new Date(),
@@ -762,9 +848,10 @@
     class PeriodEntry
     {
         name: string;
-        periodIndex: number;
+        periodValue: number;
         arrayIndex: number;
         year: number;
+        isTodaysPeriod: boolean;
     }
 }
 

@@ -22,6 +22,7 @@
 
             <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
             <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
+            <label class="ml-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
             <button class="btn btn-primary" style="display: none;" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
         </p>
         <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
@@ -40,23 +41,31 @@
             </div>
 
             <span class="note-text">Click on a cell to edit payment</span>
+
+            <!--The main table of payments-->
             <table id="assessment-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th class="text-right" style="width: 15%;">
 
                         </th>
-                        <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : ''}">
+                        <th data-ng-if="$ctrl.shouldShowBalanceCol">
+                            Est. Balance
+                        </th>
+                        <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : '', 'background-color': period.isTodaysPeriod ? '#EEF' : 'default'}">
                             {{ period.name }}
                         </th>
                     </tr>
                 </thead>
 
                 <tbody data-ng-if="$ctrl.showRowType === 'unit'">
-                    <tr data-ng-repeat="unit in $ctrl.unitPayments" ng-init="unitIndex = $index">
+                    <tr data-ng-repeat="unit in $ctrl.nameSortedUnitPayments" ng-init="unitIndex = $index">
                         <td class="text-bold text-right">
                             {{ unit.name }}
                             <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
+                        </td>
+                        <td data-ng-if="$ctrl.shouldShowBalanceCol">
+                            {{ unit.estBalance | currency }}
                         </td>
                         <td ng-repeat="payment in unit.payments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
                             <div data-ng-if="!$ctrl.showPaymentInfo">
@@ -100,6 +109,7 @@
                 </tfoot>
 
             </table>
+
 
             <div class="text-right">
                 <span class="text-link note-text" data-ng-click="$ctrl.showBulkSet()">Show Bulk Set</span>
