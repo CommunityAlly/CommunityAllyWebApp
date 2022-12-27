@@ -600,14 +600,16 @@
                 // Store all of the payments rather than just what is visible
                 _.each( paymentInfo.units, ( unit: UnitWithPayment ) =>
                 {
-                    // The newest payment will be at the end
+                    // The newest payment will be at the start
                     unit.payments = _.sortBy( unit.payments, p => p.year * 100 + p.period );
+                    unit.payments.reverse();
                     
                     unit.allPayments = unit.payments;
 
-                    if( unit.allPayments.length > 0 )
+                    // Since allPayments is sorted newest first, let's grab the first payment marked as paid
+                    const mostRecentPayment = unit.allPayments.find( p => p.isPaid );
+                    if( mostRecentPayment )
                     {
-                        const mostRecentPayment = unit.allPayments[unit.allPayments.length - 1];
                         let numMissedPayments = this.getNumMissedPayments( mostRecentPayment );
 
                         // If the person is ahead on payments, still show 0 rather than negative due
@@ -616,6 +618,8 @@
 
                         unit.estBalance = numMissedPayments * unit.assessment;
                     }
+                    else
+                        unit.estBalance = undefined;
                 } );
 
                 // Sort the units by name

@@ -426,17 +426,21 @@ var Ally;
                 });
                 // Store all of the payments rather than just what is visible
                 _.each(paymentInfo.units, function (unit) {
-                    // The newest payment will be at the end
+                    // The newest payment will be at the start
                     unit.payments = _.sortBy(unit.payments, function (p) { return p.year * 100 + p.period; });
+                    unit.payments.reverse();
                     unit.allPayments = unit.payments;
-                    if (unit.allPayments.length > 0) {
-                        var mostRecentPayment = unit.allPayments[unit.allPayments.length - 1];
+                    // Since allPayments is sorted newest first, let's grab the first payment marked as paid
+                    var mostRecentPayment = unit.allPayments.find(function (p) { return p.isPaid; });
+                    if (mostRecentPayment) {
                         var numMissedPayments = _this.getNumMissedPayments(mostRecentPayment);
                         // If the person is ahead on payments, still show 0 rather than negative due
                         if (numMissedPayments <= 0)
                             numMissedPayments = 0;
                         unit.estBalance = numMissedPayments * unit.assessment;
                     }
+                    else
+                        unit.estBalance = undefined;
                 });
                 // Sort the units by name
                 var sortedUnits = Array.from(_this.unitPayments.values());
