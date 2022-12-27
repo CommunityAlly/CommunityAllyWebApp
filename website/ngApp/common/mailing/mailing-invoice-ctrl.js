@@ -117,8 +117,8 @@ var Ally;
                             //_.forEach( <InvoiceMailingEntry[]>this.homesGridOptions.data, e => e.shouldIncludeForSending = false );
                             //_.forEach( this.selectedEntries, e => e.shouldIncludeForSending = true );
                         };
-                        gridApi.selection.on.rowSelectionChanged($scope, function (row) { return updateFromSelection(); });
-                        gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) { return updateFromSelection(); });
+                        gridApi.selection.on.rowSelectionChanged($scope, function () { return updateFromSelection(); });
+                        gridApi.selection.on.rowSelectionChangedBatch($scope, function () { return updateFromSelection(); });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -292,6 +292,7 @@ var Ally;
                 entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
             }, function (response) {
                 _this.isLoading = false;
+                alert("Failed to preview invoice: " + response.data.exceptionMessage);
             });
             //var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
             //var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( JSON.stringify( this.fullMailingInfo.fromStreetAddress ) )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
@@ -301,7 +302,7 @@ var Ally;
             var _this = this;
             if (this.numPaperLettersToSend === 0) {
                 if (this.numEmailsToSend === 0)
-                    alert("No e-mails or paper letters selected to send.");
+                    alert("No emails or paper letters selected to send.");
                 else
                     this.submitFullMailingAfterCharge();
                 return;
@@ -402,15 +403,17 @@ var Ally;
                 // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
-                    var validateAllStep_1 = function () {
-                        _this.validateAddress(recipientsToVerify_1[0]).then(function () {
-                            recipientsToVerify_1.splice(0, 1);
-                            while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
-                                recipientsToVerify_1.splice(0, 1);
-                            if (recipientsToVerify_1.length > 0)
-                                validateAllStep_1();
-                        });
-                    };
+                    //const validateAllStep = () =>
+                    //{
+                    //    this.validateAddress( recipientsToVerify[0] ).then( () =>
+                    //    {
+                    //        recipientsToVerify.splice( 0, 1 );
+                    //        while( recipientsToVerify.length > 0 && !recipientsToVerify[0].amountDue )
+                    //            recipientsToVerify.splice( 0, 1 );
+                    //        if( recipientsToVerify.length > 0 )
+                    //            validateAllStep();
+                    //    } );
+                    //};
                     //validateAllStep();
                     this.numAddressesToBulkValidate = recipientsToVerify_1.length;
                     var testAddressAllStep_1 = function () {

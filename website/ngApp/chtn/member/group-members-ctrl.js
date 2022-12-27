@@ -108,19 +108,21 @@ var Ally;
                 // If we should scroll to a specific home
                 var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
                 if (scrollToUnitId) {
-                    var scrollToElemId = "unit-id-" + scrollToUnitId;
+                    var scrollToElemId_1 = "unit-id-" + scrollToUnitId;
                     setTimeout(function () {
-                        document.getElementById(scrollToElemId).scrollIntoView();
-                        $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
+                        document.getElementById(scrollToElemId_1).scrollIntoView();
+                        $("#" + scrollToElemId_1).effect("pulsate", { times: 3 }, 2000);
                     }, 300);
                 }
-                // Populate the e-mail name lists, delayed to help the page render faster
+                // Populate the email name lists, delayed to help the page render faster
                 setTimeout(function () { return _this.loadGroupEmails(); }, 500);
             }, function (httpErrorResponse) {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
+                console.log("Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage);
             });
         };
         GroupMembersController.prototype.updateMemberFilter = function () {
+            //TODO
             var lowerFilter = (this.memberSearchTerm || '').toLowerCase();
             var filterSearchFiles = function (unitListing) {
                 if ((unitListing.name || '').toLowerCase().indexOf(lowerFilter) !== -1)

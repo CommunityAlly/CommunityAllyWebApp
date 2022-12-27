@@ -107,7 +107,7 @@
             else if( this.appCacheService.getAndClear( AppCacheService.Key_WasLoggedIn401 ) === "true" )
                 this.loginResult = "Please login first.";
 
-            // Focus on the e-mail text box
+            // Focus on the email text box
             setTimeout( function()
             {
                 $( "#login-email-textbox" ).focus();

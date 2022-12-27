@@ -30,7 +30,7 @@ var Ally;
             this.$http.post("/api/Login/Forgot", this.loginInfo).then(function () {
                 _this.shouldHideControls = true;
                 _this.isLoading = false;
-                _this.resultText = "Please check your e-mail for updated login information.";
+                _this.resultText = "Please check your email for updated login information.";
                 _this.resultTextColor = "#00F";
             }, function (httpResponse) {
                 _this.isLoading = false;

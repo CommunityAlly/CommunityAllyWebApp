@@ -416,12 +416,12 @@ namespace Ally
         {
             if( !resident.hasEmail )
             {
-                alert( "That user cannot be included because they do not have an e-mail address on file." );
+                alert( "That user cannot be included because they do not have an email address on file." );
                 resident.isAssociated = false;
                 return;
             }
 
-            var alreadyExists = _.contains( this.editEvent.associatedUserIds, resident.userId );
+            const alreadyExists = _.contains( this.editEvent.associatedUserIds, resident.userId );
 
             if( alreadyExists )
                 this.editEvent.associatedUserIds = _.without( this.editEvent.associatedUserIds, resident.userId );
@@ -432,15 +432,15 @@ namespace Ally
 
         isDateInPast( date: Date ): boolean
         {
-            var momentDate = moment( date );
-            var today = moment();
+            const momentDate = moment( date );
+            const today = moment();
             return momentDate.isBefore( today, 'day' ) || momentDate.isSame( today, 'day' );
         }
 
 
         onShouldSendChange()
         {
-            // Don't allow the user to send remdiner e-mails for past dates
+            // Don't allow the user to send remdiner emails for past dates
             if( this.editEvent.shouldSendNotification && this.isDateInPast( this.editEvent.dateOnly ) )
                 this.editEvent.shouldSendNotification = false;
             else if( !this.editEvent.notificationEmailDaysBefore )

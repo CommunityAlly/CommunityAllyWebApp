@@ -926,7 +926,7 @@ var Ally;
                 while (curRow.length < 10)
                     curRow.push("");
                 // Skip the header row, if there is one
-                if (curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name")
+                if (curRow[0] === "Address/Unit" && curRow[1] === "Email" && curRow[2] === "First Name")
                     return "continue";
                 // Clean up the data
                 for (var j = 0; j < curRow.length; ++j) {

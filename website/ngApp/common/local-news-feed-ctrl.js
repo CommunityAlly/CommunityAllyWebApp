@@ -1,7 +1,7 @@
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that shows news headlines for the local area
      */
     var LocalNewsFeedController = /** @class */ (function () {
         /**
@@ -17,20 +17,21 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         LocalNewsFeedController.prototype.$onInit = function () {
+            var _this = this;
             // Load the news with a slight delay to help the page load faster
             this.isLoading = true;
-            var innerThis = this;
-            this.$timeout(function () { return innerThis.loadNewsStories(); }, 200);
+            this.$timeout(function () { return _this.loadNewsStories(); }, 200);
         };
         /**
          * Refresh the local news feed
          */
         LocalNewsFeedController.prototype.loadNewsStories = function () {
+            var _this = this;
             //window.location.host is subdomain.domain.com
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             // A little test to help the automated tests run faster
             var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
-            isTestSubdomain = false;
+            isTestSubdomain = false; // Allow on test sites for now
             if (isTestSubdomain)
                 return;
             this.isLoading = true;
@@ -55,13 +56,12 @@ var Ally;
                     city: this.siteInfo.privateSiteInfo.groupAddress.city
                 };
             }
-            var innerThis = this;
             this.$http.get(localNewsUri, {
                 cache: true,
                 params: queryParams
             }).then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.localNewStories = httpResponse.data;
+                _this.isLoading = false;
+                _this.localNewStories = httpResponse.data;
             });
         };
         LocalNewsFeedController.$inject = ["$http", "SiteInfo", "$timeout"];

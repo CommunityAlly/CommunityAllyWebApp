@@ -195,7 +195,7 @@ namespace Ally
 
                 this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5( ( this.profileInfo.email || "" ).toLowerCase() ) + "?s=80&d=identicon";
 
-                // Don't show empty e-mail address
+                // Don't show empty email address
                 if( HtmlUtil.endsWith( this.profileInfo.email, "@condoally.com" ) )
                     this.profileInfo.email = "";
 

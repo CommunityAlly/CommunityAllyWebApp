@@ -54,20 +54,17 @@ namespace Ally
         */
         $onInit()
         {
-            var innerThis = this;
-
-            var innerThis = this;
-            this.$scope.$on( 'wizard:stepChanged', function( event, args )
+            this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
                 if( args.index === 1 )
-                    innerThis.$timeout(() => innerThis.showMap = true, 50 );
+                    this.$timeout( () => this.showMap = true, 50 );
                 else
-                    innerThis.showMap = false;
+                    this.showMap = false;
             } );
 
             setTimeout(() =>
             {
-                var addressInput = <HTMLInputElement>document.getElementById( "signUpAddress" );
+                const addressInput = <HTMLInputElement>document.getElementById( "signUpAddress" );
                 if( addressInput )
                     new google.maps.places.Autocomplete( addressInput );
             }, 500 );
@@ -81,17 +78,19 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/SignUpWizard/TempNeighborhood", this.tempSignUpInfo ).then(() =>
-            {
-                innerThis.isLoading = false;
-                innerThis.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
+            this.$http.post( "/api/SignUpWizard/TempNeighborhood", this.tempSignUpInfo ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
 
-            }, (response:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult>) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.submitTempResult = `Submission failed: ${response.data.exceptionMessage}. Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.`;
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    this.submitTempResult = `Submission failed: ${response.data.exceptionMessage}. Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.`;
+                }
+            );
         }
 
 
@@ -125,7 +124,7 @@ namespace Ally
 
             this.showMap = true;
 
-            var addressInput = <HTMLInputElement>document.getElementById( "association-address-text-box" );
+            const addressInput = <HTMLInputElement>document.getElementById( "association-address-text-box" );
             if( addressInput )
             {
                 this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput );
@@ -142,36 +141,33 @@ namespace Ally
             // Occurs when the user selects a Google suggested address
             if( this.addressAutocomplete )
             {
-                var innerThis = this;
-
-                var onPlaceChanged = function()
+                const onPlaceChanged = () =>
                 {
-                    innerThis.setPlaceWasSelected();
+                    this.setPlaceWasSelected();
 
                     //infowindow.close();
-                    innerThis.mapMarker.setVisible( false );
-                    var place = innerThis.addressAutocomplete.getPlace();
+                    this.mapMarker.setVisible( false );
+                    const place = this.addressAutocomplete.getPlace();
 
-
-                    var readableAddress = place.formatted_address;
+                    let readableAddress = place.formatted_address;
 
                     // Remove the trailing country if it's USA
                     if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
                         readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    this.signUpInfo.streetAddress = readableAddress;
 
                     if( !place.geometry )
                         return;
 
-                    innerThis.setEditPolyForAddress( place.geometry.location );
+                    this.setEditPolyForAddress( place.geometry.location );
 
-                    innerThis.centerMap( place.geometry );
+                    this.centerMap( place.geometry );
                 };
 
-                this.addressAutocomplete.addListener( 'place_changed', function()
+                this.addressAutocomplete.addListener( 'place_changed', () =>
                 {
-                    innerThis.$scope.$apply( onPlaceChanged );
+                    this.$scope.$apply( onPlaceChanged );
                 } );
             }
         }
@@ -206,10 +202,9 @@ namespace Ally
             this.shouldCheckAddress = false;
 
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
-            setTimeout( function()
+            setTimeout( () =>
             {
-                innerThis.placeWasSelected = true;
+                this.placeWasSelected = true;
             }, 500 );
         }
 
@@ -219,8 +214,8 @@ namespace Ally
          */
         setEditPolyForAddress( homePos: google.maps.LatLng )
         {
-            var OffsetLat = 0.001;
-            var OffsetLon = 0.0014;
+            const OffsetLat = 0.001;
+            const OffsetLon = 0.0014;
 
             this.hoaPoly = {
                 vertices: [
@@ -241,35 +236,37 @@ namespace Ally
         {
             this.isLoadingMap = true;
 
-            var innerThis = this;
-            HtmlUtil.geocodeAddress( this.signUpInfo.streetAddress, function( results, status )
-            {
-                innerThis.$scope.$apply( function()
+            HtmlUtil.geocodeAddress( this.signUpInfo.streetAddress,
+                ( results, status ) =>
                 {
-                    innerThis.isLoadingMap = false;
-
-                    if( status != google.maps.GeocoderStatus.OK )
+                    // Need to run this in $apply since it's invoked outside of Angular's digest cycle
+                    this.$scope.$apply( () =>
                     {
-                        //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
-                        return;
-                    }
+                        this.isLoadingMap = false;
 
-                    var readableAddress = results[0].formatted_address;
+                        if( status != google.maps.GeocoderStatus.OK )
+                        {
+                            //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
+                            return;
+                        }
 
-                    // Remove the trailing country if it's USA
-                    if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
-                        readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
+                        let readableAddress = results[0].formatted_address;
 
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                        // Remove the trailing country if it's USA
+                        if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
+                            readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                    if( !results[0].geometry )
-                        return;
+                        this.signUpInfo.streetAddress = readableAddress;
 
-                    innerThis.setEditPolyForAddress( results[0].geometry.location );
+                        if( !results[0].geometry )
+                            return;
 
-                    innerThis.centerMap( results[0].geometry );
-                } );
-            } );
+                        this.setEditPolyForAddress( results[0].geometry.location );
+
+                        this.centerMap( results[0].geometry );
+                    } );
+                }
+            );
         }
 
 
@@ -282,49 +279,51 @@ namespace Ally
 
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
 
-            var innerThis = this;
-            this.$http.post( "/api/SignUpWizard/Hoa", this.signUpInfo ).then( function( httpResponse )
-            {
-                innerThis.isLoading = false;
-
-                var signUpResult: any = httpResponse.data;
-
-                // If the was an error creating the site
-                if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
+            this.$http.post( "/api/SignUpWizard/Hoa", this.signUpInfo ).then(
+                ( httpResponse ) =>
                 {
-                    alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
-                    innerThis.WizardHandler.wizard().goTo( signUpResult.stepIndex );
-                }
-                // Otherwise create succeeded
-                else
-                {
-                    if( typeof ( ( <any>window ).analytics ) !== "undefined" )
-                        ( <any>window ).analytics.track( "condoSignUpComplete" );
+                    this.isLoading = false;
 
-                    // Log this as a conversion
-                    if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
-                        ( <any>window ).goog_report_conversion();
+                    const signUpResult: any = httpResponse.data;
 
-                    // Or if the user created an active signUpResult
-                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                    // If the was an error creating the site
+                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
                     {
-                        window.location.href = signUpResult.createUrl;
+                        alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
+                        this.WizardHandler.wizard().goTo( signUpResult.stepIndex );
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise create succeeded
                     else
                     {
-                        innerThis.hideWizard = true;
+                        if( typeof ( ( <any>window ).analytics ) !== "undefined" )
+                            ( <any>window ).analytics.track( "condoSignUpComplete" );
 
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        // Log this as a conversion
+                        if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
+                            ( <any>window ).goog_report_conversion();
+
+                        // Or if the user created an active signUpResult
+                        if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                        {
+                            window.location.href = signUpResult.createUrl;
+                        }
+                        // Otherwise the user needs to confirm sign-up via email
+                        else
+                        {
+                            this.hideWizard = true;
+
+                            this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
+                        }
                     }
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+
+                    alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
                 }
-
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                innerThis.isLoading = false;
-
-                alert( "Failed to complete sign-up: " + httpResponse.data.exceptionMessage );
-            } );
+            );
         }
     }
 }

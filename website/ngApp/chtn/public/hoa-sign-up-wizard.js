@@ -232,10 +232,10 @@ var Ally;
                         // Delay just a bit to let the Capterra tracking log, if needed
                         window.setTimeout(function () { return window.location.href = signUpResult.createUrl; }, 50);
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise the user needs to confirm sign-up via email
                     else {
                         _this.hideWizard = true;
-                        _this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
@@ -245,12 +245,12 @@ var Ally;
             });
         };
         /**
-         * Called when the user press the button to submit their e-mail address
+         * Called when the user press the button to submit their email address
          */
         HoaSignUpWizardController.prototype.submitEmailForHoaNotify = function () {
             var _this = this;
             if (HtmlUtil.isNullOrWhitespace(this.hoaAlertEmail)) {
-                alert("Please enter a valid e-mail address");
+                alert("Please enter a valid email address");
                 return;
             }
             this.isLoading = true;

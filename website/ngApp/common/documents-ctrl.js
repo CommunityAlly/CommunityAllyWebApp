@@ -64,7 +64,7 @@ var Ally;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -73,7 +73,6 @@ var Ally;
             var _this = this;
             this.apiAuthToken = this.$rootScope.authToken;
             this.Refresh();
-            var innerThis = this;
             var hookUpFileUpload = function () {
                 var uploader = $('#JQDocsFileUploader');
                 uploader.fileupload({
@@ -95,12 +94,12 @@ var Ally;
                         if (_this.siteInfo.publicSiteInfo.baseApiUrl)
                             data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
                         var xhr = data.submit();
-                        xhr.done(function (result) {
+                        xhr.done(function () {
                             _this.docsHttpCache.removeAll();
                             $("#FileUploadProgressContainer").hide();
                             _this.Refresh();
                         });
-                        xhr.error(function (jqXHR, textStatus) {
+                        xhr.error(function (jqXHR) {
                             alert("Upload failed: " + jqXHR.responseJSON.exceptionMessage);
                             //console.log( "fail", jqXHR, textStatus, errorThrown );
                         });
@@ -121,7 +120,8 @@ var Ally;
                     },
                     fail: function (e, xhr) {
                         $("#FileUploadProgressContainer").hide();
-                        //alert( "Failed to upload document: " + xhr. );
+                        alert("Failed to upload document");
+                        console.log("Failed to upload document", xhr);
                     }
                 });
             };
@@ -189,7 +189,7 @@ var Ally;
         };
         DocumentsController.prototype.startZipGenDownload = function () {
             var _this = this;
-            var refreshGenStatus;
+            var refreshGenStatus = null;
             var numRefreshes = 0;
             refreshGenStatus = function () {
                 _this.$http.get("/api/DocumentUpload/GetZipGenStatus?vid=" + _this.generatingZipId).then(function (response) {
@@ -283,7 +283,6 @@ var Ally;
             // If the user can't manage the association then do nothing
             if (!this.canManage)
                 return;
-            var innerThis = this;
             setTimeout(function () {
                 // Make the folders accept dropped files
                 var droppables = $(".droppable");
@@ -338,13 +337,13 @@ var Ally;
                     opacity: 1,
                     containment: "document",
                     appendTo: "body",
-                    start: function (event, ui) {
+                    start: function (event) {
                         // Get the index of the file being dragged (ID is formatted like "File_12")
                         var fileIndexString = $(event.target).attr("id").substring("File_".length);
                         var fileIndex = parseInt(fileIndexString);
-                        innerThis.$scope.$apply(function () {
-                            var fileInfo = innerThis.selectedDirectory.files[fileIndex];
-                            innerThis.selectedFile = fileInfo;
+                        _this.$scope.$apply(function () {
+                            var fileInfo = _this.selectedDirectory.files[fileIndex];
+                            _this.selectedFile = fileInfo;
                         });
                     }
                 });

@@ -1,10 +1,10 @@
 ﻿<div class="page">
-    <h2>Report E-mail Abuse</h2>
+    <h2>Report Email Abuse</h2>
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <div data-ng-show="$ctrl.showButtons">
         <br />
-        <h4>Why are you reporting this e-mail?</h4>
+        <h4>Why are you reporting this email?</h4>
         <div class="vertical-stack-button">
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('too-many')">Resident Sends Too Many Messages</button>
         </div>
@@ -19,11 +19,11 @@
         <br />
         <div class="vertical-stack-button mt-4">
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('not-member')">I'm Not a Resident of This Group</button>
-            <div class="alert alert-warning">If you are not a resident of the group, you should instead <a ng-href="mailto:{{$ctrl.boardEmail}}?subject=Not%20a%20Member%20of%20Association">send an e-mail to the board</a> asking to be removed.</div>
+            <div class="alert alert-warning">If you are not a resident of the group, you should instead <a ng-href="mailto:{{$ctrl.boardEmail}}?subject=Not%20a%20Member%20of%20Association">send an email to the board</a> asking to be removed.</div>
         </div>
         <br />
         <div class="vertical-stack-button">
-            Is there another reason you're reporting this e-mail? If so, let us know here:<br />
+            Is there another reason you're reporting this email? If so, let us know here:<br />
             <textarea rows="2" style="width: 50%;" data-ng-model="$ctrl.otherReasonText"></textarea><br />
             <button type="button" class="btn btn-primary">Other</button>
         </div>

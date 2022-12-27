@@ -46,7 +46,7 @@
 
                     this.isLoading = false;
 
-                    this.resultText = "Please check your e-mail for updated login information.";
+                    this.resultText = "Please check your email for updated login information.";
                     this.resultTextColor = "#00F";
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>

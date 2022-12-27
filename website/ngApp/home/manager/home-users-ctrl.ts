@@ -1,7 +1,7 @@
 ﻿namespace Ally
 {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     export class HomeUsersController implements ng.IController
     {
@@ -25,6 +25,7 @@
          */
         $onInit()
         {
+            // Placeholder
         }
     }
 }

@@ -69,7 +69,7 @@
                 if( this.committeeId )
                 {
                     // Make sure committee members can manage their data
-                    this.fellowResidents.isCommitteeMember( this.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canCreateThreads = isCommitteeMember );
+                    this.fellowResidents.isCommitteeMember( this.committeeId ).then( isCommitteeMember => this.canCreateThreads = isCommitteeMember );
                 }
                 else
                 {

@@ -82,7 +82,7 @@
                         },
                         {
                             field: "numEmailsSent",
-                            displayName: "# E-mails",
+                            displayName: "# Emails",
                             type: "number",
                             width: 100
                         },
@@ -183,7 +183,7 @@
                 _.forEach( mailingEntry.mailingResultObject.emailResults, r => r.mailingType = "E-mail" );
                 _.forEach( mailingEntry.mailingResultObject.paperMailResults, r => r.mailingType = "Paper Letter" );
 
-                var resultsRows: MailingResultBase[] = [];
+                let resultsRows: MailingResultBase[] = [];
                 resultsRows = resultsRows.concat( mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults );
 
                 this.resultsGridOptions.data = resultsRows;

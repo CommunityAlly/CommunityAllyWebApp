@@ -41,7 +41,7 @@
         <div id="FeedbackPanel" style="text-align:center; margin:0 auto; display:none; font-size:large; color:#0B0;">
         </div>
 
-        <span style="font-size:small;">Are your neighbors not receiving e-mails from this site? If so, make sure they add "sender@condoally.com" to their list of trusted e-mail senders.</span><br />
+        <span style="font-size:small;">Are your neighbors not receiving emails from this site? If so, make sure they add "sender@condoally.com" to their list of trusted email senders.</span><br />
         <br />
 
         <span>Here you can manage the people that live in your association. Simply click on their name to edit their information. Only admins can upload documents, edit information, add to the logbook, edit the welcome page, and manage members.</span>
@@ -49,7 +49,7 @@
 
         <div id="MissingEmailsLabel" data-ng-show="badEmailsExist">
             <br />
-            <span class="error-text">Some neighbors are missing their e-mail address. In order for your neighbors to log-in, you must set their e-mail address then send them a welcome e-mail.</span>
+            <span class="error-text">Some neighbors are missing their email address. In order for your neighbors to log-in, you must set their email address then send them a welcome email.</span>
             <br />
             <br />
         </div>
@@ -73,7 +73,7 @@
                             <td><input type="text" data-ng-model="editUser.lastName" /></td>
                         </tr>
                         <tr>
-                            <td class="text-right">E-mail:</td>
+                            <td class="text-right">Email:</td>
                             <td><input type="text" data-ng-model="editUser.email" /></td>
                             <td class="text-right">
                                 <label for="is-site-manager-checkbox">Is Admin:</label>
@@ -104,19 +104,19 @@
                         <tr>
                             <td colspan="2">
                                 <div data-ng-show="editUser.userId.length > 0">
-                                    <input data-ng-hide="sentWelcomeEmail" ng-disabled="editUserForm.$dirty" type="button" value="Send Welcome E-mail" data-ng-click="onSendWelcome()" />
+                                    <input data-ng-hide="sentWelcomeEmail" ng-disabled="editUserForm.$dirty" type="button" value="Send Welcome Email" data-ng-click="onSendWelcome()" />
                                     <div data-ng-show="editUserForm.$dirty" style="font-size: small;">
-                                        (Please save your changes then come back to send the welcome e-mail.)
+                                        (Please save your changes then come back to send the welcome email.)
                                     </div>
                                     <div data-ng-show="sentWelcomeEmail" data-ng-click="setEdit( null )">
                                         <div style="position: relative; top: 150px;">
-                                            Welcome e-mail has been sent!<br>
+                                            Welcome email has been sent!<br>
                                             <span style="font-size: small;">(Click anywhere to close)</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="text-right" data-ng-show="!editUser.userId">
-                                    <input id="send-welcome-checkbox" type="checkbox" data-ng-model="editUser.shouldSendWelcomeEmail"><label for="send-welcome-checkbox">Send Welcome E-mail with Login Info</label>
+                                    <input id="send-welcome-checkbox" type="checkbox" data-ng-model="editUser.shouldSendWelcomeEmail"><label for="send-welcome-checkbox">Send Welcome Email with Login Info</label>
                                 </div>
                             </td>
                             <td colspan="2" class="text-right">
@@ -136,16 +136,16 @@
         <div>
             Is your site new and are you ready to share it with your fellow members?<br />
             <input type="button" data-ng-click="onSendAllWelcome()" data-ng-hide="allEmailsSent" value="Launch Site" />
-            <span style="font-weight:bold; color:#22F;" data-ng-show="allEmailsSent">All e-mails sent!</span>
+            <span style="font-weight:bold; color:#22F;" data-ng-show="allEmailsSent">All emails sent!</span>
             <br>
-            <span>This will send all of the members, except you, an e-mail with log-in instructions and basic site information.</span>
+            <span>This will send all of the members, except you, an email with log-in instructions and basic site information.</span>
         </div>
 
         <div data-ng-show="isAdmin">
             <br />
             For Admins only.<br />
             <div style="border:1px solid #000;">
-                E-mail: <input type="text" data-ng-model="adminSetPass_Username" /><br />
+                Email: <input type="text" data-ng-model="adminSetPass_Username" /><br />
                 Password: <input type="text" data-ng-model="adminSetPass_Password" /><br />
                 <input type="button" value="Set Password" data-ng-click="OnAdminSetPassword()" />
             </div>

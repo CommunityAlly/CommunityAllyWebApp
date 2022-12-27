@@ -43,10 +43,10 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">E-mail:</label>
+                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
                         <div class="col-sm-8 col-xs-12">
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" />
-                            <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">E-mail address was reported undeliverable.</div>
+                            <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">Email address was reported undeliverable.</div>
                         </div>
                     </div>
                 </div>
@@ -121,20 +121,20 @@
                 <div class="col-sm-6">
                     <div data-ng-show="$ctrl.editUser.userId.length > 0">
                         <div data-ng-hide="$ctrl.sentWelcomeEmail">
-                            <input class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$dirty" type="button" value="Send Welcome E-mail" data-ng-click="$ctrl.onSendWelcome();" />
+                            <input class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$dirty" type="button" value="Send Welcome Email" data-ng-click="$ctrl.onSendWelcome();" />
                             <div data-ng-show="$ctrl.editUserForm.$dirty" class="note-text">
-                                Save your changes then come back to send a welcome e-mail.
+                                Save your changes then come back to send a welcome email.
                             </div>
                             <div data-ng-hide="$ctrl.editUserForm.$dirty" class="note-text">
                                 This will send login instructions with a new password.
                             </div>
                         </div>
                         <div data-ng-show="$ctrl.sentWelcomeEmail" data-ng-click="$ctrl.setEdit( null )" style="color: blue;">
-                            Welcome e-mail has been sent!
+                            Welcome email has been sent!
                         </div>
                     </div>
                     <div class="text-sm-center" data-ng-show="!$ctrl.editUser.userId">
-                        <input id="send-welcome-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.shouldSendWelcomeEmail">&nbsp;<label style="display:inline-block;" for="send-welcome-checkbox">Send Welcome E-mail with Login Info</label>
+                        <input id="send-welcome-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.shouldSendWelcomeEmail">&nbsp;<label style="display:inline-block;" for="send-welcome-checkbox">Send Welcome Email with Login Info</label>
                     </div>
                 </div>
 
@@ -159,7 +159,7 @@
         <br />
         For Admins only.<br />
         <div style="border:1px solid #000;">
-            E-mail: <input type="text" data-ng-model="$ctrl.adminSetPass_Username" /><br />
+            Email: <input type="text" data-ng-model="$ctrl.adminSetPass_Username" /><br />
             Password: <input type="text" data-ng-model="$ctrl.adminSetPass_Password" /><br />
             <input type="button" value="Set Password" data-ng-click="$ctrl.OnAdminSetPassword();" />
         </div>

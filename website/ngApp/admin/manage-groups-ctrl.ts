@@ -202,7 +202,7 @@
 
 
         /**
-         * Find the groups to which a user, via e-mail address, belongs
+         * Find the groups to which a user, via email address, belongs
          */
         findAssociationsForUser()
         {

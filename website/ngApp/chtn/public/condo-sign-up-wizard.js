@@ -282,10 +282,10 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise the user needs to confirm sign-up via email
                     else {
                         _this.hideWizard = true;
-                        _this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {

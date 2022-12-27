@@ -122,7 +122,7 @@ namespace Ally
 
             // Make sure committee members can manage their data
             if( this.committee && !this.canManage )
-                this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
         }
 
 
@@ -135,10 +135,9 @@ namespace Ally
 
             this.Refresh();
 
-            let innerThis = this;
-            let hookUpFileUpload = () =>
+            const hookUpFileUpload = () =>
             {
-                var uploader: any = $( '#JQDocsFileUploader' );
+                const uploader: any = $( '#JQDocsFileUploader' );
 
                 uploader.fileupload( {
                     autoUpload: true,
@@ -152,21 +151,21 @@ namespace Ally
                         const MaxFileSize = 1024 * 1024 * 50;
                         if( data.files[0].size > MaxFileSize )
                         {
-                            let fileMB = Math.round( data.files[0].size / ( 1024 * 1024 ) ) + 1;
+                            const fileMB = Math.round( data.files[0].size / ( 1024 * 1024 ) ) + 1;
                             alert( `The selected file is too large (${fileMB}MB). The maximum file size allowed is 50MB.` );
                             return;
                         }
 
-                        let dirPath = this.getSelectedDirectoryPath();
+                        const dirPath = this.getSelectedDirectoryPath();
 
                         $( "#FileUploadProgressContainer" ).show();
                         data.url = "api/DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
                         if( this.siteInfo.publicSiteInfo.baseApiUrl )
                             data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload?dirPath=" + encodeURIComponent( dirPath );
 
-                        var xhr = data.submit();
+                        const xhr = data.submit();
 
-                        xhr.done( ( result: any ) =>
+                        xhr.done( () =>
                         {
                             this.docsHttpCache.removeAll();
 
@@ -174,7 +173,7 @@ namespace Ally
                             this.Refresh();
                         } );
 
-                        xhr.error( ( jqXHR: any, textStatus: string) =>
+                        xhr.error( ( jqXHR: any ) =>
                         {
                             alert( "Upload failed: " + jqXHR.responseJSON.exceptionMessage );
                             //console.log( "fail", jqXHR, textStatus, errorThrown );
@@ -189,7 +188,7 @@ namespace Ally
                     },
                     progressall: ( e: any, data: any ) =>
                     {
-                        var progress = parseInt( ( data.loaded / data.total * 100 ).toString(), 10 );
+                        const progress = parseInt( ( data.loaded / data.total * 100 ).toString(), 10 );
                         $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );
 
                         if( progress === 100 )
@@ -200,7 +199,8 @@ namespace Ally
                     fail: ( e: any, xhr: any ) =>
                     {
                         $( "#FileUploadProgressContainer" ).hide();
-                        //alert( "Failed to upload document: " + xhr. );
+                        alert( "Failed to upload document" );
+                        console.log( "Failed to upload document", xhr )
                     }
                 } );
             };
@@ -243,7 +243,7 @@ namespace Ally
             {
                 viewDocWindow = window.open( '', '_blank' );
 
-                let wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
+                const wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
                 if( wasPopUpBlocked )
                 {
                     alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
@@ -266,7 +266,7 @@ namespace Ally
 
                     if( isForDownload )
                     {
-                        var link = document.createElement( 'a' );
+                        const link = document.createElement( 'a' );
                         link.setAttribute( "type", "hidden" ); // make it hidden if needed
                         link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);
                         link.download = curFile.fileName;
@@ -294,7 +294,7 @@ namespace Ally
 
         startZipGenDownload()
         {
-            let refreshGenStatus: () => void;
+            let refreshGenStatus: () => void = null;
             let numRefreshes = 0;
 
             refreshGenStatus = () =>
@@ -353,9 +353,9 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         getDirectoryFullPath( dir: DocumentDirectory )
         {
-            var curPath = dir.name;
+            let curPath = dir.name;
 
-            var parentDir = dir.parentDirectory;
+            let parentDir = dir.parentDirectory;
             while( parentDir )
             {
                 curPath = parentDir.name + "/" + curPath;
@@ -381,15 +381,15 @@ namespace Ally
             if( this.committee && HtmlUtil.startsWith( dirPath, DocumentsController.DirName_Committees ) )
             {
                 dirPath = dirPath.substr( DocumentsController.DirName_Committees.length + 1 );
-                var lastSlashIndex = dirPath.indexOf( '/' );
+                const lastSlashIndex = dirPath.indexOf( '/' );
                 if( lastSlashIndex !== -1 )
                     dirPath = dirPath.substr( lastSlashIndex + 1 );
             }
 
             // Split on slashes
-            var dirPathParts = dirPath.split( "/" );
+            const dirPathParts = dirPath.split( "/" );
 
-            var curDir = this.documentTree;
+            let curDir = this.documentTree;
             for( let i = 0; i < dirPathParts.length; ++i )
             {
                 curDir = curDir.getSubDirectoryByName( dirPathParts[i] );
@@ -404,8 +404,8 @@ namespace Ally
 
         updateFileFilter()
         {
-            var lowerFilter = ( this.fileSearch.all || '' ).toLowerCase();
-            let filterSearchFiles = ( file: DocumentTreeFile ) =>
+            const lowerFilter = ( this.fileSearch.all || '' ).toLowerCase();
+            const filterSearchFiles = ( file: DocumentTreeFile ) =>
             {
                 return ( file.localFilePath || '' ).toLowerCase().indexOf( lowerFilter ) !== -1
                     || ( file.uploadDateString || '' ).toLowerCase().indexOf( lowerFilter ) !== -1
@@ -417,10 +417,10 @@ namespace Ally
             setTimeout( () =>
             {
                 // Force redraw of the document. Not sure why, but the file list disappears on Chrome
-                var element = document.getElementById( "documents-area" );
-                var disp = element.style.display;
+                const element = document.getElementById( "documents-area" );
+                const disp = element.style.display;
                 element.style.display = 'none';
-                var trick = element.offsetHeight;
+                const trick = element.offsetHeight;
                 element.style.display = disp;
             }, 50 );
         }
@@ -433,28 +433,27 @@ namespace Ally
             if( !this.canManage )
                 return;
 
-            var innerThis = this;
             setTimeout( () =>
             {
                 // Make the folders accept dropped files
-                let droppables: any = $( ".droppable" );
+                const droppables: any = $( ".droppable" );
                 droppables.droppable(
                     {
                         drop: ( event: any, ui: any ) =>
                         {
-                            let selectedDirectoryPath = this.getSelectedDirectoryPath();
+                            const selectedDirectoryPath = this.getSelectedDirectoryPath();
 
-                            var uiDraggable: any = $( ui.draggable );
+                            const uiDraggable: any = $( ui.draggable );
                             uiDraggable.draggable( "option", "revert", "false" );
 
-                            var destFolderName = $( event.target ).attr( "data-folder-path" ).trim();
+                            const destFolderName = $( event.target ).attr( "data-folder-path" ).trim();
 
                             this.$scope.$apply( () =>
                             {
                                 // Display the loading image
                                 this.isLoading = true;
 
-                                var fileAction = {
+                                const fileAction = {
                                     relativeS3Path: this.selectedFile.relativeS3Path,
                                     action: "move",
                                     newFileName: "",
@@ -492,7 +491,7 @@ namespace Ally
                                     ( data: any ) =>
                                     {
                                         this.isLoading = false;
-                                        var message = data.exceptionMessage || data.message || data;
+                                        const message = data.exceptionMessage || data.message || data;
                                         alert( "Failed to move file: " + message );
                                     }
                                 );
@@ -502,7 +501,7 @@ namespace Ally
                     } );
 
                 // Allow the files to be dragged
-                let draggables: any = $( ".draggable" );
+                const draggables: any = $( ".draggable" );
                 draggables.draggable(
                     {
                         distance: 10,
@@ -511,16 +510,16 @@ namespace Ally
                         opacity: 1,
                         containment: "document",
                         appendTo: "body",
-                        start: ( event: any, ui: any ) =>
+                        start: ( event: any ) =>
                         {
                             // Get the index of the file being dragged (ID is formatted like "File_12")
-                            let fileIndexString = $( event.target ).attr( "id" ).substring( "File_".length );
-                            let fileIndex = parseInt( fileIndexString );
+                            const fileIndexString = $( event.target ).attr( "id" ).substring( "File_".length );
+                            const fileIndex = parseInt( fileIndexString );
 
-                            innerThis.$scope.$apply( () =>
+                            this.$scope.$apply( () =>
                             {
-                                var fileInfo = innerThis.selectedDirectory.files[fileIndex];
-                                innerThis.selectedFile = fileInfo;
+                                const fileInfo = this.selectedDirectory.files[fileIndex];
+                                this.selectedFile = fileInfo;
                             } );
                         }
                     } );
@@ -630,7 +629,7 @@ namespace Ally
             // Display the loading image
             this.isLoading = true;
 
-            var putUri = "/api/ManageDocuments/CreateDirectory?folderName=" + encodeURIComponent( this.newDirectoryName );
+            let putUri = "/api/ManageDocuments/CreateDirectory?folderName=" + encodeURIComponent( this.newDirectoryName );
 
             // If we're creating a subdirectory
             putUri += "&parentFolderPath=";
@@ -683,7 +682,7 @@ namespace Ally
             if( !document )
                 return;
 
-            var newTitle = prompt( "Enter the new name for the file", document.title );
+            let newTitle = prompt( "Enter the new name for the file", document.title );
 
             if( newTitle === null )
                 return;
@@ -694,7 +693,7 @@ namespace Ally
             // Display the loading image
             this.isLoading = true;
 
-            var fileAction = {
+            const fileAction = {
                 relativeS3Path: document.relativeS3Path,
                 action: "rename",
                 newTitle: newTitle,
@@ -757,7 +756,7 @@ namespace Ally
             if( !this.selectedDirectory )
                 return;
 
-            var newDirectoryName = prompt( "Enter the new name for the directory", this.selectedDirectory.name );
+            let newDirectoryName = prompt( "Enter the new name for the directory", this.selectedDirectory.name );
 
             if( newDirectoryName === null )
                 return;
@@ -768,8 +767,8 @@ namespace Ally
             // Display the loading image
             this.isLoading = true;
 
-            var oldDirectoryPath = encodeURIComponent( this.getSelectedDirectoryPath() );
-            var newDirectoryNameQS = encodeURIComponent( newDirectoryName );
+            const oldDirectoryPath = encodeURIComponent( this.getSelectedDirectoryPath() );
+            const newDirectoryNameQS = encodeURIComponent( newDirectoryName );
 
             this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then(
                 () =>
@@ -809,14 +808,13 @@ namespace Ally
                 // Display the loading image
                 this.isLoading = true;
 
-                var dirPath = this.getSelectedDirectoryPath();
+                const dirPath = this.getSelectedDirectoryPath();
                 this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then(
                     () =>
                     {
                         this.docsHttpCache.removeAll();
 
                         this.Refresh();
-
                     },
                     ( httpResult: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                     {
@@ -837,8 +835,8 @@ namespace Ally
             if( !fileName )
                 return "";
 
-            var extension = fileName.split( '.' ).pop().toLowerCase();
-            var imagePath = null;
+            const extension = fileName.split( '.' ).pop().toLowerCase();
+            let imagePath = null;
 
             switch( extension )
             {
@@ -892,7 +890,7 @@ namespace Ally
 
         isGenericIcon( file: DocumentTreeFile )
         {
-            var iconFilePath = this.getFileIcon( file.fileName );
+            const iconFilePath = this.getFileIcon( file.fileName );
             const GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
             return iconFilePath === GenericIconPath;
         }
@@ -900,7 +898,7 @@ namespace Ally
 
         getDisplayExtension( file: DocumentTreeFile )
         {
-            var extension = file.fileName.split( '.' ).pop().toLowerCase();
+            const extension = file.fileName.split( '.' ).pop().toLowerCase();
 
             return "." + extension;
         }

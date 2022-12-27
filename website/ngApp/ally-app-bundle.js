@@ -244,7 +244,7 @@ var Ally;
             });
         };
         /**
-         * Find the groups to which a user, via e-mail address, belongs
+         * Find the groups to which a user, via email address, belongs
          */
         ManageGroupsController.prototype.findAssociationsForUser = function () {
             var _this = this;
@@ -1720,8 +1720,10 @@ var Ally;
             this.appCacheService = appCacheService;
             this.LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
             this.LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
+            this.LocalStorageKey_ShowBalanceCol = "AssessmentHistory_ShowBalanceCol";
             // The number of pay periods that are visible on the grid
             this.NumPeriodsVisible = 10;
+            this.shouldShowBalanceCol = false;
             this.shouldShowCreateSpecialAssessment = false;
             this.unitPayments = {};
             this.showRowType = "unit";
@@ -2050,6 +2052,7 @@ var Ally;
                     while (curEntry.displayOwners.length < 2)
                         curEntry.displayOwners.push({ name: "" });
                     curEntry.payments = [];
+                    curEntry.estBalance = 123;
                 });
                 // Add the payment information to the members
                 if (_this.isForMemberGroup && httpResponse.data.payers) {
@@ -2108,6 +2111,12 @@ var Ally;
         AssessmentHistoryController.prototype.onshowPaymentInfo = function () {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
             window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
+        };
+        /**
+         * Occurs when the user toggles whether or not to show the balance column
+         */
+        AssessmentHistoryController.prototype.onshowBalanceCol = function () {
+            window.localStorage[this.LocalStorageKey_ShowBalanceCol] = this.shouldShowBalanceCol;
         };
         /**
          * Occurs when the user clicks a date cell
@@ -4214,7 +4223,7 @@ var Ally;
                     // the user does not have auto-pay enabled
                     needsReloadOfPage = _.find(usersAffected, function (u) { return u.userId === _this.siteInfo.userInfo.userId; }) !== undefined;
                     needsFullRefresh = true;
-                    var message_1 = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
+                    var message_1 = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by email:\n";
                     _.each(usersAffected, function (u) { return message_1 += u.ownerName + "\n"; });
                     message_1 += "\nDo you want to continue?";
                     if (!confirm(message_1)) {
@@ -6089,7 +6098,7 @@ var Ally;
                 while (curRow.length < 10)
                     curRow.push("");
                 // Skip the header row, if there is one
-                if (curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name")
+                if (curRow[0] === "Address/Unit" && curRow[1] === "Email" && curRow[2] === "First Name")
                     return "continue";
                 // Clean up the data
                 for (var j = 0; j < curRow.length; ++j) {
@@ -7770,7 +7779,7 @@ var Ally;
             this.$http.post("/api/Login/Forgot", this.loginInfo).then(function () {
                 _this.shouldHideControls = true;
                 _this.isLoading = false;
-                _this.resultText = "Please check your e-mail for updated login information.";
+                _this.resultText = "Please check your email for updated login information.";
                 _this.resultTextColor = "#00F";
             }, function (httpResponse) {
                 _this.isLoading = false;
@@ -7898,19 +7907,21 @@ var Ally;
                 // If we should scroll to a specific home
                 var scrollToUnitId = _this.appCacheService.getAndClear("scrollToUnitId");
                 if (scrollToUnitId) {
-                    var scrollToElemId = "unit-id-" + scrollToUnitId;
+                    var scrollToElemId_1 = "unit-id-" + scrollToUnitId;
                     setTimeout(function () {
-                        document.getElementById(scrollToElemId).scrollIntoView();
-                        $("#" + scrollToElemId).effect("pulsate", { times: 3 }, 2000);
+                        document.getElementById(scrollToElemId_1).scrollIntoView();
+                        $("#" + scrollToElemId_1).effect("pulsate", { times: 3 }, 2000);
                     }, 300);
                 }
-                // Populate the e-mail name lists, delayed to help the page render faster
+                // Populate the email name lists, delayed to help the page render faster
                 setTimeout(function () { return _this.loadGroupEmails(); }, 500);
             }, function (httpErrorResponse) {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
+                console.log("Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage);
             });
         };
         GroupMembersController.prototype.updateMemberFilter = function () {
+            //TODO
             var lowerFilter = (this.memberSearchTerm || '').toLowerCase();
             var filterSearchFiles = function (unitListing) {
                 if ((unitListing.name || '').toLowerCase().indexOf(lowerFilter) !== -1)
@@ -8405,7 +8416,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.onResidentClicked = function (resident) {
             if (!resident.hasEmail) {
-                alert("That user cannot be included because they do not have an e-mail address on file.");
+                alert("That user cannot be included because they do not have an email address on file.");
                 resident.isAssociated = false;
                 return;
             }
@@ -8421,7 +8432,7 @@ var Ally;
             return momentDate.isBefore(today, 'day') || momentDate.isSame(today, 'day');
         };
         LogbookController.prototype.onShouldSendChange = function () {
-            // Don't allow the user to send remdiner e-mails for past dates
+            // Don't allow the user to send remdiner emails for past dates
             if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent.dateOnly))
                 this.editEvent.shouldSendNotification = false;
             else if (!this.editEvent.notificationEmailDaysBefore)
@@ -8695,7 +8706,7 @@ var Ally;
             // Or if we got sent here for a 401
             else if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn401) === "true")
                 this.loginResult = "Please login first.";
-            // Focus on the e-mail text box
+            // Focus on the email text box
             setTimeout(function () {
                 $("#login-email-textbox").focus();
             }, 200);
@@ -8932,7 +8943,7 @@ var Ally;
                     _this.profileInfo.avatarUrl = null;
                 _this.profileImageType = _this.initialProfileImageType;
                 _this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((_this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
-                // Don't show empty e-mail address
+                // Don't show empty email address
                 if (HtmlUtil.endsWith(_this.profileInfo.email, "@condoally.com"))
                     _this.profileInfo.email = "";
                 _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
@@ -9275,10 +9286,10 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise the user needs to confirm sign-up via email
                     else {
                         _this.hideWizard = true;
-                        _this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
@@ -9390,7 +9401,7 @@ CA.angularApp.component("discussionManage", {
 var Ally;
 (function (Ally) {
     /**
-     * The controller for a page that lets a user complain about group e-mail utilization
+     * The controller for a page that lets a user complain about group email utilization
      */
     var EmailAbuseController = /** @class */ (function () {
         /**
@@ -9412,6 +9423,7 @@ var Ally;
          * Ask that
          */
         EmailAbuseController.prototype.reportAbuse = function (abuseReason) {
+            var _this = this;
             if (abuseReason === "not-member") {
                 if (!confirm("You should reach out to the board rather than contact technical support. Click 'OK' to still proceed with contacting technical support anyway."))
                     return;
@@ -9424,10 +9436,9 @@ var Ally;
                 otherReasonText: this.otherReasonText
             };
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/EmailAbuse/v3", postData).then(function () {
-                innerThis.isLoading = false;
-                innerThis.showButtons = false;
+                _this.isLoading = false;
+                _this.showButtons = false;
             });
         };
         EmailAbuseController.$inject = ["$http", "$routeParams"];
@@ -9674,10 +9685,10 @@ var Ally;
                         // Delay just a bit to let the Capterra tracking log, if needed
                         window.setTimeout(function () { return window.location.href = signUpResult.createUrl; }, 50);
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise the user needs to confirm sign-up via email
                     else {
                         _this.hideWizard = true;
-                        _this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
@@ -9687,12 +9698,12 @@ var Ally;
             });
         };
         /**
-         * Called when the user press the button to submit their e-mail address
+         * Called when the user press the button to submit their email address
          */
         HoaSignUpWizardController.prototype.submitEmailForHoaNotify = function () {
             var _this = this;
             if (HtmlUtil.isNullOrWhitespace(this.hoaAlertEmail)) {
-                alert("Please enter a valid e-mail address");
+                alert("Please enter a valid email address");
                 return;
             }
             this.isLoading = true;
@@ -9758,23 +9769,23 @@ var Ally;
             }, 750);
         };
         /**
-         * Occurs when the user clicks the button to submit their e-mail address
+         * Occurs when the user clicks the button to submit their email address
          */
         NeighborSignUpController.prototype.onSubmitInfo = function () {
+            var _this = this;
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.emailAddress)) {
-                alert("Please enter an e-mail address");
+                alert("Please enter an email address");
                 return;
             }
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/NeighborSignUp/SignUpNewUser", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.resultIsError = false;
-                innerThis.resultMessage = "Your information has been successfully submitted. Look for a welcome email soon.";
+            this.$http.post("/api/NeighborSignUp/SignUpNewUser", this.signUpInfo).then(function () {
+                _this.isLoading = false;
+                _this.resultIsError = false;
+                _this.resultMessage = "Your information has been successfully submitted. Look for a welcome email soon.";
             }, function () {
-                innerThis.isLoading = false;
-                innerThis.resultIsError = true;
-                innerThis.resultMessage = "There was an error submitting your information. Please try again.";
+                _this.isLoading = false;
+                _this.resultIsError = true;
+                _this.resultMessage = "There was an error submitting your information. Please try again.";
             });
         };
         /**
@@ -9834,13 +9845,12 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         NeighborhoodSignUpWizardController.prototype.$onInit = function () {
-            var innerThis = this;
-            var innerThis = this;
+            var _this = this;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
-                    innerThis.$timeout(function () { return innerThis.showMap = true; }, 50);
+                    _this.$timeout(function () { return _this.showMap = true; }, 50);
                 else
-                    innerThis.showMap = false;
+                    _this.showMap = false;
             });
             setTimeout(function () {
                 var addressInput = document.getElementById("signUpAddress");
@@ -9852,14 +9862,14 @@ var Ally;
          * Submit the
          */
         NeighborhoodSignUpWizardController.prototype.onSubmitTempInfo = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/SignUpWizard/TempNeighborhood", this.tempSignUpInfo).then(function () {
-                innerThis.isLoading = false;
-                innerThis.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
+                _this.isLoading = false;
+                _this.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
             }, function (response) {
-                innerThis.isLoading = false;
-                innerThis.submitTempResult = "Submission failed: " + response.data.exceptionMessage + ". Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.";
+                _this.isLoading = false;
+                _this.submitTempResult = "Submission failed: " + response.data.exceptionMessage + ". Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.";
             });
         };
         /**
@@ -9881,6 +9891,7 @@ var Ally;
          * Perform initialization to create the map and hook up address autocomplete
          */
         NeighborhoodSignUpWizardController.prototype.initMapStep = function () {
+            var _this = this;
             if (typeof (window.analytics) !== "undefined")
                 window.analytics.track("condoSignUpStarted");
             this.showMap = true;
@@ -9897,24 +9908,23 @@ var Ally;
             });
             // Occurs when the user selects a Google suggested address
             if (this.addressAutocomplete) {
-                var innerThis = this;
-                var onPlaceChanged = function () {
-                    innerThis.setPlaceWasSelected();
+                var onPlaceChanged_1 = function () {
+                    _this.setPlaceWasSelected();
                     //infowindow.close();
-                    innerThis.mapMarker.setVisible(false);
-                    var place = innerThis.addressAutocomplete.getPlace();
+                    _this.mapMarker.setVisible(false);
+                    var place = _this.addressAutocomplete.getPlace();
                     var readableAddress = place.formatted_address;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    _this.signUpInfo.streetAddress = readableAddress;
                     if (!place.geometry)
                         return;
-                    innerThis.setEditPolyForAddress(place.geometry.location);
-                    innerThis.centerMap(place.geometry);
+                    _this.setEditPolyForAddress(place.geometry.location);
+                    _this.centerMap(place.geometry);
                 };
                 this.addressAutocomplete.addListener('place_changed', function () {
-                    innerThis.$scope.$apply(onPlaceChanged);
+                    _this.$scope.$apply(onPlaceChanged_1);
                 });
             }
         };
@@ -9935,12 +9945,12 @@ var Ally;
          * Occurs when the user selects an address from the Google suggestions
          */
         NeighborhoodSignUpWizardController.prototype.setPlaceWasSelected = function () {
+            var _this = this;
             this.placeWasSelected = true;
             this.shouldCheckAddress = false;
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
             setTimeout(function () {
-                innerThis.placeWasSelected = true;
+                _this.placeWasSelected = true;
             }, 500);
         };
         /**
@@ -9962,11 +9972,12 @@ var Ally;
          * Refresh the map to center typed in address
          */
         NeighborhoodSignUpWizardController.prototype.refreshMapForAddress = function () {
+            var _this = this;
             this.isLoadingMap = true;
-            var innerThis = this;
             HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
-                innerThis.$scope.$apply(function () {
-                    innerThis.isLoadingMap = false;
+                // Need to run this in $apply since it's invoked outside of Angular's digest cycle
+                _this.$scope.$apply(function () {
+                    _this.isLoadingMap = false;
                     if (status != google.maps.GeocoderStatus.OK) {
                         //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
                         return;
@@ -9975,11 +9986,11 @@ var Ally;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    _this.signUpInfo.streetAddress = readableAddress;
                     if (!results[0].geometry)
                         return;
-                    innerThis.setEditPolyForAddress(results[0].geometry.location);
-                    innerThis.centerMap(results[0].geometry);
+                    _this.setEditPolyForAddress(results[0].geometry.location);
+                    _this.centerMap(results[0].geometry);
                 });
             });
         };
@@ -9987,16 +9998,16 @@ var Ally;
          * Called when the user press the button to complete the sign-up process
          */
         NeighborhoodSignUpWizardController.prototype.onFinishedWizard = function () {
+            var _this = this;
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
-            var innerThis = this;
             this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var signUpResult = httpResponse.data;
                 // If the was an error creating the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
-                    innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    _this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
                 // Otherwise create succeeded
                 else {
@@ -10009,14 +10020,14 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise the user needs to confirm sign-up via email
                     else {
-                        innerThis.hideWizard = true;
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.hideWizard = true;
+                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
             });
         };
@@ -10146,7 +10157,7 @@ var Ally;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             if (this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
         };
@@ -10855,7 +10866,7 @@ var Ally;
             });
         };
         /**
-         * Occurs when the user clicks the helper link to prep an e-mail to inquire the board as to
+         * Occurs when the user clicks the helper link to prep an email to inquire the board as to
          * why their records don't line up.
          */
         AssessmentPaymentFormController.prototype.onIncorrectPayDetails = function () {
@@ -10863,7 +10874,7 @@ var Ally;
             var amountString = this.assessmentAmount.toString();
             if (Math.round(this.assessmentAmount) != this.assessmentAmount)
                 amountString = this.assessmentAmount.toFixed(2);
-            // Tell the groupSendEmail component to prep an e-mail for the board
+            // Tell the groupSendEmail component to prep an email for the board
             var prepEventData = amountString;
             if (this.knowsNextPayment && HtmlUtil.isValidString(this.nextPaymentText))
                 prepEventData += "|" + this.nextPaymentText;
@@ -11424,7 +11435,7 @@ var Ally;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -11433,7 +11444,6 @@ var Ally;
             var _this = this;
             this.apiAuthToken = this.$rootScope.authToken;
             this.Refresh();
-            var innerThis = this;
             var hookUpFileUpload = function () {
                 var uploader = $('#JQDocsFileUploader');
                 uploader.fileupload({
@@ -11455,12 +11465,12 @@ var Ally;
                         if (_this.siteInfo.publicSiteInfo.baseApiUrl)
                             data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
                         var xhr = data.submit();
-                        xhr.done(function (result) {
+                        xhr.done(function () {
                             _this.docsHttpCache.removeAll();
                             $("#FileUploadProgressContainer").hide();
                             _this.Refresh();
                         });
-                        xhr.error(function (jqXHR, textStatus) {
+                        xhr.error(function (jqXHR) {
                             alert("Upload failed: " + jqXHR.responseJSON.exceptionMessage);
                             //console.log( "fail", jqXHR, textStatus, errorThrown );
                         });
@@ -11481,7 +11491,8 @@ var Ally;
                     },
                     fail: function (e, xhr) {
                         $("#FileUploadProgressContainer").hide();
-                        //alert( "Failed to upload document: " + xhr. );
+                        alert("Failed to upload document");
+                        console.log("Failed to upload document", xhr);
                     }
                 });
             };
@@ -11549,7 +11560,7 @@ var Ally;
         };
         DocumentsController.prototype.startZipGenDownload = function () {
             var _this = this;
-            var refreshGenStatus;
+            var refreshGenStatus = null;
             var numRefreshes = 0;
             refreshGenStatus = function () {
                 _this.$http.get("/api/DocumentUpload/GetZipGenStatus?vid=" + _this.generatingZipId).then(function (response) {
@@ -11643,7 +11654,6 @@ var Ally;
             // If the user can't manage the association then do nothing
             if (!this.canManage)
                 return;
-            var innerThis = this;
             setTimeout(function () {
                 // Make the folders accept dropped files
                 var droppables = $(".droppable");
@@ -11698,13 +11708,13 @@ var Ally;
                     opacity: 1,
                     containment: "document",
                     appendTo: "body",
-                    start: function (event, ui) {
+                    start: function (event) {
                         // Get the index of the file being dragged (ID is formatted like "File_12")
                         var fileIndexString = $(event.target).attr("id").substring("File_".length);
                         var fileIndex = parseInt(fileIndexString);
-                        innerThis.$scope.$apply(function () {
-                            var fileInfo = innerThis.selectedDirectory.files[fileIndex];
-                            innerThis.selectedFile = fileInfo;
+                        _this.$scope.$apply(function () {
+                            var fileInfo = _this.selectedDirectory.files[fileIndex];
+                            _this.selectedFile = fileInfo;
                         });
                     }
                 });
@@ -12028,7 +12038,9 @@ var Ally;
                 }
                 _this.hookUpFileDragging();
             }, function (response) {
+                alert("Failed to retrieve documents, please contact technical support. No need to worry, no documents have been lost.");
                 _this.isLoading = false;
+                console.log("Failed to retrieve docs: " + response.data.exceptionMessage);
                 //$( "#FileTreePanel" ).hide();
                 //innerThis.errorMessage = "Failed to retrieve the building documents.";
             });
@@ -12093,7 +12105,7 @@ var Ally;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
@@ -12515,7 +12527,7 @@ var Ally;
         return HomeEmailMessage;
     }());
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     var GroupSendEmailController = /** @class */ (function () {
         /**
@@ -12567,7 +12579,7 @@ var Ally;
             this.messageObject.subject = this.defaultSubject;
         };
         /**
-         * Populate the group e-mail options
+         * Populate the group email options
          */
         GroupSendEmailController.prototype.loadGroupEmails = function () {
             var _this = this;
@@ -12583,7 +12595,7 @@ var Ally;
             });
         };
         /**
-         * Setup an e-mail to be sent to the board for assessment issues
+         * Setup an email to be sent to the board for assessment issues
          */
         GroupSendEmailController.prototype.prepBadAssessmentEmailForBoard = function (emitEventData) {
             var emitDataParts = emitEventData.split("|");
@@ -12601,7 +12613,7 @@ var Ally;
             document.getElementById("send-email-panel").scrollIntoView();
         };
         /**
-         * Occurs when the user presses the button to send an e-mail to members of the building
+         * Occurs when the user presses the button to send an email to members of the building
          */
         GroupSendEmailController.prototype.onSendEmail = function () {
             var _this = this;
@@ -12633,11 +12645,11 @@ var Ally;
                     _this.showEmailForbidden = true;
                 }
                 else
-                    alert("Unable to send e-mail: " + httpResponse.data.exceptionMessage);
+                    alert("Unable to send email: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
-         * Occurs when the user selects an e-mail group from the drop-down
+         * Occurs when the user selects an email group from the drop-down
          */
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
             if (!this.selectedRecipient)
@@ -12680,7 +12692,7 @@ CA.angularApp.component("groupSendEmail", {
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that shows news headlines for the local area
      */
     var LocalNewsFeedController = /** @class */ (function () {
         /**
@@ -12696,20 +12708,21 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         LocalNewsFeedController.prototype.$onInit = function () {
+            var _this = this;
             // Load the news with a slight delay to help the page load faster
             this.isLoading = true;
-            var innerThis = this;
-            this.$timeout(function () { return innerThis.loadNewsStories(); }, 200);
+            this.$timeout(function () { return _this.loadNewsStories(); }, 200);
         };
         /**
          * Refresh the local news feed
          */
         LocalNewsFeedController.prototype.loadNewsStories = function () {
+            var _this = this;
             //window.location.host is subdomain.domain.com
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             // A little test to help the automated tests run faster
             var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
-            isTestSubdomain = false;
+            isTestSubdomain = false; // Allow on test sites for now
             if (isTestSubdomain)
                 return;
             this.isLoading = true;
@@ -12734,13 +12747,12 @@ var Ally;
                     city: this.siteInfo.privateSiteInfo.groupAddress.city
                 };
             }
-            var innerThis = this;
             this.$http.get(localNewsUri, {
                 cache: true,
                 params: queryParams
             }).then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.localNewStories = httpResponse.data;
+                _this.isLoading = false;
+                _this.localNewStories = httpResponse.data;
             });
         };
         LocalNewsFeedController.$inject = ["$http", "SiteInfo", "$timeout"];
@@ -12826,7 +12838,7 @@ var Ally;
                         },
                         {
                             field: "numEmailsSent",
-                            displayName: "# E-mails",
+                            displayName: "# Emails",
                             type: "number",
                             width: 100
                         },
@@ -13073,8 +13085,8 @@ var Ally;
                             //_.forEach( <InvoiceMailingEntry[]>this.homesGridOptions.data, e => e.shouldIncludeForSending = false );
                             //_.forEach( this.selectedEntries, e => e.shouldIncludeForSending = true );
                         };
-                        gridApi.selection.on.rowSelectionChanged($scope, function (row) { return updateFromSelection(); });
-                        gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) { return updateFromSelection(); });
+                        gridApi.selection.on.rowSelectionChanged($scope, function () { return updateFromSelection(); });
+                        gridApi.selection.on.rowSelectionChangedBatch($scope, function () { return updateFromSelection(); });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -13248,6 +13260,7 @@ var Ally;
                 entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
             }, function (response) {
                 _this.isLoading = false;
+                alert("Failed to preview invoice: " + response.data.exceptionMessage);
             });
             //var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
             //var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( JSON.stringify( this.fullMailingInfo.fromStreetAddress ) )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
@@ -13257,7 +13270,7 @@ var Ally;
             var _this = this;
             if (this.numPaperLettersToSend === 0) {
                 if (this.numEmailsToSend === 0)
-                    alert("No e-mails or paper letters selected to send.");
+                    alert("No emails or paper letters selected to send.");
                 else
                     this.submitFullMailingAfterCharge();
                 return;
@@ -13358,15 +13371,17 @@ var Ally;
                 // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
                     var recipientsToVerify_1 = _.clone(this.selectedEntries);
-                    var validateAllStep_1 = function () {
-                        _this.validateAddress(recipientsToVerify_1[0]).then(function () {
-                            recipientsToVerify_1.splice(0, 1);
-                            while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
-                                recipientsToVerify_1.splice(0, 1);
-                            if (recipientsToVerify_1.length > 0)
-                                validateAllStep_1();
-                        });
-                    };
+                    //const validateAllStep = () =>
+                    //{
+                    //    this.validateAddress( recipientsToVerify[0] ).then( () =>
+                    //    {
+                    //        recipientsToVerify.splice( 0, 1 );
+                    //        while( recipientsToVerify.length > 0 && !recipientsToVerify[0].amountDue )
+                    //            recipientsToVerify.splice( 0, 1 );
+                    //        if( recipientsToVerify.length > 0 )
+                    //            validateAllStep();
+                    //    } );
+                    //};
                     //validateAllStep();
                     this.numAddressesToBulkValidate = recipientsToVerify_1.length;
                     var testAddressAllStep_1 = function () {
@@ -13990,7 +14005,7 @@ CA.angularApp.component("maintenance", {
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members see work todo
      */
     var MaintenanceWidgetController = /** @class */ (function () {
         /**
@@ -14259,7 +14274,7 @@ var Ally;
             }, "#paypal-button");
         };
         /**
-         * Occurs when the user clicks the helper link to prep an e-mail to inquire the board as to
+         * Occurs when the user clicks the helper link to prep an email to inquire the board as to
          * why their records don't line up.
          */
         PayPalPaymentFormController.prototype.onIncorrectPayDetails = function () {
@@ -14267,7 +14282,7 @@ var Ally;
             var amountString = this.assessmentAmount.toString();
             if (Math.round(this.assessmentAmount) != this.assessmentAmount)
                 amountString = this.assessmentAmount.toFixed(2);
-            // Tell the groupSendEmail component to prep an e-mail for the board
+            // Tell the groupSendEmail component to prep an email for the board
             var prepEventData = amountString;
             if (this.knowsNextPayment && HtmlUtil.isValidString(this.nextPaymentText))
                 prepEventData += "|" + this.nextPaymentText;
@@ -14995,7 +15010,7 @@ var Ally;
         return HomeValueResponse;
     }());
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     var HomeValueWidgetController = /** @class */ (function () {
         /**
@@ -15043,7 +15058,7 @@ CA.angularApp.component("homeValueWidget", {
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     var HomeUsersController = /** @class */ (function () {
         /**
@@ -15060,6 +15075,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         HomeUsersController.prototype.$onInit = function () {
+            // Placeholder
         };
         HomeUsersController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return HomeUsersController;
@@ -15236,10 +15252,10 @@ var Ally;
                 else if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                     window.location.href = signUpResult.createUrl;
                 }
-                // Otherwise the user needs to confirm sign-up via e-mail
+                // Otherwise the user needs to confirm sign-up via email
                 else {
                     innerThis.hideWizard = true;
-                    innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                    innerThis.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                 }
             }, function (httpResponse) {
                 innerThis.isLoading = false;
@@ -15496,7 +15512,7 @@ var Ally;
             || value.indexOf('\n') !== -1;
         if (needsEscaping) {
             // Double the double quotes
-            value = value.replace("\"", "\"\"");
+            value = value.replace(/"/g, "\"\"");
             // Wrap the whole thing in quotes
             value = "\"" + value + "\"";
         }
@@ -15550,7 +15566,7 @@ var __extends = (this && this.__extends) || (function () {
 var Ally;
 (function (Ally) {
     /**
-     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     * Represents a group email address to which emails sent get forwarded to the whole group
      */
     var GroupEmailInfo = /** @class */ (function () {
         function GroupEmailInfo() {
@@ -15645,24 +15661,25 @@ var Ally;
             });
         };
         /**
-         * Determine if a user is a committee member
+         * Determine if the logged-in user is a committee member
          */
-        FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
+        FellowResidentsService.prototype.isCommitteeMember = function (committeeId) {
+            var _this = this;
             return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
          * Get the residents for an association, broken down by unit for easy display
          */
         FellowResidentsService.prototype.getByUnits = function () {
-            var innerThis = this;
+            var _this = this;
             return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.byUnit;
             }, function (httpResponse) {
-                return innerThis.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
@@ -15670,7 +15687,6 @@ var Ally;
          */
         FellowResidentsService.prototype.getByUnitsAndResidents = function () {
             var _this = this;
-            var innerThis = this;
             return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
@@ -15678,7 +15694,7 @@ var Ally;
             });
         };
         /**
-         * Get the object describing the available group e-mail addresses
+         * Get the object describing the available group email addresses
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
@@ -15695,14 +15711,14 @@ var Ally;
             //} );
         };
         /**
-         * Get the object describing the available group e-mail addresses
+         * Get the object describing the available group email addresses
          */
         FellowResidentsService.prototype.getAllGroupEmails = function () {
-            var innerThis = this;
+            var _this = this;
             return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
             //var innerThis = this;
             //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
@@ -15713,7 +15729,7 @@ var Ally;
             //} );
         };
         /**
-         * Populate the lists of group e-mails
+         * Populate the lists of group emails
          */
         FellowResidentsService.prototype._setupGroupEmailObject = function (allResidents, unitList) {
             var emailLists = {};
@@ -15728,7 +15744,7 @@ var Ally;
                 propertyManagers: [],
                 discussion: []
             };
-            // Go through each resident and add them to each e-mail group they belong to
+            // Go through each resident and add them to each email group they belong to
             for (var i = 0; i < allResidents.length; ++i) {
                 var r = allResidents[i];
                 var displayName = r.fullName + (r.hasEmail ? "" : "*");
@@ -15742,7 +15758,7 @@ var Ally;
                 var isOwner = false;
                 var isRenter = false;
                 var unitIsRented = false;
-                for (var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
+                var _loop_1 = function (unitIndex) {
                     var simpleHome = r.homes[unitIndex];
                     if (!simpleHome.isRenter) {
                         isOwner = true;
@@ -15751,6 +15767,9 @@ var Ally;
                     }
                     if (simpleHome.isRenter)
                         isRenter = true;
+                };
+                for (var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
+                    _loop_1(unitIndex);
                 }
                 if (isOwner) {
                     emailLists.owners.push(displayName);
@@ -15775,7 +15794,7 @@ var Ally;
             return emailLists;
         };
         /**
-         * Send an e-mail message to another user
+         * Send an email message to another user
          */
         FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
             var postData = {
@@ -15831,7 +15850,7 @@ var Ally;
                 chartData: [],
                 chartLabels: []
             };
-            var _loop_1 = function (curAnswer) {
+            var _loop_2 = function (curAnswer) {
                 var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === curAnswer.answerId; });
                 if (answer) {
                     results.chartLabels.push(answer.answerText);
@@ -15841,7 +15860,7 @@ var Ally;
             // Go through each answer and store the name and count for that answer
             for (var _i = 0, talliedVotes_1 = talliedVotes; _i < talliedVotes_1.length; _i++) {
                 var curAnswer = talliedVotes_1[_i];
-                _loop_1(curAnswer);
+                _loop_2(curAnswer);
             }
             if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
                 results.chartLabels.push("No Response");
@@ -16564,7 +16583,7 @@ var Ally;
             if (!this.canCreateThreads) {
                 if (this.committeeId) {
                     // Make sure committee members can manage their data
-                    this.fellowResidents.isCommitteeMember(this.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
+                    this.fellowResidents.isCommitteeMember(this.committeeId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
                 }
                 else {
                     if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
@@ -17930,7 +17949,7 @@ var Ally;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         };
         /**
          * Retrieve a todo list by ID
@@ -17982,7 +18001,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var postUri = "/api/Todo/newItem/" + todoListId + "?description=" + encodeURIComponent(this.newItemDescription);
-            this.$http.post(postUri, null).then(function (response) {
+            this.$http.post(postUri, null).then(function () {
                 _this.isLoading = false;
                 _this.newItemDescription = "";
                 _this.loadAllTodoLists();
@@ -18009,7 +18028,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var postUri = "/api/Todo/Item";
-            this.$http.post(postUri, this.editTodoItem).then(function (response) {
+            this.$http.post(postUri, this.editTodoItem).then(function () {
                 _this.isLoading = false;
                 _this.newItemDescription = "";
                 _this.editTodoItem = null;
@@ -18025,7 +18044,7 @@ var Ally;
         TodoListCtrl.prototype.onToggleComplete = function (todoListId, todoItemId) {
             var _this = this;
             this.isLoading = true;
-            this.$http.put("/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null).then(function (response) {
+            this.$http.put("/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
             }, function (response) {
@@ -18039,7 +18058,7 @@ var Ally;
         TodoListCtrl.prototype.deleteTodoItem = function (curItem) {
             var _this = this;
             this.isLoading = true;
-            this.$http.delete("/api/Todo/Item/" + curItem.todoItemId).then(function (response) {
+            this.$http.delete("/api/Todo/Item/" + curItem.todoItemId).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
             }, function (response) {
@@ -18057,7 +18076,7 @@ var Ally;
                     return;
             }
             this.isLoading = true;
-            this.$http.delete("/api/Todo/List/" + curList.todoListId).then(function (response) {
+            this.$http.delete("/api/Todo/List/" + curList.todoListId).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
             }, function (response) {

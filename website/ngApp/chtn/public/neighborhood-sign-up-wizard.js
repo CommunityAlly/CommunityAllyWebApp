@@ -39,13 +39,12 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         NeighborhoodSignUpWizardController.prototype.$onInit = function () {
-            var innerThis = this;
-            var innerThis = this;
+            var _this = this;
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 1)
-                    innerThis.$timeout(function () { return innerThis.showMap = true; }, 50);
+                    _this.$timeout(function () { return _this.showMap = true; }, 50);
                 else
-                    innerThis.showMap = false;
+                    _this.showMap = false;
             });
             setTimeout(function () {
                 var addressInput = document.getElementById("signUpAddress");
@@ -57,14 +56,14 @@ var Ally;
          * Submit the
          */
         NeighborhoodSignUpWizardController.prototype.onSubmitTempInfo = function () {
+            var _this = this;
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/SignUpWizard/TempNeighborhood", this.tempSignUpInfo).then(function () {
-                innerThis.isLoading = false;
-                innerThis.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
+                _this.isLoading = false;
+                _this.submitTempResult = "Thank you for your submission. We'll be in touch shortly.";
             }, function (response) {
-                innerThis.isLoading = false;
-                innerThis.submitTempResult = "Submission failed: " + response.data.exceptionMessage + ". Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.";
+                _this.isLoading = false;
+                _this.submitTempResult = "Submission failed: " + response.data.exceptionMessage + ". Feel free to refresh the page to try again or use the contact form at the bottom of the Community Ally home page.";
             });
         };
         /**
@@ -86,6 +85,7 @@ var Ally;
          * Perform initialization to create the map and hook up address autocomplete
          */
         NeighborhoodSignUpWizardController.prototype.initMapStep = function () {
+            var _this = this;
             if (typeof (window.analytics) !== "undefined")
                 window.analytics.track("condoSignUpStarted");
             this.showMap = true;
@@ -102,24 +102,23 @@ var Ally;
             });
             // Occurs when the user selects a Google suggested address
             if (this.addressAutocomplete) {
-                var innerThis = this;
-                var onPlaceChanged = function () {
-                    innerThis.setPlaceWasSelected();
+                var onPlaceChanged_1 = function () {
+                    _this.setPlaceWasSelected();
                     //infowindow.close();
-                    innerThis.mapMarker.setVisible(false);
-                    var place = innerThis.addressAutocomplete.getPlace();
+                    _this.mapMarker.setVisible(false);
+                    var place = _this.addressAutocomplete.getPlace();
                     var readableAddress = place.formatted_address;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    _this.signUpInfo.streetAddress = readableAddress;
                     if (!place.geometry)
                         return;
-                    innerThis.setEditPolyForAddress(place.geometry.location);
-                    innerThis.centerMap(place.geometry);
+                    _this.setEditPolyForAddress(place.geometry.location);
+                    _this.centerMap(place.geometry);
                 };
                 this.addressAutocomplete.addListener('place_changed', function () {
-                    innerThis.$scope.$apply(onPlaceChanged);
+                    _this.$scope.$apply(onPlaceChanged_1);
                 });
             }
         };
@@ -140,12 +139,12 @@ var Ally;
          * Occurs when the user selects an address from the Google suggestions
          */
         NeighborhoodSignUpWizardController.prototype.setPlaceWasSelected = function () {
+            var _this = this;
             this.placeWasSelected = true;
             this.shouldCheckAddress = false;
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
             setTimeout(function () {
-                innerThis.placeWasSelected = true;
+                _this.placeWasSelected = true;
             }, 500);
         };
         /**
@@ -167,11 +166,12 @@ var Ally;
          * Refresh the map to center typed in address
          */
         NeighborhoodSignUpWizardController.prototype.refreshMapForAddress = function () {
+            var _this = this;
             this.isLoadingMap = true;
-            var innerThis = this;
             HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
-                innerThis.$scope.$apply(function () {
-                    innerThis.isLoadingMap = false;
+                // Need to run this in $apply since it's invoked outside of Angular's digest cycle
+                _this.$scope.$apply(function () {
+                    _this.isLoadingMap = false;
                     if (status != google.maps.GeocoderStatus.OK) {
                         //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
                         return;
@@ -180,11 +180,11 @@ var Ally;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    _this.signUpInfo.streetAddress = readableAddress;
                     if (!results[0].geometry)
                         return;
-                    innerThis.setEditPolyForAddress(results[0].geometry.location);
-                    innerThis.centerMap(results[0].geometry);
+                    _this.setEditPolyForAddress(results[0].geometry.location);
+                    _this.centerMap(results[0].geometry);
                 });
             });
         };
@@ -192,16 +192,16 @@ var Ally;
          * Called when the user press the button to complete the sign-up process
          */
         NeighborhoodSignUpWizardController.prototype.onFinishedWizard = function () {
+            var _this = this;
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
-            var innerThis = this;
             this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var signUpResult = httpResponse.data;
                 // If the was an error creating the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
-                    innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    _this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
                 // Otherwise create succeeded
                 else {
@@ -214,14 +214,14 @@ var Ally;
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         window.location.href = signUpResult.createUrl;
                     }
-                    // Otherwise the user needs to confirm sign-up via e-mail
+                    // Otherwise the user needs to confirm sign-up via email
                     else {
-                        innerThis.hideWizard = true;
-                        innerThis.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                        _this.hideWizard = true;
+                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
             }, function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
             });
         };

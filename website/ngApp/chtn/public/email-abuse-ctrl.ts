@@ -11,7 +11,7 @@ namespace Ally
 
 
     /**
-     * The controller for a page that lets a user complain about group e-mail utilization
+     * The controller for a page that lets a user complain about group email utilization
      */
     export class EmailAbuseController implements ng.IController
     {
@@ -52,9 +52,9 @@ namespace Ally
             }
 
             // It's double encoded to prevent angular trouble, so double decode
-            var idVal = decodeURIComponent( this.$routeParams.idValue );
+            const idVal = decodeURIComponent( this.$routeParams.idValue );
 
-            var postData = {
+            const postData = {
                 abuseReason: abuseReason,
                 idVal: idVal,
                 otherReasonText: this.otherReasonText
@@ -62,11 +62,10 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
             this.$http.post( "/api/EmailAbuse/v3", postData ).then(() =>
             {
-                innerThis.isLoading = false;
-                innerThis.showButtons = false;
+                this.isLoading = false;
+                this.showButtons = false;
             });
         }
     }

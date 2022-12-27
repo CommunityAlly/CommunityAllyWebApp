@@ -1,7 +1,7 @@
 ﻿namespace Ally
 {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members see work todo
      */
     export class MaintenanceWidgetController implements ng.IController
     {

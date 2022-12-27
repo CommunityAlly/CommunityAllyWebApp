@@ -40,7 +40,7 @@ var Ally;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             // Make sure committee members can manage their data
             if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         };
         /**
          * Retrieve a todo list by ID
@@ -92,7 +92,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var postUri = "/api/Todo/newItem/" + todoListId + "?description=" + encodeURIComponent(this.newItemDescription);
-            this.$http.post(postUri, null).then(function (response) {
+            this.$http.post(postUri, null).then(function () {
                 _this.isLoading = false;
                 _this.newItemDescription = "";
                 _this.loadAllTodoLists();
@@ -119,7 +119,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var postUri = "/api/Todo/Item";
-            this.$http.post(postUri, this.editTodoItem).then(function (response) {
+            this.$http.post(postUri, this.editTodoItem).then(function () {
                 _this.isLoading = false;
                 _this.newItemDescription = "";
                 _this.editTodoItem = null;
@@ -135,7 +135,7 @@ var Ally;
         TodoListCtrl.prototype.onToggleComplete = function (todoListId, todoItemId) {
             var _this = this;
             this.isLoading = true;
-            this.$http.put("/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null).then(function (response) {
+            this.$http.put("/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
             }, function (response) {
@@ -149,7 +149,7 @@ var Ally;
         TodoListCtrl.prototype.deleteTodoItem = function (curItem) {
             var _this = this;
             this.isLoading = true;
-            this.$http.delete("/api/Todo/Item/" + curItem.todoItemId).then(function (response) {
+            this.$http.delete("/api/Todo/Item/" + curItem.todoItemId).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
             }, function (response) {
@@ -167,7 +167,7 @@ var Ally;
                     return;
             }
             this.isLoading = true;
-            this.$http.delete("/api/Todo/List/" + curList.todoListId).then(function (response) {
+            this.$http.delete("/api/Todo/List/" + curList.todoListId).then(function () {
                 _this.isLoading = false;
                 _this.loadAllTodoLists();
             }, function (response) {

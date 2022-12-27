@@ -148,7 +148,7 @@ var Ally;
                     _this.profileInfo.avatarUrl = null;
                 _this.profileImageType = _this.initialProfileImageType;
                 _this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((_this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
-                // Don't show empty e-mail address
+                // Don't show empty email address
                 if (HtmlUtil.endsWith(_this.profileInfo.email, "@condoally.com"))
                     _this.profileInfo.email = "";
                 _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;

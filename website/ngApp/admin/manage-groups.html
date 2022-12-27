@@ -2,7 +2,7 @@
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <div style="border:1px solid #000;">
-        Find associations for user by e-mail: <input data-ng-model="$ctrl.findUserAssociationsEmail" data-ng-enter="$ctrl.findAssociationsForUser()" type="text" /><button data-ng-click="$ctrl.findAssociationsForUser()">Find</button>
+        Find associations for user by email: <input data-ng-model="$ctrl.findUserAssociationsEmail" data-ng-enter="$ctrl.findAssociationsForUser()" type="text" /><button data-ng-click="$ctrl.findAssociationsForUser()">Find</button>
         <div>
             <p data-ng-repeat="group in $ctrl.foundUserAssociations">
                 <a data-ng-href="{{ group.viewUrl }}">{{ group.shortName }} ({{ group.appName }})</a> (Group ID: {{group.groupId}})
@@ -184,11 +184,11 @@
     <div style="position: relative;">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingHelper"></div>
 
-        <input type="text" data-ng-model="$ctrl.testEmailRecipient"><input type="button" value="Send Test E-mail" data-ng-click="$ctrl.onSendTestEmail()"><label><input type="checkbox" data-ng-model="$ctrl.sendTestFromInmail" />Send from inmail.</label><br />
-        <input type="text" data-ng-model="$ctrl.testTaylorEmailRecipient"><input type="button" value="Send Test E-mail from Taylor at CA" data-ng-click="$ctrl.onSendTaylorTestEmail()"><br />
+        <input type="text" data-ng-model="$ctrl.testEmailRecipient"><input type="button" value="Send Test Email" data-ng-click="$ctrl.onSendTestEmail()"><label><input type="checkbox" data-ng-model="$ctrl.sendTestFromInmail" />Send from inmail.</label><br />
+        <input type="text" data-ng-model="$ctrl.testTaylorEmailRecipient"><input type="button" value="Send Test Email from Taylor at CA" data-ng-click="$ctrl.onSendTaylorTestEmail()"><br />
         <input type="button" value="Send Taylor Bulk Email" data-ng-click="$ctrl.onSendTaylorBulkUpdateEmail()"><br />
-        <input type="text" data-ng-model="$ctrl.testPostmarkEmail"><input type="button" value="Send Test Postmark E-mail" data-ng-click="$ctrl.onSendTestPostmarkEmail()"><br />
-        <input type="button" value="Send Test Calendar E-mail" data-ng-click="$ctrl.onSendTestCalendarEmail()">
+        <input type="text" data-ng-model="$ctrl.testPostmarkEmail"><input type="button" value="Send Test Postmark Email" data-ng-click="$ctrl.onSendTestPostmarkEmail()"><br />
+        <input type="button" value="Send Test Calendar Email" data-ng-click="$ctrl.onSendTestCalendarEmail()">
         <br />
         <div>
             <input type="text" data-ng-model="$ctrl.deactivateGroupIdsCsv" data-ng-enter="$ctrl.onDeactivateGroup()" autocomplete="off" data-lpignore="true" data-form-type="other">
@@ -217,7 +217,7 @@
                     </tr>
                 </tbody>
             </table>
-            <button type="button" data-ng-click="$ctrl.onSendNoReplyEmail()">Send No Reply E-mail</button>
+            <button type="button" data-ng-click="$ctrl.onSendNoReplyEmail()">Send No Reply Email</button>
         </fieldset>
         <input type="button" value="Test Exception" data-ng-click="$ctrl.onTestException()"><br />
         <!--<input type="button" value="Clear ELMAH Logs" data-ng-click="$ctrl.onClearElmahLogs()"><br />-->

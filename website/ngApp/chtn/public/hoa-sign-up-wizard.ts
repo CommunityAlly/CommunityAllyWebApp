@@ -330,12 +330,12 @@ namespace Ally
                             // Delay just a bit to let the Capterra tracking log, if needed
                             window.setTimeout( () => window.location.href = signUpResult.createUrl, 50 );
                         }
-                        // Otherwise the user needs to confirm sign-up via e-mail
+                        // Otherwise the user needs to confirm sign-up via email
                         else
                         {
                             this.hideWizard = true;
 
-                            this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                            this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                         }
                     }
                 },
@@ -350,13 +350,13 @@ namespace Ally
 
 
         /**
-         * Called when the user press the button to submit their e-mail address
+         * Called when the user press the button to submit their email address
          */
         submitEmailForHoaNotify()
         {
             if( HtmlUtil.isNullOrWhitespace( this.hoaAlertEmail ) )
             {
-                alert( "Please enter a valid e-mail address" );
+                alert( "Please enter a valid email address" );
                 return;
             }
 

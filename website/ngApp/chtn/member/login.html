@@ -12,7 +12,7 @@
                 association's website. We use the same technology that banks use to secure their log-in information
                 This also means that search engines cannot reach your data and it will never show up in search results.
                 For the sake of the demonstration site, you can simply log-in by clicking the button below. Usually an
-                e-mail address and password is required.
+                email address and password is required.
             </p>
             <br />
             <button data-ng-click="$ctrl.demoLogin()">Log In</button>
@@ -33,7 +33,7 @@
                 <form data-ng-if="!$ctrl.isDemoSite" style="max-width: 500px; margin: 0 auto;" data-ng-submit="$ctrl.onLogin()">
 
                     <div class="form-group text-left">
-                        <label for="login-email-textbox">E-mail Address:</label>
+                        <label for="login-email-textbox">Email Address:</label>
                         <input type="email" class="form-control" id="login-email-textbox" placeholder="Enter email" data-ng-model="$ctrl.loginInfo.emailAddress" autocomplete="username" data-rule-required="true">
                     </div>
 

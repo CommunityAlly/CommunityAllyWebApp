@@ -62,123 +62,128 @@ namespace Ally
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
 
-            this.fellowResidents.getByUnitsAndResidents().then( ( data: FellowResidents ) =>
-            {
-                this.isLoading = false;
-                this.unitList = data.byUnit;
-                this.allResidents = data.residents;
-                this.committees = data.committees;
-
-                if( !this.allResidents && data.ptaMembers )
-                    this.allResidents = <FellowChtnResident[]>data.ptaMembers;
-
-                // Sort by last name for member lists, first name otherwise
-                if( this.showMemberList )
-                    this.allResidents = _.sortBy( this.allResidents, r => ( r.lastName || "" ).toLowerCase() );
-                else
-                    this.allResidents = _.sortBy( this.allResidents, r => ( r.fullName || "" ).toLowerCase() );
-
-                this.boardMembers = _.filter( this.allResidents, ( r: FellowChtnResident ) => r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager );
-                this.boardPropMgrs = _.filter( this.allResidents, ( r: FellowChtnResident ) => r.boardPosition === FellowResidentsService.BoardPos_PropertyManager );
-
-                this.boardMessageRecipient = null;
-                if( this.boardMembers.length > 0 )
+            this.fellowResidents.getByUnitsAndResidents().then(
+                ( data: FellowResidents ) =>
                 {
-                    var hasBoardEmail = _.some( this.boardMembers, function( m ) { return m.hasEmail; } );
+                    this.isLoading = false;
+                    this.unitList = data.byUnit;
+                    this.allResidents = data.residents;
+                    this.committees = data.committees;
 
-                    if( hasBoardEmail )
+                    if( !this.allResidents && data.ptaMembers )
+                        this.allResidents = <FellowChtnResident[]>data.ptaMembers;
+
+                    // Sort by last name for member lists, first name otherwise
+                    if( this.showMemberList )
+                        this.allResidents = _.sortBy( this.allResidents, r => ( r.lastName || "" ).toLowerCase() );
+                    else
+                        this.allResidents = _.sortBy( this.allResidents, r => ( r.fullName || "" ).toLowerCase() );
+
+                    this.boardMembers = _.filter( this.allResidents, ( r: FellowChtnResident ) => r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager );
+                    this.boardPropMgrs = _.filter( this.allResidents, ( r: FellowChtnResident ) => r.boardPosition === FellowResidentsService.BoardPos_PropertyManager );
+
+                    this.boardMessageRecipient = null;
+                    if( this.boardMembers.length > 0 )
                     {
-                        this.boardMessageRecipient = {
-                            fullName: "Entire Board",
-                            firstName: "everyone on the board",
-                            hasEmail: true,
-                            userId: GroupMembersController.AllBoardUserId
-                        };
+                        const hasBoardEmail = _.some( this.boardMembers, function( m ) { return m.hasEmail; } );
+
+                        if( hasBoardEmail )
+                        {
+                            this.boardMessageRecipient = {
+                                fullName: "Entire Board",
+                                firstName: "everyone on the board",
+                                hasEmail: true,
+                                userId: GroupMembersController.AllBoardUserId
+                            };
+                        }
                     }
-                }
-                // Remove board members from the member list
-                if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
-                    this.allResidents = _.filter( this.allResidents, function( r ) { return r.boardPosition === 0; } );
-                
-                for( let i = 0; i < this.boardMembers.length; ++i )
-                    this.boardMembers[i].boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === this.boardMembers[i].boardPosition ).name;
+                    // Remove board members from the member list
+                    if( AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" )
+                        this.allResidents = _.filter( this.allResidents, function( r ) { return r.boardPosition === 0; } );
 
-                this.boardPropMgrs.forEach( bpm => bpm.boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === bpm.boardPosition ).name );
+                    for( let i = 0; i < this.boardMembers.length; ++i )
+                        this.boardMembers[i].boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === this.boardMembers[i].boardPosition ).name;
 
-                var boardSortOrder = [
-                    1,
-                    64,
-                    16,
-                    2,
-                    4,
-                    8,
-                    32
-                ];
+                    this.boardPropMgrs.forEach( bpm => bpm.boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === bpm.boardPosition ).name );
 
-                this.boardMembers = _.sortBy( this.boardMembers, function( bm )
-                {
-                    var sortIndex = _.indexOf( boardSortOrder, bm.boardPosition );
-                    if( sortIndex === -1 )
-                        sortIndex = 100;
+                    const boardSortOrder = [
+                        1,
+                        64,
+                        16,
+                        2,
+                        4,
+                        8,
+                        32
+                    ];
 
-                    return sortIndex;
-                } );
+                    this.boardMembers = _.sortBy( this.boardMembers, function( bm )
+                    {
+                        let sortIndex = _.indexOf( boardSortOrder, bm.boardPosition );
+                        if( sortIndex === -1 )
+                            sortIndex = 100;
 
-                var getEmails = function( memo: any[], unit: any )
-                {
-                    Array.prototype.push.apply( memo, unit.owners );
-                    return memo;
-                };
+                        return sortIndex;
+                    } );
 
-                this.allOwners = _.reduce( this.unitList, getEmails, [] );
+                    const getEmails = function( memo: any[], unit: any )
+                    {
+                        Array.prototype.push.apply( memo, unit.owners );
+                        return memo;
+                    };
 
-                this.allOwners = _.map( _.groupBy( this.allOwners, function( resident )
-                {
-                    return resident.email;
-                } ), function( grouped )
+                    this.allOwners = _.reduce( this.unitList, getEmails, [] );
+
+                    this.allOwners = _.map( _.groupBy( this.allOwners, function( resident )
+                    {
+                        return resident.email;
+                    } ), function( grouped )
                     {
                         return grouped[0];
                     } );
 
-                // Remove duplicates
-                this.allOwnerEmails = _.reduce( this.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
+                    // Remove duplicates
+                    this.allOwnerEmails = _.reduce( this.allOwners, function( memo: any[], owner: any ) { if( HtmlUtil.isValidString( owner.email ) ) { memo.push( owner.email ); } return memo; }, [] );
 
-                if( this.unitList && this.unitList.length > 0 )
-                    this.unitList = HtmlUtil2.smartSortStreetAddresses( this.unitList, "name" );
-                
-                if( this.committees )
-                {
-                    // Only show committees with a contact person
-                    //TWC - 10/19/18 - Show committees even without a contact person
-                    //this.committees = _.reject( this.committees, c => !c.contactUser );
+                    if( this.unitList && this.unitList.length > 0 )
+                        this.unitList = HtmlUtil2.smartSortStreetAddresses( this.unitList, "name" );
 
-                    this.committees = _.sortBy( this.committees, c => c.committeeName.toLowerCase() );
-                }
-
-                // If we should scroll to a specific home
-                let scrollToUnitId = this.appCacheService.getAndClear("scrollToUnitId");
-                if( scrollToUnitId )
-                {
-                    var scrollToElemId = "unit-id-" + scrollToUnitId;
-                    setTimeout( () =>
+                    if( this.committees )
                     {
-                        document.getElementById( scrollToElemId ).scrollIntoView();
-                        $( "#" + scrollToElemId ).effect( "pulsate", { times: 3 }, 2000 );
-                    }, 300 );
-                }
+                        // Only show committees with a contact person
+                        //TWC - 10/19/18 - Show committees even without a contact person
+                        //this.committees = _.reject( this.committees, c => !c.contactUser );
 
-                // Populate the e-mail name lists, delayed to help the page render faster
-                setTimeout( () => this.loadGroupEmails(), 500 );
-            }, ( httpErrorResponse ) =>
-            {
-                alert( "Failed to retrieve group members. Please let tech support know via the contact form in the bottom right." );
-            } );
+                        this.committees = _.sortBy( this.committees, c => c.committeeName.toLowerCase() );
+                    }
+
+                    // If we should scroll to a specific home
+                    const scrollToUnitId = this.appCacheService.getAndClear( "scrollToUnitId" );
+                    if( scrollToUnitId )
+                    {
+                        const scrollToElemId = "unit-id-" + scrollToUnitId;
+                        setTimeout( () =>
+                        {
+                            document.getElementById( scrollToElemId ).scrollIntoView();
+                            $( "#" + scrollToElemId ).effect( "pulsate", { times: 3 }, 2000 );
+                        }, 300 );
+                    }
+
+                    // Populate the email name lists, delayed to help the page render faster
+                    setTimeout( () => this.loadGroupEmails(), 500 );
+                },
+                ( httpErrorResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    alert( "Failed to retrieve group members. Please let tech support know via the contact form in the bottom right." );
+                    console.log( "Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
         updateMemberFilter()
         {
-            var lowerFilter = ( this.memberSearchTerm || '').toLowerCase();
+            //TODO
+            const lowerFilter = ( this.memberSearchTerm || '').toLowerCase();
             const filterSearchFiles = ( unitListing: UnitListing ) =>
             {
                 if( ( unitListing.name || '' ).toLowerCase().indexOf( lowerFilter ) !== -1 )
@@ -209,7 +214,7 @@ namespace Ally
                     // Populate custom group email names
                     if( this.customEmailList )
                     {
-                        for( let curGroupEmail of this.customEmailList )
+                        for( const curGroupEmail of this.customEmailList )
                             curGroupEmail.usersFullNames = curGroupEmail.members.map( e => this.allResidents.find( r => r.userId === e.userId ).fullName );
                     }
 

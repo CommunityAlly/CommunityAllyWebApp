@@ -1,7 +1,7 @@
 ﻿namespace Ally
 {
     /**
-     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     * Represents a group email address to which emails sent get forwarded to the whole group
      */
     export class GroupEmailInfo
     {
@@ -164,18 +164,20 @@
 
 
         /**
-         * Determine if a user is a committee member
+         * Determine if the logged-in user is a committee member
          */
-        isCommitteeMember( committeeId: number, userId: string )
+        isCommitteeMember( committeeId: number )
         {
-            return this.$http.get( `/api/Committee/${committeeId}/IsMember`, { cache: this.httpCache } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) =>
-            {
-                return httpResponse.data;
-
-            }, function ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                return this.$q.reject( httpResponse );
-            } );
+            return this.$http.get( `/api/Committee/${committeeId}/IsMember`, { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) =>
+                {
+                    return httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
         }
 
 
@@ -184,15 +186,17 @@
          */
         getByUnits(): ng.IPromise<UnitListing[]>
         {
-            var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
-            {
-                return httpResponse.data.byUnit;
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
+                {
+                    return httpResponse.data.byUnit;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                return innerThis.$q.reject( httpResponse );
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
         }
 
 
@@ -201,20 +205,22 @@
          */
         getByUnitsAndResidents(): ng.IPromise<FellowResidents>
         {
-            var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
-            {
-                return httpResponse.data;
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
+                {
+                    return httpResponse.data;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                return this.$q.reject( httpResponse );
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
         }
 
 
         /**
-         * Get the object describing the available group e-mail addresses
+         * Get the object describing the available group email addresses
          */
         getGroupEmailObject(): ng.IPromise<GroupEmailInfo[]>
         {
@@ -239,19 +245,21 @@
 
 
         /**
-         * Get the object describing the available group e-mail addresses
+         * Get the object describing the available group email addresses
          */
         getAllGroupEmails(): ng.IPromise<GroupEmailGroups>
         {
-            var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache } ).then( function ( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailGroups> )
-            {
-                return httpResponse.data;
+            return this.$http.get( "/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailGroups> ) =>
+                {
+                    return httpResponse.data;
 
-            }, function ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                return this.$q.reject( httpResponse );
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
 
             //var innerThis = this;
             //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
@@ -265,11 +273,11 @@
 
 
         /**
-         * Populate the lists of group e-mails
+         * Populate the lists of group emails
          */
         _setupGroupEmailObject( allResidents: any[], unitList: any[] )
         {
-            var emailLists: any = {};
+            let emailLists: any = {};
 
             emailLists = {
                     everyone: [],
@@ -283,12 +291,12 @@
                     discussion: []
                 };
             
-            // Go through each resident and add them to each e-mail group they belong to
-            for( var i = 0; i < allResidents.length; ++i )
+            // Go through each resident and add them to each email group they belong to
+            for( let i = 0; i < allResidents.length; ++i )
             {
-                var r = allResidents[i];
+                const r = allResidents[i];
 
-                var displayName = r.fullName + ( r.hasEmail ? "" : "*" );
+                const displayName = r.fullName + ( r.hasEmail ? "" : "*" );
 
                 emailLists.everyone.push( displayName );
                 
@@ -301,18 +309,18 @@
                 if( r.includeInDiscussionEmail )
                     emailLists.discussion.push( displayName );
 
-                var isOwner = false;
-                var isRenter = false;
-                var unitIsRented = false;
+                let isOwner = false;
+                let isRenter = false;
+                let unitIsRented = false;
 
-                for( var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex )
+                for( let unitIndex = 0; unitIndex < r.homes.length; ++unitIndex )
                 {
-                    var simpleHome = r.homes[unitIndex];
+                    const simpleHome = r.homes[unitIndex];
 
                     if( !simpleHome.isRenter )
                     {
                         isOwner = true;
-                        var unit = _.find( unitList, function( u ) { return u.unitId === simpleHome.unitId } );
+                        const unit = _.find( unitList, function( u ) { return u.unitId === simpleHome.unitId } );
 
                         unitIsRented = unit.renters.length > 0;
                     }
@@ -354,7 +362,7 @@
 
 
         /**
-         * Send an e-mail message to another user
+         * Send an email message to another user
          */
         sendMessage( recipientUserId: string, messageBody: string, messageSubject: string, shouldSendAsBoard: boolean )
         {

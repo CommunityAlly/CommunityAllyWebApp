@@ -1,7 +1,7 @@
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     var HomeUsersController = /** @class */ (function () {
         /**
@@ -18,6 +18,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         HomeUsersController.prototype.$onInit = function () {
+            // Placeholder
         };
         HomeUsersController.$inject = ["$http", "$rootScope", "SiteInfo"];
         return HomeUsersController;

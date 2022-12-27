@@ -71,7 +71,7 @@ var Ally;
                         },
                         {
                             field: "numEmailsSent",
-                            displayName: "# E-mails",
+                            displayName: "# Emails",
                             type: "number",
                             width: 100
                         },

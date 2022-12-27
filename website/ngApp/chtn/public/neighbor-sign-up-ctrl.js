@@ -42,23 +42,23 @@ var Ally;
             }, 750);
         };
         /**
-         * Occurs when the user clicks the button to submit their e-mail address
+         * Occurs when the user clicks the button to submit their email address
          */
         NeighborSignUpController.prototype.onSubmitInfo = function () {
+            var _this = this;
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.emailAddress)) {
-                alert("Please enter an e-mail address");
+                alert("Please enter an email address");
                 return;
             }
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/NeighborSignUp/SignUpNewUser", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
-                innerThis.resultIsError = false;
-                innerThis.resultMessage = "Your information has been successfully submitted. Look for a welcome email soon.";
+            this.$http.post("/api/NeighborSignUp/SignUpNewUser", this.signUpInfo).then(function () {
+                _this.isLoading = false;
+                _this.resultIsError = false;
+                _this.resultMessage = "Your information has been successfully submitted. Look for a welcome email soon.";
             }, function () {
-                innerThis.isLoading = false;
-                innerThis.resultIsError = true;
-                innerThis.resultMessage = "There was an error submitting your information. Please try again.";
+                _this.isLoading = false;
+                _this.resultIsError = true;
+                _this.resultMessage = "There was an error submitting your information. Please try again.";
             });
         };
         /**

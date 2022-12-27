@@ -396,12 +396,12 @@ namespace Ally
                         {
                             window.location.href = signUpResult.createUrl;
                         }
-                        // Otherwise the user needs to confirm sign-up via e-mail
+                        // Otherwise the user needs to confirm sign-up via email
                         else
                         {
                             this.hideWizard = true;
 
-                            this.resultMessage = "Great work! We just sent you an e-mail with instructions on how access your new site.";
+                            this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                         }
                     }
 

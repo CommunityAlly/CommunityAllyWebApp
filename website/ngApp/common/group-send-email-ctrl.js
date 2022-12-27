@@ -12,7 +12,7 @@ var Ally;
         return HomeEmailMessage;
     }());
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     var GroupSendEmailController = /** @class */ (function () {
         /**
@@ -64,7 +64,7 @@ var Ally;
             this.messageObject.subject = this.defaultSubject;
         };
         /**
-         * Populate the group e-mail options
+         * Populate the group email options
          */
         GroupSendEmailController.prototype.loadGroupEmails = function () {
             var _this = this;
@@ -80,7 +80,7 @@ var Ally;
             });
         };
         /**
-         * Setup an e-mail to be sent to the board for assessment issues
+         * Setup an email to be sent to the board for assessment issues
          */
         GroupSendEmailController.prototype.prepBadAssessmentEmailForBoard = function (emitEventData) {
             var emitDataParts = emitEventData.split("|");
@@ -98,7 +98,7 @@ var Ally;
             document.getElementById("send-email-panel").scrollIntoView();
         };
         /**
-         * Occurs when the user presses the button to send an e-mail to members of the building
+         * Occurs when the user presses the button to send an email to members of the building
          */
         GroupSendEmailController.prototype.onSendEmail = function () {
             var _this = this;
@@ -130,11 +130,11 @@ var Ally;
                     _this.showEmailForbidden = true;
                 }
                 else
-                    alert("Unable to send e-mail: " + httpResponse.data.exceptionMessage);
+                    alert("Unable to send email: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
-         * Occurs when the user selects an e-mail group from the drop-down
+         * Occurs when the user selects an email group from the drop-down
          */
         GroupSendEmailController.prototype.onSelectEmailGroup = function () {
             if (!this.selectedRecipient)

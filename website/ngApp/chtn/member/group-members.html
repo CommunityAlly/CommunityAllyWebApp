@@ -212,7 +212,7 @@
                 <div class="col-sm-10 col-xs-12">
                     <div class="resident-list-box" style="max-height: 250px !important;">
                         <label data-ng-repeat="resident in $ctrl.allResidents" style="display: block">
-                            <input type="checkbox" data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onGroupEmailMemberClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No e-mail on file)" }}
+                            <input type="checkbox" data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onGroupEmailMemberClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No email on file)" }}
                         </label>
                     </div>
                 </div>

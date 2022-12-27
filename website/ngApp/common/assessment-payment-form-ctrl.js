@@ -363,7 +363,7 @@ var Ally;
             });
         };
         /**
-         * Occurs when the user clicks the helper link to prep an e-mail to inquire the board as to
+         * Occurs when the user clicks the helper link to prep an email to inquire the board as to
          * why their records don't line up.
          */
         AssessmentPaymentFormController.prototype.onIncorrectPayDetails = function () {
@@ -371,7 +371,7 @@ var Ally;
             var amountString = this.assessmentAmount.toString();
             if (Math.round(this.assessmentAmount) != this.assessmentAmount)
                 amountString = this.assessmentAmount.toFixed(2);
-            // Tell the groupSendEmail component to prep an e-mail for the board
+            // Tell the groupSendEmail component to prep an email for the board
             var prepEventData = amountString;
             if (this.knowsNextPayment && HtmlUtil.isValidString(this.nextPaymentText))
                 prepEventData += "|" + this.nextPaymentText;

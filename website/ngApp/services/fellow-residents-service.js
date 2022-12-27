@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 var Ally;
 (function (Ally) {
     /**
-     * Represents a group e-mail address to which e-mails sent get forwarded to the whole group
+     * Represents a group email address to which emails sent get forwarded to the whole group
      */
     var GroupEmailInfo = /** @class */ (function () {
         function GroupEmailInfo() {
@@ -106,24 +106,25 @@ var Ally;
             });
         };
         /**
-         * Determine if a user is a committee member
+         * Determine if the logged-in user is a committee member
          */
-        FellowResidentsService.prototype.isCommitteeMember = function (committeeId, userId) {
+        FellowResidentsService.prototype.isCommitteeMember = function (committeeId) {
+            var _this = this;
             return this.$http.get("/api/Committee/" + committeeId + "/IsMember", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
          * Get the residents for an association, broken down by unit for easy display
          */
         FellowResidentsService.prototype.getByUnits = function () {
-            var innerThis = this;
+            var _this = this;
             return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.byUnit;
             }, function (httpResponse) {
-                return innerThis.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
@@ -131,7 +132,6 @@ var Ally;
          */
         FellowResidentsService.prototype.getByUnitsAndResidents = function () {
             var _this = this;
-            var innerThis = this;
             return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
@@ -139,7 +139,7 @@ var Ally;
             });
         };
         /**
-         * Get the object describing the available group e-mail addresses
+         * Get the object describing the available group email addresses
          */
         FellowResidentsService.prototype.getGroupEmailObject = function () {
             return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
@@ -156,14 +156,14 @@ var Ally;
             //} );
         };
         /**
-         * Get the object describing the available group e-mail addresses
+         * Get the object describing the available group email addresses
          */
         FellowResidentsService.prototype.getAllGroupEmails = function () {
-            var innerThis = this;
+            var _this = this;
             return this.$http.get("/api/BuildingResidents/AllEmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data;
             }, function (httpResponse) {
-                return this.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
             //var innerThis = this;
             //return this.getByUnitsAndResidents().then( function( unitsAndResidents )
@@ -174,7 +174,7 @@ var Ally;
             //} );
         };
         /**
-         * Populate the lists of group e-mails
+         * Populate the lists of group emails
          */
         FellowResidentsService.prototype._setupGroupEmailObject = function (allResidents, unitList) {
             var emailLists = {};
@@ -189,7 +189,7 @@ var Ally;
                 propertyManagers: [],
                 discussion: []
             };
-            // Go through each resident and add them to each e-mail group they belong to
+            // Go through each resident and add them to each email group they belong to
             for (var i = 0; i < allResidents.length; ++i) {
                 var r = allResidents[i];
                 var displayName = r.fullName + (r.hasEmail ? "" : "*");
@@ -203,7 +203,7 @@ var Ally;
                 var isOwner = false;
                 var isRenter = false;
                 var unitIsRented = false;
-                for (var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
+                var _loop_1 = function (unitIndex) {
                     var simpleHome = r.homes[unitIndex];
                     if (!simpleHome.isRenter) {
                         isOwner = true;
@@ -212,6 +212,9 @@ var Ally;
                     }
                     if (simpleHome.isRenter)
                         isRenter = true;
+                };
+                for (var unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
+                    _loop_1(unitIndex);
                 }
                 if (isOwner) {
                     emailLists.owners.push(displayName);
@@ -236,7 +239,7 @@ var Ally;
             return emailLists;
         };
         /**
-         * Send an e-mail message to another user
+         * Send an email message to another user
          */
         FellowResidentsService.prototype.sendMessage = function (recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
             var postData = {
@@ -292,7 +295,7 @@ var Ally;
                 chartData: [],
                 chartLabels: []
             };
-            var _loop_1 = function (curAnswer) {
+            var _loop_2 = function (curAnswer) {
                 var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === curAnswer.answerId; });
                 if (answer) {
                     results.chartLabels.push(answer.answerText);
@@ -302,7 +305,7 @@ var Ally;
             // Go through each answer and store the name and count for that answer
             for (var _i = 0, talliedVotes_1 = talliedVotes; _i < talliedVotes_1.length; _i++) {
                 var curAnswer = talliedVotes_1[_i];
-                _loop_1(curAnswer);
+                _loop_2(curAnswer);
             }
             if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
                 results.chartLabels.push("No Response");

@@ -19,7 +19,7 @@
 
 
     /**
-     * The controller for the widget that lets members send e-mails to the group
+     * The controller for the widget that lets members send emails to the group
      */
     export class GroupSendEmailController implements ng.IController
     {
@@ -96,7 +96,7 @@
 
 
         /**
-         * Populate the group e-mail options
+         * Populate the group email options
          */
         loadGroupEmails()
         {
@@ -118,12 +118,12 @@
 
 
         /**
-         * Setup an e-mail to be sent to the board for assessment issues
+         * Setup an email to be sent to the board for assessment issues
          */
         prepBadAssessmentEmailForBoard( emitEventData: string )
         {
-            let emitDataParts = emitEventData.split( "|" );
-            let assessmentAmount = emitDataParts[0];
+            const emitDataParts = emitEventData.split( "|" );
+            const assessmentAmount = emitDataParts[0];
 
             let nextPaymentText = null;
             if( emitDataParts.length > 1 )
@@ -144,7 +144,7 @@
 
 
         /**
-         * Occurs when the user presses the button to send an e-mail to members of the building
+         * Occurs when the user presses the button to send an email to members of the building
          */
         onSendEmail()
         {
@@ -191,14 +191,14 @@
                         this.showEmailForbidden = true;
                     }
                     else
-                        alert( "Unable to send e-mail: " + httpResponse.data.exceptionMessage );
+                        alert( "Unable to send email: " + httpResponse.data.exceptionMessage );
                 }
             );
         }
 
 
         /**
-         * Occurs when the user selects an e-mail group from the drop-down
+         * Occurs when the user selects an email group from the drop-down
          */
         onSelectEmailGroup()
         {
@@ -214,7 +214,7 @@
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
 
-            var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf( "owners" ) !== -1;
+            const isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf( "owners" ) !== -1;
 
             if( !this.showDiscussionEveryoneWarning
                 && isSendingToOwners
@@ -223,9 +223,9 @@
             else
                 this.showDiscussionLargeWarning = false;
 
-            var isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf( "discussion" ) !== -1;
-            var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf( "board" ) !== -1;
-            var isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf( "propertymanagers" ) !== -1;
+            const isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf( "discussion" ) !== -1;
+            const isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf( "board" ) !== -1;
+            const isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf( "propertymanagers" ) !== -1;
 
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;

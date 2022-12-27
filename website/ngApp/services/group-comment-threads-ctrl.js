@@ -39,7 +39,7 @@ var Ally;
             if (!this.canCreateThreads) {
                 if (this.committeeId) {
                     // Make sure committee members can manage their data
-                    this.fellowResidents.isCommitteeMember(this.committeeId, this.siteInfo.userInfo.userId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
+                    this.fellowResidents.isCommitteeMember(this.committeeId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
                 }
                 else {
                     if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")

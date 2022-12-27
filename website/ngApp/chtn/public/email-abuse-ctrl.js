@@ -3,7 +3,7 @@
 var Ally;
 (function (Ally) {
     /**
-     * The controller for a page that lets a user complain about group e-mail utilization
+     * The controller for a page that lets a user complain about group email utilization
      */
     var EmailAbuseController = /** @class */ (function () {
         /**
@@ -25,6 +25,7 @@ var Ally;
          * Ask that
          */
         EmailAbuseController.prototype.reportAbuse = function (abuseReason) {
+            var _this = this;
             if (abuseReason === "not-member") {
                 if (!confirm("You should reach out to the board rather than contact technical support. Click 'OK' to still proceed with contacting technical support anyway."))
                     return;
@@ -37,10 +38,9 @@ var Ally;
                 otherReasonText: this.otherReasonText
             };
             this.isLoading = true;
-            var innerThis = this;
             this.$http.post("/api/EmailAbuse/v3", postData).then(function () {
-                innerThis.isLoading = false;
-                innerThis.showButtons = false;
+                _this.isLoading = false;
+                _this.showButtons = false;
             });
         };
         EmailAbuseController.$inject = ["$http", "$routeParams"];

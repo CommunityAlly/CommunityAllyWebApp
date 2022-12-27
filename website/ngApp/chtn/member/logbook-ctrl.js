@@ -294,7 +294,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LogbookController.prototype.onResidentClicked = function (resident) {
             if (!resident.hasEmail) {
-                alert("That user cannot be included because they do not have an e-mail address on file.");
+                alert("That user cannot be included because they do not have an email address on file.");
                 resident.isAssociated = false;
                 return;
             }
@@ -310,7 +310,7 @@ var Ally;
             return momentDate.isBefore(today, 'day') || momentDate.isSame(today, 'day');
         };
         LogbookController.prototype.onShouldSendChange = function () {
-            // Don't allow the user to send remdiner e-mails for past dates
+            // Don't allow the user to send remdiner emails for past dates
             if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent.dateOnly))
                 this.editEvent.shouldSendNotification = false;
             else if (!this.editEvent.notificationEmailDaysBefore)

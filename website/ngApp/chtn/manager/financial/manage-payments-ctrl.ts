@@ -531,7 +531,7 @@ namespace Ally
 
                     needsFullRefresh = true;
 
-                    let message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by e-mail:\n";
+                    let message = "Adjusting the fee payer type will cause the follow units to have their auto-pay canceled and they will be informed by email:\n";
 
                     _.each( usersAffected, ( u: any ) => message += u.ownerName + "\n" );
 

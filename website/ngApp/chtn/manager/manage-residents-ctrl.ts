@@ -42,6 +42,7 @@ namespace Ally
         owners: PayerInfo[];
         displayOwners: any[];
         payments: any[];
+        estBalance: number;
     }
 
     export class HomeEntry
@@ -1275,13 +1276,13 @@ namespace Ally
 
             for( let i = 0; i < bulkRows.length; ++i )
             {
-                let curRow = <string[]>bulkRows[i];
+                const curRow = <string[]>bulkRows[i];
 
                 while( curRow.length < 10 )
                     curRow.push( "" );
 
                 // Skip the header row, if there is one
-                if( curRow[0] === "unit name" && curRow[1] === "e-mail address" && curRow[2] === "first name" )
+                if( curRow[0] === "Address/Unit" && curRow[1] === "Email" && curRow[2] === "First Name" )
                     continue;
 
                 // Clean up the data
@@ -1293,7 +1294,7 @@ namespace Ally
                         curRow[j] = curRow[j].trim();
                 }
 
-                let newRow: ResidentCsvRow = {
+                const newRow: ResidentCsvRow = {
                     unitName: curRow[0] || null,
                     unitId: <number>undefined,
                     email: curRow[1],

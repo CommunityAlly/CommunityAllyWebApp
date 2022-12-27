@@ -38,7 +38,7 @@
             // Hook up address auto-complete, after the page has loaded
             setTimeout(() =>
             {
-                var autocompleteOptions: any = undefined;
+                const autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
 
                 //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
                 //{
@@ -54,7 +54,7 @@
                 //    };
                 //}
 
-                var addressInput = <HTMLInputElement>document.getElementById( "address-text-box" );
+                const addressInput = <HTMLInputElement>document.getElementById( "address-text-box" );
                 new google.maps.places.Autocomplete( addressInput, autocompleteOptions );
 
             }, 750 );
@@ -62,31 +62,33 @@
 
 
         /**
-         * Occurs when the user clicks the button to submit their e-mail address
+         * Occurs when the user clicks the button to submit their email address
          */
         onSubmitInfo()
         {
             if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.emailAddress ) )
             {
-                alert( "Please enter an e-mail address" );
+                alert( "Please enter an email address" );
                 return;
             }
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/NeighborSignUp/SignUpNewUser", this.signUpInfo ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
-            {
-                innerThis.isLoading = false;
-                innerThis.resultIsError = false;
-                innerThis.resultMessage = "Your information has been successfully submitted. Look for a welcome email soon.";
+            this.$http.post( "/api/NeighborSignUp/SignUpNewUser", this.signUpInfo ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.resultIsError = false;
+                    this.resultMessage = "Your information has been successfully submitted. Look for a welcome email soon.";
 
-            }, function()
-            {
-                innerThis.isLoading = false;
-                innerThis.resultIsError = true;
-                innerThis.resultMessage = "There was an error submitting your information. Please try again.";
-            } );
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    this.resultIsError = true;
+                    this.resultMessage = "There was an error submitting your information. Please try again.";
+                }
+            );
         }
 
 

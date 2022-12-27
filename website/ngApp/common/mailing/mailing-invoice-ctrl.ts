@@ -170,8 +170,8 @@ namespace Ally
                             //_.forEach( this.selectedEntries, e => e.shouldIncludeForSending = true );
                         };
 
-                        gridApi.selection.on.rowSelectionChanged( $scope, ( row ) => updateFromSelection() );
-                        gridApi.selection.on.rowSelectionChangedBatch( $scope, ( row ) => updateFromSelection() );
+                        gridApi.selection.on.rowSelectionChanged( $scope, () => updateFromSelection() );
+                        gridApi.selection.on.rowSelectionChangedBatch( $scope, () => updateFromSelection() );
 
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();                        
@@ -206,10 +206,9 @@ namespace Ally
                         //window.dispatchEvent( evt );
 
                         // Update the grid to show the selection based on our internal selection
-                        for( let curRow of this.selectedEntries )
-                        {
+                        for( const curRow of this.selectedEntries )
                             this.gridApi.selection.selectRow( curRow );
-                        }
+
                         //this.$timeout( () => this.gridApi.selection.selectAllRows(), 200 );
 
                     }, 250 );
@@ -413,19 +412,22 @@ namespace Ally
             this.isLoading = true;
             entry.wasPopUpBlocked = false;
 
-            this.$http.post( "/api/Mailing/Preview/Invoice", previewPostInfo ).then( ( response: ng.IHttpPromiseCallbackArg<InvoicePreviewInfoResult> ) =>
-            {
-                this.isLoading = false;
+            this.$http.post( "/api/Mailing/Preview/Invoice", previewPostInfo ).then(
+                ( response: ng.IHttpPromiseCallbackArg<InvoicePreviewInfoResult> ) =>
+                {
+                    this.isLoading = false;
 
-                let getUri = this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
+                    const getUri = this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
 
-                let newWindow = window.open( getUri, "_blank" );
-                entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-                
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-            } );
+                    const newWindow = window.open( getUri, "_blank" );
+                    entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to preview invoice: " + response.data.exceptionMessage );
+                }
+            );
 
             //var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
             //var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( JSON.stringify( this.fullMailingInfo.fromStreetAddress ) )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
@@ -439,14 +441,14 @@ namespace Ally
             if( this.numPaperLettersToSend === 0 )
             {
                 if( this.numEmailsToSend === 0 )
-                    alert( "No e-mails or paper letters selected to send." );
+                    alert( "No emails or paper letters selected to send." );
                 else
                     this.submitFullMailingAfterCharge();
 
                 return;
             }
 
-            let checkoutHandler = StripeCheckout.configure( {
+            const checkoutHandler = StripeCheckout.configure( {
                 key: StripeApiKey,
                 image: '/assets/images/icons/Icon-144.png',
                 locale: 'auto',
@@ -486,7 +488,7 @@ namespace Ally
             this.$http.post( "/api/Mailing/Send/Invoice", this.fullMailingInfo ).then( (response:ng.IHttpPromiseCallbackArg<FullMailingResult>) =>
             {
                 this.isLoading = false;
-                let message = `Your invoices have been successfully sent${response.data.hadErrors ? ', but there were errors' : ''}. You can view the status in the history tab.`;
+                const message = `Your invoices have been successfully sent${response.data.hadErrors ? ', but there were errors' : ''}. You can view the status in the history tab.`;
                 alert( message );
 
                 this.$location.path( "/Mailing/History" );
@@ -526,15 +528,15 @@ namespace Ally
          */
         scrollToFirstAddressError()
         {
-            let firstBadAddress = _.find( this.selectedEntries, e => e.isValidMailingAddress === false );
+            const firstBadAddress = _.find( this.selectedEntries, e => e.isValidMailingAddress === false );
             if( !firstBadAddress )
                 return;
 
-            let badAddressIndex = _.indexOf( this.selectedEntries, firstBadAddress );
+            const badAddressIndex = _.indexOf( this.selectedEntries, firstBadAddress );
             if( badAddressIndex === -1 )
                 return;
 
-            let badAddressElem = document.getElementById( "recipient-entry-" + badAddressIndex );
+            const badAddressElem = document.getElementById( "recipient-entry-" + badAddressIndex );
             badAddressElem.scrollIntoView();
         }
 
@@ -546,7 +548,7 @@ namespace Ally
 
             if( type === "email" )
             {
-                let shouldSetTo = !this.selectedEntries[0].shouldSendEmail;
+                const shouldSetTo = !this.selectedEntries[0].shouldSendEmail;
 
                 for( let i = 0; i < this.selectedEntries.length; ++i )
                 {
@@ -559,7 +561,7 @@ namespace Ally
             // Otherwise the user toggled sending for paper mail
             else
             {
-                let shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
+                const shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
 
                 for( let i = 0; i < this.selectedEntries.length; ++i )
                 {
@@ -578,21 +580,21 @@ namespace Ally
                 // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if( shouldSetTo && this.selectedEntries.length > 0 )
                 {
-                    let recipientsToVerify = _.clone( this.selectedEntries );
+                    const recipientsToVerify = _.clone( this.selectedEntries );
 
-                    const validateAllStep = () =>
-                    {
-                        this.validateAddress( recipientsToVerify[0] ).then( () =>
-                        {
-                            recipientsToVerify.splice( 0, 1 );
+                    //const validateAllStep = () =>
+                    //{
+                    //    this.validateAddress( recipientsToVerify[0] ).then( () =>
+                    //    {
+                    //        recipientsToVerify.splice( 0, 1 );
 
-                            while( recipientsToVerify.length > 0 && !recipientsToVerify[0].amountDue )
-                                recipientsToVerify.splice( 0, 1 );
+                    //        while( recipientsToVerify.length > 0 && !recipientsToVerify[0].amountDue )
+                    //            recipientsToVerify.splice( 0, 1 );
 
-                            if( recipientsToVerify.length > 0 )
-                                validateAllStep();
-                        } );
-                    };
+                    //        if( recipientsToVerify.length > 0 )
+                    //            validateAllStep();
+                    //    } );
+                    //};
 
                     //validateAllStep();
 
@@ -633,7 +635,7 @@ namespace Ally
                 {
                     this.isLoading = false;
 
-                    for( let mailingEntry of (<InvoiceMailingEntry[]>this.homesGridOptions.data) )
+                    for( const mailingEntry of (<InvoiceMailingEntry[]>this.homesGridOptions.data) )
                     {
                         const paidUnits = response.data.filter( u => mailingEntry.unitIds.indexOf( u.unitId ) !== -1 );
 

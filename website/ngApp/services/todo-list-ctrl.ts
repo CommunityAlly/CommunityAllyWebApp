@@ -75,7 +75,7 @@
 
             // Make sure committee members can manage their data
             if( this.committee && !this.canManage )
-                this.fellowResidents.isCommitteeMember( this.committee.committeeId, this.siteInfo.userInfo.userId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
         }
 
 
@@ -124,17 +124,20 @@
             if( this.committee )
                 postUri += "&committeeId=" + this.committee.committeeId;
 
-            this.$http.post( postUri, null ).then( () =>
-            {
-                this.isLoading = false;
-                this.newListName = "";
-                this.loadAllTodoLists();
+            this.$http.post( postUri, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.newListName = "";
+                    this.loadAllTodoLists();
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to create: " + response.data.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to create: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -145,17 +148,20 @@
         {
             this.isLoading = true;
 
-            var postUri = "/api/Todo/newItem/" + todoListId + "?description=" + encodeURIComponent( this.newItemDescription );
-            this.$http.post( postUri, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.newItemDescription = "";
-                this.loadAllTodoLists();
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to create: " + response.data.exceptionMessage );
-            } );
+            const postUri = "/api/Todo/newItem/" + todoListId + "?description=" + encodeURIComponent( this.newItemDescription );
+            this.$http.post( postUri, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.newItemDescription = "";
+                    this.loadAllTodoLists();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to create: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -181,19 +187,22 @@
         {
             this.isLoading = true;
 
-            var postUri = "/api/Todo/Item";
-            this.$http.post( postUri, this.editTodoItem ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.newItemDescription = "";
-                this.editTodoItem = null;
-                this.loadAllTodoLists();
+            const postUri = "/api/Todo/Item";
+            this.$http.post( postUri, this.editTodoItem ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.newItemDescription = "";
+                    this.editTodoItem = null;
+                    this.loadAllTodoLists();
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to create: " + response.data.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to create: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -204,16 +213,19 @@
         {
             this.isLoading = true;
 
-            this.$http.put( "/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.loadAllTodoLists();
+            this.$http.put( "/api/Todo/toggleComplete/" + todoListId + "/" + todoItemId, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.loadAllTodoLists();
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to toggle: " + response.data.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to toggle: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -224,16 +236,18 @@
         {
             this.isLoading = true;
 
-            this.$http.delete( "/api/Todo/Item/" + curItem.todoItemId ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.loadAllTodoLists();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to delete: " + response.data.exceptionMessage );
-            } );
+            this.$http.delete( "/api/Todo/Item/" + curItem.todoItemId ).then(
+                ( ) =>
+                {
+                    this.isLoading = false;
+                    this.loadAllTodoLists();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -250,16 +264,19 @@
 
             this.isLoading = true;
 
-            this.$http.delete( "/api/Todo/List/" + curList.todoListId ).then(( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.loadAllTodoLists();
+            this.$http.delete( "/api/Todo/List/" + curList.todoListId ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.loadAllTodoLists();
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to delete: " + response.data.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
