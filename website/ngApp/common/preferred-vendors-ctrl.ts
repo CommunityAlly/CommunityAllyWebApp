@@ -31,8 +31,7 @@ namespace Ally
         servicesTagArray: any[];
         servicesProvidedFriendly: string;
         addedByFullName: string;
-        rating = 0;
-        review = "";
+
     }
 
     
