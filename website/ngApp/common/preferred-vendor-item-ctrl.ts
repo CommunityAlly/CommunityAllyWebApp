@@ -68,6 +68,7 @@ namespace Ally
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.isAddForm = this.vendorItem == null;
+                       
 
             if( this.isAddForm )
             {
@@ -231,7 +232,6 @@ namespace Ally
                 }
             );
         }
-
 
         getServiceAutocomplete( enteredText: string )
         {
