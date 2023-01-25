@@ -444,15 +444,17 @@
             };
 
             // Go through each answer and store the name and count for that answer
-            for( let curAnswer of talliedVotes )
+            for( const curTalliedVote of talliedVotes )
             {
-                const answer = _.find( poll.fullResultAnswers, ( a ) => a.pollAnswerId === curAnswer.answerId );
+                const pollAnswer = _.find( poll.answers, ( a ) => a.pollAnswerId === curTalliedVote.answerId );
 
-                if( answer )
+                if( pollAnswer )
                 {
-                    results.chartLabels.push( answer.answerText );
-                    results.chartData.push( curAnswer.numVotes );
+                    results.chartLabels.push( pollAnswer.answerText );
+                    results.chartData.push( curTalliedVote.numVotes );
                 }
+                else
+                    console.log( "Unknown answer ID found: " + curTalliedVote.answerId );
             }
 
             if( poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits )

@@ -88,11 +88,11 @@ var Ally;
          * Get the residents for the current group
          */
         FellowResidentsService.prototype.getResidents = function () {
-            var innerThis = this;
+            var _this = this;
             return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.residents;
             }, function (httpResponse) {
-                return innerThis.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
@@ -295,17 +295,19 @@ var Ally;
                 chartData: [],
                 chartLabels: []
             };
-            var _loop_2 = function (curAnswer) {
-                var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === curAnswer.answerId; });
-                if (answer) {
-                    results.chartLabels.push(answer.answerText);
-                    results.chartData.push(curAnswer.numVotes);
+            var _loop_2 = function (curTalliedVote) {
+                var pollAnswer = _.find(poll.answers, function (a) { return a.pollAnswerId === curTalliedVote.answerId; });
+                if (pollAnswer) {
+                    results.chartLabels.push(pollAnswer.answerText);
+                    results.chartData.push(curTalliedVote.numVotes);
                 }
+                else
+                    console.log("Unknown answer ID found: " + curTalliedVote.answerId);
             };
             // Go through each answer and store the name and count for that answer
             for (var _i = 0, talliedVotes_1 = talliedVotes; _i < talliedVotes_1.length; _i++) {
-                var curAnswer = talliedVotes_1[_i];
-                _loop_2(curAnswer);
+                var curTalliedVote = talliedVotes_1[_i];
+                _loop_2(curTalliedVote);
             }
             if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
                 results.chartLabels.push("No Response");
