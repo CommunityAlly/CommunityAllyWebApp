@@ -17,8 +17,8 @@
                 <div class="mr-3 p-2" style="display: inline-block; vertical-align: top;">
                     <button class="btn btn-danger" type="button" data-ng-click="$ctrl.cancelPremiumAutoRenew()">Cancel Auto-Renew</button>
                 </div>
-                <div class="p-2" style="display: inline-block; text-align: center;">
-                    <a class="btn btn-primary" data-ng-if="$ctrl.stripePortalUrl" data-ng-href="{{$ctrl.stripePortalUrl}}">View Stripe Billing Portal</a>
+                <div class="p-2" style="display: inline-block; text-align: center;" data-ng-if="$ctrl.stripePortalUrl">
+                    <a class="btn btn-primary" data-ng-href="{{$ctrl.stripePortalUrl}}">View Stripe Billing Portal</a>
                     <br />
                     <span class="note-text">Here you can view payment history<br />and adjust payment methods.</span>
                 </div>
