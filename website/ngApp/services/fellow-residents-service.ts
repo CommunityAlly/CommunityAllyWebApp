@@ -135,15 +135,16 @@
          */
         getResidents()
         {
-            var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> )
-            {
-                return httpResponse.data.residents;
-
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                return innerThis.$q.reject( httpResponse );
-            } );
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
+                {
+                    return httpResponse.data.residents;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
         }
 
 
@@ -366,7 +367,7 @@
          */
         sendMessage( recipientUserId: string, messageBody: string, messageSubject: string, shouldSendAsBoard: boolean )
         {
-            var postData = {
+            const postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
                 messageSubject: messageSubject,

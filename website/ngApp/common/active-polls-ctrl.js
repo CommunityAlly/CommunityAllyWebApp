@@ -64,7 +64,7 @@ var Ally;
             var answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
             var writeInAnswer = poll.writeInAnswer ? encodeURIComponent(poll.writeInAnswer) : "";
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + writeInAnswer;
-            this.$http.put(putUri, null).then(function (response) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.refreshPolls();
             }, function (response) {
@@ -72,6 +72,9 @@ var Ally;
                 alert("Failed to submit vote: " + response.data.exceptionMessage);
             });
         };
+        /**
+         * Occurs when the user selects a poll answer in a poll that allows multiple answers
+         */
         ActivePollsController.prototype.onMultiResponseChange = function (poll, pollAnswer) {
             var isAbstain = pollAnswer.answerText === "Abstain";
             if (isAbstain && pollAnswer.isLocalMultiSelect) {
@@ -105,7 +108,7 @@ var Ally;
             var answerIdsCsv = poll.localMultiSelectedAnswers.map(function (a) { return a.pollAnswerId; }).join(",");
             this.isLoading = true;
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + ((poll.isWriteInMultiSelected && poll.writeInAnswer) ? encodeURIComponent(poll.writeInAnswer) : '');
-            this.$http.put(putUri, null).then(function (response) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.refreshPolls();
             }, function (response) {

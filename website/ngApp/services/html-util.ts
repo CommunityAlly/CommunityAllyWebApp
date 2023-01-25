@@ -486,7 +486,7 @@ namespace Ally
                         image_description: false,
                         file_picker_callback: function( cb: any, value: any, meta: any )
                         {
-                            var input = document.createElement( 'input' );
+                            const input = document.createElement( 'input' );
                             input.setAttribute( 'type', 'file' );
                             input.setAttribute( 'accept', 'image/*' );
 
@@ -503,7 +503,7 @@ namespace Ally
                                 // debugger; // This code gets called on uploaded file selection
                                 const selectedFile: File = evt.target.files[0];
 
-                                var reader = new FileReader();
+                                const reader = new FileReader();
                                 reader.onload = function(fileObject)
                                 {                                    
                                     /*
@@ -563,7 +563,7 @@ namespace Ally
                                                 //var resizedImgUrl = URL.createObjectURL( resizedBlob );
                                                 //resizedTempImage.src = resizedImgUrl;
 
-                                                var resizedReader = new FileReader();
+                                                const resizedReader = new FileReader();
                                                 resizedReader.readAsDataURL( resizedBlob );
                                                 resizedReader.onloadend = function()
                                                 {
