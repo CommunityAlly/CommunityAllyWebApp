@@ -6,8 +6,6 @@ var Ally;
 (function (Ally) {
     var PreferredVendor = /** @class */ (function () {
         function PreferredVendor() {
-            this.rating = 0;
-            this.review = "";
             this.fullAddress = new Ally.FullAddress();
         }
         return PreferredVendor;
