@@ -10498,7 +10498,7 @@ var Ally;
             var answerIdsCsv = pollAnswer ? pollAnswer.pollAnswerId.toString() : "";
             var writeInAnswer = poll.writeInAnswer ? encodeURIComponent(poll.writeInAnswer) : "";
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + writeInAnswer;
-            this.$http.put(putUri, null).then(function (response) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.refreshPolls();
             }, function (response) {
@@ -10506,6 +10506,9 @@ var Ally;
                 alert("Failed to submit vote: " + response.data.exceptionMessage);
             });
         };
+        /**
+         * Occurs when the user selects a poll answer in a poll that allows multiple answers
+         */
         ActivePollsController.prototype.onMultiResponseChange = function (poll, pollAnswer) {
             var isAbstain = pollAnswer.answerText === "Abstain";
             if (isAbstain && pollAnswer.isLocalMultiSelect) {
@@ -10539,7 +10542,7 @@ var Ally;
             var answerIdsCsv = poll.localMultiSelectedAnswers.map(function (a) { return a.pollAnswerId; }).join(",");
             this.isLoading = true;
             var putUri = "/api/Poll/PollResponse?pollId=" + poll.pollId + "&answerIdsCsv=" + answerIdsCsv + "&writeInAnswer=" + ((poll.isWriteInMultiSelected && poll.writeInAnswer) ? encodeURIComponent(poll.writeInAnswer) : '');
-            this.$http.put(putUri, null).then(function (response) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.refreshPolls();
             }, function (response) {
@@ -15701,11 +15704,11 @@ var Ally;
          * Get the residents for the current group
          */
         FellowResidentsService.prototype.getResidents = function () {
-            var innerThis = this;
+            var _this = this;
             return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then(function (httpResponse) {
                 return httpResponse.data.residents;
             }, function (httpResponse) {
-                return innerThis.$q.reject(httpResponse);
+                return _this.$q.reject(httpResponse);
             });
         };
         /**
@@ -15908,17 +15911,19 @@ var Ally;
                 chartData: [],
                 chartLabels: []
             };
-            var _loop_2 = function (curAnswer) {
-                var answer = _.find(poll.fullResultAnswers, function (a) { return a.pollAnswerId === curAnswer.answerId; });
-                if (answer) {
-                    results.chartLabels.push(answer.answerText);
-                    results.chartData.push(curAnswer.numVotes);
+            var _loop_2 = function (curTalliedVote) {
+                var pollAnswer = _.find(poll.answers, function (a) { return a.pollAnswerId === curTalliedVote.answerId; });
+                if (pollAnswer) {
+                    results.chartLabels.push(pollAnswer.answerText);
+                    results.chartData.push(curTalliedVote.numVotes);
                 }
+                else
+                    console.log("Unknown answer ID found: " + curTalliedVote.answerId);
             };
             // Go through each answer and store the name and count for that answer
             for (var _i = 0, talliedVotes_1 = talliedVotes; _i < talliedVotes_1.length; _i++) {
-                var curAnswer = talliedVotes_1[_i];
-                _loop_2(curAnswer);
+                var curTalliedVote = talliedVotes_1[_i];
+                _loop_2(curTalliedVote);
             }
             if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
                 results.chartLabels.push("No Response");
@@ -17234,7 +17239,7 @@ var Ally;
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table code',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
-                        toolbar: 'styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
+                        toolbar: 'styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
                         //toolbar_mode: 'floating',
                         //tinycomments_mode: 'embedded',
                         //tinycomments_author: 'Author name',

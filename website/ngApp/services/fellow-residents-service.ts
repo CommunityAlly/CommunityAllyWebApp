@@ -135,15 +135,16 @@
          */
         getResidents()
         {
-            var innerThis = this;
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> )
-            {
-                return httpResponse.data.residents;
-
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                return innerThis.$q.reject( httpResponse );
-            } );
+            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
+                {
+                    return httpResponse.data.residents;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
         }
 
 
@@ -366,7 +367,7 @@
          */
         sendMessage( recipientUserId: string, messageBody: string, messageSubject: string, shouldSendAsBoard: boolean )
         {
-            var postData = {
+            const postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
                 messageSubject: messageSubject,
@@ -443,15 +444,17 @@
             };
 
             // Go through each answer and store the name and count for that answer
-            for( let curAnswer of talliedVotes )
+            for( const curTalliedVote of talliedVotes )
             {
-                const answer = _.find( poll.fullResultAnswers, ( a ) => a.pollAnswerId === curAnswer.answerId );
+                const pollAnswer = _.find( poll.answers, ( a ) => a.pollAnswerId === curTalliedVote.answerId );
 
-                if( answer )
+                if( pollAnswer )
                 {
-                    results.chartLabels.push( answer.answerText );
-                    results.chartData.push( curAnswer.numVotes );
+                    results.chartLabels.push( pollAnswer.answerText );
+                    results.chartData.push( curTalliedVote.numVotes );
                 }
+                else
+                    console.log( "Unknown answer ID found: " + curTalliedVote.answerId );
             }
 
             if( poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits )

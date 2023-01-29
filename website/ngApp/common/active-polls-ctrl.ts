@@ -98,7 +98,7 @@
             const putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${writeInAnswer}`;
 
             this.$http.put( putUri, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.refreshPolls();
@@ -112,6 +112,9 @@
         }
 
 
+        /**
+         * Occurs when the user selects a poll answer in a poll that allows multiple answers
+         */
         onMultiResponseChange( poll: Poll, pollAnswer: PollAnswer)
         {
             const isAbstain = pollAnswer.answerText === "Abstain";
@@ -162,7 +165,7 @@
             const putUri = `/api/Poll/PollResponse?pollId=${poll.pollId}&answerIdsCsv=${answerIdsCsv}&writeInAnswer=${( poll.isWriteInMultiSelected && poll.writeInAnswer ) ? encodeURIComponent( poll.writeInAnswer ) : ''}`;
 
             this.$http.put( putUri, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.refreshPolls();

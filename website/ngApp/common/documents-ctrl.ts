@@ -117,12 +117,6 @@ namespace Ally
             this.fileSearch = {
                 all: ""
             };
-
-            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
-
-            // Make sure committee members can manage their data
-            if( this.committee && !this.canManage )
-                this.fellowResidents.isCommitteeMember( this.committee.committeeId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
         }
 
 
@@ -131,6 +125,12 @@ namespace Ally
          */
         $onInit()
         {
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+
+            // Make sure committee members can manage their data
+            if( this.committee && !this.canManage )
+                this.fellowResidents.isCommitteeMember( this.committee.committeeId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
+
             this.apiAuthToken = this.$rootScope.authToken;
 
             this.Refresh();

@@ -314,7 +314,7 @@ var Ally;
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table code',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
-                        toolbar: 'styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
+                        toolbar: 'styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
                         //toolbar_mode: 'floating',
                         //tinycomments_mode: 'embedded',
                         //tinycomments_author: 'Author name',
