@@ -86,18 +86,18 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                 appCacheService.set(AppCacheService.Key_WasLoggedIn403, "true");
                             // If the user is unauthorized but has saved credentials, try to log-in then retry the request
                             if (status === 401 && HtmlUtil.isValidString(window.localStorage["rememberMe_Email"])) {
-                                var $http = $injector.get("$http");
+                                var $http_1 = $injector.get("$http");
                                 // Multiple requests can come in at the same time with 401, so let's store
                                 // our login promise so subsequent calls can tie into the first login
                                 // request
                                 if (!$rootScope.retryLoginDeffered) {
                                     $rootScope.retryLoginDeffered = $q.defer();
-                                    var loginInfo = {
+                                    var loginInfo_1 = {
                                         emailAddress: window.localStorage["rememberMe_Email"],
                                         password: atob(window.localStorage["rememberMe_Password"])
                                     };
                                     var retryLogin = function () {
-                                        $http.post("/api/Login", loginInfo).then(function (httpResponse) {
+                                        $http_1.post("/api/Login", loginInfo_1).then(function (httpResponse) {
                                             var loginData = httpResponse.data;
                                             var siteInfo = $injector.get("SiteInfo");
                                             // Store the new auth token
@@ -116,10 +116,10 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     // Wait, just a bit, to let any other requests come in with a 401
                                     setTimeout(retryLogin, 1000);
                                 }
-                                var retryRequestDeferred = $q.defer();
+                                var retryRequestDeferred_1 = $q.defer();
                                 $rootScope.retryLoginDeffered.promise.then(function () {
                                     // Retry the request
-                                    retryRequestDeferred.resolve($http(response.config));
+                                    retryRequestDeferred_1.resolve($http_1(response.config));
                                     //$http( response.config ).then( function( newResponse )
                                     //{
                                     //    retryRequestDeferred.resolve( newResponse );
@@ -128,9 +128,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     //    retryRequestDeferred.reject( response );
                                     //} );
                                 }, function () {
-                                    retryRequestDeferred.reject(response);
+                                    retryRequestDeferred_1.reject(response);
                                 });
-                                return retryRequestDeferred.promise;
+                                return retryRequestDeferred_1.promise;
                             }
                             // Home, the default page, and login don't need special redirection or user messaging
                             if ($location.path() !== "/Home" && $location.path() !== "/Login") {
