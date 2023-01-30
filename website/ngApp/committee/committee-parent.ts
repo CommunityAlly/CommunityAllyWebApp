@@ -58,14 +58,15 @@ namespace Ally
             // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
 
-            this.$http.get( "/api/Committee/" + this.committeeId, { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Ally.Committee> ) =>
-            {
-                this.$rootScope.dontHandle403 = false;
-                this.isLoading = false;
-                this.committee = response.data;
-                this.selectedView = this.initialView;
+            this.$http.get( "/api/Committee/" + this.committeeId, { cache: true } ).then(
+                ( response: ng.IHttpPromiseCallbackArg<Ally.Committee> ) =>
+                {
+                    this.$rootScope.dontHandle403 = false;
+                    this.isLoading = false;
+                    this.committee = response.data;
+                    this.selectedView = this.initialView;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.$rootScope.dontHandle403 = false;
                 this.isLoading = false;
@@ -77,7 +78,8 @@ namespace Ally
                 }
                 else
                     alert( "Failed to load committee: " + response.data.exceptionMessage );
-            } );
+            }
+            );
         }
 
 
@@ -90,16 +92,18 @@ namespace Ally
 
             var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
 
-            this.$http.put( putUri, null ).then(() =>
-            {
-                this.isLoading = false;
-                this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committeeId );
-
-            },( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to update the committee name: " + response.data.exceptionMessage );
-            } );
+            this.$http.put( putUri, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committeeId );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to update the committee name: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }

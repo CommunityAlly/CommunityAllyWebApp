@@ -78,7 +78,7 @@ namespace Ally
             const putUri = ( committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/" ) + committee.committeeId;
 
             this.$http.put( putUri, null ).then(
-                ( committees: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.retrieveCommittees();
@@ -143,9 +143,9 @@ namespace Ally
 
             this.isLoading = true;
 
-            var saveUri = `/api/Committee${( this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "" )}?name=${encodeURIComponent( this.editCommittee.name )}&type=${encodeURIComponent( this.editCommittee.committeeType )}&isPrivate=${this.editCommittee.isPrivate.toString()}`;
+            const saveUri = `/api/Committee${( this.editCommittee.committeeId ? ("/" + this.editCommittee.committeeId.toString()) : "" )}?name=${encodeURIComponent( this.editCommittee.name )}&type=${encodeURIComponent( this.editCommittee.committeeType )}&isPrivate=${this.editCommittee.isPrivate.toString()}`;
 
-            let httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
+            const httpFunc = this.editCommittee.committeeId ? this.$http.put : this.$http.post;
             httpFunc( saveUri, null ).then(
                 () =>
                 {

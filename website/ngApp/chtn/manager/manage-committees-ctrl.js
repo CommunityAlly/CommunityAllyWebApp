@@ -54,7 +54,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var putUri = (committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/") + committee.committeeId;
-            this.$http.put(putUri, null).then(function (committees) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.retrieveCommittees();
             }, function (response) {
