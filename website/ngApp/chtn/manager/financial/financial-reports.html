@@ -18,7 +18,7 @@
                         <canvas id="income-category-chart" width="200" height="150" class="chart chart-doughnut" chart-options="$ctrl.doughnutChartOptions" data-chart-data="$ctrl.incomeByCategoryData" data-chart-labels="$ctrl.incomeByCategoryLabels" legend="true"></canvas>
                     </div>
                     <div style="display: inline-block; width: 200px;">
-                        <div data-ng-repeat="curEntry in $ctrl.incomeByCategoryLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.incomeByCategoryData[$index] | currency}}</div>
+                        <div data-ng-repeat="curEntry in $ctrl.reportData.incomeByCategory | limitTo:7">{{$index + 1}}. {{curEntry.parentFinancialCategoryName}} {{curEntry.amount | currency}}</div>
                     </div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                         <canvas id="expense-category-chart" width="200" height="150" class="chart chart-doughnut" chart-options="$ctrl.doughnutChartOptions" data-chart-data="$ctrl.expenseByCategoryData" data-chart-labels="$ctrl.expenseByCategoryLabels" legend="true"></canvas>
                     </div>
                     <div style="display: inline-block; width: 200px;">
-                        <div data-ng-repeat="curEntry in $ctrl.expenseByCategoryLabels | limitTo:7">{{$index + 1}}. {{curEntry}} {{$ctrl.expenseByCategoryData[$index] | currency}}</div>
+                        <div data-ng-repeat="curEntry in $ctrl.reportData.expenseByCategory | limitTo:7">{{$index + 1}}. {{curEntry.parentFinancialCategoryName}} {{curEntry.amount | currency}}</div>
                     </div>
                 </div>
             </div>
