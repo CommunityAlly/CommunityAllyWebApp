@@ -161,6 +161,9 @@
                 <div class="note-text">
                     <span data-ng-repeat="u in g.usersFullNames track by $index"><span data-ng-if="$index > 0">, </span>{{ u }}</span>
                 </div>
+                <div class="note-text text-danger" data-ng-if="!g.usersFullNames || g.usersFullNames.length === 0">
+                    This group has no members so it will not be shown elsewhere on the site.
+                </div>
                 <div class="note-text mt-1" data-ng-if="g.description">
                     Description: {{g.description}}
                 </div>
