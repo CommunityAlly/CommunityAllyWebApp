@@ -39,7 +39,6 @@ var Ally;
          * The constructor for the class
          */
         function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents, $location) {
-            var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$cacheFactory = $cacheFactory;
@@ -61,16 +60,16 @@ var Ally;
             this.fileSearch = {
                 all: ""
             };
-            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
-            // Make sure committee members can manage their data
-            if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         DocumentsController.prototype.$onInit = function () {
             var _this = this;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             this.apiAuthToken = this.$rootScope.authToken;
             this.Refresh();
             var hookUpFileUpload = function () {
