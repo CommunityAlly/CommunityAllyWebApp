@@ -48,9 +48,9 @@
 
             const innerThis = this;
             this.doughnutChartOptions = {
-                onClick: function( event: MouseEvent )
+                onClick: function( event: MouseEvent ) // We need to use classic function() syntax here in order to access Chart.js getElementAtEvent
                 {
-                    var elements = this.getElementAtEvent( event );
+                    const elements = this.getElementAtEvent( event );
                     if( elements.length )
                     {
                         const elem = elements[0];
@@ -97,14 +97,16 @@
 
                     this.reportData = httpResponse.data;
 
-                    this.incomeByCategoryData = _.map( this.reportData.incomeByCategory, e => e.amount );
+                    this.reportData.incomeByCategory = _.sortBy( this.reportData.incomeByCategory, e => e.amount );
+                    this.incomeByCategoryData = _.map( this.reportData.incomeByCategory, e => Math.abs( e.amount ) );
                     this.incomeByCategoryLabels = _.map( this.reportData.incomeByCategory, e => e.parentFinancialCategoryName );
                     this.incomeByCategoryCatIds = _.map( this.reportData.incomeByCategory, e => e.parentFinancialCategoryId );
 
-                    this.expenseByCategoryData = _.map( this.reportData.expenseByCategory, e => e.amount );
+                    this.reportData.expenseByCategory = _.sortBy( this.reportData.expenseByCategory, e => e.amount );
+                    this.expenseByCategoryData = _.map( this.reportData.expenseByCategory, e => Math.abs( e.amount ) );
                     this.expenseByCategoryLabels = _.map( this.reportData.expenseByCategory, e => e.parentFinancialCategoryName );
                     this.expenseByCategoryCatIds = _.map( this.reportData.expenseByCategory, e => e.parentFinancialCategoryId );
-
+                    
                     window.sessionStorage.setItem( "financialReport_startDate", this.startDate.getTime().toString() );
                     window.sessionStorage.setItem( "financialReport_endDate", this.endDate.getTime().toString() );
                 },

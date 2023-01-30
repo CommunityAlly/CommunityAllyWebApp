@@ -67,10 +67,12 @@ var Ally;
             this.$http.get("/api/FinancialReports/ChartData?startDate=" + encodeURIComponent(this.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.endDate.toISOString())).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.reportData = httpResponse.data;
-                _this.incomeByCategoryData = _.map(_this.reportData.incomeByCategory, function (e) { return e.amount; });
+                _this.reportData.incomeByCategory = _.sortBy(_this.reportData.incomeByCategory, function (e) { return e.amount; });
+                _this.incomeByCategoryData = _.map(_this.reportData.incomeByCategory, function (e) { return Math.abs(e.amount); });
                 _this.incomeByCategoryLabels = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryName; });
                 _this.incomeByCategoryCatIds = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryId; });
-                _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return e.amount; });
+                _this.reportData.expenseByCategory = _.sortBy(_this.reportData.expenseByCategory, function (e) { return e.amount; });
+                _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return Math.abs(e.amount); });
                 _this.expenseByCategoryLabels = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryName; });
                 _this.expenseByCategoryCatIds = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryId; });
                 window.sessionStorage.setItem("financialReport_startDate", _this.startDate.getTime().toString());
