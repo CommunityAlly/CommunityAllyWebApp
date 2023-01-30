@@ -2,51 +2,54 @@
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Documents & Info
-        </a></li>
-          <li class="breadcrumb-item active" aria-current="page">Vendors</li>
+            <li class="breadcrumb-item"><a href="#">Documents & Info
+                </a></li>
+            <li class="breadcrumb-item active" aria-current="page">Vendors</li>
         </ol>
-      </nav>
+    </nav>
     <h2>Vendors</h2>
-    
-<div class="row">
-    <div class="col-lg-6">
-        <p>
-            The following list of vendors is provided for convenience and is not to be construed as an endorsement by the association. You should make whatever investigation you feel necessary or appropriate before proceeding with any vendor.
-        </p>
-        
-    </div>
-    <div class="col-lg-6  d-flex justify-content-end">
-        <div>
-            <button type="button" class="btn btn-primary">Add Vendor</button>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <p>
+                The following list of vendors is provided for convenience and is not to be construed as an endorsement
+                by the association. You should make whatever investigation you feel necessary or appropriate before
+                proceeding with any vendor.
+            </p>
+
         </div>
+        <div class="col-lg-6  d-flex justify-content-end">
+            <div>
+                <button type="button" class="btn btn-primary">Add Vendor</button>
+            </div>
+        </div>
+
     </div>
 
-</div>
-    
-    <div class="d-flex  justify-content-between">
-
+    <div class="d-flex justify-content-between">
         <div data-ng-if="$ctrl.usedServiceTags.length > 1">
             <span style="font-weight: bold;">Filter By Service:</span><br />
             <label class="margin-right-10 d-inline-block" data-ng-repeat="tag in $ctrl.usedServiceTags">
                 <input type="checkbox" data-ng-click="$ctrl.onTagFilterToggle( tag )" />{{ tag }}
             </label>
         </div>
-                
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12">
+            Sort By:
+            <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'entryDate'}"
+                data-ng-click="$ctrl.updateEntriesSort('entryDate')">Added Date</span>
+            - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'name'}"
+                data-ng-click="$ctrl.updateEntriesSort('name')">Name</span>
         </div>
-    
-        <div class="row mt-2">
-            <div class="col-12">
-                Sort By:
-                <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'entryDate'}" data-ng-click="$ctrl.updateEntriesSort('entryDate')">Added Date</span>
-                - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'name'}" data-ng-click="$ctrl.updateEntriesSort('name')">Name</span>
-            </div>
-        </div>
+    </div>
     </div>
 
     <div class="row">
-        <div class="col-md-6 col-sm-12 mt-sm-5 mt-md-3" data-ng-repeat="vendor in $ctrl.filteredVendors | limitTo:10">
-            <preferred-vendor-item class="stacking-cells" vendor-item="vendor" on-parent-data-needs-refresh="$ctrl.retrieveVendors();"></preferred-vendor-item>
+        <div class="col-md-6 col-sm-12 mt-sm-5 mt-md-3 " data-ng-repeat="vendor in $ctrl.filteredVendors | limitTo:10">
+            <preferred-vendor-item class="stacking-cells" vendor-item="vendor"
+                on-parent-data-needs-refresh="$ctrl.retrieveVendors();"></preferred-vendor-item>
         </div>
     </div>
     <br />
@@ -73,11 +76,11 @@
     -->
     <nav aria-label="Page navigation example">
         <ul class="pagination">
-          <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-          <li class="page-item"><a class="page-link" href="#">1</a></li>
-          <li class="page-item"><a class="page-link" href="#">2</a></li>
-          <li class="page-item"><a class="page-link" href="#">3</a></li>
-          <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
         </ul>
-      </nav>
+    </nav>
 </section>
