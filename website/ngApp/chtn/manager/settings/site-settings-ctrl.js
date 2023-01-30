@@ -75,10 +75,14 @@ var Ally;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
                 if (!_this.tinyMceEditor) {
-                    Ally.HtmlUtil2.initTinyMce().then(function (e) {
+                    var tinyMceOpts = {
+                        menubar: "edit format table",
+                        toolbar: "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | checklist code formatpainter table"
+                    };
+                    Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 400, tinyMceOpts).then(function (e) {
                         _this.tinyMceEditor = e;
                         _this.tinyMceEditor.setContent(_this.settings.welcomeMessage);
-                        _this.tinyMceEditor.on("keyup", function (e) {
+                        _this.tinyMceEditor.on("keyup", function () {
                             // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                             _this.$scope.$apply(function () {
                                 _this.onWelcomeMessageEdit();

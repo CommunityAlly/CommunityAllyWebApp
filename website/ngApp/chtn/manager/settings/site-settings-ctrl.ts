@@ -108,11 +108,16 @@ namespace Ally
 
                 if( !this.tinyMceEditor )
                 {
-                    HtmlUtil2.initTinyMce().then( e =>
+                    const tinyMceOpts = {
+                        menubar: "edit format table",
+                        toolbar: "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | checklist code formatpainter table"
+                    };
+
+                    HtmlUtil2.initTinyMce( "tiny-mce-editor", 400, tinyMceOpts ).then( e =>
                     {
                         this.tinyMceEditor = e;
                         this.tinyMceEditor.setContent( this.settings.welcomeMessage );
-                        this.tinyMceEditor.on( "keyup", ( e: any ) =>
+                        this.tinyMceEditor.on( "keyup", () =>
                         {
                             // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                             this.$scope.$apply( () =>
@@ -170,7 +175,7 @@ namespace Ally
                     this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
                     this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
 
-                    var didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
+                    const didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
 
                     // Reload the page to show the page title has changed
                     if( didChangeFullName )
@@ -262,7 +267,7 @@ namespace Ally
                         if( this.siteInfo.publicSiteInfo.baseApiUrl )
                             data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
 
-                        var xhr = data.submit();
+                        const xhr = data.submit();
                         xhr.done( ( result: any ) =>
                         {
                             this.$scope.$apply( () =>
@@ -284,7 +289,7 @@ namespace Ally
                     },
                     progressall: ( e: any, data: any ) =>
                     {
-                        var progress = Math.floor(( data.loaded * 100 ) / data.total );
+                        const progress = Math.floor(( data.loaded * 100 ) / data.total );
                         $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );
 
                         if( progress === 100 )
