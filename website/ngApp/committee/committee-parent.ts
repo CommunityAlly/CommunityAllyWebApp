@@ -90,7 +90,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
+            const putUri = "/api/Committee/" + this.committeeId + "?name=" + this.committee.name;
 
             this.$http.put( putUri, null ).then(
                 () =>

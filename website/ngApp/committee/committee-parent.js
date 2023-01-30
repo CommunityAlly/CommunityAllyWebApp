@@ -60,7 +60,7 @@ var Ally;
         CommitteeParentController.prototype.onUpdateCommitteeName = function () {
             var _this = this;
             this.isLoading = true;
-            var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
+            var putUri = "/api/Committee/" + this.committeeId + "?name=" + this.committee.name;
             this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.$cacheFactory.get('$http').remove("/api/Committee/" + _this.committeeId);
