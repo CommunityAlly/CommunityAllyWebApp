@@ -91,13 +91,14 @@
             <label for="{{tag}}" data-ng-repeat="tag in $ctrl.usedServiceTags">
               <input type="checkbox" id="{{tag}}"  data-ng-click="$ctrl.onTagFilterToggle( tag )"/>{{tag |
                 limitTo:20}}{{tag.length>23 ? '...':''}}</label>
+                
           </div>
           <div class="overSelect"></div>
         </div>
        
       </div>
       <div class="row  col-lg-6 col-md-6 col-sm-12 ">
-          <div class="d-flex justify-content-lg-end justify-content-md-end align-items-center mb-n2">
+          <div class="d-flex justify-content-lg-end justify-content-md-end align-items-center mt">
             Sort By: 
             <select class="col-lg-3 sort-select" data-ng-model="$ctrl.entriesSortField" data-ng-change="$ctrl.updateEntriesSort($ctrl.entriesSortField)">
               <option selected value="entryDate">Added Date</option>
