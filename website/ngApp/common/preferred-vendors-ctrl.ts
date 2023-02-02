@@ -48,7 +48,7 @@ namespace Ally
         isLoading = false;
         isSiteManager = false;
         usedServiceTags: string[] = [];
-        filterTags: string[] = [];
+        filterTags: string[] = ["All"];
         entriesSortField: string;
         entriesSortAscending: boolean = true;
         static StorageKey_SortField = "vendors_entriesSortField";
@@ -62,7 +62,7 @@ namespace Ally
         {
         }
 
-
+        
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
@@ -82,6 +82,27 @@ namespace Ally
             this.retrieveVendors();
         }
 
+        
+        expanded = false;
+        /**
+         * Show multiple select 
+         */
+        showCheckboxes(){
+
+        var checkboxes = document.getElementById("checkboxes");
+        
+
+        if (!this.expanded) {
+            checkboxes.style.display = "block";
+            checkboxes.style.position = "absolute";
+            checkboxes.style.zIndex = "1";
+            checkboxes.style.backgroundColor = "#fff";
+            this.expanded = true;
+        } else {
+            checkboxes.style.display = "none";
+            this.expanded = false;
+        }
+        }
 
         /**
          * Populate the vendors
@@ -198,13 +219,25 @@ namespace Ally
         {
             // Add if the tag to our filter list if it's not there, remove it if it is
             var tagCurrentIndex = this.filterTags.indexOf( tagName );
-            if( tagCurrentIndex === -1 )
+            var checkboxes = document.getElementById("checkboxes");
+            var indexOfAll= this.filterTags.indexOf("All");
+            var servicesSelect= document.querySelector<HTMLElement>('servicesSelect')
+            if( tagCurrentIndex === -1 ){
                 this.filterTags.push( tagName );
+                
+                if(indexOfAll !== -1){
+                    this.filterTags.shift()
+                }
+                
+                
+            }
             else
                 this.filterTags.splice( tagCurrentIndex, 1 );
 
-            if( this.filterTags.length === 0 )
+            if( this.filterTags.length === 0 ){
+                this.filterTags.push("All")
                 this.filteredVendors = this.allVendors;
+            }
             else
             {
                 this.filteredVendors = [];
@@ -215,7 +248,10 @@ namespace Ally
                     if( _.intersection( v.servicesProvidedSplit, this.filterTags ).length > 0 )
                         this.filteredVendors.push( v );
                 } );
+               
             }
+            checkboxes.style.display = "none";
+            servicesSelect.style.display = "none";
         }
 
 

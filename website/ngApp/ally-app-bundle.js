@@ -14618,8 +14618,9 @@ var Ally;
             this.isLoading = false;
             this.isSiteManager = false;
             this.usedServiceTags = [];
-            this.filterTags = [];
+            this.filterTags = ["All"];
             this.entriesSortAscending = true;
+            this.expanded = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -14634,6 +14635,23 @@ var Ally;
             else
                 this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
             this.retrieveVendors();
+        };
+        /**
+         * Show multiple select
+         */
+        PreferredVendorsController.prototype.showCheckboxes = function () {
+            var checkboxes = document.getElementById("checkboxes");
+            if (!this.expanded) {
+                checkboxes.style.display = "block";
+                checkboxes.style.position = "absolute";
+                checkboxes.style.zIndex = "1";
+                checkboxes.style.backgroundColor = "#fff";
+                this.expanded = true;
+            }
+            else {
+                checkboxes.style.display = "none";
+                this.expanded = false;
+            }
         };
         /**
          * Populate the vendors
@@ -14726,12 +14744,21 @@ var Ally;
             var _this = this;
             // Add if the tag to our filter list if it's not there, remove it if it is
             var tagCurrentIndex = this.filterTags.indexOf(tagName);
-            if (tagCurrentIndex === -1)
+            var checkboxes = document.getElementById("checkboxes");
+            var indexOfAll = this.filterTags.indexOf("All");
+            var servicesSelect = document.querySelector('servicesSelect');
+            if (tagCurrentIndex === -1) {
                 this.filterTags.push(tagName);
+                if (indexOfAll !== -1) {
+                    this.filterTags.shift();
+                }
+            }
             else
                 this.filterTags.splice(tagCurrentIndex, 1);
-            if (this.filterTags.length === 0)
+            if (this.filterTags.length === 0) {
+                this.filterTags.push("All");
                 this.filteredVendors = this.allVendors;
+            }
             else {
                 this.filteredVendors = [];
                 // Grab any vendors that have one of the tags by which we're filtering
@@ -14740,6 +14767,8 @@ var Ally;
                         _this.filteredVendors.push(v);
                 });
             }
+            checkboxes.style.display = "none";
+            servicesSelect.style.display = "none";
         };
         PreferredVendorsController.prototype.onAddedNewVendor = function () {
             this.retrieveVendors();
