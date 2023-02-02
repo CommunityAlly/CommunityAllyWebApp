@@ -1,184 +1,235 @@
-﻿<div style="position: relative;">
+﻿<style>
+    @media only screen and (min-width: 768px) {
+        .vendor-card {
+            min-height: 508px;
+            max-height: 702px;
+        }
+        .preferred-vendor-item-card-header {
+            min-height: 128px;
+        }
+       
+        .details-btn-container{
+
+            flex-direction: column;
+            justify-content: center;
+        }
+    }
+
+    @media only screen and (min-width: 992px) {
+       
+        .vendor-card {
+             min-height: 388px;
+        }
+
+        .preferred-vendor-item-card-header {
+            min-height: 96px;
+        }
+        .review-container{
+            text-align: left;
+        }
+    }
+
+    @media only screen and (min-width: 1200px ) {
+        .vendor-card {
+            min-height: 350px;
+
+        }
+        .review-container{
+            text-align: left;
+        }
+    }
+</style>
+
+
+<div style="position: relative">
+
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-    <div data-ng-if="!$ctrl.isInEditMode">
-        <h4 class="d-inline-block text-bold">{{ $ctrl.vendorItem.companyName }}</h4>
+    <div class="border rounded-lg " data-ng-if="!$ctrl.isInEditMode">
 
-        <div data-ng-if="$ctrl.isSiteManager" class="d-inline-block margin-left-10">
-            <span class="text-link" data-ng-click="$ctrl.onEditItem()">Edit</span>
-            <span class="text-link margin-left-10" data-ng-click="$ctrl.deleteItem()">Delete</span>
-        </div>
-
-        <div class="margin-left">
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.companyPhone">
-                <label class="col-4">
-                    Phone:
-                </label>
-                <div class="col-8">
-                    <a href="tel:{{ $ctrl.vendorItem.companyPhone }}">{{ $ctrl.vendorItem.companyPhone }}</a>
+            <div class="preferred-vendor-item-card-header text-white p-3 " style="background-color: #1c597c">
+                <div class="row">
+                    <h4 class="col-lg-7 col-md-12 col-sm-12 text-bold" style="font-size: 1.25rem;">{{ $ctrl.vendorItem.companyName |
+                        limitTo:16}}{{$ctrl.vendorItem.companyName.length>18 ? '...':''}} </h4>
+                    <div data-ng-if="$ctrl.isSiteManager"
+                        class="col-lg-5 col-md-12 col-sm-12 d-flex  justify-content-lg-end justify-content-md-start ">
+                        <span class="btn btn-danger mx-1 bg-danger text-light" data-bs-toggle="modal"
+                        data-ng-click="$ctrl.deleteItem()"><i class="bi bi-trash3-fill"></i></span>
+                        <span class="btn btn-light text-light" data-ng-click="$ctrl.onEditItem()"style="background-color: #1c597c;"><i class="bi bi-pencil"></i> Edit</span>
+                    </div>
+                </div>
+                <div class="d-flex fs-6">
+                    <div class="form-group row  text-light" data-ng-if="$ctrl.vendorItem.companyWeb">
+                        <a class="text-light" data-ng-href="{{ $ctrl.vendorItem.companyWeb }}" target="_blank">Visit Website</a>
+                    </div>
+                    <p class="text-light mx-2 mb-0"
+                        data-ng-if="$ctrl.vendorItem.companyPhone && $ctrl.vendorItem.companyWeb">-</p>
+                    <div class="form-group row" data-ng-if="$ctrl.vendorItem.companyPhone">
+                        <a class="text-light" href="tel:{{ $ctrl.vendorItem.companyPhone }}">
+                            {{ $ctrl.vendorItem.companyPhone }}</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.companyWeb">
-                <label class="col-4">
-                    Website:
-                </label>
-                <div class="col-8 text-truncate">
-                    <a data-ng-href="{{ $ctrl.vendorItem.companyWeb }}" target="_blank">{{ $ctrl.vendorItem.companyWeb }}</a>
+
+            <div class="p-3 d-flex flex-column justify-content-between vendor-card pb-0" >
+
+                <div class="Card-Body" >
+                    <div class="form-group " data-ng-if="$ctrl.vendorItem.contactName">
+                        <div class="d-flex">
+                            <i class="bi bi-person-circle fs-4"></i>
+                            <h3 class="text-bold ms-2">{{$ctrl.vendorItem.contactName}}</h3>
+                        </div>
+                        <div data-ng-if=" $ctrl.vendorItem.fullAddress.oneLiner ">
+                            <i class="bi bi-geo-alt"></i>
+                            <a target="_blank" 
+                                    data-ng-href="https://maps.google.com/?q={{ $ctrl.vendorItem.fullAddress.oneLiner }}">{{
+                                    $ctrl.vendorItem.fullAddress.oneLiner }} (View location)</a>
+                        </div>
+                    </div>
+                    <div class="form-group mb-1" data-ng-if="$ctrl.vendorItem.servicesProvidedFriendly">
+                        <p class=" fs-6 mt-1 margin-right-10 text-dark ">
+                            <b>Services:</b> {{ $ctrl.vendorItem.servicesProvidedFriendly}}
+                        </p>
+                    </div> 
                 </div>
-            </div>
 
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.fullAddress.oneLiner">
-                <label class="col-4">
-                    Address:
-                </label>
-                <div class="col-8">
-                    <a target="_blank" data-ng-href="https://maps.google.com/?q={{ $ctrl.vendorItem.fullAddress.oneLiner }}">{{ $ctrl.vendorItem.fullAddress.oneLiner }}</a>
+
+                <div class="card-footer" >
+
+                    <div class="row max-width-card justify-content-center  ">
+                        <div class="col-lg-6 no-padding " data-ng-if="$ctrl.vendorItem.contactPhone"
+                            data-ng-class="{'w-100': !$ctrl.vendorItem.contactEmail}">
+                            <a class="btn bg-light w-100  rounded-0 btn-lg " style="border: 2px solid #1c597c;"
+                                data-ng-href="tel:{{$ctrl.vendorItem.contactPhone}}">
+                                <i class="bi bi-telephone"></i>
+                                {{$ctrl.vendorItem.contactPhone}}
+                            </a>
+                        </div>
+                        <div class="col-lg-6 no-padding" data-ng-if="$ctrl.vendorItem.contactEmail"
+                        data-ng-class="{'w-100': !$ctrl.vendorItem.contactPhone}"
+                        >
+                            <a class="btn btn-primary w-100  rounded-0 btn-lg"
+                                data-ng-href="mailto:{{$ctrl.vendorItem.contactEmail}}" style="background-color: #1c597c; border: 2px solid #1c597c;">
+                                <i class="bi bi-envelope"></i>
+                                {{$ctrl.vendorItem.contactEmail}}
+                            </a>
+                        </div>
+                    </div>
+
+
+                    <div class="row ">
+                        <div class="form-group border-top no-padding border-bottom row m-0 py-0 max-width-card"
+                            data-ng-if="$ctrl.vendorItem.notes" style="min-height:84px;">
+                            <label class="text-bold mt-1"> Notes:</label>
+                            <p class=" ">{{ $ctrl.vendorItem.notes | limitTo: 120 }}</p>
+                        </div>
+                        <div class="col-lg-12 row py-1 review-container">
+                            <div class="col-lg-8 col-md-12  justify-content-center align-middle">
+                                <p>
+                                    Stars Rating
+                                </p>
+                            </div>
+                            <div class="col-xl-4 col-lg-4 col-md-12  no-padding d-flex justify-content-end details-btn-container ">
+                                <button class="btn btn-primary details-btn border-0" style="background-color: #1c597c;">View Details</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.contactName">
-                <label class="col-4">
-                    Contact Name:
-                </label>
-                <div class="col-8">
-                    {{ $ctrl.vendorItem.contactName }}
-                </div>
             </div>
-
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.contactPhone">
-                <label class="col-4">
-                    Contact Phone:
-                </label>
-                <div class="col-8">
-                    <a href="tel:{{ $ctrl.vendorItem.contactPhone }}">{{ $ctrl.vendorItem.contactPhone }}</a>
-                </div>
-            </div>
-
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.contactEmail">
-                <label class="col-4">
-                    Contact Email:
-                </label>
-                <div class="col-8 text-truncate">
-                    <a data-ng-href="mailto:{{ $ctrl.vendorItem.contactEmail }}">{{ $ctrl.vendorItem.contactEmail }}</a>
-                </div>
-            </div>
-
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.servicesProvidedFriendly">
-                <label class="col-4">
-                    Services:
-                </label>
-                <div class="col-8">
-                    {{ $ctrl.vendorItem.servicesProvidedFriendly }}
-                </div>
-            </div>
-
-            <div class="form-group row mb-1"  data-ng-if="$ctrl.vendorItem.notes">
-                <label class="col-4">
-                    Notes:
-                </label>
-                <div class="col-8">
-                    {{ $ctrl.vendorItem.notes }}
-                </div>
-            </div>
-
-            <div class="note-text">
-                Added {{ $ctrl.vendorItem.addedDateUtc | date:'MMMM d, y' }} <span data-ng-show="$ctrl.vendorItem.addedByFullName">by {{ $ctrl.vendorItem.addedByFullName }}</span>
-            </div>
-        </div>
-
+        
     </div>
 
     <form data-ng-if="$ctrl.isInEditMode">
         <div class="form-group row">
-            <label class="col-4">
-                Company Name:
-            </label>
+            <label class="col-4"> Company Name: </label>
             <div class="col-8">
-                <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editVendorItem.companyName" />
+                <input type="text" class="form-control form-control-sm"
+                    data-ng-model="$ctrl.editVendorItem.companyName" />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Phone:
-            </label>
+            <label class="col-4"> Phone: </label>
             <div class="col-8">
-                <input type="text" class="form-control form-control-sm mask-phone" data-ng-model="$ctrl.editVendorItem.companyPhone" />
+                <input type="text" class="form-control form-control-sm mask-phone"
+                    data-ng-model="$ctrl.editVendorItem.companyPhone" />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Website:
-            </label>
+            <label class="col-4"> Website: </label>
             <div class="col-8">
-                <input type="text" class="form-control form-control-sm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-ng-model="$ctrl.editVendorItem.companyWeb" />
+                <input type="text" class="form-control form-control-sm" autocomplete="off" autocorrect="off"
+                    autocapitalize="off" spellcheck="false" data-ng-model="$ctrl.editVendorItem.companyWeb" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-4"> Address: </label>
+            <div class="col-8">
+                <input type="text" class="form-control form-control-sm"
+                    data-ng-attr-id="{{'vendor-' + $ctrl.vendorItem.preferredVendorId + '-address-text-box'}}"
+                    data-ng-model="$ctrl.editVendorItem.fullAddress.oneLiner" />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Address:
-            </label>
+            <label class="col-4"> Contact Name: </label>
             <div class="col-8">
-                <input type="text" class="form-control form-control-sm" data-ng-attr-id="{{'vendor-' + $ctrl.vendorItem.preferredVendorId + '-address-text-box'}}" data-ng-model="$ctrl.editVendorItem.fullAddress.oneLiner" />
+                <input type="text" class="form-control form-control-sm"
+                    data-ng-model="$ctrl.editVendorItem.contactName" />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Contact Name:
-            </label>
+            <label class="col-4"> Contact Phone: </label>
             <div class="col-8">
-                <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editVendorItem.contactName" />
+                <input class="mask-phone form-control form-control-sm" type="tel"
+                    data-ng-model="$ctrl.editVendorItem.contactPhone" />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Contact Phone:
-            </label>
+            <label class="col-4"> Contact Email: </label>
             <div class="col-8">
-                <input class="mask-phone form-control form-control-sm" type="tel" data-ng-model="$ctrl.editVendorItem.contactPhone" />
+                <input type="email" class="form-control form-control-sm"
+                    data-ng-model="$ctrl.editVendorItem.contactEmail" />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Contact Email:
-            </label>
+            <label class="col-4"> Services: </label>
             <div class="col-8">
-                <input type="email" class="form-control form-control-sm" data-ng-model="$ctrl.editVendorItem.contactEmail" />
-            </div>
-        </div>
-
-        <div class="form-group row">
-            <label class="col-4">
-                Services:
-            </label>
-            <div class="col-8">
-                <tags-input style="width: 90%;" ng-model="$ctrl.editVendorItem.servicesTagArray" data-replace-spaces-with-dashes="false">
-                    <auto-complete data-min-length="1" data-source="$ctrl.getServiceAutocomplete($query)"></auto-complete>
+                <tags-input style="width: 90%" ng-model="$ctrl.editVendorItem.servicesTagArray"
+                    data-replace-spaces-with-dashes="false">
+                    <auto-complete data-min-length="1"
+                        data-source="$ctrl.getServiceAutocomplete($query)"></auto-complete>
                 </tags-input>
-                <span class="note-text">Press the TAB or ENTER key to add multiple services. You can add anything, you are not required to choose from the suggested services.</span>
+                <span class="note-text">Press the TAB or ENTER key to add multiple services. You can add
+                    anything, you are not required to choose from the suggested
+                    services.</span>
                 <br />
             </div>
         </div>
 
         <div class="form-group row">
-            <label class="col-4">
-                Notes:
-            </label>
+            <label class="col-4"> Notes: </label>
             <div class="col-8">
-                <textarea class="form-control form-control-sm" rows="5" data-ng-model="$ctrl.editVendorItem.notes"></textarea>
+                <textarea class="form-control form-control-sm" rows="5"
+                    data-ng-model="$ctrl.editVendorItem.notes"></textarea>
             </div>
         </div>
 
         <div>
-            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSaveVendor()">Save</button>
-            <button type="button" class="btn btn-primary" data-ng-if="!$ctrl.isAddForm" data-ng-click="$ctrl.onCancelEdit()">Cancel</button>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSaveVendor()">
+                Save
+            </button>
+            <button type="button" class="btn btn-primary" data-ng-if="!$ctrl.isAddForm"
+                data-ng-click="$ctrl.onCancelEdit()">
+                Cancel
+            </button>
         </div>
-
     </form>
 </div>

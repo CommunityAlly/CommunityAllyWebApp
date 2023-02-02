@@ -960,6 +960,9 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
+//OverrideBaseApiPath = "https://7478.webappapi.mycommunityally.org/api/";
+OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -1044,18 +1047,18 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                 appCacheService.set(AppCacheService.Key_WasLoggedIn403, "true");
                             // If the user is unauthorized but has saved credentials, try to log-in then retry the request
                             if (status === 401 && HtmlUtil.isValidString(window.localStorage["rememberMe_Email"])) {
-                                var $http = $injector.get("$http");
+                                var $http_1 = $injector.get("$http");
                                 // Multiple requests can come in at the same time with 401, so let's store
                                 // our login promise so subsequent calls can tie into the first login
                                 // request
                                 if (!$rootScope.retryLoginDeffered) {
                                     $rootScope.retryLoginDeffered = $q.defer();
-                                    var loginInfo = {
+                                    var loginInfo_1 = {
                                         emailAddress: window.localStorage["rememberMe_Email"],
                                         password: atob(window.localStorage["rememberMe_Password"])
                                     };
                                     var retryLogin = function () {
-                                        $http.post("/api/Login", loginInfo).then(function (httpResponse) {
+                                        $http_1.post("/api/Login", loginInfo_1).then(function (httpResponse) {
                                             var loginData = httpResponse.data;
                                             var siteInfo = $injector.get("SiteInfo");
                                             // Store the new auth token
@@ -1074,10 +1077,10 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     // Wait, just a bit, to let any other requests come in with a 401
                                     setTimeout(retryLogin, 1000);
                                 }
-                                var retryRequestDeferred = $q.defer();
+                                var retryRequestDeferred_1 = $q.defer();
                                 $rootScope.retryLoginDeffered.promise.then(function () {
                                     // Retry the request
-                                    retryRequestDeferred.resolve($http(response.config));
+                                    retryRequestDeferred_1.resolve($http_1(response.config));
                                     //$http( response.config ).then( function( newResponse )
                                     //{
                                     //    retryRequestDeferred.resolve( newResponse );
@@ -1086,9 +1089,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     //    retryRequestDeferred.reject( response );
                                     //} );
                                 }, function () {
-                                    retryRequestDeferred.reject(response);
+                                    retryRequestDeferred_1.reject(response);
                                 });
-                                return retryRequestDeferred.promise;
+                                return retryRequestDeferred_1.promise;
                             }
                             // Home, the default page, and login don't need special redirection or user messaging
                             if ($location.path() !== "/Home" && $location.path() !== "/Login") {
@@ -11466,7 +11469,6 @@ var Ally;
          * The constructor for the class
          */
         function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents, $location) {
-            var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$cacheFactory = $cacheFactory;
@@ -11488,16 +11490,16 @@ var Ally;
             this.fileSearch = {
                 all: ""
             };
-            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
-            // Make sure committee members can manage their data
-            if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         DocumentsController.prototype.$onInit = function () {
             var _this = this;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             this.apiAuthToken = this.$rootScope.authToken;
             this.Refresh();
             var hookUpFileUpload = function () {
@@ -14616,8 +14618,9 @@ var Ally;
             this.isLoading = false;
             this.isSiteManager = false;
             this.usedServiceTags = [];
-            this.filterTags = [];
+            this.filterTags = ["All"];
             this.entriesSortAscending = true;
+            this.expanded = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -14632,6 +14635,23 @@ var Ally;
             else
                 this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
             this.retrieveVendors();
+        };
+        /**
+         * Show multiple select
+         */
+        PreferredVendorsController.prototype.showCheckboxes = function () {
+            var checkboxes = document.getElementById("checkboxes");
+            if (!this.expanded) {
+                checkboxes.style.display = "block";
+                checkboxes.style.position = "absolute";
+                checkboxes.style.zIndex = "1";
+                checkboxes.style.backgroundColor = "#fff";
+                this.expanded = true;
+            }
+            else {
+                checkboxes.style.display = "none";
+                this.expanded = false;
+            }
         };
         /**
          * Populate the vendors
@@ -14724,12 +14744,21 @@ var Ally;
             var _this = this;
             // Add if the tag to our filter list if it's not there, remove it if it is
             var tagCurrentIndex = this.filterTags.indexOf(tagName);
-            if (tagCurrentIndex === -1)
+            var checkboxes = document.getElementById("checkboxes");
+            var indexOfAll = this.filterTags.indexOf("All");
+            var servicesSelect = document.querySelector('servicesSelect');
+            if (tagCurrentIndex === -1) {
                 this.filterTags.push(tagName);
+                if (indexOfAll !== -1) {
+                    this.filterTags.shift();
+                }
+            }
             else
                 this.filterTags.splice(tagCurrentIndex, 1);
-            if (this.filterTags.length === 0)
+            if (this.filterTags.length === 0) {
+                this.filterTags.push("All");
                 this.filteredVendors = this.allVendors;
+            }
             else {
                 this.filteredVendors = [];
                 // Grab any vendors that have one of the tags by which we're filtering
@@ -14738,6 +14767,8 @@ var Ally;
                         _this.filteredVendors.push(v);
                 });
             }
+            checkboxes.style.display = "none";
+            servicesSelect.style.display = "none";
         };
         PreferredVendorsController.prototype.onAddedNewVendor = function () {
             this.retrieveVendors();

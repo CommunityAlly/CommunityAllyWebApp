@@ -1,29 +1,119 @@
-﻿<section class="info" style="min-height: 500px; position: relative;">
+﻿<style>
+    .multiselect {
+  width: 190px;
+}
+
+.selectBox {
+  position: relative;
+  width: max-content;
+}
+
+.selectBox select {
+  width:190px;
+  height: 32px;
+  border-radius: 6px;
+}
+.sort-select{
+  
+  height: 32px;
+  border-radius: 6px;
+}
+.overSelect {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  
+}
+
+#checkboxes {
+  display: none;
+  border: 1px #dadada solid;
+  padding: 8px;
+  right: 0;
+  
+}
+
+#checkboxes label {
+  display: block;
+  
+  
+}
+
+#checkboxes input {
+  margin-right: 0.25rem;
+}
+#checkboxes label:hover {
+  background-color: #1e90ff;
+  color: #fff;
+}
+</style>
+<section class="info" style="min-height: 500px; position: relative;">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Documents & Info
+                </a></li>
+            <li class="breadcrumb-item active" aria-current="page">Vendors</li>
+        </ol>
+    </nav>
     <h2>Vendors</h2>
 
-    <p class="margin-bottom-30">
-        The following list of vendors is provided for convenience and is not to be construed as an endorsement by the association. You should make whatever investigation you feel necessary or appropriate before proceeding with any vendor.
-    </p>
-
-    <div data-ng-if="$ctrl.usedServiceTags.length > 1">
-        <span style="font-weight: bold;">Filter By Service:</span><br />
-        <label class="margin-right-10 d-inline-block" data-ng-repeat="tag in $ctrl.usedServiceTags">
-            <input type="checkbox" data-ng-click="$ctrl.onTagFilterToggle( tag )" />{{ tag }}
-        </label>
-    </div>
-
-    <div class="row mt-2">
-        <div class="col-12">
-            Sort By:
-            <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'entryDate'}" data-ng-click="$ctrl.updateEntriesSort('entryDate')">Added Date</span>
-            - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'name'}" data-ng-click="$ctrl.updateEntriesSort('name')">Name</span>
-        </div>
-    </div>
-
     <div class="row">
-        <div class="col-md-6 col-sm-12 mt-sm-5 mt-md-3" data-ng-repeat="vendor in $ctrl.filteredVendors">
-            <preferred-vendor-item class="stacking-cells" vendor-item="vendor" on-parent-data-needs-refresh="$ctrl.retrieveVendors();"></preferred-vendor-item>
+        <div class="col-lg-6">
+            <p>
+                The following list of vendors is provided for convenience and is not to be construed as an endorsement
+                by the association. You should make whatever investigation you feel necessary or appropriate before
+                proceeding with any vendor.
+            </p>
+
+        </div>
+        <div class="col-lg-6  d-flex justify-content-lg-end">
+            <div >
+                <button type="button" class="btn btn-primary mb-md-2 mb-sm-2" >Add Vendor</button>
+            </div>
+        </div>
+
+    </div>
+
+  
+
+   <div class="d-flex justify-content-between row">
+    <div class="multiselect col-lg-6 col-md-6 col-sm-12  mb-sm-2">
+        <div class="selectBox " data-ng-click="$ctrl.showCheckboxes()">
+            Filter Services:
+          <select >
+            <option>{{$ctrl.filterTags.join(', ')}}</option>
+            
+          </select>
+          <div id="checkboxes" >
+            <label for="{{tag}}" data-ng-repeat="tag in $ctrl.usedServiceTags">
+              <input type="checkbox" id="{{tag}}"  data-ng-click="$ctrl.onTagFilterToggle( tag )"/>{{tag |
+                limitTo:20}}{{tag.length>23 ? '...':''}}</label>
+                
+          </div>
+          <div class="overSelect"></div>
+        </div>
+       
+      </div>
+      <div class="row  col-lg-6 col-md-6 col-sm-12 ">
+          <div class="d-flex justify-content-lg-end justify-content-md-end align-items-center mt">
+            Sort By: 
+            <select class="col-lg-3 sort-select" data-ng-model="$ctrl.entriesSortField" data-ng-change="$ctrl.updateEntriesSort($ctrl.entriesSortField)">
+              <option selected value="entryDate">Added Date</option>
+              <option value="name">Name</option>
+            </select>
+          </div>
+    </div>
+   
+   </div>
+    </div>
+
+      <div class="row ">
+        <div class="col-md-6 col-sm-12 mt-sm-5 mt-md-3 " data-ng-repeat="vendor in $ctrl.filteredVendors | limitTo:10">
+            <preferred-vendor-item class="stacking-cells" vendor-item="vendor"
+                on-parent-data-needs-refresh="$ctrl.retrieveVendors();"></preferred-vendor-item>
         </div>
     </div>
     <br />
@@ -36,7 +126,8 @@
         <a href="javascript:void(0)" class="text-link" data-ng-click="$ctrl.exportVendorCsv()">Export To CSV</a>
     </div>
     <hr />
-    <div data-ng-show="$ctrl.isSiteManager" class="margin-top bt">
+    <!-- 
+   <div data-ng-show="$ctrl.isSiteManager" class="margin-top bt">
         <div>
             <h4 class="margin-bottom-10">Add a New Vendor</h4>
             <div class="row">
@@ -46,4 +137,14 @@
             </div>
         </div>
     </div>
+    -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        </ul>
+    </nav>
 </section>
