@@ -29,7 +29,6 @@ var allyLibTopFiles = [
     'Website/js/design_v2/jquery.hotkeys.js',
     'Website/js/design_v2/jquery.selectbox-0.2.min.js',
     'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
-    'Website/js/design_v2/bootstrap-wysiwyg.js',
     'Website/js/design_v2/main.js',
     'Website/js/lib/jquery/jquery-ui-1.11.2.min.js'
 ];
@@ -121,7 +120,7 @@ grunt.initConfig({
                     'Website/js/lib/other/clipboard.js',
                     'Website/js/lib/other/popper.min.js',
                     'Website/js/lib/other/tether.min.js',
-                    'Website/js/lib/other/bootstrap.js',
+                    'Website/js/lib/other/bootstrap.bundle.min.js',
                     'Website/js/lib/other/md5.js'
                 ]
             }
@@ -169,7 +168,7 @@ grunt.initConfig({
                     'Website/third-party-css/angular-wizard.min.css',
                     'Website/third-party-css/isteven-multi-select.css',
                     'Website/assets/lib/fullcalendar/fullcalendar.min.css',
-                    'Website/assets/compiled-css/bootstrap.css',
+                    'Website/assets/compiled-css/bootstrap.min.css',
                     'Website/assets/compiled-css/style.css'
                 ]
             }
