@@ -31,10 +31,15 @@
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=41"></script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places&callback=onGoogleMapsReady"></script>
     <script async defer src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
     <script async defer src='https://www.google.com/recaptcha/api.js'></script>
     <script>
+        function onGoogleMapsReady()
+        {
+            // Placeholder as this callback is required for Google Maps JS library
+        }
+
         var CA = CA || {};
 
         // Create the module that contains our controllers
