@@ -109,7 +109,7 @@
         shouldShowNeedsAssessmentSetup: boolean = false;
         hasAssessments: boolean | null = null;
         todaysPayPeriod: { periodValue: number, yearValue: number };
-
+        totalEstBalance: number;
 
 
         /**
@@ -621,6 +621,11 @@
                     else
                         unit.estBalance = undefined;
                 } );
+
+                this.totalEstBalance = paymentInfo.units
+                    .filter( ( u: UnitWithPayment ) => u.estBalance !== undefined && !isNaN( u.estBalance ) )
+                    .map(( u: UnitWithPayment ) => u.estBalance || 0 )
+                    .reduce( ( total, val ) => total + val, 0 );
 
                 // Sort the units by name
                 const sortedUnits: UnitWithPayment[] = Array.from( this.unitPayments.values() );

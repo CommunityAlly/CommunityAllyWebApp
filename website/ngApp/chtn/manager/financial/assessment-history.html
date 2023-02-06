@@ -102,6 +102,9 @@
                 <tfoot>
                     <tr data-ng-if="$ctrl.showPaymentInfo" class="text-bold">
                         <th class="text-right">Sum:</th>
+                        <th data-ng-if="$ctrl.shouldShowBalanceCol">
+                            {{ $ctrl.totalEstBalance | currency }}
+                        </th>
                         <th data-ng-repeat="period in $ctrl.visiblePeriodNames" id="bottomsum-cell-{{ unitIndex }}-{{ $index }}" class="month-cell">
                             {{ $ctrl.getPaymentSumForPayPeriod( $index ) | currency }}
                         </th>

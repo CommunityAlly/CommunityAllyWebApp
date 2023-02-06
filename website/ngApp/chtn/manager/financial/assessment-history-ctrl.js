@@ -442,6 +442,10 @@ var Ally;
                     else
                         unit.estBalance = undefined;
                 });
+                _this.totalEstBalance = paymentInfo.units
+                    .filter(function (u) { return u.estBalance !== undefined && !isNaN(u.estBalance); })
+                    .map(function (u) { return u.estBalance || 0; })
+                    .reduce(function (total, val) { return total + val; }, 0);
                 // Sort the units by name
                 var sortedUnits = Array.from(_this.unitPayments.values());
                 _this.nameSortedUnitPayments = Ally.HtmlUtil2.smartSortStreetAddresses(sortedUnits, "name");
