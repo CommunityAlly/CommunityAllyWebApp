@@ -146,62 +146,6 @@ var Ally;
     var RichTextHelper = /** @class */ (function () {
         function RichTextHelper() {
         }
-        RichTextHelper.initToolbarBootstrapBindings = function () {
-            var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier',
-                'Courier New', 'Comic Sans MS', 'Helvetica', 'Impact', 'Lucida Grande', 'Lucida Sans', 'Tahoma', 'Times',
-                'Times New Roman', 'Verdana'], fontTarget = $('[title=Font]').siblings('.dropdown-menu');
-            $.each(fonts, function (idx, fontName) {
-                fontTarget.append($('<li><a data-edit="fontName ' + fontName + '" style="font-family:\'' + fontName + '\'">' + fontName + '</a></li>'));
-            });
-            var tooltipper = $('a[title]');
-            tooltipper.tooltip({ container: 'body' });
-            $('.dropdown-menu input')
-                .click(function () { return false; })
-                .change(function () {
-                var drops = $(this).parent('.dropdown-menu').siblings('.dropdown-toggle');
-                drops.dropdown('toggle');
-            })
-                .keydown('esc', function () { this.value = ''; $(this).change(); });
-            $('[data-role=magic-overlay]').each(function () {
-                var overlay = $(this), target = $(overlay.data('target'));
-                overlay.css('opacity', 0).css('position', 'absolute').offset(target.offset()).width(target.outerWidth()).height(target.outerHeight());
-            });
-            if ("onwebkitspeechchange" in document.createElement("input")) {
-                var editorOffset = $('#editor').offset();
-                $('#voiceBtn').css('position', 'absolute').offset({ top: editorOffset.top, left: editorOffset.left + $('#editor').innerWidth() - 35 });
-            }
-            else {
-                $('#voiceBtn').hide();
-            }
-            $("#rte-new-link-url").on("keydown", function (evt) {
-                var EnterKey = 13;
-                if (evt.keyCode === 13) {
-                    evt.preventDefault();
-                    // Doesn't seem to work
-                    //$( "#rte-new-link-button" ).click();
-                    //$( "#rte-add-link-button" ).click();
-                }
-            });
-            $("#rte-add-link-parent-button").on("click", function () {
-                console.log("selection: " + window.getSelection().toString());
-                if (!window.getSelection().toString()) {
-                    $("#rte-new-link-no-selection-label").show();
-                    $("#rte-new-link-url").hide();
-                    $("#rte-new-link-button").hide();
-                    return;
-                }
-                $("#rte-new-link-no-selection-label").hide();
-                $("#rte-new-link-url").show();
-                $("#rte-new-link-button").show();
-                window.setTimeout(function () {
-                    //const rte = document.getElementById( "editor" ) as HTMLDivElement;
-                    $("#rte-new-link-url").focus();
-                    //const linkInput = document.getElementById( "rte-new-link-url" ) as HTMLInputElement;
-                    //window.setTimeout( () => linkInput.focus(), 100 );
-                    //linkInput.selectionStart = linkInput.selectionEnd = 10000; // From https://stackoverflow.com/questions/511088/use-javascript-to-place-cursor-at-end-of-text-in-text-input-element
-                }, 200);
-            });
-        };
         RichTextHelper.showFileUploadAlert = function (reason, detail) {
             var msg = "";
             if (reason === "unsupported-file-type")
