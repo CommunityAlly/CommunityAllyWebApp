@@ -523,7 +523,8 @@
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCheckoutDetails"></div>
                 <table>
                     <tbody>
-                        <tr><td class="text-right">Transfer ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
+                        <tr><td class="text-right" style="width:100px">Transfer ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
+                        <tr><td class="text-right">ACH ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.individualAchId }}</td></tr>
                         <tr><td class="text-right">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
                         <tr><td class="text-right">Amount: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
                         <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-right">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
