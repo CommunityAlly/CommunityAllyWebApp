@@ -37,42 +37,36 @@
         </div>
         <hr />
 
-        <form data-ng-if="$ctrl.selectedProfileView==='Primary'">
-            <div class="form-group row">
-                <label for="firstNameTextBox" class="col-4 text-right">
+        <form data-ng-if="$ctrl.selectedProfileView==='Primary'" class="row g-4">
+            <div class="col-12">
+                <label for="firstNameTextBox" class="form-label">
                     First Name:
                 </label>
-                <div class="col-8">
-                    <input id="firstNameTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.firstName" type="text" />
-                </div>
+                <input id="firstNameTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.firstName" type="text" />
             </div>
 
-            <div class="form-group row">
-                <label for="lastNameTextBox" class="col-4 text-right">
+            <div class="col-12">
+                <label for="lastNameTextBox" class="form-label">
                     Last Name:
                 </label>
-                <div class="col-8">
-                    <input id="lastNameTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.lastName" type="text" />
-                </div>
+                <input id="lastNameTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.lastName" type="text" />
             </div>
 
-            <div class="form-group row">
-                <label for="emailTextBox" class="col-4 text-right">
+            <div class="col-12">
+                <label for="emailTextBox" class="form-label">
                     Email:
                 </label>
-                <div class="col-8">
-                    <input id="emailTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.email" type="text" />
-                    <span class="note-text">This is also used for login. Your email address will never be used for anything other than communication with your association and we will never give out your contact information.</span>
-                </div>
+                <input id="emailTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.email" type="text" />
+                <div class="form-text">This is also used for login. Your email address will never be used for anything other than communication with your association and we will never give out your contact information.</div>
             </div>
 
-            <div class="form-group row">
-                <label for="passwordTextBox" class="col-4 text-right">
+            <div class="col-12">
+                <label for="passwordTextBox" class="form-label">
                     Password:
                 </label>
-                <div class="col-8">
-                    <input id="passwordTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.password" data-ng-change="$ctrl.onPasswordChange()" type="password" maxlength="100" autocomplete="new-password" />
-                    <span class="note-text">
+                <input id="passwordTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.password" data-ng-change="$ctrl.onPasswordChange()" type="password" maxlength="100" autocomplete="new-password" />
+                <div class="col-12">
+                    <span class="form-text">
                         Enter a value to change your password.
                     </span>
                     <label style="font-size: small;" class="ml-2"><input type="checkbox" data-ng-model="$ctrl.shouldShowPassword" data-ng-change="$ctrl.onShowPassword()" /> Show password</label>
@@ -88,24 +82,22 @@
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label for="phoneNumberTextBox" class="col-4 text-right">
+            <div class="col-12">
+                <label for="phoneNumberTextBox" class="form-label">
                     Cell Phone Number:
                 </label>
-                <div class="col-8">
-                    <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
-                    <span class="note-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association. You can add an alternate phone number in the secondary tab.</span>
-                    <div data-ng-if="$ctrl.canHideContactInfo">
-                        <br />
-                        <label><input type="checkbox" id="showMyPhoneNumber" data-ng-model="$ctrl.profileInfo.showPhoneInMeetNeighbors" /> Show my phone number and email address on the <a href="#!/BuildingResidents">Residents</a> page.</label>
-                        <div class="note-text">With this unchecked, your neighbors can still contact you, but we keep your email addres private. If you check this box, you consent to sharing your actual email address and phone number.</div>
-                        <br />
-                    </div>
+                <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
+                <span class="form-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association. You can add an alternate phone number in the secondary tab.</span>
+                <div data-ng-if="$ctrl.canHideContactInfo">
+                    <br />
+                    <label><input type="checkbox" id="showMyPhoneNumber" data-ng-model="$ctrl.profileInfo.showPhoneInMeetNeighbors" /> Show my phone number and email address on the <a href="#!/BuildingResidents">Residents</a> page.</label>
+                    <div class="note-text">With this unchecked, your neighbors can still contact you, but we keep your email addres private. If you check this box, you consent to sharing your actual email address and phone number.</div>
+                    <br />
                 </div>
             </div>
 
-            <!--<div class="form-group row">
-                <label class="col-4 text-right">
+            <!--<div class="col-12">
+                <label class="form-label">
                     SMS Consent:
                 </label>
                 <div class="col-8">
@@ -116,19 +108,16 @@
                 </div>
             </div>-->
 
-            <div class="form-group row">
-                <label class="col-4 text-right" for="includeInDiscussionEmailTextBox">
+            <div class="col-12">
+                <label class="form-label" for="includeInDiscussionEmailTextBox">
                     Discussion Email:
                 </label>
-                <div class="col-8">
-                    <input id="includeInDiscussionEmailTextBox" data-ng-model="$ctrl.profileInfo.includeInDiscussionEmail" type="checkbox" />
-                    <br />
-                    <span class="note-text">Indicates if you want to receive emails sent to the discussion group email address.</span>
-                </div>
+                <input id="includeInDiscussionEmailTextBox" class="form-check-input" data-ng-model="$ctrl.profileInfo.includeInDiscussionEmail" type="checkbox" />
+                <div class="form-text">Indicates if you want to receive emails sent to the discussion group email address.</div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-4 text-right" for="includeInDiscussionEmailTextBox">
+            <div class="col-12">
+                <label class="form-label" for="includeInDiscussionEmailTextBox">
                     Discussion Threads:
                 </label>
                 <div class="col-8">
@@ -137,24 +126,16 @@
                     <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.profileInfo.defaultDigestFrequency" value="nightly" name="digest-frequency" />Nightly</label>
                     <label style="margin-left: 14px;"><input type="radio" data-ng-model="$ctrl.profileInfo.defaultDigestFrequency" value="weekly" name="digest-frequency" />Weekly on Sunday</label>
                     <br />
-                    <span class="note-text">When new discussion threads get created, this is how often you'll receive updates on missed comments. Only sent when on the premium plan. <a href="https://help.communityally.org/discussion-threads/" target="_blank">Learn about discussion threads.</a>.</span>
+                    <span class="form-text">When new discussion threads get created, this is how often you'll receive updates on missed comments. Only sent when on the premium plan. <a href="https://help.communityally.org/discussion-threads/" target="_blank">Learn about discussion threads.</a>.</span>
                 </div>
             </div>
         </form>
 
-        <form data-ng-if="$ctrl.selectedProfileView==='Secondary'">
+        <form data-ng-if="$ctrl.selectedProfileView==='Secondary'" class="row g-4">
             <div class="col-md-6 col-sm-12">
-                <div class="form-group row">
-                    <label for="alternate-phone-number-text-box" class="col-sm-5 col-xs-12 font-weight-bold text-right"">Alternate Phone:</label>
-                    <div class="col-sm-7 col-xs-12">
-                        <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.alternatePhoneNumber" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-sm-12">
-                <div class="form-group row">
-
+                <div class="col-12">
+                    <label class="form-label" for="alternate-phone-number-text-box">Alternate Phone:</label>
+                    <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.alternatePhoneNumber" />
                 </div>
             </div>
 
@@ -194,11 +175,11 @@
             If using a profile photo, you must use a photo of yourself (you can include family) and it cannot contain any nudity or profanity. Photos that don't meet these
             guidelines will be automatically cleared out. Ideally, use a head shot that will help your neighbors recognize you.
         </div>
-        <div class="form-group row">
+        <div class="col-12">
             <div class="col-3"></div>
             <div class="col-9">
-                <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('blank')" value="blank" /><img src="/assets/images/blank-headshot.png" style="width: 80px; height: 80px;" /> Blank Image</label><br />
-                <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('gravatar')" value="gravatar" /><img data-ng-src="{{ $ctrl.gravatarUrl }}" style="width: 80px; height: 80px;" /> Gravatar (<a href="https://en.gravatar.com/" target="_blank">Learn more</a>)</label><br />
+                <label class="mb-3"><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('blank')" value="blank" /><img src="/assets/images/blank-headshot.png" style="width: 80px; height: 80px;" /> Blank Image</label><br />
+                <label class="mb-3"><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('gravatar')" value="gravatar" /><img data-ng-src="{{ $ctrl.gravatarUrl }}" style="width: 80px; height: 80px;" /> Gravatar (<a href="https://en.gravatar.com/" target="_blank">Learn more</a>)</label><br />
                 <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" value="upload" />Uploaded Photo</label>
                 <div data-ng-show="$ctrl.profileImageType === 'upload'">
                     <div style="float: left; width: 82px; height: 82px; border: 1px solid black;">
