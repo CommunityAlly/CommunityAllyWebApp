@@ -121,7 +121,7 @@
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">
                                 Email undeliverable:
-                                <b title="{{$ctrl.editUser.badEmailDate | date:'medium'}}">{{$ctrl.editUser.friendlyBadEmailReason}}</b>
+                                <b title="Reported {{$ctrl.editUser.badEmailDate | date:'medium'}}">{{$ctrl.editUser.friendlyBadEmailReason}}</b>
                                 <a href="https://help.communityally.org/undeliverable-email-addresses/" target="_blank">Learn More</a>
                             </div>
                         </div>
@@ -272,7 +272,7 @@
 
                     <input type="hidden" value="{{$ctrl.editUser.userId}}" />
                     <div class="text-sm-right" data-ng-if="$ctrl.editUser.userId.length > 0">
-                        <span class="note-text" data-ng-if="$ctrl.editUser.lastLoginDateUtc">Last logged-in {{ $ctrl.editUser.lastLoginDateUtc | date:'EEEE, MMMM d, y h:mma' }}</span>
+                        <span class="note-text" data-ng-if="$ctrl.editUser.lastLoginDateUtc" title="Resident added {{$ctrl.editUser.addedDateUtc | date:'medium'}}">Last logged-in {{ $ctrl.editUser.lastLoginDateUtc | date:'EEEE, MMMM d, y h:mma' }}</span>
                         <span class="note-text" data-ng-if="!$ctrl.editUser.lastLoginDateUtc">Has not logged-in yet</span>
                     </div>
                 </div>
