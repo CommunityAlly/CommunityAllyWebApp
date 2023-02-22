@@ -176,7 +176,7 @@
                             NOTE: You have auto-pay setup so be careful of double payments.
                         </div>
                         <div>
-                            You can cancel within 24 hours of payment. {{$ctrl.dwollaFeePercent}}% fee (max ${{$ctrl.dwollaMaxFee}}) ({{$ctrl.dwollaFeeAmountString}}) applies.
+                            You can cancel within 24 hours of payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}, max ${{$ctrl.dwollaMaxFee}}) applies.
                             <div class="mt-3 text-right note-text">
                                 Account: <b>{{$ctrl.dwollaFundingSourceName}}</b> - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
                             </div>
@@ -364,7 +364,7 @@
                             <br />
                             <input type="button" class="btn btn-primary" data-ng-click="$ctrl.enableDwollaAutoPay()" value="Enable Auto-Pay">
                             <br />
-                            {{$ctrl.dwollaFeePercent}}% fee (max ${{$ctrl.dwollaMaxFee}}) ({{$ctrl.getFeeAmount($ctrl.newDwollaAutoPayAmount) | currency}}) applies.
+                            {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.getFeeAmount($ctrl.assessmentAmount) | currency}}, max ${{$ctrl.dwollaMaxFee}}) applies.
                         </div>
                     </div>
                     <br />
