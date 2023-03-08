@@ -154,10 +154,12 @@ var Ally;
             }
             else
                 this.assessmentAmount = 0;
+            var GroupsWithAutoPay = ["qa", "casadelnorthern", "ivytownhomescondominium"];
+            var canUserUseAutoPay = GroupsWithAutoPay.indexOf(this.siteInfo.publicSiteInfo.shortName) !== -1;
             // Show the Dwolla auto-pay area if the group's Dwolla is setup and
             // assessment frequncy is defined, or if the user already has auto-pay
             this.shouldShowDwollaAutoPayArea = (this.isDwollaReadyForPayment
-                && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com"
+                && canUserUseAutoPay
                 && this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.assessmentAmount > 0)
                 || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
