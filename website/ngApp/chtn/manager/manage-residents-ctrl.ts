@@ -43,7 +43,7 @@ namespace Ally
         owners: PayerInfo[];
         displayOwners: any[];
         allPayments: AssessmentPayment[];
-        payments: AssessmentPayment[]; // The payments visible in the assessment grid
+        displayPayments: AssessmentPayment[]; // The payments visible in the assessment grid
         estBalance: number | undefined;
     }
 

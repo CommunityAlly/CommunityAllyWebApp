@@ -57,6 +57,13 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            var addAmountOverAllRows = function () {
+                var allGridRows = _this.ledgerGridApi.grid.rows;
+                var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
+                var sum = 0;
+                visibleGridRows.forEach(function (item) { return sum += (item.entity.amount || 0); });
+                return sum;
+            };
             this.ledgerGridOptions =
                 {
                     columnDefs: [
@@ -70,7 +77,7 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' },
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' },
                         { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red;">&times;</span></div>' }
                     ],
                     enableFiltering: true,
@@ -768,6 +775,11 @@ var Ally;
         return LedgerController;
     }());
     Ally.LedgerController = LedgerController;
+    var UiGridRow = /** @class */ (function () {
+        function UiGridRow() {
+        }
+        return UiGridRow;
+    }());
     var CategoryOption = /** @class */ (function () {
         function CategoryOption() {
         }

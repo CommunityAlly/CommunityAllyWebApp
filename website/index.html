@@ -26,10 +26,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
-    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=58" />
+    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=59" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
-    <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=41"></script>
+    <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=42"></script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiRqxdfryvJirNOjZlQIFwYhHXNAoDtHI&v=3.exp&libraries=geometry,visualization,drawing,places&callback=onGoogleMapsReady"></script>
     <script async defer src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
@@ -51,7 +51,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=807;
+        var appVer=811;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -59,17 +59,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=807" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=811" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=807" );
+                    localStorage.setItem( Key_JSVersion, "appVer=811" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=807"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=807"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=811"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=811"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">

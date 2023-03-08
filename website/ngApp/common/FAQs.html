@@ -1,13 +1,14 @@
 ﻿<div class="page-subpage page-document-info info spinner-effect" data-ng-cloak>
     <h1>{{ $ctrl.headerText }}</h1>
     <br />
-    <div data-ng-if="$ctrl.infoItems.length > 5">
+    <div data-ng-if="$ctrl.infoItems.length > 5" style="margin-bottom: 30px;">
         <span data-ng-repeat="info in $ctrl.infoItems"><span class="text-link" id="info-item-link-{{ $index }}" data-ng-click="$ctrl.scrollToInfo( $index )">{{ info.title }}</span><br /></span>
+        <hr />
     </div>
 
     <div class="loading-overlay" data-ng-show="$ctrl.isLoadingInfo"></div>
 
-    <div id="info-item-{{ $index }}" class="association-info-item" data-ng-repeat="info in $ctrl.infoItems">
+    <div id="info-item-{{ $index }}" class="association-info-item" style="margin-bottom: 20px;" data-ng-repeat="info in $ctrl.infoItems">
         <a name="info-item-nav-{{ $index }}"><h4 style="display: inline-block;" id="info-item-title-{{ $index }}">{{ info.title }}</h4></a>
         <div data-ng-show="$ctrl.canManage" style="display: inline-block; font-size: small; margin-left: 9px;">
             <a href="javascript:void(0)" id="info-item-edit-{{ $index }}-button" class="text-button" data-ng-click="$ctrl.onStartEditInfoItem( info );">Edit</a>
