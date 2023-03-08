@@ -13,7 +13,7 @@
     {
         paymentId: number;
         year: number;
-        /** The 1-based period index (i.e. 1 = January) */
+        /** The 1-based period index (i.e. 1 = January), -1 for special assessment entries */
         period: number;
         isPaid: boolean;
         amount: number;
@@ -25,7 +25,8 @@
         payerNotes: string;
         wePayStatus: string;
         groupId: number;
-        paymentsInfoId: number;
+        paymentsInfoId: number | null;
+        specialAssessmentId: number | null;
 
         /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
         isEmptyEntry: boolean = false;
@@ -53,8 +54,24 @@
     {
         units: UnitWithOwner[];
         payments: PeriodicPayment[];
-        specialAssessments: any[];
+        specialAssessments: SpecialAssessmentEntry[];
         payers: PayerInfo[];
+    }
+
+
+    class SpecialAssessmentEntry
+    {
+        specialAssessmentId: number;
+        groupId: number;
+        createdByUserId: string;
+        createdDateUtc: Date;
+        assessmentDate: Date;
+        dueDate: Date | null;
+        assessmentName: string;
+        description: string;
+        amount: number | null;
+        lateFeeAmount: number | null;
+        amountDueJson: string;
     }
 
 
@@ -76,7 +93,9 @@
 
 
         // The number of pay periods that are visible on the grid
-        NumPeriodsVisible = 10;
+        static readonly ChtnDefaultNumPeriodsVisible = 9;
+        static readonly MemberDefaultNumPeriodsVisible = 8;
+        numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
 
         pageTitle: string;
         authToken: string;
@@ -91,13 +110,13 @@
         startYearValue: number;
         isPeriodicPaymentTrackingEnabled: boolean;
         isLoading: boolean;
-        shouldShowCreateSpecialAssessment: boolean = false;
+        editSpecialAssessment: SpecialAssessmentEntry;
         createSpecialAssessment: any;
-        visiblePeriodNames: PeriodEntry[];
+        visiblePeriodEntries: PeriodEntry[];
         unitPayments: Map<number, UnitWithPayment>;
         nameSortedUnitPayments: UnitWithPayment[];
         payers: PayerInfo[];
-        editPayment: any;
+        editPayment: EditPaymentInfo;
         showRowType: "unit" | "member" = "unit";
         isForMemberGroup: boolean = false;
         isSavingPayment: boolean = false;
@@ -110,6 +129,8 @@
         hasAssessments: boolean | null = null;
         todaysPayPeriod: { periodValue: number, yearValue: number };
         totalEstBalance: number;
+        shouldShowSpecialAssess = false;
+        specialAssessments: SpecialAssessmentEntry[];
 
 
         /**
@@ -133,8 +154,15 @@
             else
                 this.pageTitle = "Assessment Payment History";
 
+            // Show less columns for member groups since they're all annual, no need to see a decade
+            this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
             if( this.isForMemberGroup )
-                this.NumPeriodsVisible = 8;
+                this.numPeriodsVisible = AssessmentHistoryController.MemberDefaultNumPeriodsVisible;
+
+            this.shouldShowSpecialAssess = this.siteInfo.publicSiteInfo.shortName === "qa";
+
+            if( this.shouldShowBalanceCol )
+                --this.numPeriodsVisible;
 
             this.authToken = window.localStorage.getItem( "ApiAuthToken" );
 
@@ -323,41 +351,46 @@
         /**
          * Add in entries to the payments array so every period has an entry
          */
-        fillInEmptyPaymentsForUnit( unit: UnitWithPayment )
+        populateVisiblePaymentsForUnit( unit: UnitWithPayment )
         {
             const defaultOwnerUserId = ( unit.owners !== null && unit.owners.length > 0 ) ? unit.owners[0].userId : null;
 
             const sortedPayments = [];
-            let curPeriod = this.startPeriodValue;
-            let curYearValue = this.startYearValue;
-            for( let periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
+            for( let periodIndex = 0; periodIndex < this.visiblePeriodEntries.length; ++periodIndex )
             {
-                if( curPeriod < 1 )
-                {
-                    curPeriod = this.maxPeriodRange;
-                    --curYearValue;
-                }
+                const curPeriodEntry = this.visiblePeriodEntries[periodIndex];
 
-                let curPeriodPayment = _.find( unit.allPayments, ( p: any ) => p.period === curPeriod && p.year === curYearValue );
+                let curPeriodPayment: AssessmentPayment;
+                if( curPeriodEntry.specialAssessmentId )
+                    curPeriodPayment = _.find( unit.allPayments, p => p.specialAssessmentId === curPeriodEntry.specialAssessmentId );
+                else
+                    curPeriodPayment = _.find( unit.allPayments, ( p: any ) => p.period === curPeriodEntry.periodValue && p.year === curPeriodEntry.year );
 
                 // If this pay period has not payment entry then add a filler
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
                     curPeriodPayment = {
+                        paymentId: null,
                         isPaid: false,
-                        period: curPeriod,
-                        year: curYearValue,
+                        period: curPeriodEntry.periodValue,
+                        year: curPeriodEntry.year,
                         amount: unit.assessment,
                         payerUserId: defaultOwnerUserId,
                         paymentDate: new Date(),
-                        isEmptyEntry: true
+                        isEmptyEntry: true,
+                        checkNumber: null,
+                        wePayCheckoutId: null,
+                        groupId: null,
+                        notes: null,
+                        payerNotes: null,
+                        paymentsInfoId: null,
+                        wePayStatus: null,
+                        specialAssessmentId: curPeriodEntry.specialAssessmentId,
+                        unitId: unit.unitId
                     };
                 }
 
                 sortedPayments.push( curPeriodPayment );
-
-                // curPeriod goes 1-vm.maxPeriodRange
-                curPeriod--;
             }
 
             return sortedPayments;
@@ -370,25 +403,23 @@
         fillInEmptyPaymentsForMember( member: PayerInfo ): PeriodicPayment[]
         {
             const sortedPayments: PeriodicPayment[] = [];
-            let curPeriod = this.startPeriodValue;
-            let curYearValue = this.startYearValue;
-            for( let periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex )
+            for( let periodIndex = 0; periodIndex < this.visiblePeriodEntries.length; ++periodIndex )
             {
-                if( curPeriod < 1 )
-                {
-                    curPeriod = this.maxPeriodRange;
-                    --curYearValue;
-                }
+                const curPeriod = this.visiblePeriodEntries[periodIndex];
 
-                let curPeriodPayment: PeriodicPayment = _.find( member.enteredPayments, p => p.period === curPeriod && p.year === curYearValue );
+                let curPeriodPayment: PeriodicPayment;
+                if( curPeriod.specialAssessmentId )
+                    curPeriodPayment = _.find( member.enteredPayments, p => p.specialAssessmentId === curPeriod.specialAssessmentId );
+                else
+                    curPeriodPayment = _.find( member.enteredPayments, p => p.period === curPeriod.periodValue && p.year === curPeriod.year );
 
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
                     curPeriodPayment = {
                         isPaid: false,
                         paymentId: null,
-                        period: curPeriod,
-                        year: curYearValue,
+                        period: curPeriod.periodValue,
+                        year: curPeriod.year,
                         amount: 0,
                         payerUserId: member.userId,
                         paymentDate: new Date(),
@@ -399,14 +430,12 @@
                         payerNotes: null,
                         wePayStatus: null,
                         groupId: null,
-                        paymentsInfoId: null
+                        paymentsInfoId: null,
+                        specialAssessmentId: null
                     };
                 }
 
                 sortedPayments.push( curPeriodPayment );
-
-                // curPeriod goes 1-vm.maxPeriodRange
-                curPeriod--;
             }
 
             return sortedPayments;
@@ -430,28 +459,28 @@
         /**
          * Create a special assessment entry
          */
-        addSpecialAssessment(): void
+        onSaveSpecialAssessment(): void
         {
-            // JS is 0 based month plus Angular uses strings so move to 1-based integer for the server
-            this.createSpecialAssessment = parseInt( this.createSpecialAssessment ) + 1;
-
-            // Create the special assessment
             this.isLoading = true;
 
-            this.$http.post( "/api/PaymentHistory/SpecialAssessment", this.createSpecialAssessment ).then( () =>
-            {
-                this.isLoading = false;
-                this.shouldShowCreateSpecialAssessment = false;
+            const httpMethod = this.editSpecialAssessment.specialAssessmentId ? this.$http.put : this.$http.post;
 
-                this.retrievePaymentHistory();
+            httpMethod( "/api/PaymentHistory/SpecialAssessment", this.editSpecialAssessment ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.editSpecialAssessment = null;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
+                    this.retrievePaymentHistory();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
 
-                const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to add special assessment: " + errorMessage );
-            } );
+                    const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    alert( "Failed to save special assessment: " + errorMessage );
+                }
+            );
         }
 
 
@@ -460,14 +489,9 @@
          */
         showCreateSpecialAssessment(): void
         {
-            this.shouldShowCreateSpecialAssessment = true;
-
-            this.createSpecialAssessment = {
-                year: new Date().getFullYear(),
-                month: new Date().getMonth().toString(),
-                notes: "",
-                amount: null
-            };
+            this.editSpecialAssessment = new SpecialAssessmentEntry();
+            this.editSpecialAssessment.assessmentDate = new Date();
+            setTimeout( () => { $( "#specialAssessmentName" ).focus(); }, 10 );
         }
 
 
@@ -505,6 +529,49 @@
         }
 
 
+        /*
+         * Find the first special assessment entry between two dates
+         */
+        getSpecialAssessmentBetweenDates( startDate: Date, endDate: Date ): SpecialAssessmentEntry[]
+        {
+            if( !this.specialAssessments || this.specialAssessments.length === 0 )
+                return null;
+
+            let didSwapDates = false;
+            if( startDate > endDate )
+            {
+                const temp = endDate;
+                endDate = startDate;
+                startDate = temp;
+                didSwapDates = true;
+            }
+
+            const entries = this.specialAssessments.filter( e => e.assessmentDate.getTime() > startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime() );
+
+            if( didSwapDates )
+                entries.reverse();
+
+            return entries;
+        }
+
+
+        periodToDate( periodYear: PeriodYear )
+        {
+            let monthIndex: number;
+
+            if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly )
+                monthIndex = periodYear.periodValue * 3;
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually )
+                monthIndex = periodYear.periodValue * 6;
+            else if( this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually )
+                monthIndex = 0;
+            else
+                monthIndex = periodYear.periodValue - 1;
+
+            return new Date( periodYear.year, monthIndex, 1 );
+        }
+
+
         /**
          * Populate the display for a date range
          */
@@ -513,43 +580,72 @@
             this.startYearValue = startYear;
             this.startPeriodValue = startPeriod; // Pay period values start at 1, not 0
 
-            this.visiblePeriodNames = [];
-            let year = this.startYearValue;
-
+            this.visiblePeriodEntries = [];
+            
             // Step from left to right in the output columns, going back a pay period each time
-            let currentPeriod = this.startPeriodValue;
-            for( let columnIndex = 0; columnIndex < this.NumPeriodsVisible; ++columnIndex )
+            let currentPeriod = new PeriodYear( this.startPeriodValue, this.startYearValue );
+            let previousPeriod: PeriodYear = null;
+            for( let columnIndex = 0; columnIndex < this.numPeriodsVisible; ++columnIndex )
             {
                 // If we stepped passed the first period, go the previous year
-                if( currentPeriod < 1 )
+                if( currentPeriod.periodValue < 1 )
                 {
-                    currentPeriod = this.maxPeriodRange;
-                    --year;
+                    currentPeriod.periodValue = this.maxPeriodRange;
+                    --currentPeriod.year;
                 }
 
-                let headerName = this.shortPeriodNames[currentPeriod - 1];
-                if( currentPeriod === 1 || currentPeriod === this.maxPeriodRange )
-                    headerName += " " + year;
+                if( previousPeriod )
+                {
+                    const currentPeriodDate = this.periodToDate( currentPeriod );
+                    const previousPeriodDate = this.periodToDate( previousPeriod );
+                    const specialAssessments = this.getSpecialAssessmentBetweenDates( previousPeriodDate, currentPeriodDate );
+                    if( specialAssessments && specialAssessments.length > 0 )
+                    {
+                        for( const specEntry of specialAssessments )
+                        {
+                            const specPeriodEntry: PeriodEntry = {
+                                name: specEntry.assessmentName,
+                                periodValue: -1,
+                                arrayIndex: columnIndex++,
+                                year: specEntry.assessmentDate.getFullYear(),
+                                isTodaysPeriod: false,
+                                specialAssessmentId: specEntry.specialAssessmentId
+                            };
+
+                            this.visiblePeriodEntries.push( specPeriodEntry );
+                        }
+                    }
+                }
+
+                let headerName = this.shortPeriodNames[currentPeriod.periodValue - 1];
+                if( currentPeriod.periodValue === 1 || currentPeriod.periodValue === this.maxPeriodRange )
+                    headerName += " " + currentPeriod.year;
 
                 if( this.isForMemberGroup )
-                    headerName = year + " - " + ( year + 1 );
+                    headerName = currentPeriod.year + " - " + ( currentPeriod.year + 1 );
 
-                this.visiblePeriodNames.push( {
+                const periodEntry: PeriodEntry = {
                     name: headerName,
-                    periodValue: currentPeriod,
+                    periodValue: currentPeriod.periodValue,
                     arrayIndex: columnIndex,
-                    year: year,
-                    isTodaysPeriod: year === this.todaysPayPeriod.yearValue && currentPeriod === this.todaysPayPeriod.periodValue
-                } );
+                    year: currentPeriod.year,
+                    isTodaysPeriod: currentPeriod.year === this.todaysPayPeriod.yearValue && currentPeriod.periodValue === this.todaysPayPeriod.periodValue
+                };
 
-                --currentPeriod;
+                this.visiblePeriodEntries.push( periodEntry );
+
+                previousPeriod = new PeriodYear( currentPeriod.periodValue, currentPeriod.year );
+                --currentPeriod.periodValue;
             }
+
+            if( this.visiblePeriodEntries.length > this.numPeriodsVisible )
+                this.visiblePeriodEntries = this.visiblePeriodEntries.slice( 0, this.numPeriodsVisible );
 
             // Make sure every visible period has an valid entry object
             if( this.isForMemberGroup )
                 _.each( this.payers, payer => payer.displayPayments = this.fillInEmptyPaymentsForMember( payer ) );
             else
-                this.unitPayments.forEach( ( unit: UnitWithPayment ) => unit.payments = this.fillInEmptyPaymentsForUnit( unit ) );
+                this.unitPayments.forEach( ( unit: UnitWithPayment ) => unit.displayPayments = this.populateVisiblePaymentsForUnit( unit ) );
         }
 
 
@@ -563,7 +659,8 @@
             this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
             {
                 const paymentInfo = httpResponse.data;
-
+                this.specialAssessments = httpResponse.data.specialAssessments;
+                
                 this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || ( paymentInfo.payments.length < 2 && paymentInfo.units.length > 3 );
 
                 // Build the map of unit ID to unit information
@@ -578,7 +675,7 @@
                     while( curEntry.displayOwners.length < 2 )
                         curEntry.displayOwners.push( { name: "" } );
 
-                    curEntry.payments = [];
+                    curEntry.displayPayments = [];
                 } );
 
                 // Add the payment information to the members
@@ -594,17 +691,17 @@
                 _.each( paymentInfo.payments, ( payment: AssessmentPayment ) =>
                 {
                     if( this.unitPayments.has(payment.unitId) )
-                        this.unitPayments.get(payment.unitId).payments.push( payment );
+                        this.unitPayments.get(payment.unitId).displayPayments.push( payment );
                 } );
 
                 // Store all of the payments rather than just what is visible
                 _.each( paymentInfo.units, ( unit: UnitWithPayment ) =>
                 {
                     // The newest payment will be at the start
-                    unit.payments = _.sortBy( unit.payments, p => p.year * 100 + p.period );
-                    unit.payments.reverse();
+                    unit.displayPayments = _.sortBy( unit.displayPayments, p => p.year * 100 + p.period );
+                    unit.displayPayments.reverse();
                     
-                    unit.allPayments = unit.payments;
+                    unit.allPayments = unit.displayPayments;
 
                     // Since allPayments is sorted newest first, let's grab the first payment marked as paid
                     const mostRecentPayment = unit.allPayments.find( p => p.isPaid );
@@ -680,7 +777,7 @@
                 {
                     const unitId = unitIds[i];
 
-                    const paymentInfo = this.unitPayments.get(unitId).payments[periodIndex];
+                    const paymentInfo = this.unitPayments.get(unitId).displayPayments[periodIndex];
                     if( paymentInfo && paymentInfo.isPaid )
                         sum += paymentInfo.amount;
                 }
@@ -715,20 +812,42 @@
         onshowBalanceCol(): void
         {
             window.localStorage[this.LocalStorageKey_ShowBalanceCol] = this.shouldShowBalanceCol;
+
+            // Show one less column so that we don't hang off the right
+            if( this.isForMemberGroup )
+                this.numPeriodsVisible = AssessmentHistoryController.MemberDefaultNumPeriodsVisible;
+            else
+                this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
+
+            if( this.shouldShowBalanceCol )
+                --this.numPeriodsVisible;
+
+            this.displayPaymentsForRange( this.startYearValue, this.startPeriodValue );
         }
 
 
         /**
          * Occurs when the user clicks a date cell
          */
-        onUnitPaymentCellClick( unit: any, periodPayment: any ): void
+        onUnitPaymentCellClick( unit: UnitWithPayment, periodPayment: AssessmentPayment ): void
         {
             periodPayment.unitId = unit.unitId;
+
+            let periodName: string = "";
+            if( periodPayment.specialAssessmentId )
+            {
+                // Despite being on TS 4.5.5 as of this writing, the optional chaning feature causes an issue here
+                const payEntry = this.specialAssessments.find( a => a.specialAssessmentId === periodPayment.specialAssessmentId );
+                if( payEntry )
+                    periodName = payEntry.assessmentName;
+            }
+            else
+                periodName = this.periodNames[periodPayment.period - 1];
 
             this.editPayment = {
                 unit: unit,
                 payment: _.clone( periodPayment ), // Make a copy of the object so we can edit it without editing the grid
-                periodName: this.periodNames[periodPayment.period - 1],
+                periodName,
                 filteredPayers: _.filter( this.payers, ( payer ) =>
                 {
                     return !_.some( unit.owners, ( owner: any ) => owner.userId === payer.userId );
@@ -790,8 +909,13 @@
         }
 
 
+        /**
+         * Mark all units as paid for a specific period
+         */
         populatePaidForPeriod(): void
         {
+            // This has a known issue that if there are most special assessments than columns then
+            // you won't be able to view all special assessment entries
             if( !this.selectedFillInPeriod )
                 return;
 
@@ -804,7 +928,7 @@
             {
                 const unitPayment: UnitWithPayment = this.unitPayments.get(unitIds[i]);
 
-                const paymentEntry = _.find( unitPayment.payments, p => p.year === this.selectedFillInPeriod.year && p.period === this.selectedFillInPeriod.periodValue );
+                const paymentEntry = _.find( unitPayment.displayPayments, p => p.year === this.selectedFillInPeriod.year && p.period === this.selectedFillInPeriod.periodValue );
                 if( paymentEntry )
                 {
                     if( paymentEntry.isPaid )
@@ -851,6 +975,72 @@
             this.shouldShowFillInSection = true;
             window.scrollTo( 0, 0 );
         }
+
+
+        onPeriodHeaderClick( period: PeriodEntry )
+        {
+            if( !period.specialAssessmentId )
+                return;
+
+            this.editSpecialAssessment = this.specialAssessments.find( sa => sa.specialAssessmentId === period.specialAssessmentId );
+            setTimeout( () => { $( "#specialAssessmentName" ).focus(); }, 10 );
+        }
+
+
+        onDeleteSpecialAssessment()
+        {
+            // If, somehow, we get in here with a new special assessment, just bail
+            if( !this.editSpecialAssessment.specialAssessmentId )
+            {
+                this.editSpecialAssessment = null;
+                return;
+            }
+
+            if( !confirm( "Are you sure you want to delete this special assessment entry? This will delete any associated payment entires and CANNOT BE UNDONE." ) )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.delete( "/api/PaymentHistory/SpecialAssessment/" + this.editSpecialAssessment.specialAssessmentId ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.editSpecialAssessment = null;
+
+                    this.retrievePaymentHistory();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+
+                    const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    alert( "Failed to delete special assessment entry: " + errorMessage );
+                }
+            );
+        }
+    }
+
+
+    class PeriodYear
+    {
+        constructor( periodValue: number, year: number )
+        {
+            this.periodValue = periodValue;
+            this.year = year;
+        }
+
+        // Pay period values start at 1, not 0
+        periodValue: number;
+        year: number;
+    }
+
+
+    class EditPaymentInfo
+    {
+        unit: UnitWithPayment;
+        payment: AssessmentPayment | PeriodicPayment;
+        periodName: string;
+        filteredPayers: PayerInfo[];
     }
 
 
@@ -861,6 +1051,7 @@
         arrayIndex: number;
         year: number;
         isTodaysPeriod: boolean;
+        specialAssessmentId?: number;
     }
 }
 

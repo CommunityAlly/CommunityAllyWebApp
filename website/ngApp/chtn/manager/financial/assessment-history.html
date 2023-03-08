@@ -16,20 +16,16 @@
             <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
         </p>
         <p class="clearfix">
-            <div class="pull-right">
-                Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
-            </div>
-
             <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
             <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
             <label class="ml-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
-            <button class="btn btn-primary" style="display: none;" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
+            <button class="btn btn-primary ml-3" data-ng-if="$ctrl.shouldShowSpecialAssess" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
         </p>
         <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
             You can speed things up by marking all homes as paid back to a certain date.<br />
             <br />
             Set all homes paid for period:
-            <select data-ng-model="$ctrl.selectedFillInPeriod" data-ng-options="p as p.name for p in $ctrl.visiblePeriodNames"></select>
+            <select data-ng-model="$ctrl.selectedFillInPeriod" data-ng-options="p as p.name for p in $ctrl.visiblePeriodEntries"></select>
             <button type="button" data-ng-click="$ctrl.populatePaidForPeriod()" class="btn btn-primary">Mark As Paid</button>
         </div>
         <div class="margin-top-10 spinner-effect">
@@ -52,8 +48,9 @@
                         <th data-ng-if="$ctrl.shouldShowBalanceCol">
                             Est. Balance
                         </th>
-                        <th data-ng-repeat="period in $ctrl.visiblePeriodNames" class="text-center" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : '', 'background-color': period.isTodaysPeriod ? '#EEF' : 'default'}">
+                        <th data-ng-repeat="period in $ctrl.visiblePeriodEntries" class="text-center" data-ng-click="$ctrl.onPeriodHeaderClick( period )" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : '', 'background-color': period.isTodaysPeriod ? '#EEF' : 'default', 'color' : period.specialAssessmentId ? 'blue' : 'default', 'cursor' : period.specialAssessmentId ? 'pointer' : 'default', 'font-size': period.specialAssessmentId ? 'small' : 'default' }">
                             {{ period.name }}
+                            <div data-ng-if="period.specialAssessmentId" class="note-text" style="font-size: xx-small;">(Special)</div>
                         </th>
                     </tr>
                 </thead>
@@ -67,7 +64,7 @@
                         <td data-ng-if="$ctrl.shouldShowBalanceCol">
                             {{ unit.estBalance | currency }}
                         </td>
-                        <td ng-repeat="payment in unit.payments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
+                        <td ng-repeat="payment in unit.displayPayments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
                             <div data-ng-if="!$ctrl.showPaymentInfo">
                                 <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
                             </div>
@@ -105,14 +102,16 @@
                         <th data-ng-if="$ctrl.shouldShowBalanceCol">
                             {{ $ctrl.totalEstBalance | currency }}
                         </th>
-                        <th data-ng-repeat="period in $ctrl.visiblePeriodNames" id="bottomsum-cell-{{ unitIndex }}-{{ $index }}" class="month-cell">
+                        <th data-ng-repeat="period in $ctrl.visiblePeriodEntries" id="bottomsum-cell-{{ unitIndex }}-{{ $index }}" class="month-cell">
                             {{ $ctrl.getPaymentSumForPayPeriod( $index ) | currency }}
                         </th>
                     </tr>
                 </tfoot>
 
             </table>
-
+            <div class="text-right mb-1">
+                Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
+            </div>
 
             <div class="text-right">
                 <span class="text-link note-text" data-ng-click="$ctrl.showBulkSet()">Show Bulk Set</span>
@@ -188,54 +187,45 @@
             </div>
         </div>
 
-        <div id="create-special-assessment-container" class="modal-container" data-ng-if="$ctrl.shouldShowCreateSpecialAssessment" data-ng-escape="$ctrl.editPayment = null">
-            <div class="modal-overlay" data-ng-click="$ctrl.shouldShowCreateSpecialAssessment = false"></div>
-            <form class="ca-modal-dialog modal-sm">
-                <h3>Create Special Assessment</h3>
-                <table style="width:100%;">
-                    <tbody>
-                        <tr>
-                            <td class="text-right">
-                                <label for="create-special-assessment-year" style="font-weight: bold;">Year:</label>
-                            </td>
-                            <td>
-                                <input id="create-special-assessment-year" type="number" style="width: 220px;" data-ng-model="$ctrl.createSpecialAssessment.year" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-right">
-                                <label for="create-special-assessment-month" style="font-weight: bold;">Month:</label>
-                            </td>
-                            <td>
-                                <select id="create-special-assessment-month" data-ng-model="$ctrl.createSpecialAssessment.month" data-ng-options="index as m for (index,m) in $ctrl.monthNames"></select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-right">
-                                <label for="create-special-assessment-amount" style="font-weight: bold;">Amount:</label>
-                            </td>
-                            <td>
-                                <input id="create-special-assessment-amount" type="number" style="width: 220px;" data-ng-model="$ctrl.createSpecialAssessment.amount" />
-                                <br />
-                                <span class="note-text">Leave blank if the amount is different for each unit</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-right">
-                                <label for="create-special-assessment-notes" style="font-weight: bold;">Notes:</label>
-                            </td>
-                            <td>
-                                <textarea data-ng-model="$ctrl.createSpecialAssessment.notes" rows="5"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="text-right">
-                                <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.addSpecialAssessment();" />
-                                <input id="cancel-edit-button" class="btn btn-secondary" type="button" value="Cancel" data-ng-click="$ctrl.shouldShowCreateSpecialAssessment = false" />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div id="create-special-assessment-container" class="modal-container" data-ng-if="$ctrl.editSpecialAssessment" data-ng-escape="$ctrl.editSpecialAssessment = null">
+            <div class="modal-overlay" data-ng-click="$ctrl.editSpecialAssessment = null"></div>
+            <form class="ca-modal-dialog">
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.editSpecialAssessment = null">&times;</span>
+                <h3>{{$ctrl.editSpecialAssessment.specialAssessmentId ? 'Edit' : 'Create'}} Special Assessment</h3>
+
+                <div class="mb-3">
+                    <label for="specialAssessmentName" class="form-label font-weight-bold">Name/Title</label>
+                    <input type="text" class="form-control" id="specialAssessmentName" data-ng-model="$ctrl.editSpecialAssessment.assessmentName">
+                </div>
+                <div class="mb-3">
+                    <label for="specialAssessmentDate" class="form-label font-weight-bold">Assessment Date</label>
+                    <input id="specialAssessmentDate" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.assessmentDate" data-ui-date />
+                    <div class="form-text">When this assessment was levied</div>
+                </div>
+                <div class="mb-3">
+                    <label for="specialAssessmentAmount" class="form-label font-weight-bold">Amount</label>
+                    $<input id="specialAssessmentAmount" type="number" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.amount" />
+                    <div class="form-text">Leave blank if different for each home</div>
+                </div>
+                <div class="mb-3">
+                    <label for="specialAssessmentDescription" class="form-label font-weight-bold">Description</label>
+                    <textarea rows="4" class="form-control" id="specialAssessmentDescription" data-ng-model="$ctrl.editSpecialAssessment.description"></textarea>
+                    <div class="form-text">OPTIONAL. Indicate what the assessment is for. If each home pays a different amount, remind them of that amount or how to find that amount.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="specialAssessmentDueDate" class="form-label font-weight-bold">Due Date</label>
+                    <input id="specialAssessmentDueDate" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.dueDate" data-ui-date />
+                    <div class="form-text">OPTIONAL. If there's a due date for payment</div>
+                </div>
+                <div class="mb-3">
+                    <label for="specialAssessmentLateFeeAmount" class="form-label font-weight-bold">Late Fee</label>
+                    <input id="specialAssessmentLateFeeAmount" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.lateFeeAmount" />
+                    <div class="form-text">OPTIONAL. If there's an additional fee if paid after the due date</div>
+                </div>
+                <div class="text-right">
+                    <input class="btn btn-danger" data-ng-if="$ctrl.editSpecialAssessment.specialAssessmentId" type="button" value="Delete" data-ng-click="$ctrl.onDeleteSpecialAssessment();" />
+                    <input class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSaveSpecialAssessment();" />
+                </div>
             </form>
         </div>
     </div>

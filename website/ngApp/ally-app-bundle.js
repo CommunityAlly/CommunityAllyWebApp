@@ -1044,18 +1044,18 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                 appCacheService.set(AppCacheService.Key_WasLoggedIn403, "true");
                             // If the user is unauthorized but has saved credentials, try to log-in then retry the request
                             if (status === 401 && HtmlUtil.isValidString(window.localStorage["rememberMe_Email"])) {
-                                var $http = $injector.get("$http");
+                                var $http_1 = $injector.get("$http");
                                 // Multiple requests can come in at the same time with 401, so let's store
                                 // our login promise so subsequent calls can tie into the first login
                                 // request
                                 if (!$rootScope.retryLoginDeffered) {
                                     $rootScope.retryLoginDeffered = $q.defer();
-                                    var loginInfo = {
+                                    var loginInfo_1 = {
                                         emailAddress: window.localStorage["rememberMe_Email"],
                                         password: atob(window.localStorage["rememberMe_Password"])
                                     };
                                     var retryLogin = function () {
-                                        $http.post("/api/Login", loginInfo).then(function (httpResponse) {
+                                        $http_1.post("/api/Login", loginInfo_1).then(function (httpResponse) {
                                             var loginData = httpResponse.data;
                                             var siteInfo = $injector.get("SiteInfo");
                                             // Store the new auth token
@@ -1074,10 +1074,10 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     // Wait, just a bit, to let any other requests come in with a 401
                                     setTimeout(retryLogin, 1000);
                                 }
-                                var retryRequestDeferred = $q.defer();
+                                var retryRequestDeferred_1 = $q.defer();
                                 $rootScope.retryLoginDeffered.promise.then(function () {
                                     // Retry the request
-                                    retryRequestDeferred.resolve($http(response.config));
+                                    retryRequestDeferred_1.resolve($http_1(response.config));
                                     //$http( response.config ).then( function( newResponse )
                                     //{
                                     //    retryRequestDeferred.resolve( newResponse );
@@ -1086,9 +1086,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     //    retryRequestDeferred.reject( response );
                                     //} );
                                 }, function () {
-                                    retryRequestDeferred.reject(response);
+                                    retryRequestDeferred_1.reject(response);
                                 });
-                                return retryRequestDeferred.promise;
+                                return retryRequestDeferred_1.promise;
                             }
                             // Home, the default page, and login don't need special redirection or user messaging
                             if ($location.path() !== "/Home" && $location.path() !== "/Login") {
@@ -1706,6 +1706,11 @@ var Ally;
         }
         return FullPaymentHistory;
     }());
+    var SpecialAssessmentEntry = /** @class */ (function () {
+        function SpecialAssessmentEntry() {
+        }
+        return SpecialAssessmentEntry;
+    }());
     /**
      * The controller for the page to view resident assessment payment history
      */
@@ -1721,10 +1726,8 @@ var Ally;
             this.LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
             this.LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
             this.LocalStorageKey_ShowBalanceCol = "AssessmentHistory_ShowBalanceCol";
-            // The number of pay periods that are visible on the grid
-            this.NumPeriodsVisible = 10;
+            this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
             this.shouldShowBalanceCol = false;
-            this.shouldShowCreateSpecialAssessment = false;
             this.showRowType = "unit";
             this.isForMemberGroup = false;
             this.isSavingPayment = false;
@@ -1733,6 +1736,7 @@ var Ally;
             this.selectedFillInPeriod = null;
             this.shouldShowNeedsAssessmentSetup = false;
             this.hasAssessments = null;
+            this.shouldShowSpecialAssess = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -1745,8 +1749,13 @@ var Ally;
                 this.pageTitle = "Membership Dues Payment History";
             else
                 this.pageTitle = "Assessment Payment History";
+            // Show less columns for member groups since they're all annual, no need to see a decade
+            this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
             if (this.isForMemberGroup)
-                this.NumPeriodsVisible = 8;
+                this.numPeriodsVisible = AssessmentHistoryController.MemberDefaultNumPeriodsVisible;
+            this.shouldShowSpecialAssess = this.siteInfo.publicSiteInfo.shortName === "qa";
+            if (this.shouldShowBalanceCol)
+                --this.numPeriodsVisible;
             this.authToken = window.localStorage.getItem("ApiAuthToken");
             if (this.isForMemberGroup)
                 this.showRowType = "member";
@@ -1892,32 +1901,43 @@ var Ally;
         /**
          * Add in entries to the payments array so every period has an entry
          */
-        AssessmentHistoryController.prototype.fillInEmptyPaymentsForUnit = function (unit) {
+        AssessmentHistoryController.prototype.populateVisiblePaymentsForUnit = function (unit) {
             var defaultOwnerUserId = (unit.owners !== null && unit.owners.length > 0) ? unit.owners[0].userId : null;
             var sortedPayments = [];
-            var curPeriod = this.startPeriodValue;
-            var curYearValue = this.startYearValue;
-            for (var periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex) {
-                if (curPeriod < 1) {
-                    curPeriod = this.maxPeriodRange;
-                    --curYearValue;
-                }
-                var curPeriodPayment = _.find(unit.allPayments, function (p) { return p.period === curPeriod && p.year === curYearValue; });
+            var _loop_1 = function (periodIndex) {
+                var curPeriodEntry = this_1.visiblePeriodEntries[periodIndex];
+                var curPeriodPayment = void 0;
+                if (curPeriodEntry.specialAssessmentId)
+                    curPeriodPayment = _.find(unit.allPayments, function (p) { return p.specialAssessmentId === curPeriodEntry.specialAssessmentId; });
+                else
+                    curPeriodPayment = _.find(unit.allPayments, function (p) { return p.period === curPeriodEntry.periodValue && p.year === curPeriodEntry.year; });
                 // If this pay period has not payment entry then add a filler
                 if (curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry) {
                     curPeriodPayment = {
+                        paymentId: null,
                         isPaid: false,
-                        period: curPeriod,
-                        year: curYearValue,
+                        period: curPeriodEntry.periodValue,
+                        year: curPeriodEntry.year,
                         amount: unit.assessment,
                         payerUserId: defaultOwnerUserId,
                         paymentDate: new Date(),
-                        isEmptyEntry: true
+                        isEmptyEntry: true,
+                        checkNumber: null,
+                        wePayCheckoutId: null,
+                        groupId: null,
+                        notes: null,
+                        payerNotes: null,
+                        paymentsInfoId: null,
+                        wePayStatus: null,
+                        specialAssessmentId: curPeriodEntry.specialAssessmentId,
+                        unitId: unit.unitId
                     };
                 }
                 sortedPayments.push(curPeriodPayment);
-                // curPeriod goes 1-vm.maxPeriodRange
-                curPeriod--;
+            };
+            var this_1 = this;
+            for (var periodIndex = 0; periodIndex < this.visiblePeriodEntries.length; ++periodIndex) {
+                _loop_1(periodIndex);
             }
             return sortedPayments;
         };
@@ -1926,20 +1946,19 @@ var Ally;
          */
         AssessmentHistoryController.prototype.fillInEmptyPaymentsForMember = function (member) {
             var sortedPayments = [];
-            var curPeriod = this.startPeriodValue;
-            var curYearValue = this.startYearValue;
-            for (var periodIndex = 0; periodIndex < this.NumPeriodsVisible; ++periodIndex) {
-                if (curPeriod < 1) {
-                    curPeriod = this.maxPeriodRange;
-                    --curYearValue;
-                }
-                var curPeriodPayment = _.find(member.enteredPayments, function (p) { return p.period === curPeriod && p.year === curYearValue; });
+            var _loop_2 = function (periodIndex) {
+                var curPeriod = this_2.visiblePeriodEntries[periodIndex];
+                var curPeriodPayment = void 0;
+                if (curPeriod.specialAssessmentId)
+                    curPeriodPayment = _.find(member.enteredPayments, function (p) { return p.specialAssessmentId === curPeriod.specialAssessmentId; });
+                else
+                    curPeriodPayment = _.find(member.enteredPayments, function (p) { return p.period === curPeriod.periodValue && p.year === curPeriod.year; });
                 if (curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry) {
                     curPeriodPayment = {
                         isPaid: false,
                         paymentId: null,
-                        period: curPeriod,
-                        year: curYearValue,
+                        period: curPeriod.periodValue,
+                        year: curPeriod.year,
                         amount: 0,
                         payerUserId: member.userId,
                         paymentDate: new Date(),
@@ -1950,12 +1969,15 @@ var Ally;
                         payerNotes: null,
                         wePayStatus: null,
                         groupId: null,
-                        paymentsInfoId: null
+                        paymentsInfoId: null,
+                        specialAssessmentId: null
                     };
                 }
                 sortedPayments.push(curPeriodPayment);
-                // curPeriod goes 1-vm.maxPeriodRange
-                curPeriod--;
+            };
+            var this_2 = this;
+            for (var periodIndex = 0; periodIndex < this.visiblePeriodEntries.length; ++periodIndex) {
+                _loop_2(periodIndex);
             }
             return sortedPayments;
         };
@@ -1970,33 +1992,27 @@ var Ally;
         /**
          * Create a special assessment entry
          */
-        AssessmentHistoryController.prototype.addSpecialAssessment = function () {
+        AssessmentHistoryController.prototype.onSaveSpecialAssessment = function () {
             var _this = this;
-            // JS is 0 based month plus Angular uses strings so move to 1-based integer for the server
-            this.createSpecialAssessment = parseInt(this.createSpecialAssessment) + 1;
-            // Create the special assessment
             this.isLoading = true;
-            this.$http.post("/api/PaymentHistory/SpecialAssessment", this.createSpecialAssessment).then(function () {
+            var httpMethod = this.editSpecialAssessment.specialAssessmentId ? this.$http.put : this.$http.post;
+            httpMethod("/api/PaymentHistory/SpecialAssessment", this.editSpecialAssessment).then(function () {
                 _this.isLoading = false;
-                _this.shouldShowCreateSpecialAssessment = false;
+                _this.editSpecialAssessment = null;
                 _this.retrievePaymentHistory();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert("Failed to add special assessment: " + errorMessage);
+                alert("Failed to save special assessment: " + errorMessage);
             });
         };
         /**
          * Display the modal to create special assessments
          */
         AssessmentHistoryController.prototype.showCreateSpecialAssessment = function () {
-            this.shouldShowCreateSpecialAssessment = true;
-            this.createSpecialAssessment = {
-                year: new Date().getFullYear(),
-                month: new Date().getMonth().toString(),
-                notes: "",
-                amount: null
-            };
+            this.editSpecialAssessment = new SpecialAssessmentEntry();
+            this.editSpecialAssessment.assessmentDate = new Date();
+            setTimeout(function () { $("#specialAssessmentName").focus(); }, 10);
         };
         /**
          * Go back a few pay periods
@@ -2020,6 +2036,36 @@ var Ally;
             }
             this.displayPaymentsForRange(this.startYearValue, this.startPeriodValue);
         };
+        /*
+         * Find the first special assessment entry between two dates
+         */
+        AssessmentHistoryController.prototype.getSpecialAssessmentBetweenDates = function (startDate, endDate) {
+            if (!this.specialAssessments || this.specialAssessments.length === 0)
+                return null;
+            var didSwapDates = false;
+            if (startDate > endDate) {
+                var temp = endDate;
+                endDate = startDate;
+                startDate = temp;
+                didSwapDates = true;
+            }
+            var entries = this.specialAssessments.filter(function (e) { return e.assessmentDate.getTime() > startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime(); });
+            if (didSwapDates)
+                entries.reverse();
+            return entries;
+        };
+        AssessmentHistoryController.prototype.periodToDate = function (periodYear) {
+            var monthIndex;
+            if (this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly)
+                monthIndex = periodYear.periodValue * 3;
+            else if (this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually)
+                monthIndex = periodYear.periodValue * 6;
+            else if (this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually)
+                monthIndex = 0;
+            else
+                monthIndex = periodYear.periodValue - 1;
+            return new Date(periodYear.year, monthIndex, 1);
+        };
         /**
          * Populate the display for a date range
          */
@@ -2027,35 +2073,58 @@ var Ally;
             var _this = this;
             this.startYearValue = startYear;
             this.startPeriodValue = startPeriod; // Pay period values start at 1, not 0
-            this.visiblePeriodNames = [];
-            var year = this.startYearValue;
+            this.visiblePeriodEntries = [];
             // Step from left to right in the output columns, going back a pay period each time
-            var currentPeriod = this.startPeriodValue;
-            for (var columnIndex = 0; columnIndex < this.NumPeriodsVisible; ++columnIndex) {
+            var currentPeriod = new PeriodYear(this.startPeriodValue, this.startYearValue);
+            var previousPeriod = null;
+            for (var columnIndex = 0; columnIndex < this.numPeriodsVisible; ++columnIndex) {
                 // If we stepped passed the first period, go the previous year
-                if (currentPeriod < 1) {
-                    currentPeriod = this.maxPeriodRange;
-                    --year;
+                if (currentPeriod.periodValue < 1) {
+                    currentPeriod.periodValue = this.maxPeriodRange;
+                    --currentPeriod.year;
                 }
-                var headerName = this.shortPeriodNames[currentPeriod - 1];
-                if (currentPeriod === 1 || currentPeriod === this.maxPeriodRange)
-                    headerName += " " + year;
+                if (previousPeriod) {
+                    var currentPeriodDate = this.periodToDate(currentPeriod);
+                    var previousPeriodDate = this.periodToDate(previousPeriod);
+                    var specialAssessments = this.getSpecialAssessmentBetweenDates(previousPeriodDate, currentPeriodDate);
+                    if (specialAssessments && specialAssessments.length > 0) {
+                        for (var _i = 0, specialAssessments_1 = specialAssessments; _i < specialAssessments_1.length; _i++) {
+                            var specEntry = specialAssessments_1[_i];
+                            var specPeriodEntry = {
+                                name: specEntry.assessmentName,
+                                periodValue: -1,
+                                arrayIndex: columnIndex++,
+                                year: specEntry.assessmentDate.getFullYear(),
+                                isTodaysPeriod: false,
+                                specialAssessmentId: specEntry.specialAssessmentId
+                            };
+                            this.visiblePeriodEntries.push(specPeriodEntry);
+                        }
+                    }
+                }
+                var headerName = this.shortPeriodNames[currentPeriod.periodValue - 1];
+                if (currentPeriod.periodValue === 1 || currentPeriod.periodValue === this.maxPeriodRange)
+                    headerName += " " + currentPeriod.year;
                 if (this.isForMemberGroup)
-                    headerName = year + " - " + (year + 1);
-                this.visiblePeriodNames.push({
+                    headerName = currentPeriod.year + " - " + (currentPeriod.year + 1);
+                var periodEntry = {
                     name: headerName,
-                    periodValue: currentPeriod,
+                    periodValue: currentPeriod.periodValue,
                     arrayIndex: columnIndex,
-                    year: year,
-                    isTodaysPeriod: year === this.todaysPayPeriod.yearValue && currentPeriod === this.todaysPayPeriod.periodValue
-                });
-                --currentPeriod;
+                    year: currentPeriod.year,
+                    isTodaysPeriod: currentPeriod.year === this.todaysPayPeriod.yearValue && currentPeriod.periodValue === this.todaysPayPeriod.periodValue
+                };
+                this.visiblePeriodEntries.push(periodEntry);
+                previousPeriod = new PeriodYear(currentPeriod.periodValue, currentPeriod.year);
+                --currentPeriod.periodValue;
             }
+            if (this.visiblePeriodEntries.length > this.numPeriodsVisible)
+                this.visiblePeriodEntries = this.visiblePeriodEntries.slice(0, this.numPeriodsVisible);
             // Make sure every visible period has an valid entry object
             if (this.isForMemberGroup)
                 _.each(this.payers, function (payer) { return payer.displayPayments = _this.fillInEmptyPaymentsForMember(payer); });
             else
-                this.unitPayments.forEach(function (unit) { return unit.payments = _this.fillInEmptyPaymentsForUnit(unit); });
+                this.unitPayments.forEach(function (unit) { return unit.displayPayments = _this.populateVisiblePaymentsForUnit(unit); });
         };
         /**
          * Populate the payment grid
@@ -2065,6 +2134,7 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/PaymentHistory?oldestDate=").then(function (httpResponse) {
                 var paymentInfo = httpResponse.data;
+                _this.specialAssessments = httpResponse.data.specialAssessments;
                 _this.shouldShowFillInSection = _this.siteInfo.userInfo.isAdmin || (paymentInfo.payments.length < 2 && paymentInfo.units.length > 3);
                 // Build the map of unit ID to unit information
                 _this.unitPayments = new Map();
@@ -2075,7 +2145,7 @@ var Ally;
                     curEntry.displayOwners = _.first(unit.owners, 2);
                     while (curEntry.displayOwners.length < 2)
                         curEntry.displayOwners.push({ name: "" });
-                    curEntry.payments = [];
+                    curEntry.displayPayments = [];
                 });
                 // Add the payment information to the members
                 if (_this.isForMemberGroup && httpResponse.data.payers) {
@@ -2086,14 +2156,14 @@ var Ally;
                 // Add the payment information to the units
                 _.each(paymentInfo.payments, function (payment) {
                     if (_this.unitPayments.has(payment.unitId))
-                        _this.unitPayments.get(payment.unitId).payments.push(payment);
+                        _this.unitPayments.get(payment.unitId).displayPayments.push(payment);
                 });
                 // Store all of the payments rather than just what is visible
                 _.each(paymentInfo.units, function (unit) {
                     // The newest payment will be at the start
-                    unit.payments = _.sortBy(unit.payments, function (p) { return p.year * 100 + p.period; });
-                    unit.payments.reverse();
-                    unit.allPayments = unit.payments;
+                    unit.displayPayments = _.sortBy(unit.displayPayments, function (p) { return p.year * 100 + p.period; });
+                    unit.displayPayments.reverse();
+                    unit.allPayments = unit.displayPayments;
                     // Since allPayments is sorted newest first, let's grab the first payment marked as paid
                     var mostRecentPayment = unit.allPayments.find(function (p) { return p.isPaid; });
                     if (mostRecentPayment) {
@@ -2106,6 +2176,10 @@ var Ally;
                     else
                         unit.estBalance = undefined;
                 });
+                _this.totalEstBalance = paymentInfo.units
+                    .filter(function (u) { return u.estBalance !== undefined && !isNaN(u.estBalance); })
+                    .map(function (u) { return u.estBalance || 0; })
+                    .reduce(function (total, val) { return total + val; }, 0);
                 // Sort the units by name
                 var sortedUnits = Array.from(_this.unitPayments.values());
                 _this.nameSortedUnitPayments = Ally.HtmlUtil2.smartSortStreetAddresses(sortedUnits, "name");
@@ -2139,7 +2213,7 @@ var Ally;
                 var unitIds = Array.from(this.unitPayments.keys());
                 for (var i = 0; i < unitIds.length; ++i) {
                     var unitId = unitIds[i];
-                    var paymentInfo = this.unitPayments.get(unitId).payments[periodIndex];
+                    var paymentInfo = this.unitPayments.get(unitId).displayPayments[periodIndex];
                     if (paymentInfo && paymentInfo.isPaid)
                         sum += paymentInfo.amount;
                 }
@@ -2165,16 +2239,33 @@ var Ally;
          */
         AssessmentHistoryController.prototype.onshowBalanceCol = function () {
             window.localStorage[this.LocalStorageKey_ShowBalanceCol] = this.shouldShowBalanceCol;
+            // Show one less column so that we don't hang off the right
+            if (this.isForMemberGroup)
+                this.numPeriodsVisible = AssessmentHistoryController.MemberDefaultNumPeriodsVisible;
+            else
+                this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
+            if (this.shouldShowBalanceCol)
+                --this.numPeriodsVisible;
+            this.displayPaymentsForRange(this.startYearValue, this.startPeriodValue);
         };
         /**
          * Occurs when the user clicks a date cell
          */
         AssessmentHistoryController.prototype.onUnitPaymentCellClick = function (unit, periodPayment) {
             periodPayment.unitId = unit.unitId;
+            var periodName = "";
+            if (periodPayment.specialAssessmentId) {
+                // Despite being on TS 4.5.5 as of this writing, the optional chaning feature causes an issue here
+                var payEntry = this.specialAssessments.find(function (a) { return a.specialAssessmentId === periodPayment.specialAssessmentId; });
+                if (payEntry)
+                    periodName = payEntry.assessmentName;
+            }
+            else
+                periodName = this.periodNames[periodPayment.period - 1];
             this.editPayment = {
                 unit: unit,
                 payment: _.clone(periodPayment),
-                periodName: this.periodNames[periodPayment.period - 1],
+                periodName: periodName,
                 filteredPayers: _.filter(this.payers, function (payer) {
                     return !_.some(unit.owners, function (owner) { return owner.userId === payer.userId; });
                 })
@@ -2216,37 +2307,42 @@ var Ally;
                 this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
             }
         };
+        /**
+         * Mark all units as paid for a specific period
+         */
         AssessmentHistoryController.prototype.populatePaidForPeriod = function () {
             var _this = this;
+            // This has a known issue that if there are most special assessments than columns then
+            // you won't be able to view all special assessment entries
             if (!this.selectedFillInPeriod)
                 return;
             var unitIds = Array.from(this.unitPayments.keys());
             this.isLoading = true;
             var numPosts = 0;
-            var _loop_1 = function (i) {
-                var unitPayment = this_1.unitPayments.get(unitIds[i]);
-                var paymentEntry = _.find(unitPayment.payments, function (p) { return p.year === _this.selectedFillInPeriod.year && p.period === _this.selectedFillInPeriod.periodValue; });
+            var _loop_3 = function (i) {
+                var unitPayment = this_3.unitPayments.get(unitIds[i]);
+                var paymentEntry = _.find(unitPayment.displayPayments, function (p) { return p.year === _this.selectedFillInPeriod.year && p.period === _this.selectedFillInPeriod.periodValue; });
                 if (paymentEntry) {
                     if (paymentEntry.isPaid)
                         return "continue";
                 }
                 var postData = {
-                    Year: this_1.selectedFillInPeriod.year,
-                    Period: this_1.selectedFillInPeriod.periodValue,
+                    Year: this_3.selectedFillInPeriod.year,
+                    Period: this_3.selectedFillInPeriod.periodValue,
                     IsPaid: true,
                     Amount: unitPayment.assessment || 0,
                     PaymentDate: new Date(),
-                    PayerUserId: this_1.siteInfo.userInfo.userId,
-                    Notes: "Auto-marking all entries for " + this_1.selectedFillInPeriod.name.trim(),
+                    PayerUserId: this_3.siteInfo.userInfo.userId,
+                    Notes: "Auto-marking all entries for " + this_3.selectedFillInPeriod.name.trim(),
                     unitId: unitPayment.unitId
                 };
                 ++numPosts;
                 // Poor man's async for-loop
                 window.setTimeout(function () { return _this.$http.post("/api/PaymentHistory", postData); }, numPosts * 350);
             };
-            var this_1 = this;
+            var this_3 = this;
             for (var i = 0; i < unitIds.length; ++i) {
-                _loop_1(i);
+                _loop_3(i);
             }
             window.setTimeout(function () {
                 _this.isLoading = false;
@@ -2264,14 +2360,55 @@ var Ally;
             this.shouldShowFillInSection = true;
             window.scrollTo(0, 0);
         };
+        AssessmentHistoryController.prototype.onPeriodHeaderClick = function (period) {
+            if (!period.specialAssessmentId)
+                return;
+            this.editSpecialAssessment = this.specialAssessments.find(function (sa) { return sa.specialAssessmentId === period.specialAssessmentId; });
+            setTimeout(function () { $("#specialAssessmentName").focus(); }, 10);
+        };
+        AssessmentHistoryController.prototype.onDeleteSpecialAssessment = function () {
+            var _this = this;
+            // If, somehow, we get in here with a new special assessment, just bail
+            if (!this.editSpecialAssessment.specialAssessmentId) {
+                this.editSpecialAssessment = null;
+                return;
+            }
+            if (!confirm("Are you sure you want to delete this special assessment entry? This will delete any associated payment entires and CANNOT BE UNDONE."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/PaymentHistory/SpecialAssessment/" + this.editSpecialAssessment.specialAssessmentId).then(function () {
+                _this.isLoading = false;
+                _this.editSpecialAssessment = null;
+                _this.retrievePaymentHistory();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                alert("Failed to delete special assessment entry: " + errorMessage);
+            });
+        };
         AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
         AssessmentHistoryController.PeriodicPaymentFrequency_Monthly = 50;
         AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly = 51;
         AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually = 52;
         AssessmentHistoryController.PeriodicPaymentFrequency_Annually = 53;
+        // The number of pay periods that are visible on the grid
+        AssessmentHistoryController.ChtnDefaultNumPeriodsVisible = 9;
+        AssessmentHistoryController.MemberDefaultNumPeriodsVisible = 8;
         return AssessmentHistoryController;
     }());
     Ally.AssessmentHistoryController = AssessmentHistoryController;
+    var PeriodYear = /** @class */ (function () {
+        function PeriodYear(periodValue, year) {
+            this.periodValue = periodValue;
+            this.year = year;
+        }
+        return PeriodYear;
+    }());
+    var EditPaymentInfo = /** @class */ (function () {
+        function EditPaymentInfo() {
+        }
+        return EditPaymentInfo;
+    }());
     var PeriodEntry = /** @class */ (function () {
         function PeriodEntry() {
         }
@@ -3036,10 +3173,12 @@ var Ally;
             this.$http.get("/api/FinancialReports/ChartData?startDate=" + encodeURIComponent(this.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.endDate.toISOString())).then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.reportData = httpResponse.data;
-                _this.incomeByCategoryData = _.map(_this.reportData.incomeByCategory, function (e) { return e.amount; });
+                _this.reportData.incomeByCategory = _.sortBy(_this.reportData.incomeByCategory, function (e) { return e.amount; });
+                _this.incomeByCategoryData = _.map(_this.reportData.incomeByCategory, function (e) { return Math.abs(e.amount); });
                 _this.incomeByCategoryLabels = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryName; });
                 _this.incomeByCategoryCatIds = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryId; });
-                _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return e.amount; });
+                _this.reportData.expenseByCategory = _.sortBy(_this.reportData.expenseByCategory, function (e) { return e.amount; });
+                _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return Math.abs(e.amount); });
                 _this.expenseByCategoryLabels = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryName; });
                 _this.expenseByCategoryCatIds = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryId; });
                 window.sessionStorage.setItem("financialReport_startDate", _this.startDate.getTime().toString());
@@ -3149,6 +3288,13 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            var addAmountOverAllRows = function () {
+                var allGridRows = _this.ledgerGridApi.grid.rows;
+                var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
+                var sum = 0;
+                visibleGridRows.forEach(function (item) { return sum += (item.entity.amount || 0); });
+                return sum;
+            };
             this.ledgerGridOptions =
                 {
                     columnDefs: [
@@ -3162,7 +3308,7 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' },
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' },
                         { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red;">&times;</span></div>' }
                     ],
                     enableFiltering: true,
@@ -3860,6 +4006,11 @@ var Ally;
         return LedgerController;
     }());
     Ally.LedgerController = LedgerController;
+    var UiGridRow = /** @class */ (function () {
+        function UiGridRow() {
+        }
+        return UiGridRow;
+    }());
     var CategoryOption = /** @class */ (function () {
         function CategoryOption() {
         }
@@ -4735,7 +4886,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var putUri = (committee.deactivationDateUtc ? "/api/Committee/Reactivate/" : "/api/Committee/Deactivate/") + committee.committeeId;
-            this.$http.put(putUri, null).then(function (committees) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.retrieveCommittees();
             }, function (response) {
@@ -7014,10 +7165,14 @@ var Ally;
                 _this.settings = response.data;
                 _this.originalSettings = _.clone(response.data);
                 if (!_this.tinyMceEditor) {
-                    Ally.HtmlUtil2.initTinyMce().then(function (e) {
+                    var tinyMceOpts = {
+                        menubar: "edit format table",
+                        toolbar: "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | checklist code formatpainter table"
+                    };
+                    Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 400, tinyMceOpts).then(function (e) {
                         _this.tinyMceEditor = e;
                         _this.tinyMceEditor.setContent(_this.settings.welcomeMessage);
-                        _this.tinyMceEditor.on("keyup", function (e) {
+                        _this.tinyMceEditor.on("keyup", function () {
                             // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                             _this.$scope.$apply(function () {
                                 _this.onWelcomeMessageEdit();
@@ -10410,7 +10565,7 @@ var Ally;
         CommitteeParentController.prototype.onUpdateCommitteeName = function () {
             var _this = this;
             this.isLoading = true;
-            var putUri = "/api/Committee/" + this.committeeId + "?newName=" + this.committee.name;
+            var putUri = "/api/Committee/" + this.committeeId + "?name=" + this.committee.name;
             this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.$cacheFactory.get('$http').remove("/api/Committee/" + _this.committeeId);
@@ -10713,10 +10868,12 @@ var Ally;
             }
             else
                 this.assessmentAmount = 0;
+            var GroupsWithAutoPay = ["qa", "casadelnorthern", "ivytownhomescondominium"];
+            var canUserUseAutoPay = GroupsWithAutoPay.indexOf(this.siteInfo.publicSiteInfo.shortName) !== -1;
             // Show the Dwolla auto-pay area if the group's Dwolla is setup and
             // assessment frequncy is defined, or if the user already has auto-pay
             this.shouldShowDwollaAutoPayArea = (this.isDwollaReadyForPayment
-                && this.siteInfo.userInfo.emailAddress === "taylon5@gmail.com"
+                && canUserUseAutoPay
                 && this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.assessmentAmount > 0)
                 || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
@@ -11466,7 +11623,6 @@ var Ally;
          * The constructor for the class
          */
         function DocumentsController($http, $rootScope, $cacheFactory, $scope, siteInfo, fellowResidents, $location) {
-            var _this = this;
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$cacheFactory = $cacheFactory;
@@ -11488,16 +11644,16 @@ var Ally;
             this.fileSearch = {
                 all: ""
             };
-            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
-            // Make sure committee members can manage their data
-            if (this.committee && !this.canManage)
-                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         DocumentsController.prototype.$onInit = function () {
             var _this = this;
+            this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            // Make sure committee members can manage their data
+            if (this.committee && !this.canManage)
+                this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(function (isCommitteeMember) { return _this.canManage = isCommitteeMember; });
             this.apiAuthToken = this.$rootScope.authToken;
             this.Refresh();
             var hookUpFileUpload = function () {
@@ -17228,13 +17384,14 @@ var Ally;
                 var loadRtes = function () {
                     tinymce.remove();
                     var menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
+                    var toolbar = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.toolbar : "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table";
                     tinymce.init({
                         selector: '#' + elemId,
                         menubar: menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table code',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
-                        toolbar: 'styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table',
+                        toolbar: toolbar,
                         //toolbar_mode: 'floating',
                         //tinycomments_mode: 'embedded',
                         //tinycomments_author: 'Author name',
