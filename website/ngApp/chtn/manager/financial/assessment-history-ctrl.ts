@@ -129,7 +129,6 @@
         hasAssessments: boolean | null = null;
         todaysPayPeriod: { periodValue: number, yearValue: number };
         totalEstBalance: number;
-        shouldShowSpecialAssess = false;
         specialAssessments: SpecialAssessmentEntry[];
 
 
@@ -158,8 +157,6 @@
             this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
             if( this.isForMemberGroup )
                 this.numPeriodsVisible = AssessmentHistoryController.MemberDefaultNumPeriodsVisible;
-
-            this.shouldShowSpecialAssess = this.siteInfo.publicSiteInfo.shortName === "qa";
 
             if( this.shouldShowBalanceCol )
                 --this.numPeriodsVisible;

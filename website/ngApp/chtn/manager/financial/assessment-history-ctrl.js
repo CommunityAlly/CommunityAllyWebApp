@@ -72,7 +72,6 @@ var Ally;
             this.selectedFillInPeriod = null;
             this.shouldShowNeedsAssessmentSetup = false;
             this.hasAssessments = null;
-            this.shouldShowSpecialAssess = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -89,7 +88,6 @@ var Ally;
             this.numPeriodsVisible = AssessmentHistoryController.ChtnDefaultNumPeriodsVisible;
             if (this.isForMemberGroup)
                 this.numPeriodsVisible = AssessmentHistoryController.MemberDefaultNumPeriodsVisible;
-            this.shouldShowSpecialAssess = this.siteInfo.publicSiteInfo.shortName === "qa";
             if (this.shouldShowBalanceCol)
                 --this.numPeriodsVisible;
             this.authToken = window.localStorage.getItem("ApiAuthToken");

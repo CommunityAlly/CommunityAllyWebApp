@@ -19,7 +19,7 @@
             <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
             <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
             <label class="ml-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
-            <button class="btn btn-primary ml-3" data-ng-if="$ctrl.shouldShowSpecialAssess" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
+            <button class="btn btn-primary ml-3" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
         </p>
         <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
             You can speed things up by marking all homes as paid back to a certain date.<br />
