@@ -250,7 +250,7 @@ var Ally;
                 // If this pay period has not payment entry then add a filler
                 if (curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry) {
                     curPeriodPayment = {
-                        paymentId: null,
+                        paymentId: 0,
                         isPaid: false,
                         period: curPeriodEntry.periodValue,
                         year: curPeriodEntry.year,
@@ -260,7 +260,7 @@ var Ally;
                         isEmptyEntry: true,
                         checkNumber: null,
                         wePayCheckoutId: null,
-                        groupId: null,
+                        groupId: this_1.siteInfo.publicSiteInfo.groupId,
                         notes: null,
                         payerNotes: null,
                         paymentsInfoId: null,
@@ -428,7 +428,7 @@ var Ally;
                             var specEntry = specialAssessments_1[_i];
                             var specPeriodEntry = {
                                 name: specEntry.assessmentName,
-                                periodValue: -1,
+                                periodValue: AssessmentHistoryController.PeriodValueSpecial,
                                 arrayIndex: columnIndex++,
                                 year: specEntry.assessmentDate.getFullYear(),
                                 isTodaysPeriod: false,
@@ -727,6 +727,7 @@ var Ally;
         AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly = 51;
         AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually = 52;
         AssessmentHistoryController.PeriodicPaymentFrequency_Annually = 53;
+        AssessmentHistoryController.PeriodValueSpecial = 254;
         // The number of pay periods that are visible on the grid
         AssessmentHistoryController.ChtnDefaultNumPeriodsVisible = 9;
         AssessmentHistoryController.MemberDefaultNumPeriodsVisible = 8;

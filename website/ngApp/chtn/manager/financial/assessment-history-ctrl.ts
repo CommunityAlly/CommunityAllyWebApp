@@ -13,7 +13,7 @@
     {
         paymentId: number;
         year: number;
-        /** The 1-based period index (i.e. 1 = January), -1 for special assessment entries */
+        /** The 1-based period index (i.e. 1 = January), PeriodValueSpecial for special assessment entries */
         period: number;
         isPaid: boolean;
         amount: number;
@@ -90,7 +90,7 @@
         static readonly PeriodicPaymentFrequency_Quarterly = 51;
         static readonly PeriodicPaymentFrequency_Semiannually = 52;
         static readonly PeriodicPaymentFrequency_Annually = 53;
-
+        static readonly PeriodValueSpecial = 254;
 
         // The number of pay periods that are visible on the grid
         static readonly ChtnDefaultNumPeriodsVisible = 9;
@@ -370,7 +370,7 @@
                 if( curPeriodPayment === undefined || curPeriodPayment.isEmptyEntry )
                 {
                     curPeriodPayment = {
-                        paymentId: null,
+                        paymentId: 0,
                         isPaid: false,
                         period: curPeriodEntry.periodValue,
                         year: curPeriodEntry.year,
@@ -380,7 +380,7 @@
                         isEmptyEntry: true,
                         checkNumber: null,
                         wePayCheckoutId: null,
-                        groupId: null,
+                        groupId: this.siteInfo.publicSiteInfo.groupId,
                         notes: null,
                         payerNotes: null,
                         paymentsInfoId: null,
@@ -605,7 +605,7 @@
                         {
                             const specPeriodEntry: PeriodEntry = {
                                 name: specEntry.assessmentName,
-                                periodValue: -1,
+                                periodValue: AssessmentHistoryController.PeriodValueSpecial,
                                 arrayIndex: columnIndex++,
                                 year: specEntry.assessmentDate.getFullYear(),
                                 isTodaysPeriod: false,
