@@ -70,6 +70,7 @@ namespace Ally
      */
     export class PublicSiteInfo
     {
+        groupId: number;
         bgImagePath: string;
         fullName: string;
         shortName: string;
