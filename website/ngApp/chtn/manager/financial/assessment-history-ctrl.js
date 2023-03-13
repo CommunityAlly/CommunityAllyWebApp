@@ -619,8 +619,12 @@ var Ally;
             };
             setTimeout(function () { $("#paid-amount-textbox").focus(); }, 10);
         };
-        AssessmentHistoryController.prototype.onSavePayment = function () {
+        AssessmentHistoryController.prototype.onSavePayment = function (keyEvent) {
             var _this = this;
+            if (keyEvent) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             var onSave = function () {
                 _this.isSavingPayment = false;
                 _this.editPayment = null;
@@ -631,6 +635,9 @@ var Ally;
                 alert(httpResponse.data.message);
                 _this.editPayment = null;
             };
+            // Convert invalid amount values to 0
+            if (!this.editPayment.payment.amount)
+                this.editPayment.payment.amount = 0;
             this.isSavingPayment = true;
             if (this.editPayment.payment.paymentId) {
                 analytics.track("editAssessmentHistoryPayment");
@@ -640,6 +647,9 @@ var Ally;
                 analytics.track("addAssessmentHistoryPayment");
                 this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
             }
+            // Return false as this method may be invoked from an enter key press and we don't want
+            // that to propogate
+            return false;
         };
         /**
          * Mark all units as paid for a specific period

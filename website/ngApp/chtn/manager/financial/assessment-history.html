@@ -119,7 +119,7 @@
         </div>
 
 
-        <div id="edit-payment-container" class="modal-container" data-ng-show="$ctrl.editPayment != null" data-ng-escape="$ctrl.editPayment = null">
+        <div id="edit-payment-container" class="modal-container" data-ng-show="$ctrl.editPayment" data-ng-escape="$ctrl.editPayment = null">
             <div class="modal-overlay" data-ng-click="$ctrl.editPayment = null"></div>
             <div class="ca-modal-dialog modal-sm">
                 <div class="loading-overlay" data-ng-show="$ctrl.isSavingPayment"></div>
@@ -180,7 +180,7 @@
                     </div>
 
                     <div class="text-right mt-3">
-                        <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSavePayment();" />
+                        <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSavePayment($event)" />
                         <!--<input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editPayment = null" />-->
                     </div>
                 </form>

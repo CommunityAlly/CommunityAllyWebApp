@@ -11,7 +11,7 @@ angular.module( "CondoAlly" ).directive( "ngEnter", function()
             {
                 scope.$apply( function()
                 {
-                    scope.$eval( attrs.ngEnter, { 'event': event } );
+                    scope.$eval( attrs.ngEnter, { '$event': event } );
                 } );
 
                 event.preventDefault();
@@ -31,7 +31,7 @@ angular.module( "CondoAlly" ).directive( "ngEscape", function()
             {
                 scope.$apply( function()
                 {
-                    scope.$eval( attrs.ngEscape, { 'event': event } );
+                    scope.$eval( attrs.ngEscape, { '$event': event } );
                 } );
 
                 event.preventDefault();
