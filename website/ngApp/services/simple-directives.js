@@ -6,7 +6,7 @@ angular.module("CondoAlly").directive("ngEnter", function () {
             var EnterKeyCode = 13;
             if (event.which === EnterKeyCode) {
                 scope.$apply(function () {
-                    scope.$eval(attrs.ngEnter, { 'event': event });
+                    scope.$eval(attrs.ngEnter, { '$event': event });
                 });
                 event.preventDefault();
             }
@@ -19,7 +19,7 @@ angular.module("CondoAlly").directive("ngEscape", function () {
             var EscapeKeyCode = 27;
             if (event.which === EscapeKeyCode) {
                 scope.$apply(function () {
-                    scope.$eval(attrs.ngEscape, { 'event': event });
+                    scope.$eval(attrs.ngEscape, { '$event': event });
                 });
                 event.preventDefault();
             }

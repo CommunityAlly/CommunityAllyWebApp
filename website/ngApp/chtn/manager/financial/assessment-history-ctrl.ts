@@ -873,8 +873,14 @@
         }
 
 
-        onSavePayment(): void
+        onSavePayment( keyEvent: Event ): boolean
         {
+            if( keyEvent )
+            {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
             const onSave = () =>
             {
                 this.isSavingPayment = false;
@@ -891,6 +897,10 @@
                 this.editPayment = null;
             };
 
+            // Convert invalid amount values to 0
+            if( !this.editPayment.payment.amount )
+                this.editPayment.payment.amount = 0;
+
             this.isSavingPayment = true;
 
             if( this.editPayment.payment.paymentId )
@@ -903,6 +913,10 @@
                 analytics.track( "addAssessmentHistoryPayment" );
                 this.$http.post( "/api/PaymentHistory", this.editPayment.payment ).then( onSave, onError );
             }
+
+            // Return false as this method may be invoked from an enter key press and we don't want
+            // that to propogate
+            return false;
         }
 
 
