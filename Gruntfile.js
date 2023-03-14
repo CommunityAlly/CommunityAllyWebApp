@@ -27,7 +27,6 @@ var allyLibTopFiles = [
     'Website/js/lib/other/lodash.compat.min.js',
     'Website/js/HtmlUtil.js',
     'Website/js/design_v2/jquery.hotkeys.js',
-    'Website/js/design_v2/jquery.selectbox-0.2.min.js',
     'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
     'Website/js/design_v2/bootstrap-wysiwyg.js',
     'Website/js/design_v2/main.js',
