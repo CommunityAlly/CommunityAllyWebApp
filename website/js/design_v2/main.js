@@ -28,7 +28,6 @@ $( document ).ready( function ()
         $( this ).toggleClass( 'select' );
 
     } );
-    // $("select").selectbox();
 } );
 ( function ( $ )
 {
