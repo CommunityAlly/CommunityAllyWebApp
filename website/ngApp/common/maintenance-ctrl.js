@@ -299,10 +299,10 @@ var Ally;
             //    this.editingEquipment.type = this.editingEquipment.typeTags[0].text;
             //else
             //    this.editingEquipment.type = undefined;
-            if (this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0)
-                this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
-            else
-                this.editingEquipment.location = undefined;
+            //if( this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0 )
+            //    this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
+            //else
+            //    this.editingEquipment.location = undefined;            
             var httpFunc;
             if (this.editingEquipment.equipmentId)
                 httpFunc = this.$http.put;

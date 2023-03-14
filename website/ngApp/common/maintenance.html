@@ -237,19 +237,17 @@
             <div class="form-group row">
                 <label class="col-sm-4 col-xs-12">Type:</label>
                 <div class="col-sm-8 col-xs-12">
-                    <!--<tags-input style="width: 90%;" ng-model="$ctrl.editingEquipment.typeTags" data-max-tags="1" data-placeholder="" data-replace-spaces-with-dashes="false">
-                        <auto-complete data-min-length="0" data-load-on-empty="true" data-load-on-focus="true" data-load-on-down-arrow="true" data-source="$ctrl.getEquipmentTypeAutocomplete($query)"></auto-complete>
-                    </tags-input>-->
-                    <select class="form-control" ng-model="$ctrl.editingEquipment.type" data-ng-options="o as o for o in $ctrl.equipmentTypeOptions">
-                        <option></option>
-                    </select>
+                    <input list="equipmentTypeOptions" id="equipmentType" ng-model="$ctrl.editingEquipment.type" class="form-control" maxlength="128" />
+                    <datalist id="equipmentTypeOptions">
+                        <option data-ng-repeat="entry in $ctrl.equipmentTypeOptions">{{entry}}</option>
+                    </datalist>
                 </div>
             </div>
 
             <div class="form-group row">
                 <label class="col-sm-4 col-xs-12">Initial Cost:</label>
                 <div class="col-sm-8 col-xs-12">
-                    $<input type="text" class="form-control" style="display: inline-block; width: 97%;" data-ng-model="$ctrl.editingEquipment.initialCost" />
+                    $<input type="text" class="form-control" style="display: inline-block; width: 95%;" data-ng-model="$ctrl.editingEquipment.initialCost" />
                 </div>
             </div>
 
@@ -287,9 +285,10 @@
                     <!--<tags-input style="width: 90%;" ng-model="$ctrl.editingEquipment.locationTags" data-max-tags="1" placeholder="" data-replace-spaces-with-dashes="false">
                         <auto-complete data-min-length="0" data-load-on-empty="true" data-load-on-focus="true" data-load-on-down-arrow="true" data-source="$ctrl.getEquipmentLocationAutocomplete($query)"></auto-complete>
                     </tags-input>-->
-                    <select class="form-control" ng-model="$ctrl.editingEquipment.location" data-ng-options="o as o for o in $ctrl.equipmentLocationOptions">
-                        <option></option>
-                    </select>
+                    <input list="equipmentLocationOptions" id="equipmentLocation" ng-model="$ctrl.editingEquipment.location" class="form-control" maxlength="256" />
+                    <datalist id="equipmentLocationOptions">
+                        <option data-ng-repeat="entry in $ctrl.equipmentLocationOptions">{{entry}}</option>
+                    </datalist>
                 </div>
             </div>
 
