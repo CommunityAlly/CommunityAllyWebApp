@@ -469,10 +469,10 @@
             //else
             //    this.editingEquipment.type = undefined;
 
-            if( this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0 )
-                this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
-            else
-                this.editingEquipment.location = undefined;            
+            //if( this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0 )
+            //    this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
+            //else
+            //    this.editingEquipment.location = undefined;            
 
             let httpFunc: any;
             if( this.editingEquipment.equipmentId )
