@@ -1,6 +1,6 @@
-Address/Unit,Email,First Name,Last Name,Phone,Is Renter,Is Admin,Board Position,Alternate Mailing,Alternate Phone,Manager Notes
+Address/Unit,Email,First Name,Last Name,Phone,Is Renter,Is Admin,Alternate Mailing,Alternate Phone,Manager Notes,Board Position
 123 Fake St,test@ally.com,Mary,Smith,(123) 123-1234,,X,,,,
-124 Fake St,nice@gmail.com,John,Bort,(234) 234-2345,,,Secretary,,,
+124 Fake St,nice@gmail.com,John,Bort,(234) 234-2345,,,,,,Secretary
 ,,OnlyFirstNameIsRequired,,,,,,,,
 125 Fake St,,SplitSpouses,Williams,,,,,,,
 125 Fake St,,OnePerRow,Williams,,,,,,,
