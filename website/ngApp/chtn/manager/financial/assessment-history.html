@@ -194,31 +194,31 @@
                 <h3>{{$ctrl.editSpecialAssessment.specialAssessmentId ? 'Edit' : 'Create'}} Special Assessment</h3>
 
                 <div class="mb-3">
-                    <label for="specialAssessmentName" class="form-label font-weight-bold">Name/Title</label>
+                    <label for="specialAssessmentName" class="form-label fw-bold">Name/Title</label>
                     <input type="text" class="form-control" id="specialAssessmentName" data-ng-model="$ctrl.editSpecialAssessment.assessmentName">
                 </div>
                 <div class="mb-3">
-                    <label for="specialAssessmentDate" class="form-label font-weight-bold">Assessment Date</label>
+                    <label for="specialAssessmentDate" class="form-label fw-bold">Assessment Date</label>
                     <input id="specialAssessmentDate" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.assessmentDate" data-ui-date />
                     <div class="form-text">When this assessment was levied</div>
                 </div>
                 <div class="mb-3">
-                    <label for="specialAssessmentAmount" class="form-label font-weight-bold">Amount</label>
+                    <label for="specialAssessmentAmount" class="form-label fw-bold">Amount</label>
                     $<input id="specialAssessmentAmount" type="number" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.amount" />
                     <div class="form-text">Leave blank if different for each home</div>
                 </div>
                 <div class="mb-3">
-                    <label for="specialAssessmentDescription" class="form-label font-weight-bold">Description</label>
+                    <label for="specialAssessmentDescription" class="form-label fw-bold">Description</label>
                     <textarea rows="4" class="form-control" id="specialAssessmentDescription" data-ng-model="$ctrl.editSpecialAssessment.description"></textarea>
                     <div class="form-text">OPTIONAL. Indicate what the assessment is for. If each home pays a different amount, remind them of that amount or how to find that amount.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="specialAssessmentDueDate" class="form-label font-weight-bold">Due Date</label>
+                    <label for="specialAssessmentDueDate" class="form-label fw-bold">Due Date</label>
                     <input id="specialAssessmentDueDate" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.dueDate" data-ui-date />
                     <div class="form-text">OPTIONAL. If there's a due date for payment</div>
                 </div>
                 <div class="mb-3">
-                    <label for="specialAssessmentLateFeeAmount" class="form-label font-weight-bold">Late Fee</label>
+                    <label for="specialAssessmentLateFeeAmount" class="form-label fw-bold">Late Fee</label>
                     <input id="specialAssessmentLateFeeAmount" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.lateFeeAmount" />
                     <div class="form-text">OPTIONAL. If there's an additional fee if paid after the due date</div>
                 </div>

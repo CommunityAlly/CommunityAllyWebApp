@@ -88,38 +88,38 @@
                 <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.setDisplayCreateModal(false)">&times;</span>
 
-                <div class="form-group">
-                    <label>Title:</label>
+                <div class="row mb-3 width100">
+                    <label class="form-label">Title:</label>
                     <input id="new-thread-title-text-box" type="text" data-ng-model="$ctrl.newThreadTitle" data-ng-escape="$ctrl.setDisplayCreateModal(false)" class="form-control form-control-sm" maxlength="256" required />
                 </div>
 
-                <div class="form-group">
-                    <label>Body:</label>
+                <div class="row mb-3 width100">
+                    <label class="form-label">Body:</label>
                     <textarea type="text" data-ng-model="$ctrl.newThreadBody" rows="4" class="form-control" maxlength="1024"></textarea>
                 </div>
 
-                <div class="form-group" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
-                    <label for="is-board-only-thread-check-box">Is Board Only:</label>
-                    <input id="is-board-only-thread-check-box" type="checkbox" data-ng-model="$ctrl.newThreadIsBoardOnly" />
+                <div class="row mb-3 width100" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
+                    <label for="is-board-only-thread-check-box" class="form-label">Is Board Only:</label>
+                    <input id="is-board-only-thread-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.newThreadIsBoardOnly" />
                     <br />
-                    <span class="note-text">Indicates this discussion thread will only be visible to board members and site admin.</span>
+                    <span class="note-text ps-0">Indicates this discussion thread will only be visible to board members and site admin.</span>
                 </div>
 
-                <div class="form-group" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
-                    <label for="is-read-only-thread-check-box">Is Read-Only:</label>
-                    <input id="is-read-only-thread-check-box" type="checkbox" data-ng-model="$ctrl.newThreadIsReadOnly" />
+                <div class="row mb-3 width100" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
+                    <label for="is-read-only-thread-check-box" class="form-label">Is Read-Only:</label>
+                    <input id="is-read-only-thread-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.newThreadIsReadOnly" />
                     <br />
-                    <span class="note-text">Enable this to create threads that act more like notices and do not allow discussion.</span>
+                    <span class="note-text ps-0">Enable this to create threads that act more like notices and do not allow discussion.</span>
                 </div>
 
-                <div class="form-group" data-ng-if="$ctrl.isPremiumPlanActive">
-                    <label for="send-notice-check-box">Send Out Email Notice:</label>
-                    <input id="send-notice-check-box" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
+                <div class="row mb-3 width100" data-ng-if="$ctrl.isPremiumPlanActive">
+                    <label for="send-notice-check-box" class="form-label">Send Out Email Notice:</label>
+                    <input id="send-notice-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
                     <br />
-                    <span class="note-text">An email will be sent out to the <span data-ng-if="!$ctrl.committeeId">discussion group</span><span data-ng-if="$ctrl.committeeId">committee members</span> telling them about your new thread.</span>
+                    <span class="note-text ps-0">An email will be sent out to the <span data-ng-if="!$ctrl.committeeId">discussion group</span><span data-ng-if="$ctrl.committeeId">committee members</span> telling them about your new thread.</span>
                     <!--<span data-ng-if="!$ctrl.isPremiumPlanActive" class="text-error">Email notifications cannot be sent out while on the free plan.</span>-->
                 </div>
-                <div class="form-group note-text" data-ng-if="!$ctrl.isPremiumPlanActive">
+                <div class="row mb-3 note-text width100" data-ng-if="!$ctrl.isPremiumPlanActive">
                     You can send out email notifications on our premium plan.
                 </div>
 

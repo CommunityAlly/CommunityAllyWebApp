@@ -32,23 +32,23 @@
 
                 <form data-ng-if="!$ctrl.isDemoSite" style="max-width: 500px; margin: 0 auto;" data-ng-submit="$ctrl.onLogin()">
 
-                    <div class="form-group text-left">
-                        <label for="login-email-textbox">Email Address:</label>
+                    <div class="row mb-3 text-start">
+                        <label for="login-email-textbox" class="form-label">Email Address:</label>
                         <input type="email" class="form-control" id="login-email-textbox" placeholder="Enter email" data-ng-model="$ctrl.loginInfo.emailAddress" autocomplete="username" data-rule-required="true">
                     </div>
 
-                    <div class="form-group text-left">
-                        <label for="login-password-textbox">Password:</label>
+                    <div class="row mb-3 text-start">
+                        <label for="login-password-textbox" class="form-label">Password:</label>
                         <input type="password" class="form-control" id="login-password-textbox" placeholder="Password" data-ng-model="$ctrl.loginInfo.password" autocomplete="current-password" data-rule-required="true">
                     </div>
                     
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <label><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
+                            <label class="form-label"><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <div class="col-12">
                             <input type="submit" value="Log In" id="login-button" class="btn btn-primary" style="float:none;"><br />
                             <br />

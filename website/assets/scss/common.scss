@@ -478,3 +478,24 @@ a[data-edit="backColor #FFFFFF"]::before {
 #custom-page-content img, .rich-text-editor img {
     max-width: 100%;
 }
+/* BS4-BS5 Updrade General CSS Change Start */
+.form-label{
+    padding-left: 0px ;
+    font-size: 16px ;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.nav-customstyle{
+    flex-wrap: inherit;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.width100{
+    width: 100%;
+}
+.checkbox-style{
+    width: auto !important;
+    position: relative;
+    top: -3px;
+}
+  /* BS4-BS5 Updrade General CSS Change End */

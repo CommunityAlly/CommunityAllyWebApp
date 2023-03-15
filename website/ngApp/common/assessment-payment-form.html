@@ -54,8 +54,8 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-12">
-                                <span class="font-weight-bold">Name:</span> <span>{{$ctrl.userFullName}}</span>
-                                <span class="font-weight-bold">Email:</span> <span>{{$ctrl.userEmail}}</span>
+                                <span class="fw-bold">Name:</span> <span>{{$ctrl.userFullName}}</span>
+                                <span class="fw-bold">Email:</span> <span>{{$ctrl.userEmail}}</span>
                                 <br />
                                 <span class="note-text">Edit this information in <a href="#!/MyProfile">your profile</a>.</span>
                             </div>
@@ -66,7 +66,7 @@
                             <div data-ng-if="$ctrl.dwollaUserStatus === 'retry'" class="col-6">Full SSN: <input type="password" class="form-control form-control-sm" maxlength="11" data-ng-model="$ctrl.dwollaSignUpInfo.ssnFull" /></div>
                         </div>
                         <div class="row mb-3" data-ng-if="!$ctrl.shouldShowEditDwollaSignUpAddress && $ctrl.dwollaUserStatus !== 'retry'">
-                            <div class="col-12"><span class="font-weight-bold">Home Address:</span> <span>{{$ctrl.dwollaSignUpInfo.streetAddress.oneLiner}}</span> <span class="note-text text-link" data-ng-click="$ctrl.shouldShowEditDwollaSignUpAddress = true">edit</span></div>
+                            <div class="col-12"><span class="fw-bold">Home Address:</span> <span>{{$ctrl.dwollaSignUpInfo.streetAddress.oneLiner}}</span> <span class="note-text text-link" data-ng-click="$ctrl.shouldShowEditDwollaSignUpAddress = true">edit</span></div>
                         </div>
                         <street-address-form data-ng-if="$ctrl.shouldShowEditDwollaSignUpAddress || $ctrl.dwollaUserStatus === 'retry'" data-street-address="$ctrl.dwollaSignUpInfo.streetAddress" should-hide-name="true"></street-address-form>
                         <div class="row mb-2">
@@ -381,7 +381,7 @@
 
         <div class="mb-2 mt-2" data-ng-if="$ctrl.dwollaBalance > 0 && !$ctrl.dwollaBalanceMessage">
             Dwolla Balance:
-            <span class="font-weight-bold">{{$ctrl.dwollaBalance | currency}}</span>
+            <span class="fw-bold">{{$ctrl.dwollaBalance | currency}}</span>
             <span class="ml-3 text-link" data-ng-click="$ctrl.withdrawDwollaBalance()">Withdrawal</span>
         </div>
 
@@ -402,10 +402,10 @@
         </div>
 
         <div class="mt-3">
-            <div class="manage_pannel text-right">
+            <div class="manage_pannel text-end">
                 <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">Payment History</span>
-                <span class="text-link ml-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">Payment Information</span>
-                <resident-transactions class="ml-3" data-ng-if="$ctrl.shouldShowOwnerFinanceTxn"></resident-transactions>
+                <span class="text-link ms-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">Payment Information</span>
+                <resident-transactions class="ms-3" data-ng-if="$ctrl.shouldShowOwnerFinanceTxn"></resident-transactions>
             </div>
 
             <div class="mt-4">

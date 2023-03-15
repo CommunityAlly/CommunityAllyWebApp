@@ -152,7 +152,7 @@
                         </div>
                         <canvas id="email-usage-chart" style="width: 100%; height: 250px;" class="chart chart-line" data-chart-data="$ctrl.groupEmailChartData" data-chart-labels="$ctrl.emailUsageChartLabels" data-chart-options="$ctrl.emailUsageChartOptions" legend="true"></canvas>
                         <div>Number of group emails processed this month: <span style="font-weight: bold;">{{$ctrl.meteredUsage.numGroupEmailsProcessedThisMonth}}</span></div>
-                        <div data-ng-if="$ctrl.emailUsageAverageSent > 0">Monthly average over last {{$ctrl.emailUsageAverageNumMonths}} months: <span class="font-weight-bold">{{$ctrl.groupEmailAverage | number}}</span></div>
+                        <div data-ng-if="$ctrl.emailUsageAverageSent > 0">Monthly average over last {{$ctrl.emailUsageAverageNumMonths}} months: <span class="fw-bold">{{$ctrl.groupEmailAverage | number}}</span></div>
                     </div>
 
                     <div data-ng-if="$ctrl.emailUsageAverageNumMonths > 1">
@@ -162,7 +162,7 @@
                         </div>
                         <canvas id="email-usage-chart" style="width: 100%; height: 250px;" class="chart chart-line" data-chart-data="$ctrl.emailUsageChartData" data-chart-labels="$ctrl.emailUsageChartLabels" data-chart-options="$ctrl.emailUsageChartOptions" legend="true"></canvas>
                         <div>Number of emails delivered this month: <span style="font-weight: bold;">{{$ctrl.meteredUsage.numEmailsSentThisMonth}}</span></div>
-                        <div data-ng-if="$ctrl.emailUsageAverageSent > 0">Monthly average over last {{$ctrl.emailUsageAverageNumMonths}} months: <span class="font-weight-bold">{{$ctrl.emailUsageAverageSent | number}}</span></div>
+                        <div data-ng-if="$ctrl.emailUsageAverageSent > 0">Monthly average over last {{$ctrl.emailUsageAverageNumMonths}} months: <span class="fw-bold">{{$ctrl.emailUsageAverageSent | number}}</span></div>
                     </div>
 
                     <div data-ng-if="$ctrl.emailUsageAverageNumMonths <= 1">
@@ -175,7 +175,7 @@
                 <div class="col-6">
                     <h4>Document Storage Usage</h4>
                     <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments > 0">
-                        Your association is storing <span class="font-weight-bold">{{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024) | number : 2}}</span> MB across <span class="font-weight-bold">{{$ctrl.meteredUsage.totalNumDocuments}}</span> file{{$ctrl.meteredUsage.totalNumDocuments === 1 ? '' : 's'}}.
+                        Your association is storing <span class="fw-bold">{{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024) | number : 2}}</span> MB across <span class="fw-bold">{{$ctrl.meteredUsage.totalNumDocuments}}</span> file{{$ctrl.meteredUsage.totalNumDocuments === 1 ? '' : 's'}}.
                     </div>
                     <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments === 0">
                         Your association is not storing any documents.

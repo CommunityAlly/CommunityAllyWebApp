@@ -203,7 +203,7 @@
         </div>
 
         <div class="container-fluid white-bg ng-cloak" data-ng-show="!shouldHideMenu">
-            <nav class="navbar navbar-expand-lg" data-ng-show="isLoggedIn">
+            <nav class="navbar navbar-expand-lg container nav-customstyle" data-ng-show="isLoggedIn">
                 <div class="container">
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContentMain" aria-controls="navbarSupportedContentMain" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -229,13 +229,13 @@
                         </ul>
                     </div>
                 </div>
-                <div class="settings pull-right text-right">
+                <div class="settings pull-right text-end">
                     Hi <span class="notranslate">{{ userInfo.firstName }}</span><br />
                     <a id="my-profile-link" href="#!/MyProfile">Profile</a> | <span id="log-out-button" class="text-button" data-ng-click="onLogOut();">Log Out</span>
                 </div>
             </nav>
 
-            <nav class="navbar navbar-expand-lg" data-ng-if="!isLoggedIn && publicMenuItems">
+            <nav class="navbar navbar-expand-lg nav-customstyle" data-ng-if="!isLoggedIn && publicMenuItems">
                 <div class="container">
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContentPublic" aria-controls="navbarSupportedContentPublic" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -248,7 +248,7 @@
                         </ul>
                     </div>
 
-                    <div class="settings pull-right text-right">
+                    <div class="settings pull-right text-end">
                         <a href="#!/Login" style="font-size: 16px;">Login</a>
                     </div>
                 </div>

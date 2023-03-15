@@ -119,8 +119,8 @@
                 </div>
 
                 <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2">
-                    <div>Linked Account: <span class="font-weight-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span></div>
-                    <div data-ng-if="!$ctrl.paymentInfo.dwollaFundingIsVerified" class="font-weight-bold mt-4 mb-4">
+                    <div>Linked Account: <span class="fw-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span></div>
+                    <div data-ng-if="!$ctrl.paymentInfo.dwollaFundingIsVerified" class="fw-bold mt-4 mb-4">
                         Your bank account is still pending micro-deposit verification.
                         <br />
                         <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showMicroDepositModal()">Enter Micro-Deposit Amounts</button>
