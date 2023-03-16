@@ -199,7 +199,7 @@
             <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Secondary'">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="alternate-phone-number-text-box" class="col-sm-5 col-xs-12 font-weight-bold">Alternate Phone:</label>
+                        <label for="alternate-phone-number-text-box" class="col-sm-5 col-xs-12 fw-bold">Alternate Phone:</label>
                         <div class="col-sm-7 col-xs-12">
                             <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.alternatePhoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
@@ -213,21 +213,21 @@
                 </div>
 
                 <div class="col-12">
-                    <label class="font-weight-bold">Alternate Mailing Address</label>
+                    <label class="fw-bold">Alternate Mailing Address</label>
                     <div class="note-text">Only set this if it differs from the home address for the owner listed on the 'Primary' tab.
                     Do not add a different person here. Other persons living at the same address should be added using the 'Add Resident' button.</div>
                     <street-address-form data-street-address="$ctrl.editUser.mailingAddressObject" data-use-care-of="true"></street-address-form>
                 </div>
 
                 <div class="col-12">
-                    <label for="manager-notes-text-box" class="font-weight-bold" title="{{$ctrl.editUser.userId}}">Notes:</label>
+                    <label for="manager-notes-text-box" class="fw-bold" title="{{$ctrl.editUser.userId}}">Notes:</label>
                     <div class="col-12">
                         <textarea id="manager-notes-text-box" type="text" maxlength="4000" rows="3" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.managerNotes"></textarea>
                     </div>
                 </div>
 
                 <div class="col-12 mt-3">
-                    <label class="font-weight-bold">Communication Restriction:</label>
+                    <label class="fw-bold">Communication Restriction:</label>
                     <div class="col-12">
                         <select data-ng-model="$ctrl.editUser.commRestriction">
                             <option value="">Unrestricted (Default)</option>
