@@ -47,6 +47,7 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.hasActiveTxGridColFilter = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -57,6 +58,7 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             var addAmountOverAllRows = function () {
                 var allGridRows = _this.ledgerGridApi.grid.rows;
                 var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
@@ -111,6 +113,22 @@ var Ally;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
+                        });
+                        gridApi.core.on.filterChanged(_this.$rootScope, function () {
+                            var hasFilter = false;
+                            //let s = "";
+                            for (var i = 0; i < gridApi.grid.columns.length; ++i) {
+                                if (gridApi.grid.columns[i].filters && gridApi.grid.columns[i].filters.length > 0 && gridApi.grid.columns[i].filters[0].term) {
+                                    hasFilter = true;
+                                    break;
+                                }
+                                //    s += `|${gridApi.grid.columns[i].displayName}=${gridApi.grid.columns[i].filters[0].condition}`;
+                            }
+                            console.log("filterChanged", "hasFilter", hasFilter);
+                            var needsFilterUpdate = _this.hasActiveTxGridColFilter !== hasFilter;
+                            _this.hasActiveTxGridColFilter = hasFilter;
+                            if (needsFilterUpdate)
+                                _this.updateLocalData();
                         });
                     }
                 };
@@ -286,6 +304,30 @@ var Ally;
         LedgerController.prototype.updateLocalData = function () {
             var enabledAccountIds = this.ledgerAccounts.filter(function (a) { return a.shouldShowInGrid; }).map(function (a) { return a.ledgerAccountId; });
             var filteredList = this.allEntries.filter(function (e) { return enabledAccountIds.indexOf(e.ledgerAccountId) > -1; });
+            // If the user is filtering on a column, we need to break out split transactions
+            if (this.hasActiveTxGridColFilter) {
+                // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
+                for (var i = 0; i < filteredList.length; ++i) {
+                    if (filteredList[i].ledgerEntryId === 10087 || filteredList[i].ledgerEntryId === 10085) {
+                        console.log("Found " + filteredList[i].ledgerEntryId, filteredList[i]);
+                    }
+                    var isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
+                    if (!isSplit)
+                        continue;
+                    // Remove the parent entry
+                    var parentEntry = filteredList[i];
+                    filteredList.splice(i, 1);
+                    --i; // Step back one since we removed an entry
+                    for (var splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex) {
+                        // Clone the split so we can prefix the label with split
+                        var curSplitCopy = _.clone(parentEntry.splitEntries[splitIndex]);
+                        curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
+                        filteredList.push(curSplitCopy);
+                        if (curSplitCopy.financialCategoryId === 8118)
+                            console.log("Found 8118", curSplitCopy);
+                    }
+                }
+            }
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
             this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
@@ -780,6 +822,7 @@ var Ally;
         }
         return UiGridRow;
     }());
+    Ally.UiGridRow = UiGridRow;
     var CategoryOption = /** @class */ (function () {
         function CategoryOption() {
         }
