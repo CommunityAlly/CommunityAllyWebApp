@@ -9,6 +9,7 @@
         shouldShowModal: boolean = false;
         isLoading: boolean = false;
         transactionGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
+        transactionGridApi: uiGrid.IGridApiOf<LedgerEntry>;
         readonly HistoryPageSize: number = 50;
         homeName: string;
         filterStartDate: Date;
@@ -37,6 +38,18 @@
         {
             this.homeName = AppConfig.homeName || "Unit";
 
+            // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
+            const addAmountOverAllRows = () =>
+            {
+                const allGridRows = ( this.transactionGridApi.grid as any ).rows as UiGridRow<LedgerEntry>[];
+                const visibleGridRows = allGridRows.filter( r => r.visible && r.entity && !isNaN( r.entity.amount ) );
+
+                let sum = 0;
+                visibleGridRows.forEach( item => sum += ( item.entity.amount || 0 ) );
+
+                return sum;
+            };
+
             this.transactionGridOptions =
             {
                 columnDefs:
@@ -51,7 +64,7 @@
                         { field: 'description', displayName: 'Description', enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
                     ],
                 enableFiltering: true,
                 enableSorting: true,
@@ -62,7 +75,11 @@
                 enablePaginationControls: true,
                 paginationPageSize: this.HistoryPageSize,
                 paginationPageSizes: [this.HistoryPageSize],
-                enableRowHeaderSelection: false
+                enableRowHeaderSelection: false,
+                onRegisterApi: ( gridApi ) =>
+                {
+                    this.transactionGridApi = gridApi;
+                }
             };
         }
 
