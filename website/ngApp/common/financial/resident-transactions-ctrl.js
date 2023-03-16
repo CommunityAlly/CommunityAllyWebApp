@@ -22,7 +22,16 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         ResidentTransactionsController.prototype.$onInit = function () {
+            var _this = this;
             this.homeName = AppConfig.homeName || "Unit";
+            // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
+            var addAmountOverAllRows = function () {
+                var allGridRows = _this.transactionGridApi.grid.rows;
+                var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
+                var sum = 0;
+                visibleGridRows.forEach(function (item) { return sum += (item.entity.amount || 0); });
+                return sum;
+            };
             this.transactionGridOptions =
                 {
                     columnDefs: [
@@ -36,7 +45,7 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
@@ -47,7 +56,10 @@ var Ally;
                     enablePaginationControls: true,
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
-                    enableRowHeaderSelection: false
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        _this.transactionGridApi = gridApi;
+                    }
                 };
         };
         /**
