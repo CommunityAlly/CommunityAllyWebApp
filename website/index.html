@@ -46,7 +46,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=811;
+        var appVer=812;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -54,17 +54,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=811" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=812" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=811" );
+                    localStorage.setItem( Key_JSVersion, "appVer=812" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=811"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=811"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=812"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=812"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">

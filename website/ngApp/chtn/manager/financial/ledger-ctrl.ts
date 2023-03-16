@@ -51,6 +51,7 @@ namespace Ally
         importHistoryEntries: FinancialTxImportHistoryEntry[];
         importTxNotes: string;
         ownerFinanceTxNote: string;
+        hasActiveTxGridColFilter = false;
 
 
         /**
@@ -76,6 +77,7 @@ namespace Ally
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
 
+            // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             const addAmountOverAllRows = () =>
             {
                 const allGridRows = ( this.ledgerGridApi.grid as any ).rows as UiGridRow<LedgerEntry>[];
@@ -145,6 +147,29 @@ namespace Ally
                         this.$http.put( "/api/Ledger/UpdateEntry", rowEntity ).then( () => this.regenerateDateDonutChart() );
                         //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                         //$scope.$apply();
+                    } );
+
+
+                    gridApi.core.on.filterChanged( this.$rootScope, () =>
+                    {
+                        let hasFilter = false;
+                        //let s = "";
+                        for( let i = 0; i < gridApi.grid.columns.length; ++i )
+                        {
+                            if( gridApi.grid.columns[i].filters && gridApi.grid.columns[i].filters.length > 0 && gridApi.grid.columns[i].filters[0].term )
+                            {
+                                hasFilter = true;
+                                break;
+                            }
+                            //    s += `|${gridApi.grid.columns[i].displayName}=${gridApi.grid.columns[i].filters[0].condition}`;
+                        }
+
+                        console.log( "filterChanged", "hasFilter", hasFilter );
+
+                        const needsFilterUpdate = this.hasActiveTxGridColFilter !== hasFilter;
+                        this.hasActiveTxGridColFilter = hasFilter;
+                        if( needsFilterUpdate )
+                            this.updateLocalData();
                     } );
                 }
             };
@@ -385,6 +410,39 @@ namespace Ally
             const enabledAccountIds = this.ledgerAccounts.filter( a => a.shouldShowInGrid ).map( a => a.ledgerAccountId );
 
             const filteredList = this.allEntries.filter( e => enabledAccountIds.indexOf( e.ledgerAccountId ) > -1 );
+
+            // If the user is filtering on a column, we need to break out split transactions
+            if( this.hasActiveTxGridColFilter )
+            {
+                // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
+                for( let i = 0; i < filteredList.length; ++i )
+                {
+                    if( filteredList[i].ledgerEntryId === 10087 || filteredList[i].ledgerEntryId === 10085 )
+                    {
+                        console.log( "Found " + filteredList[i].ledgerEntryId, filteredList[i] );
+                    }
+
+                    const isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
+                    if( !isSplit )
+                        continue;
+
+                    // Remove the parent entry
+                    const parentEntry = filteredList[i];
+                    filteredList.splice( i, 1 );
+                    --i; // Step back one since we removed an entry
+
+                    for( let splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex )
+                    {
+                        // Clone the split so we can prefix the label with split
+                        const curSplitCopy = _.clone( parentEntry.splitEntries[splitIndex] );
+                        curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
+                        filteredList.push( curSplitCopy );
+
+                        if( curSplitCopy.financialCategoryId === 8118 )
+                            console.log( "Found 8118", curSplitCopy );
+                    }
+                }
+            }
 
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
@@ -1103,7 +1161,7 @@ namespace Ally
         }
     }
 
-    class UiGridRow<T>
+    export class UiGridRow<T>
     {
         visible: boolean;
         entity: T;
