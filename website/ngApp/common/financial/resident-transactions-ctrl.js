@@ -7,16 +7,16 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants, $scope) {
+        function ResidentTransactionsController($http, siteInfo, $timeout, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
-            this.$rootScope = $rootScope;
             this.uiGridConstants = uiGridConstants;
             this.$scope = $scope;
             this.shouldShowModal = false;
             this.isLoading = false;
             this.HistoryPageSize = 50;
+            this.isUnitColVisible = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -54,6 +54,7 @@ var Ally;
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false,
                     enablePaginationControls: true,
+                    minRowsToShow: this.HistoryPageSize,
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false,
@@ -67,10 +68,7 @@ var Ally;
          */
         ResidentTransactionsController.prototype.populateGridUnitLabels = function () {
             var _this = this;
-            var unitColumn = this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
-            if (!unitColumn || !unitColumn.visible)
-                return;
-            this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
+            return this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
                 var allUnits = httpResponse.data;
                 _.each(_this.allFinancialTxns, function (tx) {
                     if (!tx.associatedUnitId)
@@ -101,23 +99,30 @@ var Ally;
                 var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
                 var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
-                if (unitColumn)
+                if (unitColumn) {
                     unitColumn.visible = uniqueUnitIds.length > 1 || _this.siteInfo.userInfo.usersUnits.length > 1;
+                    _this.isUnitColVisible = unitColumn.visible;
+                }
                 //this.transactionGridOptions.data = httpResponse.data;
                 //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
                 //{
                 //    this.transactionGridOptions.enablePagination = false;
                 //    this.transactionGridOptions.enablePaginationControls = false;
                 //}
-                _this.$timeout(function () { return _this.populateGridUnitLabels(); }, 150);
-                // Put this in a slight delay so the date range picker can exist
-                _this.$timeout(function () {
+                var initialLoad = function () {
                     if (_this.allFinancialTxns.length > 1) {
                         // Transactions come down newest first
                         _this.filterEndDate = _this.allFinancialTxns[0].transactionDate;
                         _this.filterStartDate = _this.allFinancialTxns[_this.allFinancialTxns.length - 1].transactionDate;
                     }
                     _this.onFilterDateRangeChange();
+                };
+                // Put this in a slight delay so the date range picker can exist
+                _this.$timeout(function () {
+                    if (_this.isUnitColVisible)
+                        _this.populateGridUnitLabels().then(initialLoad, initialLoad);
+                    else
+                        initialLoad();
                 }, 100);
             }, function () {
                 _this.isLoading = false;
@@ -158,14 +163,18 @@ var Ally;
             var _this = this;
             if (!this.filterStartDate || !this.filterEndDate)
                 return;
-            this.transactionGridOptions.data = this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
-            if (this.transactionGridOptions.data.length <= this.HistoryPageSize) {
-                this.transactionGridOptions.enablePagination = false;
-                this.transactionGridOptions.enablePaginationControls = false;
-            }
-            this.$scope.$apply();
+            // Wrap this in $timeout so it refreshes properly, from here: https://stackoverflow.com/a/17958847/10315651
+            this.$timeout(function () {
+                var txRows = _this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
+                _this.transactionGridOptions.data = txRows;
+                _this.transactionGridOptions.virtualizationThreshold = txRows.length + 1;
+                if (_this.transactionGridOptions.data.length <= _this.HistoryPageSize) {
+                    _this.transactionGridOptions.enablePagination = false;
+                    _this.transactionGridOptions.enablePaginationControls = false;
+                }
+            }, 10);
         };
-        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants", "$scope"];
+        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "uiGridConstants", "$scope"];
         return ResidentTransactionsController;
     }());
     Ally.ResidentTransactionsController = ResidentTransactionsController;
