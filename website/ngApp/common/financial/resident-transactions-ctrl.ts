@@ -5,7 +5,7 @@
      */
     export class ResidentTransactionsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants", "$scope"];
+        static $inject = ["$http", "SiteInfo", "$timeout", "uiGridConstants", "$scope"];
         shouldShowModal: boolean = false;
         isLoading: boolean = false;
         transactionGridOptions: uiGrid.IGridOptionsOf<LedgerEntry>;
@@ -16,6 +16,7 @@
         filterEndDate: Date;
         allFinancialTxns: LedgerEntry[];
         ownerFinanceTxNote: string;
+        isUnitColVisible = false;
 
 
         /**
@@ -24,7 +25,6 @@
         constructor( private $http: ng.IHttpService,
             private siteInfo: Ally.SiteInfoService,
             private $timeout: ng.ITimeoutService,
-            private $rootScope: ng.IRootScopeService,
             private uiGridConstants: uiGrid.IUiGridConstants,
             private $scope: ng.IScope )
         {
@@ -73,6 +73,7 @@
                 enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                 enableColumnMenus: false,
                 enablePaginationControls: true,
+                minRowsToShow: this.HistoryPageSize,
                 paginationPageSize: this.HistoryPageSize,
                 paginationPageSizes: [this.HistoryPageSize],
                 enableRowHeaderSelection: false,
@@ -89,11 +90,7 @@
          */
         populateGridUnitLabels()
         {
-            const unitColumn = this.transactionGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
-            if( !unitColumn || !unitColumn.visible )
-                return;
-
-            this.$http.get( "/api/MemberUnit/NamesOnly" ).then(
+            return this.$http.get( "/api/MemberUnit/NamesOnly" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
                 {
                     const allUnits = httpResponse.data;
@@ -143,7 +140,10 @@
                     const uniqueUnitIds = allUnitIds.filter( ( v, i, a ) => a.indexOf( v ) === i );
                     const unitColumn = this.transactionGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
                     if( unitColumn )
+                    {
                         unitColumn.visible = uniqueUnitIds.length > 1 || this.siteInfo.userInfo.usersUnits.length > 1;
+                        this.isUnitColVisible = unitColumn.visible;
+                    }
 
                     //this.transactionGridOptions.data = httpResponse.data;
 
@@ -153,10 +153,7 @@
                     //    this.transactionGridOptions.enablePaginationControls = false;
                     //}
 
-                    this.$timeout( () => this.populateGridUnitLabels(), 150 );
-
-                    // Put this in a slight delay so the date range picker can exist
-                    this.$timeout( () =>
+                    const initialLoad = () =>
                     {
                         if( this.allFinancialTxns.length > 1 )
                         {
@@ -166,6 +163,15 @@
                         }
 
                         this.onFilterDateRangeChange();
+                    };
+
+                    // Put this in a slight delay so the date range picker can exist
+                    this.$timeout( () =>
+                    {
+                        if( this.isUnitColVisible )
+                            this.populateGridUnitLabels().then( initialLoad, initialLoad );
+                        else
+                            initialLoad();
                     }, 100 );
                 },
                 () =>
@@ -219,15 +225,19 @@
             if( !this.filterStartDate || !this.filterEndDate )
                 return;
 
-            this.transactionGridOptions.data = this.allFinancialTxns.filter( t => t.transactionDate >= this.filterStartDate && t.transactionDate <= this.filterEndDate );
-
-            if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+            // Wrap this in $timeout so it refreshes properly, from here: https://stackoverflow.com/a/17958847/10315651
+            this.$timeout( () =>
             {
-                this.transactionGridOptions.enablePagination = false;
-                this.transactionGridOptions.enablePaginationControls = false;
-            }
+                const txRows = this.allFinancialTxns.filter( t => t.transactionDate >= this.filterStartDate && t.transactionDate <= this.filterEndDate );
+                this.transactionGridOptions.data = txRows;
+                this.transactionGridOptions.virtualizationThreshold = txRows.length + 1;
 
-            this.$scope.$apply();
+                if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
+                {
+                    this.transactionGridOptions.enablePagination = false;
+                    this.transactionGridOptions.enablePaginationControls = false;
+                }
+            }, 10 );
         }
     }
 
