@@ -3,7 +3,17 @@
     <h2>Premium Plan</h2>
 
     <div>
-        <div data-ng-if="$ctrl.isPremiumPlanActive">Thank you and your association for being premium plan members!</div>
+        <div data-ng-if="$ctrl.shouldShowTrialNote && !$ctrl.settings.premiumPlanIsAutoRenewed" class="mt-2 mb-2 alert alert-info">
+            Welcome new user! You're on our premium trial plan, which lasts 3 months from sign-up. After the 3 months, you'll automatically switch over to our
+            free plan. If you'd like to stay on our premium plan you can setup payment via eCheck/ACH or card below.
+            <br />
+            <br />
+            <a href="https://help.communityally.org/why-go-premium/" target="_blank">Learn more about free versus premium</a>
+        </div>
+
+        <div data-ng-if="$ctrl.isPremiumPlanActive && !$ctrl.shouldShowTrialNote">
+            Thank you and your association for being premium plan members!
+        </div>
         <br />
         Premium Plan Cost: <span style="font-weight: bold; color: green;">${{$ctrl.settings.premiumPlanCostDollars}}/month</span>
         <br />

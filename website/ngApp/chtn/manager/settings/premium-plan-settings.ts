@@ -40,6 +40,7 @@ namespace Ally
         viewPremiumInvoiceViewId: string;
         showInvoiceSection: boolean = false;
         paymentType: string = "ach";
+        shouldShowTrialNote = false;
 
 
         /**
@@ -77,6 +78,8 @@ namespace Ally
             // Get a view token to view the premium plan invoice should one be generated
             if( this.showInvoiceSection ) // Add a slight delay to let the rest of the page load
                 this.$timeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid ), 250 );
+
+            this.shouldShowTrialNote = this.siteInfo.privateSiteInfo.isPremiumPlanActive && moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 3, "months" ) );
         }
 
 
