@@ -187,7 +187,7 @@ namespace Ally
         sentWelcomeEmail: boolean;
         allEmailsSent: boolean;
         multiselectMulti: string = "single";
-        gridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
+        residentsGridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
         pendingMemberGridApi: uiGrid.IGridApiOf<PendingMember>;
         emailHistoryGridApi: uiGrid.IGridApiOf<RecentEmail>;
         isSavingUser: boolean = false;
@@ -218,12 +218,20 @@ namespace Ally
         selectedResidentDetailsView: string = "Primary";
         showAddHomeLink: boolean = false;
         hasMemberNotOwnerRenter: boolean = false;
-        
+        didLoadResidentGridState = false;
+        shouldSaveResidentGridState = true;
+        static readonly StoreKeyResidentGridState = "AllyResGridState";
+
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private fellowResidents: Ally.FellowResidentsService, private uiGridConstants: uiGrid.IUiGridConstants, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
+        constructor( private $http: ng.IHttpService,
+            private $rootScope: ng.IRootScopeService,
+            private fellowResidents: Ally.FellowResidentsService,
+            private uiGridConstants: uiGrid.IUiGridConstants,
+            private siteInfo: Ally.SiteInfoService,
+            private appCacheService: AppCacheService )
         {
         }
 
@@ -352,7 +360,7 @@ namespace Ally
                 enableRowHeaderSelection: false,
                 onRegisterApi: ( gridApi ) =>
                 {
-                    this.gridApi = gridApi;
+                    this.residentsGridApi = gridApi;
                     gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
                     {
                         const msg = 'row selected ' + row.isSelected;
@@ -458,9 +466,35 @@ namespace Ally
                         this.toggleEmailHistoryVisible();
                     }
 
+                    if( this.residentsGridApi && window.localStorage[ManageResidentsController.StoreKeyResidentGridState] )
+                    {
+                        const gridState = JSON.parse( window.localStorage[ManageResidentsController.StoreKeyResidentGridState] );
+                        if( gridState && typeof ( gridState ) === "object" )
+                        {
+                            this.residentsGridApi.saveState.restore( this as any, gridState );
+                            this.residentsGridApi.grid.clearAllFilters( true, true, false );
+                            this.didLoadResidentGridState = true;
+                        }
+                    }
+
                     if( this.showPendingMembers )
                         this.loadPendingMembers();
                 } );
+        }
+
+
+        /**
+         * Called on a controller when its containing scope is destroyed. Use this hook for releasing external resources,
+         * watches and event handlers.
+         */
+        $onDestroy()
+        {
+            // Save the grid state (column order, widths, visible, etc.)
+            if( this.shouldSaveResidentGridState )
+            {
+                const gridState = this.residentsGridApi.saveState.save();
+                window.localStorage[ManageResidentsController.StoreKeyResidentGridState] = JSON.stringify( gridState );
+            }
         }
 
 
@@ -580,7 +614,7 @@ namespace Ally
             }
 
             //this.residentGridOptions.selectAll( false );
-            this.gridApi.selection.clearSelectedRows();
+            this.residentsGridApi.selection.clearSelectedRows();
 
             setTimeout( "$( '#edit-user-first-text-box' ).focus();", 100 );
         }
@@ -646,7 +680,7 @@ namespace Ally
                     this.residentGridOptions.virtualizationThreshold = residentArray.length;
 
                     this.residentGridOptions.enableFiltering = residentArray.length > 15;
-                    this.gridApi.core.notifyDataChange( this.uiGridConstants.dataChange.COLUMN );
+                    this.residentsGridApi.core.notifyDataChange( this.uiGridConstants.dataChange.COLUMN );
 
                     this.hasOneAdmin = _.filter( residentArray, r => r.isSiteManager ).length === 1 && residentArray.length > 1;
 
@@ -655,10 +689,10 @@ namespace Ally
                     // If we have sort info to use
                     if( this.residentSortInfo )
                     {
-                        const sortColumn = _.find( this.gridApi.grid.columns, ( col ) => col.field === this.residentSortInfo.field );
+                        const sortColumn = _.find( this.residentsGridApi.grid.columns, ( col ) => col.field === this.residentSortInfo.field );
 
                         if( sortColumn )
-                            this.gridApi.grid.sortColumn( sortColumn, this.residentSortInfo.direction, false );
+                            this.residentsGridApi.grid.sortColumn( sortColumn, this.residentSortInfo.direction, false );
                     }
 
                     // Build the full name and convert the last login to local time
@@ -1506,6 +1540,17 @@ namespace Ally
                     alert( "Failed to load emails: " + response.data.exceptionMessage );
                 }
             );
+        }
+
+
+        resetResidentGridState()
+        {
+            // Remove the saved grid state
+            window.localStorage.removeItem( ManageResidentsController.StoreKeyResidentGridState );
+
+            // Refresh the page, but don't save the grid state on exit
+            this.shouldSaveResidentGridState = false;
+            window.location.reload();
         }
     }
 }

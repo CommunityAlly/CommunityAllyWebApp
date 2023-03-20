@@ -42,11 +42,15 @@
         <button class="btn btn-primary pull-right" data-ng-click="$ctrl.setEdit( {boardPosition:0, shouldSendWelcomeEmail: false} );">Add New {{ $ctrl.showIsRenter ? 'Resident' : 'Member' }}</button>
     </div>
 
-    <div data-ui-grid="$ctrl.residentGridOptions" data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+    <div data-ui-grid="$ctrl.residentGridOptions" ui-grid-save-state data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
 
     <div class="clearfix">
         <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}{{ $ctrl.residentGridOptions.data.length > 1 ? 's' : '' }}</span>
-        <a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
+        <span class="pull-right">
+            <span class="text-link note-text mr-1" data-ng-if="$ctrl.didLoadResidentGridState" data-ng-click="$ctrl.resetResidentGridState()" title="If your grid looks wonky, use this to refresh it">Reset Grid State</span>
+            <a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
+        </span>
+        <!--<a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>-->
         <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
 
