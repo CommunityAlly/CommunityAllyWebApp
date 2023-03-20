@@ -22,21 +22,21 @@
                     <div data-ng-class="{'directory-list-panel':$ctrl.canManage, 'directory-list-panel-full': !$ctrl.canManage}">
 
                         <div data-ng-repeat="curDirectory in $ctrl.documentTree.subdirectories">
-                            <div id="directory-name-{{ $index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
+                            <div id="directory-name-{{ $index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-public':curDirectory.isPublic, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
                                  data-ng-click="$ctrl.onDirectoryClicked(curDirectory);" data-folder-path="{{ curDirectory.fullDirectoryPath }}">
                                 <span data-ng-class="{ 'folder-icon': curDirectory.subdirectories.length === 0, 'folder-multi-icon': curDirectory.subdirectories.length > 0 }"></span>
                                 <span class="directory-name">{{curDirectory.name}}</span>
                             </div>
 
                             <div data-ng-if="(curDirectory === $ctrl.selectedDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory.parentDirectory) && $ctrl.shouldShowSubdirectories" data-ng-repeat="subDirectory in curDirectory.subdirectories">
-                                <div id="sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
+                                <div id="sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-public':subDirectory.isPublic, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
                                      data-ng-click="$ctrl.onDirectoryClicked(subDirectory)" data-folder-path="{{ subDirectory.fullDirectoryPath }}">
                                     <span data-ng-class="{ 'folder-icon': true, 'folder-multi-icon': subDirectory.subdirectories && subDirectory.subdirectories.length > 0 }"></span>
                                     <span class="directory-name">{{subDirectory.name}}</span>
                                 </div>
 
                                 <div data-ng-if="(subSubDirectory === $ctrl.selectedDirectory || subDirectory === $ctrl.selectedDirectory || subDirectory === $ctrl.selectedDirectory.parentDirectory) && $ctrl.shouldShowSubdirectories" data-ng-repeat="subSubDirectory in subDirectory.subdirectories">
-                                    <div id="sub-sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-sub-directory': true, droppable:true, directory: !subSubDirectory.isPrivate, 'directory-private':subSubDirectory.isPrivate, 'directory-selected':subSubDirectory == $ctrl.selectedDirectory }"
+                                    <div id="sub-sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-sub-directory': true, droppable:true, directory: !subSubDirectory.isPrivate, 'directory-private':subSubDirectory.isPrivate, 'directory-public':subSubDirectory.isPublic, 'directory-selected':subSubDirectory == $ctrl.selectedDirectory }"
                                          data-ng-click="$ctrl.onDirectoryClicked(subSubDirectory)" data-folder-path="{{ subSubDirectory.fullDirectoryPath }}">
                                         <span class="folder-icon"></span>
                                         <span class="directory-name">{{subSubDirectory.name}}</span>
@@ -59,6 +59,9 @@
                 <div class="file-list-panel" data-ng-hide="$ctrl.fileSearch.all">
                     <div id="private-folder-note" data-ng-show="$ctrl.selectedDirectory.isPrivate">
                         This is a private folder. Only site admin and board members can see its contents.
+                    </div>
+                    <div id="public-folder-note" data-ng-show="$ctrl.selectedDirectory.isPublic">
+                        This is a public folder. You can share links to these documents with non-residents.
                     </div>
                     <div data-ng-show="$ctrl.selectedDirectory != null" style="margin-top:15px;">
                         <div class="pull-right margin-right-10">

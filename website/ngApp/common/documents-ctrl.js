@@ -166,6 +166,7 @@ var Ally;
                     fileUri = fileUri.substr("/api/".length);
                 fileUri = _this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
                 if (isForDownload) {
+                    // Create a link and click it
                     var link = document.createElement('a');
                     link.setAttribute("type", "hidden"); // make it hidden if needed
                     link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);

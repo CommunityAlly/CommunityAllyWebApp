@@ -1154,7 +1154,7 @@ footer a:hover {
   border: 1px solid #000;
   padding: 0.5em;
 }
-.page-documents div.directory, .page-documents div.directory-private {
+.page-documents div.directory, .page-documents div.directory-private, .page-documents div.directory-public {
   height: 33px;
   color: #000;
   font-weight: 600;
@@ -1167,8 +1167,8 @@ footer a:hover {
 .page-documents div.sub-sub-directory {
   margin: 4px 0 4px 60px;
 }
-.page-documents .directory > span.folder-icon, .page-documents .directory-private > span.folder-icon,
-.page-documents .directory > span.folder-multi-icon, .page-documents .directory-private > span.folder-multi-icon {
+.page-documents .directory > span.folder-icon, .page-documents .directory-private > span.folder-icon, .page-documents .directory-public > span.folder-icon,
+.page-documents .directory > span.folder-multi-icon, .page-documents .directory-private > span.folder-multi-icon, .page-documents .directory-public > span.folder-multi-icon {
   height: 100%;
   background: url(/assets/images/folders.png) no-repeat 0 0;
   width: 41px;
@@ -1184,10 +1184,17 @@ footer a:hover {
   background: url(/assets/images/folders-private.png) no-repeat 0 0;
   background-position: 0 -92px;
 }
+.page-documents .directory-public > span.folder-icon {
+  background: url(/assets/images/folders-public.png) no-repeat 0 0;
+}
+.page-documents .directory-public > span.folder-multi-icon {
+  background: url(/assets/images/folders-public.png) no-repeat 0 0;
+  background-position: 0 -92px;
+}
 .page-documents .directory-selected > span.folder-icon, .page-documents .directory-selected > span.folder-multi-icon {
   background-position: 0 -54px !important;
 }
-.page-documents .directory > span.directory-name, .page-documents .directory-private > span.directory-name {
+.page-documents .directory > span.directory-name, .page-documents .directory-private > span.directory-name, .page-documents .directory-public > span.directory-name {
   position: relative;
   top: -14px;
 }
