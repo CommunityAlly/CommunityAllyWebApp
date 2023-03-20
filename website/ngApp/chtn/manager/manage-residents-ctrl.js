@@ -133,6 +133,8 @@ var Ally;
             this.selectedResidentDetailsView = "Primary";
             this.showAddHomeLink = false;
             this.hasMemberNotOwnerRenter = false;
+            this.didLoadResidentGridState = false;
+            this.shouldSaveResidentGridState = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -233,7 +235,7 @@ var Ally;
                     enableGridMenu: true,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
-                        _this.gridApi = gridApi;
+                        _this.residentsGridApi = gridApi;
                         gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function (row) {
                             var msg = 'row selected ' + row.isSelected;
                             _this.setEdit(row.entity);
@@ -315,9 +317,28 @@ var Ally;
                     document.getElementById("toggle-email-history-link").scrollIntoView();
                     _this.toggleEmailHistoryVisible();
                 }
+                if (_this.residentsGridApi && window.localStorage[ManageResidentsController.StoreKeyResidentGridState]) {
+                    var gridState = JSON.parse(window.localStorage[ManageResidentsController.StoreKeyResidentGridState]);
+                    if (gridState && typeof (gridState) === "object") {
+                        _this.residentsGridApi.saveState.restore(_this, gridState);
+                        _this.residentsGridApi.grid.clearAllFilters(true, true, false);
+                        _this.didLoadResidentGridState = true;
+                    }
+                }
                 if (_this.showPendingMembers)
                     _this.loadPendingMembers();
             });
+        };
+        /**
+         * Called on a controller when its containing scope is destroyed. Use this hook for releasing external resources,
+         * watches and event handlers.
+         */
+        ManageResidentsController.prototype.$onDestroy = function () {
+            // Save the grid state (column order, widths, visible, etc.)
+            if (this.shouldSaveResidentGridState) {
+                var gridState = this.residentsGridApi.saveState.save();
+                window.localStorage[ManageResidentsController.StoreKeyResidentGridState] = JSON.stringify(gridState);
+            }
         };
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
@@ -403,7 +424,7 @@ var Ally;
                     this.editUser.friendlyBadEmailReason = this.editUser.postmarkReportedBadEmailReason;
             }
             //this.residentGridOptions.selectAll( false );
-            this.gridApi.selection.clearSelectedRows();
+            this.residentsGridApi.selection.clearSelectedRows();
             setTimeout("$( '#edit-user-first-text-box' ).focus();", 100);
         };
         /**
@@ -448,14 +469,14 @@ var Ally;
                 _this.residentGridOptions.minRowsToShow = residentArray.length;
                 _this.residentGridOptions.virtualizationThreshold = residentArray.length;
                 _this.residentGridOptions.enableFiltering = residentArray.length > 15;
-                _this.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
+                _this.residentsGridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
                 _this.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
                 //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
                 // If we have sort info to use
                 if (_this.residentSortInfo) {
-                    var sortColumn = _.find(_this.gridApi.grid.columns, function (col) { return col.field === _this.residentSortInfo.field; });
+                    var sortColumn = _.find(_this.residentsGridApi.grid.columns, function (col) { return col.field === _this.residentSortInfo.field; });
                     if (sortColumn)
-                        _this.gridApi.grid.sortColumn(sortColumn, _this.residentSortInfo.direction, false);
+                        _this.residentsGridApi.grid.sortColumn(sortColumn, _this.residentSortInfo.direction, false);
                 }
                 // Build the full name and convert the last login to local time
                 _.forEach(residentArray, function (res) {
@@ -1096,7 +1117,15 @@ var Ally;
                 alert("Failed to load emails: " + response.data.exceptionMessage);
             });
         };
+        ManageResidentsController.prototype.resetResidentGridState = function () {
+            // Remove the saved grid state
+            window.localStorage.removeItem(ManageResidentsController.StoreKeyResidentGridState);
+            // Refresh the page, but don't save the grid state on exit
+            this.shouldSaveResidentGridState = false;
+            window.location.reload();
+        };
         ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
+        ManageResidentsController.StoreKeyResidentGridState = "AllyResGridState";
         return ManageResidentsController;
     }());
     Ally.ManageResidentsController = ManageResidentsController;
