@@ -17,7 +17,7 @@
         allFinancialTxns: LedgerEntry[];
         ownerFinanceTxNote: string;
         isUnitColVisible = false;
-
+        ownerBalance: number;
 
         /**
          * The constructor for the class
@@ -134,6 +134,7 @@
                     this.isLoading = false;
                     this.allFinancialTxns = httpResponse.data.entries;
                     this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
+                    this.ownerBalance = httpResponse.data.ownerBalance;
 
                     // Hide the unit column if the owner only has one unit
                     const allUnitIds = this.allFinancialTxns.map( u => u.associatedUnitId );
@@ -246,6 +247,7 @@
     {
         ownerFinanceTxNote: string;
         entries: LedgerEntry[];
+        ownerBalance: number;
     }
 }
 
