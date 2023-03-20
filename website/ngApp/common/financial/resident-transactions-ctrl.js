@@ -95,6 +95,7 @@ var Ally;
                 _this.isLoading = false;
                 _this.allFinancialTxns = httpResponse.data.entries;
                 _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
+                _this.ownerBalance = httpResponse.data.ownerBalance;
                 // Hide the unit column if the owner only has one unit
                 var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
