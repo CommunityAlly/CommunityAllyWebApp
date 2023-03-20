@@ -178,7 +178,7 @@
     }
 
     div {
-        &.directory, &.directory-private {
+        &.directory, &.directory-private, &.directory-public {
             height: 33px;
             color: #000;
             font-weight: 600;
@@ -195,8 +195,8 @@
         }
     }
 
-    .directory > span.folder-icon, .directory-private > span.folder-icon,
-    .directory > span.folder-multi-icon, .directory-private > span.folder-multi-icon {
+    .directory > span.folder-icon, .directory-private > span.folder-icon, .directory-public > span.folder-icon,
+    .directory > span.folder-multi-icon, .directory-private > span.folder-multi-icon, .directory-public > span.folder-multi-icon {
         height: 100%;
         background: url(/assets/images/folders.png) no-repeat 0 0;
         width: 41px;
@@ -216,11 +216,20 @@
         background-position: 0 -92px;
     }
 
+    .directory-public > span.folder-icon {
+        background: url(/assets/images/folders-public.png) no-repeat 0 0;
+    }
+
+    .directory-public > span.folder-multi-icon {
+        background: url(/assets/images/folders-public.png) no-repeat 0 0;
+        background-position: 0 -92px;
+    }
+
     .directory-selected > span.folder-icon, .directory-selected > span.folder-multi-icon {
         background-position: 0 -54px !important;
     }
 
-    .directory > span.directory-name, .directory-private > span.directory-name {
+    .directory > span.directory-name, .directory-private > span.directory-name, .directory-public > span.directory-name {
         position: relative;
         top: -14px;
     }

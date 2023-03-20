@@ -35,6 +35,7 @@ namespace Ally
     {
         name: string;
         isPrivate: boolean;
+        isPublic: boolean;
         parentDirectory: DocumentDirectory;
         subdirectories: DocumentDirectory[];
         fullDirectoryPath: string;
@@ -266,6 +267,7 @@ namespace Ally
 
                     if( isForDownload )
                     {
+                        // Create a link and click it
                         const link = document.createElement( 'a' );
                         link.setAttribute( "type", "hidden" ); // make it hidden if needed
                         link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);
