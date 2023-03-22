@@ -7,7 +7,7 @@
     <div id="map_canvas" style="width:100%; height:400px;" class="margin-bottom-10"></div>
 
     <div class="row">
-        <div class="col-xs-12 col-sm-6" data-ng-repeat="location in $ctrl.tips | filter: $ctrl.isLocationTip">
+        <div class="col-12 col-sm-6" data-ng-repeat="location in $ctrl.tips | filter: $ctrl.isLocationTip">
             <div class="map-place-info">
                 <div class="media-item">
                     <div class="media-thumbnail">
@@ -33,37 +33,37 @@
     <div id="add-entry-collapsible" class="collapsibleContainer" title="{{ $ctrl.editingTip.itemId == null | iif : 'Add New Location' : 'Edit Location' }}" data-ng-show="$ctrl.isSiteManager">
         <div class="collapsibleContainerInnerContent">
             <form id="new-item-form" name="newItemForm" novalidate ng-submit="$ctrl.onSaveTip()">
-                <div class="form-group row">
-                    <label class="col-sm-2 col-xs-12">
+                <div class="row mb-3 mx-0">
+                    <label class="col-sm-2 col-12 form-label">
                         Name:
                         <span class="required">Required</span>
                     </label>
-                    <div class="col-sm-10 col-xs-12">
+                    <div class="col-sm-10 col-12">
                         <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editingTip.name" name="tip_name" required maxlength="128">
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-2 col-xs-12">
+                <div class="row mb-3 mx-0">
+                    <label class="col-sm-2 col-12 form-label">
                         Description:
                         <span class="required">Required</span>
                     </label>
-                    <div class="col-sm-10 col-xs-12">
+                    <div class="col-sm-10 col-12">
                         <textarea class="form-control" data-ng-model="$ctrl.editingTip.body" name="tip_body" required maxlength="512" rows="4"></textarea>
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-2 col-xs-12">
+                <div class="row mb-3 mx-0">
+                    <label class="col-sm-2 col-12 form-label">
                         Address:
                         <span class="required">Required</span>
                     </label>
-                    <div class="col-sm-10 col-xs-12">
+                    <div class="col-sm-10 col-12">
                         <input id="edit-location-address-text-box" class="form-control form-control-sm" type="text" data-ng-model="$ctrl.editingTip.address" required maxlength="200">
                     </div>
                 </div>
 
-                <div class="text-right">
+                <div class="text-end px-2">
                     <button class="btn btn-primary" data-ng-disabled="newItemForm.$invalid" type="submit">{{ $ctrl.editingTip.itemId == null | iif : 'Add Item' : 'Save Item' }}</button>
                     <button class="btn btn-primary" data-ng-show="$ctrl.editingTip.itemId != null" data-ng-click="$ctrl.editingTip = {};">Cancel Edit</button>
                 </div>

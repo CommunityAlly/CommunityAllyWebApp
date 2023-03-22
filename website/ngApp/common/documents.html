@@ -15,7 +15,7 @@
         <div class="row">
             <div class="col-lg-3 col-md-5 col-sm-12">
                 <div id="directory-panel">
-                    <div class="form-group">
+                    <div class="row search-box-container">
                         <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateFileFilter()" data-ng-model="$ctrl.fileSearch.all" data-ng-model-options="{ debounce: 1 }" placeholder="Search files" aria-describedby="basic-addon2" />
                     </div>
 
@@ -49,7 +49,7 @@
                             Your association has not yet uploaded any files.
                         </div>
                     </div>
-                    <div class="text-center pt-3" data-ng-show="$ctrl.canManage">
+                    <div class="text-center pt-3 pb-4 mb-3" data-ng-show="$ctrl.canManage">
                         <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createDirectory()">+ Create New Folder</button>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                                     <div class="col-md-7 uploader">
                                         Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span> - <span>{{ curFile.fileSizeBytes | filesize }}</span><span data-ng-if="$ctrl.isGenericIcon(curFile)"> - {{ $ctrl.getDisplayExtension( curFile ) }}</span><span> - {{ curFile.numViews }} view{{ curFile.numViews === 1 ? '' : 's' }}</span>
                                     </div>
-                                    <div class="col-md-5 text-md-right padding-right">
+                                    <div class="col-md-5 text-md-end padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
                                         - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
                                         <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
@@ -117,7 +117,7 @@
                                     <div class="col-md-6 uploader">
                                         Uploaded <span ng-bind-html="curFile.uploadDateString | highlight:$ctrl.fileSearch.all"></span> <span data-ng-if="curFile.uploaderFullName"> by <span ng-bind-html="curFile.uploaderFullName | highlight:fileSearch.all"></span></span>
                                     </div>
-                                    <div class="col-md-6 text-md-right padding-right">
+                                    <div class="col-md-6 text-md-end padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
                                         - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
                                         <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
@@ -134,7 +134,7 @@
         </div>
 
     </div>
-    <div class="text-right mt-2">
+    <div class="text-end mt-2">
         <span class="text-link" data-ng-if="!$ctrl.generatingZipStatus" data-ng-click="$ctrl.startZipGenDownload()">Generate Zip Of All Files</span>
         <img data-ng-if="$ctrl.generatingZipStatus && $ctrl.generatingZipStatus !== 'ready'" src="/assets/images/Spinner_Small.gif" />
         <span data-ng-if="$ctrl.generatingZipStatus !== 'ready'">{{$ctrl.generatingZipStatus}}</span>

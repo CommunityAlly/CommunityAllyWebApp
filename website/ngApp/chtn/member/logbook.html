@@ -31,40 +31,40 @@
                 <h2>{{ $ctrl.editEvent.eventId ? "Edit Event" : "Add Event" }}</h2>
 
                 <div>
-                    <div class="form-group row">
-                        <label class="col-sm-2 col-xs-12 text-right" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
-                        <div class="col-sm-10 col-xs-12">
+                    <div class="row mb-3">
+                        <label class="col-sm-2 col-12 text-end form-label-popup" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
+                        <div class="col-sm-10 col-12">
                             <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" data-ng-model="$ctrl.editEvent.dateOnly" />
                         </div>
                     </div>
 
-                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
-                        <label class="col-sm-2 col-xs-12 text-right">Time:</label>
-                        <div class="col-sm-3 col-xs-11">
+                    <div class="row mb-3" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
+                        <label class="col-sm-2 col-12 text-end form-label-popup">Time:</label>
+                        <div class="col-sm-3 col-12">
                             <input id="calendar-event-time" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editEvent.timeOnly">
                         </div>
-                        <div class="col-xs-1 note-text" style="vertical-align: middle; line-height: 31px;">
+                        <div class="col-sm-3 col-11 note-text" style="vertical-align: middle; line-height: 31px;">
                             Time Zone: {{ $ctrl.currentTimeZoneAbbreviation }}
                         </div>
                     </div>
 
-                    <div class="form-group row" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.localTimeZoneDiffersFromGroup">
+                    <div class="row mb-3" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.localTimeZoneDiffersFromGroup">
                         <label class="col-sm-2 hidden-xs"></label>
-                        <div class="col-xs-10 note-text">
+                        <div class="col-10 note-text">
                             Note: Your local time is currently in {{ $ctrl.currentTimeZoneAbbreviation }}, but your association is in the {{ $ctrl.groupTimeZoneAbbreviation }} time zone
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-2 col-xs-12 text-right">What:</label>
-                        <div class="col-sm-10 col-xs-12">
+                    <div class="row mb-3">
+                        <label class="col-sm-2 col-12 text-end  form-label-popup">What:</label>
+                        <div class="col-sm-10 col-12">
                             <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()" autocomplete="off" data-lpignore="true" data-form-type="other">
                         </div>
                     </div>
 
-                    <div class="form-group row" data-ng-if="$ctrl.showExpandedCalendarEventModel">
-                        <label class="col-sm-2 col-xs-12 pt-5 text-right">Description:</label>
-                        <div class="col-sm-10 col-xs-12">
+                    <div class="row mb-3" data-ng-if="$ctrl.showExpandedCalendarEventModel">
+                        <label class="col-sm-2 col-12 pt-5 text-end form-label-popup">Description:</label>
+                        <div class="col-sm-10 col-12">
                             <textarea id="tiny-mce-editor"></textarea>
                         </div>
                     </div>
@@ -110,18 +110,18 @@
                                 </p>
                             </div>-->
 
-                            <div class="form-group row" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                <label class="col-sm-2 col-xs-12">Send To:</label>
-                                <div class="col-sm-10 col-xs-12">
-                                    <select class="form-control" data-ng-model="$ctrl.editEvent.emailGroupShortName" data-ng-options="g.groupShortName as g.displayLabel for g in $ctrl.associatedGroups">
+                            <div class="row mb-3" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                                <label class="col-sm-2 col-12  form-label-popup">Send To:</label>
+                                <div class="col-sm-10 col-12">
+                                    <select class="form-control form-select" data-ng-model="$ctrl.editEvent.emailGroupShortName" data-ng-options="g.groupShortName as g.displayLabel for g in $ctrl.associatedGroups">
                                         <option></option>
                                     </select>
                                 <!--</div>
                             </div>
 
-                            <div class="form-group row" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                <label class="col-sm-2 col-xs-12">Send To2:</label>
-                                <div class="col-sm-10 col-xs-12">-->
+                            <div class="row" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                                <label class="col-sm-2 col-12">Send To2:</label>
+                                <div class="col-sm-10 col-12">-->
                                     <div class="resident-list-box" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'">
 
                                         <!--<div id="accordion">
@@ -196,9 +196,9 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-xs-12">Additional Emails:</label>
-                                <div class="col-sm-8 col-xs-12">
+                            <div class="row mb-3">
+                                <label class="col-sm-4 col-12  form-label-popup">Additional Emails:</label>
+                                <div class="col-sm-8 col-12">
                                     <input type="text" data-ng-model="$ctrl.editEvent.additionalEmailsString" class="form-control form-control-sm" />
                                     <div class="note-text margin-top-10">
                                         You can enter up to three email addresses (Separated by comma or semicolon) that will also be sent the
@@ -228,30 +228,30 @@
             <div class="ca-modal-dialog modal-sm">
                 <h4>Event Details</h4>
                 <form>
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">Date:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup">Date:</label>
+                        <div class="col-sm-8 col-12">
                             <span>{{ $ctrl.viewEvent.dateOnly | date:'EEEE, MMMM d, yyyy' }}</span>
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">Time:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup">Time:</label>
+                        <div class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.timeOnly || "All Day" }} <span data-ng-if="$ctrl.viewEvent.timeOnly">{{ $ctrl.currentTimeZoneAbbreviation }}</span>
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">What:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup">What:</label>
+                        <div class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.title }}
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">Description:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup">Description:</label>
+                        <div class="col-sm-8 col-12">
                             <div id="view-event-desc" data-ng-bind-html="$ctrl.viewEvent.description"></div>
                         </div>
                     </div>
