@@ -39,18 +39,41 @@ namespace Ally
         }
 
 
+        getTimezoneAbbreviation( timeZoneIana: string = null )
+        {
+            // Need to cast moment to any because we don't have the tz typedef file
+            const tempMoment = <any>moment();
+
+            if( !timeZoneIana )
+                timeZoneIana = ( <any>moment ).tz.guess();
+
+            const timeZoneInfo = tempMoment.tz( timeZoneIana );
+            const timeZoneAbbreviation: string = timeZoneInfo.format( 'z' );
+
+            // Drop the daylight savings time (DST) info to avoid confusion with users
+            if( timeZoneAbbreviation === "EST" || timeZoneAbbreviation === "EDT" )
+                return "ET";
+            else if( timeZoneAbbreviation === "CST" || timeZoneAbbreviation === "CDT" )
+                return "CT";
+            else if( timeZoneAbbreviation === "MST" || timeZoneAbbreviation === "MDT" )
+                return "MT";
+            else if( timeZoneAbbreviation === "PST" || timeZoneAbbreviation === "PDT" )
+                return "PT";
+
+            return timeZoneAbbreviation;
+        }
+
+        
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit()
         {
-            const tempMoment = <any>moment();
-            const localTimeZone: string = ( <any>moment ).tz.guess();
-            this.currentTimeZoneAbbreviation = tempMoment.tz( localTimeZone ).format( 'z' );
+            this.currentTimeZoneAbbreviation = this.getTimezoneAbbreviation();
 
             if( this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
             {
-                this.groupTimeZoneAbbreviation = tempMoment.tz( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana ).format( 'z' );
+                this.groupTimeZoneAbbreviation = this.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana );
 
                 if( this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation )
                     this.localTimeZoneDiffersFromGroup = true;
