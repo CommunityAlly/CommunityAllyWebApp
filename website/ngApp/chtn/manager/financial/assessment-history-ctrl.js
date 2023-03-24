@@ -383,7 +383,7 @@ var Ally;
                 startDate = temp;
                 didSwapDates = true;
             }
-            var entries = this.specialAssessments.filter(function (e) { return e.assessmentDate.getTime() > startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime(); });
+            var entries = this.specialAssessments.filter(function (e) { return e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime(); });
             if (didSwapDates)
                 entries.reverse();
             return entries;
