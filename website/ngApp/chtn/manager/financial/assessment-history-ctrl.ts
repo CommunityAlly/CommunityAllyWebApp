@@ -543,7 +543,7 @@
                 didSwapDates = true;
             }
 
-            const entries = this.specialAssessments.filter( e => e.assessmentDate.getTime() > startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime() );
+            const entries = this.specialAssessments.filter( e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime() );
 
             if( didSwapDates )
                 entries.reverse();
