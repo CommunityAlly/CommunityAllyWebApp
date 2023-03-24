@@ -8,7 +8,7 @@
 
     <div data-ng-if="$ctrl.usedServiceTags.length > 1">
         <span style="font-weight: bold;">Filter By Service:</span><br />
-        <label class="margin-right-10 d-inline-block" data-ng-repeat="tag in $ctrl.usedServiceTags">
+        <label class="margin-right-10 d-inline-block mb-3" data-ng-repeat="tag in $ctrl.usedServiceTags">
             <input type="checkbox" data-ng-click="$ctrl.onTagFilterToggle( tag )" />{{ tag }}
         </label>
     </div>
@@ -32,7 +32,7 @@
         There are no vendors currently listed for your group. Please add a few using the form below.
     </div>
 
-    <div class="text-right">
+    <div class="text-end">
         <a href="javascript:void(0)" class="text-link" data-ng-click="$ctrl.exportVendorCsv()">Export To CSV</a>
     </div>
     <hr />

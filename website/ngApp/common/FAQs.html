@@ -28,7 +28,7 @@
             <p><label>Message:</label></p>
             <textarea id="tiny-mce-editor"></textarea>
             <span class="fw-bold note-text">Please resize your images to be below 100KB before inserting to keep the page loading fast for your neighbors.</span>
-            <p class="text-right margin-top-10">
+            <p class="text-end margin-top-10">
                 <span data-ng-show="$ctrl.isBodyMissing" class="error">The body is required.</span>
                 <button id="AddNewInfoButton" class="btn btn-primary" type="button" data-ng-click="$ctrl.onSubmitItem();">Submit</button>&nbsp;
                 <button id="CancelEditInfoButton" class="btn btn-primary margin-left-10" type="button" data-ng-show="$ctrl.editingInfoItem.infoItemId != null" data-ng-click="$ctrl.cancelInfoItemEdit()">

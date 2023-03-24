@@ -722,8 +722,19 @@ a[data-edit="backColor #FFFFFF"]::before {
 }
 
 /* BS4-BS5 Updrade General CSS Change Start */
+.navbar .navbar-collapse {
+  padding-left: 45px !important;
+}
+
 .form-label {
   padding-left: 0px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-label-popup {
+  padding-left: 15px;
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 0.5rem;
@@ -743,6 +754,12 @@ a[data-edit="backColor #FFFFFF"]::before {
   width: auto !important;
   position: relative;
   top: -3px;
+}
+
+.search-box-container {
+  width: 100%;
+  margin: 10px 0px 15px;
+  min-height: 40px !important;
 }
 
 /* BS4-BS5 Updrade General CSS Change End */

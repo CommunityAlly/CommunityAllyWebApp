@@ -54,12 +54,12 @@
                     </div>
 
                     <div data-ng-if="entry.project">
-                        <div data-ng-if="entry.project.startDate"><label style="font-weight:bold;">Project Date:</label>&nbsp;{{ entry.project.startDate | date:'shortDate' }}<span data-ng-if="entry.project.endDate && entry.project.endDate.getTime() !== entry.project.startDate.getTime()">&nbsp;- {{ entry.project.endDate | date:'shortDate' }}</span></div>
-                        <div data-ng-if="entry.project.cost"><label style="font-weight:bold;">Cost:</label>&nbsp;{{ entry.project.cost | currency }}</div>
-                        <div data-ng-if="entry.project.vendorCompanyName"><label style="font-weight:bold;">Vendor:</label>&nbsp;{{ entry.project.vendorCompanyName }}</div>
-                        <div data-ng-if="entry.project.equipmentName"><label style="font-weight:bold;">Equipment:</label>&nbsp;{{ entry.project.equipmentName }}</div>
-                        <div data-ng-if="entry.project.status"><label style="font-weight:bold;">Status:</label>&nbsp;{{ entry.project.status }}</div>
-                        <div data-ng-if="entry.project.assignedTo"><label style="font-weight:bold;">Assigned To:</label>&nbsp;{{ entry.project.assignedTo }}</div>
+                        <div data-ng-if="entry.project.startDate"><label style="font-weight:bold;" class="mb-2">Project Date:</label>&nbsp;{{ entry.project.startDate | date:'shortDate' }}<span data-ng-if="entry.project.endDate && entry.project.endDate.getTime() !== entry.project.startDate.getTime()">&nbsp;- {{ entry.project.endDate | date:'shortDate' }}</span></div>
+                        <div data-ng-if="entry.project.cost"><label style="font-weight:bold;" class="mb-2">Cost:</label>&nbsp;{{ entry.project.cost | currency }}</div>
+                        <div data-ng-if="entry.project.vendorCompanyName"><label style="font-weight:bold;" class="mb-2">Vendor:</label>&nbsp;{{ entry.project.vendorCompanyName }}</div>
+                        <div data-ng-if="entry.project.equipmentName"><label style="font-weight:bold;" class="mb-2">Equipment:</label>&nbsp;{{ entry.project.equipmentName }}</div>
+                        <div data-ng-if="entry.project.status"><label style="font-weight:bold;" class="mb-2">Status:</label>&nbsp;{{ entry.project.status }}</div>
+                        <div data-ng-if="entry.project.assignedTo"><label style="font-weight:bold;" class="mb-2">Assigned To:</label>&nbsp;{{ entry.project.assignedTo }}</div>
                         <p id="maintenance-item-body-{{ $index }}" data-ng-if="entry.project.descriptionText" class="maintenance-item-body" style="white-space: pre-wrap;" ng-bind-html="entry.project.descriptionText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}">
                         </p>
                     </div>
@@ -68,7 +68,7 @@
         </div>
 
     </div>
-    <div class="text-right mt-2">
+    <div class="text-end mt-2">
         <a href="javascript:void(0)" class="text-link" data-ng-click="$ctrl.exportMaintenanceCsv()">Export Maintenance Records To CSV</a>
     </div>
 
@@ -87,48 +87,48 @@
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.editingProject = $ctrl.editingTodo = null">&times;</span>
                 <h2>Add New Entry</h2>
 
-                <label><input name="new-entry-type" type="radio" data-ng-click="$ctrl.onEntryTypeChange('proj')" checked="checked" />Maintenance Entry</label>
-                <label style="margin-left: 2em;"><input name="new-entry-type" type="radio" data-ng-click="$ctrl.onEntryTypeChange('todo')" />To-Do</label>
+                <label class="mb-3"><input name="new-entry-type" type="radio" data-ng-click="$ctrl.onEntryTypeChange('proj')" checked="checked" />Maintenance Entry</label>
+                <label class="mb-3" style="margin-left: 2em;"><input name="new-entry-type" type="radio" data-ng-click="$ctrl.onEntryTypeChange('todo')" />To-Do</label>
             </div>
 
             <div data-ng-if="$ctrl.editingProject">
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Name:</label>
-                    <div class="col-sm-9 col-xs-12">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Name:</label>
+                    <div class="col-sm-9 col-12">
                         <input id="project-title-text-box" class="form-control" type="text" data-ng-enter="$ctrl.saveProject()" data-ng-model="$ctrl.editingProject.title" />
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Equipment:</label>
-                    <div class="col-sm-9 col-xs-12">
-                        <select data-ng-model="$ctrl.editingProject.equipmentId" data-ng-change="$ctrl.onEquipmentSelectionChange()" class="form-control" data-ng-options="eq.equipmentId as eq.name for eq in $ctrl.equipmentOptions">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Equipment:</label>
+                    <div class="col-sm-9 col-12">
+                        <select data-ng-model="$ctrl.editingProject.equipmentId" data-ng-change="$ctrl.onEquipmentSelectionChange()" class="form-control form-select" data-ng-options="eq.equipmentId as eq.name for eq in $ctrl.equipmentOptions">
                             <option></option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group row" data-ng-if="$ctrl.vendorOptions.length > 0">
-                    <label class="col-sm-3 col-xs-12">Vendor:</label>
-                    <div class="col-sm-9 col-xs-12">
-                        <select data-ng-model="$ctrl.editingProject.vendorId" class="form-control" data-ng-options="v.preferredVendorId as v.companyName for v in $ctrl.vendorOptions">
+                <div class="mb-3 row" data-ng-if="$ctrl.vendorOptions.length > 0">
+                    <label class="col-sm-3 col-12 form-label-popup">Vendor:</label>
+                    <div class="col-sm-9 col-12">
+                        <select data-ng-model="$ctrl.editingProject.vendorId" class="form-control form-select" data-ng-options="v.preferredVendorId as v.companyName for v in $ctrl.vendorOptions">
                             <option></option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Notes:</label>
-                    <div class="col-sm-9 col-xs-12">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Notes:</label>
+                    <div class="col-sm-9 col-12">
                         <textarea data-ng-model="$ctrl.editingProject.descriptionText" class="form-control" rows="4"></textarea>
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Status:</label>
-                    <div class="col-sm-9 col-xs-12">
-                        <select data-ng-model="$ctrl.editingProject.status" class="form-control">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Status:</label>
+                    <div class="col-sm-9 col-12">
+                        <select data-ng-model="$ctrl.editingProject.status" class="form-control form-select">
                             <option></option>
                             <option value="Not Started">Not Started</option>
                             <option value="Active">Active</option>
@@ -138,35 +138,35 @@
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Assigned To:</label>
-                    <div class="col-sm-9 col-xs-12">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Assigned To:</label>
+                    <div class="col-sm-9 col-12">
                         <input class="form-control" type="text" data-ng-model="$ctrl.editingProject.assignedTo" />
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Started On:</label>
-                    <div class="col-sm-9 col-xs-12">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Started On:</label>
+                    <div class="col-sm-9 col-12">
                         <input type="text" class="form-control" data-ui-date="{changeYear: true, changeMonth: true, yearRange: '1980:+1'}" data-ng-change="$ctrl.onProjectStartDateChange()" data-ng-model="$ctrl.editingProject.startDate" />
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Finished On:</label>
-                    <div class="col-sm-9 col-xs-12">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Finished On:</label>
+                    <div class="col-sm-9 col-12">
                         <input type="text" class="form-control" data-ui-date="{changeYear: true, yearRange: '1980:+1'}" data-ng-model="$ctrl.editingProject.endDate" />
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-xs-12">Cost:</label>
-                    <div class="col-sm-9 col-xs-12">
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Cost:</label>
+                    <div class="col-sm-9 col-12">
                         $<input type="text" class="form-control" style="display: inline-block; width: 98%;" data-ng-enter="$ctrl.saveProject()" data-ng-model="$ctrl.editingProject.cost" />
                     </div>
                 </div>
 
-                <div class="text-right">
+                <div class="text-end">
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveProject()">Save</button>
                 </div>
             </div>
@@ -174,18 +174,18 @@
 
             <div data-ng-if="$ctrl.editingTodo">
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-12">Name:</label>
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Name:</label>
                     <div class="col-sm-9 col-12">
                         <input id="edit-todo-name-text-box" data-ng-enter="$ctrl.saveTodo()" class="form-control" type="text" data-ng-model="$ctrl.editingTodo.description" />
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-12">Assignee:</label>
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Assignee:</label>
                     <div class="col-sm-9 col-12">
                         <div data-ng-if="$ctrl.assigneeOptions.length <= 10">
-                            <select class="form-control" data-ng-model="$ctrl.editingTodo.assignedToUserId" data-ng-options="u.userId as u.fullName for u in $ctrl.assigneeOptions">
+                            <select class="form-control form-select" data-ng-model="$ctrl.editingTodo.assignedToUserId" data-ng-options="u.userId as u.fullName for u in $ctrl.assigneeOptions">
                                 <option value=""></option>
                             </select>
                         </div>
@@ -205,14 +205,14 @@
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <label class="col-sm-3 col-12">Due Date:</label>
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-12 form-label-popup">Due Date:</label>
                     <div class="col-sm-9 col-12">
                         <input class="form-control" type="text" data-ui-date data-ng-model="$ctrl.editingTodo.dueDate" />
                     </div>
                 </div>
 
-                <div class="text-right">
+                <div class="text-end">
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveTodo()">Save</button>
                 </div>
             </div>
@@ -227,16 +227,16 @@
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowEditEquipmentModal = false">&times;</span>
             <h2>{{ $ctrl.editingEquipment.equipmentId ? "Edit Equipment" : "Add New Equipment" }}</h2>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Name:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Name:</label>
+                <div class="col-sm-8 col-12">
                     <input id="equipment-name-text-box" type="text" class="form-control" data-ng-model="$ctrl.editingEquipment.name" />
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Type:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Type:</label>
+                <div class="col-sm-8 col-12">
                     <input list="equipmentTypeOptions" id="equipmentType" ng-model="$ctrl.editingEquipment.type" class="form-control" maxlength="128" />
                     <datalist id="equipmentTypeOptions">
                         <option data-ng-repeat="entry in $ctrl.equipmentTypeOptions">{{entry}}</option>
@@ -244,44 +244,44 @@
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Initial Cost:</label>
-                <div class="col-sm-8 col-xs-12">
-                    $<input type="text" class="form-control" style="display: inline-block; width: 95%;" data-ng-model="$ctrl.editingEquipment.initialCost" />
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Initial Cost:</label>
+                <div class="col-sm-8 col-12" style="display: flex;align-items: center;">
+                    $<input type="text" class="form-control" style="display: inline-block; width: 94%;" data-ng-model="$ctrl.editingEquipment.initialCost" />
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Installed On:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Installed On:</label>
+                <div class="col-sm-8 col-12">
                     <input type="text" class="form-control" data-ui-date data-ng-model="$ctrl.editingEquipment.installDate" />
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Manufacturer:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Manufacturer:</label>
+                <div class="col-sm-8 col-12">
                     <input type="text" class="form-control" data-ng-model="$ctrl.editingEquipment.manufacturer" />
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Model #:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Model #:</label>
+                <div class="col-sm-8 col-12">
                     <input type="text" class="form-control" data-ng-model="$ctrl.editingEquipment.modelNumber" />
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Serial #:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Serial #:</label>
+                <div class="col-sm-8 col-12">
                     <input type="text" class="form-control" data-ng-model="$ctrl.editingEquipment.serialNumber" />
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-4 col-xs-12">Location:</label>
-                <div class="col-sm-8 col-xs-12">
+            <div class="row mb-3">
+                <label class="col-sm-4 col-12 form-label-popup">Location:</label>
+                <div class="col-sm-8 col-12">
                     <!--<tags-input style="width: 90%;" ng-model="$ctrl.editingEquipment.locationTags" data-max-tags="1" placeholder="" data-replace-spaces-with-dashes="false">
                         <auto-complete data-min-length="0" data-load-on-empty="true" data-load-on-focus="true" data-load-on-down-arrow="true" data-source="$ctrl.getEquipmentLocationAutocomplete($query)"></auto-complete>
                     </tags-input>-->
@@ -292,7 +292,7 @@
                 </div>
             </div>
 
-            <div class="text-right">
+            <div class="text-end">
                 <span data-ng-if="$ctrl.editingEquipment.equipmentId" data-ng-click="$ctrl.deleteEquipment()" class="text-link" style="float: left;">Delete</span>
                 <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveEquipment()">Save</button>
             </div>
