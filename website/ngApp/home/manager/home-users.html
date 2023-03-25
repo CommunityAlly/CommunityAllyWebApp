@@ -24,8 +24,8 @@
             <div class="row">
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12">First Name:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-12">First Name:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" />
                             <div class="validation-label" data-ng-show="$ctrl.editUserForm.editUserFirstTextBox.$error.required">Required</div>
                         </div>
@@ -34,8 +34,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-last-name-text-box" class="col-sm-4 col-xs-12">Last Name:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="edit-user-last-name-text-box" class="col-sm-4 col-12">Last Name:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" />
                         </div>
                     </div>
@@ -43,8 +43,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12">Email:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="edit-user-email-text-box" class="col-sm-4 col-12">Email:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" />
                             <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">Email address was reported undeliverable.</div>
                         </div>
@@ -53,8 +53,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">{{ $ctrl.homeName }}:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label class="col-sm-4 col-12">{{ $ctrl.homeName }}:</label>
+                        <div class="col-sm-8 col-12">
                             <div data-ng-if="!$ctrl.editUser.showAdvancedHomePicker">
                                 <select class="form-control form-control-sm" data-ng-model="$ctrl.editUser.singleUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
                                     <option value=""></option>
@@ -80,8 +80,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row" data-ng-if="$ctrl.showIsRenter">
-                        <label for="is-renter-checkbox" class="col-sm-4 col-xs-12">Is a Renter/Unit Manager:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="is-renter-checkbox" class="col-sm-4 col-12">Is a Renter/Unit Manager:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="is-renter-checkbox" class="validation-label" type="checkbox" data-ng-model="$ctrl.editUser.isRenter" /><br />
                             <span class="note-text">Indicates this person is not a unit owner.</span>
                         </div>
@@ -90,8 +90,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="is-site-manager-checkbox" class="col-sm-4 col-xs-12">Is Admin:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="is-site-manager-checkbox" class="col-sm-4 col-12">Is Admin:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="is-site-manager-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.isSiteManager" /><br>
                             <span class="note-text">Admin users can edit site information.</span>
                         </div>
@@ -100,8 +100,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label for="phone-number-text-box" class="col-sm-4 col-xs-12">Phone Number:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label for="phone-number-text-box" class="col-sm-4 col-12">Phone Number:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.phoneNumber" />
                         </div>
                     </div>
@@ -109,8 +109,8 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12">Board Position:</label>
-                        <div class="col-sm-8 col-xs-12">
+                        <label class="col-sm-4 col-12">Board Position:</label>
+                        <div class="col-sm-8 col-12">
                             <select class="form-control form-control-sm" data-ng-model="$ctrl.editUser.boardPosition" data-ng-options="bp.id as bp.name for bp in $ctrl.boardPositions"></select>
                         </div>
                     </div>

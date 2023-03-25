@@ -46,7 +46,7 @@
                             <span class="text-link" data-ng-click="$ctrl.signUpInfo.allPayTheSame=false">Click here if each unit pays a different amount.</span>
                         </div>
                         <div data-ng-hide="$ctrl.signUpInfo.allPayTheSame">
-                            <table border="1" class="text-left">
+                            <table border="1" class="text-start">
                                 <thead>
                                     <tr>
                                         <th>Unit</th>
@@ -129,9 +129,9 @@
                 </div>
 
                 <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || ($ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.dwollaFundingIsVerified)">
-                    <div class="form-group row">
-                        <label for="allow-payments-checkbox" class="col-xs-6 col-sm-4">Allow Online Payments:</label>
-                        <div class="col-xs-6 col-sm-8">
+                    <div class="row mb-3 px-3">
+                        <label for="allow-payments-checkbox" class="col-6 col-sm-4 form-label">Allow Online Payments:</label>
+                        <div class="col-6 col-sm-8">
                             <input id="allow-payments-checkbox" type="checkbox" data-ng-change="$ctrl.saveAllowSetting()" data-ng-model="$ctrl.paymentInfo.areOnlinePaymentsAllowed">
                         </div>
                     </div>
@@ -187,7 +187,7 @@
                 {{ $ctrl.payPalSignUpErrorMessage }}
             </div>
 
-            <div class="text-right mt-3">
+            <div class="text-end mt-3">
                 <input class="btn btn-primary" type="button" value="Enable PayPal Payments" data-ng-click="$ctrl.enablePayPal();">
             </div>
         </form>
@@ -241,16 +241,16 @@
                 <div data-ng-if="$ctrl.paymentInfo.payPalClientId">
                     <h3 class="margin-top">PayPal Settings</h3>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4">Client ID:</label>
+                    <div class="row mb-3">
+                        <label class="col-sm-4 form-label">Client ID:</label>
                         <div class="col-sm-8">
                             <span data-ng-if="!$ctrl.isUpdatingPayPalCredentials">{{$ctrl.paymentInfo.payPalClientId}}</span>
                             <input data-ng-if="$ctrl.isUpdatingPayPalCredentials" type="text" class="form-control" data-ng-model="$ctrl.payPalSignUpClientId" />
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4">Client Secret:</label>
+                    <div class="row mb-3">
+                        <label class="col-sm-4 form-label">Client Secret:</label>
                         <div class="col-sm-8">
                             <span data-ng-if="!$ctrl.isUpdatingPayPalCredentials">
                                 <span>{{$ctrl.paymentInfo.payPalMaskedSecret}}</span>&nbsp;<span class="note-text">(Hidden for security)</span>
@@ -259,12 +259,12 @@
                         </div>
                     </div>
 
-                    <div class="text-right mt-3" data-ng-if="!$ctrl.isUpdatingPayPalCredentials">
+                    <div class="text-end mt-3" data-ng-if="!$ctrl.isUpdatingPayPalCredentials">
                         <span class="note-text">If you are concerned that your PayPal account may be hacked you should reset your PayPal credentials. After you reset your API credentials you can update the values here.</span><br />
                         <input class="btn btn-primary" type="button" value="Update Credentials" data-ng-click="$ctrl.updatePayPalCredentials();">
                     </div>
 
-                    <div class="text-right mt-3" data-ng-if="$ctrl.isUpdatingPayPalCredentials">
+                    <div class="text-end mt-3" data-ng-if="$ctrl.isUpdatingPayPalCredentials">
                         <div data-ng-if="$ctrl.payPalSignUpErrorMessage" class="text-error">
                             {{ $ctrl.payPalSignUpErrorMessage }}
                         </div>
@@ -372,25 +372,25 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th class="text-right" style="width: 260px;">{{$ctrl.homeName}}</th>
+                                    <th class="text-end" style="width: 260px;">{{$ctrl.homeName}}</th>
                                     <th class="text-center" style="width: 140px;">Assessment</th>
-                                    <th class="text-left">Notes</th>
+                                    <th class="text-start">Notes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr data-ng-repeat="unit in $ctrl.units">
-                                    <td class="text-right">{{ unit.name }}</td>
+                                    <td class="text-end">{{ unit.name }}</td>
                                     <!--<td class="text-center">
                             <span data-ng-if="$ctrl.userInfo.isAdmin" class="text-button test1" data-onshow="selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.assessment">{{ unit.assessment | currency }}</span>
                             <span data-ng-if="!$ctrl.userInfo.isAdmin">{{ unit.assessment | currency }}</span>
                         </td>-->
                                     <td class="text-center"><span class="text-button" data-onshow="$ctrl.selectText();" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessment">{{ (unit.adjustedAssessment || 0) | currency }}</span></td>
-                                    <td class="text-left"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
+                                    <td class="text-start"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
                                 </tr>
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th class="text-right">Total</th>
+                                    <th class="text-end">Total</th>
                                     <!--<th class="text-center">{{ $ctrl.assessmentSum | currency }}</th>-->
                                     <th class="text-center">{{ $ctrl.adjustedAssessmentSum | currency }}</th>
                                     <th></th>
@@ -425,7 +425,7 @@
                                 <br />
                                 <span class="note-text">You can enter a flat amount like $124.45 or a percent like 10%</span>
                             </div>
-                            <p class="text-right" style="max-width:450px;">
+                            <p class="text-end" style="max-width:450px;">
                                 <button class="btn btn-primary" type="submit">Save</button>
                             </p>
 
@@ -471,7 +471,7 @@
                 </table>
                 <br />
                 <br />
-                <p class="note-text text-right">(Click anywhere outside this window to close)</p>
+                <p class="note-text text-end">(Click anywhere outside this window to close)</p>
             </div>
         </div>
 
@@ -494,7 +494,7 @@
                 </table>
                 <br />
                 <br />
-                <p class="note-text text-right">(Click anywhere outside this window to close)</p>
+                <p class="note-text text-end">(Click anywhere outside this window to close)</p>
             </div>
         </div>
 
@@ -513,7 +513,7 @@
                 </table>
                 <br />
                 <br />
-                <p class="note-text text-right">(Click anywhere outside this window to close)</p>
+                <p class="note-text text-end">(Click anywhere outside this window to close)</p>
             </div>
         </div>
 
@@ -523,16 +523,16 @@
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCheckoutDetails"></div>
                 <table>
                     <tbody>
-                        <tr><td class="text-right" style="width:100px">Transfer ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
-                        <tr><td class="text-right">ACH ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.individualAchId }}</td></tr>
-                        <tr><td class="text-right">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
-                        <tr><td class="text-right">Amount: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
-                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-right">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
-                        <tr><td class="text-right">Created: </td><td class="text-bold">{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
-                        <tr><td class="text-right">From Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.sourceFundingSourceName }}</td></tr>
-                        <tr><td class="text-right">To Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.destFundingSourceName }}</td></tr>
-                        <tr><td class="text-right">Clearing: </td><td class="text-bold">{{ $ctrl.checkoutInfo.clearingSource }}</td></tr>
-                        <tr><td class="text-right">Cancel: </td><td class="text-bold"><span class="text-link" data-ng-if="$ctrl.checkoutInfo.cancelUri" data-ng-click="$ctrl.cancelDwollaTransfer()">Cancel</span><span data-ng-if="$ctrl.checkoutInfo.dwollaTransferId && !$ctrl.checkoutInfo.cancelUri">No longer available</span></td></tr>
+                        <tr><td class="text-end" style="width:100px">Transfer ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.dwollaTransferId }}</td></tr>
+                        <tr><td class="text-end">ACH ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.individualAchId }}</td></tr>
+                        <tr><td class="text-end">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
+                        <tr><td class="text-end">Amount: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-end">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr><td class="text-end">Created: </td><td class="text-bold">{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
+                        <tr><td class="text-end">From Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.sourceFundingSourceName }}</td></tr>
+                        <tr><td class="text-end">To Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.destFundingSourceName }}</td></tr>
+                        <tr><td class="text-end">Clearing: </td><td class="text-bold">{{ $ctrl.checkoutInfo.clearingSource }}</td></tr>
+                        <tr><td class="text-end">Cancel: </td><td class="text-bold"><span class="text-link" data-ng-if="$ctrl.checkoutInfo.cancelUri" data-ng-click="$ctrl.cancelDwollaTransfer()">Cancel</span><span data-ng-if="$ctrl.checkoutInfo.dwollaTransferId && !$ctrl.checkoutInfo.cancelUri">No longer available</span></td></tr>
                     </tbody>
                 </table>
                 <br />
@@ -540,7 +540,7 @@
                 Dwolla payments usually take 5 business days to clear which is means about a full week. <a href="https://developers.dwolla.com/concepts/transfer-processing-times#transfer-processing-times" target="_blank">Learn about Dwolla processing times</a>
                 <br />
                 <br />
-                <p class="note-text text-right">(Click anywhere outside this window to close)</p>
+                <p class="note-text text-end">(Click anywhere outside this window to close)</p>
             </div>
         </div>
 

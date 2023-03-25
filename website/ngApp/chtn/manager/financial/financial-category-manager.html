@@ -35,7 +35,7 @@
                             <select class="form-control form-control-sm" data-ng-options="c as c.dropDownLabel for c in $ctrl.flatCategoryList" data-ng-model="$ctrl.deleteCategoryRessignTo">
                                 <option></option>
                             </select>
-                            <div class="text-right mt-3">
+                            <div class="text-end mt-3">
                                 <button type="button" class="btn btn-danger" data-ng-click="$ctrl.deleteCategory()">Delete Category</button>
                                 <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.shouldShowDeleteCategoryArea = false">Cancel</button>
                             </div>
@@ -48,14 +48,14 @@
                             <legend style="font-size: 1em;">Add New Category</legend>
                             <div>
                                 Name:
-                                <input type="text" data-ng-model="$ctrl.newName" data-ng-enter="$ctrl.saveNewCategory()" maxlength="128" />
+                                <input type="text" data-ng-model="$ctrl.newName" data-ng-enter="$ctrl.saveNewCategory()" maxlength="128" class="mt-2"/>
                                 <br />
                                 <br />
                                 Parent Category:
-                                <select class="form-control form-control-sm" data-ng-options="c as c.dropDownLabel for c in $ctrl.flatCategoryList" data-ng-model="$ctrl.newCategoryParent">
+                                <select class="form-control form-control-sm form-select" data-ng-options="c as c.dropDownLabel for c in $ctrl.flatCategoryList" data-ng-model="$ctrl.newCategoryParent">
                                     <option></option>
                                 </select>
-                                <div class="text-right mt-3">
+                                <div class="text-end mt-3">
                                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveNewCategory()">Save New</button>
                                     <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.shouldShowNewCategoryArea = false">Cancel</button>
                                 </div>

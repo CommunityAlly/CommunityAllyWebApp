@@ -7,7 +7,7 @@
             There are currently no active committees.
         </p>
         <div data-ng-if="$ctrl.activeCommittees.length > 0">
-            <table border="1" cellpadding="3">
+            <table border="1" cellpadding="3" class="table-bordered">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -119,7 +119,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2" class="text-right">
+                    <td colspan="2" class="text-end">
                         <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveCommittee()">Save</button>
                     </td>
                 </tr>

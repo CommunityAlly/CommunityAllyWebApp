@@ -762,6 +762,24 @@ a[data-edit="backColor #FFFFFF"]::before {
   min-height: 40px !important;
 }
 
+.page-manage-resident #editUserForm .row label {
+  font-size: 14px !important;
+  font-weight: 400;
+}
+
+.premium-plan-card {
+  display: flex;
+}
+.premium-plan-card .card {
+  flex: 1;
+  margin: 15px 15px 0px;
+}
+
+@media (max-width: 576px) {
+  .premium-plan-card {
+    display: initial !important;
+  }
+}
 /* BS4-BS5 Updrade General CSS Change End */
 body {
   font-family: "Open Sans", sans-serif;

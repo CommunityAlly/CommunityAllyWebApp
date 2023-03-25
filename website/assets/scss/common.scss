@@ -512,4 +512,20 @@ a[data-edit="backColor #FFFFFF"]::before {
    margin: 10px 0px 15px;
    min-height: 40px !important;
 }
+.page-manage-resident #editUserForm .row label{
+   font-size: 14px !important;
+   font-weight: 400;
+}
+.premium-plan-card{
+    display: flex;
+    .card{
+        flex: 1;
+        margin: 15px 15px 0px;
+    }
+}
+@media (max-width: 576px){
+    .premium-plan-card{
+        display: initial !important;
+    }
+}
 /* BS4-BS5 Updrade General CSS Change End */

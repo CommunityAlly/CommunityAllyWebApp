@@ -24,7 +24,7 @@
         <div data-ng-if="$ctrl.settings.premiumPlanIsAutoRenewed">
             Your premium plan will auto-renew on <span style="font-weight: bold; color: green;">{{$ctrl.premiumPlanRenewDate | date:'shortDate'}}</span>.            
             <div style="text-align: center;">
-                <div class="mr-3 p-2" style="display: inline-block; vertical-align: top;">
+                <div class="me-3 p-2" style="display: inline-block; vertical-align: top;">
                     <button class="btn btn-danger" type="button" data-ng-click="$ctrl.cancelPremiumAutoRenew()">Cancel Auto-Renew</button>
                 </div>
                 <div class="p-2" style="display: inline-block; text-align: center;" data-ng-if="$ctrl.stripePortalUrl">
@@ -64,7 +64,7 @@
         <br />
 
         <div class="row">
-            <div class="card-deck col-sm-12 col-md-6 mx-auto" data-ng-if="$ctrl.shouldShowPaymentForm">
+            <div class="card-deck col-sm-12 col-md-6 mx-auto premium-plan-card" data-ng-if="$ctrl.shouldShowPaymentForm">
                 <div class="card">
                     <div class="card-body">
                         <h3 class="card-title">Pay Monthly</h3>
@@ -98,7 +98,7 @@
                         for your records with any payment method.
                         <div class="mt-3 text-center" style="font-size: large;">
                             <label><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="ach" data-ng-change="$ctrl.onPaymentTypeChange()" />Checking Account</label>
-                            <label class="ml-4"><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="creditCard" data-ng-change="$ctrl.onPaymentTypeChange()" />Credit Card</label>
+                            <label class="ms-4"><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="creditCard" data-ng-change="$ctrl.onPaymentTypeChange()" />Credit Card</label>
                         </div>
                     </p>
                     <div data-ng-if="$ctrl.paymentType === 'ach'">
