@@ -144,7 +144,16 @@ var Ally;
                 if (_this.customEmailList) {
                     for (var _i = 0, _a = _this.customEmailList; _i < _a.length; _i++) {
                         var curGroupEmail = _a[_i];
-                        curGroupEmail.usersFullNames = curGroupEmail.members.map(function (e) { return _this.allResidents.find(function (r) { return r.userId === e.userId; }).fullName; });
+                        curGroupEmail.usersFullNames = [];
+                        var _loop_2 = function (curGroupMember) {
+                            var resident = _this.allResidents.find(function (r) { return r.userId === curGroupMember.userId; });
+                            if (resident)
+                                curGroupEmail.usersFullNames.push(resident.fullName);
+                        };
+                        for (var _b = 0, _c = curGroupEmail.members; _b < _c.length; _b++) {
+                            var curGroupMember = _c[_b];
+                            _loop_2(curGroupMember);
+                        }
                     }
                 }
                 // Hook up the address copy link

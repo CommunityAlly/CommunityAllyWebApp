@@ -215,7 +215,15 @@ namespace Ally
                     if( this.customEmailList )
                     {
                         for( const curGroupEmail of this.customEmailList )
-                            curGroupEmail.usersFullNames = curGroupEmail.members.map( e => this.allResidents.find( r => r.userId === e.userId ).fullName );
+                        {
+                            curGroupEmail.usersFullNames = [];
+                            for( const curGroupMember of curGroupEmail.members )
+                            {
+                                const resident = this.allResidents.find( r => r.userId === curGroupMember.userId );
+                                if( resident )
+                                    curGroupEmail.usersFullNames.push( resident.fullName );
+                            }
+                        }
                     }
 
                     // Hook up the address copy link
