@@ -15,13 +15,13 @@
     </ul>
 
     <form id="edit-item-form" name="editItemForm" class="spinner-effect margin-top" novalidate>
-        <div class="form-group">
-            <label>Enter Question:<span class="validation-label" data-ng-show="$ctrl.editItemForm.PollQuestionTextBox.$error.required">Required</span></label>
+        <div class="row mb-3 px-3">
+            <label class="form-label">Enter Question:<span class="validation-label" data-ng-show="$ctrl.editItemForm.PollQuestionTextBox.$error.required">Required</span></label>
             <input id="poll-question-textbox" type="text" class="form-control form-control-sm" maxlength="80" name="PollQuestionTextBox" data-ng-model="$ctrl.editingItem.questionText" required />
         </div>
 
-        <div class="form-group">
-            <label>Question Details: (optional)</label>
+        <div class="row mb-3 px-3">
+            <label class="form-label">Question Details: (optional)</label>
             <textarea id="poll-details-textbox" data-ng-model="$ctrl.editingItem.detailText" maxlength="1000" rows="4" class="form-control"></textarea>
         </div>
 
@@ -29,14 +29,14 @@
 
         <ol class="mt-3 question-list">
             <li ng-repeat="answer in $ctrl.editingItem.answers" class="margin-top-10">
-                <div class="mb-3 ml-4">
+                <div class="mb-3 ms-4">
                     <!--<label>{{ $index + 1 }}</label>-->
                     <input id="poll-answer-textbox-{{ $index }}" type="text" class="form-control form-control-sm" data-ng-model="answer.answerText" maxlength="60" required />
                 </div>
 
-                <div class="form-group ml-4">
-                    <div>
-                        <label>
+                <div class="row mb-3 ms-4">
+                    <div class="ps-0">
+                        <label class="form-label">
                             <!--<span class="poll-answer-number"></span>-->
                             Details: (optional)
                         </label>
@@ -114,7 +114,7 @@
             </span>
         </p>
 
-        <p class="text-right">
+        <p class="text-end">
             <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDate != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSavePoll();" />
             <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDate != null" data-ng-click="$ctrl.cancelEdit()" />
         </p>
@@ -144,7 +144,7 @@
                         <span id="delete-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onDeleteItem( pollItem );">Delete</span>
                     </td>
                     <!--<td class="poll-entry-{{ $index }}-status"></td>-->
-                    <td class="poll-entry-{{ $index }}-question-text">{{::pollItem.questionText}}<span class="note-text ml-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>
+                    <td class="poll-entry-{{ $index }}-question-text">{{::pollItem.questionText}}<span class="note-text ms-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>
                     <td class="poll-entry-{{ $index }}-who">
                         <span>{{::$ctrl.formatVoteGroupName(pollItem.votingGroupShortName)}}</span>
                     </td>

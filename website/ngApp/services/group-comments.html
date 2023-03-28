@@ -11,7 +11,7 @@
                 <textarea class="form-control" data-ng-model="$ctrl.editComment.commentText" maxlength="1000" placeholder="Enter your comment here"></textarea>
             </div>
 
-            <p class="text-right">
+            <p class="text-end">
                 <button class="btn btn-primary" data-ng-click="$ctrl.onPostCommentClicked()">
                     {{ $ctrl.editComment.existingCommentId ? "Edit Comment" : "Add New Comment" }}
                 </button>
@@ -21,7 +21,7 @@
 
         <div data-ng-repeat="comment in $ctrl.commentList" class="mt-2 mb-2 bb">
             <div class="media">
-                <img  class="d-flex mr-3" alt="Profile for {{ comment.authorFullName }}" data-ng-src="{{ comment.authorAvatarUrl }}" />
+                <img  class="d-flex me-3" alt="Profile for {{ comment.authorFullName }}" data-ng-src="{{ comment.authorAvatarUrl }}" />
 
                 <div class="media-body">
                     <p>
@@ -42,8 +42,8 @@
                 </div>
             </div>
 
-            <div class="media mt-3 ml-5" data-ng-repeat="replyComment in comment.replies">
-                <img  class="d-flex mr-3" alt="Profile for {{ replyComment.authorFullName }}" data-ng-src="{{ replyComment.authorAvatarUrl }}" />
+            <div class="media mt-3 ms-5" data-ng-repeat="replyComment in comment.replies">
+                <img  class="d-flex me-3" alt="Profile for {{ replyComment.authorFullName }}" data-ng-src="{{ replyComment.authorAvatarUrl }}" />
 
                 <div class="media-body">
                     <p>
@@ -72,7 +72,7 @@
                 <div class="form-group">
                     <textarea class="form-control" data-ng-model="$ctrl.editComment.replyText" maxlength="1000" placeholder="Enter your reply here"></textarea>
                 </div>
-                <div class="text-right">
+                <div class="text-end">
                     <button class="btn btn-primary" data-ng-click="$ctrl.onPostReplyCommentClicked()">Comment</button>
                     <button class="btn btn-primary" data-ng-click="$ctrl.editComment = {}; $ctrl.showReplyBoxId = -1;">Cancel</button>
                 </div>
@@ -82,7 +82,7 @@
 
         <div data-ng-if="$ctrl.isQaSite" class="mt-2 mb-2">
             <div class="media">
-                <img  class="d-flex mr-3" alt="Profile for System Admin" data-ng-src="https://www.gravatar.com/avatar/ddc7bfa984ef6108a80c28839fdeb286?s=80&amp;d=identicon" src="https://www.gravatar.com/avatar/ddc7bfa984ef6108a80c28839fdeb286?s=80&amp;d=identicon" />
+                <img  class="d-flex me-3" alt="Profile for System Admin" data-ng-src="https://www.gravatar.com/avatar/ddc7bfa984ef6108a80c28839fdeb286?s=80&amp;d=identicon" src="https://www.gravatar.com/avatar/ddc7bfa984ef6108a80c28839fdeb286?s=80&amp;d=identicon" />
 
                 <div class="media-body">
                     <p>
@@ -131,7 +131,7 @@
 
                 <div data-ng-show="$ctrl.showReplyBoxId === comment.commentId" class="ng-hide mt-3">
                     <textarea data-ng-model="$ctrl.editComment.replyText" maxlength="1000" placeholder="Enter your reply here" class="ng-pristine ng-untouched ng-valid ng-empty ng-valid-maxlength"></textarea>
-                    <p class="text-right">
+                    <p class="text-end">
                         <button class="blue_btn" data-ng-click="$ctrl.onPostReplyCommentClicked()">Comment</button>
                         <button class="blue_btn" data-ng-click="$ctrl.editComment = {}; $ctrl.showReplyBoxId = -1;">Cancel</button>
                     </p>

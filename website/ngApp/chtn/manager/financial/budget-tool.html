@@ -1,35 +1,35 @@
 ﻿<div class="page" style="min-height: 100px;">
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
     <h1 style="display: inline;">Budgets</h1>
-    <span class="ml-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
+    <span class="ms-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
     <p>
         Here you can create, edit, and view budgets for your association.
     </p>
     <div class="container">
         <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
         <div class="row" data-ng-if="!$ctrl.curBudget">
-            <div class="col-12 pl-0">
+            <div class="col-12 ps-0">
                 <span data-ng-if="$ctrl.budgets.length > 0">
                     <span>Load Budget: </span>
-                    <select class="mr-3" data-ng-model="$ctrl.selectedBudget" data-ng-options="b as b.budgetName for b in $ctrl.budgets" data-ng-change="$ctrl.onBudgetSelected()">
+                    <select class="me-3" data-ng-model="$ctrl.selectedBudget" data-ng-options="b as b.budgetName for b in $ctrl.budgets" data-ng-change="$ctrl.onBudgetSelected()">
                     </select>
                 </span>
                 <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createBudget()">Create New Budget</button>
-                <span class="note-text text-link ml-4" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
+                <span class="note-text text-link ms-4" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
             </div>
         </div>
         <div class="row mt-4" data-ng-if="$ctrl.curBudget">
             <div class="col-12">
                 <div data-ng-if="!$ctrl.selectedBudget.finalizedDateUtc">
                     <h3 class="can-edit-inline" data-editable-text="$ctrl.curBudget.budgetName">{{$ctrl.curBudget.budgetName}}</h3>
-                    <button type="button" class="btn btn-primary ml-4" data-ng-click="$ctrl.saveBudget()">Save Budget</button>
-                    <button type="button" class="btn btn-primary ml-2" data-ng-click="$ctrl.closeBudget()">Cancel Edit</button>
-                    <button type="button" class="btn btn-primary ml-2" data-ng-click="$ctrl.finalizeBudget()">Finalize Budget</button>
-                    <button type="button" class="btn btn-danger ml-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.deleteBudget()">Delete Budget</button>
+                    <button type="button" class="btn btn-primary ms-4" data-ng-click="$ctrl.saveBudget()">Save Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.closeBudget()">Cancel Edit</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.finalizeBudget()">Finalize Budget</button>
+                    <button type="button" class="btn btn-danger ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.deleteBudget()">Delete Budget</button>
                 </div>
                 <div data-ng-if="$ctrl.selectedBudget.finalizedDateUtc">
                     <h3 style="display: inline;">{{$ctrl.curBudget.budgetName}}</h3>
-                    <button type="button" class="btn btn-primary ml-2" data-ng-click="$ctrl.closeBudget()">Close Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.closeBudget()">Close Budget</button>
                     <div class="note-text">Budget finalized on {{$ctrl.selectedBudget.finalizedDateUtc | date:'short'}}</div>
                 </div>
                 <div data-ng-if="!$ctrl.selectedBudget.finalizedDateUtc">
@@ -38,8 +38,8 @@
                 </div>
                 <div class="mt-4" style="font-size: 1.25em;">
                     <span>Total Expense: <span class="text-bold">{{$ctrl.totalExpense | currency}}</span></span>
-                    <span class="ml-4">Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
-                    <span class="ml-4">Net: <span class="text-bold">{{$ctrl.totalIncome - $ctrl.totalExpense | currency}}</span></span>
+                    <span class="ms-4">Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
+                    <span class="ms-4">Net: <span class="text-bold">{{$ctrl.totalIncome - $ctrl.totalExpense | currency}}</span></span>
                 </div>
             </div>
         </div>
@@ -53,7 +53,7 @@
                 <div data-ui-grid="$ctrl.incomeGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
             </div>
         </div>
-        <div class="text-right" data-ng-if="$ctrl.curBudget">
+        <div class="text-end" data-ng-if="$ctrl.curBudget">
             <span class="note-text text-link" data-ng-click="$ctrl.exportToCsv()">Export to CSV</span>
         </div>
     </div>

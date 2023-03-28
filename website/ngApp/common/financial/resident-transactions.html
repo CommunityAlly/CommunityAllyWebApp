@@ -13,7 +13,7 @@
                 Balance: {{$ctrl.ownerBalance | currency}}
             </div>
             <div class="mt-4 mb-2">
-                <b class="mr-1">Date Range:</b> <date-range-picker data-on-change="$ctrl.onFilterDateRangeChange()" data-start-date="$ctrl.filterStartDate" data-end-date="$ctrl.filterEndDate"></date-range-picker>
+                <b class="me-1">Date Range:</b> <date-range-picker data-on-change="$ctrl.onFilterDateRangeChange()" data-start-date="$ctrl.filterStartDate" data-end-date="$ctrl.filterEndDate"></date-range-picker>
             </div>
             <div data-ng-if="$ctrl.transactionGridOptions.data.length > 0">
                 <div data-ui-grid="$ctrl.transactionGridOptions" ui-grid-resize-columns ui-grid-pagination></div>

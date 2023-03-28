@@ -17,9 +17,9 @@
         </p>
         <p class="clearfix">
             <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
-            <label class="ml-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
-            <label class="ml-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
-            <button class="btn btn-primary ml-3" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
+            <label class="ms-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
+            <label class="ms-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
+            <button class="btn btn-primary ms-3" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
         </p>
         <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
             You can speed things up by marking all homes as paid back to a certain date.<br />
@@ -42,7 +42,7 @@
             <table id="assessment-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th class="text-right" style="width: 15%;">
+                        <th class="text-end" style="width: 15%;">
 
                         </th>
                         <th data-ng-if="$ctrl.shouldShowBalanceCol">
@@ -57,7 +57,7 @@
 
                 <tbody data-ng-if="$ctrl.showRowType === 'unit'">
                     <tr data-ng-repeat="unit in $ctrl.nameSortedUnitPayments" ng-init="unitIndex = $index">
-                        <td class="text-bold text-right">
+                        <td class="text-bold text-end">
                             {{ unit.name }}
                             <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
                         </td>
@@ -82,7 +82,7 @@
 
                 <tbody data-ng-if="$ctrl.showRowType === 'member'">
                     <tr data-ng-repeat="payer in $ctrl.payers" ng-init="memberIndex = $index">
-                        <td class="text-bold text-right">
+                        <td class="text-bold text-end">
                             {{ payer.name }}
                         </td>
                         <td ng-repeat="payment in payer.displayPayments" id="pay-cell-{{ memberIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onMemberPaymentCellClick( payer, payment )">
@@ -98,7 +98,7 @@
 
                 <tfoot>
                     <tr data-ng-if="$ctrl.showPaymentInfo" class="text-bold">
-                        <th class="text-right">Sum:</th>
+                        <th class="text-end">Sum:</th>
                         <th data-ng-if="$ctrl.shouldShowBalanceCol">
                             {{ $ctrl.totalEstBalance | currency }}
                         </th>
@@ -109,11 +109,11 @@
                 </tfoot>
 
             </table>
-            <div class="text-right mb-1">
+            <div class="text-end mb-1">
                 Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
             </div>
 
-            <div class="text-right">
+            <div class="text-end">
                 <span class="text-link note-text" data-ng-click="$ctrl.showBulkSet()">Show Bulk Set</span>
             </div>
         </div>
@@ -127,34 +127,34 @@
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.editPayment = null">&times;</span>
                 <h3>Payment for {{$ctrl.editPayment.periodName}} {{$ctrl.editPayment.payment.year}}</h3>
                 <form>
-                    <div class="form-group row">
-                        <label class="col-xs-6 col-sm-4" for="is-paid-checkbox">PAID:</label>
-                        <div class="col-xs-6 col-sm-8">
+                    <div class="mb-3 row px-3">
+                        <label class="col-6 col-sm-4 form-label" for="is-paid-checkbox">PAID:</label>
+                        <div class="col-6 col-sm-8 px-0">
                             <input id="is-paid-checkbox" type="checkbox" data-ng-model="$ctrl.editPayment.payment.isPaid" />
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4">Amount:</label>
-                        <div class="col-sm-8">
+                    <div class="mb-3 row px-3">
+                        <label class="col-sm-4 form-label">Amount:</label>
+                        <div class="col-sm-8 px-0">
                             <input type="text" id="paid-amount-textbox" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.amount" />
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4">Check Number:</label>
-                        <div class="col-sm-8">
+                    <div class="mb-3 row px-3">
+                        <label class="col-sm-4 form-label">Check Number:</label>
+                        <div class="col-sm-8 px-0">
                             <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.checkNumber" />
                             <span class="text-link" data-ng-if="$ctrl.editPayment.payment.wePayCheckoutId && !$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewWePayDetails($ctrl.editPayment.payment.wePayCheckoutId)">View WePay Payment Details</span>
                             <span class="text-link" data-ng-if="$ctrl.editPayment.payment.paymentsInfoId" data-ng-click="$ctrl.viewOnlinePaymentDetails($ctrl.editPayment.payment.paymentsInfoId)">View Online Payment Details</span>
                         </div>
                     </div>
 
-                    <div class="form-group row" data-ng-if="$ctrl.showRowType === 'unit'">
-                        <label class="col-sm-4">Paid By:</label>
-                        <div class="col-sm-8">
+                    <div class="mb-3 row px-3" data-ng-if="$ctrl.showRowType === 'unit'">
+                        <label class="col-sm-4 form-label">Paid By:</label>
+                        <div class="col-sm-8 px-0">
                             <select class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.payerUserId" data-ng-options="p.userId as p.name for p in $ctrl.payers"></select>
-                            <select class="form-control form-control-sm" data-ng-if="false" data-ng-model="$ctrl.editPayment.payment.payerUserId">
+                            <select class="form-control form-control-sm form-select" data-ng-if="false" data-ng-model="$ctrl.editPayment.payment.payerUserId">
                                 <option data-ng-repeat="owner in $ctrl.editPayment.unit.owners" value="{{ owner.userId }}">{{ owner.name }}</option>
                                 <option disabled="disabled">--------------</option>
                                 <option data-ng-repeat="payer in $ctrl.editPayment.filteredPayers" value="{{ payer.userId }}">{{ payer.name }}</option>
@@ -162,24 +162,24 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label class="col-sm-4">Payment Date:</label>
-                        <div class="col-sm-8">
+                    <div class="mb-3 row px-3">
+                        <label class="col-sm-4 form-label">Payment Date:</label>
+                        <div class="col-sm-8 px-0">
                             <input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.paymentDate" data-ui-date />
                         </div>
                     </div>
 
                     <div>
-                        <label>Payer notes:</label>
+                        <label class="form-label">Payer notes:</label>
                         <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.payerNotes" rows="2" readonly="readonly" disabled></textarea>
                     </div>
 
                     <div>
-                        <label>Notes:</label>
+                        <label class="form-label">Notes:</label>
                         <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.notes" rows="2"></textarea>
                     </div>
 
-                    <div class="text-right mt-3">
+                    <div class="text-end mt-3">
                         <input id="save-edit-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSavePayment($event)" />
                         <!--<input id="cancel-edit-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editPayment = null" />-->
                     </div>
@@ -222,7 +222,7 @@
                     <input id="specialAssessmentLateFeeAmount" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editSpecialAssessment.lateFeeAmount" />
                     <div class="form-text">OPTIONAL. If there's an additional fee if paid after the due date</div>
                 </div>
-                <div class="text-right">
+                <div class="text-end">
                     <input class="btn btn-danger" data-ng-if="$ctrl.editSpecialAssessment.specialAssessmentId" type="button" value="Delete" data-ng-click="$ctrl.onDeleteSpecialAssessment();" />
                     <input class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onSaveSpecialAssessment();" />
                 </div>

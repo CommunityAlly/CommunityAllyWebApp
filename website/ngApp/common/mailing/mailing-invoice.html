@@ -22,7 +22,7 @@
             </p>
             <div>
                 <div class="mb-3 row">
-                    <div class="form-group col-12">
+                    <div class="row mb-3 col-12">
                         <label for="due-date-textbox" class="col-form-label">
                             From Address:
                         </label>
@@ -37,14 +37,14 @@
             </label>
             <div class="col-10" style="display: inline-block;">
                 <label><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Assessment" />Assessment</label>
-                <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
-                <label class="ml-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
+                <label class="ms-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Special Assessment" />Special Assessment</label>
+                <label class="ms-4"><input type="radio" name="sending-reason" data-ng-model="$ctrl.fullMailingInfo.sendingReason" value="Other" />Other</label>
             </div>
         </div>
     </div>-->
 
-                <div class="mb-3 form-group row">
-                    <label for="invoice-title-textbox" class="col-2 col-form-label">
+                <div class="mb-3 row px-3">
+                    <label for="invoice-title-textbox" class="col-2 col-form-label form-label">
                         Invoice Title:
                     </label>
                     <div class="col-5">
@@ -52,8 +52,8 @@
                     </div>
                 </div>
 
-                <div class="mb-3 form-group row">
-                    <label for="due-date-textbox" class="col-2 col-form-label">
+                <div class="mb-3 row px-3">
+                    <label for="due-date-textbox" class="col-2 col-form-label form-label">
                         Due Date:
                     </label>
                     <div class="col-5">
@@ -61,8 +61,8 @@
                     </div>
                 </div>
 
-                <div class="mb-3 form-group row">
-                    <label for="dues-label-textbox" class="col-2 col-form-label">
+                <div class="mb-3 row px-3">
+                    <label for="dues-label-textbox" class="col-2 col-form-label form-label">
                         Dues Label:
                     </label>
                     <div class="col-5">
@@ -70,13 +70,13 @@
                     </div>
                 </div>
 
-                <div class="mb-3 form-group row">
-                    <div class="form-group col-12">
-                        <label for="notes-textbox" class="col-form-label">
+                <div class="mb-3 row px-3">
+                    <div class="row mb-3 col-12">
+                        <label for="notes-textbox" class="col-form-label form-label">
                             Notes:
                         </label><br />
                         <textarea id="notes-textbox" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.fullMailingInfo.notes" rows="4" maxlength="500"></textarea>
-                        <span class="note-text">
+                        <span class="note-text ps-0">
                             These notes will appear at the bottom of the invoice. For example, use them to provide payment instructions and/or thank your member.
                         </span>
                     </div>
@@ -119,7 +119,7 @@
             <div>
                 <div>
                     <span class="text-link" data-ng-click="$ctrl.toggleAllSending('email')">Toggle All Email Sending</span>
-                    <span class="text-link ml-3" data-ng-click="$ctrl.toggleAllSending('paper')">Toggle All Paper Mail Sending</span>
+                    <span class="text-link ms-3" data-ng-click="$ctrl.toggleAllSending('paper')">Toggle All Paper Mail Sending</span>
                 </div>
 
                 <div data-ng-if="$ctrl.numAddressesToBulkValidate > 0" class="m-3" style="color: blue;">

@@ -30,11 +30,11 @@
                 </div>
 
                 <div class="row" data-ng-if="poll.allowOtherAnswer">
-                    <div class="col-sm-3 text-right" style="color: #4583b6;">Or write in your own response:</div>
+                    <div class="col-sm-3 text-end" style="color: #4583b6;">Or write in your own response:</div>
                     <div class="col-sm-6">
                         <input type="text" style="width: 100%;" maxlength="80" data-ng-model="poll.writeInAnswer" />
                     </div>
-                    <div class="col-sm-3 text-left"><button class="btn btn-primary" type="button" data-ng-click="$ctrl.onPollAnswer( poll, null )">Submit Write-in Response</button></div>
+                    <div class="col-sm-3 text-start"><button class="btn btn-primary" type="button" data-ng-click="$ctrl.onPollAnswer( poll, null )">Submit Write-in Response</button></div>
                 </div>
             </div>
 

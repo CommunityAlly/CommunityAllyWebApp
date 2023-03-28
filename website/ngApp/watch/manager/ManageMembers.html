@@ -64,18 +64,18 @@
                 <table>
                     <tbody>
                         <tr>
-                            <td class="text-right">First Name:</td>
+                            <td class="text-end">First Name:</td>
                             <td>
                                 <input type="text" required name="editUserFirstTextBox" id="edit-user-first-text-box" data-ng-model="editUser.firstName" />
                                 <div class="validation-label" data-ng-show="editUserForm.editUserFirstTextBox.$error.required">Required</div>
                             </td>
-                            <td class="text-right">Last Name:</td>
+                            <td class="text-end">Last Name:</td>
                             <td><input type="text" data-ng-model="editUser.lastName" /></td>
                         </tr>
                         <tr>
-                            <td class="text-right">Email:</td>
+                            <td class="text-end">Email:</td>
                             <td><input type="text" data-ng-model="editUser.email" /></td>
-                            <td class="text-right">
+                            <td class="text-end">
                                 <label for="is-site-manager-checkbox">Is Admin:</label>
                             </td>
                             <td>
@@ -84,17 +84,17 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="text-right">
+                            <td class="text-end">
                                 Phone Number
                             </td>
                             <td>
                                 <input type="text" maxlength="30" data-ng-model="editUser.phoneNumber" />
                             </td>
-                            <td class="text-right"></td>
+                            <td class="text-end"></td>
                             <td style="vertical-align: bottom;"></td>
                         </tr>
                         <tr>
-                            <td class="text-right">
+                            <td class="text-end">
                                 Address
                             </td>
                             <td colspan="3">
@@ -115,11 +115,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-right" data-ng-show="!editUser.userId">
+                                <div class="text-end" data-ng-show="!editUser.userId">
                                     <input id="send-welcome-checkbox" type="checkbox" data-ng-model="editUser.shouldSendWelcomeEmail"><label for="send-welcome-checkbox">Send Welcome Email with Login Info</label>
                                 </div>
                             </td>
-                            <td colspan="2" class="text-right">
+                            <td colspan="2" class="text-end">
                                 <input id="save-edit-button" ng-disabled="editUserForm.$invalid" type="button" value="Save" data-ng-click="onSaveMember()" />
                                 <input id="cancel-edit-button" type="button" value="Cancel" data-ng-click="setEdit( null )" />
                                 <input id="remove-resident-button" data-ng-show="editUser.userId.length > 0" type="button" value="Remove Member" data-ng-click="onDeleteMember()" />

@@ -13,8 +13,8 @@
         </p>
 
         <div style="min-height: 140px;">
-            <fieldset class="float-right" style="width: 40%;">
-                <legend style="font-size: 20px;">Site Landing Page</legend>
+            <fieldset class="float-end" style="width: 40%;">
+                <legend style="font-size: 20px;" class="col-12">Site Landing Page</legend>
                 When users visit your site and are not yet logged-in, you can customize what page they land on with this setting.
                 <br />
                 <br />
@@ -27,7 +27,7 @@
 
             <div>
                 Select Page:
-                <select data-ng-options="p as p.title for p in $ctrl.menuPageListings" data-ng-model="$ctrl.selectedPageEntry" data-ng-change="$ctrl.onPageSelected()" title="current edit page">
+                <select data-ng-options="p as p.title for p in $ctrl.menuPageListings" class="pb-2" data-ng-model="$ctrl.selectedPageEntry" data-ng-change="$ctrl.onPageSelected()" title="current edit page">
                     <option></option>
                 </select>
                 <button class="btn btn-primary" data-ng-if="$ctrl.editPage" data-ng-click="$ctrl.savePage()">Save Page</button>

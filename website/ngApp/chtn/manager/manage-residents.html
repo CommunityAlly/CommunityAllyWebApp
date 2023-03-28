@@ -47,10 +47,10 @@
     <div class="clearfix">
         <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}{{ $ctrl.residentGridOptions.data.length > 1 ? 's' : '' }}</span>
         <span class="pull-right">
-            <span class="text-link note-text mr-1" data-ng-if="$ctrl.didLoadResidentGridState" data-ng-click="$ctrl.resetResidentGridState()" title="If your grid looks wonky, use this to refresh it">Reset Grid State</span>
-            <a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
+            <span class="text-link note-text me-1" data-ng-if="$ctrl.didLoadResidentGridState" data-ng-click="$ctrl.resetResidentGridState()" title="If your grid looks wonky, use this to refresh it">Reset Grid State</span>
+            <a href="javascript:void(0)" class="text-link pull-right ms-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
         </span>
-        <!--<a href="javascript:void(0)" class="text-link pull-right ml-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>-->
+        <!--<a href="javascript:void(0)" class="text-link pull-right ms-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>-->
         <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
 
@@ -100,9 +100,9 @@
 
             <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Primary'">
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label for="edit-user-first-text-box" class="col-sm-4 col-xs-12 text-sm-right">First Name:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-12 text-sm-end form-label px-3">First Name:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="edit-user-first-text-box" type="text" class="form-control form-control-sm" required name="editUserFirstTextBox" data-ng-model="$ctrl.editUser.firstName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="validation-label" data-ng-show="$ctrl.editUserForm.editUserFirstTextBox.$error.required">Required</div>
                         </div>
@@ -110,18 +110,18 @@
                 </div>
 
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label for="edit-user-last-name-text-box" class="col-sm-4 col-xs-12 text-sm-right">Last Name:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label for="edit-user-last-name-text-box" class="col-sm-4 col-12 text-sm-end form-label px-3">Last Name:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="edit-user-last-name-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.lastName" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label for="edit-user-email-text-box" class="col-sm-4 col-xs-12 text-sm-right">Email:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label for="edit-user-email-text-box" class="col-sm-4 col-12 text-sm-end form-label px-3">Email:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="edit-user-email-text-box" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.email" data-ng-enter="$ctrl.onSaveResident()" data-ng-escape="$ctrl.setEdit( null )" autocomplete="off" data-lpignore="true" data-form-type="other" />
                             <div class="note-text" style="color: red;" data-ng-if="$ctrl.editUser.postmarkReportedBadEmailUtc">
                                 Email undeliverable:
@@ -133,11 +133,11 @@
                 </div>
 
                 <div class="col-md-6 col-sm-12" data-ng-if="$ctrl.shouldShowHomePicker">
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12 text-sm-right">{{ $ctrl.homeName }}:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-12 text-sm-end form-label px-3">{{ $ctrl.homeName }}:</label>
+                        <div class="col-sm-8 col-12">
                             <div data-ng-if="!$ctrl.editUser.showAdvancedHomePicker">
-                                <select class="form-control form-control-sm" data-ng-model="$ctrl.editUser.singleUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
+                                <select class="form-control form-control-sm form-select" data-ng-model="$ctrl.editUser.singleUnitId" data-ng-options="o.unitId as o.name for o in $ctrl.allUnits">
                                     <option value=""></option>
                                 </select>
                             </div>
@@ -161,9 +161,9 @@
                 </div>
 
                 <div class="col-md-6 col-sm-12" data-ng-if="$ctrl.showIsRenter">
-                    <div class="form-group row">
-                        <label for="is-renter-checkbox" class="col-sm-4 col-xs-12 text-sm-right">Is a Renter/Manager:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label for="is-renter-checkbox" class="col-sm-4 col-12 text-sm-end form-label px-3">Is a Renter/Manager:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="is-renter-checkbox" class="validation-label" type="checkbox" data-ng-model="$ctrl.editUser.isRenter" />
                             <br />
                             <span class="note-text">Indicates this person is not a {{ $ctrl.homeName.toLowerCase() }} owner.</span>
@@ -172,9 +172,9 @@
                 </div>
 
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label for="is-site-manager-checkbox" class="col-sm-4 col-xs-12 text-sm-right">Is Admin:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label for="is-site-manager-checkbox" class="col-sm-4 col-12 text-sm-end form-label px-3">Is Admin:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="is-site-manager-checkbox" type="checkbox" data-ng-model="$ctrl.editUser.isSiteManager" /><br>
                             <span class="note-text">Admin users can edit site information.</span>
                         </div>
@@ -182,19 +182,19 @@
                 </div>
 
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label for="phone-number-text-box" class="col-sm-4 col-xs-12 text-sm-right">Cell Phone #:</label>
-                        <div class="col-sm-8 col-xs-12">
+                    <div class="mb-3 row">
+                        <label for="phone-number-text-box" class="col-sm-4 col-12 text-sm-end form-label px-3">Cell Phone #:</label>
+                        <div class="col-sm-8 col-12">
                             <input id="phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.phoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-xs-12 text-sm-right">Board Position:</label>
-                        <div class="col-sm-8 col-xs-12">
-                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editUser.boardPosition" data-ng-options="bp.id as bp.name for bp in $ctrl.boardPositions"></select>
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-12 text-sm-end form-label px-3">Board Position:</label>
+                        <div class="col-sm-8 col-12">
+                            <select class="form-control form-control-sm form-select" data-ng-model="$ctrl.editUser.boardPosition" data-ng-options="bp.id as bp.name for bp in $ctrl.boardPositions"></select>
                         </div>
                     </div>
                 </div>
@@ -202,36 +202,36 @@
 
             <div class="row" data-ng-if="$ctrl.selectedResidentDetailsView==='Secondary'">
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
-                        <label for="alternate-phone-number-text-box" class="col-sm-5 col-xs-12 fw-bold">Alternate Phone:</label>
-                        <div class="col-sm-7 col-xs-12">
+                    <div class="mb-3 row ps-3">
+                        <label for="alternate-phone-number-text-box" class="col-sm-5 col-12 fw-bold form-label">Alternate Phone:</label>
+                        <div class="col-sm-7 col-12 ps-0">
                             <input id="alternate-phone-number-text-box" type="text" maxlength="30" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.alternatePhoneNumber" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-12">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
 
                     </div>
                 </div>
 
                 <div class="col-12">
-                    <label class="fw-bold">Alternate Mailing Address</label>
+                    <label class="fw-bold form-label ">Alternate Mailing Address</label>
                     <div class="note-text">Only set this if it differs from the home address for the owner listed on the 'Primary' tab.
                     Do not add a different person here. Other persons living at the same address should be added using the 'Add Resident' button.</div>
                     <street-address-form data-street-address="$ctrl.editUser.mailingAddressObject" data-use-care-of="true"></street-address-form>
                 </div>
 
                 <div class="col-12">
-                    <label for="manager-notes-text-box" class="fw-bold" title="{{$ctrl.editUser.userId}}">Notes:</label>
+                    <label for="manager-notes-text-box" class="fw-bold form-label" title="{{$ctrl.editUser.userId}}">Notes:</label>
                     <div class="col-12">
                         <textarea id="manager-notes-text-box" type="text" maxlength="4000" rows="3" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.managerNotes"></textarea>
                     </div>
                 </div>
 
                 <div class="col-12 mt-3">
-                    <label class="fw-bold">Communication Restriction:</label>
+                    <label class="fw-bold form-label">Communication Restriction:</label>
                     <div class="col-12">
                         <select data-ng-model="$ctrl.editUser.commRestriction">
                             <option value="">Unrestricted (Default)</option>
@@ -268,14 +268,14 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6 text-sm-right">
+                <div class="col-sm-6 text-sm-end">
                     <button id="save-edit-button" class="btn btn-primary" ng-disabled="$ctrl.editUserForm.$invalid" type="button" data-ng-click="$ctrl.onSaveResident();">{{ $ctrl.editUser.pendingMemberId ? "Approve" : "Save" }}</button>
                     <button id="cancel-edit-button" class="btn btn-secondary" data-ng-if="!$ctrl.editUser.pendingMemberId" type="button" data-ng-click="$ctrl.setEdit( null )">Cancel</button>
                     <button id="remove-resident-button" class="btn btn-danger" data-ng-if="$ctrl.editUser.userId.length > 0" type="button" data-ng-click="$ctrl.onDeleteResident();">Remove Resident</button>
                     <button class="btn btn-secondary" data-ng-if="$ctrl.editUser.pendingMemberId" data-ng-click="$ctrl.rejectPendingMember();">Reject</button>
 
                     <input type="hidden" value="{{$ctrl.editUser.userId}}" />
-                    <div class="text-sm-right" data-ng-if="$ctrl.editUser.userId.length > 0">
+                    <div class="text-sm-end" data-ng-if="$ctrl.editUser.userId.length > 0">
                         <span class="note-text" data-ng-if="$ctrl.editUser.lastLoginDateUtc" title="Resident added {{$ctrl.editUser.addedDateUtc | date:'medium'}}">Last logged-in {{ $ctrl.editUser.lastLoginDateUtc | date:'EEEE, MMMM d, y h:mma' }}</span>
                         <span class="note-text" data-ng-if="!$ctrl.editUser.lastLoginDateUtc">Has not logged-in yet</span>
                     </div>

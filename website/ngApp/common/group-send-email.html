@@ -8,54 +8,54 @@
 
         <div data-ng-show="$ctrl.showSendEmail">
             <form id="message-form">
-                <div class="row mb-3" data-ng-if="!$ctrl.committee">
+                <div class="row mb-3 px-3" data-ng-if="!$ctrl.committee">
                     <label class="form-label">Choose Recipient Group</label>
-                    <select class="form-control"
+                    <select class="form-control form-select"
                             data-ng-model="$ctrl.selectedRecipient"
                             data-ng-change="$ctrl.onSelectEmailGroup()"
                             title="Choose Recipient Group"
                             data-ng-options="e as e.displayName for e in $ctrl.availableEmailGroups">
                     </select>
 
-                    <div data-ng-if="$ctrl.showUseDiscussSuggestion" style="color: blue; font-size: large;">
+                    <div data-ng-if="$ctrl.showUseDiscussSuggestion" style="color: blue; font-size: large;" class="ps-0"> 
                         Primary use of this group is for announcements, questions, and requests for vendor recommendations. <span style="font-weight: bold;">For matters of discussion
                         and opinions, please use the discussion group.</span>
                     </div>
 
-                    <div data-ng-if="$ctrl.showRestrictedGroupWarning" style="color: blue; font-weight: bold;">
+                    <div data-ng-if="$ctrl.showRestrictedGroupWarning" style="color: blue; font-weight: bold;" class="ps-0">
                         This group email address is restricted meaning replies will be sent only to you and not the entire
                         group.
                     </div>
 
-                    <div data-ng-if="$ctrl.showDiscussionEveryoneWarning" style="color: red; font-weight: bold;">
+                    <div data-ng-if="$ctrl.showDiscussionEveryoneWarning" style="color: red; font-weight: bold;" class="ps-0">
                         In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
                         sent to the "discussion" group. The discussion group allows residents to unsubscribe from
                         individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
-                    <div data-ng-if="$ctrl.showDiscussionLargeWarning" style="color: red; font-weight: bold;">
+                    <div data-ng-if="$ctrl.showDiscussionLargeWarning" style="color: red; font-weight: bold;" class="ps-0">
                         Sending an email to this recipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
                         individual threads. This way, residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
-                    <div>
+                    <div class="ps-0">
                         <a data-ng-href="mailto:{{ $ctrl.groupEmailAddress }}" class="note-text">{{ $ctrl.groupEmailAddress }}</a><br />
                         <small>For individual {{$ctrl.memberLabel}} messaging or group listings, visit the <a href="#!/BuildingResidents">{{$ctrl.memberPageName}}</a> page </small>
                     </div>
                 </div>
 
-                <div class="row mb-3" data-ng-if="$ctrl.committee">
+                <div class="row mb-3 px-3" data-ng-if="$ctrl.committee">
                     This will send an email to the members of this committee. If you'd prefer to send a message from your own email client, send
                     to this address:<br />
                     <a href="mailto:committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@{{ $ctrl.groupEmailDomain }}">committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@{{ $ctrl.groupEmailDomain }}</a>
                 </div>
 
-                <div class="row mb-3">
+                <div class="row mb-3 px-3">
                     <label class="form-label">Subject:</label>
                     <input type="text" class="form-control" data-ng-model="$ctrl.messageObject.subject" />
                 </div>
 
-                <div class="row mb-3">
+                <div class="row mb-3 px-3">
                     <label class="form-label">Email Contents:</label>
                     <textarea class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
                 </div>

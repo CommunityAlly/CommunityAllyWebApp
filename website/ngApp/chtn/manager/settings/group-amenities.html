@@ -13,9 +13,9 @@
 
         <h4 class="mt-4" style="text-decoration: underline;">General Questions</h4>
         <form class="row">
-            <div class="form-group col-sm-12 col-md-6">
-                <label style="text-align: left;">Roughly, when was your association constructed?</label>
-                <div class="note-text">Or had it's last major rehab. We're looking for the average relating to electrical, plumbing, and lead paint.</div>
+            <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                <label style="text-align: left;" class="form-label">Roughly, when was your association constructed?</label>
+                <div class="note-text ps-0">Or had it's last major rehab. We're looking for the average relating to electrical, plumbing, and lead paint.</div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" id="constructionDecade1960" name="constructionDecade" value="1960" data-ng-model="$ctrl.groupAmenities.constructionDecade">
                     <label class="form-check-label" for="constructionDecade1960">1960s or earlier</label>
@@ -46,9 +46,9 @@
                 </div>
             </div>
 
-            <div class="form-group col-sm-12 col-md-6">
-                <label>Does your association pay for any of these services?</label>
-                <div class="note-text">As opposed to residents paying themselves</div>
+            <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                <label class="form-label">Does your association pay for any of these services?</label>
+                <div class="note-text ps-0">As opposed to residents paying themselves</div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="associationPaysForWater" data-ng-model="$ctrl.groupAmenities.associationPaysForWater">
                     <label class="form-check-label" for="associationPaysForWater">Water</label>
@@ -67,9 +67,9 @@
                 </div>
             </div>
 
-            <div class="form-group col-sm-12 col-md-6">
-                <label>Does your association hire a property manager?</label>
-                <div class="note-text">Choose no if you consider your group self-managed</div>
+            <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                <label class="form-label">Does your association hire a property manager?</label>
+                <div class="note-text ps-0">Choose no if you consider your group self-managed</div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" id="hiresPropertyManagerYes" name="hiresPropertyManager" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hiresPropertyManager">
                     <label class="form-check-label" for="hiresPropertyManagerYes">Yes</label>
@@ -86,8 +86,8 @@
                 <h4 class="mt-5" style="text-decoration: underline;">HOA-Related Questions</h4>
                 <div class="note-text mb-3" data-ng-if="$ctrl.appShortName === 'condo'">We know you're a condo association, but please answer any of these that are applicable</div>
                 <form class="row">
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>Does your association have any community-run pools?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">Does your association have any community-run pools?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="numPools0" name="numPools" value="0" data-ng-model="$ctrl.groupAmenities.numPools">
                             <label class="form-check-label" for="numPools0">None</label>
@@ -106,8 +106,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>How much does your association spend on landscaping?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">How much does your association spend on landscaping?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="landscapeSpending0" name="landscapeSpending" value="0" data-ng-model="$ctrl.groupAmenities.landscapeSpending">
                             <label class="form-check-label" for="landscapeSpending0">Less than $5k</label>
@@ -130,8 +130,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>Does your association have a stand-alone club house?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">Does your association have a stand-alone club house?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="hasClubHouseYes" name="hasClubHouse" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hasClubHouse">
                             <label class="form-check-label" for="hasClubHouseYes">Yes</label>
@@ -142,8 +142,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>Does your association maintain its own roads?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">Does your association maintain its own roads?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="maintainsOwnRoadsTrue" name="maintainsOwnRoads" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.maintainsOwnRoads">
                             <label class="form-check-label" for="maintainsOwnRoadsTrue">Yes</label>
@@ -154,8 +154,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>Are you considered a gated community?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">Are you considered a gated community?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="isGatedCommunityTrue" name="isGatedCommunity" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.isGatedCommunity">
                             <label class="form-check-label" for="isGatedCommunityTrue">Yes</label>
@@ -172,8 +172,8 @@
                 <h4 class="mt-5" style="text-decoration: underline;">Condo-Related Questions</h4>
                 <div class="note-text mb-3" data-ng-if="$ctrl.appShortName === 'hoa'">We know you're an HOA, but please answer any of these that are applicable</div>
                 <form class="row">
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>Does your association have a doorman?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">Does your association have a doorman?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="hasDoormanTrue" name="hasDoorman" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hasDoorman">
                             <label class="form-check-label" for="hasDoormanTrue">Yes</label>
@@ -184,9 +184,9 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>Do you have balconies maintained as common area?</label>
-                        <div class="note-text">Association pays for maintenance/repairs as opposed to resident paying</div>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">Do you have balconies maintained as common area?</label>
+                        <div class="note-text ps-0">Association pays for maintenance/repairs as opposed to resident paying</div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="hasCommonBalconiesTrue" name="hasCommonBalconies" data-ng-value="true" data-ng-model="$ctrl.groupAmenities.hasCommonBalconies">
                             <label class="form-check-label" for="hasCommonBalconiesTrue">Yes</label>
@@ -197,8 +197,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label>What is the primary material of the exterior of your building or building(s)?</label>
+                    <div class="row mb-3 col-sm-12 col-md-6 px-4">
+                        <label class="form-label">What is the primary material of the exterior of your building or building(s)?</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" id="exteriorMaterialBrick" name="exteriorMaterial" value="brick" data-ng-model="$ctrl.groupAmenities.exteriorMaterial">
                             <label class="form-check-label" for="exteriorMaterialBrick">Brick</label>
@@ -225,7 +225,7 @@
         </div>
 
         <div class="row">
-            <div class="form-group col-12 text-center">
+            <div class="mb-3 col-12 text-center">
                 <button type="button" class="btn btn-primary btn-lg" data-ng-click="$ctrl.saveForm()">Save</button>
             </div>
         </div>
