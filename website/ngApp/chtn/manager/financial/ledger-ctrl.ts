@@ -350,7 +350,7 @@ namespace Ally
                     const unitColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "unitGridLabel" );
                     unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
 
-                    this.populateGridUnitLabels();
+                    this.populateGridUnitLabels( this.allEntries );
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -364,23 +364,30 @@ namespace Ally
         /**
          * Populate the text that is shown for the unit column and split for category
          */
-        populateGridUnitLabels()
+        populateGridUnitLabels( entries: LedgerEntry[] )
         {
+            if( !entries || entries.length === 0 )
+                return;
+
             // Populate the unit names for the grid
-            _.each( this.allEntries, ( entry ) =>
+            _.each( entries, ( entry ) =>
             {
                 if( entry.isSplit )
                     entry.categoryDisplayName = "(split)";
 
-                if( !entry.associatedUnitId )
-                    return;
-                
-                const unitListEntry = this.unitListEntries.find( u => u.unitId === entry.associatedUnitId );
+                if( entry.associatedUnitId )
+                {
+                    const unitListEntry = this.unitListEntries.find( u => u.unitId === entry.associatedUnitId );
 
-                if( unitListEntry )
-                    entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
-                else
-                    entry.unitGridLabel = "UNK";
+                    if( unitListEntry )
+                        entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                    else
+                        entry.unitGridLabel = "UNK";
+                }
+
+                // Populate split entries
+                if( entry.splitEntries && entry.splitEntries.length > 0 )
+                    this.populateGridUnitLabels( entry.splitEntries );
             } );
         }
 
@@ -400,7 +407,7 @@ namespace Ally
                 this.allEntries = httpResponse.data.entries;
                 this.updateLocalData();
 
-                this.populateGridUnitLabels();
+                this.populateGridUnitLabels( this.allEntries );
             } );
         }
 
@@ -409,39 +416,37 @@ namespace Ally
         {
             const enabledAccountIds = this.ledgerAccounts.filter( a => a.shouldShowInGrid ).map( a => a.ledgerAccountId );
 
-            const filteredList = this.allEntries.filter( e => enabledAccountIds.indexOf( e.ledgerAccountId ) > -1 );
+            let filteredList = this.allEntries.filter( e => enabledAccountIds.indexOf( e.ledgerAccountId ) > -1 );
 
             // If the user is filtering on a column, we need to break out split transactions
             if( this.hasActiveTxGridColFilter )
             {
                 // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
+                const newFilteredList: LedgerEntry[] = [];
                 for( let i = 0; i < filteredList.length; ++i )
                 {
-                    if( filteredList[i].ledgerEntryId === 10087 || filteredList[i].ledgerEntryId === 10085 )
-                    {
-                        console.log( "Found " + filteredList[i].ledgerEntryId, filteredList[i] );
-                    }
-
                     const isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
                     if( !isSplit )
+                    {
+                        newFilteredList.push( filteredList[i] );
                         continue;
+                    }
 
                     // Remove the parent entry
                     const parentEntry = filteredList[i];
-                    filteredList.splice( i, 1 );
-                    --i; // Step back one since we removed an entry
-
+                    
                     for( let splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex )
                     {
                         // Clone the split so we can prefix the label with split
                         const curSplitCopy = _.clone( parentEntry.splitEntries[splitIndex] );
                         curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
-                        filteredList.push( curSplitCopy );
-
-                        if( curSplitCopy.financialCategoryId === 8118 )
-                            console.log( "Found 8118", curSplitCopy );
+                        curSplitCopy.accountName = parentEntry.accountName; // Account name doesn't get populated for split entries so copy it
+                        
+                        newFilteredList.push( curSplitCopy );
                     }
                 }
+
+                filteredList = newFilteredList;
             }
 
             this.ledgerGridOptions.data = filteredList;
