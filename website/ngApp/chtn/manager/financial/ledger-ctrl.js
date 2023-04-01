@@ -264,7 +264,7 @@ var Ally;
                     uiGridUnitDropDown.push({ id: _this.unitListEntries[i].unitId, value: _this.unitListEntries[i].unitWithOwnerLast });
                 var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
                 unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
-                _this.populateGridUnitLabels();
+                _this.populateGridUnitLabels(_this.allEntries);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
@@ -273,19 +273,24 @@ var Ally;
         /**
          * Populate the text that is shown for the unit column and split for category
          */
-        LedgerController.prototype.populateGridUnitLabels = function () {
+        LedgerController.prototype.populateGridUnitLabels = function (entries) {
             var _this = this;
+            if (!entries || entries.length === 0)
+                return;
             // Populate the unit names for the grid
-            _.each(this.allEntries, function (entry) {
+            _.each(entries, function (entry) {
                 if (entry.isSplit)
                     entry.categoryDisplayName = "(split)";
-                if (!entry.associatedUnitId)
-                    return;
-                var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
-                if (unitListEntry)
-                    entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
-                else
-                    entry.unitGridLabel = "UNK";
+                if (entry.associatedUnitId) {
+                    var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
+                    if (unitListEntry)
+                        entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                    else
+                        entry.unitGridLabel = "UNK";
+                }
+                // Populate split entries
+                if (entry.splitEntries && entry.splitEntries.length > 0)
+                    _this.populateGridUnitLabels(entry.splitEntries);
             });
         };
         LedgerController.prototype.refreshEntries = function () {
@@ -298,7 +303,7 @@ var Ally;
                 _this.isLoadingEntries = false;
                 _this.allEntries = httpResponse.data.entries;
                 _this.updateLocalData();
-                _this.populateGridUnitLabels();
+                _this.populateGridUnitLabels(_this.allEntries);
             });
         };
         LedgerController.prototype.updateLocalData = function () {
@@ -307,26 +312,24 @@ var Ally;
             // If the user is filtering on a column, we need to break out split transactions
             if (this.hasActiveTxGridColFilter) {
                 // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
+                var newFilteredList = [];
                 for (var i = 0; i < filteredList.length; ++i) {
-                    if (filteredList[i].ledgerEntryId === 10087 || filteredList[i].ledgerEntryId === 10085) {
-                        console.log("Found " + filteredList[i].ledgerEntryId, filteredList[i]);
-                    }
                     var isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
-                    if (!isSplit)
+                    if (!isSplit) {
+                        newFilteredList.push(filteredList[i]);
                         continue;
+                    }
                     // Remove the parent entry
                     var parentEntry = filteredList[i];
-                    filteredList.splice(i, 1);
-                    --i; // Step back one since we removed an entry
                     for (var splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex) {
                         // Clone the split so we can prefix the label with split
                         var curSplitCopy = _.clone(parentEntry.splitEntries[splitIndex]);
                         curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
-                        filteredList.push(curSplitCopy);
-                        if (curSplitCopy.financialCategoryId === 8118)
-                            console.log("Found 8118", curSplitCopy);
+                        curSplitCopy.accountName = parentEntry.accountName; // Account name doesn't get populated for split entries so copy it
+                        newFilteredList.push(curSplitCopy);
                     }
                 }
+                filteredList = newFilteredList;
             }
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
