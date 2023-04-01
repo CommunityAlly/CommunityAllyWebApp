@@ -2047,7 +2047,7 @@ var Ally;
                 startDate = temp;
                 didSwapDates = true;
             }
-            var entries = this.specialAssessments.filter(function (e) { return e.assessmentDate.getTime() > startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime(); });
+            var entries = this.specialAssessments.filter(function (e) { return e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime(); });
             if (didSwapDates)
                 entries.reverse();
             return entries;
@@ -2283,8 +2283,12 @@ var Ally;
             };
             setTimeout(function () { $("#paid-amount-textbox").focus(); }, 10);
         };
-        AssessmentHistoryController.prototype.onSavePayment = function () {
+        AssessmentHistoryController.prototype.onSavePayment = function (keyEvent) {
             var _this = this;
+            if (keyEvent) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             var onSave = function () {
                 _this.isSavingPayment = false;
                 _this.editPayment = null;
@@ -2295,6 +2299,9 @@ var Ally;
                 alert(httpResponse.data.message);
                 _this.editPayment = null;
             };
+            // Convert invalid amount values to 0
+            if (!this.editPayment.payment.amount)
+                this.editPayment.payment.amount = 0;
             this.isSavingPayment = true;
             if (this.editPayment.payment.paymentId) {
                 analytics.track("editAssessmentHistoryPayment");
@@ -2304,6 +2311,9 @@ var Ally;
                 analytics.track("addAssessmentHistoryPayment");
                 this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
             }
+            // Return false as this method may be invoked from an enter key press and we don't want
+            // that to propogate
+            return false;
         };
         /**
          * Mark all units as paid for a specific period
@@ -3277,6 +3287,7 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.hasActiveTxGridColFilter = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -3287,6 +3298,7 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             var addAmountOverAllRows = function () {
                 var allGridRows = _this.ledgerGridApi.grid.rows;
                 var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
@@ -3341,6 +3353,22 @@ var Ally;
                             _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
+                        });
+                        gridApi.core.on.filterChanged(_this.$rootScope, function () {
+                            var hasFilter = false;
+                            //let s = "";
+                            for (var i = 0; i < gridApi.grid.columns.length; ++i) {
+                                if (gridApi.grid.columns[i].filters && gridApi.grid.columns[i].filters.length > 0 && gridApi.grid.columns[i].filters[0].term) {
+                                    hasFilter = true;
+                                    break;
+                                }
+                                //    s += `|${gridApi.grid.columns[i].displayName}=${gridApi.grid.columns[i].filters[0].condition}`;
+                            }
+                            console.log("filterChanged", "hasFilter", hasFilter);
+                            var needsFilterUpdate = _this.hasActiveTxGridColFilter !== hasFilter;
+                            _this.hasActiveTxGridColFilter = hasFilter;
+                            if (needsFilterUpdate)
+                                _this.updateLocalData();
                         });
                     }
                 };
@@ -3476,7 +3504,7 @@ var Ally;
                     uiGridUnitDropDown.push({ id: _this.unitListEntries[i].unitId, value: _this.unitListEntries[i].unitWithOwnerLast });
                 var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
                 unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
-                _this.populateGridUnitLabels();
+                _this.populateGridUnitLabels(_this.allEntries);
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
@@ -3485,19 +3513,24 @@ var Ally;
         /**
          * Populate the text that is shown for the unit column and split for category
          */
-        LedgerController.prototype.populateGridUnitLabels = function () {
+        LedgerController.prototype.populateGridUnitLabels = function (entries) {
             var _this = this;
+            if (!entries || entries.length === 0)
+                return;
             // Populate the unit names for the grid
-            _.each(this.allEntries, function (entry) {
+            _.each(entries, function (entry) {
                 if (entry.isSplit)
                     entry.categoryDisplayName = "(split)";
-                if (!entry.associatedUnitId)
-                    return;
-                var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
-                if (unitListEntry)
-                    entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
-                else
-                    entry.unitGridLabel = "UNK";
+                if (entry.associatedUnitId) {
+                    var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
+                    if (unitListEntry)
+                        entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
+                    else
+                        entry.unitGridLabel = "UNK";
+                }
+                // Populate split entries
+                if (entry.splitEntries && entry.splitEntries.length > 0)
+                    _this.populateGridUnitLabels(entry.splitEntries);
             });
         };
         LedgerController.prototype.refreshEntries = function () {
@@ -3510,12 +3543,34 @@ var Ally;
                 _this.isLoadingEntries = false;
                 _this.allEntries = httpResponse.data.entries;
                 _this.updateLocalData();
-                _this.populateGridUnitLabels();
+                _this.populateGridUnitLabels(_this.allEntries);
             });
         };
         LedgerController.prototype.updateLocalData = function () {
             var enabledAccountIds = this.ledgerAccounts.filter(function (a) { return a.shouldShowInGrid; }).map(function (a) { return a.ledgerAccountId; });
             var filteredList = this.allEntries.filter(function (e) { return enabledAccountIds.indexOf(e.ledgerAccountId) > -1; });
+            // If the user is filtering on a column, we need to break out split transactions
+            if (this.hasActiveTxGridColFilter) {
+                // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
+                var newFilteredList = [];
+                for (var i = 0; i < filteredList.length; ++i) {
+                    var isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
+                    if (!isSplit) {
+                        newFilteredList.push(filteredList[i]);
+                        continue;
+                    }
+                    // Remove the parent entry
+                    var parentEntry = filteredList[i];
+                    for (var splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex) {
+                        // Clone the split so we can prefix the label with split
+                        var curSplitCopy = _.clone(parentEntry.splitEntries[splitIndex]);
+                        curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
+                        curSplitCopy.accountName = parentEntry.accountName; // Account name doesn't get populated for split entries so copy it
+                        newFilteredList.push(curSplitCopy);
+                    }
+                }
+                filteredList = newFilteredList;
+            }
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
             this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
@@ -4010,6 +4065,7 @@ var Ally;
         }
         return UiGridRow;
     }());
+    Ally.UiGridRow = UiGridRow;
     var CategoryOption = /** @class */ (function () {
         function CategoryOption() {
         }
@@ -5507,6 +5563,8 @@ var Ally;
             this.selectedResidentDetailsView = "Primary";
             this.showAddHomeLink = false;
             this.hasMemberNotOwnerRenter = false;
+            this.didLoadResidentGridState = false;
+            this.shouldSaveResidentGridState = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -5607,7 +5665,7 @@ var Ally;
                     enableGridMenu: true,
                     enableRowHeaderSelection: false,
                     onRegisterApi: function (gridApi) {
-                        _this.gridApi = gridApi;
+                        _this.residentsGridApi = gridApi;
                         gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function (row) {
                             var msg = 'row selected ' + row.isSelected;
                             _this.setEdit(row.entity);
@@ -5689,9 +5747,28 @@ var Ally;
                     document.getElementById("toggle-email-history-link").scrollIntoView();
                     _this.toggleEmailHistoryVisible();
                 }
+                if (_this.residentsGridApi && window.localStorage[ManageResidentsController.StoreKeyResidentGridState]) {
+                    var gridState = JSON.parse(window.localStorage[ManageResidentsController.StoreKeyResidentGridState]);
+                    if (gridState && typeof (gridState) === "object") {
+                        _this.residentsGridApi.saveState.restore(_this, gridState);
+                        _this.residentsGridApi.grid.clearAllFilters(true, true, false);
+                        _this.didLoadResidentGridState = true;
+                    }
+                }
                 if (_this.showPendingMembers)
                     _this.loadPendingMembers();
             });
+        };
+        /**
+         * Called on a controller when its containing scope is destroyed. Use this hook for releasing external resources,
+         * watches and event handlers.
+         */
+        ManageResidentsController.prototype.$onDestroy = function () {
+            // Save the grid state (column order, widths, visible, etc.)
+            if (this.shouldSaveResidentGridState) {
+                var gridState = this.residentsGridApi.saveState.save();
+                window.localStorage[ManageResidentsController.StoreKeyResidentGridState] = JSON.stringify(gridState);
+            }
         };
         ManageResidentsController.prototype.getBoardPositionName = function (boardValue) {
             if (!boardValue)
@@ -5777,7 +5854,7 @@ var Ally;
                     this.editUser.friendlyBadEmailReason = this.editUser.postmarkReportedBadEmailReason;
             }
             //this.residentGridOptions.selectAll( false );
-            this.gridApi.selection.clearSelectedRows();
+            this.residentsGridApi.selection.clearSelectedRows();
             setTimeout("$( '#edit-user-first-text-box' ).focus();", 100);
         };
         /**
@@ -5822,14 +5899,14 @@ var Ally;
                 _this.residentGridOptions.minRowsToShow = residentArray.length;
                 _this.residentGridOptions.virtualizationThreshold = residentArray.length;
                 _this.residentGridOptions.enableFiltering = residentArray.length > 15;
-                _this.gridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
+                _this.residentsGridApi.core.notifyDataChange(_this.uiGridConstants.dataChange.COLUMN);
                 _this.hasOneAdmin = _.filter(residentArray, function (r) { return r.isSiteManager; }).length === 1 && residentArray.length > 1;
                 //this.gridApi.grid.notifyDataChange( uiGridConstants.dataChange.ALL );
                 // If we have sort info to use
                 if (_this.residentSortInfo) {
-                    var sortColumn = _.find(_this.gridApi.grid.columns, function (col) { return col.field === _this.residentSortInfo.field; });
+                    var sortColumn = _.find(_this.residentsGridApi.grid.columns, function (col) { return col.field === _this.residentSortInfo.field; });
                     if (sortColumn)
-                        _this.gridApi.grid.sortColumn(sortColumn, _this.residentSortInfo.direction, false);
+                        _this.residentsGridApi.grid.sortColumn(sortColumn, _this.residentSortInfo.direction, false);
                 }
                 // Build the full name and convert the last login to local time
                 _.forEach(residentArray, function (res) {
@@ -6470,7 +6547,15 @@ var Ally;
                 alert("Failed to load emails: " + response.data.exceptionMessage);
             });
         };
+        ManageResidentsController.prototype.resetResidentGridState = function () {
+            // Remove the saved grid state
+            window.localStorage.removeItem(ManageResidentsController.StoreKeyResidentGridState);
+            // Refresh the page, but don't save the grid state on exit
+            this.shouldSaveResidentGridState = false;
+            window.location.reload();
+        };
         ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
+        ManageResidentsController.StoreKeyResidentGridState = "AllyResGridState";
         return ManageResidentsController;
     }());
     Ally.ManageResidentsController = ManageResidentsController;
@@ -6574,6 +6659,7 @@ var Ally;
             this.emailUsageAverageSent = 0;
             this.showInvoiceSection = false;
             this.paymentType = "ach";
+            this.shouldShowTrialNote = false;
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
@@ -6594,6 +6680,7 @@ var Ally;
             // Get a view token to view the premium plan invoice should one be generated
             if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
                 this.$timeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
+            this.shouldShowTrialNote = this.siteInfo.privateSiteInfo.isPremiumPlanActive && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(3, "months"));
         };
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
@@ -8149,7 +8236,16 @@ var Ally;
                 if (_this.customEmailList) {
                     for (var _i = 0, _a = _this.customEmailList; _i < _a.length; _i++) {
                         var curGroupEmail = _a[_i];
-                        curGroupEmail.usersFullNames = curGroupEmail.members.map(function (e) { return _this.allResidents.find(function (r) { return r.userId === e.userId; }).fullName; });
+                        curGroupEmail.usersFullNames = [];
+                        var _loop_2 = function (curGroupMember) {
+                            var resident = _this.allResidents.find(function (r) { return r.userId === curGroupMember.userId; });
+                            if (resident)
+                                curGroupEmail.usersFullNames.push(resident.fullName);
+                        };
+                        for (var _b = 0, _c = curGroupEmail.members; _b < _c.length; _b++) {
+                            var curGroupMember = _c[_b];
+                            _loop_2(curGroupMember);
+                        }
                     }
                 }
                 // Hook up the address copy link
@@ -8361,16 +8457,33 @@ var Ally;
                 this.viewEvent = null;
             };
         }
+        LogbookController.prototype.getTimezoneAbbreviation = function (timeZoneIana) {
+            if (timeZoneIana === void 0) { timeZoneIana = null; }
+            // Need to cast moment to any because we don't have the tz typedef file
+            var tempMoment = moment();
+            if (!timeZoneIana)
+                timeZoneIana = moment.tz.guess();
+            var timeZoneInfo = tempMoment.tz(timeZoneIana);
+            var timeZoneAbbreviation = timeZoneInfo.format('z');
+            // Drop the daylight savings time (DST) info to avoid confusion with users
+            if (timeZoneAbbreviation === "EST" || timeZoneAbbreviation === "EDT")
+                return "ET";
+            else if (timeZoneAbbreviation === "CST" || timeZoneAbbreviation === "CDT")
+                return "CT";
+            else if (timeZoneAbbreviation === "MST" || timeZoneAbbreviation === "MDT")
+                return "MT";
+            else if (timeZoneAbbreviation === "PST" || timeZoneAbbreviation === "PDT")
+                return "PT";
+            return timeZoneAbbreviation;
+        };
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         LogbookController.prototype.$onInit = function () {
             var _this = this;
-            var tempMoment = moment();
-            var localTimeZone = moment.tz.guess();
-            this.currentTimeZoneAbbreviation = tempMoment.tz(localTimeZone).format('z');
+            this.currentTimeZoneAbbreviation = this.getTimezoneAbbreviation();
             if (this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana) {
-                this.groupTimeZoneAbbreviation = tempMoment.tz(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana).format('z');
+                this.groupTimeZoneAbbreviation = this.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
                 if (this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation)
                     this.localTimeZoneDiffersFromGroup = true;
             }
@@ -11749,6 +11862,7 @@ var Ally;
                     fileUri = fileUri.substr("/api/".length);
                 fileUri = _this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
                 if (isForDownload) {
+                    // Create a link and click it
                     var link = document.createElement('a');
                     link.setAttribute("type", "hidden"); // make it hidden if needed
                     link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);
@@ -12466,22 +12580,31 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function ResidentTransactionsController($http, siteInfo, $timeout, $rootScope, uiGridConstants, $scope) {
+        function ResidentTransactionsController($http, siteInfo, $timeout, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
-            this.$rootScope = $rootScope;
             this.uiGridConstants = uiGridConstants;
             this.$scope = $scope;
             this.shouldShowModal = false;
             this.isLoading = false;
             this.HistoryPageSize = 50;
+            this.isUnitColVisible = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         ResidentTransactionsController.prototype.$onInit = function () {
+            var _this = this;
             this.homeName = AppConfig.homeName || "Unit";
+            // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
+            var addAmountOverAllRows = function () {
+                var allGridRows = _this.transactionGridApi.grid.rows;
+                var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
+                var sum = 0;
+                visibleGridRows.forEach(function (item) { return sum += (item.entity.amount || 0); });
+                return sum;
+            };
             this.transactionGridOptions =
                 {
                     columnDefs: [
@@ -12495,7 +12618,7 @@ var Ally;
                         { field: 'description', displayName: 'Description', enableFiltering: true, filter: { placeholder: "search" } },
                         { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editDropdownOptionsArray: [], enableFiltering: true },
                         { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: this.uiGridConstants.aggregationTypes.sum, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' }
                     ],
                     enableFiltering: true,
                     enableSorting: true,
@@ -12504,9 +12627,13 @@ var Ally;
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false,
                     enablePaginationControls: true,
+                    minRowsToShow: this.HistoryPageSize,
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
-                    enableRowHeaderSelection: false
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: function (gridApi) {
+                        _this.transactionGridApi = gridApi;
+                    }
                 };
         };
         /**
@@ -12514,10 +12641,7 @@ var Ally;
          */
         ResidentTransactionsController.prototype.populateGridUnitLabels = function () {
             var _this = this;
-            var unitColumn = this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
-            if (!unitColumn || !unitColumn.visible)
-                return;
-            this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
+            return this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
                 var allUnits = httpResponse.data;
                 _.each(_this.allFinancialTxns, function (tx) {
                     if (!tx.associatedUnitId)
@@ -12544,27 +12668,35 @@ var Ally;
                 _this.isLoading = false;
                 _this.allFinancialTxns = httpResponse.data.entries;
                 _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
+                _this.ownerBalance = httpResponse.data.ownerBalance;
                 // Hide the unit column if the owner only has one unit
                 var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
                 var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
                 var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
-                if (unitColumn)
+                if (unitColumn) {
                     unitColumn.visible = uniqueUnitIds.length > 1 || _this.siteInfo.userInfo.usersUnits.length > 1;
+                    _this.isUnitColVisible = unitColumn.visible;
+                }
                 //this.transactionGridOptions.data = httpResponse.data;
                 //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
                 //{
                 //    this.transactionGridOptions.enablePagination = false;
                 //    this.transactionGridOptions.enablePaginationControls = false;
                 //}
-                _this.$timeout(function () { return _this.populateGridUnitLabels(); }, 150);
-                // Put this in a slight delay so the date range picker can exist
-                _this.$timeout(function () {
+                var initialLoad = function () {
                     if (_this.allFinancialTxns.length > 1) {
                         // Transactions come down newest first
                         _this.filterEndDate = _this.allFinancialTxns[0].transactionDate;
                         _this.filterStartDate = _this.allFinancialTxns[_this.allFinancialTxns.length - 1].transactionDate;
                     }
                     _this.onFilterDateRangeChange();
+                };
+                // Put this in a slight delay so the date range picker can exist
+                _this.$timeout(function () {
+                    if (_this.isUnitColVisible)
+                        _this.populateGridUnitLabels().then(initialLoad, initialLoad);
+                    else
+                        initialLoad();
                 }, 100);
             }, function () {
                 _this.isLoading = false;
@@ -12605,14 +12737,18 @@ var Ally;
             var _this = this;
             if (!this.filterStartDate || !this.filterEndDate)
                 return;
-            this.transactionGridOptions.data = this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
-            if (this.transactionGridOptions.data.length <= this.HistoryPageSize) {
-                this.transactionGridOptions.enablePagination = false;
-                this.transactionGridOptions.enablePaginationControls = false;
-            }
-            this.$scope.$apply();
+            // Wrap this in $timeout so it refreshes properly, from here: https://stackoverflow.com/a/17958847/10315651
+            this.$timeout(function () {
+                var txRows = _this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
+                _this.transactionGridOptions.data = txRows;
+                _this.transactionGridOptions.virtualizationThreshold = txRows.length + 1;
+                if (_this.transactionGridOptions.data.length <= _this.HistoryPageSize) {
+                    _this.transactionGridOptions.enablePagination = false;
+                    _this.transactionGridOptions.enablePaginationControls = false;
+                }
+            }, 10);
         };
-        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "$rootScope", "uiGridConstants", "$scope"];
+        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "uiGridConstants", "$scope"];
         return ResidentTransactionsController;
     }());
     Ally.ResidentTransactionsController = ResidentTransactionsController;
@@ -13921,10 +14057,10 @@ var Ally;
             //    this.editingEquipment.type = this.editingEquipment.typeTags[0].text;
             //else
             //    this.editingEquipment.type = undefined;
-            if (this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0)
-                this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
-            else
-                this.editingEquipment.location = undefined;
+            //if( this.editingEquipment.locationTags && this.editingEquipment.locationTags.length > 0 )
+            //    this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
+            //else
+            //    this.editingEquipment.location = undefined;            
             var httpFunc;
             if (this.editingEquipment.equipmentId)
                 httpFunc = this.$http.put;
@@ -17613,7 +17749,7 @@ angular.module("CondoAlly").directive("ngEnter", function () {
             var EnterKeyCode = 13;
             if (event.which === EnterKeyCode) {
                 scope.$apply(function () {
-                    scope.$eval(attrs.ngEnter, { 'event': event });
+                    scope.$eval(attrs.ngEnter, { '$event': event });
                 });
                 event.preventDefault();
             }
@@ -17626,7 +17762,7 @@ angular.module("CondoAlly").directive("ngEscape", function () {
             var EscapeKeyCode = 27;
             if (event.which === EscapeKeyCode) {
                 scope.$apply(function () {
-                    scope.$eval(attrs.ngEscape, { 'event': event });
+                    scope.$eval(attrs.ngEscape, { '$event': event });
                 });
                 event.preventDefault();
             }
