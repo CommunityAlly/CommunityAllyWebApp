@@ -5587,7 +5587,8 @@ var Ally;
             this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
             // Show the add home article link if the site isn't launched and is less than 8 days old
-            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(8, "days"));
+            var twoWeeksAfterCreate = moment(this.siteInfo.privateSiteInfo.creationDate).add(14, "days");
+            this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(twoWeeksAfterCreate);
             if (this.showPendingMembers) {
                 this.pendingMemberSignUpUrl = "https://" + HtmlUtil.getSubdomain() + "." + AppConfig.baseTld + "/#!/MemberSignUp";
                 // Hook up the address copy link
@@ -5929,7 +5930,8 @@ var Ally;
                         // If we have a lot of units then allow searching
                         _this.multiselectOptions = _this.allUnits.length > 20 ? "filter" : "";
                         // Show the note on how to add homes if there's only one home
-                        _this.showAddHomeLink = _this.allUnits.length === 1;
+                        var twoMonthsAfterCreate = moment(_this.siteInfo.privateSiteInfo.creationDate).add(2, "months");
+                        _this.showAddHomeLink = _this.allUnits.length < 3 && moment().isBefore(twoMonthsAfterCreate);
                     }, function () {
                         _this.isLoading = false;
                         alert("Failed to retrieve your association's home listing, please contact support.");
