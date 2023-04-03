@@ -236,13 +236,9 @@ namespace Ally
             else
                 this.assessmentAmount = 0;
 
-            const GroupsWithAutoPay = ["qa", "casadelnorthern", "ivytownhomescondominium"];
-            const canUserUseAutoPay = GroupsWithAutoPay.indexOf( this.siteInfo.publicSiteInfo.shortName ) !== -1;
-
             // Show the Dwolla auto-pay area if the group's Dwolla is setup and
             // assessment frequncy is defined, or if the user already has auto-pay
             this.shouldShowDwollaAutoPayArea = ( this.isDwollaReadyForPayment
-                && canUserUseAutoPay
                 && this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.assessmentAmount > 0 )
                 || ( typeof this.currentDwollaAutoPayAmount === "number" && !isNaN( this.currentDwollaAutoPayAmount ) && this.currentDwollaAutoPayAmount > 1 );
