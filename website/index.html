@@ -194,7 +194,7 @@
                     </span>
                 </span>
 
-                <div ng-cloak>
+                <div data-ng-cloak>
                     <h1 data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
                     <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText();" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
                     <h1 data-ng-if="siteTitle.logoHtml" style="color:white !important;" data-ng-bind-html="siteTitle.logoHtml"></h1>
@@ -277,7 +277,7 @@
 
             <ul class="nav pull-right">
                 <li class="nav-item">
-                    <a class="nav-link" data-ng-href="{{ appConfig.baseUrl }}">
+                    <a class="nav-link" data-ng-cloak data-ng-href="{{ appConfig.baseUrl }}">
                         {{ appConfig.appName }} Home
                     </a>
                 </li>

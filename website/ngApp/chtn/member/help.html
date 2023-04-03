@@ -9,7 +9,7 @@
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <div ng-style="$ctrl.resultStyle">{{ $ctrl.sendResult }}</div>
     <div data-ng-hide="$ctrl.wasMessageSent">
-        Please contact us using the form below and we'll do our best to get back to you within 24 hours. We also have some helpful articles on the:
+        You can contact Community Ally technical support using the form below and we'll do our best to get back to you within 24 hours. We also have some helpful articles on the:
         <br />
         <a href="https://help.communityally.org/" target="_blank">Community Ally Help Center</a>
         <br />
@@ -24,7 +24,7 @@
             <br />
             <br />
             <div class="text-end">
-                <input type="button" value="Send" data-ng-click="$ctrl.onSendHelp();" />
+                <input type="button" value="Send" class="btn btn-primary" data-ng-click="$ctrl.onSendHelp();" />
             </div>
         </form>
     </div>
