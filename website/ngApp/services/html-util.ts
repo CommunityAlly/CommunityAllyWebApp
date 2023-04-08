@@ -219,13 +219,13 @@ namespace Ally
             if( shouldTrim )
                 testString = testString.trim();
 
-            let firstWhitespaceIndex = testString.search( /\s/ );
+            let firstWhitespaceIndex = testString.search( /[\s,]/ ); // Find the first whitespace or comma
 
             // If no whitespace was found then test the whole string
             if( firstWhitespaceIndex === -1 )
                 firstWhitespaceIndex = testString.length;
 
-            testString = testString.substring( 0, firstWhitespaceIndex - 1 );
+            testString = testString.substring( 0, firstWhitespaceIndex );
 
             return HtmlUtil.isNumericString( testString );
         }
@@ -249,6 +249,16 @@ namespace Ally
         {
             if( HtmlUtil2.endsWithNumber( testString ) )
                 return parseInt( testString.match( /[0-9]+$/ )[0] );
+
+            return null;
+        }
+
+
+        /** Get the number at the start of a string, null if the string doesn't start with a number */
+        static getNumberAtStart( testString: string )
+        {
+            if( HtmlUtil2.startsWithNumber( testString ) )
+                return parseInt( testString.match( /^[0-9]+/ )[0] );
 
             return null;
         }
@@ -339,7 +349,8 @@ namespace Ally
                 return _.sortBy( homeList, u => +u[namePropName] );
 
             // If all homes share the same suffix then sort by only the first part, if numeric
-            const firstSuffix = homeList[0][namePropName].substr( homeList[0][namePropName].indexOf( " " ) );
+            const firstHomeName: string = homeList[0][namePropName];
+            const firstSuffix = firstHomeName.substr( firstHomeName.indexOf( " " ) );
             const allHaveNumericPrefix = _.every( homeList, u => HtmlUtil2.startsWithNumber( u[namePropName] ) );
             const allHaveSameSuffix = _.every( homeList, u => HtmlUtil.endsWith( u[namePropName], firstSuffix ) );
 
@@ -347,10 +358,10 @@ namespace Ally
                 return _.sortBy( homeList, u => parseInt( u[namePropName].substr( 0, u[namePropName].indexOf( " " ) ) ) );
 
             // And the flip, if all names start with the same string "Unit #" and end with a number, sort by that number
-            const firstNumberIndex = homeList[0][namePropName].search( /[0-9]/ );
+            const firstNumberIndex = firstHomeName.search( /[0-9]/ );
             if( firstNumberIndex >= 0 )
             {
-                const firstPrefix = homeList[0][namePropName].substr( 0, firstNumberIndex );
+                const firstPrefix = firstHomeName.substr( 0, firstNumberIndex );
                 const allHaveSamePrefix = _.every( homeList, u => HtmlUtil.startsWith( u[namePropName], firstPrefix ) );
                 const allEndWithNumber = _.every( homeList, u => HtmlUtil2.endsWithNumber( u[namePropName] ) );
 
@@ -382,6 +393,22 @@ namespace Ally
 
                 return homeList.sort( ( h1, h2 ) => sortByStreet( h1[namePropName], h2[namePropName] ) );
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
+            }
+
+            let firstPrefix: string = null;
+            if( firstHomeName.includes( " " ) )
+                firstPrefix = firstHomeName.substr( 0, firstHomeName.indexOf( " " ) + 1 ); // +1 to include the space
+            if( firstPrefix )
+            {
+                const allHaveSamePrefix = _.every( homeList, u => HtmlUtil.startsWith( u[namePropName], firstPrefix ) );
+                if( allHaveSamePrefix )
+                {
+                    const allHaveNumAfterPrefix = _.every( homeList, u => HtmlUtil2.startsWithNumber( ( u[namePropName] as string ).substr( firstPrefix.length ) ) );
+                    if( allHaveNumAfterPrefix )
+                    {
+                        return _.sortBy( homeList, u => HtmlUtil2.getNumberAtStart( ( u[namePropName] as string ).substr( firstPrefix.length ) ) );
+                    }
+                }
             }
 
             return _.sortBy( homeList, u => ( u[namePropName] as string || "" ).toLowerCase() );

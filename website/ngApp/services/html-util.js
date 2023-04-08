@@ -125,11 +125,11 @@ var Ally;
                 return false;
             if (shouldTrim)
                 testString = testString.trim();
-            var firstWhitespaceIndex = testString.search(/\s/);
+            var firstWhitespaceIndex = testString.search(/[\s,]/); // Find the first whitespace or comma
             // If no whitespace was found then test the whole string
             if (firstWhitespaceIndex === -1)
                 firstWhitespaceIndex = testString.length;
-            testString = testString.substring(0, firstWhitespaceIndex - 1);
+            testString = testString.substring(0, firstWhitespaceIndex);
             return HtmlUtil.isNumericString(testString);
         };
         /** Determine if a string ends with a numeric string */
@@ -145,6 +145,12 @@ var Ally;
         HtmlUtil2.getNumberAtEnd = function (testString) {
             if (HtmlUtil2.endsWithNumber(testString))
                 return parseInt(testString.match(/[0-9]+$/)[0]);
+            return null;
+        };
+        /** Get the number at the start of a string, null if the string doesn't start with a number */
+        HtmlUtil2.getNumberAtStart = function (testString) {
+            if (HtmlUtil2.startsWithNumber(testString))
+                return parseInt(testString.match(/^[0-9]+/)[0]);
             return null;
         };
         HtmlUtil2.isAndroid = function () {
@@ -211,15 +217,16 @@ var Ally;
             if (shouldUseNumericNames)
                 return _.sortBy(homeList, function (u) { return +u[namePropName]; });
             // If all homes share the same suffix then sort by only the first part, if numeric
-            var firstSuffix = homeList[0][namePropName].substr(homeList[0][namePropName].indexOf(" "));
+            var firstHomeName = homeList[0][namePropName];
+            var firstSuffix = firstHomeName.substr(firstHomeName.indexOf(" "));
             var allHaveNumericPrefix = _.every(homeList, function (u) { return HtmlUtil2.startsWithNumber(u[namePropName]); });
             var allHaveSameSuffix = _.every(homeList, function (u) { return HtmlUtil.endsWith(u[namePropName], firstSuffix); });
             if (allHaveNumericPrefix && allHaveSameSuffix)
                 return _.sortBy(homeList, function (u) { return parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))); });
             // And the flip, if all names start with the same string "Unit #" and end with a number, sort by that number
-            var firstNumberIndex = homeList[0][namePropName].search(/[0-9]/);
+            var firstNumberIndex = firstHomeName.search(/[0-9]/);
             if (firstNumberIndex >= 0) {
-                var firstPrefix_1 = homeList[0][namePropName].substr(0, firstNumberIndex);
+                var firstPrefix_1 = firstHomeName.substr(0, firstNumberIndex);
                 var allHaveSamePrefix = _.every(homeList, function (u) { return HtmlUtil.startsWith(u[namePropName], firstPrefix_1); });
                 var allEndWithNumber = _.every(homeList, function (u) { return HtmlUtil2.endsWithNumber(u[namePropName]); });
                 if (allHaveSamePrefix && allEndWithNumber)
@@ -241,6 +248,18 @@ var Ally;
                 var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
                 return homeList.sort(function (h1, h2) { return sortByStreet_1(h1[namePropName], h2[namePropName]); });
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
+            }
+            var firstPrefix = null;
+            if (firstHomeName.includes(" "))
+                firstPrefix = firstHomeName.substr(0, firstHomeName.indexOf(" ") + 1); // +1 to include the space
+            if (firstPrefix) {
+                var allHaveSamePrefix = _.every(homeList, function (u) { return HtmlUtil.startsWith(u[namePropName], firstPrefix); });
+                if (allHaveSamePrefix) {
+                    var allHaveNumAfterPrefix = _.every(homeList, function (u) { return HtmlUtil2.startsWithNumber(u[namePropName].substr(firstPrefix.length)); });
+                    if (allHaveNumAfterPrefix) {
+                        return _.sortBy(homeList, function (u) { return HtmlUtil2.getNumberAtStart(u[namePropName].substr(firstPrefix.length)); });
+                    }
+                }
             }
             return _.sortBy(homeList, function (u) { return (u[namePropName] || "").toLowerCase(); });
         };
