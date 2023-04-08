@@ -356,8 +356,8 @@
 
 
 
-                <div id="AssessmentsPanel" data-ng-if="$ctrl.hasAssessments">
-                    <h3 class="margin-top-50">{{$ctrl.homeName}} Assessments</h3>
+                <div id="AssessmentsPanel" data-ng-if="$ctrl.hasAssessments" class="margin-top-50">
+                    <h3>{{$ctrl.homeName}} Assessments</h3>
                     <p>
                         The {{$ctrl.homeName.toLowerCase()}} assessments are set upon setup of your online payments. Click the assessment amount below to adjust.
 
@@ -439,7 +439,7 @@
 
                 </div>
 
-                <div data-ng-if="!$ctrl.hasAssessments">
+                <div data-ng-if="!$ctrl.hasAssessments" class="margin-top-50">
                     You answered "no" to your association having regular assessments. If you'd like to change that, <span class="text-button" data-ng-click="$ctrl.hasAssessments = null">click here</span>.
                 </div>
 
