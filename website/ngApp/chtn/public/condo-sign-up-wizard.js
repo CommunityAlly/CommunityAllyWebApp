@@ -19,6 +19,7 @@ var Ally;
             this.map = null;
             this.isLoadingMap = false;
             this.hideWizard = false;
+            this.isPageEnabled = null;
             // The default sign-up info object
             this.signUpInfo = {
                 buildings: [{
@@ -36,14 +37,18 @@ var Ally;
         */
         CondoSignUpWizardController.prototype.$onInit = function () {
             var _this = this;
-            var innerThis = this;
-            var onReady = function () {
-                innerThis.init();
+            var prepFunc = function (isPageEnabled) {
+                _this.isPageEnabled = isPageEnabled;
+                // Delay a bit to allow the wizard to render
+                _this.$timeout(function () { return _this.initPage(); }, 300);
             };
-            this.$timeout(onReady, 500);
             this.$scope.$on('wizard:stepChanged', function (event, args) {
                 if (args.index === 2)
                     _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
+            });
+            this.$http.get("/api/PublicAllyAppSettings/IsSignUpEnabled").then(function (httpResponse) { return prepFunc(httpResponse.data); }, function (httpResponse) {
+                prepFunc(true); // Default to true if we can't get the setting
+                console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
             });
         };
         /**
@@ -139,19 +144,18 @@ var Ally;
          * Occurs when the user selects an address from the Google suggestions
          */
         CondoSignUpWizardController.prototype.setPlaceWasSelected = function () {
+            var _this = this;
             this.placeWasSelected = true;
             this.shouldCheckAddress = false;
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
-            setTimeout(function () {
-                innerThis.placeWasSelected = true;
-            }, 500);
+            setTimeout(function () { return _this.placeWasSelected = true; }, 500);
         };
         ;
         /**
          * Perform any needed initialization
          */
-        CondoSignUpWizardController.prototype.init = function () {
+        CondoSignUpWizardController.prototype.initPage = function () {
+            var _this = this;
             if (typeof (window.analytics) !== "undefined")
                 window.analytics.track("condoSignUpStarted", {
                     category: "SignUp",
@@ -172,32 +176,31 @@ var Ally;
                 icon: "/assets/images/MapMarkers/MapMarker_Home.png"
             });
             // Occurs when the user selects a Google suggested address
-            var innerThis = this;
             this.addressAutocomplete.addListener('place_changed', function () {
-                innerThis.setPlaceWasSelected();
+                _this.setPlaceWasSelected();
                 //infowindow.close();
-                innerThis.mapMarker.setVisible(false);
-                var place = innerThis.addressAutocomplete.getPlace();
+                _this.mapMarker.setVisible(false);
+                var place = _this.addressAutocomplete.getPlace();
                 var readableAddress = place.formatted_address;
                 // Remove the trailing country if it's USA
                 if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                     readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                innerThis.signUpInfo.buildings[0].streetAddress = readableAddress;
+                _this.signUpInfo.buildings[0].streetAddress = readableAddress;
                 // If the name hasn't been set yet, use the address
-                if (HtmlUtil.isNullOrWhitespace(innerThis.signUpInfo.name)) {
-                    innerThis.$scope.$apply(function () {
-                        innerThis.signUpInfo.name = place.name + " Condo Association";
+                if (HtmlUtil.isNullOrWhitespace(_this.signUpInfo.name)) {
+                    _this.$scope.$apply(function () {
+                        _this.signUpInfo.name = place.name + " Condo Association";
                     });
                 }
                 if (!place.geometry) {
                     //window.alert( "Autocomplete's returned place contains no geometry" );
                     return;
                 }
-                innerThis.centerMap(place.geometry);
+                _this.centerMap(place.geometry);
                 $("#association-name-text-box").focus();
             });
             // Initialize the unit names
-            innerThis.onNumUnitsChanged();
+            this.onNumUnitsChanged();
         };
         /**
          * Refresh the map to center typed in address
@@ -212,11 +215,11 @@ var Ally;
          * Refresh the map to center typed in address
          */
         CondoSignUpWizardController.prototype.refreshMapForBuildingAddress = function () {
+            var _this = this;
             this.isLoadingMap = true;
-            var innerThis = this;
             HtmlUtil.geocodeAddress(this.signUpInfo.buildings[0].streetAddress, function (results, status) {
-                innerThis.$scope.$apply(function () {
-                    innerThis.isLoadingMap = false;
+                _this.$scope.$apply(function () {
+                    _this.isLoadingMap = false;
                     if (status != google.maps.GeocoderStatus.OK) {
                         //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
                         return;
@@ -225,12 +228,12 @@ var Ally;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.buildings[0].streetAddress = readableAddress;
-                    innerThis.centerMap(results[0].geometry);
+                    _this.signUpInfo.buildings[0].streetAddress = readableAddress;
+                    _this.centerMap(results[0].geometry);
                     // If the name hasn't been set yet, use the address
-                    if (HtmlUtil.isNullOrWhitespace(innerThis.signUpInfo.name)) {
+                    if (HtmlUtil.isNullOrWhitespace(_this.signUpInfo.name)) {
                         var street = HtmlUtil.getStringUpToFirst(readableAddress, ",");
-                        innerThis.signUpInfo.name = street + " Condo Association";
+                        _this.signUpInfo.name = street + " Condo Association";
                     }
                 });
             });

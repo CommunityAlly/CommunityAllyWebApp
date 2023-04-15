@@ -42,6 +42,7 @@ var Ally;
             this.hoaPoly = { vertices: [] };
             this.showMap = false;
             this.didSignUpForHoaAlert = false;
+            this.isPageEnabled = null;
             // The default sign-up info object
             this.signUpInfo = new Ally.HoaSignUpInfo();
         }
@@ -61,6 +62,10 @@ var Ally;
                     _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
                 else
                     _this.showMap = false;
+            });
+            this.$http.get("/api/PublicAllyAppSettings/IsSignUpEnabled").then(function (httpResponse) { return _this.isPageEnabled = httpResponse.data; }, function (httpResponse) {
+                _this.isPageEnabled = true; // Default to true if we can't get the setting
+                console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
             });
         };
         /**

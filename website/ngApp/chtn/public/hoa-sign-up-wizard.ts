@@ -46,6 +46,7 @@ namespace Ally
         hoaAlertEmail: string;
         hoaAlertNumHomes: string;
         didSignUpForHoaAlert: boolean = false;
+        isPageEnabled: boolean = null;
 
         // The default sign-up info object
         signUpInfo = new Ally.HoaSignUpInfo();
@@ -79,6 +80,15 @@ namespace Ally
                 else
                     this.showMap = false;
             } );
+
+            this.$http.get( "/api/PublicAllyAppSettings/IsSignUpEnabled" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) => this.isPageEnabled = httpResponse.data,
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isPageEnabled = true; // Default to true if we can't get the setting
+                    console.log( "Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 

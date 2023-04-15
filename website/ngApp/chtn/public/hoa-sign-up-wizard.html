@@ -1,6 +1,6 @@
 ﻿<link href='https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,800%7COpen+Sans:300,400,500,600,700,800' rel='stylesheet' type='text/css'>
 
-<div class="page margin-vertical padding white-bg" style="font-family: Raleway,sans-serif;">
+<div data-ng-if="$ctrl.isPageEnabled === true" class="page margin-vertical padding white-bg" style="font-family: Raleway,sans-serif;">
 
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <div data-ng-show="$ctrl.hideWizard">
@@ -125,6 +125,10 @@
             <div class="clearfix"></div>
         </wz-step>
     </wizard>
+</div>
+
+<div data-ng-if="$ctrl.isPageEnabled === false" class="page page-my-profile margin-vertical padding white-bg" style="font-family: Raleway,sans-serif;">
+    Unfortunately, sign-up has been disabled for an unknown period of time. Please try again at a later date.
 </div>
 
 <!-- Google Code for Add to Cart Conversion Page

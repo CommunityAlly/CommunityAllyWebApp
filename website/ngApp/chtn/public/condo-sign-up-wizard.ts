@@ -19,6 +19,7 @@ namespace Ally
         isLoadingMap: boolean = false;
         hideWizard: boolean = false;
         resultMessage: string;
+        isPageEnabled:boolean = null;
 
         // The default sign-up info object
         signUpInfo: any = {
@@ -46,20 +47,28 @@ namespace Ally
         */
         $onInit()
         {
-            var innerThis = this;
-
-            var onReady = function()
+            const prepFunc = ( isPageEnabled: boolean ) =>
             {
-                innerThis.init();
+                this.isPageEnabled = isPageEnabled;
+
+                // Delay a bit to allow the wizard to render
+                this.$timeout( () => this.initPage(), 300 );
             };
-
-            this.$timeout( onReady, 500 );
-
+            
             this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
                 if( args.index === 2 )
                     this.$timeout( () => grecaptcha.render( "recaptcha-check-elem" ), 50 );
             } );
+
+            this.$http.get( "/api/PublicAllyAppSettings/IsSignUpEnabled" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) => prepFunc( httpResponse.data ),
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    prepFunc( true ); // Default to true if we can't get the setting
+                    console.log( "Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -76,13 +85,13 @@ namespace Ally
             else if( this.numUnits > 100 )
                 this.numUnits = 100;
 
-            var numNewUnits = this.numUnits - this.signUpInfo.buildings[0].units.length;
+            const numNewUnits = this.numUnits - this.signUpInfo.buildings[0].units.length;
 
             this.signUpInfo.buildings[0].units.length = this.numUnits;
 
             if( numNewUnits > 0 )
             {
-                for( var i = this.numUnits - numNewUnits; i < this.numUnits; ++i )
+                for( let i = this.numUnits - numNewUnits; i < this.numUnits; ++i )
                 {
                     this.signUpInfo.buildings[0].units[i] = {
                         name: this.getUnitName( i ),
@@ -127,14 +136,14 @@ namespace Ally
                 return ( unitIndex + 1 ).toString();
             else if( this.unitNumberingType === "Lettered" )
             {
-                var unitName = "";
+                let unitName = "";
 
                 // If we've gone passed 26 units, then start adding double characters
-                var numLoopAlphabets = Math.floor( unitIndex / 26 );
+                const numLoopAlphabets = Math.floor( unitIndex / 26 );
                 if( numLoopAlphabets > 0 )
                     unitName += String.fromCharCode( "A".charCodeAt( 0 ) + ( numLoopAlphabets - 1 ) );
 
-                var letterIndex = unitIndex % 26;
+                const letterIndex = unitIndex % 26;
                 unitName += String.fromCharCode( "A".charCodeAt( 0 ) + letterIndex );
 
                 return unitName;
@@ -156,7 +165,7 @@ namespace Ally
          */
         onNumberingTypeChange()
         {
-            for( var i = 0; i < this.signUpInfo.buildings[0].units.length; ++i )
+            for( let i = 0; i < this.signUpInfo.buildings[0].units.length; ++i )
             {
                 if( !this.signUpInfo.buildings[0].units[i] )
                     this.signUpInfo.buildings[0].units[i] = {};
@@ -195,18 +204,14 @@ namespace Ally
             this.shouldCheckAddress = false;
 
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
-            setTimeout( function()
-            {
-                innerThis.placeWasSelected = true;
-            }, 500 );
+            setTimeout( () => this.placeWasSelected = true, 500 );
         };
 
 
         /**
          * Perform any needed initialization
          */
-        init()
+        initPage()
         {
             if( typeof ( ( <any>window ).analytics ) !== "undefined" )
                 ( <any>window ).analytics.track( "condoSignUpStarted", {
@@ -214,14 +219,14 @@ namespace Ally
                     label: "Started"
                 } );
 
-            var mapDiv = document.getElementById( "address-map" );
+            const mapDiv = document.getElementById( "address-map" );
 
             this.map = new google.maps.Map( mapDiv, {
                 center: { lat: 41.869638, lng: -87.657423 },
                 zoom: 9
             } );
 
-            var addressInput = <HTMLInputElement>document.getElementById( "building-0-address-text-box" );
+            const addressInput = <HTMLInputElement>document.getElementById( "building-0-address-text-box" );
             this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput );
             this.addressAutocomplete.bindTo( 'bounds', this.map );
 
@@ -233,31 +238,30 @@ namespace Ally
             } );
 
             // Occurs when the user selects a Google suggested address
-            var innerThis = this;
-            this.addressAutocomplete.addListener( 'place_changed', function()
+            this.addressAutocomplete.addListener( 'place_changed', () =>
             {
-                innerThis.setPlaceWasSelected();
+                this.setPlaceWasSelected();
 
                 //infowindow.close();
-                innerThis.mapMarker.setVisible( false );
-                var place = innerThis.addressAutocomplete.getPlace();
+                this.mapMarker.setVisible( false );
+                const place = this.addressAutocomplete.getPlace();
 
 
-                var readableAddress = place.formatted_address;
+                let readableAddress = place.formatted_address;
 
                 // Remove the trailing country if it's USA
                 if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
                     readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                innerThis.signUpInfo.buildings[0].streetAddress = readableAddress;
+                this.signUpInfo.buildings[0].streetAddress = readableAddress;
 
 
                 // If the name hasn't been set yet, use the address
-                if( HtmlUtil.isNullOrWhitespace( innerThis.signUpInfo.name ) )
+                if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.name ) )
                 {
-                    innerThis.$scope.$apply( function()
+                    this.$scope.$apply( () =>
                     {
-                        innerThis.signUpInfo.name = place.name + " Condo Association";
+                        this.signUpInfo.name = place.name + " Condo Association";
                     } );
                 }
 
@@ -267,13 +271,13 @@ namespace Ally
                     return;
                 }
 
-                innerThis.centerMap( place.geometry );
+                this.centerMap( place.geometry );
 
                 $( "#association-name-text-box" ).focus();
             } );
 
             // Initialize the unit names
-            innerThis.onNumUnitsChanged();
+            this.onNumUnitsChanged();
         }
 
 
@@ -297,12 +301,11 @@ namespace Ally
         {
             this.isLoadingMap = true;
 
-            var innerThis = this;
-            HtmlUtil.geocodeAddress( this.signUpInfo.buildings[0].streetAddress, function( results, status )
+            HtmlUtil.geocodeAddress( this.signUpInfo.buildings[0].streetAddress, ( results, status ) =>
             {
-                innerThis.$scope.$apply( function()
+                this.$scope.$apply( () =>
                 {
-                    innerThis.isLoadingMap = false;
+                    this.isLoadingMap = false;
 
                     if( status != google.maps.GeocoderStatus.OK )
                     {
@@ -310,24 +313,23 @@ namespace Ally
                         return;
                     }
 
-                    var readableAddress = results[0].formatted_address;
+                    let readableAddress = results[0].formatted_address;
 
                     // Remove the trailing country if it's USA
                     if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
                         readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                    innerThis.signUpInfo.buildings[0].streetAddress = readableAddress;
+                    this.signUpInfo.buildings[0].streetAddress = readableAddress;
 
-                    innerThis.centerMap( results[0].geometry );
+                    this.centerMap( results[0].geometry );
 
                     // If the name hasn't been set yet, use the address
-                    if( HtmlUtil.isNullOrWhitespace( innerThis.signUpInfo.name ) )
+                    if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.name ) )
                     {
-                        var street = HtmlUtil.getStringUpToFirst( readableAddress, "," );
+                        const street = HtmlUtil.getStringUpToFirst( readableAddress, "," );
 
-                        innerThis.signUpInfo.name = street + " Condo Association";
+                        this.signUpInfo.name = street + " Condo Association";
                     }
-
                 } );
             } );
         };
@@ -338,7 +340,7 @@ namespace Ally
          */
         addBuilding()
         {
-            var MaxBuidlings = 25;
+            const MaxBuidlings = 25;
             if( this.signUpInfo.buildings.length + 1 >= MaxBuidlings )
             {
                 alert( "We do not support more than " + MaxBuidlings + " buildings." );
@@ -369,7 +371,7 @@ namespace Ally
                 {
                     this.isLoading = false;
 
-                    var signUpResult: any = httpResponse.data;
+                    const signUpResult: any = httpResponse.data;
 
                     // If the was an error creating the site
                     if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
