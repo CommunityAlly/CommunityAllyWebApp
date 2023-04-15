@@ -1,11 +1,11 @@
 ﻿<style>
     /* Prevent the error label from getting a pointer */
-    label
-    {
+    label {
         cursor: default;
     }
 </style>
-<div class="page">
+
+<div data-ng-if="$ctrl.isPageEnabled === true" class="page">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <div ng-style="$ctrl.resultStyle">{{ $ctrl.sendResult }}</div>
     <div data-ng-hide="$ctrl.wasMessageSent">
@@ -28,4 +28,9 @@
             </div>
         </form>
     </div>
+</div>
+
+<div data-ng-if="$ctrl.isPageEnabled === false" class="page">
+    Unfortunately, the site is in a shut down or hibernate process and support cannot be contacted for an unknown period of time. We know this must be frustrating and are extremely sorry,
+    but we have encountered a serious issue. If you can still access your site, it is recommended that you back up your data. (residents list, documents zip, maintenance, assessment history, etc.)
 </div>

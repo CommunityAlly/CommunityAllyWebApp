@@ -18,6 +18,7 @@ var Ally;
             this.sendInfo = new HelpSendInfo();
             this.isLoading = false;
             this.wasMessageSent = false;
+            this.isPageEnabled = null;
             /**
              * Occurs when the user clicks the log-in button
              */
@@ -50,6 +51,11 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         HelpFormController.prototype.$onInit = function () {
+            var _this = this;
+            this.$http.get("/api/PublicAllyAppSettings/IsHelpPageEnabled").then(function (httpResponse) { return _this.isPageEnabled = httpResponse.data; }, function (httpResponse) {
+                _this.isPageEnabled = true; // Default to true if we can't get the setting
+                console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
+            });
             if (this.siteInfo.isLoggedIn)
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
         };

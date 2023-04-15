@@ -19,6 +19,7 @@
         isLoading: boolean = false;
         wasMessageSent: boolean = false;
         sendResult: string;
+        isPageEnabled: boolean = null;
 
 
         /**
@@ -39,6 +40,15 @@
         */
         $onInit()
         {
+            this.$http.get( "/api/PublicAllyAppSettings/IsHelpPageEnabled" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<boolean> ) => this.isPageEnabled = httpResponse.data,
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isPageEnabled = true; // Default to true if we can't get the setting
+                    console.log( "Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage );
+                }
+            );
+
             if( this.siteInfo.isLoggedIn )
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
         }
