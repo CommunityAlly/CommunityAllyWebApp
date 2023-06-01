@@ -23,7 +23,7 @@
             <div>
                 <div class="mb-3 row">
                     <div class="row mb-3 col-12">
-                        <label for="due-date-textbox" class="col-form-label">
+                        <label for="due-date-textbox" class="col-form-label form-label">
                             From Address:
                         </label>
                         <street-address-form data-street-address="$ctrl.fullMailingInfo.fromStreetAddress"></street-address-form>
@@ -230,6 +230,14 @@
                 <div>Paper letters to mail: <span style="font-weight: bold;">{{$ctrl.numPaperLettersToSend}}</span></div>
                 <div data-ng-if="$ctrl.numPaperLettersToSend > 0">Total Cost: <span style="font-weight: bold;">{{$ctrl.numPaperLettersToSend * 2 | currency}}</span></div>
                 <div data-ng-if="$ctrl.numPaperLettersToSend === 0">Total Cost: <span style="font-weight: bold;">Free</span></div>
+            </div>
+
+            <div class="col-sm-12 col-md-6 mx-auto mt-5" data-ng-if="$ctrl.paymentType === 'creditCard' && $ctrl.numPaperLettersToSend > 0">
+                <h5 class="card-title">Enter Credit Card Info</h5>
+                <div id="stripe-card-element" class="border"></div>
+                <div id="card-errors" class="text-error" role="alert"></div>
+                <!--<button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>-->
+                <p>{{$ctrl.checkoutDescription}}</p>
             </div>
 
             <br />

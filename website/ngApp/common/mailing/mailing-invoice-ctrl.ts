@@ -1,4 +1,4 @@
-﻿declare var StripeCheckout: any;
+﻿//declare var StripeCheckout: any;
 
 namespace Ally
 {
@@ -38,6 +38,7 @@ namespace Ally
         invoiceTitleString: string;
         dueDateString: string;
         duesLabel: string;
+        stripePaymentToken: string;
     }
 
 
@@ -95,6 +96,11 @@ namespace Ally
         numAddressesToBulkValidate: number = 0;
         shouldShowAutoUnselect: boolean = false;
         autoUnselectLabel: string;
+        paymentType: string = "creditCard";
+        settings: ChtnSiteSettings = new ChtnSiteSettings();
+        stripeApi: any = null;
+        stripeCardElement: any = null;
+        payButtonText: string = "Pay $10";
 
 
         /**
@@ -192,8 +198,10 @@ namespace Ally
 
             this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
-                // If we moved to the second step, amounts due
                 this.activeStepIndex = args.index;
+                console.log( "wizard:stepChanged, step " + this.activeStepIndex );
+
+                // If we moved to the second step, amounts due
                 if( this.activeStepIndex === 1 )
                 {
                     this.$timeout( () =>
@@ -228,6 +236,9 @@ namespace Ally
                 {
                     this.numEmailsToSend = _.filter( this.selectedEntries, e => e.shouldSendEmail ).length;
                     this.numPaperLettersToSend = _.filter( this.selectedEntries, e => e.shouldSendPaperMail ).length;
+
+                    if( this.numPaperLettersToSend > 0 )
+                        this.$timeout( () => this.initStripePayment(), 100 );
                 }
             } );
 
@@ -241,6 +252,18 @@ namespace Ally
                 if( !this.autoUnselectLabel )
                     this.shouldShowAutoUnselect = false;
             }
+
+            try
+            {
+                this.stripeApi = Stripe( StripeApiKey );
+            }
+            catch( err )
+            {
+                console.log( err );
+            }
+
+            // This will be needed for ACH payments
+            //this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
         }
         
 
@@ -448,36 +471,37 @@ namespace Ally
                 return;
             }
 
-            const checkoutHandler = StripeCheckout.configure( {
-                key: StripeApiKey,
-                image: '/assets/images/icons/Icon-144.png',
-                locale: 'auto',
-                email: this.siteInfo.userInfo.emailAddress,
-                token: ( token: any ) =>
-                {
-                    // You can access the token ID with `token.id`.
-                    // Get the token ID to your server-side code for use.
-                    this.fullMailingInfo.stripeToken = token.id;
+            this.submitCardToStripe();
+            //const checkoutHandler = StripeCheckout.configure( {
+            //    key: StripeApiKey,
+            //    image: '/assets/images/icons/Icon-144.png',
+            //    locale: 'auto',
+            //    email: this.siteInfo.userInfo.emailAddress,
+            //    token: ( token: any ) =>
+            //    {
+            //        // You can access the token ID with `token.id`.
+            //        // Get the token ID to your server-side code for use.
+            //        this.fullMailingInfo.stripeToken = token.id;
 
-                    this.submitFullMailingAfterCharge();
-                }
-            } );
+            //        this.submitFullMailingAfterCharge();
+            //    }
+            //} );
 
-            this.isLoading = true;
+            //this.isLoading = true;
 
-            // Open Checkout with further options:
-            checkoutHandler.open( {
-                name: 'Community Ally',
-                description: `Mailing ${this.numPaperLettersToSend} invoice${this.numPaperLettersToSend === 1 ? '' : 's'}`,
-                zipCode: true,
-                amount: this.numPaperLettersToSend * this.paperInvoiceDollars * 100 // Stripe uses cents
-            } );
+            //// Open Checkout with further options:
+            //checkoutHandler.open( {
+            //    name: 'Community Ally',
+            //    description: `Mailing ${this.numPaperLettersToSend} invoice${this.numPaperLettersToSend === 1 ? '' : 's'}`,
+            //    zipCode: true,
+            //    amount: this.numPaperLettersToSend * this.paperInvoiceDollars * 100 // Stripe uses cents
+            //} );
 
-            // Close Checkout on page navigation:
-            window.addEventListener( 'popstate', function()
-            {
-                checkoutHandler.close();
-            } );
+            //// Close Checkout on page navigation:
+            //window.addEventListener( 'popstate', function()
+            //{
+            //    checkoutHandler.close();
+            //} );
         }
 
 
@@ -653,6 +677,77 @@ namespace Ally
                     alert( "Failed to retrieve assessment status: " + response.data.exceptionMessage );
                 }
             );
+        }
+
+
+        initStripePayment()
+        {
+            const style = {
+                base: {
+                    color: "#32325d",
+                    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                    fontSmoothing: "antialiased",
+                    fontSize: "16px",
+                    "::placeholder": {
+                        color: "#aab7c4"
+                    }
+                },
+                invalid: {
+                    color: "#fa755a",
+                    iconColor: "#fa755a"
+                }
+            };
+
+            const elements = this.stripeApi.elements();
+
+            this.stripeCardElement = elements.create( "card", { style: style } );
+            this.stripeCardElement.mount( "#stripe-card-element" );
+
+            const onCardChange = ( event: any ) =>
+            {
+                if( event.error )
+                    this.showStripeError( event.error.message );
+                else
+                    this.showStripeError( null );
+            }
+
+            this.stripeCardElement.on( 'change', onCardChange );
+        }
+
+
+        showStripeError( errorMessage: string )
+        {
+            const displayError = document.getElementById( "card-errors" );
+
+            if( HtmlUtil.isNullOrWhitespace( errorMessage ) )
+                displayError.textContent = null;//'Unknown Error';
+            else
+                displayError.textContent = errorMessage;
+        }
+
+
+        async submitCardToStripe()
+        {
+            this.isLoading = true;
+
+            const { token, error } = await this.stripeApi.createToken( this.stripeCardElement );
+
+            this.isLoading = false;
+
+            if( error )
+            {
+                // Inform the customer that there was an error.
+                const errorElement = document.getElementById( 'card-errors' );
+                errorElement.textContent = error.message;
+            }
+            else
+            {
+                this.fullMailingInfo.stripePaymentToken = token.id;
+
+                this.submitFullMailingAfterCharge();
+
+                this.$scope.$apply();
+            }
         }
     }
 }

@@ -1,3 +1,39 @@
+//declare var StripeCheckout: any;
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var Ally;
 (function (Ally) {
     var InvoiceMailingEntry = /** @class */ (function () {
@@ -56,6 +92,11 @@ var Ally;
             this.numInvalidMailingAddresses = 0;
             this.numAddressesToBulkValidate = 0;
             this.shouldShowAutoUnselect = false;
+            this.paymentType = "creditCard";
+            this.settings = new Ally.ChtnSiteSettings();
+            this.stripeApi = null;
+            this.stripeCardElement = null;
+            this.payButtonText = "Pay $10";
             var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" autocomplete="off" data-lpignore="true" data-form-type="other" /></div>';
             this.homesGridOptions =
                 {
@@ -133,8 +174,9 @@ var Ally;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.loadMailingInfo();
             this.$scope.$on('wizard:stepChanged', function (event, args) {
-                // If we moved to the second step, amounts due
                 _this.activeStepIndex = args.index;
+                console.log("wizard:stepChanged, step " + _this.activeStepIndex);
+                // If we moved to the second step, amounts due
                 if (_this.activeStepIndex === 1) {
                     _this.$timeout(function () {
                         // Tell the grid to resize as there is a bug with UI-Grid
@@ -163,6 +205,8 @@ var Ally;
                 else if (_this.activeStepIndex === 3) {
                     _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
                     _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
+                    if (_this.numPaperLettersToSend > 0)
+                        _this.$timeout(function () { return _this.initStripePayment(); }, 100);
                 }
             });
             this.shouldShowAutoUnselect = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled
@@ -172,6 +216,14 @@ var Ally;
                 if (!this.autoUnselectLabel)
                     this.shouldShowAutoUnselect = false;
             }
+            try {
+                this.stripeApi = Stripe(StripeApiKey);
+            }
+            catch (err) {
+                console.log(err);
+            }
+            // This will be needed for ACH payments
+            //this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
         };
         MailingInvoiceController.getCurrentPayPeriod = function (assessmentFrequency) {
             var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
@@ -299,7 +351,6 @@ var Ally;
             //window.open( invoiceUri, "_blank" );
         };
         MailingInvoiceController.prototype.onFinishedWizard = function () {
-            var _this = this;
             if (this.numPaperLettersToSend === 0) {
                 if (this.numEmailsToSend === 0)
                     alert("No emails or paper letters selected to send.");
@@ -307,30 +358,33 @@ var Ally;
                     this.submitFullMailingAfterCharge();
                 return;
             }
-            var checkoutHandler = StripeCheckout.configure({
-                key: StripeApiKey,
-                image: '/assets/images/icons/Icon-144.png',
-                locale: 'auto',
-                email: this.siteInfo.userInfo.emailAddress,
-                token: function (token) {
-                    // You can access the token ID with `token.id`.
-                    // Get the token ID to your server-side code for use.
-                    _this.fullMailingInfo.stripeToken = token.id;
-                    _this.submitFullMailingAfterCharge();
-                }
-            });
-            this.isLoading = true;
-            // Open Checkout with further options:
-            checkoutHandler.open({
-                name: 'Community Ally',
-                description: "Mailing " + this.numPaperLettersToSend + " invoice" + (this.numPaperLettersToSend === 1 ? '' : 's'),
-                zipCode: true,
-                amount: this.numPaperLettersToSend * this.paperInvoiceDollars * 100 // Stripe uses cents
-            });
-            // Close Checkout on page navigation:
-            window.addEventListener('popstate', function () {
-                checkoutHandler.close();
-            });
+            this.submitCardToStripe();
+            //const checkoutHandler = StripeCheckout.configure( {
+            //    key: StripeApiKey,
+            //    image: '/assets/images/icons/Icon-144.png',
+            //    locale: 'auto',
+            //    email: this.siteInfo.userInfo.emailAddress,
+            //    token: ( token: any ) =>
+            //    {
+            //        // You can access the token ID with `token.id`.
+            //        // Get the token ID to your server-side code for use.
+            //        this.fullMailingInfo.stripeToken = token.id;
+            //        this.submitFullMailingAfterCharge();
+            //    }
+            //} );
+            //this.isLoading = true;
+            //// Open Checkout with further options:
+            //checkoutHandler.open( {
+            //    name: 'Community Ally',
+            //    description: `Mailing ${this.numPaperLettersToSend} invoice${this.numPaperLettersToSend === 1 ? '' : 's'}`,
+            //    zipCode: true,
+            //    amount: this.numPaperLettersToSend * this.paperInvoiceDollars * 100 // Stripe uses cents
+            //} );
+            //// Close Checkout on page navigation:
+            //window.addEventListener( 'popstate', function()
+            //{
+            //    checkoutHandler.close();
+            //} );
         };
         MailingInvoiceController.prototype.submitFullMailingAfterCharge = function () {
             var _this = this;
@@ -452,6 +506,66 @@ var Ally;
             }, function (response) {
                 _this.isLoading = false;
                 alert("Failed to retrieve assessment status: " + response.data.exceptionMessage);
+            });
+        };
+        MailingInvoiceController.prototype.initStripePayment = function () {
+            var _this = this;
+            var style = {
+                base: {
+                    color: "#32325d",
+                    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                    fontSmoothing: "antialiased",
+                    fontSize: "16px",
+                    "::placeholder": {
+                        color: "#aab7c4"
+                    }
+                },
+                invalid: {
+                    color: "#fa755a",
+                    iconColor: "#fa755a"
+                }
+            };
+            var elements = this.stripeApi.elements();
+            this.stripeCardElement = elements.create("card", { style: style });
+            this.stripeCardElement.mount("#stripe-card-element");
+            var onCardChange = function (event) {
+                if (event.error)
+                    _this.showStripeError(event.error.message);
+                else
+                    _this.showStripeError(null);
+            };
+            this.stripeCardElement.on('change', onCardChange);
+        };
+        MailingInvoiceController.prototype.showStripeError = function (errorMessage) {
+            var displayError = document.getElementById("card-errors");
+            if (HtmlUtil.isNullOrWhitespace(errorMessage))
+                displayError.textContent = null; //'Unknown Error';
+            else
+                displayError.textContent = errorMessage;
+        };
+        MailingInvoiceController.prototype.submitCardToStripe = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var _a, token, error, errorElement;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            this.isLoading = true;
+                            return [4 /*yield*/, this.stripeApi.createToken(this.stripeCardElement)];
+                        case 1:
+                            _a = _b.sent(), token = _a.token, error = _a.error;
+                            this.isLoading = false;
+                            if (error) {
+                                errorElement = document.getElementById('card-errors');
+                                errorElement.textContent = error.message;
+                            }
+                            else {
+                                this.fullMailingInfo.stripePaymentToken = token.id;
+                                this.submitFullMailingAfterCharge();
+                                this.$scope.$apply();
+                            }
+                            return [2 /*return*/];
+                    }
+                });
             });
         };
         MailingInvoiceController.$inject = ["$http", "SiteInfo", "fellowResidents", "WizardHandler", "$scope", "$timeout", "$location"];
