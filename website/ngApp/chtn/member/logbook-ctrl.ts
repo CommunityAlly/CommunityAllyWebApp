@@ -88,7 +88,7 @@ namespace Ally
                 } );
             }
 
-            var innerThis = this;
+            const innerThis = this;
 
             /* config object */
             var uiConfig = {
@@ -214,9 +214,9 @@ namespace Ally
 
         getAllEvents( startDate: moment.Moment, endDate: moment.Moment )
         {
-            var loadNewsToCalendar = false;
+            const loadNewsToCalendar = false;
             const loadLogbookToCalendar = false;
-            var loadPollsToCalendar = AppConfig.isChtnSite;
+            const loadPollsToCalendar = AppConfig.isChtnSite;
 
             //var firstDay = moment().startOf( "month" ).format( DateFormat );
             //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );

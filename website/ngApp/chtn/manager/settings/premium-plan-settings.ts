@@ -94,7 +94,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.put( "/api/Settings/CancelPremium", null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.settings.premiumPlanIsAutoRenewed = false;
@@ -112,7 +112,7 @@ namespace Ally
 
         showStripeError( errorMessage: string )
         {
-            let displayError = document.getElementById( 'card-errors' );
+            const displayError = document.getElementById( 'card-errors' );
 
             if( HtmlUtil.isNullOrWhitespace( errorMessage ) )
                 displayError.textContent = null;//'Unknown Error';
@@ -180,7 +180,7 @@ namespace Ally
                         };
 
                         this.$http.put( "/api/Settings/ActivatePremium", activateInfo ).then(
-                            ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                            () =>
                             {
                                 this.isLoading = false;
                                 this.settings.premiumPlanIsAutoRenewed = true;
@@ -370,12 +370,10 @@ namespace Ally
 
             // If it's a first payment attempt, the payment intent is on the subscription latest invoice.
             // If it's a retry, the payment intent will be on the invoice itself.
-            let paymentIntent = invoice ? invoice.payment_intent : subscription.latest_invoice.payment_intent;
+            const paymentIntent = invoice ? invoice.payment_intent : subscription.latest_invoice.payment_intent;
 
-            if(
-                paymentIntent.status === 'requires_action' ||
-                ( isRetry === true && paymentIntent.status === 'requires_payment_method' )
-            )
+            if( paymentIntent.status === 'requires_action' ||
+                ( isRetry === true && paymentIntent.status === 'requires_payment_method' ) )
             {
                 return this.stripeApi
                     .confirmCardPayment( paymentIntent.client_secret, {
@@ -587,7 +585,7 @@ namespace Ally
 
                             this.completePlaidAchConnection( public_token, metadata.account_id );
                         },
-                        onLoad: () => { },
+                        onLoad: () => { /* Placeholder */ },
                         onExit: ( err: any, metadata: any ) => { console.log( "update onExit.err", err, metadata ); },
                         onEvent: ( eventName: string, metadata: any ) => { console.log( "update onEvent.eventName", eventName, metadata ); },
                         receivedRedirectUri: null,
@@ -618,7 +616,7 @@ namespace Ally
             };
 
             this.$http.post( "/api/Plaid/ProcessStripeAccessToken", postData ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.checkoutDescription = "Account successfully linked, reloading...";
@@ -646,7 +644,7 @@ namespace Ally
             };
 
             this.$http.put( "/api/Settings/ActivatePremium", activateInfo ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.settings.premiumPlanIsAutoRenewed = true;
@@ -685,16 +683,6 @@ CA.angularApp.component( "premiumPlanSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/premium-plan-settings.html",
     controller: Ally.PremiumPlanSettingsController
 } );
-
-
-class StripePayNeedsCustomer
-{
-    subscription: any;
-    invoice: any;
-    priceId: any;
-    paymentMethodId: any;
-    isRetry: any;
-}
 
 
 class MeteredFeaturesUsage

@@ -65,7 +65,7 @@ var Ally;
             if (!confirm("Are you sure?"))
                 return;
             this.isLoading = true;
-            this.$http.put("/api/Settings/CancelPremium", null).then(function (response) {
+            this.$http.put("/api/Settings/CancelPremium", null).then(function () {
                 _this.isLoading = false;
                 _this.settings.premiumPlanIsAutoRenewed = false;
                 _this.shouldShowPaymentForm = false;
@@ -127,7 +127,7 @@ var Ally;
                         stripePaymentMethodId: result.paymentMethod.id,
                         shouldPayAnnually: _this.isActivatingAnnual
                     };
-                    _this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function (response) {
+                    _this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function () {
                         _this.isLoading = false;
                         _this.settings.premiumPlanIsAutoRenewed = true;
                         _this.shouldShowPaymentForm = false;
@@ -454,7 +454,7 @@ var Ally;
                 accessToken: accessToken,
                 selectedAccountIds: [accountId]
             };
-            this.$http.post("/api/Plaid/ProcessStripeAccessToken", postData).then(function (httpResponse) {
+            this.$http.post("/api/Plaid/ProcessStripeAccessToken", postData).then(function () {
                 _this.isLoading = false;
                 _this.checkoutDescription = "Account successfully linked, reloading...";
                 window.location.reload();
@@ -473,7 +473,7 @@ var Ally;
                 shouldPayAnnually: this.isActivatingAnnual,
                 payViaAch: true
             };
-            this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function (response) {
+            this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function () {
                 _this.isLoading = false;
                 _this.settings.premiumPlanIsAutoRenewed = true;
                 _this.shouldShowPaymentForm = false;
@@ -504,11 +504,6 @@ CA.angularApp.component("premiumPlanSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/premium-plan-settings.html",
     controller: Ally.PremiumPlanSettingsController
 });
-var StripePayNeedsCustomer = /** @class */ (function () {
-    function StripePayNeedsCustomer() {
-    }
-    return StripePayNeedsCustomer;
-}());
 var MeteredFeaturesUsage = /** @class */ (function () {
     function MeteredFeaturesUsage() {
     }
