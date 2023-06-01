@@ -51,7 +51,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=821;
+        var appVer=828;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -59,17 +59,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=821" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=828" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=821" );
+                    localStorage.setItem( Key_JSVersion, "appVer=828" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=821"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=821"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=828"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=828"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -105,13 +105,38 @@
         var shouldNotLoadZopim = subdomain === "qa" || subdomain === "localtest" || subdomain === "login";
         if( !shouldNotLoadZopim )
         {
-            // Delay loading a bit for sites that get spam via Zopim
-            var isSpammedSite = subdomain === "themaples";
-            var zopimDelay = isSpammedSite ? 20000 : 5000;
-            setTimeout( function()
+            const startZopimDelayed = function()
             {
-                setupZopim();
-            }, zopimDelay );
+                // Delay loading a bit for sites that get spam via Zopim
+                var isSpammedSite = subdomain === "themaples";
+                var zopimDelay = isSpammedSite ? 20000 : 5000;
+                setTimeout( function()
+                {
+                    setupZopim();
+                }, zopimDelay );
+            };
+
+            const checkUrl = "https://0.webappapi.communityally.org/api/PublicAllyAppSettings/IsSupportChatEnabled";
+            window.fetch( checkUrl ).then(
+                function( response )
+                {
+                    response.text().then(
+                        function( responseText )
+                        {
+                            if( responseText === "true" )
+                                startZopimDelayed();
+                        },
+                        function()
+                        {
+                            startZopimDelayed();
+                        }
+                    );
+                },
+                function()
+                {
+                    startZopimDelayed();
+                }
+            );
         }
     </script>
     <script src="https://stingray.communityally.org/script.js" site="SHLEWGEJ" auto="false" spa="hash" defer></script>
@@ -372,7 +397,6 @@
         if( navigator.languages && navigator.languages.length > 0 && navigator.languages[0] && navigator.languages[0].toLowerCase().indexOf( "en" ) !== 0 )
             enableGoogleTranslate();
     </script>
-    <script src="https://checkout.stripe.com/checkout.js" defer></script>
     <script src="https://js.stripe.com/v3/?advancedFraudSignals=false" defer></script>
     <script src="https://cdn.dwolla.com/1/dwolla.js" defer></script>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" defer></script>
