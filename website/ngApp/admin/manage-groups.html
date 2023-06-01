@@ -43,10 +43,9 @@
     <h2>{{ $ctrl.groups.length }} Groups</h2>
 
     <span class="text-button" data-ng-click="$ctrl.retrieveGroups()">Load Associations</span>
-    <table border="1">
-        <thead>
+    <table border="1" class="table">
+        <thead class="table-light">
             <tr>
-                <th></th>
                 <th>ID</th>
                 <th>Type</th>
                 <th>Short Name (lowered)</th>
@@ -57,13 +56,11 @@
                 <th>Created</th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             <tr data-ng-repeat="curAssociation in $ctrl.groups">
-                <td>
-                    <span class="text-button" data-ng-click="$ctrl.deleteAssociation( curAssociation )">Delete</span>
-                </td>
                 <td>{{ ::curAssociation.groupId }}</td>
                 <td>{{ ::curAssociation.appNameString }}</td>
                 <td>{{ ::curAssociation.shortName }}</td>
@@ -74,11 +71,13 @@
                 <td>{{ ::curAssociation.creationDate | date:'M/d/yyyy' }}</td>
                 <td><a href="{{ ::curAssociation.baseUrl }}">Visit</a></td>
                 <td><a href="https://{{ ::curAssociation.shortName }}.CondoAlly.com/#!/Admin/ViewActivityLog">Log</a></td>
+                <td>
+                    <span class="text-button" data-ng-click="$ctrl.deleteAssociation( curAssociation )">Delete</span>
+                </td>
             </tr>
         </tbody>
-        <tfoot>
+        <tfoot class="table-light">
             <tr>
-                <th></th>
                 <th>ID</th>
                 <th>Type</th>
                 <th>Short Name (lowered)</th>
@@ -89,6 +88,7 @@
                 <th>Created</th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </tfoot>
     </table>
@@ -97,75 +97,77 @@
         <fieldset>
             <legend>Add New Group</legend>
             <table>
-                <tr>
-                    <td class="AlignRight">Short Name:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.shortName" data-rule-required="true" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">App Type:</td>
-                    <td>
-                        <select data-ng-model="$ctrl.newAssociation.appName" data-rule-required="true">
-                            <option value="0">Condo</option>
-                            <option value="3">Hoa</option>
-                            <option value="4">Neighborhood</option>
-                            <option value="2">Home</option>
-                            <option value="5">PTA</option>
-                            <option value="6">Block Club</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Long Name:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.fullName" data-rule-required="true" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Street 1:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.streetAddress1" data-rule-required="true" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Street 2:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.streetAddress2" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">City:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.city" data-rule-required="true" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">State:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.state" data-rule-required="true" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Zip:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.zip" data-rule-required="true" />
-                    </td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td class="AlignRight">Short Name:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.shortName" data-rule-required="true" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">App Type:</td>
+                        <td>
+                            <select data-ng-model="$ctrl.newAssociation.appName" data-rule-required="true">
+                                <option value="0">Condo</option>
+                                <option value="3">Hoa</option>
+                                <option value="4">Neighborhood</option>
+                                <option value="2">Home</option>
+                                <option value="5">PTA</option>
+                                <option value="6">Block Club</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Long Name:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.fullName" data-rule-required="true" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Street 1:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.streetAddress1" data-rule-required="true" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Street 2:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.streetAddress2" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">City:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.city" data-rule-required="true" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">State:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.state" data-rule-required="true" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Zip:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.zip" data-rule-required="true" />
+                        </td>
+                    </tr>
 
-                <tr>
-                    <td class="AlignRight">Site Logo:</td>
-                    <td>
-                        <input type="text" data-ng-model="$ctrl.newAssociation.siteLogo" data-rule-required="true" />
-                        <br />
-                        For an image logo, use: (600x120 max dimensions, image does not get auto scaled):<br />
-                        image:Documents/Public/XXX (Don't forget to upload the file to S3)<br />
-                        For text use either of:<br />
-                        text:X (just text)<br />
-                        text:X,Y (X size in pt) (Y text)<br />
-                        text:X,Y,Z (X size in pt) (Y hex color with leading #) (Z text)
-                    </td>
-                </tr>
+                    <tr>
+                        <td class="AlignRight">Site Logo:</td>
+                        <td>
+                            <input type="text" data-ng-model="$ctrl.newAssociation.siteLogo" data-rule-required="true" />
+                            <br />
+                            For an image logo, use: (600x120 max dimensions, image does not get auto scaled):<br />
+                            image:Documents/Public/XXX (Don't forget to upload the file to S3)<br />
+                            For text use either of:<br />
+                            text:X (just text)<br />
+                            text:X,Y (X size in pt) (Y text)<br />
+                            text:X,Y,Z (X size in pt) (Y hex color with leading #) (Z text)
+                        </td>
+                    </tr>
+                </tbody>
             </table>
             <input type="button" value="Create New Group" data-ng-click="$ctrl.onCreateAssociationClick();" />
         </fieldset>
@@ -199,7 +201,7 @@
             <input type="button" value="Reactivate Single Group by ID" data-ng-click="$ctrl.onReactivateGroup()">
         </div>
         <br />
-        <fieldset>
+        <fieldset class="my-4">
             <legend>No Reply Email</legend>
             <table style="width: 75%;">
                 <tbody>
@@ -219,6 +221,7 @@
             </table>
             <button type="button" data-ng-click="$ctrl.onSendNoReplyEmail()">Send No Reply Email</button>
         </fieldset>
+
         <input type="button" value="Test Exception" data-ng-click="$ctrl.onTestException()"><br />
         <!--<input type="button" value="Clear ELMAH Logs" data-ng-click="$ctrl.onClearElmahLogs()"><br />-->
         <input type="button" value="Clear Current App Group Cache" data-ng-click="$ctrl.onClearCurrentAppGroupCache()"><br />
@@ -233,7 +236,7 @@
         <input type="button" value="Send Inactive Mail" data-ng-click="$ctrl.onSendInactiveGroupsMail()">
         <br />
 
-        <fieldset>
+        <fieldset class="my-5">
             <legend>Update Premium Plan</legend>
             <table>
                 <tr>
@@ -259,45 +262,78 @@
             </table>
         </fieldset>
 
-        <fieldset>
+        <fieldset class="my-5">
             <legend>Add Ally Payment</legend>
             <table>
-                <tr>
-                    <td class="AlignRight">Group ID:</td>
-                    <td><input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.groupId" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Amount:</td>
-                    <td>$<input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.amount" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Net Amount:</td>
-                    <td>
-                        $<input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.netAmount" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Description:</td>
-                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.description" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Payment Date:</td>
-                    <td><input type="text" data-ui-date data-ng-model="$ctrl.newAllyPaymentEntry.paymentDateUtc" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Payment Method:</td>
-                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.paymentMethod" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Payment Method ID:</td>
-                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.paymentMethodId" data-rule-required="true" /></td>
-                </tr>
-                <tr>
-                    <td class="AlignRight">Status:</td>
-                    <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.status" data-rule-required="true" /></td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td class="AlignRight">Group ID:</td>
+                        <td><input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.groupId" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Amount:</td>
+                        <td>$<input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.amount" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Net Amount:</td>
+                        <td>
+                            $<input type="number" data-ng-model="$ctrl.newAllyPaymentEntry.netAmount" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Description:</td>
+                        <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.description" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Payment Date:</td>
+                        <td><input type="text" data-ui-date data-ng-model="$ctrl.newAllyPaymentEntry.paymentDateUtc" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Payment Method:</td>
+                        <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.paymentMethod" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Payment Method ID:</td>
+                        <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.paymentMethodId" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="AlignRight">Status:</td>
+                        <td><input type="text" data-ng-model="$ctrl.newAllyPaymentEntry.status" data-rule-required="true" /></td>
+                    </tr>
+                </tbody>
             </table>
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddAllyPayment()">Add Payment</button>
+        </fieldset>
+
+        <fieldset class="my-5">
+            <legend>Ally App Settings</legend>
+            <table class="table" data-ng-if="$ctrl.allAllyAppSettings.length > 0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Setting ID</th>
+                        <th>Name</th>
+                        <th>Value</th>
+                        <th>Note</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{curSetting.settingId}}</td>
+                        <td>{{curSetting.settingName}}</td>
+                        <td>{{curSetting.settingValue}}</td>
+                        <td>{{curSetting.note}}</td>
+                        <td><span class="text-link">Edit</span> - <span class="text-link">Delete</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div data-ng-if="!$ctrl.allAllyAppSettings.length || $ctrl.allAllyAppSettings.length === 0" class="my-3">
+                There are no active app settings.
+            </div>
+            <div>
+                <h5>{{$ctrl.editAllyAppSetting.settingId ? 'Edit' : 'Add'}} Setting</h5>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveAllyAppSetting()">Save Setting</button>
+            </div>
         </fieldset>
     </div>
 

@@ -26,12 +26,13 @@
      */
     export class ManageGroupsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "$timeout"];
         groups: GroupEntry[];
         newAssociation: GroupEntry = new GroupEntry();
         changeShortNameData: any = { appName: "Condo" };
         isLoading: boolean;
         isLoadingHelper: boolean;
+        isLoadingAllyAppSettings: boolean;
         findUserAssociationsEmail: string;
         foundUserAssociations: FoundGroup[];
         newAddressId: number;
@@ -58,12 +59,14 @@
         premiumNewExpiration: Date;
         deactivateGroupIdsCsv: string;
         reactivateGroupId: number;
+        allAllyAppSettings: AllyAppSetting[];
+        editAllyAppSetting: AllyAppSetting;
 
 
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService )
         {
         }
 
@@ -95,6 +98,8 @@
                 paymentMethodId: "",
                 status: "Complete"
             };
+
+            this.$timeout( () => this.loadAllyAppSettings(), 100 );
         }
 
 
@@ -216,8 +221,16 @@
                 _.forEach( this.foundUserAssociations, g =>
                 {
                     g.viewUrl = `https://${g.shortName}.condoally.com/`;
-                    if( g.appName === 3 )
+                    if( g.appName === 2 )
+                        g.viewUrl = `https://${g.shortName}.homeally.org/`;
+                    else if( g.appName === 3 )
                         g.viewUrl = `https://${g.shortName}.hoaally.org/`;
+                    else if( g.appName === 4 )
+                        g.viewUrl = `https://${g.shortName}.NeighborhoodAlly.org/`;
+                    else if( g.appName === 6 )
+                        g.viewUrl = `https://${g.shortName}.BlockClubAlly.org/`;
+                    else
+                        console.log( "Unknown appName value: " + g.appName );
                 } );
 
             }, () =>
@@ -421,7 +434,7 @@
 
         onSendInactiveGroupsMail()
         {
-            var postData = {
+            const postData = {
                 shortNameLines: this.inactiveShortNames
             };
 
@@ -438,7 +451,7 @@
                 {
                     this.siteInfo.setAuthToken( response.data );
                     window.location.href = "/#!/Home";
-                    window.location.reload( false );
+                    window.location.reload();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -603,7 +616,34 @@
                 }
             );
         }
+
+
+        loadAllyAppSettings()
+        {
+            this.allAllyAppSettings = [];
+            this.isLoadingAllyAppSettings = true;
+
+            this.$http.get( `/api/AllyAppSettings/All` ).then(
+                ( response: ng.IHttpPromiseCallbackArg<AllyAppSetting[]> ) =>
+                {
+                    this.isLoadingAllyAppSettings = false;
+                    this.allAllyAppSettings = response.data;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingAllyAppSettings = false;
+                    alert( "Failed to retrieve settings: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        saveAllyAppSetting()
+        {
+            this.$http.post( "", this.editAllyAppSetting );
+        }
     }
+
 
     class AllyPaymentEntry
     {
@@ -617,6 +657,16 @@
         paymentMethod: string;
         paymentMethodId: string;
         status: string;
+    }
+
+
+    export class AllyAppSetting
+    {
+        settingId: number;
+        settingName: string;
+        settingValue: string;
+        settingType: string;
+        note: string;
     }
 }
 

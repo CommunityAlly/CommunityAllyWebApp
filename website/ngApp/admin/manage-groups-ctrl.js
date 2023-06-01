@@ -17,9 +17,10 @@ var Ally;
         /**
         * The constructor for the class
         */
-        function ManageGroupsController($http, siteInfo) {
+        function ManageGroupsController($http, siteInfo, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
             this.newAssociation = new GroupEntry();
             this.changeShortNameData = { appName: "Condo" };
             this.sendTestFromInmail = false;
@@ -78,6 +79,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         ManageGroupsController.prototype.$onInit = function () {
+            var _this = this;
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
             this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
@@ -98,6 +100,7 @@ var Ally;
                 paymentMethodId: "",
                 status: "Complete"
             };
+            this.$timeout(function () { return _this.loadAllyAppSettings(); }, 100);
         };
         /**
          * Change a group's short name
@@ -138,8 +141,16 @@ var Ally;
                 _this.foundUserAssociations = response.data;
                 _.forEach(_this.foundUserAssociations, function (g) {
                     g.viewUrl = "https://" + g.shortName + ".condoally.com/";
-                    if (g.appName === 3)
+                    if (g.appName === 2)
+                        g.viewUrl = "https://" + g.shortName + ".homeally.org/";
+                    else if (g.appName === 3)
                         g.viewUrl = "https://" + g.shortName + ".hoaally.org/";
+                    else if (g.appName === 4)
+                        g.viewUrl = "https://" + g.shortName + ".NeighborhoodAlly.org/";
+                    else if (g.appName === 6)
+                        g.viewUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
+                    else
+                        console.log("Unknown appName value: " + g.appName);
                 });
             }, function () {
                 _this.isLoading = false;
@@ -273,7 +284,7 @@ var Ally;
             this.$http.get("/api/AdminHelper/LogInAs?email=" + this.logInAsEmail).then(function (response) {
                 _this.siteInfo.setAuthToken(response.data);
                 window.location.href = "/#!/Home";
-                window.location.reload(false);
+                window.location.reload();
             }, function (response) {
                 alert("Failed to perform login: " + response.data.exceptionMessage);
             }).finally(function () { return _this.isLoading = false; });
@@ -375,7 +386,22 @@ var Ally;
                 alert("Reactivate Failed: " + response.data.exceptionMessage);
             });
         };
-        ManageGroupsController.$inject = ["$http", "SiteInfo"];
+        ManageGroupsController.prototype.loadAllyAppSettings = function () {
+            var _this = this;
+            this.allAllyAppSettings = [];
+            this.isLoadingAllyAppSettings = true;
+            this.$http.get("/api/AllyAppSettings/All").then(function (response) {
+                _this.isLoadingAllyAppSettings = false;
+                _this.allAllyAppSettings = response.data;
+            }, function (response) {
+                _this.isLoadingAllyAppSettings = false;
+                alert("Failed to retrieve settings: " + response.data.exceptionMessage);
+            });
+        };
+        ManageGroupsController.prototype.saveAllyAppSetting = function () {
+            this.$http.post("", this.editAllyAppSetting);
+        };
+        ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
         return ManageGroupsController;
     }());
     Ally.ManageGroupsController = ManageGroupsController;
@@ -384,6 +410,12 @@ var Ally;
         }
         return AllyPaymentEntry;
     }());
+    var AllyAppSetting = /** @class */ (function () {
+        function AllyAppSetting() {
+        }
+        return AllyAppSetting;
+    }());
+    Ally.AllyAppSetting = AllyAppSetting;
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageGroups", {
     templateUrl: "/ngApp/admin/manage-groups.html",
