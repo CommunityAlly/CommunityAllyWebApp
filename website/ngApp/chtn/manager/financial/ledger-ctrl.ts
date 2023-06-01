@@ -255,7 +255,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            var getUri = `/api/Ledger/PageInfo?startDate=${encodeURIComponent( this.filter.startDate.toISOString() )}&endDate=${encodeURIComponent( this.filter.endDate.toISOString() )}`;
+            let getUri = `/api/Ledger/PageInfo?startDate=${encodeURIComponent( this.filter.startDate.toISOString() )}&endDate=${encodeURIComponent( this.filter.endDate.toISOString() )}`;
             if( this.filter.description.length > 3 )
                 getUri += "&descriptionSearch=" + encodeURIComponent( this.filter.description );
 
@@ -274,7 +274,7 @@ namespace Ally
                         accountColumn.visible = this.ledgerAccounts.length > 1;
 
                     // Add only the first account needing login for a Plaid item
-                    let accountsNeedingLogin = this.ledgerAccounts.filter( a => a.plaidNeedsRelogin );
+                    const accountsNeedingLogin = this.ledgerAccounts.filter( a => a.plaidNeedsRelogin );
                     this.accountsNeedingLogin = [];
                     for( let i = 0; i < accountsNeedingLogin.length; ++i )
                     {
@@ -396,7 +396,7 @@ namespace Ally
         {
             this.isLoadingEntries = true;
 
-            var getUri = `/api/Ledger/PageInfo?startDate=${encodeURIComponent( this.filter.startDate.toISOString() )}&endDate=${encodeURIComponent( this.filter.endDate.toISOString() )}`;
+            let getUri = `/api/Ledger/PageInfo?startDate=${encodeURIComponent( this.filter.startDate.toISOString() )}&endDate=${encodeURIComponent( this.filter.endDate.toISOString() )}`;
             if( this.filter.description.length > 3 )
                 getUri += "&descriptionSearch=" + encodeURIComponent( this.filter.description );
 
@@ -486,7 +486,7 @@ namespace Ally
             {
                 if( this.allEntries[i].isSplit )
                 {
-                    for( let e of this.allEntries[i].splitEntries )
+                    for( const e of this.allEntries[i].splitEntries )
                         flattenedTransactions.push( e );
                 }
                 else
@@ -628,7 +628,7 @@ namespace Ally
                             console.log( "Plaid update onSuccess" );
                             this.completePlaidSync( public_token, ledgerAccount.plaidItemId, null );
                         },
-                        onLoad: () => { },
+                        onLoad: () => { /* */ },
                         onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
                         onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
                         receivedRedirectUri: null,
@@ -652,7 +652,14 @@ namespace Ally
          */
         editEntry( entry: LedgerEntry )
         {
-            this.editingTransaction = _.clone( entry );
+            if( entry.parentLedgerEntryId )
+            {
+                const parentEntry = this.allEntries.find( e => e.ledgerEntryId === entry.parentLedgerEntryId );
+                this.editingTransaction = _.clone( parentEntry );
+            }
+            else
+                this.editingTransaction = _.clone( entry );
+
             if( this.editingTransaction.isSplit )
                 this.onSplitAmountChange();
         }
@@ -792,7 +799,7 @@ namespace Ally
 
                             this.completePlaidSync( public_token, null, selectedAccountIds );
                         },
-                        onLoad: () => { },
+                        onLoad: () => { /* Not used yet */ },
                         onExit: ( err: any, metadata: any ) => { console.log( "update onExit.err", err, metadata ); },
                         onEvent: ( eventName: string, metadata: any ) => { console.log( "update onEvent.eventName", eventName, metadata ); },
                         receivedRedirectUri: null,
@@ -879,7 +886,7 @@ namespace Ally
 
         onEditTransactionCategoryChange()
         {
-
+            // Not used
         }
 
         onCategoryManagerClosed( didMakeChanges: boolean )
@@ -939,10 +946,12 @@ namespace Ally
             this.onSplitAmountChange();
         }
 
+
         openImportFilePicker()
         {
             document.getElementById( 'importTransactionFileInput' ).click();
         }
+
 
         openImportModal()
         {
@@ -1067,7 +1076,7 @@ namespace Ally
         /** Export the transactions list as a CSV */
         exportTransactionsCsv()
         {
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Date",
                     fieldName: "transactionDate",
@@ -1101,7 +1110,7 @@ namespace Ally
                 }
             ];
 
-            var csvDataString = Ally.createCsvString( this.ledgerGridOptions.data as LedgerEntry[], csvColumns );
+            const csvDataString = Ally.createCsvString( this.ledgerGridOptions.data as LedgerEntry[], csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Transactions.csv" );
         }

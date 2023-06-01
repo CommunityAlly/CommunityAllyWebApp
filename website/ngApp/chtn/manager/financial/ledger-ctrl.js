@@ -477,7 +477,12 @@ var Ally;
          * Occurs when the user wants to edit a transaction
          */
         LedgerController.prototype.editEntry = function (entry) {
-            this.editingTransaction = _.clone(entry);
+            if (entry.parentLedgerEntryId) {
+                var parentEntry = this.allEntries.find(function (e) { return e.ledgerEntryId === entry.parentLedgerEntryId; });
+                this.editingTransaction = _.clone(parentEntry);
+            }
+            else
+                this.editingTransaction = _.clone(entry);
             if (this.editingTransaction.isSplit)
                 this.onSplitAmountChange();
         };
@@ -626,6 +631,7 @@ var Ally;
                 this.refreshEntries();
         };
         LedgerController.prototype.onEditTransactionCategoryChange = function () {
+            // Not used
         };
         LedgerController.prototype.onCategoryManagerClosed = function (didMakeChanges) {
             this.shouldShowCategoryEditModal = false;
