@@ -236,10 +236,6 @@
                     <div style="height: 20px;"></div>
                 </div>
 
-
-
-
-
                 <div data-ng-if="$ctrl.paymentInfo.payPalClientId">
                     <h3 class="margin-top">PayPal Settings</h3>
 
@@ -529,6 +525,7 @@
                         <tr><td class="text-end">ACH ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.individualAchId }}</td></tr>
                         <tr><td class="text-end">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
                         <tr><td class="text-end">Amount: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
+                        <tr><td class="text-end">Payer Notes: </td><td class="text-bold">{{ $ctrl.checkoutInfo.payerNotes }}</td></tr>
                         <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-end">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
                         <tr><td class="text-end">Created: </td><td class="text-bold">{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
                         <tr><td class="text-end">From Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.sourceFundingSourceName }}</td></tr>

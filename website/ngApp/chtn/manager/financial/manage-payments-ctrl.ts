@@ -767,18 +767,21 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/OnlinePayment/DwollaCheckoutInfo/" + paymentEntry.paymentId ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<DwollaPaymentDetails> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+            this.$http.get( "/api/OnlinePayment/DwollaCheckoutInfo/" + paymentEntry.paymentId ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<DwollaPaymentDetails> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo.payerNotes = paymentEntry.notes;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
-
-                alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
-            } );
+                    alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -793,18 +796,24 @@ namespace Ally
             this.isLoadingCheckoutDetails = true;
             this.checkoutInfo = {};
 
-            this.$http.get( "/api/Dwolla/CancelTransfer/" + this.viewingDwollaEntry.paymentId ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<DwollaPaymentDetails> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+            this.$http.get( "/api/Dwolla/CancelTransfer/" + this.viewingDwollaEntry.paymentId ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<DwollaPaymentDetails> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
 
-                this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo = httpResponse.data;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoadingCheckoutDetails = false;
+                    // Refresh the page to show the updated status
+                    window.location.reload();
 
-                alert( "Failed to cancel transfer: " + httpResponse.data.exceptionMessage );
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
+
+                    alert( "Failed to cancel transfer: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -1134,6 +1143,9 @@ namespace Ally
         destFundingSourceName: string;
         clearingSource: string;
         cancelUri: string;
+
+        // Added locally
+        payerNotes: string;
     }
 }
 
