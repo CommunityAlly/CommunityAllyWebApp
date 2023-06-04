@@ -353,7 +353,7 @@ namespace Ally
                     ],
                 multiSelect: false,
                 enableSorting: true,
-                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
                 enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                 enableFullRowSelection: true,
                 enableColumnMenus: false,

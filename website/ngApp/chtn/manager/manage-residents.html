@@ -42,7 +42,7 @@
         <button class="btn btn-primary pull-right" data-ng-click="$ctrl.setEdit( {boardPosition:0, shouldSendWelcomeEmail: false} );">Add New {{ $ctrl.showIsRenter ? 'Resident' : 'Member' }}</button>
     </div>
 
-    <div data-ui-grid="$ctrl.residentGridOptions" ui-grid-save-state data-ui-grid-selection ui-grid-resize-columns class="gridStyle margin-top-20"></div>
+    <div data-ui-grid="$ctrl.residentGridOptions" ui-grid-save-state data-ui-grid-selection ui-grid-resize-columns ui-grid-auto-resize class="gridStyle margin-top-20"></div>
 
     <div class="clearfix">
         <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}{{ $ctrl.residentGridOptions.data.length > 1 ? 's' : '' }}</span>
