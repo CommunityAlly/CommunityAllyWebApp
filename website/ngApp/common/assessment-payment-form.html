@@ -3,7 +3,7 @@
         <div class="title">Payment</div>
     </div>
 
-    <div class="portlet-body">
+    <div class="portlet-body" style="position: relative;">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
 
         <div data-ng-if="$ctrl.customFinancialInstructions">
@@ -169,7 +169,7 @@
                         </div>
                     </div>
                     <div data-ng-if="!$ctrl.dwollaPaymentMessage">
-                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitDwollaPayment()" value="Submit Payment">
+                        <input type="button" class="btn btn-primary" data-ng-if="!$ctrl.isLoading_Payment" data-ng-click="$ctrl.submitDwollaPayment()" value="Submit Payment">
                         <br />
                         <b>Clicking this button will submit payment.</b>
                         <div data-ng-if="$ctrl.currentDwollaAutoPayAmount > 0" class="text-error" style="color: blue;">
