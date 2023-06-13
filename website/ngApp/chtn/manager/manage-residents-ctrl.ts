@@ -105,8 +105,9 @@ namespace Ally
     {
         isRenter: boolean;
         commRestriction: string;
+        moveInDate: Date | null;
         friendlyBadEmailReason: string;
-        badEmailDate: Date|null;
+        badEmailDate: Date | null;
 
         // Not from the server
         fullName: string;

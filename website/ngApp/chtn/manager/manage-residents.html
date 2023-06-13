@@ -218,8 +218,10 @@
 
                 <div class="col-12">
                     <label class="fw-bold form-label ">Alternate Mailing Address</label>
-                    <div class="note-text">Only set this if it differs from the home address for the owner listed on the 'Primary' tab.
-                    Do not add a different person here. Other persons living at the same address should be added using the 'Add Resident' button.</div>
+                    <div class="note-text">
+                        Only set this if it differs from the home address for the owner listed on the 'Primary' tab.
+                        Do not add a different person here. Other persons living at the same address should be added using the 'Add Resident' button.
+                    </div>
                     <street-address-form data-street-address="$ctrl.editUser.mailingAddressObject" data-use-care-of="true"></street-address-form>
                 </div>
 
@@ -241,6 +243,13 @@
                         </select>
                         <div class="note-text">You can limit who a user can send to through the site.</div>
                         <div class="text-error" data-ng-if="$ctrl.editUser.commRestriction && $ctrl.editUser.isSiteManager">This user is a site admin which means they'll be able to adjust this restriction themselves</div>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <label class="fw-bold form-label">Move-in Date:</label>
+                    <div class="col-12">
+                        <input type="text" data-ui-date data-ng-model="$ctrl.editUser.moveInDate" />
                     </div>
                 </div>
             </div>
