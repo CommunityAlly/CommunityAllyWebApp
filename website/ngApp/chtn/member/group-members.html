@@ -8,7 +8,7 @@
         <div class="row">
             <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.boardMembers.length > 0 || $ctrl.boardPropMgrs.length > 0">
                 <div class="portlet-header">
-                    <div style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient" style="display: inline-block;">&nbsp;-&nbsp;<send-message data-recipient-info="$ctrl.boardMessageRecipient"></send-message></div>
+                    <div style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient && $ctrl.isPremiumPlanActive" style="display: inline-block;"><span>&nbsp;-&nbsp;<send-message data-recipient-info="$ctrl.boardMessageRecipient"></send-message></span></div>
                 </div>
 
                 <div class="portlet-body">
@@ -16,7 +16,7 @@
                         No board members have been assigned
                     </div>
                     <div data-ng-repeat="member in $ctrl.boardMembers">
-                        <span style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;{{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
+                        <span style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;{{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
                     </div>
                     <br />
                 </div>
@@ -24,7 +24,7 @@
                 <div class="portlet-body" data-ng-if="$ctrl.boardPropMgrs.length > 0">
                     <h6>Property Managers</h6>
                     <div data-ng-repeat="member in $ctrl.boardPropMgrs">
-                        {{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
+                        {{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
                     </div>
                     <br />
                 </div>
@@ -38,7 +38,7 @@
                 <div class="portlet-body">
                     <p style="margin-bottom: 7px; display: none;" class="note-text">Contact the residents below if you'd like to learn more about a certain committee</p>
                     <div data-ng-repeat="committee in $ctrl.committees">
-                        <span style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;(<a data-ng-if="!committee.isPrivate" data-ng-href="#!/Committee/{{ committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="committee.contactUser">&nbsp;-&nbsp;{{ committee.contactUser.fullName }}<span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail">&nbsp;-&nbsp;<send-message data-recipient-info="committee.contactUser"></send-message></span></span><br />
+                        <span style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;(<a data-ng-if="!committee.isPrivate" data-ng-href="#!/Committee/{{ committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="committee.contactUser">&nbsp;-&nbsp;{{ committee.contactUser.fullName }}<span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message data-recipient-info="committee.contactUser"></send-message></span></span><br />
                     </div>
                     <br />
                 </div>
@@ -70,7 +70,7 @@
                         <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
                             (<a id="owner-email-{{ $parent.$parent.$index }}-{{ $parent.$index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ user.phoneNumber }}" id="owner-phone-{{ $parent.$parent.$index }}-{{ $parent.$index }}">{{ user.phoneNumber | tel }}</a>)
                         </span>
-                        <span data-ng-if="user.hasEmail">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
+                        <span data-ng-if="user.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
                         <br />
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
                             (<a id="renter-email-{{ $parent.$parent.$index }}-{{ $parent.$index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ user.phoneNumber }}" id="renter-phone-{{ $parent.$parent.$index }}-{{ $parent.$index }}">{{ user.phoneNumber | tel }}</a>)
                         </span>                        
-                        <span data-ng-if="user.hasEmail">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
+                        <span data-ng-if="user.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
                         <br />
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                     <span data-ng-if="resident.email.length > 0 || resident.phoneNumber.length > 0">
                         (<a id="owner-email-{{ $index }}" href="mailto:{{ resident.email }}">{{ resident.email }}</a>{{ resident.email.length > 0 && resident.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ resident.phoneNumber }}" id="owner-phone-{{ $index }}">{{ resident.phoneNumber | tel }}</a>)
                     </span>
-                    <span data-ng-if="resident.hasEmail">-&nbsp;<send-message data-recipient-info="resident"></send-message></span>                    
+                    <span data-ng-if="resident.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="resident"></send-message></span>                    
                 </div>
             </div>
         </div>

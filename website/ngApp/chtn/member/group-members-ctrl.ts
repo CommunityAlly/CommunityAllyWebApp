@@ -36,6 +36,7 @@ namespace Ally
         groupEmailsLoadError: string;
         groupEmailSaveError: string;
         isSiteManager: boolean;
+        isPremiumPlanActive = false;
 
 
         /**
@@ -61,6 +62,7 @@ namespace Ally
         $onInit()
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             this.fellowResidents.getByUnitsAndResidents().then(
                 ( data: FellowResidents ) =>

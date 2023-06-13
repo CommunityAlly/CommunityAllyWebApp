@@ -20,6 +20,7 @@ var Ally;
             this.unitPrefix = "Unit ";
             this.groupEmailDomain = "";
             this.shouldShowNewCustomEmailModal = false;
+            this.isPremiumPlanActive = false;
             this.allyAppName = AppConfig.appName;
             this.groupShortName = siteInfo.publicSiteInfo.shortName;
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
@@ -32,6 +33,7 @@ var Ally;
         GroupMembersController.prototype.$onInit = function () {
             var _this = this;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.fellowResidents.getByUnitsAndResidents().then(function (data) {
                 _this.isLoading = false;
                 _this.unitList = data.byUnit;
