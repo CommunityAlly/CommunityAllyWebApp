@@ -10,6 +10,8 @@
         filterPresetDateRange: string = "custom";
         startDate: Date;
         endDate: Date;
+        lastChangeStart: Date|null = null;
+        lastChangeEnd: Date|null = null;
         shouldSuppressCustom: boolean = false;
         onChange: () => void;
         thisYearLabel: string;
@@ -33,6 +35,14 @@
         */
         $onInit()
         {
+            //console.log( "In dateRangePicker.onInit", this.startDate, this.endDate );
+
+            // Clear the time portion
+            if( this.startDate )
+                this.startDate = moment( this.startDate ).startOf( "day" ).toDate();
+            if( this.endDate )
+                this.endDate = moment( this.endDate ).startOf( "day" ).toDate();
+
             if( !this.startDate && !this.endDate )
                 this.selectPresetDateRange( true );
 
@@ -40,9 +50,10 @@
             {
                 if( !newValue || newValue === oldValue || this.shouldSuppressCustom )
                     return;
-
+                
                 this.filterPresetDateRange = "custom";
             } );
+
             this.$scope.$watch( "$ctrl.endDate", ( newValue: Date, oldValue: Date) =>
             {
                 if( !newValue || newValue === oldValue || this.shouldSuppressCustom )
@@ -55,6 +66,8 @@
 
         selectPresetDateRange( suppressRefresh: boolean = false )
         {
+            //console.log( "selectPresetDateRange", this.filterPresetDateRange );
+
             if( this.filterPresetDateRange === "last30days" )
             {
                 this.startDate = moment().subtract( 30, 'days' ).toDate();
@@ -67,7 +80,7 @@
             }
             else if( this.filterPresetDateRange === "lastMonth" )
             {
-                var lastMonth = moment().subtract( 1, 'months' );
+                const lastMonth = moment().subtract( 1, 'months' );
                 this.startDate = lastMonth.startOf( 'month' ).toDate();
                 this.endDate = lastMonth.endOf( 'month' ).toDate();
             }
@@ -78,7 +91,7 @@
             }
             else if( this.filterPresetDateRange === "lastYear" )
             {
-                var lastYear = moment().subtract( 1, 'years' );
+                const lastYear = moment().subtract( 1, 'years' );
                 this.startDate = lastYear.startOf( 'year' ).toDate();
                 this.endDate = lastYear.endOf( 'year' ).toDate();
             }
@@ -88,6 +101,10 @@
                 this.endDate = moment().toDate();
             }
 
+            // Remove the time portion
+            this.startDate = moment( this.startDate ).startOf( "day" ).toDate();
+            this.endDate = moment( this.endDate ).startOf( "day" ).toDate();
+
             // To prevent the dumb $watch from clearing our preselect label
             this.shouldSuppressCustom = true;
             window.setTimeout( () => this.shouldSuppressCustom = false, 25 );
@@ -96,8 +113,11 @@
                 window.setTimeout( () => this.onChange(), 50 ); // Delay a bit to let Angular's digests run on the bound dates
         }
 
-        onInternalChange(suppressChangeEvent: boolean = false)
+
+        onInternalChange( suppressChangeEvent: boolean = false)
         {
+            //console.log( "In dateRangePicker.onInternalChange", fieldName, this.startDate, this.endDate );
+
             // Only call the change function if both strings are valid dates
             if( typeof this.startDate === "string" )
             {
@@ -113,13 +133,23 @@
                 this.endDate = moment( <string>this.endDate, "MM-DD-YYYY" ).toDate();
             }
 
-            if( !suppressChangeEvent )
+            const didChangeOccur = !this.lastChangeStart
+                || !this.lastChangeEnd
+                || this.startDate.getTime() !== this.lastChangeStart.getTime()
+                || this.endDate.getTime() !== this.lastChangeEnd.getTime();
+
+            if( didChangeOccur && !suppressChangeEvent )
             {
                 // Delay just a touch to let the model update
                 this.$timeout( () =>
                 {
+                    //console.log( "Call dateRangePicker.onChange", this.startDate.getTime(), this.lastChangeStart && this.lastChangeStart.getTime() || null, this.endDate.getTime(), this.lastChangeEnd && this.lastChangeEnd.getTime() || null );
+
                     if( this.onChange )
                         this.onChange();
+
+                    this.lastChangeStart = this.startDate;
+                    this.lastChangeEnd = this.endDate;
                 }, 10 );
             }
         }

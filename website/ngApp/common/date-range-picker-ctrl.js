@@ -12,6 +12,8 @@ var Ally;
             this.$scope = $scope;
             this.$timeout = $timeout;
             this.filterPresetDateRange = "custom";
+            this.lastChangeStart = null;
+            this.lastChangeEnd = null;
             this.shouldSuppressCustom = false;
             this.thisYearLabel = new Date().getFullYear().toString();
             this.lastYearLabel = (new Date().getFullYear() - 1).toString();
@@ -20,7 +22,13 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         DateRangePickerController.prototype.$onInit = function () {
+            //console.log( "In dateRangePicker.onInit", this.startDate, this.endDate );
             var _this = this;
+            // Clear the time portion
+            if (this.startDate)
+                this.startDate = moment(this.startDate).startOf("day").toDate();
+            if (this.endDate)
+                this.endDate = moment(this.endDate).startOf("day").toDate();
             if (!this.startDate && !this.endDate)
                 this.selectPresetDateRange(true);
             this.$scope.$watch("$ctrl.startDate", function (newValue, oldValue) {
@@ -35,6 +43,7 @@ var Ally;
             });
         };
         DateRangePickerController.prototype.selectPresetDateRange = function (suppressRefresh) {
+            //console.log( "selectPresetDateRange", this.filterPresetDateRange );
             var _this = this;
             if (suppressRefresh === void 0) { suppressRefresh = false; }
             if (this.filterPresetDateRange === "last30days") {
@@ -63,6 +72,9 @@ var Ally;
                 this.startDate = moment().subtract(1, 'years').toDate();
                 this.endDate = moment().toDate();
             }
+            // Remove the time portion
+            this.startDate = moment(this.startDate).startOf("day").toDate();
+            this.endDate = moment(this.endDate).startOf("day").toDate();
             // To prevent the dumb $watch from clearing our preselect label
             this.shouldSuppressCustom = true;
             window.setTimeout(function () { return _this.shouldSuppressCustom = false; }, 25);
@@ -70,6 +82,7 @@ var Ally;
                 window.setTimeout(function () { return _this.onChange(); }, 50); // Delay a bit to let Angular's digests run on the bound dates
         };
         DateRangePickerController.prototype.onInternalChange = function (suppressChangeEvent) {
+            //console.log( "In dateRangePicker.onInternalChange", fieldName, this.startDate, this.endDate );
             var _this = this;
             if (suppressChangeEvent === void 0) { suppressChangeEvent = false; }
             // Only call the change function if both strings are valid dates
@@ -83,11 +96,18 @@ var Ally;
                     return;
                 this.endDate = moment(this.endDate, "MM-DD-YYYY").toDate();
             }
-            if (!suppressChangeEvent) {
+            var didChangeOccur = !this.lastChangeStart
+                || !this.lastChangeEnd
+                || this.startDate.getTime() !== this.lastChangeStart.getTime()
+                || this.endDate.getTime() !== this.lastChangeEnd.getTime();
+            if (didChangeOccur && !suppressChangeEvent) {
                 // Delay just a touch to let the model update
                 this.$timeout(function () {
+                    //console.log( "Call dateRangePicker.onChange", this.startDate.getTime(), this.lastChangeStart && this.lastChangeStart.getTime() || null, this.endDate.getTime(), this.lastChangeEnd && this.lastChangeEnd.getTime() || null );
                     if (_this.onChange)
                         _this.onChange();
+                    _this.lastChangeStart = _this.startDate;
+                    _this.lastChangeEnd = _this.endDate;
                 }, 10);
             }
         };
