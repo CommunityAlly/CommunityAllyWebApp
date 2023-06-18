@@ -32,6 +32,7 @@ namespace Ally
         flatCategoryList: FinancialCategory[];
         allEntries: LedgerEntry[];
         pendingEntries: LedgerEntry[];
+        selectedEntries: LedgerEntry[];
         isPremiumPlanActive: boolean = false;
         readonly ManageCategoriesDropId = -15;
         shouldShowCategoryEditModal: boolean = false;
@@ -52,6 +53,8 @@ namespace Ally
         importTxNotes: string;
         ownerFinanceTxNote: string;
         hasActiveTxGridColFilter = false;
+        uiGridCategoryDropDown: CategoryDropDownOption[] = [];
+        bulkRecategorizeCategoryId: number;
 
 
         /**
@@ -115,7 +118,11 @@ namespace Ally
                 enablePaginationControls: true,
                 paginationPageSize: this.HistoryPageSize,
                 paginationPageSizes: [this.HistoryPageSize],
-                enableRowHeaderSelection: false,
+                enableRowSelection: true,
+                enableSelectAll: true,
+                enableFullRowSelection: false,
+                enableRowHeaderSelection: true,
+
                 onRegisterApi: ( gridApi ) =>
                 {
                     this.ledgerGridApi = gridApi;
@@ -171,6 +178,30 @@ namespace Ally
                         if( needsFilterUpdate )
                             this.updateLocalData();
                     } );
+
+                    const onSelectionChange = () =>
+                    {
+                        this.selectedEntries = _.clone( gridApi.selection.getSelectedRows() );
+
+                        let hasSplitTx = false;
+                        for( const curRow of this.selectedEntries )
+                        {
+                            if( curRow.isSplit )
+                            {
+                                gridApi.selection.unSelectRow( curRow );
+                                hasSplitTx = true;
+                            }
+                        }
+
+                        this.selectedEntries = _.clone( gridApi.selection.getSelectedRows() );
+
+                        if( hasSplitTx )
+                            alert( "You cannot bulk recategorize split transactions. Split rows have been deslected." );
+                    };
+
+                    gridApi.selection.on.rowSelectionChanged( this.$rootScope, () => onSelectionChange() );
+
+                    gridApi.selection.on.rowSelectionChangedBatch( this.$rootScope, () => onSelectionChange() );
                 }
             };
 
@@ -263,6 +294,7 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerPageInfo> ) =>
                 {
                     this.isLoading = false;
+                    this.selectedEntries = [];
 
                     const pageInfo = httpResponse.data;
                     this.ledgerAccounts = pageInfo.accounts;
@@ -314,16 +346,16 @@ namespace Ally
 
                     this.updateLocalData();
 
-                    const uiGridCategoryDropDown = [];
-                    uiGridCategoryDropDown.push( { id: null, value: "" } );
+                    this.uiGridCategoryDropDown = [];
+                    this.uiGridCategoryDropDown.push( { id: null, value: "" } );
                     for( let i = 0; i < this.flatCategoryList.length; ++i )
                     {
-                        uiGridCategoryDropDown.push( { id: this.flatCategoryList[i].financialCategoryId, value: this.flatCategoryList[i].dropDownLabel } );
+                        this.uiGridCategoryDropDown.push( { id: this.flatCategoryList[i].financialCategoryId, value: this.flatCategoryList[i].dropDownLabel } );
                     }
-                    uiGridCategoryDropDown.push( { id: this.ManageCategoriesDropId, value: "Manage Categories..." } );
+                    this.uiGridCategoryDropDown.push( { id: this.ManageCategoriesDropId, value: "Manage Categories..." } );
 
                     const categoryColumn = this.ledgerGridOptions.columnDefs.find( c => c.field === "categoryDisplayName" );
-                    categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
+                    categoryColumn.editDropdownOptionsArray = this.uiGridCategoryDropDown;
 
                     if( this.preselectCategoryId )
                     {
@@ -623,7 +655,7 @@ namespace Ally
 
                     const plaidConfig: any = {
                         token: newLinkToken,
-                        onSuccess: ( public_token: string, metadata: any ) =>
+                        onSuccess: ( public_token: string ) =>
                         {
                             console.log( "Plaid update onSuccess" );
                             this.completePlaidSync( public_token, ledgerAccount.plaidItemId, null );
@@ -676,7 +708,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.delete( "/api/Ledger/DeleteEntry/" + entry.ledgerEntryId ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.editAccount = null;
@@ -725,7 +757,7 @@ namespace Ally
 
             this.isLoading = true;
 
-            const onSave = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            const onSave = () =>
             {
                 this.isLoading = false;
                 this.editingTransaction = null;
@@ -752,7 +784,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            const onSave = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            const onSave = () =>
             {
                 this.isLoading = false;
                 this.createAccountInfo = null;
@@ -839,7 +871,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.put( putUri, null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.editAccount = null;
@@ -860,7 +892,7 @@ namespace Ally
 
             const getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
             this.$http.get( getUri ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.refreshEntries();
@@ -905,7 +937,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.delete( "/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.editAccount = null;
@@ -1045,7 +1077,7 @@ namespace Ally
             };
 
             this.$http.post( "/api/Ledger/BulkImport", postTx ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.previewImportGridOptions.data = null;
                     this.shouldShowImportModal = false;
@@ -1123,7 +1155,7 @@ namespace Ally
 
             const putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
             this.$http.put( putUri, null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = this.shouldShowOwnerFinanceTxn;
@@ -1173,7 +1205,51 @@ namespace Ally
                 }
             );
         }
+
+
+        bulkRecategorize()
+        {
+            if( this.selectedEntries.length === 0 )
+                return;
+
+            const putInfo: BulkRecategorizeInfo = {
+                entryIds: this.selectedEntries.map( e => e.ledgerEntryId ),
+                financialCategoryId: this.bulkRecategorizeCategoryId
+            }
+
+            //console.log( `Setting ${putInfo.entryIds.join( ',' )} to category ${this.bulkRecategorizeCategoryId}` );
+
+            this.isLoading = true;
+
+            this.$http.put( "/api/Ledger/BulkRecategorize", putInfo ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.fullRefresh();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to update: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
     }
+
+
+    class BulkRecategorizeInfo
+    {
+        entryIds: number[];
+        financialCategoryId: number|null;
+    }
+
+
+    class CategoryDropDownOption
+    {
+        id: number;
+        value: string;
+    }
+
 
     export class UiGridRow<T>
     {
@@ -1181,16 +1257,13 @@ namespace Ally
         entity: T;
     }
 
-    class CategoryOption
-    {
-        name: string;
-    }
 
     class CreateAccountInfo
     {
         name: string;
         type: string;
     }
+
 
     class SpendingChartEntry
     {
@@ -1199,6 +1272,7 @@ namespace Ally
         sumTotal: number;
         numLedgerEntries: number;
     }
+
 
     class LedgerAccount
     {
@@ -1219,6 +1293,7 @@ namespace Ally
         // Not from server
         shouldShowInGrid: boolean;
     }
+
 
     export class LedgerEntry
     {
@@ -1242,10 +1317,6 @@ namespace Ally
         unitGridLabel: string;
     }
 
-    class LedgerListEntry extends LedgerEntry
-    {
-        accountName: string;
-    }
 
     class LedgerPageInfo
     {
@@ -1256,6 +1327,7 @@ namespace Ally
         unitListEntries: BasicUnitListEntry[];
     }
 
+
     class BasicUnitListEntry
     {
         unitId: number;
@@ -1265,6 +1337,7 @@ namespace Ally
         unitWithOwnerLast: string;
     }
 
+
     class FilterCriteria
     {
         description: string = "";
@@ -1272,6 +1345,7 @@ namespace Ally
         endDate: Date = new Date();
         category: string = "";
     }
+
 
     export class FinancialCategory
     {
@@ -1282,6 +1356,7 @@ namespace Ally
         childCategories: FinancialCategory[];
         dropDownLabel: string;
     }
+
 
     class FinancialTxImportHistoryEntry
     {

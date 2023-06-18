@@ -35,7 +35,7 @@
                 <span class="note-text text-link" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
             </div>
         </div>
-        <div class="row">
+        <div class="row mt-3 mb-4">
             <div class="col-12 ps-0">
                 <fieldset style="width: 100%;">
                     <legend style="font-size: 1em;">Date Range</legend>
@@ -58,23 +58,34 @@
                 </fieldset>
             </div>
         </div>
+        <div class="row mt-3 mb-4" data-ng-if="$ctrl.selectedEntries.length > 0">
+            <div class="col-12 ps-0">
+                <fieldset style="width: 100%;">
+                    <legend style="font-size: 1em;">Bulk Recategorization</legend>
+                    <div>
+                        <button type="button" class="btn btn-primary float-end" data-ng-click="$ctrl.bulkRecategorize()">Recategorize</button>
+                        <span>{{$ctrl.selectedEntries.length}} row{{$ctrl.selectedEntries.length === 1 ? '' : 's'}} selected</span>
+                        <select data-ng-model="$ctrl.bulkRecategorizeCategoryId" data-ng-options="c.id as c.value for c in $ctrl.uiGridCategoryDropDown"></select>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
     </div>
     <h4 class="m-3" data-ng-if="$ctrl.ledgerAccounts.length === 0">
         Get started by adding an account using the button above.
     </h4>
-
     <div data-ng-if="$ctrl.pendingGridOptions.data.length > 0" class="mt-4 mb-4">
         <h5 class="text-link" data-ng-click="$ctrl.shouldExpandPending = !$ctrl.shouldExpandPending">
             Pending Transactions ({{$ctrl.pendingGridOptions.data.length}})
             <span class="note-text">({{$ctrl.shouldExpandPending ? 'hide' : 'show'}})</span>
         </h5>
-        <div data-ui-grid="$ctrl.pendingGridOptions" data-ng-if="$ctrl.shouldExpandPending" ui-grid-resize-columns></div>
-    </div>
+        <div data-ui-grid="$ctrl.pendingGridOptions" data-ng-if="$ctrl.shouldExpandPending" ui-grid-resize-columns ui-grid-selection></div>
+</div>
 
     <div style="position: relative;" class="mt-2">
         <div data-ng-if="$ctrl.isLoading || $ctrl.isLoadingEntries" class="loading-overlay"></div>
-        <span class="note-text">Double-click on a cell to quick edit</span>
-        <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-edit ui-grid-cellNav></div>
+        <span class="note-text">Double-click on a cell to quick edit. Use the checkboxes on the left to bulk set categories.</span>
+        <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-selection ui-grid-edit ui-grid-cellNav></div>
     </div>
 
     <div class="mb-2" style="height: 20px;">

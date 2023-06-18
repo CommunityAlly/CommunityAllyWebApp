@@ -1,13 +1,3 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Ally;
 (function (Ally) {
     /**
@@ -48,6 +38,7 @@ var Ally;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
             this.hasActiveTxGridColFilter = false;
+            this.uiGridCategoryDropDown = [];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -91,7 +82,10 @@ var Ally;
                     enablePaginationControls: true,
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
-                    enableRowHeaderSelection: false,
+                    enableRowSelection: true,
+                    enableSelectAll: true,
+                    enableFullRowSelection: false,
+                    enableRowHeaderSelection: true,
                     onRegisterApi: function (gridApi) {
                         _this.ledgerGridApi = gridApi;
                         // Fix dumb scrolling
@@ -130,6 +124,22 @@ var Ally;
                             if (needsFilterUpdate)
                                 _this.updateLocalData();
                         });
+                        var onSelectionChange = function () {
+                            _this.selectedEntries = _.clone(gridApi.selection.getSelectedRows());
+                            var hasSplitTx = false;
+                            for (var _i = 0, _a = _this.selectedEntries; _i < _a.length; _i++) {
+                                var curRow = _a[_i];
+                                if (curRow.isSplit) {
+                                    gridApi.selection.unSelectRow(curRow);
+                                    hasSplitTx = true;
+                                }
+                            }
+                            _this.selectedEntries = _.clone(gridApi.selection.getSelectedRows());
+                            if (hasSplitTx)
+                                alert("You cannot bulk recategorize split transactions. Split rows have been deslected.");
+                        };
+                        gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function () { return onSelectionChange(); });
+                        gridApi.selection.on.rowSelectionChangedBatch(_this.$rootScope, function () { return onSelectionChange(); });
                     }
                 };
             this.pendingGridOptions =
@@ -200,6 +210,7 @@ var Ally;
                 getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
             this.$http.get(getUri).then(function (httpResponse) {
                 _this.isLoading = false;
+                _this.selectedEntries = [];
                 var pageInfo = httpResponse.data;
                 _this.ledgerAccounts = pageInfo.accounts;
                 _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
@@ -238,14 +249,14 @@ var Ally;
                 };
                 visitNode(pageInfo.rootFinancialCategory, 0);
                 _this.updateLocalData();
-                var uiGridCategoryDropDown = [];
-                uiGridCategoryDropDown.push({ id: null, value: "" });
+                _this.uiGridCategoryDropDown = [];
+                _this.uiGridCategoryDropDown.push({ id: null, value: "" });
                 for (var i = 0; i < _this.flatCategoryList.length; ++i) {
-                    uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
+                    _this.uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
                 }
-                uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
+                _this.uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
                 var categoryColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "categoryDisplayName"; });
-                categoryColumn.editDropdownOptionsArray = uiGridCategoryDropDown;
+                categoryColumn.editDropdownOptionsArray = _this.uiGridCategoryDropDown;
                 if (_this.preselectCategoryId) {
                     window.setTimeout(function () {
                         var selectedCatEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === _this.preselectCategoryId; })[0];
@@ -457,7 +468,7 @@ var Ally;
                 }
                 var plaidConfig = {
                     token: newLinkToken,
-                    onSuccess: function (public_token, metadata) {
+                    onSuccess: function (public_token) {
                         console.log("Plaid update onSuccess");
                         _this.completePlaidSync(public_token, ledgerAccount.plaidItemId, null);
                     },
@@ -494,7 +505,7 @@ var Ally;
             if (!confirm("Are you sure you want to delete this entry? Deletion is permanent."))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(function (httpResponse) {
+            this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(function () {
                 _this.isLoading = false;
                 _this.editAccount = null;
                 _this.editingTransaction = null;
@@ -528,7 +539,7 @@ var Ally;
                 }
             }
             this.isLoading = true;
-            var onSave = function (httpResponse) {
+            var onSave = function () {
                 _this.isLoading = false;
                 _this.editingTransaction = null;
                 _this.refreshEntries();
@@ -548,7 +559,7 @@ var Ally;
         LedgerController.prototype.onSaveNewAccount = function () {
             var _this = this;
             this.isLoading = true;
-            var onSave = function (httpResponse) {
+            var onSave = function () {
                 _this.isLoading = false;
                 _this.createAccountInfo = null;
                 _this.fullRefresh();
@@ -603,7 +614,7 @@ var Ally;
             var _this = this;
             var putUri = "/api/Ledger/UpdateAccount/" + this.editAccount.ledgerAccountId + "?newName=" + encodeURIComponent(this.editAccount.accountName) + "&newType=" + encodeURIComponent(this.editAccount.accountType);
             this.isLoading = true;
-            this.$http.put(putUri, null).then(function (httpResponse) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.editAccount = null;
                 _this.fullRefresh();
@@ -616,7 +627,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
-            this.$http.get(getUri).then(function (httpResponse) {
+            this.$http.get(getUri).then(function () {
                 _this.isLoading = false;
                 _this.refreshEntries();
             }, function (httpResponse) {
@@ -643,7 +654,7 @@ var Ally;
             if (!confirm("Are you sure you want to remove this account?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId).then(function (httpResponse) {
+            this.$http.delete("/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId).then(function () {
                 _this.isLoading = false;
                 _this.editAccount = null;
                 _this.fullRefresh();
@@ -733,7 +744,7 @@ var Ally;
                 notes: this.importTxNotes,
                 entries: this.previewImportGridOptions.data
             };
-            this.$http.post("/api/Ledger/BulkImport", postTx).then(function (httpResponse) {
+            this.$http.post("/api/Ledger/BulkImport", postTx).then(function () {
                 _this.previewImportGridOptions.data = null;
                 _this.shouldShowImportModal = false;
                 _this.isLoading = false;
@@ -792,7 +803,7 @@ var Ally;
             var _this = this;
             this.isLoading = true;
             var putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
-            this.$http.put(putUri, null).then(function (httpResponse) {
+            this.$http.put(putUri, null).then(function () {
                 _this.isLoading = false;
                 _this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = _this.shouldShowOwnerFinanceTxn;
             }, function (httpResponse) {
@@ -822,21 +833,44 @@ var Ally;
                 alert("Failed to save note: " + httpResponse.data.exceptionMessage);
             });
         };
+        LedgerController.prototype.bulkRecategorize = function () {
+            var _this = this;
+            if (this.selectedEntries.length === 0)
+                return;
+            var putInfo = {
+                entryIds: this.selectedEntries.map(function (e) { return e.ledgerEntryId; }),
+                financialCategoryId: this.bulkRecategorizeCategoryId
+            };
+            //console.log( `Setting ${putInfo.entryIds.join( ',' )} to category ${this.bulkRecategorizeCategoryId}` );
+            this.isLoading = true;
+            this.$http.put("/api/Ledger/BulkRecategorize", putInfo).then(function () {
+                _this.isLoading = false;
+                _this.fullRefresh();
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to update: " + httpResponse.data.exceptionMessage);
+            });
+        };
         LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
         return LedgerController;
     }());
     Ally.LedgerController = LedgerController;
+    var BulkRecategorizeInfo = /** @class */ (function () {
+        function BulkRecategorizeInfo() {
+        }
+        return BulkRecategorizeInfo;
+    }());
+    var CategoryDropDownOption = /** @class */ (function () {
+        function CategoryDropDownOption() {
+        }
+        return CategoryDropDownOption;
+    }());
     var UiGridRow = /** @class */ (function () {
         function UiGridRow() {
         }
         return UiGridRow;
     }());
     Ally.UiGridRow = UiGridRow;
-    var CategoryOption = /** @class */ (function () {
-        function CategoryOption() {
-        }
-        return CategoryOption;
-    }());
     var CreateAccountInfo = /** @class */ (function () {
         function CreateAccountInfo() {
         }
@@ -858,13 +892,6 @@ var Ally;
         return LedgerEntry;
     }());
     Ally.LedgerEntry = LedgerEntry;
-    var LedgerListEntry = /** @class */ (function (_super) {
-        __extends(LedgerListEntry, _super);
-        function LedgerListEntry() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return LedgerListEntry;
-    }(LedgerEntry));
     var LedgerPageInfo = /** @class */ (function () {
         function LedgerPageInfo() {
         }
