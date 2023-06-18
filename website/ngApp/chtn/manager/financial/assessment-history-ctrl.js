@@ -207,7 +207,7 @@ var Ally;
             }
             return {
                 periodValue: periodValue,
-                yearValue: yearValue
+                year: yearValue
             };
         };
         AssessmentHistoryController.prototype.onChangePeriodicPaymentTracking = function () {
@@ -446,7 +446,7 @@ var Ally;
                     periodValue: currentPeriod.periodValue,
                     arrayIndex: columnIndex,
                     year: currentPeriod.year,
-                    isTodaysPeriod: currentPeriod.year === this.todaysPayPeriod.yearValue && currentPeriod.periodValue === this.todaysPayPeriod.periodValue
+                    isTodaysPeriod: currentPeriod.year === this.todaysPayPeriod.year && currentPeriod.periodValue === this.todaysPayPeriod.periodValue
                 };
                 this.visiblePeriodEntries.push(periodEntry);
                 previousPeriod = new PeriodYear(currentPeriod.periodValue, currentPeriod.year);
@@ -499,16 +499,7 @@ var Ally;
                     unit.displayPayments.reverse();
                     unit.allPayments = unit.displayPayments;
                     // Since allPayments is sorted newest first, let's grab the first payment marked as paid
-                    var mostRecentPayment = unit.allPayments.find(function (p) { return p.isPaid; });
-                    if (mostRecentPayment) {
-                        var numMissedPayments = _this.getNumMissedPayments(mostRecentPayment);
-                        // If the person is ahead on payments, still show 0 rather than negative due
-                        if (numMissedPayments <= 0)
-                            numMissedPayments = 0;
-                        unit.estBalance = numMissedPayments * unit.assessment;
-                    }
-                    else
-                        unit.estBalance = undefined;
+                    unit.estBalance = _this.getEstimatedBalance(unit);
                 });
                 _this.totalEstBalance = paymentInfo.units
                     .filter(function (u) { return u.estBalance !== undefined && !isNaN(u.estBalance); })
@@ -525,18 +516,60 @@ var Ally;
                 alert("Failed to retrieve payment history: " + response.data.exceptionMessage);
             });
         };
-        AssessmentHistoryController.prototype.getNumMissedPayments = function (mostRecentPayment) {
-            var todaysPayPeriod = this.getTodaysPayPeriod();
-            if (mostRecentPayment.year === todaysPayPeriod.yearValue) {
-                return todaysPayPeriod.periodValue - mostRecentPayment.period;
-            }
-            else {
-                var numYearsBack = todaysPayPeriod.yearValue - mostRecentPayment.year;
-                var yearsPaymentsMissed = (numYearsBack - 1) * this.maxPeriodRange;
-                var periodsMissedForRecentYear = this.maxPeriodRange - mostRecentPayment.period;
-                return todaysPayPeriod.periodValue + yearsPaymentsMissed + periodsMissedForRecentYear;
-            }
-            return 0;
+        /**
+         * Determine the number of pay periods between two periods. For example, Jan 2023 to
+         * Mar 2023 would be 1.
+         */
+        AssessmentHistoryController.prototype.getNumPaymentsBetween = function (start, end) {
+            if (start.year === end.year)
+                return end.periodValue - start.periodValue;
+            var numYearsBack = end.year - start.year;
+            var yearsPaymentsMissed = (numYearsBack - 1) * this.maxPeriodRange;
+            var periodsForStartYear = this.maxPeriodRange - start.periodValue;
+            // Subtract to not include the end date
+            return (end.periodValue + yearsPaymentsMissed + periodsForStartYear) - 1;
+        };
+        AssessmentHistoryController.prototype.getEstimatedBalance = function (unit) {
+            var mostRecentPayment = unit.allPayments.find(function (p) { return p.isPaid; });
+            if (!mostRecentPayment)
+                return undefined;
+            var paidEntries = unit.allPayments.filter(function (p) { return p.isPaid; });
+            var oldestPayment = paidEntries[paidEntries.length - 1];
+            var startPeriod = new PeriodYear(oldestPayment.period, oldestPayment.year);
+            // Add 2 to include the start and end pay periods
+            var totalNumPayPeriods = this.getNumPaymentsBetween(startPeriod, this.todaysPayPeriod) + 2;
+            var totalNumPayments = paidEntries.length;
+            if (unit.name === "C")
+                console.log("unit c", startPeriod, this.todaysPayPeriod, totalNumPayPeriods, totalNumPayments);
+            var estBalance = (totalNumPayPeriods - totalNumPayments) * unit.assessment;
+            // If the person is ahead on payments, still show 0 rather than negative due
+            if (estBalance < 0)
+                return 0;
+            return estBalance;
+            //let numMissedPayments = 0;
+            //const todaysPayPeriod = this.getTodaysPayPeriod();
+            //if( mostRecentPayment.year === todaysPayPeriod.year )
+            //{
+            //    return todaysPayPeriod.periodValue - mostRecentPayment.period;
+            //}
+            //else
+            //{
+            //    const numYearsBack = todaysPayPeriod.year - mostRecentPayment.year;
+            //    const yearsPaymentsMissed = ( numYearsBack - 1 ) * this.maxPeriodRange;
+            //    const periodsMissedForRecentYear = this.maxPeriodRange - mostRecentPayment.period;
+            //    return todaysPayPeriod.periodValue + yearsPaymentsMissed + periodsMissedForRecentYear;
+            //}
+            //if( mostRecentPayment )
+            //{
+            //    let numMissedPayments = this.getEstimatedBalance( unit );
+            //    // If the person is ahead on payments, still show 0 rather than negative due
+            //    if( numMissedPayments <= 0 )
+            //        numMissedPayments = 0;
+            //    unit.estBalance = numMissedPayments * unit.assessment;
+            //}
+            //else
+            //    unit.estBalance = undefined;
+            //return 0;
         };
         /**
          * Get the amount paid by all units in a pay period

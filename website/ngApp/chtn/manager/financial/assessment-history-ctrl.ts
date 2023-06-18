@@ -103,6 +103,8 @@
         shouldShowBalanceCol = false;
         assessmentFrequency: PeriodicPaymentFrequency;
         payPeriodName: string;
+
+        /// The number of pay periods for the current assessment frequency
         maxPeriodRange: number;
         periodNames: string[];
         shortPeriodNames: string[];
@@ -127,7 +129,7 @@
         viewExportViewId: string;
         shouldShowNeedsAssessmentSetup: boolean = false;
         hasAssessments: boolean | null = null;
-        todaysPayPeriod: { periodValue: number, yearValue: number };
+        todaysPayPeriod: PeriodYear;
         totalEstBalance: number;
         specialAssessments: SpecialAssessmentEntry[];
 
@@ -287,7 +289,7 @@
         }
 
 
-        getTodaysPayPeriod()
+        getTodaysPayPeriod(): PeriodYear
         {
             // We add 1's to periods because pay periods are 1-based, but Date.getMonth() is 0-based
             let periodValue = new Date().getMonth() + 1;
@@ -309,7 +311,7 @@
 
             return {
                 periodValue,
-                yearValue
+                year: yearValue
             };
         }
 
@@ -580,7 +582,7 @@
             this.visiblePeriodEntries = [];
             
             // Step from left to right in the output columns, going back a pay period each time
-            let currentPeriod = new PeriodYear( this.startPeriodValue, this.startYearValue );
+            const currentPeriod = new PeriodYear( this.startPeriodValue, this.startYearValue );
             let previousPeriod: PeriodYear = null;
             for( let columnIndex = 0; columnIndex < this.numPeriodsVisible; ++columnIndex )
             {
@@ -626,7 +628,7 @@
                     periodValue: currentPeriod.periodValue,
                     arrayIndex: columnIndex,
                     year: currentPeriod.year,
-                    isTodaysPeriod: currentPeriod.year === this.todaysPayPeriod.yearValue && currentPeriod.periodValue === this.todaysPayPeriod.periodValue
+                    isTodaysPeriod: currentPeriod.year === this.todaysPayPeriod.year && currentPeriod.periodValue === this.todaysPayPeriod.periodValue
                 };
 
                 this.visiblePeriodEntries.push( periodEntry );
@@ -701,19 +703,7 @@
                     unit.allPayments = unit.displayPayments;
 
                     // Since allPayments is sorted newest first, let's grab the first payment marked as paid
-                    const mostRecentPayment = unit.allPayments.find( p => p.isPaid );
-                    if( mostRecentPayment )
-                    {
-                        let numMissedPayments = this.getNumMissedPayments( mostRecentPayment );
-
-                        // If the person is ahead on payments, still show 0 rather than negative due
-                        if( numMissedPayments <= 0 )
-                            numMissedPayments = 0;
-
-                        unit.estBalance = numMissedPayments * unit.assessment;
-                    }
-                    else
-                        unit.estBalance = undefined;
+                    unit.estBalance = this.getEstimatedBalance( unit );
                 } );
 
                 this.totalEstBalance = paymentInfo.units
@@ -739,23 +729,83 @@
         }
 
 
-        getNumMissedPayments( mostRecentPayment: AssessmentPayment )
+        /**
+         * Determine the number of pay periods between two periods. For example, Jan 2023 to
+         * Mar 2023 would be 1.
+         */
+        getNumPaymentsBetween( start: PeriodYear, end: PeriodYear ): number
         {
-            const todaysPayPeriod = this.getTodaysPayPeriod();
+            if( start.year === end.year )
+                return end.periodValue - start.periodValue;
 
-            if( mostRecentPayment.year === todaysPayPeriod.yearValue )
-            {
-                return todaysPayPeriod.periodValue - mostRecentPayment.period;
-            }
-            else
-            {
-                const numYearsBack = todaysPayPeriod.yearValue - mostRecentPayment.year;
-                const yearsPaymentsMissed = ( numYearsBack - 1 ) * this.maxPeriodRange;
-                const periodsMissedForRecentYear = this.maxPeriodRange - mostRecentPayment.period;
-                return todaysPayPeriod.periodValue + yearsPaymentsMissed + periodsMissedForRecentYear;
-            }
+            const numYearsBack = end.year - start.year;
+            const yearsPaymentsMissed = ( numYearsBack - 1 ) * this.maxPeriodRange;
+            const periodsForStartYear = this.maxPeriodRange - start.periodValue;
 
-            return 0;
+            // Subtract to not include the end date
+            return ( end.periodValue + yearsPaymentsMissed + periodsForStartYear ) - 1;
+        }
+
+
+        getEstimatedBalance( unit: UnitWithPayment ) : number | undefined
+        {
+            const mostRecentPayment = unit.allPayments.find( p => p.isPaid );
+            if( !mostRecentPayment )
+                return undefined;
+
+            const paidEntries = unit.allPayments.filter( p => p.isPaid );
+            const oldestPayment = paidEntries[paidEntries.length - 1];
+            const startPeriod = new PeriodYear( oldestPayment.period, oldestPayment.year );
+
+            // Add 2 to include the start and end pay periods
+            const totalNumPayPeriods = this.getNumPaymentsBetween( startPeriod, this.todaysPayPeriod ) + 2;
+            const totalNumPayments = paidEntries.length;
+
+            if( unit.name === "C" )
+                console.log( "unit c", startPeriod, this.todaysPayPeriod, totalNumPayPeriods, totalNumPayments );
+
+            const estBalance = ( totalNumPayPeriods - totalNumPayments ) * unit.assessment;
+
+            // If the person is ahead on payments, still show 0 rather than negative due
+            if( estBalance < 0 )
+                return 0;
+
+            return estBalance;
+            //let numMissedPayments = 0;
+            //const todaysPayPeriod = this.getTodaysPayPeriod();
+
+            //if( mostRecentPayment.year === todaysPayPeriod.year )
+            //{
+            //    return todaysPayPeriod.periodValue - mostRecentPayment.period;
+            //}
+            //else
+            //{
+            //    const numYearsBack = todaysPayPeriod.year - mostRecentPayment.year;
+            //    const yearsPaymentsMissed = ( numYearsBack - 1 ) * this.maxPeriodRange;
+            //    const periodsMissedForRecentYear = this.maxPeriodRange - mostRecentPayment.period;
+            //    return todaysPayPeriod.periodValue + yearsPaymentsMissed + periodsMissedForRecentYear;
+            //}
+
+
+
+            //if( mostRecentPayment )
+            //{
+            //    let numMissedPayments = this.getEstimatedBalance( unit );
+
+            //    // If the person is ahead on payments, still show 0 rather than negative due
+            //    if( numMissedPayments <= 0 )
+            //        numMissedPayments = 0;
+
+            //    unit.estBalance = numMissedPayments * unit.assessment;
+            //}
+            //else
+            //    unit.estBalance = undefined;
+
+
+
+            
+
+            //return 0;
         }
 
 
