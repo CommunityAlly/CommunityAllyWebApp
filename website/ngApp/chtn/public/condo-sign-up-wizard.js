@@ -278,6 +278,9 @@ var Ally;
                             category: "SignUp",
                             label: "Success"
                         });
+                    // Track Condo Ally sign-up with Fathom
+                    if (typeof window.fathom === "object")
+                        window.fathom.trackGoal('FIEMVITM', _this.numUnits * 100); // * 100 to convert "cents" to whole numbers
                     // Log this as a conversion
                     //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
                     //    ( <any>window ).goog_report_conversion();

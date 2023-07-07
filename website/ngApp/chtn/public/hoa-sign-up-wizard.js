@@ -100,6 +100,7 @@ var Ally;
          * Perform initialization to create the map and hook up address autocomplete
          */
         HoaSignUpWizardController.prototype.initMapStep = function () {
+            var _this = this;
             if (typeof (window.analytics) !== "undefined")
                 window.analytics.track("condoSignUpStarted");
             this.showMap = true;
@@ -116,24 +117,23 @@ var Ally;
             });
             // Occurs when the user selects a Google suggested address
             if (this.addressAutocomplete) {
-                var innerThis = this;
-                var onPlaceChanged = function () {
-                    innerThis.setPlaceWasSelected();
+                var onPlaceChanged_1 = function () {
+                    _this.setPlaceWasSelected();
                     //infowindow.close();
-                    innerThis.mapMarker.setVisible(false);
-                    var place = innerThis.addressAutocomplete.getPlace();
+                    _this.mapMarker.setVisible(false);
+                    var place = _this.addressAutocomplete.getPlace();
                     var readableAddress = place.formatted_address;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    _this.signUpInfo.streetAddress = readableAddress;
                     if (!place.geometry)
                         return;
-                    innerThis.setEditPolyForAddress(place.geometry.location);
-                    innerThis.centerMap(place.geometry);
+                    _this.setEditPolyForAddress(place.geometry.location);
+                    _this.centerMap(place.geometry);
                 };
                 this.addressAutocomplete.addListener('place_changed', function () {
-                    innerThis.$scope.$apply(onPlaceChanged);
+                    _this.$scope.$apply(onPlaceChanged_1);
                 });
             }
         };
@@ -154,12 +154,12 @@ var Ally;
          * Occurs when the user selects an address from the Google suggestions
          */
         HoaSignUpWizardController.prototype.setPlaceWasSelected = function () {
+            var _this = this;
             this.placeWasSelected = true;
             this.shouldCheckAddress = false;
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
             setTimeout(function () {
-                innerThis.placeWasSelected = true;
+                _this.placeWasSelected = true;
             }, 500);
         };
         /**
@@ -181,11 +181,11 @@ var Ally;
          * Refresh the map to center typed in address
          */
         HoaSignUpWizardController.prototype.refreshMapForAddress = function () {
+            var _this = this;
             this.isLoadingMap = true;
-            var innerThis = this;
             HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
-                innerThis.$scope.$apply(function () {
-                    innerThis.isLoadingMap = false;
+                _this.$scope.$apply(function () {
+                    _this.isLoadingMap = false;
                     if (status != google.maps.GeocoderStatus.OK) {
                         //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
                         return;
@@ -194,11 +194,11 @@ var Ally;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    _this.signUpInfo.streetAddress = readableAddress;
                     if (!results[0].geometry)
                         return;
-                    innerThis.setEditPolyForAddress(results[0].geometry.location);
-                    innerThis.centerMap(results[0].geometry);
+                    _this.setEditPolyForAddress(results[0].geometry.location);
+                    _this.centerMap(results[0].geometry);
                 });
             });
         };
@@ -232,6 +232,15 @@ var Ally;
                         window.goog_report_conversion();
                     if (_this.signUpInfo.referralSource && typeof (window.capterra_trackingListener_v2) !== "undefined")
                         window.capterra_trackingListener_v2();
+                    // Track HOA Ally sign-up with Fathom
+                    if (typeof window.fathom === "object") {
+                        var numHomesInt = parseInt(_this.signUpInfo.numHomes);
+                        if (isNaN(numHomesInt))
+                            numHomesInt = 0;
+                        else
+                            numHomesInt *= 100; // * 100 to convert "cents" to whole numbers
+                        window.fathom.trackGoal('I6WZZSMM', numHomesInt);
+                    }
                     // Or if the user created an active signUpResult
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         // Delay just a bit to let the Capterra tracking log, if needed

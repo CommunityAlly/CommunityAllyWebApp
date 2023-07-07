@@ -103,7 +103,7 @@ namespace Ally
                 return;
             }
 
-            let shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf( "condo" ) !== -1;
+            const shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf( "condo" ) !== -1;
 
             if( shouldShowCondoMessage && !this.shouldShowCondoMessage )
                 $( "#suggestCondoMessageLabel" ).css( "font-size", "1.3em" ).css( "margin", "25px auto" ).addClass( "alert alert-warning" ).fadeIn( 200 ).fadeOut( 200 ).fadeIn( 200 ).fadeOut( 200 ).fadeIn( 200 ).fadeIn( 200 ).fadeOut( 200 ).fadeIn( 200 );
@@ -142,7 +142,7 @@ namespace Ally
 
             this.showMap = true;
 
-            var addressInput = <HTMLInputElement>document.getElementById( "association-address-text-box" );
+            const addressInput = document.getElementById( "association-address-text-box" ) as HTMLInputElement;
             if( addressInput )
             {
                 this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput );
@@ -159,36 +159,32 @@ namespace Ally
             // Occurs when the user selects a Google suggested address
             if( this.addressAutocomplete )
             {
-                var innerThis = this;
-
-                var onPlaceChanged = function()
+                const onPlaceChanged = () =>
                 {
-                    innerThis.setPlaceWasSelected();
+                    this.setPlaceWasSelected();
 
                     //infowindow.close();
-                    innerThis.mapMarker.setVisible( false );
-                    var place = innerThis.addressAutocomplete.getPlace();
-
-
-                    var readableAddress = place.formatted_address;
+                    this.mapMarker.setVisible( false );
+                    const place = this.addressAutocomplete.getPlace();
+                    let readableAddress = place.formatted_address;
 
                     // Remove the trailing country if it's USA
                     if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
                         readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    this.signUpInfo.streetAddress = readableAddress;
 
                     if( !place.geometry )
                         return;
 
-                    innerThis.setEditPolyForAddress( place.geometry.location );
+                    this.setEditPolyForAddress( place.geometry.location );
 
-                    innerThis.centerMap( place.geometry );
+                    this.centerMap( place.geometry );
                 };
 
-                this.addressAutocomplete.addListener( 'place_changed', function()
+                this.addressAutocomplete.addListener( 'place_changed', () =>
                 {
-                    innerThis.$scope.$apply( onPlaceChanged );
+                    this.$scope.$apply( onPlaceChanged );
                 } );
             }
         }
@@ -223,10 +219,9 @@ namespace Ally
             this.shouldCheckAddress = false;
 
             // Clear the flag in case the user types in a new address
-            var innerThis = this;
-            setTimeout( function()
+            setTimeout( () =>
             {
-                innerThis.placeWasSelected = true;
+                this.placeWasSelected = true;
             }, 500 );
         }
 
@@ -236,8 +231,8 @@ namespace Ally
          */
         setEditPolyForAddress( homePos: google.maps.LatLng )
         {
-            var OffsetLat = 0.001;
-            var OffsetLon = 0.0014;
+            const OffsetLat = 0.001;
+            const OffsetLon = 0.0014;
 
             this.hoaPoly = {
                 vertices: [
@@ -258,12 +253,11 @@ namespace Ally
         {
             this.isLoadingMap = true;
 
-            var innerThis = this;
-            HtmlUtil.geocodeAddress( this.signUpInfo.streetAddress, function( results, status )
+            HtmlUtil.geocodeAddress( this.signUpInfo.streetAddress, ( results, status ) =>
             {
-                innerThis.$scope.$apply( function()
+                this.$scope.$apply( () =>
                 {
-                    innerThis.isLoadingMap = false;
+                    this.isLoadingMap = false;
 
                     if( status != google.maps.GeocoderStatus.OK )
                     {
@@ -271,20 +265,20 @@ namespace Ally
                         return;
                     }
 
-                    var readableAddress = results[0].formatted_address;
+                    let readableAddress = results[0].formatted_address;
 
                     // Remove the trailing country if it's USA
                     if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
                         readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                    this.signUpInfo.streetAddress = readableAddress;
 
                     if( !results[0].geometry )
                         return;
 
-                    innerThis.setEditPolyForAddress( results[0].geometry.location );
+                    this.setEditPolyForAddress( results[0].geometry.location );
 
-                    innerThis.centerMap( results[0].geometry );
+                    this.centerMap( results[0].geometry );
                 } );
             } );
         }
@@ -334,6 +328,17 @@ namespace Ally
                         if( this.signUpInfo.referralSource && typeof ( ( <any>window ).capterra_trackingListener_v2 ) !== "undefined" )
                             ( <any>window ).capterra_trackingListener_v2();
 
+                        // Track HOA Ally sign-up with Fathom
+                        if( typeof ( window as any ).fathom === "object" )
+                        {
+                            let numHomesInt = parseInt( this.signUpInfo.numHomes );
+                            if( isNaN( numHomesInt ) )
+                                numHomesInt = 0;
+                            else
+                                numHomesInt *= 100; // * 100 to convert "cents" to whole numbers
+
+                            ( window as any ).fathom.trackGoal( 'I6WZZSMM', numHomesInt );
+                        }
                         // Or if the user created an active signUpResult
                         if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
                         {

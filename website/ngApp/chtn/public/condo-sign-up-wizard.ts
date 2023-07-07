@@ -389,6 +389,10 @@ namespace Ally
                                 label: "Success"
                             } );
 
+                        // Track Condo Ally sign-up with Fathom
+                        if( typeof ( window as any ).fathom === "object" )
+                            ( window as any ).fathom.trackGoal( 'FIEMVITM', this.numUnits * 100 ); // * 100 to convert "cents" to whole numbers
+
                         // Log this as a conversion
                         //if( typeof ( ( <any>window ).goog_report_conversion ) !== "undefined" )
                         //    ( <any>window ).goog_report_conversion();
