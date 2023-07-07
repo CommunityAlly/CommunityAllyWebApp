@@ -226,6 +226,7 @@ var Ally;
                         { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false },
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
+                        { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -466,6 +467,12 @@ var Ally;
             return this.$http.get("/api/Residents").then(function (response) {
                 _this.isLoading = false;
                 var residentArray = response.data;
+                // The addedDateUtc property was added after we had associations setup so some
+                // dates come down as DateTime.Min. Replace those with the add date.
+                residentArray.forEach(function (r) {
+                    if (r.addedDateUtc && moment(r.addedDateUtc).isBefore(_this.siteInfo.privateSiteInfo.creationDate))
+                        r.addedDateUtc = _this.siteInfo.privateSiteInfo.creationDate;
+                });
                 _this.residentGridOptions.data = residentArray;
                 _this.residentGridOptions.minRowsToShow = residentArray.length;
                 _this.residentGridOptions.virtualizationThreshold = residentArray.length;
@@ -564,6 +571,33 @@ var Ally;
             $("#editUserForm").validate();
             if (!$("#editUserForm").valid())
                 return;
+            // If the resident's first name or email has changed and the resident has been here
+            // more than 2 weeks, warn the editor they should add new residents, not edit existing
+            var addedMoment = moment(this.editUser.addedDateUtc);
+            var twoWeeksAgoMoment = moment().subtract(2, "weeks");
+            if (addedMoment.isBefore(twoWeeksAgoMoment)) {
+                var originalUser = this.residentGridOptions.data.find(function (u) { return u.userId === _this.editUser.userId; });
+                if (originalUser.firstName !== this.editUser.firstName || originalUser.email !== this.editUser.email) {
+                    var confirmMsg = "You're editing a resident's information in a way that looks like you're actually trying to add a new resident to your group. It's VERY IMPORTANT that new residents are added via the 'Add Resident' button rather than edit an existing resident. Hit cancel if you're trying to add a new resident and we'll automatically pop-up a new window to add a resident with this data.";
+                    if (!confirm(confirmMsg)) {
+                        // Copy the front page data
+                        var newUserInfo = new UpdateResident();
+                        newUserInfo.shouldSendWelcomeEmail = false;
+                        newUserInfo.firstName = this.editUser.firstName;
+                        newUserInfo.lastName = this.editUser.lastName;
+                        newUserInfo.email = this.editUser.email;
+                        newUserInfo.phoneNumber = this.editUser.phoneNumber;
+                        newUserInfo.boardPosition = this.editUser.boardPosition;
+                        newUserInfo.isRenter = this.editUser.isRenter;
+                        newUserInfo.singleUnitId = this.editUser.singleUnitId;
+                        newUserInfo.units = _.clone(this.editUser.units);
+                        newUserInfo.units.forEach(function (u) { return delete u.userId; }); // Don't use the edit user's user ID
+                        newUserInfo.showAdvancedHomePicker = this.editUser.showAdvancedHomePicker;
+                        this.setEdit(newUserInfo);
+                        return;
+                    }
+                }
+            }
             // If the logged-in user is editing their own user
             if (this.editUser.userId === this.$rootScope.userInfo.userId) {
                 // If the user is removing their ability to manage the site
@@ -1125,6 +1159,12 @@ var Ally;
             // Refresh the page, but don't save the grid state on exit
             this.shouldSaveResidentGridState = false;
             window.location.reload();
+        };
+        ManageResidentsController.prototype.onAddNewMember = function () {
+            var newUserInfo = new UpdateResident();
+            newUserInfo.boardPosition = 0;
+            newUserInfo.shouldSendWelcomeEmail = false;
+            this.setEdit(newUserInfo);
         };
         ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
         ManageResidentsController.StoreKeyResidentGridState = "AllyResGridState";

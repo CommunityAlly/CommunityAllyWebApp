@@ -58,7 +58,7 @@
                 <tbody data-ng-if="$ctrl.showRowType === 'unit'">
                     <tr data-ng-repeat="unit in $ctrl.nameSortedUnitPayments" ng-init="unitIndex = $index">
                         <td class="text-bold text-end">
-                            {{ unit.name }}
+                            <span title="{{ unit.unitId }}">{{ unit.name }}</span>
                             <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
                         </td>
                         <td data-ng-if="$ctrl.shouldShowBalanceCol">
@@ -170,7 +170,7 @@
                     </div>
 
                     <div>
-                        <label class="form-label">Payer notes:</label>
+                        <label class="form-label" title="PP: {{$ctrl.editPayment.payment.paymentId}}, PI: {{$ctrl.editPayment.payment.paymentsInfoId}}">Payer notes:</label>
                         <textarea class="form-control" data-ng-model="$ctrl.editPayment.payment.payerNotes" rows="2" readonly="readonly" disabled></textarea>
                     </div>
 

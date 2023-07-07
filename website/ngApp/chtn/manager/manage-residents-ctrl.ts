@@ -351,6 +351,7 @@ namespace Ally
                         { field: 'isSiteManager', displayName: 'Admin', width: 80, cellClass: "resident-cell-site-manager", cellTemplate: '<div class="ui-grid-cell-contents" style="text-align:center; padding-top: 8px;"><input type="checkbox" disabled="disabled" data-ng-checked="row.entity.isSiteManager"></div>', enableFiltering: false },
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
+                        { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                     ],
                 multiSelect: false,
                 enableSorting: true,
@@ -677,6 +678,15 @@ namespace Ally
                 {
                     this.isLoading = false;
                     const residentArray = response.data;
+
+                    // The addedDateUtc property was added after we had associations setup so some
+                    // dates come down as DateTime.Min. Replace those with the add date.
+                    residentArray.forEach( r =>
+                    {
+                        if( r.addedDateUtc && moment( r.addedDateUtc ).isBefore( this.siteInfo.privateSiteInfo.creationDate ) )
+                            r.addedDateUtc = this.siteInfo.privateSiteInfo.creationDate;
+                    } );
+
                     this.residentGridOptions.data = residentArray;
                     this.residentGridOptions.minRowsToShow = residentArray.length;
                     this.residentGridOptions.virtualizationThreshold = residentArray.length;
@@ -821,6 +831,39 @@ namespace Ally
             $( "#editUserForm" ).validate();
             if( !$( "#editUserForm" ).valid() )
                 return;
+
+            // If the resident's first name or email has changed and the resident has been here
+            // more than 2 weeks, warn the editor they should add new residents, not edit existing
+            const addedMoment = moment( this.editUser.addedDateUtc );
+            const twoWeeksAgoMoment = moment().subtract( 2, "weeks" );
+            if( addedMoment.isBefore( twoWeeksAgoMoment ) )
+            {
+                const originalUser = ( this.residentGridOptions.data as UpdateResident[] ).find( u => u.userId === this.editUser.userId );
+                if( originalUser.firstName !== this.editUser.firstName || originalUser.email !== this.editUser.email )
+                {
+                    const confirmMsg = "You're editing a resident's information in a way that looks like you're actually trying to add a new resident to your group. It's VERY IMPORTANT that new residents are added via the 'Add Resident' button rather than edit an existing resident. Hit cancel if you're trying to add a new resident and we'll automatically pop-up a new window to add a resident with this data.";
+                    if( !confirm( confirmMsg ) )
+                    {
+                        // Copy the front page data
+                        const newUserInfo = new UpdateResident();
+                        newUserInfo.shouldSendWelcomeEmail = false;
+                        newUserInfo.firstName = this.editUser.firstName;
+                        newUserInfo.lastName = this.editUser.lastName;
+                        newUserInfo.email = this.editUser.email;
+                        newUserInfo.phoneNumber = this.editUser.phoneNumber;
+                        newUserInfo.boardPosition = this.editUser.boardPosition;
+                        newUserInfo.isRenter = this.editUser.isRenter;
+                        newUserInfo.singleUnitId = this.editUser.singleUnitId;
+                        newUserInfo.units = _.clone( this.editUser.units );
+                        newUserInfo.units.forEach( u => delete u.userId ); // Don't use the edit user's user ID
+                        newUserInfo.showAdvancedHomePicker = this.editUser.showAdvancedHomePicker;
+
+                        this.setEdit( newUserInfo );
+
+                        return;
+                    }
+                }
+            }
 
             // If the logged-in user is editing their own user
             if( this.editUser.userId === this.$rootScope.userInfo.userId )
@@ -1154,7 +1197,7 @@ namespace Ally
             ];
 
             const copiedMembers = _.clone( <any[]>this.residentGridOptions.data );
-            for( let member of copiedMembers )
+            for( const member of copiedMembers )
             {
                 member.Local_Unit = this.siteInfo.privateSiteInfo.ptaUnitId.toString();
                 member.Membership_Name = ( !member.firstName || member.firstName === "N/A" ) ? member.lastName : member.firstName;
@@ -1554,6 +1597,16 @@ namespace Ally
             // Refresh the page, but don't save the grid state on exit
             this.shouldSaveResidentGridState = false;
             window.location.reload();
+        }
+
+
+        onAddNewMember()
+        {
+            const newUserInfo = new UpdateResident();
+            newUserInfo.boardPosition = 0;
+            newUserInfo.shouldSendWelcomeEmail = false;
+
+            this.setEdit( newUserInfo );
         }
     }
 }

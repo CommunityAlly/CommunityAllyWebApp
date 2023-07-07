@@ -39,7 +39,7 @@
     </div>
 
     <div class="clearfix">
-        <button class="btn btn-primary pull-right" data-ng-click="$ctrl.setEdit( {boardPosition:0, shouldSendWelcomeEmail: false} );">Add New {{ $ctrl.showIsRenter ? 'Resident' : 'Member' }}</button>
+        <button class="btn btn-primary pull-right" data-ng-click="$ctrl.onAddNewMember()">Add New {{ $ctrl.showIsRenter ? 'Resident' : 'Member' }}</button>
     </div>
 
     <div data-ui-grid="$ctrl.residentGridOptions" ui-grid-save-state data-ui-grid-selection ui-grid-resize-columns ui-grid-auto-resize class="gridStyle margin-top-20"></div>
@@ -80,7 +80,8 @@
             <div class="loading-overlay" data-ng-show="$ctrl.isSavingUser"></div>
 
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.setEdit( null )">&times;</span>
-            <h2>{{$ctrl.memberTypeLabel}} Details</h2>
+            <h2 data-ng-if="$ctrl.editUser.userId">Edit {{$ctrl.memberTypeLabel}} Details</h2>
+            <h2 data-ng-if="!$ctrl.editUser.userId">Add New {{$ctrl.memberTypeLabel}}</h2>
 
             <div>
                 <ul class="nav nav-pills justify-content-center">
