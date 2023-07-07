@@ -312,7 +312,7 @@ namespace Ally
 
         onWelcomeMessageEdit()
         {
-            const MaxWelcomeLength = 4000;
+            const MaxWelcomeLength = 10000;
             const welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         }

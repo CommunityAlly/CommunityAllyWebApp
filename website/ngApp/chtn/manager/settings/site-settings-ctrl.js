@@ -216,7 +216,7 @@ var Ally;
             window.location.reload(true);
         };
         ChtnSettingsController.prototype.onWelcomeMessageEdit = function () {
-            var MaxWelcomeLength = 4000;
+            var MaxWelcomeLength = 10000;
             var welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         };
