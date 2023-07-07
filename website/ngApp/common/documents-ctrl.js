@@ -147,7 +147,9 @@ var Ally;
             // browsers can display directly
             if (this.getDisplayExtension(curFile) === ".rtf")
                 isForDownload = true;
+            // Increment the local view count for fast feedback
             ++curFile.numViews;
+            // If we're viewing the document in the browser, test if pop-ups are blocked
             if (!isForDownload) {
                 viewDocWindow = window.open('', '_blank');
                 var wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
@@ -549,54 +551,11 @@ var Ally;
                 });
             }
         };
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Get the icon for a file
-        ///////////////////////////////////////////////////////////////////////////////////////////////
         DocumentsController.prototype.getFileIcon = function (fileName) {
-            if (!fileName)
-                return "";
-            var extension = fileName.split('.').pop().toLowerCase();
-            var imagePath = null;
-            switch (extension) {
-                case "pdf":
-                    imagePath = "PdfIcon.png";
-                    break;
-                case "doc":
-                case "docx":
-                    imagePath = "WordIcon.png";
-                    break;
-                case "xls":
-                case "xlsx":
-                    imagePath = "ExcelIcon.png";
-                    break;
-                case "ppt":
-                case "pptx":
-                    imagePath = "PptxIcon.png";
-                    break;
-                case "jpeg":
-                case "jpe":
-                case "jpg":
-                case "png":
-                case "bmp":
-                    imagePath = "ImageIcon.png";
-                    break;
-                case "zip":
-                    imagePath = "ZipIcon.png";
-                    break;
-                case "txt":
-                    imagePath = "TxtIcon.png";
-                    break;
-                case "mp4":
-                    imagePath = "Mp4Icon.png";
-                    break;
-                default:
-                    imagePath = "GenericFileIcon.png";
-                    break;
-            }
-            return "/assets/images/FileIcons/" + imagePath;
+            return Ally.HtmlUtil2.getFileIcon(fileName);
         };
         DocumentsController.prototype.isGenericIcon = function (file) {
-            var iconFilePath = this.getFileIcon(file.fileName);
+            var iconFilePath = Ally.HtmlUtil2.getFileIcon(file.fileName);
             var GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
             return iconFilePath === GenericIconPath;
         };
@@ -678,6 +637,7 @@ var Ally;
         DocumentsController.LocalStorageKey_SortType = "DocsInfo_FileSortType";
         DocumentsController.LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         DocumentsController.DirName_Committees = "Committees_Root";
+        DocumentsController.ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
         return DocumentsController;
     }());
     Ally.DocumentsController = DocumentsController;

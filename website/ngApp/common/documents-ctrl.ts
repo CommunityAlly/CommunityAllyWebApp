@@ -70,6 +70,7 @@ namespace Ally
         static LocalStorageKey_SortType = "DocsInfo_FileSortType";
         static LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
         static DirName_Committees = "Committees_Root";
+        static ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
 
         documentTree: DocumentDirectory;
         selectedDirectory: DocumentDirectory;
@@ -238,8 +239,10 @@ namespace Ally
             if( this.getDisplayExtension( curFile ) === ".rtf" )
                 isForDownload = true;
 
+            // Increment the local view count for fast feedback
             ++curFile.numViews;
 
+            // If we're viewing the document in the browser, test if pop-ups are blocked
             if( !isForDownload )
             {
                 viewDocWindow = window.open( '', '_blank' );
@@ -829,70 +832,15 @@ namespace Ally
         }
 
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Get the icon for a file
-        ///////////////////////////////////////////////////////////////////////////////////////////////
         getFileIcon( fileName: string )
         {
-            if( !fileName )
-                return "";
-
-            const extension = fileName.split( '.' ).pop().toLowerCase();
-            let imagePath = null;
-
-            switch( extension )
-            {
-                case "pdf":
-                    imagePath = "PdfIcon.png";
-                    break;
-
-                case "doc":
-                case "docx":
-                    imagePath = "WordIcon.png";
-                    break;
-
-                case "xls":
-                case "xlsx":
-                    imagePath = "ExcelIcon.png";
-                    break;
-
-                case "ppt":
-                case "pptx":
-                    imagePath = "PptxIcon.png";
-                    break;
-
-                case "jpeg":
-                case "jpe":
-                case "jpg":
-                case "png":
-                case "bmp":
-                    imagePath = "ImageIcon.png";
-                    break;
-
-                case "zip":
-                    imagePath = "ZipIcon.png";
-                    break;
-
-                case "txt":
-                    imagePath = "TxtIcon.png";
-                    break;
-
-                case "mp4":
-                    imagePath = "Mp4Icon.png";
-                    break;
-
-                default:
-                    imagePath = "GenericFileIcon.png";
-                    break;
-            }
-
-            return "/assets/images/FileIcons/" + imagePath;
+            return HtmlUtil2.getFileIcon( fileName );
         }
 
 
         isGenericIcon( file: DocumentTreeFile )
         {
-            const iconFilePath = this.getFileIcon( file.fileName );
+            const iconFilePath = HtmlUtil2.getFileIcon( file.fileName );
             const GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
             return iconFilePath === GenericIconPath;
         }

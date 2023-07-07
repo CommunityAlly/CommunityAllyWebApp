@@ -186,6 +186,7 @@
                     <h4>Document Storage Usage</h4>
                     <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments > 0">
                         Your association is storing <span class="fw-bold">{{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024) | number : 2}}</span> MB across <span class="fw-bold">{{$ctrl.meteredUsage.totalNumDocuments}}</span> file{{$ctrl.meteredUsage.totalNumDocuments === 1 ? '' : 's'}}.
+                        Files are stored in your documents page or as attachments to discussion threads. Reach out if you need help reducing your storage usage.
                     </div>
                     <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments === 0">
                         Your association is not storing any documents.

@@ -328,11 +328,13 @@ var Ally;
                     tinymce.remove();
                     var menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
                     var toolbar = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.toolbar : "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table";
+                    var autoFocusElemId = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.autoFocusElemId : undefined;
                     tinymce.init({
                         selector: '#' + elemId,
+                        auto_focus: autoFocusElemId,
                         menubar: menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
-                        plugins: 'image link autolink lists media table code',
+                        plugins: 'image link autolink lists media table code emoticons',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
                         toolbar: toolbar,
                         //toolbar_mode: 'floating',
@@ -438,6 +440,54 @@ var Ally;
                 }, 100);
             });
             return mcePromise;
+        };
+        /**
+         * Get the icon for a file
+         * @param fileName The full path, file name, extension, or extension with dot
+         * @returns A path to the image file for this type
+         */
+        HtmlUtil2.getFileIcon = function (fileName) {
+            if (!fileName)
+                fileName = "";
+            var extension = fileName.split('.').pop().toLowerCase();
+            var imagePath = null;
+            switch (extension) {
+                case "pdf":
+                    imagePath = "PdfIcon.png";
+                    break;
+                case "doc":
+                case "docx":
+                    imagePath = "WordIcon.png";
+                    break;
+                case "xls":
+                case "xlsx":
+                    imagePath = "ExcelIcon.png";
+                    break;
+                case "ppt":
+                case "pptx":
+                    imagePath = "PptxIcon.png";
+                    break;
+                case "jpeg":
+                case "jpe":
+                case "jpg":
+                case "png":
+                case "bmp":
+                    imagePath = "ImageIcon.png";
+                    break;
+                case "zip":
+                    imagePath = "ZipIcon.png";
+                    break;
+                case "txt":
+                    imagePath = "TxtIcon.png";
+                    break;
+                case "mp4":
+                    imagePath = "Mp4Icon.png";
+                    break;
+                default:
+                    imagePath = "GenericFileIcon.png";
+                    break;
+            }
+            return "/assets/images/FileIcons/" + imagePath;
         };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"

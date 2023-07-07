@@ -97,7 +97,7 @@ namespace Ally
                         RichTextHelper.makeLinksOpenNewTab( "info-item-body-" + i );
                 }, 500 );
             });
-        };
+        }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ namespace Ally
         scrollToInfo( infoItemIndex: number )
         {
             document.getElementById( "info-item-title-" + infoItemIndex ).scrollIntoView();
-        };
+        }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ namespace Ally
 
             // Scroll down to the editor
             window.scrollTo( 0, document.body.scrollHeight );
-        };
+        }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ namespace Ally
             this.editingInfoItem.body = this.tinyMceEditor.getContent();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace( this.editingInfoItem.body );
 
-            var validateable: any = $( "#info-item-edit-form" );
+            const validateable: any = $( "#info-item-edit-form" );
             validateable.validate();
             if( !validateable.valid() || this.isBodyMissing )
                 return;
@@ -141,7 +141,7 @@ namespace Ally
 
             this.isLoadingInfo = true;
 
-            var onSave = () =>
+            const onSave = () =>
             {
                 this.isLoadingInfo = false;
                 this.tinyMceEditor.setContent( "" );
@@ -155,7 +155,7 @@ namespace Ally
                 this.retrieveInfo();
             };
 
-            var onError = () =>
+            const onError = () =>
             {
                 this.isLoadingInfo = false;
                 alert( "Failed to save your information. Please try again and if this happens again contact support." );

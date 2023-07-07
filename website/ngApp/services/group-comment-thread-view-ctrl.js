@@ -17,13 +17,17 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadViewController($http, $rootScope, siteInfo) {
+        function GroupCommentThreadViewController($http, $rootScope, siteInfo, $scope, $sce) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
+            this.$scope = $scope;
+            this.$sce = $sce;
             this.isLoading = false;
+            this.editCommentShouldRemoveAttachment = false;
             this.shouldShowAdminControls = false;
             this.digestFrequency = null;
+            this.shouldShowAddComment = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -34,12 +38,40 @@ var Ally;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.retrieveComments();
+            this.initCommentTinyMce("new-comment-tiny-mce-editor");
+        };
+        GroupCommentThreadViewController.prototype.initCommentTinyMce = function (elemId) {
+            var _this = this;
+            // Auto-focus on replies and edits
+            if (elemId === "reply-tiny-mce-editor" || elemId === "edit-tiny-mce-editor")
+                GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = elemId;
+            else
+                GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = undefined;
+            Ally.HtmlUtil2.initTinyMce(elemId, 200, GroupCommentThreadViewController.TinyMceSettings).then(function (e) {
+                if (elemId === "reply-tiny-mce-editor")
+                    _this.replyTinyMceEditor = e;
+                else if (elemId === "edit-tiny-mce-editor")
+                    _this.editTinyMceEditor = e;
+                else
+                    _this.newCommentTinyMceEditor = e;
+                // Hook up CTRL+enter to submit a comment
+                e.shortcuts.add('ctrl+13', 'CTRL ENTER to submit comment', function () {
+                    _this.$scope.$apply(function () {
+                        if (elemId === "reply-tiny-mce-editor")
+                            _this.submitReplyComment();
+                        else if (elemId === "edit-tiny-mce-editor")
+                            _this.submitCommentEdit();
+                        else
+                            _this.submitNewComment();
+                    });
+                });
+            });
         };
         /**
          * Handle the key down message on the message text area
          */
         GroupCommentThreadViewController.prototype.onTextAreaKeyDown = function (e, messageType) {
-            var keyCode = (e.keyCode ? e.keyCode : e.which);
+            // keyCode = ( e.keyCode ? e.keyCode : e.which );
             var KeyCode_Enter = 13;
             if (e.keyCode == KeyCode_Enter) {
                 e.preventDefault();
@@ -76,6 +108,7 @@ var Ally;
                 _this.commentsState = response.data;
                 var processComments = function (c) {
                     c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
+                    c.commentText = _this.$sce.trustAsHtml(c.commentText);
                     if (c.replies)
                         _.each(c.replies, processComments);
                 };
@@ -83,6 +116,7 @@ var Ally;
                 _this.commentsState.comments = _.sortBy(_this.commentsState.comments, function (ct) { return ct.postDateUtc; }).reverse();
             }, function (response) {
                 _this.isLoading = false;
+                alert("Failed to retrieve comments: " + response.data.exceptionMessage);
             });
         };
         /**
@@ -91,7 +125,9 @@ var Ally;
         GroupCommentThreadViewController.prototype.startReplyToComment = function (comment) {
             this.replyToCommentId = comment.commentId;
             this.replyCommentText = "";
-            setTimeout(function () { return $(".reply-to-textarea").focus(); }, 150);
+            this.editCommentId = -1;
+            this.shouldShowAddComment = false;
+            this.initCommentTinyMce("reply-tiny-mce-editor");
         };
         /**
          * Edit an existing comment
@@ -100,8 +136,11 @@ var Ally;
         GroupCommentThreadViewController.prototype.startEditComment = function (comment) {
             this.editCommentId = comment.commentId;
             this.editCommentText = comment.commentText;
+            this.editCommentShouldRemoveAttachment = false;
+            this.replyToCommentId = -1;
+            this.shouldShowAddComment = false;
+            this.initCommentTinyMce("edit-tiny-mce-editor");
         };
-        ;
         /**
          * Delete a comment
          */
@@ -154,13 +193,21 @@ var Ally;
             var _this = this;
             var editInfo = {
                 commentId: this.editCommentId,
-                newCommentText: this.editCommentText
+                newCommentText: this.editTinyMceEditor.getContent(),
+                shouldRemoveAttachment: this.editCommentShouldRemoveAttachment
             };
+            if (!editInfo.newCommentText) {
+                alert("Comments cannot be empty. If you want to delete the comment, click the delete button.");
+                return;
+            }
             this.isLoading = true;
             this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/EditComment", editInfo).then(function () {
                 _this.isLoading = false;
                 _this.editCommentId = -1;
                 _this.editCommentText = "";
+                _this.editCommentShouldRemoveAttachment = false;
+                _this.editTinyMceEditor.setContent("");
+                _this.removeAttachment();
                 _this.retrieveComments();
             }, function (response) {
                 _this.isLoading = false;
@@ -172,15 +219,26 @@ var Ally;
          */
         GroupCommentThreadViewController.prototype.submitReplyComment = function () {
             var _this = this;
-            var newComment = {
-                replyToCommentId: this.replyToCommentId,
-                commentText: this.replyCommentText
+            var replyCommentText = this.replyTinyMceEditor.getContent();
+            if (!replyCommentText) {
+                alert("Please enter some text to add a reply");
+                return;
+            }
+            var newCommentFormData = new FormData();
+            newCommentFormData.append("commentText", replyCommentText);
+            newCommentFormData.append("replyToCommentId", this.replyToCommentId.toString());
+            //newCommentFormData.append( "attachedFile", null );
+            //newCommentFormData.append( "attachedGroupDocId", null );
+            var putHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
             this.isLoading = true;
-            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/AddComment", newComment).then(function (response) {
+            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/AddCommentFromForm", newCommentFormData, putHeaders).then(function () {
                 _this.isLoading = false;
                 _this.replyToCommentId = -1;
                 _this.replyCommentText = "";
+                _this.replyTinyMceEditor.setContent("");
+                _this.removeAttachment();
                 _this.retrieveComments();
             }, function (response) {
                 _this.isLoading = false;
@@ -192,13 +250,25 @@ var Ally;
          */
         GroupCommentThreadViewController.prototype.submitNewComment = function () {
             var _this = this;
-            var newComment = {
-                commentText: this.newCommentText
+            var newCommentText = this.newCommentTinyMceEditor.getContent();
+            if (!newCommentText) {
+                alert("You must enter text to submit a comment");
+                return;
+            }
+            var newCommentFormData = new FormData();
+            newCommentFormData.append("commentText", newCommentText);
+            if (this.attachmentFile)
+                newCommentFormData.append("attachedFile", this.attachmentFile);
+            //newCommentFormData.append( "attachedGroupDocId", null );
+            var putHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
             this.isLoading = true;
-            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/AddComment", newComment).then(function (response) {
+            this.$http.put("/api/CommentThread/" + this.thread.commentThreadId + "/AddCommentFromForm", newCommentFormData, putHeaders).then(function () {
                 _this.isLoading = false;
                 _this.newCommentText = "";
+                _this.newCommentTinyMceEditor.setContent("");
+                _this.removeAttachment();
                 _this.retrieveComments();
             }, function (response) {
                 _this.isLoading = false;
@@ -218,7 +288,61 @@ var Ally;
                 Ally.HtmlUtil2.showTooltip($event.target, "Auto-copy failed, right-click and copy link address");
             return false;
         };
-        GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo"];
+        GroupCommentThreadViewController.prototype.showAddComment = function () {
+            this.shouldShowAddComment = true;
+            this.removeAttachment();
+            this.initCommentTinyMce("new-comment-tiny-mce-editor");
+        };
+        GroupCommentThreadViewController.prototype.cancelCommentEdit = function () {
+            this.editCommentId = -1;
+            this.removeAttachment();
+            this.showAddComment();
+        };
+        GroupCommentThreadViewController.prototype.cancelCommentReply = function () {
+            this.replyToCommentId = -1;
+            this.removeAttachment();
+            this.showAddComment();
+        };
+        GroupCommentThreadViewController.prototype.onFileAttached = function (event) {
+            this.attachmentFile = event.target.files[0];
+        };
+        GroupCommentThreadViewController.prototype.removeAttachment = function () {
+            this.attachmentFile = null;
+            var fileInput = document.getElementById("comment-attachment-input");
+            if (fileInput)
+                fileInput.value = null;
+        };
+        GroupCommentThreadViewController.prototype.getFileIcon = function (fileName) {
+            return Ally.HtmlUtil2.getFileIcon(fileName);
+        };
+        GroupCommentThreadViewController.prototype.onViewAttachedDoc = function (comment) {
+            var _this = this;
+            this.isLoading = true;
+            var viewDocWindow = window.open('', '_blank');
+            var wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
+            if (wasPopUpBlocked) {
+                alert("Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for " + AppConfig.appName + ".");
+                //this.showPopUpWarning = true;
+            }
+            else
+                viewDocWindow.document.write('Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)');
+            var viewUri = "/api/DocumentLink/DiscussionAttachment/" + comment.commentId;
+            this.$http.get(viewUri).then(function (response) {
+                _this.isLoading = false;
+                var s3Path = comment.attachedDocPath.substring("s3:".length);
+                var fileUri = "Documents/" + s3Path + "?vid=" + encodeURIComponent(response.data.vid);
+                fileUri = _this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
+                viewDocWindow.location.href = fileUri;
+            }, function (response) {
+                _this.isLoading = false;
+                alert("Failed to open document: " + response.data.exceptionMessage);
+            });
+        };
+        GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "$sce"];
+        GroupCommentThreadViewController.TinyMceSettings = {
+            menubar: false,
+            toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link emoticons"
+        };
         return GroupCommentThreadViewController;
     }());
     Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;

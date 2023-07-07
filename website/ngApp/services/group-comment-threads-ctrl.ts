@@ -29,7 +29,7 @@
         commentThreads: CommentThread[];
         showCreateNewModal: boolean = false;
         newThreadTitle: string;
-        newThreadBody: string;
+        newBodyMceEditor: ITinyMce;
         newThreadIsBoardOnly: boolean;
         newThreadIsReadOnly: boolean;
         shouldSendNoticeForNewThread: boolean;
@@ -41,6 +41,7 @@
         canCreateThreads: boolean = false;
         isDiscussionEmailEnabled: boolean = true;
         isPremiumPlanActive: boolean = false;
+        attachmentFile: File;
 
 
         /**
@@ -97,11 +98,12 @@
         {
             this.showCreateNewModal = shouldShow;
             this.newThreadTitle = "";
-            this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
             this.newThreadIsReadOnly = false;
             this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
+
+            HtmlUtil2.initTinyMce( "new-thread-body-rte", 200, GroupCommentThreadViewController.TinyMceSettings ).then( e => this.newBodyMceEditor = e );
 
             // If we're displaying the modal, focus on the title text box
             if( shouldShow )
@@ -146,25 +148,44 @@
 
         createNewThread()
         {
+            console.log( "In createNewThread" );
+
             this.isLoading = true;
             this.newThreadErrorMessage = null;
 
-            var createInfo = {
-                title: this.newThreadTitle,
-                body: this.newThreadBody,
-                isBoardOnly: this.newThreadIsBoardOnly,
-                isReadOnly: this.newThreadIsReadOnly,
-                shouldSendNotice: this.shouldSendNoticeForNewThread,
-                committeeId: this.committeeId
+            //const createInfo = {
+            //    title: this.newThreadTitle,
+            //    body: this.newBodyMceEditor.getContent(),
+            //    isBoardOnly: this.newThreadIsBoardOnly,
+            //    isReadOnly: this.newThreadIsReadOnly,
+            //    shouldSendNotice: this.shouldSendNoticeForNewThread,
+            //    committeeId: this.committeeId
+            //};
+
+            const newThreadFormData = new FormData();
+            newThreadFormData.append( "title", this.newThreadTitle );
+            newThreadFormData.append( "body", this.newBodyMceEditor.getContent() );
+            newThreadFormData.append( "isBoardOnly", this.newThreadIsBoardOnly.toString() );
+            newThreadFormData.append( "isReadOnly", this.newThreadIsReadOnly.toString() );
+            newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );
+
+            if( this.committeeId )
+                newThreadFormData.append( "committeeId", this.committeeId.toString() );
+
+            if( this.attachmentFile )
+                newThreadFormData.append( "attachedFile", this.attachmentFile );
+
+            const postHeaders: ng.IRequestShortcutConfig = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
 
-            this.$http.post( "/api/CommentThread", createInfo ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+            this.$http.post( "/api/CommentThread/CreateThreadFromForm", newThreadFormData, postHeaders ).then(
+                () =>
                 {
                     this.isLoading = false;
                     this.showCreateNewModal = false;
+                    this.removeAttachment();
                     this.refreshCommentThreads( false );
-
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -182,7 +203,7 @@
         {
             this.isLoading = true;
 
-            var getUri = "/api/CommentThread";
+            let getUri = "/api/CommentThread";
 
             if( retrieveArchived )
                 getUri += "/Archived";
@@ -220,6 +241,21 @@
             {
                 this.isLoading = false;
             } );
+        }
+
+
+        onFileAttached( event: Event )
+        {
+            this.attachmentFile = ( event.target as HTMLInputElement ).files[0];
+        }
+
+
+        removeAttachment()
+        {
+            this.attachmentFile = null;
+            const fileInput = document.getElementById( "comment-attachment-input" ) as HTMLInputElement;
+            if( fileInput )
+                fileInput.value = null;
         }
     }
 }

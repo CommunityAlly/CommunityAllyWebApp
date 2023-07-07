@@ -33,13 +33,23 @@
             </div>
         </div>
         
-        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc && !$ctrl.thread.isReadOnly">
-            Add New Comment:<br />
-            <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'new')" data-ng-model="$ctrl.newCommentText" maxlength="1000" placeholder="Enter your comment here" class="form-control"></textarea>
+        <div class="mt-2" data-ng-if="!$ctrl.thread.archiveDateUtc && !$ctrl.thread.isReadOnly && $ctrl.shouldShowAddComment">
+            <label>Add New Comment:</label><br />
+            <textarea id="new-comment-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitNewComment()" data-ng-model="$ctrl.newCommentText" maxlength="4000" placeholder="Enter your comment here" class="form-control"></textarea>
+
+            <div>
+                Optional Attachment: <input id="comment-attachment-input" type="file" on-file-change="$ctrl.onFileAttached($event)" /> <span data-ng-if="$ctrl.attachmentFile" class="text-link note-text" data-ng-click="$ctrl.removeAttachment()">Remove Attachment</span>
+            </div>
 
             <p class="text-end">
                 <button class="btn btn-primary" data-ng-click="$ctrl.submitNewComment()">Add Comment</button>
+                <br />
+                <span class="note-text" style="font-size: x-small;">Or CTRL+Enter</span>
             </p>
+        </div>
+
+        <div class="text-link mb-4" data-ng-if="!$ctrl.shouldShowAddComment" data-ng-click="$ctrl.showAddComment()">
+            Add New Comment
         </div>
 
         <div class="alert alert-info" data-ng-if="$ctrl.thread.archiveDateUtc">
@@ -65,13 +75,31 @@
                             - <span class="text-link" data-ng-click="$ctrl.deleteComment( comment )">Delete</span>
                         </span>
                     </p>
+                    <p data-ng-if="comment.commentId !== $ctrl.editCommentId" ng-bind-html="comment.commentText"></p>
 
-                    <p data-ng-if="comment.commentId !== $ctrl.editCommentId" style="white-space: pre-wrap;" ng-bind-html="comment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
+                    <div data-ng-if="comment.attachedDocPath && comment.attachedDocDisplayName" style="padding: 8px; border: 1px solid black; display: inline-block; border-radius: 5px; cursor: pointer" data-ng-click="$ctrl.onViewAttachedDoc(comment)" title="Open attachment '{{comment.attachedDocDisplayName}}'">
+                        <img id="File_{{ $index }}" class="file-thumbnail" ng-src="{{$ctrl.getFileIcon(comment.attachedDocDisplayName)}}" />
+                        {{comment.attachedDocDisplayName}}
+                    </div>
+
+                    <div data-ng-if="!comment.attachedDocPath && comment.attachedDocDisplayName" style="padding: 8px; border: 1px solid black; display: inline-block; border-radius: 5px;">
+                        Attachment was removed
+                    </div>
+
                     <div data-ng-if="comment.commentId === $ctrl.editCommentId">
-                        <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'edit')" data-ng-model="$ctrl.editCommentText" class="form-control"></textarea>
+                        <textarea id="edit-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" data-ng-model="$ctrl.editCommentText" class="form-control" maxlength="4000"></textarea>
+
+                        <div data-ng-if="comment.attachedDocPath && comment.attachedDocDisplayName && !$ctrl.editCommentShouldRemoveAttachment" class="text-link" data-ng-click="$ctrl.editCommentShouldRemoveAttachment = true">
+                            Remove attachment
+                        </div>
+
+                        <div data-ng-if="$ctrl.editCommentShouldRemoveAttachment" class="text-link" data-ng-click="$ctrl.editCommentShouldRemoveAttachment = false">
+                            Attachment will be removed (click to undo)
+                        </div>
+
                         <div style="text-align: right;">
                             <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()">Save Changes</button>
-                            <button class="btn btn-primary" data-ng-click="$ctrl.editCommentId = -1;">Cancel</button>
+                            <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentEdit()">Cancel</button>
                         </div>
                     </div>
 
@@ -97,12 +125,12 @@
                         </span>
                     </p>
 
-                    <p data-ng-if="replyComment.commentId !== $ctrl.editCommentId" style="white-space: pre-wrap;" ng-bind-html="replyComment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
+                    <p data-ng-if="replyComment.commentId !== $ctrl.editCommentId" ng-bind-html="replyComment.commentText"></p>
                     <div data-ng-if="replyComment.commentId === $ctrl.editCommentId">
-                        <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'edit')" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="1000"></textarea>
+                        <textarea id="edit-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="4000"></textarea>
                         <div style="text-align: right;">
                             <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()">Save Changes</button>
-                            <button class="btn btn-primary" data-ng-click="$ctrl.editCommentId = -1;">Cancel</button>
+                            <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentEdit()">Cancel</button>
                         </div>
                     </div>
 
@@ -114,10 +142,10 @@
             </p>
 
             <div data-ng-show="$ctrl.replyToCommentId === comment.commentId" class="mt-3">
-                <textarea data-ng-keydown="$ctrl.onTextAreaKeyDown($event, 'reply')" class="form-control reply-to-textarea" data-ng-model="$ctrl.replyCommentText" maxlength="1000" placeholder="Enter your reply here"></textarea>
+                <textarea id="reply-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitReplyComment()" class="form-control reply-to-textarea" data-ng-model="$ctrl.replyCommentText" maxlength="4000" placeholder="Enter your reply here"></textarea>
                 <div class="text-end">
                     <button class="btn btn-primary" data-ng-click="$ctrl.submitReplyComment()">Add Comment</button>
-                    <button class="btn btn-primary" data-ng-click="$ctrl.replyToCommentId = -1;">Cancel</button>
+                    <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentReply()">Cancel</button>
                 </div>
             </div>
 
@@ -125,7 +153,7 @@
                 This is a read-only discussion thread to serve as a notice and does not allow comments.
             </div>
 
-            <hr data-ng-if="$index < $ctrl.commentsState.comments.length - 1" />
+            <hr data-ng-if="$index < $ctrl.commentsState.comments.length - 1" class="mt-4 mb-4" />
         </div>
     </div>
 </div>

@@ -57,13 +57,14 @@ var Ally;
             this.refreshCommentThreads(false);
         };
         GroupCommentThreadsController.prototype.setDisplayCreateModal = function (shouldShow) {
+            var _this = this;
             this.showCreateNewModal = shouldShow;
             this.newThreadTitle = "";
-            this.newThreadBody = "";
             this.newThreadIsBoardOnly = false;
             this.newThreadIsReadOnly = false;
             this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
+            Ally.HtmlUtil2.initTinyMce("new-thread-body-rte", 200, Ally.GroupCommentThreadViewController.TinyMceSettings).then(function (e) { return _this.newBodyMceEditor = e; });
             // If we're displaying the modal, focus on the title text box
             if (shouldShow)
                 setTimeout(function () { return $("#new-thread-title-text-box").focus(); }, 100);
@@ -91,19 +92,34 @@ var Ally;
         };
         GroupCommentThreadsController.prototype.createNewThread = function () {
             var _this = this;
+            console.log("In createNewThread");
             this.isLoading = true;
             this.newThreadErrorMessage = null;
-            var createInfo = {
-                title: this.newThreadTitle,
-                body: this.newThreadBody,
-                isBoardOnly: this.newThreadIsBoardOnly,
-                isReadOnly: this.newThreadIsReadOnly,
-                shouldSendNotice: this.shouldSendNoticeForNewThread,
-                committeeId: this.committeeId
+            //const createInfo = {
+            //    title: this.newThreadTitle,
+            //    body: this.newBodyMceEditor.getContent(),
+            //    isBoardOnly: this.newThreadIsBoardOnly,
+            //    isReadOnly: this.newThreadIsReadOnly,
+            //    shouldSendNotice: this.shouldSendNoticeForNewThread,
+            //    committeeId: this.committeeId
+            //};
+            var newThreadFormData = new FormData();
+            newThreadFormData.append("title", this.newThreadTitle);
+            newThreadFormData.append("body", this.newBodyMceEditor.getContent());
+            newThreadFormData.append("isBoardOnly", this.newThreadIsBoardOnly.toString());
+            newThreadFormData.append("isReadOnly", this.newThreadIsReadOnly.toString());
+            newThreadFormData.append("shouldSendNotice", this.shouldSendNoticeForNewThread.toString());
+            if (this.committeeId)
+                newThreadFormData.append("committeeId", this.committeeId.toString());
+            if (this.attachmentFile)
+                newThreadFormData.append("attachedFile", this.attachmentFile);
+            var postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
-            this.$http.post("/api/CommentThread", createInfo).then(function (response) {
+            this.$http.post("/api/CommentThread/CreateThreadFromForm", newThreadFormData, postHeaders).then(function () {
                 _this.isLoading = false;
                 _this.showCreateNewModal = false;
+                _this.removeAttachment();
                 _this.refreshCommentThreads(false);
             }, function (response) {
                 _this.isLoading = false;
@@ -143,6 +159,15 @@ var Ally;
             }, function (response) {
                 _this.isLoading = false;
             });
+        };
+        GroupCommentThreadsController.prototype.onFileAttached = function (event) {
+            this.attachmentFile = event.target.files[0];
+        };
+        GroupCommentThreadsController.prototype.removeAttachment = function () {
+            this.attachmentFile = null;
+            var fileInput = document.getElementById("comment-attachment-input");
+            if (fileInput)
+                fileInput.value = null;
         };
         GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents", "$timeout"];
         return GroupCommentThreadsController;

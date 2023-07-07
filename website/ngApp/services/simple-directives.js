@@ -13,6 +13,20 @@ angular.module("CondoAlly").directive("ngEnter", function () {
         });
     };
 });
+// Allow ctrl+enter key event
+angular.module("CondoAlly").directive("ngCtrlEnter", function () {
+    return function (scope, element, attrs) {
+        element.bind("keydown keypress", function (event) {
+            var EnterKeyCode = 13;
+            if (event.which === EnterKeyCode && event.ctrlKey) {
+                scope.$apply(function () {
+                    scope.$eval(attrs.ngEnter, { '$event': event });
+                });
+                event.preventDefault();
+            }
+        });
+    };
+});
 angular.module("CondoAlly").directive("ngEscape", function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {

@@ -14,6 +14,8 @@
         authorFullName: string;
         authorEmailAddress: string;
         authorAvatarUrl: string;
+        attachedDocPath: string;
+        attachedDocDisplayName: string;
         replies: Comment[];
 
         // Not from server

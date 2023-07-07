@@ -20,7 +20,7 @@
      */
     export class GroupCommentThreadViewController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$scope", "$sce"];
 
         isLoading: boolean = false;
         thread: CommentThread;
@@ -31,17 +31,26 @@
         replyCommentText: string;
         editCommentId: number;
         editCommentText: string;
+        editCommentShouldRemoveAttachment = false;
         shouldShowAdminControls: boolean = false;
         digestFrequency: string = null;
         threadUrl: string;
         defaultDigestFrequency: string;
         isPremiumPlanActive: boolean;
-
+        newCommentTinyMceEditor: ITinyMce;
+        replyTinyMceEditor: ITinyMce;
+        editTinyMceEditor: ITinyMce;
+        shouldShowAddComment = true;
+        attachmentFile: File;
+        static readonly TinyMceSettings: any = {
+            menubar: false,
+            toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link emoticons"
+        };
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private siteInfo: Ally.SiteInfoService, private $scope: ng.IScope, private $sce: ng.ISCEService )
         {
         }
 
@@ -57,6 +66,42 @@
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             this.retrieveComments();
+
+            this.initCommentTinyMce( "new-comment-tiny-mce-editor" );
+        }
+
+
+        initCommentTinyMce( elemId: string )
+        {
+            // Auto-focus on replies and edits
+            if( elemId === "reply-tiny-mce-editor" || elemId === "edit-tiny-mce-editor" )
+                GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = elemId;
+            else
+                GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = undefined;
+
+            HtmlUtil2.initTinyMce( elemId, 200, GroupCommentThreadViewController.TinyMceSettings ).then( e =>
+            {
+                if( elemId === "reply-tiny-mce-editor" )
+                    this.replyTinyMceEditor = e;
+                else if( elemId === "edit-tiny-mce-editor" )
+                    this.editTinyMceEditor = e;
+                else
+                    this.newCommentTinyMceEditor = e;
+
+                // Hook up CTRL+enter to submit a comment
+                e.shortcuts.add( 'ctrl+13', 'CTRL ENTER to submit comment', () =>
+                {
+                    this.$scope.$apply( () =>
+                    {
+                        if( elemId === "reply-tiny-mce-editor" )
+                            this.submitReplyComment();
+                        else if( elemId === "edit-tiny-mce-editor" )
+                            this.submitCommentEdit();
+                        else
+                            this.submitNewComment();
+                    } );                    
+                } );
+            } );
         }
 
 
@@ -65,9 +110,9 @@
          */
         onTextAreaKeyDown( e: any, messageType: string )
         {
-            let keyCode = ( e.keyCode ? e.keyCode : e.which );
+            // keyCode = ( e.keyCode ? e.keyCode : e.which );
 
-            let KeyCode_Enter = 13;
+            const KeyCode_Enter = 13;
             if( e.keyCode == KeyCode_Enter )
             {
                 e.preventDefault();
@@ -89,16 +134,19 @@
         {
             this.isLoading = true;
 
-            var putUri = `/api/CommentThread/${this.thread.commentThreadId}/DigestFrequency/${this.commentsState.digestFrequency}`;
-            this.$http.put( putUri, null ).then( () =>
-            {
-                this.isLoading = false;
+            const putUri = `/api/CommentThread/${this.thread.commentThreadId}/DigestFrequency/${this.commentsState.digestFrequency}`;
+            this.$http.put( putUri, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to change: " + response.data.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to change: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -109,27 +157,32 @@
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/CommentThread/${this.thread.commentThreadId}/Comments` ).then( ( response: ng.IHttpPromiseCallbackArg<CommentsState> ) =>
-            {
-                this.isLoading = false;
-                this.commentsState = response.data;
-
-                let processComments = ( c: Comment ) =>
+            this.$http.get( `/api/CommentThread/${this.thread.commentThreadId}/Comments` ).then(
+                ( response: ng.IHttpPromiseCallbackArg<CommentsState> ) =>
                 {
-                    c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
+                    this.isLoading = false;
+                    this.commentsState = response.data;
 
-                    if( c.replies )
-                        _.each( c.replies, processComments );
-                };
+                    const processComments = ( c: Comment ) =>
+                    {
+                        c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
+                        c.commentText = this.$sce.trustAsHtml( c.commentText );
 
-                _.forEach( this.commentsState.comments, processComments );
+                        if( c.replies )
+                            _.each( c.replies, processComments );
+                    };
 
-                this.commentsState.comments = _.sortBy( this.commentsState.comments, ct => ct.postDateUtc ).reverse();
+                    _.forEach( this.commentsState.comments, processComments );
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-            } );
+                    this.commentsState.comments = _.sortBy( this.commentsState.comments, ct => ct.postDateUtc ).reverse();
+
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve comments: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -140,8 +193,10 @@
         {
             this.replyToCommentId = comment.commentId;
             this.replyCommentText = "";
+            this.editCommentId = -1;
 
-            setTimeout( () => $( ".reply-to-textarea" ).focus(), 150 );
+            this.shouldShowAddComment = false;
+            this.initCommentTinyMce( "reply-tiny-mce-editor" );
         }
 
 
@@ -153,7 +208,12 @@
         {
             this.editCommentId = comment.commentId;
             this.editCommentText = comment.commentText;
-        };
+            this.editCommentShouldRemoveAttachment = false;
+            this.replyToCommentId = -1;
+
+            this.shouldShowAddComment = false;
+            this.initCommentTinyMce( "edit-tiny-mce-editor" );
+        }
 
 
         /**
@@ -161,7 +221,7 @@
          */
         deleteComment( comment: Comment )
         {
-            var deleteMessage = "Are you sure you want to delete this comment?";
+            let deleteMessage = "Are you sure you want to delete this comment?";
             if( this.commentsState.comments.length === 1 )
                 deleteMessage = "Since there is only one comment, if you delete this comment you'll delete the thread. Are you sure you want to delete this comment?";
 
@@ -170,25 +230,27 @@
 
             this.isLoading = true;
 
-            this.$http.delete( `/api/CommentThread/${this.thread.commentThreadId}/${comment.commentId}` ).then( () =>
-            {
-                this.isLoading = false;
-
-                if( this.commentsState.comments.length === 1 )
+            this.$http.delete( `/api/CommentThread/${this.thread.commentThreadId}/${comment.commentId}` ).then(
+                () =>
                 {
-                    // Tell the parent thread list to refresh
-                    this.$rootScope.$broadcast( "refreshCommentThreadList" );
+                    this.isLoading = false;
 
-                    this.closeModal( false );
+                    if( this.commentsState.comments.length === 1 )
+                    {
+                        // Tell the parent thread list to refresh
+                        this.$rootScope.$broadcast( "refreshCommentThreadList" );
+
+                        this.closeModal( false );
+                    }
+                    else
+                        this.retrieveComments();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to post comment: " + response.data.exceptionMessage );
                 }
-                else
-                    this.retrieveComments();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to post comment: " + response.data.exceptionMessage );
-            } );
+            );
         }
 
 
@@ -199,7 +261,7 @@
         {
             this.isLoading = true;
 
-            var putUri = `/api/CommentThread/Archive/${this.thread.commentThreadId}`;
+            let putUri = `/api/CommentThread/Archive/${this.thread.commentThreadId}`;
             if( !shouldArchive )
                 putUri = `/api/CommentThread/Unarchive/${this.thread.commentThreadId}`;
 
@@ -226,10 +288,17 @@
          */
         submitCommentEdit()
         {
-            var editInfo = {
+            const editInfo = {
                 commentId: this.editCommentId,
-                newCommentText: this.editCommentText
+                newCommentText: this.editTinyMceEditor.getContent(),
+                shouldRemoveAttachment: this.editCommentShouldRemoveAttachment
             };
+
+            if( !editInfo.newCommentText )
+            {
+                alert( "Comments cannot be empty. If you want to delete the comment, click the delete button." );
+                return;
+            }
 
             this.isLoading = true;
 
@@ -238,6 +307,9 @@
                 this.isLoading = false;
                 this.editCommentId = -1;
                 this.editCommentText = "";
+                this.editCommentShouldRemoveAttachment = false;
+                this.editTinyMceEditor.setContent( "" );
+                this.removeAttachment();
                 this.retrieveComments();
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
@@ -254,25 +326,42 @@
          */
         submitReplyComment()
         {
-            var newComment = {
-                replyToCommentId: this.replyToCommentId,
-                commentText: this.replyCommentText
+            const replyCommentText = this.replyTinyMceEditor.getContent();
+
+            if( !replyCommentText )
+            {
+                alert( "Please enter some text to add a reply" );
+                return;
+            }
+
+            const newCommentFormData = new FormData();
+            newCommentFormData.append( "commentText", replyCommentText );
+            newCommentFormData.append( "replyToCommentId", this.replyToCommentId.toString() );
+            //newCommentFormData.append( "attachedFile", null );
+            //newCommentFormData.append( "attachedGroupDocId", null );
+
+            const putHeaders: ng.IRequestShortcutConfig = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
 
             this.isLoading = true;
 
-            this.$http.put( `/api/CommentThread/${this.thread.commentThreadId}/AddComment`, newComment ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.replyToCommentId = -1;
-                this.replyCommentText = "";
-                this.retrieveComments();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to add comment: " + response.data.exceptionMessage );
-            } );
+            this.$http.put( `/api/CommentThread/${this.thread.commentThreadId}/AddCommentFromForm`, newCommentFormData, putHeaders ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.replyToCommentId = -1;
+                    this.replyCommentText = "";
+                    this.replyTinyMceEditor.setContent( "" );
+                    this.removeAttachment();
+                    this.retrieveComments();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to add comment: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -281,23 +370,41 @@
          */
         submitNewComment()
         {
-            var newComment = {
-                commentText: this.newCommentText
+            const newCommentText = this.newCommentTinyMceEditor.getContent();
+
+            if( !newCommentText )
+            {
+                alert( "You must enter text to submit a comment" );
+                return;
+            }
+
+            const newCommentFormData = new FormData();
+            newCommentFormData.append( "commentText", newCommentText );
+            if( this.attachmentFile )
+                newCommentFormData.append( "attachedFile", this.attachmentFile );
+            //newCommentFormData.append( "attachedGroupDocId", null );
+
+            const putHeaders: ng.IRequestShortcutConfig = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
 
             this.isLoading = true;
 
-            this.$http.put( `/api/CommentThread/${this.thread.commentThreadId}/AddComment`, newComment ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.newCommentText = "";
-                this.retrieveComments();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to add comment: " + response.data.exceptionMessage );
-            } );
+            this.$http.put( `/api/CommentThread/${this.thread.commentThreadId}/AddCommentFromForm`, newCommentFormData, putHeaders ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.newCommentText = "";
+                    this.newCommentTinyMceEditor.setContent( "" );
+                    this.removeAttachment();
+                    this.retrieveComments();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to add comment: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -319,6 +426,87 @@
                 Ally.HtmlUtil2.showTooltip( $event.target, "Auto-copy failed, right-click and copy link address" );
 
             return false;
+        }
+
+
+        showAddComment()
+        {
+            this.shouldShowAddComment = true;
+            this.removeAttachment();
+            this.initCommentTinyMce( "new-comment-tiny-mce-editor" );
+        }
+
+
+        cancelCommentEdit()
+        {
+            this.editCommentId = -1;
+            this.removeAttachment();
+            this.showAddComment();
+        }
+
+
+        cancelCommentReply()
+        {
+            this.replyToCommentId = -1;
+            this.removeAttachment();
+            this.showAddComment();
+        }
+
+
+        onFileAttached( event: Event )
+        {
+            this.attachmentFile = ( event.target as HTMLInputElement ).files[0];
+        }
+
+
+        removeAttachment()
+        {
+            this.attachmentFile = null;
+            const fileInput = document.getElementById( "comment-attachment-input" ) as HTMLInputElement;
+            if( fileInput )
+                fileInput.value = null;
+        }
+
+
+        getFileIcon( fileName: string )
+        {
+            return HtmlUtil2.getFileIcon( fileName );
+        }
+
+
+        onViewAttachedDoc( comment: Comment )
+        {
+            this.isLoading = true;
+
+            const viewDocWindow: Window = window.open( '', '_blank' );
+
+            const wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
+            if( wasPopUpBlocked )
+            {
+                alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
+                //this.showPopUpWarning = true;
+            }
+            else
+                viewDocWindow.document.write( 'Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)' );
+
+            const viewUri = "/api/DocumentLink/DiscussionAttachment/" + comment.commentId;
+            this.$http.get( viewUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
+                {
+                    this.isLoading = false;
+
+                    const s3Path = comment.attachedDocPath.substring( "s3:".length );
+                    let fileUri = `Documents/${s3Path}?vid=${encodeURIComponent( response.data.vid )}`;
+                    fileUri = this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
+
+                    viewDocWindow.location.href = fileUri;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to open document: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }

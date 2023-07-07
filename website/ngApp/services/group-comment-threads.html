@@ -84,7 +84,7 @@
 
         <div data-ng-if="$ctrl.showCreateNewModal" class="modal-container">
             <div class="modal-overlay" data-ng-click="$ctrl.setDisplayCreateModal(false)"></div>
-            <div class="ca-modal-dialog">
+            <div class="ca-modal-dialog" style="width: 670px;">
                 <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.setDisplayCreateModal(false)">&times;</span>
 
@@ -95,25 +95,30 @@
 
                 <div class="row mb-3 width100 px-3">
                     <label class="form-label">Body:</label>
-                    <textarea type="text" data-ng-model="$ctrl.newThreadBody" rows="4" class="form-control" maxlength="1024"></textarea>
+                    <textarea id="new-thread-body-rte" type="text" rows="4" class="form-control" maxlength="1024"></textarea>
+                </div>
+
+                <div class="row mb-3 width100 px-3">
+                    <label class="form-label">Optional Attachment:</label>
+                    <input id="comment-attachment-input" type="file" on-file-change="$ctrl.onFileAttached($event)" /> <span data-ng-if="$ctrl.attachmentFile" class="text-link note-text" data-ng-click="$ctrl.removeAttachment()">Remove Attachment</span>
                 </div>
 
                 <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
-                    <label for="is-board-only-thread-check-box" class="form-label">Is Board Only:</label>
+                    <label for="is-board-only-thread-check-box" class="form-label" style="width: auto;">Is Board Only:</label>
                     <input id="is-board-only-thread-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.newThreadIsBoardOnly" />
                     <br />
                     <span class="note-text ps-0">Indicates this discussion thread will only be visible to board members and site admin.</span>
                 </div>
 
                 <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
-                    <label for="is-read-only-thread-check-box" class="form-label">Is Read-Only:</label>
+                    <label for="is-read-only-thread-check-box" class="form-label" style="width: auto;">Is Read-Only:</label>
                     <input id="is-read-only-thread-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.newThreadIsReadOnly" />
                     <br />
                     <span class="note-text ps-0">Enable this to create threads that act more like notices and do not allow discussion.</span>
                 </div>
 
                 <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.isPremiumPlanActive">
-                    <label for="send-notice-check-box" class="form-label">Send Out Email Notice:</label>
+                    <label for="send-notice-check-box" class="form-label" style="width: auto;">Send Out Email Notice:</label>
                     <input id="send-notice-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
                     <br />
                     <span class="note-text ps-0">An email will be sent out to the <span data-ng-if="!$ctrl.committeeId">discussion group</span><span data-ng-if="$ctrl.committeeId">committee members</span> telling them about your new thread.</span>

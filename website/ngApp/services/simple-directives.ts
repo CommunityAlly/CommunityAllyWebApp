@@ -6,8 +6,29 @@ angular.module( "CondoAlly" ).directive( "ngEnter", function()
     {
         element.bind( "keydown keypress", function( event )
         {
-            var EnterKeyCode = 13;
+            const EnterKeyCode = 13;
             if( event.which === EnterKeyCode )
+            {
+                scope.$apply( function()
+                {
+                    scope.$eval( attrs.ngEnter, { '$event': event } );
+                } );
+
+                event.preventDefault();
+            }
+        } );
+    };
+} );
+
+// Allow ctrl+enter key event
+angular.module( "CondoAlly" ).directive( "ngCtrlEnter", function()
+{
+    return function( scope, element, attrs )
+    {
+        element.bind( "keydown keypress", function( event )
+        {
+            const EnterKeyCode = 13;
+            if( event.which === EnterKeyCode && event.ctrlKey )
             {
                 scope.$apply( function()
                 {
@@ -26,7 +47,7 @@ angular.module( "CondoAlly" ).directive( "ngEscape", function()
     {
         element.bind( "keydown keypress", function( event: any )
         {
-            var EscapeKeyCode = 27;
+            const EscapeKeyCode = 27;
             if( event.which === EscapeKeyCode )
             {
                 scope.$apply( function()
