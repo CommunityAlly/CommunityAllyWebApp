@@ -153,7 +153,9 @@
                     <div class="mb-3 row px-3" data-ng-if="$ctrl.showRowType === 'unit'">
                         <label class="col-sm-4 form-label">Paid By:</label>
                         <div class="col-sm-8 px-0">
-                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.payerUserId" data-ng-options="p.userId as p.name for p in $ctrl.payers"></select>
+                            <select class="form-control form-control-sm" data-ng-model="$ctrl.editPayment.payment.payerUserId" data-ng-options="p.userId as p.name for p in $ctrl.payers">
+                                <option value=""></option>
+                            </select>
                             <select class="form-control form-control-sm form-select" data-ng-if="false" data-ng-model="$ctrl.editPayment.payment.payerUserId">
                                 <option data-ng-repeat="owner in $ctrl.editPayment.unit.owners" value="{{ owner.userId }}">{{ owner.name }}</option>
                                 <option disabled="disabled">--------------</option>
