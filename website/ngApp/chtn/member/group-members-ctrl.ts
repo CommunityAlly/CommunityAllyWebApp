@@ -287,7 +287,7 @@ namespace Ally
         /**
         * Called to save a custom group email address
         */
-        saveGroupEmailInfo()
+        saveCustomGroupEmailInfo()
         {
             this.isLoadingSaveEmailGroup = true;
             this.groupEmailSaveError = null;
@@ -320,7 +320,7 @@ namespace Ally
         /**
         * Called when the user clicks the button to edit a custom group email address
         */
-        editGroupEmail( groupEmail: CustomEmailGroup )
+        editCustomGroupEmail( groupEmail: CustomEmailGroup )
         {
             this.shouldShowNewCustomEmailModal = true;
             this.editGroupEmailInfo = new SaveEmailGroupInfo();
@@ -328,6 +328,7 @@ namespace Ally
             this.editGroupEmailInfo.description = groupEmail.description;
             this.editGroupEmailInfo.shortName = groupEmail.shortName;
             this.editGroupEmailInfo.memberUserIds = groupEmail.members.map( m => m.userId );
+            this.editGroupEmailInfo.allowPublicIncoming = groupEmail.allowPublicIncoming;
             this.allResidents.forEach( r => r.isAssociated = this.editGroupEmailInfo.memberUserIds.indexOf( r.userId ) !== -1 );
 
             window.setTimeout( () => document.getElementById( "custom-group-email-short-name-text" ).focus(), 50 );
@@ -369,6 +370,7 @@ namespace Ally
         shortName: string;
         description: string;
         memberUserIds: string[] = [];
+        allowPublicIncoming: boolean;
     }
 }
 

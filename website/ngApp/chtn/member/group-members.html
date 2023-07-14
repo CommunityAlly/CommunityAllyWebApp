@@ -167,8 +167,11 @@
                 <div class="note-text mt-1" data-ng-if="g.description">
                     Description: {{g.description}}
                 </div>
+                <div data-ng-if="g.allowPublicIncoming" class="note-text" style="color: blue; font-weight: bold;">
+                    Allows public incoming emails
+                </div>
                 <div data-ng-if="$ctrl.isSiteManager">
-                    <span class="text-link note-text" data-ng-click="$ctrl.editGroupEmail( g )">Edit</span>
+                    <span class="text-link note-text" data-ng-click="$ctrl.editCustomGroupEmail( g )">Edit</span>
                     <span class="text-link note-text ms-2" style="color: red;" data-ng-click="$ctrl.deleteGroupEmail( g )">Delete</span>
                 </div>
                 <br />
@@ -198,19 +201,20 @@
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowNewCustomEmailModal = false">&times;</span>
             <h2 class="mb-3">Custom Group Email Address</h2>
 
-            <div class="row mb-3 px-3">
+            <div class="row mb-4 px-3">
                 <label class="form-label">Short Name:</label>
-                <input id="custom-group-email-short-name-text" type="text" data-ng-model="$ctrl.editGroupEmailInfo.shortName" data-ng-enter="$ctrl.saveGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control form-control-sm" maxlength="30" required />
+                <input id="custom-group-email-short-name-text" type="text" data-ng-model="$ctrl.editGroupEmailInfo.shortName" data-ng-enter="$ctrl.saveCustomGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control form-control-sm" maxlength="30" required />
                 <div class="note-text ps-0">An alphanumeric identifier that will make up the email address. Must be 3-30 characters and start with a letter.</div>
                 <div data-ng-if="$ctrl.editGroupEmailInfo.shortName" class="ps-0">Email address will be: <b>{{ $ctrl.editGroupEmailInfo.shortName }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</b></div>
             </div>
-            <div class="row mb-3 px-3">
+
+            <div class="row mb-4 px-3">
                 <label class="form-label">Description:</label>
-                <textarea type="text" data-ng-model="$ctrl.editGroupEmailInfo.description" rows="2" data-ng-enter="$ctrl.saveGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control" maxlength="512"></textarea>
-                <div class="note-text ps-0">An optiona;, helpful description of this group</div>
+                <textarea type="text" data-ng-model="$ctrl.editGroupEmailInfo.description" rows="2" data-ng-enter="$ctrl.saveCustomGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control" maxlength="512"></textarea>
+                <div class="note-text ps-0">An optional, helpful description of this group</div>
             </div>
 
-            <div class="row mb-3 px-3">
+            <div class="row mb-4 px-3">
                 <label class="col-sm-2 col-12 form-label">Members:</label>
                 <div class="col-sm-10 col-12 px-0">
                     <div class="resident-list-box" style="max-height: 250px !important;">
@@ -221,9 +225,17 @@
                 </div>
             </div>
 
+            <div class="row mb-4 px-3">
+                <label class="form-label">
+                    Allow External Incoming Emails:
+                    <input type="checkbox" data-ng-model="$ctrl.editGroupEmailInfo.allowPublicIncoming" />
+                </label>
+                <div class="note-text ps-0"><a href="https://help.communityally.org/using-custom-group-email-addresses/#external-emails" target="_blank">Learn more</a></div>
+            </div>            
+
             <div style="text-align: center;">
                 <div class="text-error" data-ng-if="$ctrl.groupEmailSaveError">{{$ctrl.groupEmailSaveError}}</div>
-                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveGroupEmailInfo()">Save Group Email Address</button>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveCustomGroupEmailInfo()">Save Group Email Address</button>
                 <!--&nbsp;<button type="button" class="btn btn-primary" data-ng-click="$ctrl.setDisplayCreateModal(false)">Cancel</button>-->
             </div>
         </div>

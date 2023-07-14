@@ -197,7 +197,7 @@ var Ally;
         /**
         * Called to save a custom group email address
         */
-        GroupMembersController.prototype.saveGroupEmailInfo = function () {
+        GroupMembersController.prototype.saveCustomGroupEmailInfo = function () {
             var _this = this;
             this.isLoadingSaveEmailGroup = true;
             this.groupEmailSaveError = null;
@@ -221,7 +221,7 @@ var Ally;
         /**
         * Called when the user clicks the button to edit a custom group email address
         */
-        GroupMembersController.prototype.editGroupEmail = function (groupEmail) {
+        GroupMembersController.prototype.editCustomGroupEmail = function (groupEmail) {
             var _this = this;
             this.shouldShowNewCustomEmailModal = true;
             this.editGroupEmailInfo = new SaveEmailGroupInfo();
@@ -229,6 +229,7 @@ var Ally;
             this.editGroupEmailInfo.description = groupEmail.description;
             this.editGroupEmailInfo.shortName = groupEmail.shortName;
             this.editGroupEmailInfo.memberUserIds = groupEmail.members.map(function (m) { return m.userId; });
+            this.editGroupEmailInfo.allowPublicIncoming = groupEmail.allowPublicIncoming;
             this.allResidents.forEach(function (r) { return r.isAssociated = _this.editGroupEmailInfo.memberUserIds.indexOf(r.userId) !== -1; });
             window.setTimeout(function () { return document.getElementById("custom-group-email-short-name-text").focus(); }, 50);
         };
