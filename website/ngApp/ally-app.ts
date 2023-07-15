@@ -85,7 +85,8 @@ CA.angularApp.config(
                 $routeProvider.when( path, route );
                 return this;
             }
-        } );
+        }
+    );
 
     // Build our Angular routes
     for( let i = 0; i < AppConfig.menu.length; ++i )
@@ -413,6 +414,8 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
         // Keep track of our current page
         $rootScope.$on( "$routeChangeSuccess", function( event, toState, toParams, fromState )
         {
+            //console.log( "In $routeChangeSuccess", event, toState );
+
             $rootScope.curPath = $location.path();
 
             // If there is a query string, track it
@@ -433,6 +436,24 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
                 search: queryString,
                 url: $location.absUrl()
             } );
+
+            // Set the browser title
+            if( $rootScope.publicSiteInfo && $rootScope.publicSiteInfo.fullName )
+            {
+                document.title = $rootScope.publicSiteInfo.fullName;
+                if( toState.$$route && toState.$$route.originalPath )
+                {
+                    const menuItem = _.find( AppConfig.menu, menuItem => menuItem.path === toState.$$route.originalPath );
+
+                    if( menuItem )
+                    {
+                        if( menuItem.pageTitle )
+                            document.title = $rootScope.publicSiteInfo.fullName + " - " + menuItem.pageTitle;
+                        else if( menuItem.menuTitle )
+                            document.title = $rootScope.publicSiteInfo.fullName + " - " + menuItem.menuTitle;
+                    }
+                }
+            }
         } );
     }
 ] );
