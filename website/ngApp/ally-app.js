@@ -271,6 +271,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         });
         // Keep track of our current page
         $rootScope.$on("$routeChangeSuccess", function (event, toState, toParams, fromState) {
+            //console.log( "In $routeChangeSuccess", event, toState );
             $rootScope.curPath = $location.path();
             // If there is a query string, track it
             var queryString = "";
@@ -288,6 +289,19 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                 search: queryString,
                 url: $location.absUrl()
             });
+            // Set the browser title
+            if ($rootScope.publicSiteInfo && $rootScope.publicSiteInfo.fullName) {
+                document.title = $rootScope.publicSiteInfo.fullName;
+                if (toState.$$route && toState.$$route.originalPath) {
+                    var menuItem = _.find(AppConfig.menu, function (menuItem) { return menuItem.path === toState.$$route.originalPath; });
+                    if (menuItem) {
+                        if (menuItem.pageTitle)
+                            document.title = $rootScope.publicSiteInfo.fullName + " - " + menuItem.pageTitle;
+                        else if (menuItem.menuTitle)
+                            document.title = $rootScope.publicSiteInfo.fullName + " - " + menuItem.menuTitle;
+                    }
+                }
+            }
         });
     }
 ]);

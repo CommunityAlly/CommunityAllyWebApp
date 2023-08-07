@@ -1,3 +1,38 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var Ally;
 (function (Ally) {
     /**
@@ -7,13 +42,14 @@ var Ally;
         /**
          * The constructor for the class
          */
-        function AssessmentPaymentFormController($http, siteInfo, $rootScope, $sce, $timeout, $q) {
+        function AssessmentPaymentFormController($http, siteInfo, $rootScope, $sce, $timeout, $q, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$rootScope = $rootScope;
             this.$sce = $sce;
             this.$timeout = $timeout;
             this.$q = $q;
+            this.$scope = $scope;
             this.isLoading_Payment = false;
             this.isLoadingDwolla = false;
             this.showParagon = false;
@@ -27,13 +63,14 @@ var Ally;
             };
             this.isWePayPaymentActive = false;
             this.isDwollaEnabledOnGroup = false;
+            this.isStripeEnabledOnGroup = false;
             this.isDwollaReadyForPayment = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
             this.hasComplexPassword = false;
             this.didAgreeToDwollaTerms = false;
             this.dwollaFeePercent = 0.5;
-            this.dwollaMaxFee = 5;
+            this.dwollaStripeMaxFee = 5;
             this.dwollaDocUploadType = "license";
             this.dwollaDocUploadFile = null;
             this.dwollaBalance = -1;
@@ -44,6 +81,9 @@ var Ally;
             this.shouldShowOwnerFinanceTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
             this.currentDwollaAutoPayAmount = null;
+            this.hasMultipleProviders = false;
+            this.allowDwollaSignUp = false;
+            this.stripePaymentSucceeded = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -58,12 +98,25 @@ var Ally;
             var shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if (shouldShowDwolla)
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+            var isSpecialUser = this.siteInfo.publicSiteInfo.shortName === "mesaridge" && this.siteInfo.userInfo.userId === "8fcc4783-b554-490e-91cc-82f5ddb3d1b7";
+            this.isStripeEnabledOnGroup = this.siteInfo.privateSiteInfo.isStripePaymentActive;
+            if (this.isStripeEnabledOnGroup || isSpecialUser)
+                this.stripeApi = Stripe(StripeApiKey, { stripeAccount: this.siteInfo.privateSiteInfo.stripeConnectAccountId });
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
-            this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
+            this.dwollaStripeMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
                 this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);
+            var numProviders = 0;
+            if (this.isWePayPaymentActive)
+                ++numProviders;
+            if (this.isDwollaEnabledOnGroup)
+                ++numProviders;
+            if (this.isStripeEnabledOnGroup)
+                ++numProviders;
+            this.hasMultipleProviders = numProviders > 1;
+            this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountId ? this.siteInfo.userInfo.stripeBankAccountHint : null;
             if (this.isDwollaEnabledOnGroup) {
                 this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
                 if (this.isDwollaUserAccountVerified) {
@@ -134,8 +187,8 @@ var Ally;
             }
             this.allyAppName = AppConfig.appName;
             this.isWePayAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
-            this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
-            this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "Service fee applies" : "No service fee";
+            this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "$1.50 service fee applies" : "No service fee";
+            this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "$1.50 service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
             this.errorPayInfoText = "Is the amount incorrect?";
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
@@ -160,6 +213,8 @@ var Ally;
                 && this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.assessmentAmount > 0)
                 || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
+            // Temporarily disable while we figure out the contract
+            this.shouldShowDwollaAutoPayArea = false;
             if (this.shouldShowDwollaAutoPayArea) {
                 this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(function (ppf) { return ppf.id === _this.siteInfo.privateSiteInfo.assessmentFrequency; });
             }
@@ -193,6 +248,8 @@ var Ally;
                     this.updatePaymentText();
                 }
             }
+            //if( this.isStripeEnabledOnGroup )
+            //    this.$timeout( () => this.hookUpStripeCheckout(), 300 );
             //setTimeout( () =>
             //{
             //    $( '#btn_view_pay_history' ).click( function()
@@ -565,21 +622,55 @@ var Ally;
                 alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
             });
         };
-        AssessmentPaymentFormController.prototype.getFeeAmount = function (amount) {
+        AssessmentPaymentFormController.prototype.getDwollaFeeAmount = function (amount) {
             // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
             // So we only need to divide by 100 to get our rounded fee
             var feeAmount = Math.ceil(amount * this.dwollaFeePercent) / 100;
             // Cap the fee at $5 for premium, $10 for free plan groups
-            if (feeAmount > this.dwollaMaxFee)
-                feeAmount = this.dwollaMaxFee;
+            if (feeAmount > this.dwollaStripeMaxFee)
+                feeAmount = this.dwollaStripeMaxFee;
+            return feeAmount;
+        };
+        AssessmentPaymentFormController.prototype.getStripeFeeAmount = function (amount) {
+            if (typeof amount === "string")
+                amount = parseFloat(amount);
+            if (isNaN(amount))
+                amount = 0;
+            if (!amount)
+                return 0;
+            // dwollaFeePercent is in display percent, so 0.8 = 0.8% = 0.008 scalar
+            // So we only need to divide by 100 to get our rounded fee
+            var StripeAchFeePercent = 0.008;
+            var totalWithFeeAmount = Math.round((amount * 100) / (1 - StripeAchFeePercent)) / 100;
+            var feeAmount = totalWithFeeAmount - amount;
+            // Cap the fee at $5 for premium, $10 for free plan groups
+            var MaxFeeAmount = 5;
+            var useMaxFee = feeAmount > MaxFeeAmount;
+            if (useMaxFee) {
+                feeAmount = MaxFeeAmount;
+                totalWithFeeAmount = amount + feeAmount;
+            }
+            if (!this.siteInfo.privateSiteInfo.isPremiumPlanActive) {
+                if (useMaxFee)
+                    totalWithFeeAmount = amount + (MaxFeeAmount * 2);
+                else
+                    totalWithFeeAmount = Math.round((totalWithFeeAmount * 100) / (1 - StripeAchFeePercent)) / 100;
+                feeAmount = totalWithFeeAmount - amount;
+                // This can happen at $618.12-$620.61
+                //console.log( "feeAmount", feeAmount );
+                if (feeAmount > MaxFeeAmount * 2)
+                    feeAmount = MaxFeeAmount * 2;
+            }
             return feeAmount;
         };
         /**
          * Occurs when the amount to pay changes
          */
         AssessmentPaymentFormController.prototype.onPaymentAmountChange = function () {
-            var feeAmount = this.getFeeAmount(this.paymentInfo.amount);
-            this.dwollaFeeAmountString = "$" + feeAmount.toFixed(2);
+            var dwollaFeeAmount = this.getDwollaFeeAmount(this.paymentInfo.amount);
+            this.dwollaFeeAmountString = "$" + dwollaFeeAmount.toFixed(2);
+            var stripeFeeAmount = this.getStripeFeeAmount(this.paymentInfo.amount);
+            this.stripeAchFeeAmountString = "$" + stripeFeeAmount.toFixed(2);
         };
         /**
          * Occurs when the user clicks the button to upload their Dwolla identification document
@@ -666,7 +757,200 @@ var Ally;
                 alert("Failed to disable Dwolla auto-pay: " + httpResponse.data.exceptionMessage);
             });
         };
-        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
+        //hookUpStripeCheckout()
+        //{
+        //    const style = {
+        //        base: {
+        //            color: "#32325d",
+        //            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+        //            fontSmoothing: "antialiased",
+        //            fontSize: "16px",
+        //            "::placeholder": {
+        //                color: "#aab7c4"
+        //            }
+        //        },
+        //        invalid: {
+        //            color: "#fa755a",
+        //            iconColor: "#fa755a"
+        //        }
+        //    };
+        //    const stripeCheckoutOptions = {
+        //        mode: 'payment',
+        //        amount: 15 * 100,
+        //        currency: 'usd',
+        //        // Fully customizable with appearance API.
+        //        appearance: {}
+        //    };
+        //    this.stripeElements = this.stripeApi.elements( stripeCheckoutOptions );
+        //    this.stripeCardElement = this.stripeElements.create( "payment" );
+        //    this.stripeCardElement.mount( "#stripe-card-element" );
+        //    const onCardChange = ( event: any ) =>
+        //    {
+        //        if( event.error )
+        //            this.showStripeError( event.error.message );
+        //        else
+        //            this.showStripeError( null );
+        //    }
+        //    this.stripeCardElement.on( 'change', onCardChange );
+        //}
+        AssessmentPaymentFormController.prototype.showStripeError = function (errorMessage) {
+            var displayError = document.getElementById('card-errors');
+            if (HtmlUtil.isNullOrWhitespace(errorMessage))
+                displayError.textContent = null; //'Unknown Error';
+            else
+                displayError.textContent = errorMessage;
+        };
+        AssessmentPaymentFormController.prototype.startStripeCardPayment = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var _this = this;
+                return __generator(this, function (_a) {
+                    this.stripeElements.update({ amount: Math.floor(this.paymentInfo.amount * 100) });
+                    // Trigger form validation and wallet collection
+                    this.stripeElements.submit().then(function () {
+                        _this.isLoading_Payment = true;
+                        _this.$http.post("/api/StripePayments/StartPaymentIntent", _this.paymentInfo).then(function (response) { return __awaiter(_this, void 0, void 0, function () {
+                            var error;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.stripeApi.confirmPayment({
+                                            elements: this.stripeElements,
+                                            clientSecret: response.data,
+                                            confirmParams: {
+                                                return_url: this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home",
+                                            },
+                                        })];
+                                    case 1:
+                                        error = (_a.sent()).error;
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); }, function (errorResponse) {
+                            _this.isLoading_Payment = false;
+                            console.log("Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage);
+                            alert("Failed to start payment: " + errorResponse.data.exceptionMessage);
+                        });
+                    }, function (error) {
+                        console.log("Stripe error", error);
+                    });
+                    return [2 /*return*/];
+                });
+            });
+        };
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        AssessmentPaymentFormController.prototype.completePlaidAchConnection = function (accessToken, accountId) {
+            var _this = this;
+            this.isLoading_Payment = true;
+            var postData = {
+                accessToken: accessToken,
+                selectedAccountIds: [accountId]
+            };
+            this.$http.post("/api/Plaid/ProcessUserStripeAccessToken", postData).then(function () {
+                _this.isLoading_Payment = false;
+                console.log("Account successfully linked, reloading...");
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to link account: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Start the Stripe-Plaid ACH-linking flow
+         */
+        AssessmentPaymentFormController.prototype.startPlaidAchConnection = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.get("/api/Plaid/StripeLinkToken").then(function (httpResponse) {
+                if (!httpResponse.data) {
+                    _this.isLoading_Payment = false;
+                    alert("Failed to start Plaid connection. Please contact support.");
+                    return;
+                }
+                var plaidConfig = {
+                    token: httpResponse.data,
+                    onSuccess: function (public_token, metadata) {
+                        console.log("Plaid StripeLinkToken onSuccess", metadata);
+                        _this.completePlaidAchConnection(public_token, metadata.account_id);
+                    },
+                    onLoad: function () {
+                        // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                        _this.$scope.$apply(function () {
+                            _this.isLoading_Payment = false;
+                        });
+                    },
+                    onExit: function (err, metadata) {
+                        //console.log( "update onExit.err", err, metadata );
+                        // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                        _this.$scope.$apply(function () {
+                            _this.isLoading_Payment = false;
+                        });
+                    },
+                    onEvent: function (eventName, metadata) {
+                        console.log("update onEvent.eventName", eventName, metadata);
+                    },
+                    receivedRedirectUri: null,
+                };
+                var plaidHandler = Plaid.create(plaidConfig);
+                plaidHandler.open();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to start Plaid connection: " + httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.prototype.makeStripeAchPayment = function () {
+            var _this = this;
+            this.isLoading_Payment = true;
+            this.$http.post("/api/StripePayments/StartPaymentIntent", this.paymentInfo).then(function (response) {
+                var intentClientSecret = response.data;
+                _this.stripeApi.confirmUsBankAccountPayment(intentClientSecret, {
+                    payment_method: _this.siteInfo.userInfo.stripeBankAccountId,
+                }).then(function (result) {
+                    // Need to wrap this in a $scope.using because the confirmUsBankAccountPayment event is invoked by vanilla JS, not AngularJS
+                    _this.$scope.$apply(function () {
+                        _this.isLoading_Payment = false;
+                        _this.stripePaymentSucceeded = true;
+                    });
+                    if (result.error) {
+                        // Inform the customer that there was an error.
+                        console.log(result.error.message);
+                    }
+                    else {
+                        //TODO Success
+                        // Handle next step based on PaymentIntent's status.
+                        console.log("PaymentIntent ID: " + result.paymentIntent.id);
+                        console.log("PaymentIntent status: " + result.paymentIntent.status);
+                    }
+                }, function (error) {
+                    // Need to wrap this in a $scope.using because th confirmUsBankAccountPayment event is invoked by vanilla JS, not Angular
+                    _this.$scope.$apply(function () {
+                        _this.isLoading_Payment = false;
+                    });
+                    console.log("Stripe Failed", error);
+                    alert("Stripe Failed: " + error);
+                });
+            }, function (errorResponse) {
+                _this.isLoading_Payment = false;
+                console.log("Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage);
+                alert("Failed to start payment: " + errorResponse.data.exceptionMessage);
+            });
+        };
+        /**
+         * Unlink and remove a user's Stripe funding source
+         */
+        AssessmentPaymentFormController.prototype.unlinkStripeFundingSource = function () {
+            var _this = this;
+            if (!confirm("Are you sure you want to disconnect the bank account? You will no longer be able to make payments."))
+                return;
+            this.isLoading_Payment = true;
+            this.$http.delete("/api/StripePayments/RemoveBankAccount").then(function () {
+                window.location.reload();
+            }, function (httpResponse) {
+                _this.isLoading_Payment = false;
+                alert("Failed to disconnect account" + httpResponse.data.exceptionMessage);
+            });
+        };
+        AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q", "$scope"];
         return AssessmentPaymentFormController;
     }());
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;

@@ -30,6 +30,7 @@ namespace Ally
         isDiscussionEmailGroupEnabled: boolean;
         whoCanCreateDiscussionThreads: string;
         hasStripeAchAccount: string;
+        stripeAchAccountBankHint: string;
         ptaUnitId: number;
     }
 

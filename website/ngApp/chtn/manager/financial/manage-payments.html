@@ -11,7 +11,7 @@
 
         <div data-ng-if="$ctrl.hasLoadedPage" class="row">
 
-            
+
             <div id="sign-up-panel" data-ng-if="$ctrl.hasAssessments == null" class="col-lg-9 col-md-12">
                 <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
 
@@ -68,7 +68,7 @@
                             </table>
                         </div>
                         <br>
-                        <span class="text-link" data-ng-click="$ctrl.signUp_Commit()">Done</span>
+                        <span class="btn btn-primary" data-ng-click="$ctrl.signUp_Commit()">Done</span>
                     </div>
                 </div>
             </div>
@@ -76,25 +76,47 @@
             <div data-ng-if="$ctrl.hasAssessments != null">
                 <h3>Online Payment Settings</h3>
 
-                <div data-ng-if="!$ctrl.paymentInfo.isDwollaSetup">
-                    We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to allow residents to make payments to your association via checking accounts (credit cards are not supported). Dwolla securely handles all of our payment transactions to offer you
-                    an incredible layer of security. To start receiving payments you need to associate a bank account (savings or checking)
-                    for your association via Dwolla. Payments will be automatically sent to this bank account once a Dwolla payment has cleared which takes about a week.
+                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || ($ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.dwollaFundingIsVerified) || ($ctrl.paymentInfo.isStripeSetup && $ctrl.paymentInfo.stripeConnectChargesEnabled)">
+                    <div class="row mb-3 px-3">
+                        <label for="allow-payments-checkbox" class="col-6 col-sm-4 form-label">Allow Online Payments:</label>
+                        <div class="col-6 col-sm-8">
+                            <input id="allow-payments-checkbox" type="checkbox" data-ng-change="$ctrl.saveAllowSetting()" data-ng-model="$ctrl.paymentInfo.areOnlinePaymentsAllowed">
+                        </div>
+                    </div>
+                </form>
+
+                <div class="alert alert-warning" data-ng-if="$ctrl.paymentInfo.isDwollaSetup && !$ctrl.paymentInfo.isStripeSetup">
+                    We're are transitioning to a new payment provider, Stripe. Dwolla will stop working October 10th. We're here to help you transition, just reach out via help or chat.
                     <br />
-                    <br />
-                    Payment notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents"> the bottom of your residents page
-                    </a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
-                    <a href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>.
-                    <br>
-                    <br>
-                    Dwolla is completely free for the association. Payers pay a 0.5% payment fee when your association is on the premium plan ($5 max), 1% when on the free plan ($10 max). For
-                    for your association via Dwolla. Payments will be automatically sent to this bank account once a Dwolla payment has cleared which takes about a week. Payment
-                    example, 0.5% is $0.50 on a $100 payment, $1 on $200, an $1.50 on $300. <a href="https://help.communityally.org/setting-up-online-payments/" target="_blank">Dwolla Sign-up Help Guide</a>
-                    <br />
-                    <br />
-                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showDwollaSignUpModal()">Sign up to Accept Payments</button>
-                    <button type="button" class="btn btn-primary" data-ng-if="$ctrl.shouldShowPlaidTestSignUpButton" data-ng-click="$ctrl.addDwollaAccountViaPlaid()">Hey Mark, click this to try and use Innovator Checking from TwinStar Credit Union</button>
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Sign-up Now</button>
                 </div>
+
+                <div class="alert alert-info" data-ng-if="$ctrl.shouldShowNewStripeSignUpMessage">
+                    Great job setting up Stripe. If it makes sense for your association, make sure to <a href="https://help.communityally.org/stripe-sign-up-guide#add-users" target="_blank">add another user or two to Stripe</a> so that you don't lose access and others can step in to help if needed.
+                </div>
+
+                <!--<div data-ng-if="!$ctrl.paymentInfo.isDwollaSetup && !$ctrl.allowStripeSignUp">
+                    <div data-ng-if="false">
+                        We use <a href="https://www.dwolla.com/security/" target="_blank">Dwolla</a> to allow residents to make payments to your association via checking accounts (credit cards are not supported). Dwolla securely handles all of our payment transactions to offer you
+                        an incredible layer of security. To start receiving payments you need to associate a bank account (savings or checking)
+                        for your association via Dwolla. Payments will be automatically sent to this bank account once a Dwolla payment has cleared which takes about a week.
+                        <br />
+                        <br />
+                        Payment notifications will be sent to your treasurer group email address, learn more at <a href="#!/BuildingResidents">
+                            the bottom of your residents page
+                        </a>. Signing-up confirms your agreement to our <a href="https://login.condoally.com/TermsOfService.html">Terms or Service</a> and
+                        <a href="https://login.condoally.com/PrivacyPolicy.html">Privacy Policy</a>.
+                        <br>
+                        <br>
+                        Dwolla is completely free for the association. Payers pay a 0.5% payment fee when your association is on the premium plan ($5 max), 1% when on the free plan ($10 max). For
+                        for your association via Dwolla. Payments will be automatically sent to this bank account once a Dwolla payment has cleared which takes about a week. Payment
+                        example, 0.5% is $0.50 on a $100 payment, $1 on $200, an $1.50 on $300. <a href="https://help.communityally.org/setting-up-online-payments/" target="_blank">Dwolla Sign-up Help Guide</a>
+                        <br />
+                        <br />
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.showDwollaSignUpModal()">Sign up to Accept Payments</button>
+                        <button type="button" class="btn btn-primary" data-ng-if="$ctrl.shouldShowPlaidTestSignUpButton" data-ng-click="$ctrl.addDwollaAccountViaPlaid()">Hey Mark, click this to try and use Innovator Checking from TwinStar Credit Union</button>
+                    </div>
+                </div>-->
 
                 <div data-ng-if="!$ctrl.paymentInfo.isWePaySetup">
 
@@ -118,10 +140,37 @@
             We are in the process of changing our payment provider so sign-up is currently disabled. If you would like to sign-up anyway, please
             contact support.
         </div>-->
-
                 </div>
 
-                <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2">
+                <div data-ng-if="$ctrl.paymentInfo.isStripeSetup" data-ng-class="{'payment-provider-panel': $ctrl.hasMultipleProviders}" class="my-3">
+                    <h5 data-ng-if="$ctrl.hasMultipleProviders">Stripe</h5>
+
+                    <div data-ng-if="!$ctrl.paymentInfo.stripeConnectChargesEnabled">
+                        Stripe has not yet enabled your account to accept payments. You may need to add more information or wait for their Approval.
+                        <br />
+                        <span class="text-link" data-ng-click="$ctrl.signUpForStripe()">Log-in to Stripe Now</span>
+                    </div>
+
+                    <div data-ng-if="$ctrl.paymentInfo.stripeConnectChargesEnabled">
+                        Stripe is successfully enabled.
+                        <br />
+                        <a class="text-link" href="https://dashboard.stripe.com/login" target="_blank">Log-in to the Stripe Dashboard</a>
+                        <br />
+                        <br />
+                        <div data-ng-if="$ctrl.stripePayoutAccounts">
+                            Stripe pays out to:
+                            <div style="font-weight: bold;" data-ng-repeat="acct in $ctrl.stripePayoutAccounts">{{acct}}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-ng-if="$ctrl.paymentInfo.isDwollaSetup" class="mb-2" data-ng-class="{'payment-provider-panel': $ctrl.hasMultipleProviders}">
+                    <h5 data-ng-if="$ctrl.hasMultipleProviders">Dwolla</h5>
+
+                    <div class="alert alert-warning" data-ng-if="$ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.isStripeSetup">
+                        Dwolla will stop working October 10th. Thank you for signing-up for Stripe.
+                    </div>
+
                     <div>Linked Account: <span class="fw-bold">{{$ctrl.paymentInfo.groupDwollaFundingSourceName}}</span></div>
                     <div data-ng-if="!$ctrl.paymentInfo.dwollaFundingIsVerified" class="fw-bold mt-4 mb-4">
                         Your bank account is still pending micro-deposit verification.
@@ -130,15 +179,6 @@
                     </div>
                     <span class="text-link" data-ng-click="$ctrl.disconnectDwolla()">Unlink Dwolla bank account</span>
                 </div>
-
-                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || ($ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.dwollaFundingIsVerified)">
-                    <div class="row mb-3 px-3">
-                        <label for="allow-payments-checkbox" class="col-6 col-sm-4 form-label">Allow Online Payments:</label>
-                        <div class="col-6 col-sm-8">
-                            <input id="allow-payments-checkbox" type="checkbox" data-ng-change="$ctrl.saveAllowSetting()" data-ng-model="$ctrl.paymentInfo.areOnlinePaymentsAllowed">
-                        </div>
-                    </div>
-                </form>
 
                 <!--<div data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.needsReLogin">
         <table style="width:100%;">
@@ -155,16 +195,28 @@
         </div>
     </div>-->
 
-                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup">
-                    <div data-ng-if="$ctrl.paymentInfo.needsReLogin" class="mb-3">
+                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup" data-ng-class="{'payment-provider-panel': $ctrl.hasMultipleProviders}">
+                    <h5 data-ng-if="$ctrl.hasMultipleProviders">WePay</h5>
+
+                    <div data-ng-if="$ctrl.paymentInfo.needsReLogin">
                         You need to log-in to WePay with your association's account if you want to re-enable WePay payments.<br>
                         <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Log-in Now</a>
                     </div>
 
                     <div data-ng-if="!$ctrl.paymentInfo.needsReLogin">
-                        You can disable WePay payments if you'd like to move users to Dwolla. You can always undo this.<br />
+                        WePay is successfully enabled. You can disable WePay payments if you'd like to move users to other payment methods. You can always undo this.<br />
                         <span class="text-link" data-ng-click="$ctrl.clearWePayAccessToken()">Disable WePay</span>
+                        <div data-ng-if="$ctrl.paymentInfo.balanceDetail.payoutAccountName" class="mt-3">
+                            WePay pays out to:
+                            <span style="font-weight: bold;">{{$ctrl.paymentInfo.balanceDetail.payoutAccountName}}</span>
+                            <span class="note-text">(Account Admin: {{$ctrl.paymentInfo.balanceDetail.wePayAccountEmail}})</span>
+                        </div>
                     </div>
+                </div>
+
+                <div data-ng-if="!$ctrl.paymentInfo.isWePaySetup || !$ctrl.paymentInfo.isStripeSetup" class="mb-3 mt-3">
+                    <button type="button" data-ng-if="!$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.isStripeSetup" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Setup an Online Payment Processor</button>
+                    <span class="text-link note-text" data-ng-if="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.isStripeSetup" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Setup Another Online Payment Processor</span>
                 </div>
 
                 <!--<div data-ng-hide="$ctrl.paymentInfo.payPalClientId">
@@ -196,12 +248,12 @@
         </form>
     </div>-->
 
-                <h3 class="margin-top-50">Electronic Payment History</h3>
+                <h3 class="margin-top-50">Online Payment History</h3>
 
                 <div class="wide_tble_wrap">
 
-                    <div data-ng-if="!$ctrl.paymentInfo.electronicPayments || $ctrl.paymentInfo.electronicPayments.length === 0">
-                        No electronic payments have yet been made.
+                    <div data-ng-if="!$ctrl.paymentInfo.electronicPayments || $ctrl.paymentInfo.electronicPayments.length === 0" class="note-text">
+                        No online payments have been made yet.
                     </div>
 
                     <!--<table class="table table-bordered" data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0">
@@ -232,7 +284,7 @@
                 </tr>
             </tbody>
         </table>-->
-                    <div data-ui-grid="$ctrl.paymentsGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-auto-resize class="gridStyle margin-top-20"></div>
+                    <div data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0" data-ui-grid="$ctrl.paymentsGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-auto-resize class="gridStyle margin-top-20"></div>
                     <div style="height: 20px;"></div>
                 </div>
 
@@ -296,11 +348,11 @@
                     <h3 class="margin-top-50">Manage WePay Fees</h3>
                     <p>
                         WePay charges a fee to handle online payments. You can choose how those transaction fees
-                        are paid. Dwolla fees are 0.5% for associations on the premium plan, 1% for associations on the free plan.
+                        are paid. <span data-ng-if="false">Dwolla fees are 0.5% for associations on the premium plan, 1% for associations on the free plan.</span>
                     </p>
                     <div class="spinner-effect">
                         <div data-ng-show="$ctrl.isLoadingPayment" class="loading-overlay"></div>
-                        <div class="wide_tble_wrap">
+                        <div class="wide_tble_wrap" style="overflow-x: scroll;">
                             <table class="table table-bordered table-vertical-middle">
                                 <thead>
                                     <tr>
@@ -308,8 +360,8 @@
                                         <th>Fee</th>
                                         <th>Payment handling</th>
                                         <th>Example Amount</th>
-                                        <th>Resident Pays</th>
-                                        <th>Association Receives</th>
+                                        <th>Resident Would Pay</th>
+                                        <th>Association Would Receive</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -386,6 +438,7 @@
                                     <td class="text-start"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
                                 </tr>
                             </tbody>
+                            tb
                             <tfoot>
                                 <tr>
                                     <th class="text-end">Total</th>
@@ -543,6 +596,31 @@
             </div>
         </div>
 
+        <div data-ng-if="$ctrl.viewingStripeEntry" class="modal-container" data-ng-escape="$ctrl.showStripeTransferInfo( null )">
+            <div class="modal-overlay" data-ng-click="$ctrl.showStripeTransferInfo( null )"></div>
+            <div class="ca-modal-dialog modal-sm" style="width: 600px; margin-left: -300px;">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCheckoutDetails"></div>
+                <table>
+                    <tbody>
+                        <tr><td class="text-end" style="width:130px">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
+                        <tr><td class="text-end">Total Amount Paid: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-end">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr><td class="text-end">Payment Intent ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.stripePaymentIntentId }}</td></tr>
+                        <tr><td class="text-end">Charge ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.stripeChargeId }}</td></tr>
+                        <tr><td class="text-end">Payer Notes: </td><td class="text-bold">{{ $ctrl.checkoutInfo.payerNotes }}</td></tr>
+                        <tr><td class="text-end">Created: </td><td class="text-bold">{{ $ctrl.checkoutInfo.createdDateUtc | date:'EEEE, MMMM d, yyyy h:mm a' }}</td></tr>
+                        <tr><td class="text-end">From Acct: </td><td class="text-bold">{{ $ctrl.checkoutInfo.sourceFundingSourceName }}</td></tr>
+                    </tbody>
+                </table>
+                <br />
+                <br />
+                Stripe ACH payments usually take 5 business days to clear which is means about a full week. <a href="https://stripe.com/docs/payouts#payout-schedule" target="_blank">Learn about Stripe processing times</a>
+                <br />
+                <br />
+                <p class="note-text text-end">(Click anywhere outside this window to close)</p>
+            </div>
+        </div>
+
         <div class="modal-container" data-ng-show="$ctrl.shouldShowDwollaAddAccountModal">
             <div class="modal-overlay" data-ng-click=""></div>
             <div class="ca-modal-dialog modal-lg">
@@ -592,6 +670,128 @@
             </div>
         </div>
 
+        <div class="modal-container" data-ng-if="$ctrl.shouldShowPaymentSignupModal">
+            <div class="modal-overlay" data-ng-click="$ctrl.shouldShowPaymentSignupModal = false"></div>
+            <div class="ca-modal-dialog modal-lg">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowPaymentSignupModal = false">&times;</span>
+                <h2>Online Payments</h2>
+                <div class="row m-1">
+                    <p>
+                        We're at the point now where we can discuss putting humans on Mars and AI taking over the world, yet no one has made it easy to collect payments online? Unfortunately,
+                        that's the situation we're in. We've been through a few payment processors over the
+                        years and we wish we could offer a clear winner, but for now, sadly, you'll need to pick a solution that you think works best for your association's needs.
+                    </p>
+
+                    <h4 class="mt-4" style="text-decoration: none;">Integrated Options</h4>
+                    <p>
+                        Payments take place through your website. Payments are automatically tracked and recorded in your assessment history.
+                    </p>
+                    <hr />
+
+                    <div>
+                        <h4>Stripe</h4>
+                        Notes:
+                        <ul>
+                            <li><b>Requires EIN and a corporation in good standing</b></li>
+                        </ul>
+                        Pros:
+                        <ul>
+                            <li>World-class security, reporting, and financial dashboard</li>
+                            <li>Very easy checkout experience for residents</li>
+                        </ul>
+                        Cons:
+                        <ul>
+                            <li>Very complicated sign-up process for the HOA</li>
+                            <li>Payers pay a <b>0.8%</b> ($0.80 per $100) fee for on our premium plan or <b>1.6%</b> on our free plan. There are no other fees for the association. You'll probably want to remind folks if they can still pay by check or consider covering the Stripe fees.</li>
+                        </ul>
+
+                        <button type="button" data-ng-if="!$ctrl.paymentInfo.isStripeSetup" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = false; $ctrl.shouldShowStripePrefaceModal = true;">Get Started with Stripe</button>
+                        <div data-ng-if="$ctrl.paymentInfo.isStripeSetup" class="note-text">You're already setup with Stripe</div>
+                    </div>
+
+                    <hr class="mt-4 mb-4" />
+
+                    <div>
+                        <h4>WePay</h4>
+                        Notes:
+                        <ul>
+                            <li><b>Requires EIN and a corporation in good standing</b></li>
+                        </ul>
+                        Pros:
+                        <ul>
+                            <li>Lowest fees in the business at <b>$1.50</b> flat fee per transaction. There are no other fees for the association.</li>
+                        </ul>
+                        Cons:
+                        <ul>
+                            <li>Painful checkout experience for residents (They need to login to their bank site for every payment)</li>
+                        </ul>
+                        <a class="btn btn-primary" data-ng-if="!$ctrl.paymentInfo.isWePaySetup" data-ng-href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Get Started with WePay</a>
+                        <div data-ng-if="$ctrl.paymentInfo.isWePaySetup" class="note-text">You're already setup with WePay</div>
+                    </div>
+
+                    <hr class="mt-4" />
+
+                    <h4 class="mt-5" style="text-decoration: none;">Nonintegrated Options</h4>
+                    <p>
+                        Payments are not automatically tracked so you'll need to manually mark off payments in the assessment history.
+                    </p>
+                    <hr />
+
+                    <div>
+                        <h4>Your Bank</h4>
+                        <p>
+                            Many banks support direct bill pay or electronic payments, and many don't even charge fees. Check with association's bank to see if they support some way to allow residents to send their
+                            dues payments electronically.
+                        </p>
+                        Pros:
+                        <ul>
+                            <li>Should be easy</li>
+                            <li>Support local</li>
+                        </ul>
+                        Cons:
+                        <ul>
+                            <li>Depending on the bank, you might have to handle paper checks, which kind of defeats the purpose of online payments</li>
+                        </ul>
+                    </div>
+
+                    <hr class="mt-4 mb-4" />
+
+                    <div>
+                        <h4>Direct Payment Apps</h4>
+                        <p>
+                            First check if this is allowed in your state or municipality! For small associations, you might be able to get away with using a person-to-person payment app like Venmo, PayPal, or Zelle.
+                        </p>
+                        Pros:
+                        <ul>
+                            <li>Super easy for all parties</li>
+                            <li>Many apps don't have fees</li>
+                        </ul>
+                        Cons:
+                        <ul>
+                            <li>Again, it's most likely illegal. Almost every state disallows deposits of association funds into a personal bank account (commingling of funds) and most of these payment apps don't allow business accounts to sign-up</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-container" data-ng-if="$ctrl.shouldShowStripePrefaceModal">
+            <div class="modal-overlay" data-ng-click="$ctrl.shouldShowStripePrefaceModal = false"></div>
+            <div class="ca-modal-dialog modal-sm">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowStripePrefaceModal = false">&times;</span>
+                <p class="mt-4">
+                    Before you start, make sure you have your EIN handy. Also, open our Stripe sign-up guide in another window for easy reference.
+                    <div class="mt-3 text-center">
+                        <a href="https://help.communityally.org/stripe-sign-up-guide/" target="_blank">Open Stripe Sign-up Guide 🗗</a>
+                        <br />
+                        <br />
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.signUpForStripe()">Get Started with Stripe</button>
+                    </div>
+                </p>
+            </div>
+        </div>
     </div>
 
 </div>

@@ -13,6 +13,20 @@ namespace Ally
         fundingSource: string;
         paragonReferenceNumber: string;
         dwollaTransferUri: string;
+        sourceFundingSourceName: string;
+        destFundingSourceName: string;
+        stripePaymentIntentId: string;
+        stripeChargeId: string;
+        feeAmount: number;
+    }
+
+
+    class WePayBalanceDetail
+    {
+        pendingBalance: number;
+        availableBalance: number;
+        payoutAccountName: string;
+        wePayAccountEmail: string;
     }
 
 
@@ -20,11 +34,13 @@ namespace Ally
     {
         isWePaySetup: boolean;
         isDwollaSetup: boolean;
+        isStripeSetup: boolean;
+        stripeConnectEnabledDateUtc: Date | null;
         areOnlinePaymentsAllowed: boolean;
         wePayLoginUri: string;
         payerPaysCCFee: boolean;
         payerPaysAchFee: boolean;
-        balanceDetail: any;
+        balanceDetail: WePayBalanceDetail;
         needsReLogin: boolean;
         lateFeeDayOfMonth: number;
         lateFeeAmount: string;
@@ -35,6 +51,8 @@ namespace Ally
         dwollaFundingSourceType: string;
         dwollaFundingIsVerified: boolean;
         customFinancialInstructions: string;
+        stripeConnectChargesEnabled: boolean;
+        stripeConnectExternalAccountHints: string[];
     }
 
 
@@ -82,6 +100,7 @@ namespace Ally
         viewingPayPalCheckoutId: string;
         viewingParagonReferenceNumber: string;
         viewingDwollaEntry: ElectronicPayment;
+        viewingStripeEntry: ElectronicPayment;
         checkoutInfo: any;
         payPalSignUpClientId: string;
         payPalSignUpClientSecret: string;
@@ -89,19 +108,25 @@ namespace Ally
         isUpdatingPayPalCredentials: boolean;
         allowNewWePaySignUp: boolean = false;
         paymentsGridOptions: uiGrid.IGridOptionsOf<ElectronicPayment>;
-        shouldShowDwollaAddAccountModal: boolean = false;
-        shouldShowDwollaModalClose: boolean = false;
+        shouldShowDwollaAddAccountModal = false;
+        shouldShowDwollaModalClose = false;
+        shouldShowPaymentSignupModal = false;
+        shouldShowMicroDepositModal = false;
+        shouldShowPlaidTestSignUpButton = false;
+        shouldShowStripePrefaceModal = false;
+        shouldShowNewStripeSignUpMessage = false;
         isDwollaIavDone: boolean = false;
-        shouldShowMicroDepositModal: boolean = false;
         dwollaMicroDepositAmount1String: string;
         dwollaMicroDepositAmount2String: string;
         dwollaIavToken: string;
         homeName: string;
-        shouldShowPlaidTestSignUpButton: boolean = false;
         setAllAssessmentAmount: number;
         assessmentFrequencyLabel: string;
         shouldShowCustomInstructions: boolean = false;
         pageContentTinyMce: ITinyMce;
+        hasMultipleProviders = false;
+        allowStripeSignUp = false;
+        stripePayoutAccounts: string[] = null;
         readonly HistoryPageSize: number = 50;
         
 
@@ -129,6 +154,10 @@ namespace Ally
                 this.highlightPaymentsInfoId = parseInt( tempPayId );
 
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
+            
+            const StripeEnabledGroups = ["qa", "502wainslie"];
+            const createdRecently = moment(new Date(2023,6,25)).isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ) );
+            this.allowStripeSignUp = ( StripeEnabledGroups.indexOf( this.siteInfo.publicSiteInfo.shortName ) !== -1 ) || createdRecently;
 
             // Allow a single HOA to try WePay
             const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
@@ -169,7 +198,7 @@ namespace Ally
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
                         { field: 'notes', displayName: 'Notes' },
-                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span><span class="text-link" data-ng-if="row.entity.dwollaTransferUri" data-ng-click="grid.appScope.$ctrl.showDwollaTransferInfo( row.entity )">Dwolla Details</span></div>' }
+                        { field: 'id', displayName: '', width: 140, cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="row.entity.wePayCheckoutId" data-ng-click="grid.appScope.$ctrl.showWePayCheckoutInfo( row.entity.wePayCheckoutId )">WePay Details</span><span class="text-link" data-ng-if="row.entity.payPalCheckoutId" data-ng-click="grid.appScope.$ctrl.showPayPalCheckoutInfo( row.entity.payPalCheckoutId )">PayPal Details</span><span class="text-link" data-ng-if="row.entity.paragonReferenceNumber" data-ng-click="grid.appScope.$ctrl.showParagonCheckoutInfo( row.entity.paragonReferenceNumber )">Paragon Details</span><span class="text-link" data-ng-if="row.entity.dwollaTransferUri" data-ng-click="grid.appScope.$ctrl.showDwollaTransferInfo( row.entity )">Dwolla Details</span><span class="text-link" data-ng-if="row.entity.stripePaymentIntentId" data-ng-click="grid.appScope.$ctrl.showStripeTransferInfo( row.entity )">Stripe Details</span></div>' }
                     ],
                 enableSorting: true,
                 enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
@@ -219,6 +248,20 @@ namespace Ally
                     this.paymentsGridOptions.minRowsToShow = Math.min( this.paymentInfo.electronicPayments.length, this.HistoryPageSize );
                     this.paymentsGridOptions.virtualizationThreshold = this.paymentsGridOptions.minRowsToShow;
 
+                    let numProviders = 0;
+                    if( this.paymentInfo.isDwollaSetup )
+                        ++numProviders;
+                    if( this.paymentInfo.isWePaySetup )
+                        ++numProviders;
+                    if( this.paymentInfo.isStripeSetup )
+                        ++numProviders;
+                    this.hasMultipleProviders = numProviders > 1;
+
+                    // If the user signed-up for Stripe within the last two days, show them a message on how to add more users to Stripe
+                    if( httpResponse.data.stripeConnectEnabledDateUtc )
+                        this.shouldShowNewStripeSignUpMessage = moment().subtract( 2, "days" ).isBefore( moment( httpResponse.data.stripeConnectEnabledDateUtc ) );
+                    this.stripePayoutAccounts = httpResponse.data.stripeConnectExternalAccountHints;
+                    
                     if( HtmlUtil2.isValidString( this.paymentInfo.customFinancialInstructions ) )
                         this.showCustomInstructionsEditor();
 
@@ -248,6 +291,8 @@ namespace Ally
                                 this.showParagonCheckoutInfo( payment[0].paragonReferenceNumber );
                             else if( payment[0].dwollaTransferUri )
                                 this.showDwollaTransferInfo( payment[0] );
+                            else if( payment[0].stripePaymentIntentId )
+                                this.showStripeTransferInfo( payment[0] );
                         }
 
                         this.highlightPaymentsInfoId = null;
@@ -786,6 +831,39 @@ namespace Ally
 
 
         /**
+         * Show the Dwolla info for a specific transaction
+         */
+        showStripeTransferInfo( paymentEntry: ElectronicPayment )
+        {
+            this.viewingStripeEntry = paymentEntry;
+            if( !this.viewingStripeEntry )
+                return;
+
+            this.isLoadingCheckoutDetails = true;
+            this.checkoutInfo = {};
+
+            this.$http.get( "/api/OnlinePayment/StripeCheckoutInfo/" + paymentEntry.paymentId ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<StripePaymentDetails> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
+
+                    this.checkoutInfo = httpResponse.data;
+                    this.checkoutInfo.payerNotes = paymentEntry.notes;
+
+                    // Sometimes the status updates on checking
+                    paymentEntry.status = httpResponse.data.status;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoadingCheckoutDetails = false;
+
+                    alert( "Failed to retrieve checkout details: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
          * Cancel a Dwolla transfer
          */
         cancelDwollaTransfer()
@@ -1023,12 +1101,14 @@ namespace Ally
             );
         }
 
+
         showMicroDepositModal()
         {
             this.shouldShowMicroDepositModal = true;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
         }
+
 
         submitDwollaMicroDepositAmounts()
         {
@@ -1053,6 +1133,7 @@ namespace Ally
             )
         }
 
+
         addDwollaAccountViaPlaid()
         {
             this.isLoading = true;
@@ -1069,6 +1150,7 @@ namespace Ally
                 }
             )
         }
+
 
         showCustomInstructionsEditor()
         {
@@ -1120,6 +1202,28 @@ namespace Ally
                 }
             );
         }
+
+
+        signUpForStripe()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/StripePayments/StartSignUp" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    // Don't stop the loading indicator, just redirect to Stripe
+                    //this.isLoading = false;
+                    //window.open( response.data, "_self" );
+
+                    window.location.href = response.data;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to start Stripe sign-up: " + response.data.exceptionMessage );
+                }
+            );
+        }
     }
 
 
@@ -1144,6 +1248,20 @@ namespace Ally
         clearingSource: string;
         cancelUri: string;
 
+        // Added locally
+        payerNotes: string;
+    }
+
+    class StripePaymentDetails
+    {
+        stripePaymentIntentId: string;
+        stripeChargeId: string;
+        status: string;
+        amountString: string;
+        feeAmountString: string;
+        createdDateUtc: Date;
+        sourceFundingSourceName: string;
+        
         // Added locally
         payerNotes: string;
     }

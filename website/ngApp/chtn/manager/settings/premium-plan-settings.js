@@ -178,10 +178,9 @@ var Ally;
          * Occurs when the user clicks the button to enable premium plan auto-renewal
          */
         PremiumPlanSettingsController.prototype.activatePremiumRenewal = function () {
-            var _this = this;
             this.shouldShowPaymentForm = true;
             this.updateCheckoutDescription();
-            this.$timeout(function () { return _this.initStripePayment(); }, 250);
+            this.onPaymentTypeChange();
         };
         PremiumPlanSettingsController.prototype.updateCheckoutDescription = function () {
             var renewedInPast = moment(this.premiumPlanRenewDate).isBefore();

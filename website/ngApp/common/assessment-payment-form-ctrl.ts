@@ -8,7 +8,7 @@ namespace Ally
      */
     export class AssessmentPaymentFormController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q"];
+        static $inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q", "$scope"];
 
         isLoading_Payment: boolean = false;
         isLoadingDwolla: boolean = false;
@@ -49,6 +49,7 @@ namespace Ally
         };
         isWePayPaymentActive: boolean = false;
         isDwollaEnabledOnGroup: boolean = false;
+        isStripeEnabledOnGroup: boolean = false;
         isDwollaReadyForPayment: boolean = false;
         isDwollaUserAccountVerified: boolean;
         hasDwollaFundingSource: boolean;
@@ -63,7 +64,7 @@ namespace Ally
         dwollaFundingSourceName: string;
         dwollaFundingSourceIsVerified: boolean;
         dwollaFeePercent: number = 0.5;
-        dwollaMaxFee: number = 5;
+        dwollaStripeMaxFee: number = 5;
         dwollaFeeAmountString: string;
         dwollaDocUploadType: string = "license";
         dwollaDocUploadFile: File = null;
@@ -78,6 +79,14 @@ namespace Ally
         shouldShowDwollaAutoPayArea: boolean = true;
         currentDwollaAutoPayAmount: number | null = null;
         customFinancialInstructions: string;
+        stripeApi: any;
+        stripeElements: any;
+        stripeCardElement: any;
+        usersStripeBankAccountHint: string;
+        stripeAchFeeAmountString: string;
+        hasMultipleProviders = false;
+        allowDwollaSignUp: boolean = false;
+        stripePaymentSucceeded = false;
 
 
         /**
@@ -88,7 +97,8 @@ namespace Ally
             private $rootScope: ng.IRootScopeService,
             private $sce: ng.ISCEService,
             private $timeout: ng.ITimeoutService,
-            private $q: ng.IQService )
+            private $q: ng.IQService,
+            private $scope: ng.IScope )
         {
         }
 
@@ -107,12 +117,29 @@ namespace Ally
             const shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if( shouldShowDwolla )
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+
+            const isSpecialUser = this.siteInfo.publicSiteInfo.shortName === "mesaridge" && this.siteInfo.userInfo.userId === "8fcc4783-b554-490e-91cc-82f5ddb3d1b7";
+            this.isStripeEnabledOnGroup = this.siteInfo.privateSiteInfo.isStripePaymentActive;
+            if( this.isStripeEnabledOnGroup || isSpecialUser )
+                this.stripeApi = Stripe( StripeApiKey, { stripeAccount: this.siteInfo.privateSiteInfo.stripeConnectAccountId } );
+
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
-            this.dwollaMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
+            this.dwollaStripeMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if( this.siteInfo.privateSiteInfo.customFinancialInstructions )
                 this.customFinancialInstructions = this.$sce.trustAsHtml( this.siteInfo.privateSiteInfo.customFinancialInstructions );
+
+            let numProviders = 0;
+            if( this.isWePayPaymentActive )
+                ++numProviders;
+            if( this.isDwollaEnabledOnGroup )
+                ++numProviders;
+            if( this.isStripeEnabledOnGroup )
+                ++numProviders;
+            this.hasMultipleProviders = numProviders > 1;
+
+            this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountId ? this.siteInfo.userInfo.stripeBankAccountHint : null;
 
             if( this.isDwollaEnabledOnGroup )
             {
@@ -210,8 +237,8 @@ namespace Ally
 
             this.allyAppName = AppConfig.appName;
             this.isWePayAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
-            this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
-            this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "Service fee applies" : "No service fee";
+            this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "$1.50 service fee applies" : "No service fee";
+            this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "$1.50 service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
             this.errorPayInfoText = "Is the amount incorrect?";
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
@@ -242,6 +269,9 @@ namespace Ally
                 && this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.assessmentAmount > 0 )
                 || ( typeof this.currentDwollaAutoPayAmount === "number" && !isNaN( this.currentDwollaAutoPayAmount ) && this.currentDwollaAutoPayAmount > 1 );
+
+            // Temporarily disable while we figure out the contract
+            this.shouldShowDwollaAutoPayArea = false;
 
             if( this.shouldShowDwollaAutoPayArea )
             {
@@ -289,6 +319,9 @@ namespace Ally
                     this.updatePaymentText();
                 }
             }
+
+            //if( this.isStripeEnabledOnGroup )
+            //    this.$timeout( () => this.hookUpStripeCheckout(), 300 );
 
             //setTimeout( () =>
             //{
@@ -858,15 +891,60 @@ namespace Ally
         }
 
 
-        getFeeAmount( amount: number )
+        getDwollaFeeAmount( amount: number )
         {
             // dwollaFeePercent is in display percent, so 0.5 = 0.5% = 0.005 scalar
             // So we only need to divide by 100 to get our rounded fee
             let feeAmount = Math.ceil( amount * this.dwollaFeePercent ) / 100;
 
             // Cap the fee at $5 for premium, $10 for free plan groups
-            if( feeAmount > this.dwollaMaxFee )
-                feeAmount = this.dwollaMaxFee;
+            if( feeAmount > this.dwollaStripeMaxFee )
+                feeAmount = this.dwollaStripeMaxFee;
+
+            return feeAmount;
+        }
+
+
+        getStripeFeeAmount( amount: number )
+        {
+            if( typeof amount === "string" )
+                amount = parseFloat( amount );
+
+            if( isNaN( amount ) )
+                amount = 0;
+
+            if( !amount )
+                return 0;
+
+            // dwollaFeePercent is in display percent, so 0.8 = 0.8% = 0.008 scalar
+            // So we only need to divide by 100 to get our rounded fee
+            const StripeAchFeePercent = 0.008;
+            let totalWithFeeAmount = Math.round( ( amount * 100 ) / ( 1 - StripeAchFeePercent ) ) / 100;
+            let feeAmount = totalWithFeeAmount - amount;
+
+            // Cap the fee at $5 for premium, $10 for free plan groups
+            const MaxFeeAmount = 5;
+            const useMaxFee = feeAmount > MaxFeeAmount;
+            if( useMaxFee )
+            {
+                feeAmount = MaxFeeAmount;
+                totalWithFeeAmount = amount + feeAmount;
+            }
+
+            if( !this.siteInfo.privateSiteInfo.isPremiumPlanActive )
+            {
+                if( useMaxFee )
+                    totalWithFeeAmount = amount + ( MaxFeeAmount * 2 );
+                else
+                    totalWithFeeAmount = Math.round( ( totalWithFeeAmount * 100 ) / ( 1 - StripeAchFeePercent ) ) / 100;
+
+                feeAmount = totalWithFeeAmount - amount;
+
+                // This can happen at $618.12-$620.61
+                //console.log( "feeAmount", feeAmount );
+                if( feeAmount > MaxFeeAmount * 2 )
+                    feeAmount = MaxFeeAmount * 2;
+            }
 
             return feeAmount;
         }
@@ -877,9 +955,11 @@ namespace Ally
          */
         onPaymentAmountChange()
         {
-            const feeAmount = this.getFeeAmount( this.paymentInfo.amount );
+            const dwollaFeeAmount = this.getDwollaFeeAmount( this.paymentInfo.amount );
+            this.dwollaFeeAmountString = "$" + dwollaFeeAmount.toFixed( 2 );
 
-            this.dwollaFeeAmountString = "$" + feeAmount.toFixed( 2 );
+            const stripeFeeAmount = this.getStripeFeeAmount( this.paymentInfo.amount );
+            this.stripeAchFeeAmountString = "$" + stripeFeeAmount.toFixed( 2 );
         }
 
 
@@ -1012,6 +1092,282 @@ namespace Ally
                 {
                     this.isLoading_Payment = false;
                     alert( "Failed to disable Dwolla auto-pay: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        //hookUpStripeCheckout()
+        //{
+        //    const style = {
+        //        base: {
+        //            color: "#32325d",
+        //            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+        //            fontSmoothing: "antialiased",
+        //            fontSize: "16px",
+        //            "::placeholder": {
+        //                color: "#aab7c4"
+        //            }
+        //        },
+        //        invalid: {
+        //            color: "#fa755a",
+        //            iconColor: "#fa755a"
+        //        }
+        //    };
+
+        //    const stripeCheckoutOptions = {
+        //        mode: 'payment',
+        //        amount: 15 * 100,
+        //        currency: 'usd',
+        //        // Fully customizable with appearance API.
+        //        appearance: {}
+        //    };
+
+        //    this.stripeElements = this.stripeApi.elements( stripeCheckoutOptions );
+
+        //    this.stripeCardElement = this.stripeElements.create( "payment" );
+        //    this.stripeCardElement.mount( "#stripe-card-element" );
+
+        //    const onCardChange = ( event: any ) =>
+        //    {
+        //        if( event.error )
+        //            this.showStripeError( event.error.message );
+        //        else
+        //            this.showStripeError( null );
+        //    }
+
+        //    this.stripeCardElement.on( 'change', onCardChange );
+        //}
+
+
+        showStripeError( errorMessage: string )
+        {
+            const displayError = document.getElementById( 'card-errors' );
+
+            if( HtmlUtil.isNullOrWhitespace( errorMessage ) )
+                displayError.textContent = null;//'Unknown Error';
+            else
+                displayError.textContent = errorMessage;
+        }
+
+
+        async startStripeCardPayment()
+        {
+            this.stripeElements.update( { amount: Math.floor( this.paymentInfo.amount * 100 ) } );
+
+            // Trigger form validation and wallet collection
+            this.stripeElements.submit().then(
+                () =>
+                {
+                    this.isLoading_Payment = true;
+
+                    this.$http.post( "/api/StripePayments/StartPaymentIntent", this.paymentInfo ).then(
+                        async ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                        {
+                            // Confirm the PaymentIntent using the details collected by the Payment Element
+                            const { error } = await this.stripeApi.confirmPayment( {
+                                elements: this.stripeElements,
+                                clientSecret: response.data,
+                                confirmParams: {
+                                    return_url: this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home",
+                                },
+                            } );
+                        },
+                        ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                        {
+                            this.isLoading_Payment = false;
+                            console.log( "Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage );
+                            alert( "Failed to start payment: " + errorResponse.data.exceptionMessage );
+                        }
+                    );
+                },
+                ( error: any ) =>
+                {
+                    console.log( "Stripe error", error );
+                }
+            );
+
+            //this.stripeElements.submit();
+            //if( submitError )
+            //{
+            //    this.showStripeError( submitError.message );
+            //    return;
+            //}
+
+
+        }
+
+
+        /**
+         * Complete the Stripe-Plaid ACH-linking flow
+         */
+        completePlaidAchConnection( accessToken: string, accountId: string )
+        {
+            this.isLoading_Payment = true;
+
+            const postData = {
+                accessToken,
+                selectedAccountIds: [accountId]
+            };
+
+            this.$http.post( "/api/Plaid/ProcessUserStripeAccessToken", postData ).then(
+                () =>
+                {
+                    this.isLoading_Payment = false;
+                    console.log( "Account successfully linked, reloading..." );
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to link account: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Start the Stripe-Plaid ACH-linking flow
+         */
+        startPlaidAchConnection()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.get( "/api/Plaid/StripeLinkToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    if( !httpResponse.data )
+                    {
+                        this.isLoading_Payment = false;
+                        alert( "Failed to start Plaid connection. Please contact support." );
+                        return;
+                    }
+
+                    const plaidConfig: any = {
+                        token: httpResponse.data,
+                        onSuccess: ( public_token: string, metadata: any ) =>
+                        {
+                            console.log( "Plaid StripeLinkToken onSuccess", metadata );
+
+                            this.completePlaidAchConnection( public_token, metadata.account_id );
+                        },
+                        onLoad: () =>
+                        {
+                            // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                            this.$scope.$apply( () =>
+                            {
+                                this.isLoading_Payment = false;
+                            } );
+                        },
+                        onExit: ( err: any, metadata: any ) =>
+                        {
+                            //console.log( "update onExit.err", err, metadata );
+
+                            // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                            this.$scope.$apply( () =>
+                            {
+                                this.isLoading_Payment = false;
+                            } );
+                        },
+                        onEvent: ( eventName: string, metadata: any ) =>
+                        {
+                            console.log( "update onEvent.eventName", eventName, metadata );
+                        },
+                        receivedRedirectUri: null,
+                    };
+
+                    const plaidHandler = Plaid.create( plaidConfig );
+                    plaidHandler.open();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to start Plaid connection: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        makeStripeAchPayment()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.post( "/api/StripePayments/StartPaymentIntent", this.paymentInfo ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    const intentClientSecret = response.data;
+
+                    this.stripeApi.confirmUsBankAccountPayment(
+                        intentClientSecret,
+                        {
+                            payment_method: this.siteInfo.userInfo.stripeBankAccountId,
+                            //on_behalf_of: this.siteInfo.privateSiteInfo.stripeConnectAccountId
+                        }
+                    ).then(
+                        ( result: any ) =>
+                        {
+                            // Need to wrap this in a $scope.using because the confirmUsBankAccountPayment event is invoked by vanilla JS, not AngularJS
+                            this.$scope.$apply( () =>
+                            {
+                                this.isLoading_Payment = false;
+                                this.stripePaymentSucceeded = true;
+                            } );
+
+                            if( result.error )
+                            {
+                                // Inform the customer that there was an error.
+                                console.log( result.error.message );
+                            } else
+                            {
+                                //TODO Success
+
+                                // Handle next step based on PaymentIntent's status.
+                                console.log( "PaymentIntent ID: " + result.paymentIntent.id );
+                                console.log( "PaymentIntent status: " + result.paymentIntent.status );
+                            }
+                        },
+                        ( error: any ) =>
+                        {
+                            // Need to wrap this in a $scope.using because th confirmUsBankAccountPayment event is invoked by vanilla JS, not Angular
+                            this.$scope.$apply( () =>
+                            {
+                                this.isLoading_Payment = false;
+                            } );
+
+                            console.log( "Stripe Failed", error );
+                            alert( "Stripe Failed: " + error );
+                        }
+                    );
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    console.log( "Failed to SignUpPrefill: " + errorResponse.data.exceptionMessage );
+                    alert( "Failed to start payment: " + errorResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Unlink and remove a user's Stripe funding source
+         */
+        unlinkStripeFundingSource()
+        {
+            if( !confirm( "Are you sure you want to disconnect the bank account? You will no longer be able to make payments." ) )
+                return;
+
+            this.isLoading_Payment = true;
+
+            this.$http.delete( "/api/StripePayments/RemoveBankAccount" ).then(
+                () =>
+                {
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to disconnect account" + httpResponse.data.exceptionMessage );
                 }
             );
         }

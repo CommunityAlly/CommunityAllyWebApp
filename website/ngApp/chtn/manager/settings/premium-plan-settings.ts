@@ -250,7 +250,7 @@ namespace Ally
             this.shouldShowPaymentForm = true;
             this.updateCheckoutDescription();
 
-            this.$timeout( () => this.initStripePayment(), 250 );
+            this.onPaymentTypeChange();
         }
 
 

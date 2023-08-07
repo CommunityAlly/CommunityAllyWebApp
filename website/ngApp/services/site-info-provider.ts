@@ -53,6 +53,9 @@ namespace Ally
         dwollaFundingSourceIsVerified: boolean;
         defaultDigestFrequency: string;
         dwollaAutoPayAmount: number | null;
+        stripeCustomerId: string;
+        stripeBankAccountId: string;
+        stripeBankAccountHint: string;
 
         boardPosition: number;
         assessmentPaymentHistory: string[];
@@ -117,6 +120,11 @@ namespace Ally
         isDiscussionEmailGroupEnabled: boolean;
         isPremiumPlanActive: boolean;
         shouldShowOwnerFinanceTxn: boolean;
+        numMembers: number;
+        stripeConnectAccountId: string;
+
+        // Only on PTAs
+        ptaUnitId: number;
 
         // Not from the server
         googleGpsPosition: google.maps.LatLng;
@@ -133,8 +141,8 @@ namespace Ally
         payerPaysCCFee: string;
         isWePayPaymentActive: boolean;
         isDwollaPaymentActive: boolean;
+        isStripePaymentActive: boolean;
         numUnits: number;
-        numMembers: number;
         isEmailSendingRestricted: boolean;
         hasAssessments: boolean | null;
         assessmentFrequency: number;
@@ -144,9 +152,6 @@ namespace Ally
         rentersCanViewDocs: boolean;
         customFinancialInstructions: string;
         //payPalClientId: string;
-
-        // Only on PTAs
-        ptaUnitId: number;
     }
 
 
@@ -338,12 +343,15 @@ namespace Ally
                 {
                     if( typeof ( $zopim ) !== "undefined" )
                     {
-                        $zopim( function()
+                        $zopim( () =>
                         {
-                            $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
+                            if( $rootScope.userInfo )
+                            {
+                                $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
 
-                            if( $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
-                                $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
+                                if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                                    $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
+                            }
                         } );
                     }
                 };

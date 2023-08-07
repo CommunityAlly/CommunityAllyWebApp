@@ -34,7 +34,7 @@
                     Account: {{$ctrl.dwollaFundingSourceName}} - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
                 </div>
             </div>
-            <div ng-if="!$ctrl.isDwollaUserAccountVerified">
+            <div ng-if="!$ctrl.isDwollaUserAccountVerified && $ctrl.allowDwollaSignUp">
                 <div id="dwolla-sign-up" data-ng-if="$ctrl.dwollaUserStatus === 'checking'">
                     <img src="/assets/images/spinner-large.gif" />
                 </div>
@@ -111,7 +111,7 @@
             </div>
         </div>
 
-        <form data-ng-if="$ctrl.isWePayPaymentActive || $ctrl.isDwollaReadyForPayment">
+        <form data-ng-if="$ctrl.isWePayPaymentActive || $ctrl.isDwollaReadyForPayment || $ctrl.isStripeEnabledOnGroup">
             <div class="pay_for">
                 <div class="text-16 font-600">I am paying for</div>
 
@@ -142,9 +142,44 @@
                 <i class="error" ng-show="$ctrl.paymentError">{{$ctrl.paymentErrorMessage}}</i>
             </div>
 
-            <div data-ng-if="$ctrl.isWePayPaymentActive">
-                <p class="margin-top-30" style="margin-bottom: 0;">You can use <a target="_blank" href="https://www.wepay.com/">WePay</a> to safely and securely handle payments.</p>
-                <p class="buttons">
+            <div data-ng-if="$ctrl.isStripeEnabledOnGroup" class="margin-top-30">
+                <h5 data-ng-if="$ctrl.hasMultipleProviders">Stripe</h5>
+                <p style="margin-bottom: 0;">Your association has setup <a target="_blank" href="https://stripe.com/">Stripe</a> to safely and securely accept payments.</p>
+                <div>
+                    <div data-ng-if="!$ctrl.usersStripeBankAccountHint" class="mt-3">
+                        Community Ally uses Plaid to connect to bank accounts for security and simplicity.
+                        <div class="text-center mt-2">
+                            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account</button>
+                        </div>
+                        <span class="note-text">Once you connect a bank account you'll be able to make payments via ACH.</span>
+                    </div>
+
+                    <div data-ng-if="$ctrl.usersStripeBankAccountHint">
+                        <div data-ng-if="!$ctrl.stripePaymentSucceeded">
+                            You have connected Stripe to this account:
+                            <br />
+                            <b>{{$ctrl.usersStripeBankAccountHint}}</b>
+                            - <span class="text-link note-text" data-ng-click="$ctrl.unlinkStripeFundingSource()">Unlink bank account</span>
+                            <br />
+                            Stripe Fee: {{$ctrl.stripeAchFeeAmountString}}
+                            <div class="text-center">
+                                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.makeStripeAchPayment()">Submit E-Check Payment via Stripe</button>
+                            </div>
+                        </div>
+                        <div data-ng-if="$ctrl.stripePaymentSucceeded">
+                            <span style="font-size: x-large; color: blue;">Payment submitted successfully!</span>
+                            <div class="mt-2">
+                                (<span class="text-link note-text" data-ng-click="$ctrl.reloadPage()">OK</span>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div data-ng-if="$ctrl.isWePayPaymentActive" class="margin-top-30">
+                <h5 data-ng-if="$ctrl.hasMultipleProviders">WePay</h5>
+                <p style="margin-bottom: 0;">Your association has setup <a target="_blank" href="https://www.wepay.com/">WePay</a> to safely and securely accept payments.</p>
+                <p class="buttons text-center">
                     <span class="text-center d-inline-block">
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitWePayPayment('ach');" value="Pay with E-Check">
                         <br />
@@ -159,7 +194,13 @@
             </div>
 
             <div class="buttons margin-top-30 text-center" ng-if="$ctrl.isDwollaReadyForPayment">
-                <p class="text-start margin-top-30" style="margin-bottom: 0;">You are setup to use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely handle payments.</p>
+                <div data-ng-if="$ctrl.hasMultipleProviders" class="text-start">
+                    <h5>Dwolla</h5>
+                </div>
+                <p class="text-start" style="margin-bottom: 0;">You are setup to use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely submit payments.</p>
+                <div class="alert alert-warning" role="alert" data-ng-if="$ctrl.isStripeEnabledOnGroup">
+                    Dwolla payments are being disabled October 10. Please switch over to Stripe or a different payment provider before then. We'll be reaching out to users via email to help with this transition.
+                </div>
 
                 <div class="text-center d-inline-block">
                     <div data-ng-if="$ctrl.dwollaPaymentMessage">
@@ -176,7 +217,7 @@
                             NOTE: You have auto-pay setup so be careful of double payments.
                         </div>
                         <div>
-                            You can cancel within 24 hours of payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}, max ${{$ctrl.dwollaMaxFee}}) applies.
+                            You can cancel within 24 hours of payment. {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.dwollaFeeAmountString}}, max ${{$ctrl.dwollaStripeMaxFee}}) applies.
                             <div class="mt-3 text-end note-text">
                                 Account: <b>{{$ctrl.dwollaFundingSourceName}}</b> - <span class="text-link note-text" data-ng-click="$ctrl.unlinkDwollaFundingSource()">Unlink bank account</span>
                             </div>
@@ -246,7 +287,7 @@
                     <street-address-form data-should-hide-name="true" data-street-address="$ctrl.paragonSignUpInfo.billingAddress"></street-address-form>
                     <h4 class="mt-2" style="text-decoration: underline">Your Bank Account Information</h4>
                     <div class="row">
-                        <label for="edit-user-first-text-box" class="col-sm-2 col-12">Account Type:</label>
+                        <label class="col-sm-2 col-12">Account Type:</label>
                         <div class="col-sm-5 col-12">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" id="acct-type-checking" data-ng-value="'CHECKING'" data-ng-model="$ctrl.paragonSignUpInfo.accountType">
@@ -263,7 +304,7 @@
                                 <label class="form-check-label" for="check-type-personal">Personal</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="check-type-savings" data-ng-value="'BUSINESS'" data-ng-model="$ctrl.paragonSignUpInfo.checkType">
+                                <input class="form-check-input" type="radio" id="check-type-business" data-ng-value="'BUSINESS'" data-ng-model="$ctrl.paragonSignUpInfo.checkType">
                                 <label class="form-check-label" for="check-type-business">Business</label>
                             </div>
                         </div>
@@ -364,7 +405,7 @@
                             <br />
                             <input type="button" class="btn btn-primary" data-ng-click="$ctrl.enableDwollaAutoPay()" value="Enable Auto-Pay">
                             <br />
-                            {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.getFeeAmount($ctrl.assessmentAmount) | currency}}, max ${{$ctrl.dwollaMaxFee}}) applies.
+                            {{$ctrl.dwollaFeePercent}}% fee ({{$ctrl.getDwollaFeeAmount($ctrl.assessmentAmount) | currency}}, max ${{$ctrl.dwollaStripeMaxFee}}) applies.
                         </div>
                     </div>
                     <br />
@@ -401,7 +442,7 @@
             </div>
         </div>
 
-        <div class="mt-3">
+        <div class="mt-5">
             <div class="manage_pannel text-end">
                 <span class="text-link" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-history' ? null : 'payment-history')" id="btn_view_pay_history">Payment History</span>
                 <span class="text-link ms-3" data-ng-click="$ctrl.showExtraInfo = ($ctrl.showExtraInfo === 'payment-info' ? null : 'payment-info')" id="btn_view_pay_info">Payment Information</span>
@@ -424,7 +465,7 @@
 
                 <div id="pm_info" data-ng-if="$ctrl.showExtraInfo === 'payment-info'">
                     <h4>Payment Information</h4>
-                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called Dwolla to process payment. There is a 1% processing fee if your association is using the {{ $ctrl.allyAppName }} free plan, or 0.5% if on the premium plan. We donot store your payment information at any time. Both {{ $ctrl.allyAppName }} and Dwolla use the same security used by major banks to secure all information and data transfer. <a href="https://www.dwolla.com/security/" target="_blank">Learn more about Dwolla's security</a>. </p>
+                    <p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called Stripe to process payments. There is a 1.6% processing fee if your association is using the {{ $ctrl.allyAppName }} free plan, or 0.8% if on the premium plan. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and Stripe use the same security used by major banks to secure all information and data transfer. <a href="https://stripe.com/docs/security" target="_blank">Learn more about Stripe's security</a>. </p>
 
                     <!--<p>You can pay your assessment online. {{ $ctrl.allyAppName }} uses a service called WePay to process payment. We do not store your payment information at any time. Both {{ $ctrl.allyAppName }} and WePay use the same security used by major banks to secure all information and data transfer. <a href="https://support.wepay.com/entries/23064032-Security" target="_blank">Learn more about WePay's security</a>. </p>-->
 

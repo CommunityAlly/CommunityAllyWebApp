@@ -204,9 +204,11 @@ var Ally;
                 var prepopulateZopim = function () {
                     if (typeof ($zopim) !== "undefined") {
                         $zopim(function () {
-                            $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
-                            if ($rootScope.userInfo.emailAddress.indexOf("@") !== -1)
-                                $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
+                            if ($rootScope.userInfo) {
+                                $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
+                                if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
+                                    $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
+                            }
                         });
                     }
                 };

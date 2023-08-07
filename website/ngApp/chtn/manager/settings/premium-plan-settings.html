@@ -112,6 +112,9 @@
                                 <span class="note-text">Once you connect a bank account you'll be able to make payment via ACH.</span>
                             </div>
                             <div data-ng-if="$ctrl.settings.hasStripeAchAccount">
+                                <p>
+                                    We'll use the checking account (<b>{{$ctrl.settings.stripeAchAccountBankHint}}</b>) you've already connected to make the payment.
+                                </p>
                                 <div class="text-center">
                                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.makeAchStripePayment()">{{$ctrl.payButtonText}}</button>
                                 </div>

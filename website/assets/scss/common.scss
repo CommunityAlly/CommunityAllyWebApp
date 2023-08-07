@@ -129,6 +129,7 @@ a {
     cursor: pointer;
     color: #08c;
     font-weight: 600;
+    text-decoration: none;
 }
 .text-button:hover, .text-link:hover
 {
@@ -478,8 +479,15 @@ a[data-edit="backColor #FFFFFF"]::before {
 #custom-page-content img, .rich-text-editor img {
     max-width: 100%;
 }
+
+.payment-provider-panel {
+    border: 1px solid black;
+    padding: 20px;
+    margin: 1rem;
+}
+
 /* BS4-BS5 Updrade General CSS Change Start */
-.navbar .navbar-collapse{
+.navbar .navbar-collapse {
     padding-left: 45px !important;
 }
 .form-label{
