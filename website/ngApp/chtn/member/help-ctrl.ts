@@ -4,6 +4,8 @@
     {
         emailAddress: string;
         message: string;
+        clientUrl: string;
+        groupName: string;
     }
 
 
@@ -20,6 +22,7 @@
         wasMessageSent: boolean = false;
         sendResult: string;
         isPageEnabled: boolean = null;
+        shouldShowGroupNameField = false;
 
 
         /**
@@ -51,6 +54,9 @@
 
             if( this.siteInfo.isLoggedIn )
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
+
+            this.sendInfo.clientUrl = window.location.href;
+            this.shouldShowGroupNameField = HtmlUtil.getSubdomain( window.location.host ) === "login";
         }
 
 
@@ -66,26 +72,28 @@
             this.isLoading = true;
 
             // Retrieve information for the current association
-            var innerThis = this;
-            this.$http.post( "/api/Help", this.sendInfo ).then( function()
-            {
-                innerThis.isLoading = false;
+            this.$http.post( "/api/Help", this.sendInfo ).then(
+                () =>
+                {
+                    this.isLoading = false;
 
-                innerThis.sendInfo = {};
+                    this.sendInfo = {};
+                    this.sendInfo.clientUrl = window.location.href;
 
-                innerThis.wasMessageSent = true;
+                    this.wasMessageSent = true;
 
-                innerThis.resultStyle.color = "#00F";
+                    this.resultStyle.color = "#00F";
 
-                innerThis.sendResult = "Your message has been sent. We'll do our best to get back to you within 24 hours.";
+                    this.sendResult = "Your message has been sent. We'll do our best to get back to you within 24 hours.";
+                },
+                () =>
+                {
+                    this.isLoading = false;
 
-            }, function()
-            {
-                innerThis.isLoading = false;
-
-                innerThis.resultStyle.color = "#F00";
-                innerThis.sendResult = "Failed to send message.";
-            } );
+                    this.resultStyle.color = "#F00";
+                    this.sendResult = "Failed to send message.";
+                }
+            );
         };
     }
 }

@@ -19,26 +19,28 @@ var Ally;
             this.isLoading = false;
             this.wasMessageSent = false;
             this.isPageEnabled = null;
+            this.shouldShowGroupNameField = false;
             /**
              * Occurs when the user clicks the log-in button
              */
             this.onSendHelp = function () {
+                var _this = this;
                 $("#help-form").validate();
                 if (!$("#help-form").valid())
                     return;
                 this.isLoading = true;
                 // Retrieve information for the current association
-                var innerThis = this;
                 this.$http.post("/api/Help", this.sendInfo).then(function () {
-                    innerThis.isLoading = false;
-                    innerThis.sendInfo = {};
-                    innerThis.wasMessageSent = true;
-                    innerThis.resultStyle.color = "#00F";
-                    innerThis.sendResult = "Your message has been sent. We'll do our best to get back to you within 24 hours.";
+                    _this.isLoading = false;
+                    _this.sendInfo = {};
+                    _this.sendInfo.clientUrl = window.location.href;
+                    _this.wasMessageSent = true;
+                    _this.resultStyle.color = "#00F";
+                    _this.sendResult = "Your message has been sent. We'll do our best to get back to you within 24 hours.";
                 }, function () {
-                    innerThis.isLoading = false;
-                    innerThis.resultStyle.color = "#F00";
-                    innerThis.sendResult = "Failed to send message.";
+                    _this.isLoading = false;
+                    _this.resultStyle.color = "#F00";
+                    _this.sendResult = "Failed to send message.";
                 });
             };
             this.resultStyle = {
@@ -58,6 +60,8 @@ var Ally;
             });
             if (this.siteInfo.isLoggedIn)
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
+            this.sendInfo.clientUrl = window.location.href;
+            this.shouldShowGroupNameField = HtmlUtil.getSubdomain(window.location.host) === "login";
         };
         HelpFormController.$inject = ["$http", "SiteInfo"];
         return HelpFormController;

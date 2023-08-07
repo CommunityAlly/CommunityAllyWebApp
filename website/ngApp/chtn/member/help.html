@@ -19,6 +19,10 @@
                 Your email address: <input id="help-email-input" data-ng-model="$ctrl.sendInfo.emailAddress" data-rule-required="true" type="text" /><br />
                 <br />
             </div>
+            <div data-ng-if="$ctrl.shouldShowGroupNameField">
+                Association Name: <input id="help-group-name-input" data-ng-model="$ctrl.sendInfo.groupName" type="text" /><span class="note-text">(Optional)</span><br />
+                <br />
+            </div>
             Enter your message here:<br />
             <textarea id="help-message-textarea" data-ng-model="$ctrl.sendInfo.message" maxlength="4096" data-rule-required="true" style="width: 100%;" rows="10"></textarea>
             <br />
