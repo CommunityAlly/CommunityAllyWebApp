@@ -332,6 +332,10 @@ var Ally;
                     tinymce.init({
                         selector: '#' + elemId,
                         auto_focus: autoFocusElemId,
+                        statusbar: true,
+                        elementpath: false,
+                        wordcount: true,
+                        resize: true,
                         menubar: menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table code emoticons',
