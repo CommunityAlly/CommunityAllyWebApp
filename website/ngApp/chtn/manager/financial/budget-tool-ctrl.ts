@@ -21,6 +21,7 @@
         totalIncome: number = 0;
         readonly EditAmountTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
 
+
         /**
         * The constructor for the class
         */
@@ -60,10 +61,10 @@
                     // Fix dumb scrolling
                     HtmlUtil.uiGridFixScroll();
 
-                    this.expenseGridApi.treeBase.on.rowExpanded( this.$rootScope, function( row )
-                    {
-                        // console.log( "here", row );
-                    } );
+                    //this.expenseGridApi.treeBase.on.rowExpanded( this.$rootScope, ( row ) =>
+                    //{
+                    //    // console.log( "here", row );
+                    //} );
                 }
             };
 
@@ -87,7 +88,7 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/Budget/PageData" ).then(
+            return this.$http.get( "/api/Budget/PageData" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<BudgetPageInfo> ) =>
                 {
                     this.isLoading = false;
@@ -221,8 +222,7 @@
             else
                 amountColumn.cellTemplate = this.EditAmountTemplate;
 
-            let editRows: BudgetRowLocalEdit[];
-            editRows = budget.rows.map( r =>
+            const editRows: BudgetRowLocalEdit[] = budget.rows.map( r =>
             {
                 const cat = this.financialCategoryMap.has( r.financialCategoryId ) ? this.financialCategoryMap.get( r.financialCategoryId ) : undefined;
                 const treeDepth = getCatDepth( cat );
@@ -358,7 +358,7 @@
             };
             
             return this.$http.put( "/api/Budget", putData ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<BudgetPageInfo> ) =>
+                () =>
                 {
                     this.isLoading = false;
 
@@ -369,7 +369,7 @@
                 {
                     this.isLoading = false;
                     alert( "Failed to save: " + httpResponse.data.exceptionMessage );
-                    return Promise.reject( null );
+                    return Promise.reject( httpResponse );
                 }
             );
         }
@@ -394,7 +394,7 @@
             };
 
             this.$http.post( "/api/Budget", postData ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<BudgetPageInfo> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.completeRefresh();
@@ -431,7 +431,7 @@
             this.isLoading = true;
 
             this.$http.delete( "/api/Budget/" + this.curBudget.budgetId ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<BudgetPageInfo> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.completeRefresh();
@@ -452,7 +452,7 @@
             this.incomeGridOptions.data = [];
             this.expenseGridOptions.data = [];
 
-            this.refreshData();
+            return this.refreshData();
         }
 
 
@@ -467,7 +467,7 @@
                 () =>
                 {
                     this.$http.put( "/api/Budget/Finalize/" + this.curBudget.budgetId, null ).then(
-                        ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                        () =>
                         {
                             this.isLoading = false;
 
@@ -485,9 +485,10 @@
                         }
                     );
                 },
-                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                () =>
                 {
                     this.isLoading = false;
+                    // Error is prompted via saveExistingBudget
                 }
             );
         }
@@ -566,6 +567,42 @@
 
             const fileName = "budget-" + HtmlUtil2.removeNonAlphanumeric( this.curBudget.budgetName ) + ".csv";
             HtmlUtil2.downloadCsv( csvDataString, fileName );
+        }
+
+
+        /**
+         * Occurs when the user presses the button to delete a budget
+         */
+        cloneBudget()
+        {
+            const newName = prompt( "Enter the new, cloned budget's name:" )
+            if( !newName )
+                return;
+
+            const cloneInfo = {
+                newName,
+                budgetId: this.curBudget.budgetId
+            };
+
+            this.isLoading = true;
+
+            this.$http.put( "/api/Budget/Clone", cloneInfo ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<number> ) =>
+                {
+                    this.isLoading = false;
+                    this.completeRefresh().then( () =>
+                    {
+                        // Select the newly created budget
+                        this.selectedBudget = this.budgets.find( b => b.budgetId === httpResponse.data );
+                        this.onBudgetSelected();
+                    } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to clone, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
     }
 

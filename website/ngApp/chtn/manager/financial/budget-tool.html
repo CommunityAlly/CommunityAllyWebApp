@@ -25,11 +25,13 @@
                     <button type="button" class="btn btn-primary ms-4" data-ng-click="$ctrl.saveBudget()">Save Budget</button>
                     <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.closeBudget()">Cancel Edit</button>
                     <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.finalizeBudget()">Finalize Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.cloneBudget()">Clone Budget</button>
                     <button type="button" class="btn btn-danger ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.deleteBudget()">Delete Budget</button>
                 </div>
                 <div data-ng-if="$ctrl.selectedBudget.finalizedDateUtc">
                     <h3 style="display: inline;">{{$ctrl.curBudget.budgetName}}</h3>
-                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.closeBudget()">Close Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.closeBudget()">Select Different Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.cloneBudget()">Clone Budget</button>
                     <div class="note-text">Budget finalized on {{$ctrl.selectedBudget.finalizedDateUtc | date:'short'}}</div>
                 </div>
                 <div data-ng-if="!$ctrl.selectedBudget.finalizedDateUtc">

@@ -52,9 +52,10 @@ var Ally;
                         _this.expenseGridApi = gridApi;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
-                        _this.expenseGridApi.treeBase.on.rowExpanded(_this.$rootScope, function (row) {
-                            // console.log( "here", row );
-                        });
+                        //this.expenseGridApi.treeBase.on.rowExpanded( this.$rootScope, ( row ) =>
+                        //{
+                        //    // console.log( "here", row );
+                        //} );
                     }
                 };
             this.incomeGridOptions = _.clone(this.expenseGridOptions);
@@ -71,7 +72,7 @@ var Ally;
         BudgetToolController.prototype.refreshData = function () {
             var _this = this;
             this.isLoading = true;
-            this.$http.get("/api/Budget/PageData").then(function (httpResponse) {
+            return this.$http.get("/api/Budget/PageData").then(function (httpResponse) {
                 _this.isLoading = false;
                 _this.budgets = httpResponse.data.budgets;
                 _this.rootFinancialCategory = httpResponse.data.rootFinancialCategory;
@@ -163,8 +164,7 @@ var Ally;
                 amountColumn.cellTemplate = null;
             else
                 amountColumn.cellTemplate = this.EditAmountTemplate;
-            var editRows;
-            editRows = budget.rows.map(function (r) {
+            var editRows = budget.rows.map(function (r) {
                 var cat = _this.financialCategoryMap.has(r.financialCategoryId) ? _this.financialCategoryMap.get(r.financialCategoryId) : undefined;
                 var treeDepth = getCatDepth(cat);
                 var offsetDepth = treeDepth; //isIncomeRow ? depth - 1 : depth;
@@ -268,14 +268,14 @@ var Ally;
                     };
                 })
             };
-            return this.$http.put("/api/Budget", putData).then(function (httpResponse) {
+            return this.$http.put("/api/Budget", putData).then(function () {
                 _this.isLoading = false;
                 if (refreshAfterSave)
                     _this.completeRefresh();
             }, function (httpResponse) {
                 _this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
-                return Promise.reject(null);
+                return Promise.reject(httpResponse);
             });
         };
         BudgetToolController.prototype.saveNewBudget = function () {
@@ -293,7 +293,7 @@ var Ally;
                     };
                 })
             };
-            this.$http.post("/api/Budget", postData).then(function (httpResponse) {
+            this.$http.post("/api/Budget", postData).then(function () {
                 _this.isLoading = false;
                 _this.completeRefresh();
             }, function (httpResponse) {
@@ -317,7 +317,7 @@ var Ally;
             if (!confirm("Are you sure you want to deleted this budget?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Budget/" + this.curBudget.budgetId).then(function (httpResponse) {
+            this.$http.delete("/api/Budget/" + this.curBudget.budgetId).then(function () {
                 _this.isLoading = false;
                 _this.completeRefresh();
             }, function (httpResponse) {
@@ -330,7 +330,7 @@ var Ally;
             this.selectedBudget = null;
             this.incomeGridOptions.data = [];
             this.expenseGridOptions.data = [];
-            this.refreshData();
+            return this.refreshData();
         };
         BudgetToolController.prototype.finalizeBudget = function () {
             var _this = this;
@@ -338,7 +338,7 @@ var Ally;
                 return;
             this.isLoading = true;
             this.saveExistingBudget(false).then(function () {
-                _this.$http.put("/api/Budget/Finalize/" + _this.curBudget.budgetId, null).then(function (httpResponse) {
+                _this.$http.put("/api/Budget/Finalize/" + _this.curBudget.budgetId, null).then(function () {
                     _this.isLoading = false;
                     _this.curBudget = null;
                     _this.selectedBudget = null;
@@ -349,8 +349,9 @@ var Ally;
                     _this.isLoading = false;
                     alert("Failed to finalize, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
                 });
-            }, function (httpResponse) {
+            }, function () {
                 _this.isLoading = false;
+                // Error is prompted via saveExistingBudget
             });
         };
         BudgetToolController.prototype.exportToCsv = function () {
@@ -410,6 +411,31 @@ var Ally;
             var csvDataString = Ally.createCsvString(csvRows, csvColumns, false);
             var fileName = "budget-" + Ally.HtmlUtil2.removeNonAlphanumeric(this.curBudget.budgetName) + ".csv";
             Ally.HtmlUtil2.downloadCsv(csvDataString, fileName);
+        };
+        /**
+         * Occurs when the user presses the button to delete a budget
+         */
+        BudgetToolController.prototype.cloneBudget = function () {
+            var _this = this;
+            var newName = prompt("Enter the new, cloned budget's name:");
+            if (!newName)
+                return;
+            var cloneInfo = {
+                newName: newName,
+                budgetId: this.curBudget.budgetId
+            };
+            this.isLoading = true;
+            this.$http.put("/api/Budget/Clone", cloneInfo).then(function (httpResponse) {
+                _this.isLoading = false;
+                _this.completeRefresh().then(function () {
+                    // Select the newly created budget
+                    _this.selectedBudget = _this.budgets.find(function (b) { return b.budgetId === httpResponse.data; });
+                    _this.onBudgetSelected();
+                });
+            }, function (httpResponse) {
+                _this.isLoading = false;
+                alert("Failed to clone, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
+            });
         };
         BudgetToolController.$inject = ["$http", "appCacheService", "uiGridConstants", "$rootScope"];
         return BudgetToolController;
