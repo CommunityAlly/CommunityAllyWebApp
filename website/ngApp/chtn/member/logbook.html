@@ -212,7 +212,7 @@
 
                     <div class="padding-top-10 clearfix">
                         <span class="text-button" data-ng-hide="$ctrl.showExpandedCalendarEventModel" data-ng-click="$ctrl.expandCalendarEventModel()">More Details</span>
-                        <span class="text-button" data-ng-show="$ctrl.editEvent.eventId" style="margin-right: 10px;" data-ng-click="$ctrl.deleteCalendarEvent($ctrl.editEvent.eventId)">Delete This Event</span>
+                        <button type="button" data-ng-if="$ctrl.editEvent.eventId" class="btn btn-danger" style="margin-right: 10px;" data-ng-click="$ctrl.deleteCalendarEvent($ctrl.editEvent.eventId)">Delete This Event</button>
                         <span class="pull-right">
                             <span class="btn btn-primary margin-right-10" data-ng-click="$ctrl.saveCalendarEvent()">{{$ctrl.editEvent.eventId | iif : "Save" : "Create"}}</span>
                             <!--<span class="text-button" data-ng-click="$ctrl.setEditEvent( null )">Cancel</span>-->
