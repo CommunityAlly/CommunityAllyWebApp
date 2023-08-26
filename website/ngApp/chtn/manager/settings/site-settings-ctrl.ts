@@ -45,7 +45,7 @@ namespace Ally
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
         defaultBGImage: string;
-        showQaButton: boolean;
+        shouldShowQaButton: boolean;
         loginImageUrl: string;
         isLoading: boolean = false;
         showRightColumnSetting: boolean = true;
@@ -78,7 +78,7 @@ namespace Ally
 
             this.defaultBGImage = $( document.documentElement ).css( "background-image" );
 
-            this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
 
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
 

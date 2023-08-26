@@ -55,7 +55,7 @@ var Ally;
             var _this = this;
             this.frontEndVersion = appVer.toString();
             this.defaultBGImage = $(document.documentElement).css("background-image");
-            this.showQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com";
+            this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             this.showLocalNewsSetting = !this.showRightColumnSetting;
