@@ -8,7 +8,7 @@
         <div class="row">
             <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.boardMembers.length > 0 || $ctrl.boardPropMgrs.length > 0">
                 <div class="portlet-header">
-                    <div style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient && $ctrl.isPremiumPlanActive" style="display: inline-block;"><span>&nbsp;-&nbsp;<send-message data-recipient-info="$ctrl.boardMessageRecipient"></send-message></span></div>
+                    <div id="board-member-header" style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient && $ctrl.isPremiumPlanActive" style="display: inline-block;"><span>&nbsp;-&nbsp;<send-message id="board-member-send-msg" data-recipient-info="$ctrl.boardMessageRecipient"></send-message></span></div>
                 </div>
 
                 <div class="portlet-body">
@@ -16,7 +16,7 @@
                         No board members have been assigned
                     </div>
                     <div data-ng-repeat="member in $ctrl.boardMembers">
-                        <span style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;{{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
+                        <span id="board-member-title-{{$index}}" style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;<span id="board-member-name-{{$index}}">{{ member.fullName }}</span><span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="board-member-send-msg-{{$index}}" data-recipient-info="member"></send-message></span><br />
                     </div>
                     <br />
                 </div>
@@ -24,7 +24,7 @@
                 <div class="portlet-body" data-ng-if="$ctrl.boardPropMgrs.length > 0">
                     <h6>Property Managers</h6>
                     <div data-ng-repeat="member in $ctrl.boardPropMgrs">
-                        {{ member.fullName }}<span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message data-recipient-info="member"></send-message></span><br />
+                        <span id="prop-mgr-name-{{$index}}">{{ member.fullName }}</span><span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="prop-mgr-send-msg-{{$index}}" data-recipient-info="member"></send-message></span><br />
                     </div>
                     <br />
                 </div>
@@ -32,13 +32,13 @@
 
             <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.committees.length > 0">
                 <div class="portlet-header">
-                    <div style="display: inline-block;" class="title">Committees</div>
+                    <div id="committee-header" style="display: inline-block;" class="title">Committees</div>
                 </div>
 
                 <div class="portlet-body">
                     <p style="margin-bottom: 7px; display: none;" class="note-text">Contact the residents below if you'd like to learn more about a certain committee</p>
                     <div data-ng-repeat="committee in $ctrl.committees">
-                        <span style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;(<a data-ng-if="!committee.isPrivate" data-ng-href="#!/Committee/{{ committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="committee.contactUser">&nbsp;-&nbsp;{{ committee.contactUser.fullName }}<span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message data-recipient-info="committee.contactUser"></send-message></span></span><br />
+                        <span id="committee-name-{{$index}}" style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;(<a data-ng-if="!committee.isPrivate" data-ng-href="#!/Committee/{{ committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="committee.contactUser">&nbsp;-&nbsp;<span id="committee-contact-name-{{$index}}">{{ committee.contactUser.fullName }}</span><span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="committee-send-msg-{{$index}}" data-recipient-info="committee.contactUser"></send-message></span></span><br />
                     </div>
                     <br />
                 </div>
