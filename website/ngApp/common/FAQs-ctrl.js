@@ -127,6 +127,11 @@ var Ally;
                 _this.isLoadingInfo = false;
                 _this.faqsHttpCache.removeAll();
                 _this.retrieveInfo();
+                var shouldClearEdit = typeof (_this.editingInfoItem.infoItemId) == "number" && _this.editingInfoItem.infoItemId === infoItem.infoItemId;
+                if (shouldClearEdit) {
+                    _this.editingInfoItem = new InfoItem();
+                    _this.tinyMceEditor.setContent("");
+                }
             });
         };
         ///////////////////////////////////////////////////////////////////////////////////////////////

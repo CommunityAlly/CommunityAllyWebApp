@@ -185,6 +185,13 @@ namespace Ally
                 this.isLoadingInfo = false;
                 this.faqsHttpCache.removeAll();
                 this.retrieveInfo();
+
+                const shouldClearEdit = typeof ( this.editingInfoItem.infoItemId ) == "number" && this.editingInfoItem.infoItemId === infoItem.infoItemId;
+                if( shouldClearEdit )
+                {
+                    this.editingInfoItem = new InfoItem();
+                    this.tinyMceEditor.setContent( "" );
+                }
             });
         }
 
