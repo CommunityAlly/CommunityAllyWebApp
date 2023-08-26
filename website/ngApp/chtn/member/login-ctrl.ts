@@ -15,13 +15,14 @@
         static $inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "xdLocalStorage"];
 
         isDemoSite: boolean = false;
-        loginResult: string;
+        loginResultMessage: string;
         loginInfo: LoginInfo = new LoginInfo();
         loginImageUrl: string;
         sectionStyle: any;
         welcomeImageContainerStyle: any;
         isLoading: boolean;
         rememberMe: boolean;
+        showNeedAccessModal = false;
 
 
         /**
@@ -38,10 +39,11 @@
         $onInit()
         {
             if( !HtmlUtil.isLocalStorageAllowed() )
-                this.loginResult = "You have cookies/local storage disabled. Condo Ally requires these features, please enable to continue. You may be in private browsing mode.";
+                this.loginResultMessage = "You have cookies/local storage disabled. Condo Ally requires these features, please enable to continue. You may be in private browsing mode.";
 
-            var nav = navigator.userAgent.toLowerCase();
-            var ieVersion = ( nav.indexOf( 'msie' ) != -1 ) ? parseInt( nav.split( 'msie' )[1] ) : 0;
+            const nav = navigator.userAgent.toLowerCase();
+            const ieVersion = ( nav.indexOf( 'msie' ) != -1 ) ? parseInt( nav.split( 'msie' )[1] ) : 0;
+
             //var isIEBrowser = window.navigator.userAgent.indexOf( "MSIE " ) >= 0;
             if( ieVersion > 0 && ieVersion < 10 )
                 document.getElementById( "bad-browser-panel" ).style.display = "block";
@@ -70,7 +72,7 @@
                 };
 
                 // Pre-size the welcome image container to avoid jumping around
-                var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
+                const savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
                 if( savedWelcomeImageWidth && savedWelcomeImageWidth != "0" && !HtmlUtil.isNullOrWhitespace( this.loginImageUrl ) )
                 {
                     this.welcomeImageContainerStyle["width"] = savedWelcomeImageWidth + "px";
@@ -99,13 +101,13 @@
             if( this.appCacheService.getAndClear( AppCacheService.Key_WasLoggedIn403 ) === "true" )
             {
                 if( this.$rootScope.isSiteManager )
-                    this.loginResult = "You are not authorized to perform that action. Please contact support.";
+                    this.loginResultMessage = "You are not authorized to perform that action. Please contact support.";
                 else
-                    this.loginResult = "You are not authorized to perform that action. Please contact an admin.";
+                    this.loginResultMessage = "You are not authorized to perform that action. Please contact an admin.";
             }
             // Or if we got sent here for a 401
             else if( this.appCacheService.getAndClear( AppCacheService.Key_WasLoggedIn401 ) === "true" )
-                this.loginResult = "Please login first.";
+                this.loginResultMessage = "Please login first.";
 
             // Focus on the email text box
             setTimeout( function()
@@ -118,7 +120,7 @@
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image loads
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onWelcomeImageLoaded( event: any )
+        onWelcomeImageLoaded()
         {
             const welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
@@ -136,7 +138,7 @@
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onWelcomeImageError()
         {
-            var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
+            //var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
             console.log( `Welcome image error` );
 
             window.localStorage.removeItem( "welcomeImage_width" );
@@ -176,46 +178,45 @@
             this.isLoading = true;
 
             // Retrieve information for the current association
-            var innerThis = this;
-            this.$http.post( "/api/Login", this.loginInfo ).then( function( httpResponse: any )
-            {
-                innerThis.isLoading = false;
-
-                var data = httpResponse.data;
-
-                var redirectPath = innerThis.appCacheService.getAndClear( AppCacheService.Key_AfterLoginRedirect );
-                innerThis.siteInfo.setAuthToken( data.authToken );
-                innerThis.siteInfo.handleSiteInfo( data.siteInfo, innerThis.$rootScope );
-
-                if( innerThis.rememberMe )
+            this.$http.post( "/api/Login", this.loginInfo ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    window.localStorage["rememberMe_Email"] = innerThis.loginInfo.emailAddress;
-                    window.localStorage["rememberMe_Password"] = btoa( innerThis.loginInfo.password );
-                }
-                else
+                    this.isLoading = false;
+
+                    const data = httpResponse.data;
+
+                    let redirectPath = this.appCacheService.getAndClear( AppCacheService.Key_AfterLoginRedirect );
+                    this.siteInfo.setAuthToken( data.authToken );
+                    this.siteInfo.handleSiteInfo( data.siteInfo, this.$rootScope );
+
+                    if( this.rememberMe )
+                    {
+                        window.localStorage["rememberMe_Email"] = this.loginInfo.emailAddress;
+                        window.localStorage["rememberMe_Password"] = btoa( this.loginInfo.password );
+                    }
+                    else
+                    {
+                        window.localStorage["rememberMe_Email"] = null;
+                        window.localStorage["rememberMe_Password"] = null;
+                    }
+
+                    // If the user hasn't accepted the terms yet then make them go to the profile page
+                    if( !data.siteInfo.userInfo.acceptedTermsDate && !this.isDemoSite )
+                        this.$location.path( "/MyProfile" );
+                    else
+                    {
+                        if( !HtmlUtil.isValidString( redirectPath ) && redirectPath !== "/Login" )
+                            redirectPath = "/Home";
+
+                        this.$location.path( redirectPath );
+                    }
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
-                    window.localStorage["rememberMe_Email"] = null;
-                    window.localStorage["rememberMe_Password"] = null;
+                    this.isLoading = false;
+                    this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
                 }
-
-                // If the user hasn't accepted the terms yet then make them go to the profile page
-                if( !data.siteInfo.userInfo.acceptedTermsDate && !innerThis.isDemoSite )
-                    innerThis.$location.path( "/MyProfile" );
-                else
-                {
-                    if( !HtmlUtil.isValidString( redirectPath ) && redirectPath !== "/Login" )
-                        redirectPath = "/Home";
-
-                    innerThis.$location.path( redirectPath );
-                }
-
-            }, function( httpResponse )
-            {
-                innerThis.isLoading = false;
-
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                innerThis.loginResult = "Failed to log in: " + errorMessage;
-            } );
+            );
         }
     }
 }

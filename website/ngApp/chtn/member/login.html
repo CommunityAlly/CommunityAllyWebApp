@@ -25,8 +25,8 @@
                     <img id="welcome-image" data-ng-show="$ctrl.loginImageUrl" alt="Welcome image" style="width: 100%;" data-imageonload="$ctrl.onWelcomeImageLoaded()" imageonerror="$ctrl.onWelcomeImageError()" data-ng-src="{{$ctrl.loginImageUrl}}" />
                 </div>
 
-                <div data-ng-show="$ctrl.loginResult" style="font-weight: bold; color: #F00; font-size:1.25em;">
-                    <span id="error-label" class="error-text">{{ $ctrl.loginResult }}</span><br />
+                <div data-ng-show="$ctrl.loginResultMessage" style="font-weight: bold; color: #F00; font-size:1.25em;">
+                    <span id="error-label" class="error-text">{{ $ctrl.loginResultMessage }}</span><br />
                     <br />
                 </div>
 
@@ -41,7 +41,7 @@
                         <label for="login-password-textbox" class="form-label">Password:</label>
                         <input type="password" class="form-control" id="login-password-textbox" placeholder="Password" data-ng-model="$ctrl.loginInfo.password" autocomplete="current-password" data-rule-required="true">
                     </div>
-                    
+
                     <div class="row mb-3">
                         <div class="col-12">
                             <label class="form-label"><input type="checkbox" data-ng-model="$ctrl.rememberMe" />Remember Me</label>
@@ -52,12 +52,31 @@
                         <div class="col-12">
                             <input type="submit" value="Log In" id="login-button" class="btn btn-primary" style="float:none;"><br />
                             <br />
+                            <br />
                             <div class="text-link" id="login-reset-password" data-ng-click="$ctrl.onForgotPassword()">
                                 <span>Forgot Your Password?</span> <!--Wrap the text in its own element as Google Translate does something odd here-->
+                            </div>
+                            <br />
+                            <br />
+                            <div class="text-link" id="need-access-link" data-ng-click="$ctrl.showNeedAccessModal = true">
+                                <span>Don't have a user account and/or need access?</span> <!--Wrap the text in its own element as Google Translate does something odd here-->
                             </div>
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal-container" data-ng-if="$ctrl.showNeedAccessModal">
+        <div class="modal-overlay" data-ng-click="$ctrl.showNeedAccessModal = false"></div>
+        <div class="ca-modal-dialog">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.showNeedAccessModal = false">&times;</span>
+            <h2>Gaining Access</h2>
+            <div class="row m-1">
+                <div class="col-12">
+                    Community Ally websites are private and secure, meaning there is no way to self-register for an account. If you need access to your community's website, please contact someone on your board to invite you.
+                </div>
             </div>
         </div>
     </div>

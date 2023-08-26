@@ -24,13 +24,14 @@ var Ally;
             this.xdLocalStorage = xdLocalStorage;
             this.isDemoSite = false;
             this.loginInfo = new LoginInfo();
+            this.showNeedAccessModal = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         LoginController.prototype.$onInit = function () {
             if (!HtmlUtil.isLocalStorageAllowed())
-                this.loginResult = "You have cookies/local storage disabled. Condo Ally requires these features, please enable to continue. You may be in private browsing mode.";
+                this.loginResultMessage = "You have cookies/local storage disabled. Condo Ally requires these features, please enable to continue. You may be in private browsing mode.";
             var nav = navigator.userAgent.toLowerCase();
             var ieVersion = (nav.indexOf('msie') != -1) ? parseInt(nav.split('msie')[1]) : 0;
             //var isIEBrowser = window.navigator.userAgent.indexOf( "MSIE " ) >= 0;
@@ -74,13 +75,13 @@ var Ally;
             // If we got sent here for a 403, but the user was already logged in
             if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn403) === "true") {
                 if (this.$rootScope.isSiteManager)
-                    this.loginResult = "You are not authorized to perform that action. Please contact support.";
+                    this.loginResultMessage = "You are not authorized to perform that action. Please contact support.";
                 else
-                    this.loginResult = "You are not authorized to perform that action. Please contact an admin.";
+                    this.loginResultMessage = "You are not authorized to perform that action. Please contact an admin.";
             }
             // Or if we got sent here for a 401
             else if (this.appCacheService.getAndClear(AppCacheService.Key_WasLoggedIn401) === "true")
-                this.loginResult = "Please login first.";
+                this.loginResultMessage = "Please login first.";
             // Focus on the email text box
             setTimeout(function () {
                 $("#login-email-textbox").focus();
@@ -89,7 +90,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image loads
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.onWelcomeImageLoaded = function (event) {
+        LoginController.prototype.onWelcomeImageLoaded = function () {
             var welcomeImageElem = document.getElementById("welcome-image");
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
             window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;
@@ -101,7 +102,7 @@ var Ally;
         // Occurs when the welcome image fails to load
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LoginController.prototype.onWelcomeImageError = function () {
-            var welcomeImageElem = document.getElementById("welcome-image");
+            //var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
             console.log("Welcome image error");
             window.localStorage.removeItem("welcomeImage_width");
             window.localStorage.removeItem("welcomeImage_height");
@@ -127,35 +128,34 @@ var Ally;
         // Occurs when the user clicks the log-in button
         ///////////////////////////////////////////////////////////////////////////////////////////////
         LoginController.prototype.onLogin = function () {
+            var _this = this;
             this.isLoading = true;
             // Retrieve information for the current association
-            var innerThis = this;
             this.$http.post("/api/Login", this.loginInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
+                _this.isLoading = false;
                 var data = httpResponse.data;
-                var redirectPath = innerThis.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
-                innerThis.siteInfo.setAuthToken(data.authToken);
-                innerThis.siteInfo.handleSiteInfo(data.siteInfo, innerThis.$rootScope);
-                if (innerThis.rememberMe) {
-                    window.localStorage["rememberMe_Email"] = innerThis.loginInfo.emailAddress;
-                    window.localStorage["rememberMe_Password"] = btoa(innerThis.loginInfo.password);
+                var redirectPath = _this.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
+                _this.siteInfo.setAuthToken(data.authToken);
+                _this.siteInfo.handleSiteInfo(data.siteInfo, _this.$rootScope);
+                if (_this.rememberMe) {
+                    window.localStorage["rememberMe_Email"] = _this.loginInfo.emailAddress;
+                    window.localStorage["rememberMe_Password"] = btoa(_this.loginInfo.password);
                 }
                 else {
                     window.localStorage["rememberMe_Email"] = null;
                     window.localStorage["rememberMe_Password"] = null;
                 }
                 // If the user hasn't accepted the terms yet then make them go to the profile page
-                if (!data.siteInfo.userInfo.acceptedTermsDate && !innerThis.isDemoSite)
-                    innerThis.$location.path("/MyProfile");
+                if (!data.siteInfo.userInfo.acceptedTermsDate && !_this.isDemoSite)
+                    _this.$location.path("/MyProfile");
                 else {
                     if (!HtmlUtil.isValidString(redirectPath) && redirectPath !== "/Login")
                         redirectPath = "/Home";
-                    innerThis.$location.path(redirectPath);
+                    _this.$location.path(redirectPath);
                 }
             }, function (httpResponse) {
-                innerThis.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                innerThis.loginResult = "Failed to log in: " + errorMessage;
+                _this.isLoading = false;
+                _this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
             });
         };
         LoginController.$inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "xdLocalStorage"];
