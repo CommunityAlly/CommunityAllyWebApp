@@ -213,7 +213,7 @@ CA.angularApp.config(
                     }
 
                     // Home, the default page, and login don't need special redirection or user messaging
-                    if( $location.path() !== "/Home" && $location.path() !== "/Login" )
+                    if( status === 401 && $location.path() !== "/Home" && $location.path() !== "/Login" )
                     {
                         appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
                         appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );
