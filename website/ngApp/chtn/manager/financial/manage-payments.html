@@ -88,6 +88,7 @@
                 <div class="alert alert-warning" data-ng-if="$ctrl.paymentInfo.isDwollaSetup && !$ctrl.paymentInfo.isStripeSetup">
                     We're are transitioning to a new payment provider, Stripe. Dwolla will stop working October 10th. We're here to help you transition, just reach out via help or chat.
                     <br />
+                    <br />
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Sign-up Now</button>
                 </div>
 
@@ -199,7 +200,10 @@
                     <h5 data-ng-if="$ctrl.hasMultipleProviders">WePay</h5>
 
                     <div class="alert alert-warning">
-                        WePay will stop working November 10th. Unlike Dwolla's price hike, WePay's termination is simply them shutting down the small business services. Sorry, we are providing as much warning as we were provided.
+                        WePay will stop working October 15th because they are shutting down their small business services. We're here to help you transition to Stripe, just reach out via help or chat.
+                        <br />
+                        <br />
+                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Sign-up for Stripe Now</button>
                     </div>
 
                     <div data-ng-if="$ctrl.paymentInfo.needsReLogin">
