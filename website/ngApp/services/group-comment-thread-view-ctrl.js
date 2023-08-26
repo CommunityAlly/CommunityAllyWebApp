@@ -38,7 +38,8 @@ var Ally;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.retrieveComments();
-            this.initCommentTinyMce("new-comment-tiny-mce-editor");
+            if (!this.thread.isReadOnly && !this.thread.archiveDateUtc)
+                this.initCommentTinyMce("new-comment-tiny-mce-editor");
         };
         GroupCommentThreadViewController.prototype.initCommentTinyMce = function (elemId) {
             var _this = this;

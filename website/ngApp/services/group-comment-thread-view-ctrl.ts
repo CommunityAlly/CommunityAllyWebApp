@@ -67,7 +67,8 @@
 
             this.retrieveComments();
 
-            this.initCommentTinyMce( "new-comment-tiny-mce-editor" );
+            if( !this.thread.isReadOnly && !this.thread.archiveDateUtc )
+                this.initCommentTinyMce( "new-comment-tiny-mce-editor" );
         }
 
 

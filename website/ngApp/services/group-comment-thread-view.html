@@ -48,7 +48,7 @@
             </p>
         </div>
 
-        <div class="text-link mb-4" data-ng-if="!$ctrl.shouldShowAddComment" data-ng-click="$ctrl.showAddComment()">
+        <div class="text-link mb-4" data-ng-if="!$ctrl.shouldShowAddComment && !$ctrl.thread.isReadOnly && !$ctrl.thread.archiveDateUtc" data-ng-click="$ctrl.showAddComment()">
             Add New Comment
         </div>
 
