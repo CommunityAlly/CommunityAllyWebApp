@@ -92,7 +92,7 @@
                 </div>
 
                 <div class="alert alert-info" data-ng-if="$ctrl.shouldShowNewStripeSignUpMessage">
-                    Great job setting up Stripe. If it makes sense for your association, make sure to <a href="https://help.communityally.org/stripe-sign-up-guide#add-users" target="_blank">add another user or two to Stripe</a> so that you don't lose access and others can step in to help if needed.
+                    Great job setting up Stripe. If it makes sense for your association, make sure to <a href="https://help.communityally.org/the-stripe-dashboard/#add-users" target="_blank">add another user or two to Stripe</a> so that you don't lose access and others can step in to help if needed.
                 </div>
 
                 <!--<div data-ng-if="!$ctrl.paymentInfo.isDwollaSetup && !$ctrl.allowStripeSignUp">
@@ -198,6 +198,10 @@
                 <div data-ng-if="$ctrl.paymentInfo.isWePaySetup" data-ng-class="{'payment-provider-panel': $ctrl.hasMultipleProviders}">
                     <h5 data-ng-if="$ctrl.hasMultipleProviders">WePay</h5>
 
+                    <div class="alert alert-warning">
+                        WePay will stop working November 10th. Unlike Dwolla's price hike, WePay's termination is simply them shutting down the small business services. Sorry, we are providing as much warning as we were provided.
+                    </div>
+
                     <div data-ng-if="$ctrl.paymentInfo.needsReLogin">
                         You need to log-in to WePay with your association's account if you want to re-enable WePay payments.<br>
                         <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Log-in Now</a>
@@ -206,15 +210,17 @@
                     <div data-ng-if="!$ctrl.paymentInfo.needsReLogin">
                         WePay is successfully enabled. You can disable WePay payments if you'd like to move users to other payment methods. You can always undo this.<br />
                         <span class="text-link" data-ng-click="$ctrl.clearWePayAccessToken()">Disable WePay</span>
-                        <div data-ng-if="$ctrl.paymentInfo.balanceDetail.payoutAccountName" class="mt-3">
-                            WePay pays out to:
-                            <span style="font-weight: bold;">{{$ctrl.paymentInfo.balanceDetail.payoutAccountName}}</span>
+                        <div data-ng-if="$ctrl.paymentInfo.balanceDetail.payoutAccountName || $ctrl.paymentInfo.balanceDetail.wePayAccountEmail" class="mt-3">
+                            <span data-ng-if="$ctrl.paymentInfo.balanceDetail.payoutAccountName">
+                                WePay pays out to:
+                                <span style="font-weight: bold;">{{$ctrl.paymentInfo.balanceDetail.payoutAccountName}}</span>
+                            </span>
                             <span class="note-text">(Account Admin: {{$ctrl.paymentInfo.balanceDetail.wePayAccountEmail}})</span>
                         </div>
                     </div>
                 </div>
 
-                <div data-ng-if="!$ctrl.paymentInfo.isWePaySetup || !$ctrl.paymentInfo.isStripeSetup" class="mb-3 mt-3">
+                <div data-ng-if="!$ctrl.paymentInfo.isStripeSetup" class="mb-3 mt-3">
                     <button type="button" data-ng-if="!$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.isStripeSetup" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Setup an Online Payment Processor</button>
                     <span class="text-link note-text" data-ng-if="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.isStripeSetup" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Setup Another Online Payment Processor</span>
                 </div>
@@ -344,15 +350,24 @@
 
 
 
-                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup">
-                    <h3 class="margin-top-50">Manage WePay Fees</h3>
+                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.isStripeSetup">
+                    <h3 class="margin-top-50" data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.isStripeSetup">WePay Fees</h3>
+                    <h3 class="margin-top-50" data-ng-if="!$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.isStripeSetup">Stripe Fees</h3>
+                    <h3 class="margin-top-50" data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.isStripeSetup">Stripe and WePay Fees</h3>
                     <p>
-                        WePay charges a fee to handle online payments. You can choose how those transaction fees
-                        are paid. <span data-ng-if="false">Dwolla fees are 0.5% for associations on the premium plan, 1% for associations on the free plan.</span>
+                        <span data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.isStripeSetup">WePay</span>
+                        <span data-ng-if="!$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.isStripeSetup">Stripe</span>
+                        <span data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.isStripeSetup">Stripe and WePay</span> charges a fee to handle online payments. You can choose how those transaction fees
+                        are paid, either paid by the resident or paid by the association.
                     </p>
+                    <div data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.isStripeSetup" class="mt-2 mb-1">
+                        Show example fees for
+                        <label><input type="radio" data-ng-change="$ctrl.updateTestFee()" data-ng-model="$ctrl.exampleFeeService" value="stripe" /> Stripe</label>
+                        <label><input type="radio" data-ng-change="$ctrl.updateTestFee()" data-ng-model="$ctrl.exampleFeeService" value="wepay" /> WePay</label>
+                    </div>
                     <div class="spinner-effect">
                         <div data-ng-show="$ctrl.isLoadingPayment" class="loading-overlay"></div>
-                        <div class="wide_tble_wrap" style="overflow-x: scroll;">
+                        <div class="wide_tble_wrap" style="overflow-x: auto;">
                             <table class="table table-bordered table-vertical-middle">
                                 <thead>
                                     <tr>
@@ -367,10 +382,13 @@
                                 <tbody>
                                     <tr>
                                         <td>Electronic Check (ACH)</td>
-                                        <td>$1.50</td>
                                         <td>
-                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('ach');" data-ng-model="$ctrl.paymentInfo.payerPaysAchFee" data-ng-value="true" /> Payer pays</label><br />
-                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('ach');" data-ng-model="$ctrl.paymentInfo.payerPaysAchFee" data-ng-value="false" /> Association pays</label>
+                                            <span data-ng-if="$ctrl.exampleFeeService === 'wepay'">$1.50</span>
+                                            <span data-ng-if="$ctrl.exampleFeeService === 'stripe'">{{$ctrl.isPremiumPlanActive ? "0.8%" : "1.6%"}}</span>
+                                        </td>
+                                        <td>
+                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('ach')" data-ng-model="$ctrl.paymentInfo.payerPaysAchFee" data-ng-value="true" /> Payer pays <span class="note-text">(default)</span></label><br />
+                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('ach')" data-ng-model="$ctrl.paymentInfo.payerPaysAchFee" data-ng-value="false" /> Association pays</label>
                                         </td>
                                         <td rowspan="2" class="text-center">
                                             <span>$</span><input type="text" class="form-control form-control-sm d-inline-block" style="width: 90px;" data-ng-model="$ctrl.testFee.amount" data-ng-change="$ctrl.updateTestFee()" />
@@ -382,12 +400,12 @@
                                             {{ $ctrl.testFee.achAssociationReceives | currency }}
                                         </td>
                                     </tr>
-                                    <tr>
+                                    <tr data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.exampleFeeService === 'wepay'">
                                         <td>Credit Card</td>
                                         <td>2.9% + $1.30</td>
                                         <td>
-                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('cc');" data-ng-model="$ctrl.paymentInfo.payerPaysCCFee" data-ng-value="true" /> Payer pays</label><br />
-                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('cc');" data-ng-model="$ctrl.paymentInfo.payerPaysCCFee" data-ng-value="false" /> Association pays</label>
+                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('cc')" data-ng-model="$ctrl.paymentInfo.payerPaysCCFee" data-ng-value="true" /> Payer pays <span class="note-text">(default)</span></label><br />
+                                            <label><input type="radio" data-ng-change="$ctrl.onChangeFeePayerInfo('cc')" data-ng-model="$ctrl.paymentInfo.payerPaysCCFee" data-ng-value="false" /> Association pays</label>
                                         </td>
                                         <td>
                                             {{ $ctrl.testFee.ccResidentPays | currency }}
@@ -604,7 +622,8 @@
                     <tbody>
                         <tr><td class="text-end" style="width:130px">Status: </td><td class="text-bold">{{ $ctrl.checkoutInfo.status }}</td></tr>
                         <tr><td class="text-end">Total Amount Paid: </td><td class="text-bold">{{ $ctrl.checkoutInfo.amountString }}</td></tr>
-                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-end">Payer Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.feeAmountString"><td class="text-end">Stripe Fee: </td><td class="text-bold">{{ $ctrl.checkoutInfo.feeAmountString }}</td></tr>
+                        <tr data-ng-if="$ctrl.checkoutInfo.netAmountString"><td class="text-end">Net Amount: </td><td class="text-bold">{{ $ctrl.checkoutInfo.netAmountString }}</td></tr>
                         <tr><td class="text-end">Payment Intent ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.stripePaymentIntentId }}</td></tr>
                         <tr><td class="text-end">Charge ID: </td><td class="text-bold">{{ $ctrl.checkoutInfo.stripeChargeId }}</td></tr>
                         <tr><td class="text-end">Payer Notes: </td><td class="text-bold">{{ $ctrl.checkoutInfo.payerNotes }}</td></tr>
@@ -683,11 +702,13 @@
                         years and we wish we could offer a clear winner, but for now, sadly, you'll need to pick a solution that you think works best for your association's needs.
                     </p>
 
-                    <h4 class="mt-4" style="text-decoration: none;">Integrated Options</h4>
-                    <p>
-                        Payments take place through your website. Payments are automatically tracked and recorded in your assessment history.
-                    </p>
-                    <hr />
+                    <div data-ng-if="false">
+                        <h4 class="mt-4" style="text-decoration: none;">Integrated Options</h4>
+                        <p>
+                            Payments take place through your website. Payments are automatically tracked and recorded in your assessment history.
+                        </p>
+                        <hr />
+                    </div>
 
                     <div>
                         <h4>Stripe</h4>
@@ -710,9 +731,9 @@
                         <div data-ng-if="$ctrl.paymentInfo.isStripeSetup" class="note-text">You're already setup with Stripe</div>
                     </div>
 
-                    <hr class="mt-4 mb-4" />
+                    <hr data-ng-if="false" class="mt-4 mb-4" />
 
-                    <div>
+                    <div data-ng-if="false">
                         <h4>WePay</h4>
                         Notes:
                         <ul>
@@ -734,7 +755,8 @@
 
                     <h4 class="mt-5" style="text-decoration: none;">Nonintegrated Options</h4>
                     <p>
-                        Payments are not automatically tracked so you'll need to manually mark off payments in the assessment history.
+                        Payments are not automatically tracked so you'll need to manually mark off payments in the assessment history. You can specify
+                        instructions for your residents via the "Custom Payment Instructions" field.
                     </p>
                     <hr />
 

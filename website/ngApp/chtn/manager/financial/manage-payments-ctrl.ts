@@ -127,6 +127,8 @@ namespace Ally
         hasMultipleProviders = false;
         allowStripeSignUp = false;
         stripePayoutAccounts: string[] = null;
+        exampleFeeService = "stripe";
+        isPremiumPlanActive = false;
         readonly HistoryPageSize: number = 50;
         
 
@@ -158,6 +160,7 @@ namespace Ally
             const StripeEnabledGroups = ["qa", "502wainslie"];
             const createdRecently = moment(new Date(2023,6,25)).isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ) );
             this.allowStripeSignUp = ( StripeEnabledGroups.indexOf( this.siteInfo.publicSiteInfo.shortName ) !== -1 ) || createdRecently;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             // Allow a single HOA to try WePay
             const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
@@ -597,6 +600,10 @@ namespace Ally
 
             this.isLoadingPayment = true;
 
+            // We always need to full reload the page so the home page payment form reflects the
+            // correct fee payer setting
+            needsReloadOfPage = true;
+
             this.$http.put( "/api/OnlinePayment", this.paymentInfo ).then(
                 () =>
             {
@@ -931,27 +938,37 @@ namespace Ally
         {
             const numericAmount = parseFloat( this.testFee.amount );
 
-            if( this.paymentInfo.payerPaysAchFee )
+            if( this.exampleFeeService === "wepay" )
             {
-                this.testFee.achResidentPays = numericAmount + 1.5;
-                this.testFee.achAssociationReceives = numericAmount;
-            }
-            else
-            {
-                this.testFee.achResidentPays = numericAmount;
-                this.testFee.achAssociationReceives = numericAmount - 1.5;
-            }
+                if( this.paymentInfo.payerPaysAchFee )
+                {
+                    this.testFee.achResidentPays = numericAmount + 1.5;
+                    this.testFee.achAssociationReceives = numericAmount;
+                }
+                else
+                {
+                    this.testFee.achResidentPays = numericAmount;
+                    this.testFee.achAssociationReceives = numericAmount - 1.5;
+                }
 
-            const ccFee = 1.3 + ( numericAmount * 0.029 );
-            if( this.paymentInfo.payerPaysCCFee )
-            {
-                this.testFee.ccResidentPays = numericAmount + ccFee;
-                this.testFee.ccAssociationReceives = numericAmount;
+                const ccFee = 1.3 + ( numericAmount * 0.029 );
+                if( this.paymentInfo.payerPaysCCFee )
+                {
+                    this.testFee.ccResidentPays = numericAmount + ccFee;
+                    this.testFee.ccAssociationReceives = numericAmount;
+                }
+                else
+                {
+                    this.testFee.ccResidentPays = numericAmount;
+                    this.testFee.ccAssociationReceives = numericAmount - ccFee;
+                }
             }
             else
             {
-                this.testFee.ccResidentPays = numericAmount;
-                this.testFee.ccAssociationReceives = numericAmount - ccFee;
+                const stripeFeeInfo = HtmlUtil2.getStripeFeeInfo( numericAmount, this.paymentInfo.payerPaysAchFee, this.siteInfo.privateSiteInfo.isPremiumPlanActive );
+
+                this.testFee.achResidentPays = stripeFeeInfo.totalAmountPaid;
+                this.testFee.achAssociationReceives = stripeFeeInfo.groupReceives;
             }
         }
 
@@ -1259,6 +1276,7 @@ namespace Ally
         status: string;
         amountString: string;
         feeAmountString: string;
+        netAmountString: string;
         createdDateUtc: Date;
         sourceFundingSourceName: string;
         
