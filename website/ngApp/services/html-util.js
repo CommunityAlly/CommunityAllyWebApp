@@ -489,6 +489,60 @@ var Ally;
             }
             return "/assets/images/FileIcons/" + imagePath;
         };
+        HtmlUtil2.getStripeFeeInfo = function (paymentAmount, payerPaysFee, isPremiumPlanActive) {
+            var feeAmount;
+            var totalAmountPaid;
+            var groupReceives;
+            var payerFee;
+            var StripeAchFeePercent = 0.008;
+            var StripeMaxFee = 5;
+            if (payerPaysFee) {
+                groupReceives = paymentAmount;
+                // dwollaFeePercent is in display percent, so 0.8 = 0.8% = 0.008 scalar
+                // So we only need to divide by 100 to get our rounded fee
+                totalAmountPaid = paymentAmount / (1 - StripeAchFeePercent);
+                feeAmount = totalAmountPaid - paymentAmount;
+                //paymentAmount = totalAmountPaid - paymentAmount;
+                // Cap the fee at $5 for premium, $10 for free plan groups
+                var MaxFeeAmount = 5;
+                var useMaxFee = feeAmount > MaxFeeAmount;
+                if (useMaxFee) {
+                    feeAmount = MaxFeeAmount;
+                    totalAmountPaid = paymentAmount + feeAmount;
+                }
+                // On the free plan there's an additional fee
+                if (!isPremiumPlanActive) {
+                    if (useMaxFee)
+                        totalAmountPaid = paymentAmount + (MaxFeeAmount * 2);
+                    else
+                        totalAmountPaid = totalAmountPaid / (1 - StripeAchFeePercent);
+                    feeAmount = totalAmountPaid - paymentAmount;
+                    // This can happen at $618.12-$620.61
+                    //console.log( "feeAmount", feeAmount );
+                    if (feeAmount > MaxFeeAmount * 2)
+                        feeAmount = MaxFeeAmount * 2;
+                }
+                payerFee = feeAmount;
+            }
+            // Otherwise the group pays the fee
+            else {
+                totalAmountPaid = paymentAmount;
+                payerFee = 0;
+                feeAmount = paymentAmount * StripeAchFeePercent;
+                if (feeAmount > StripeMaxFee)
+                    feeAmount = StripeMaxFee;
+                // On the free plan, add 0.8% app fee and track total 1.6% fee
+                if (!isPremiumPlanActive)
+                    feeAmount *= 2;
+                groupReceives = paymentAmount - feeAmount;
+            }
+            return {
+                totalAmountPaid: totalAmountPaid,
+                feeAmount: feeAmount,
+                groupReceives: groupReceives,
+                payerFee: payerFee
+            };
+        };
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
         HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;

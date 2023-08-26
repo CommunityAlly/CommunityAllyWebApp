@@ -95,6 +95,9 @@ var Ally;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
             this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
+            // Disable to Stripe testing
+            if (this.siteInfo.publicSiteInfo.groupId === 28)
+                this.isWePayPaymentActive = false;
             var shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if (shouldShowDwolla)
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
@@ -187,8 +190,8 @@ var Ally;
             }
             this.allyAppName = AppConfig.appName;
             this.isWePayAutoPayActive = this.siteInfo.userInfo.isAutoPayActive;
-            this.assessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "$1.50 service fee applies" : "No service fee";
-            this.assessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "$1.50 service fee applies" : "No service fee";
+            this.wePayAssessmentCreditCardFeeLabel = this.siteInfo.privateSiteInfo.payerPaysCCFee ? "Service fee applies" : "No service fee";
+            this.wePayAssessmentAchFeeLabel = this.siteInfo.privateSiteInfo.payerPaysAchFee ? "$1.50 service fee applies" : "No service fee";
             this.payerPaysAchFee = this.siteInfo.privateSiteInfo.payerPaysAchFee;
             this.errorPayInfoText = "Is the amount incorrect?";
             this.isWePaySetup = this.siteInfo.privateSiteInfo.isPaymentEnabled;
@@ -638,30 +641,40 @@ var Ally;
                 amount = 0;
             if (!amount)
                 return 0;
-            // dwollaFeePercent is in display percent, so 0.8 = 0.8% = 0.008 scalar
-            // So we only need to divide by 100 to get our rounded fee
-            var StripeAchFeePercent = 0.008;
-            var totalWithFeeAmount = Math.round((amount * 100) / (1 - StripeAchFeePercent)) / 100;
-            var feeAmount = totalWithFeeAmount - amount;
-            // Cap the fee at $5 for premium, $10 for free plan groups
-            var MaxFeeAmount = 5;
-            var useMaxFee = feeAmount > MaxFeeAmount;
-            if (useMaxFee) {
-                feeAmount = MaxFeeAmount;
-                totalWithFeeAmount = amount + feeAmount;
-            }
-            if (!this.siteInfo.privateSiteInfo.isPremiumPlanActive) {
-                if (useMaxFee)
-                    totalWithFeeAmount = amount + (MaxFeeAmount * 2);
-                else
-                    totalWithFeeAmount = Math.round((totalWithFeeAmount * 100) / (1 - StripeAchFeePercent)) / 100;
-                feeAmount = totalWithFeeAmount - amount;
-                // This can happen at $618.12-$620.61
-                //console.log( "feeAmount", feeAmount );
-                if (feeAmount > MaxFeeAmount * 2)
-                    feeAmount = MaxFeeAmount * 2;
-            }
-            return feeAmount;
+            var stripeFeeInfo = Ally.HtmlUtil2.getStripeFeeInfo(amount, this.siteInfo.privateSiteInfo.payerPaysAchFee, this.siteInfo.privateSiteInfo.isPremiumPlanActive);
+            //let feeAmount: number;
+            //if( this.siteInfo.privateSiteInfo.payerPaysAchFee )
+            //{
+            //    // dwollaFeePercent is in display percent, so 0.8 = 0.8% = 0.008 scalar
+            //    // So we only need to divide by 100 to get our rounded fee
+            //    const StripeAchFeePercent = 0.008;
+            //    let totalWithFeeAmount = Math.round( ( amount * 100 ) / ( 1 - StripeAchFeePercent ) ) / 100;
+            //    feeAmount = totalWithFeeAmount - amount;
+            //    // Cap the fee at $5 for premium, $10 for free plan groups
+            //    const MaxFeeAmount = 5;
+            //    const useMaxFee = feeAmount > MaxFeeAmount;
+            //    if( useMaxFee )
+            //    {
+            //        feeAmount = MaxFeeAmount;
+            //        totalWithFeeAmount = amount + feeAmount;
+            //    }
+            //    if( !this.siteInfo.privateSiteInfo.isPremiumPlanActive )
+            //    {
+            //        if( useMaxFee )
+            //            totalWithFeeAmount = amount + ( MaxFeeAmount * 2 );
+            //        else
+            //            totalWithFeeAmount = Math.round( ( totalWithFeeAmount * 100 ) / ( 1 - StripeAchFeePercent ) ) / 100;
+            //        feeAmount = totalWithFeeAmount - amount;
+            //        // This can happen at $618.12-$620.61
+            //        //console.log( "feeAmount", feeAmount );
+            //        if( feeAmount > MaxFeeAmount * 2 )
+            //            feeAmount = MaxFeeAmount * 2;
+            //    }
+            //}
+            //// Otherwise the group is paying the fee so the resident doesn not pay extra fee
+            //else
+            //    feeAmount = 0;
+            return stripeFeeInfo.payerFee;
         };
         /**
          * Occurs when the amount to pay changes
@@ -669,8 +682,15 @@ var Ally;
         AssessmentPaymentFormController.prototype.onPaymentAmountChange = function () {
             var dwollaFeeAmount = this.getDwollaFeeAmount(this.paymentInfo.amount);
             this.dwollaFeeAmountString = "$" + dwollaFeeAmount.toFixed(2);
-            var stripeFeeAmount = this.getStripeFeeAmount(this.paymentInfo.amount);
-            this.stripeAchFeeAmountString = "$" + stripeFeeAmount.toFixed(2);
+            if (this.paymentInfo.amount) {
+                var stripeFeeAmount = this.getStripeFeeAmount(this.paymentInfo.amount);
+                if (!stripeFeeAmount)
+                    this.stripeAchFeeAmountString = "No service fee";
+                else
+                    this.stripeAchFeeAmountString = "Stripe fee: $" + stripeFeeAmount.toFixed(2);
+            }
+            else
+                this.stripeAchFeeAmountString = "";
         };
         /**
          * Occurs when the user clicks the button to upload their Dwolla identification document
@@ -846,7 +866,7 @@ var Ally;
                 accessToken: accessToken,
                 selectedAccountIds: [accountId]
             };
-            this.$http.post("/api/Plaid/ProcessUserStripeAccessToken", postData).then(function () {
+            this.$http.post("/api/PlaidMember/ProcessUserStripeAccessToken", postData).then(function () {
                 _this.isLoading_Payment = false;
                 console.log("Account successfully linked, reloading...");
                 window.location.reload();
@@ -861,7 +881,7 @@ var Ally;
         AssessmentPaymentFormController.prototype.startPlaidAchConnection = function () {
             var _this = this;
             this.isLoading_Payment = true;
-            this.$http.get("/api/Plaid/StripeLinkToken").then(function (httpResponse) {
+            this.$http.get("/api/PlaidMember/StripeLinkToken").then(function (httpResponse) {
                 if (!httpResponse.data) {
                     _this.isLoading_Payment = false;
                     alert("Failed to start Plaid connection. Please contact support.");
@@ -870,7 +890,7 @@ var Ally;
                 var plaidConfig = {
                     token: httpResponse.data,
                     onSuccess: function (public_token, metadata) {
-                        console.log("Plaid StripeLinkToken onSuccess", metadata);
+                        //console.log( "PlaidMember StripeLinkToken onSuccess", metadata );
                         _this.completePlaidAchConnection(public_token, metadata.account_id);
                     },
                     onLoad: function () {
