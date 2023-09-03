@@ -11,7 +11,7 @@
             <div class="col-12 ps-0">
                 <span data-ng-if="$ctrl.budgets.length > 0">
                     <span>Load Budget: </span>
-                    <select class="me-3" data-ng-model="$ctrl.selectedBudget" data-ng-options="b as b.budgetName for b in $ctrl.budgets" data-ng-change="$ctrl.onBudgetSelected()">
+                    <select class="me-3" data-ng-model="$ctrl.selectedBudget" data-ng-options="b as (b.budgetName + (b.finalizedDateUtc ? ' - final' : '')) for b in $ctrl.budgets" data-ng-change="$ctrl.onBudgetSelected()">
                     </select>
                 </span>
                 <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createBudget()">Create New Budget</button>
