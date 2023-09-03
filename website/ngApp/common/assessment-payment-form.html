@@ -179,6 +179,9 @@
             <div data-ng-if="$ctrl.isWePayPaymentActive" class="margin-top-30">
                 <h5 data-ng-if="$ctrl.hasMultipleProviders">WePay</h5>
                 <p style="margin-bottom: 0;">Your association has setup <a target="_blank" href="https://www.wepay.com/">WePay</a> to safely and securely accept payments.</p>
+                <div class="alert alert-warning" role="alert" data-ng-if="!$ctrl.isStripeEnabledOnGroup">
+                    WePay payments are being disabled October 10. Please switch over to Stripe or a different payment provider before then. We'll be reaching out to users via email soon to help with this transition.
+                </div>
                 <p class="buttons text-center">
                     <span class="text-center d-inline-block">
                         <input type="button" class="btn btn-primary" data-ng-click="$ctrl.submitWePayPayment('ach');" value="Pay with E-Check">
@@ -198,8 +201,8 @@
                     <h5>Dwolla</h5>
                 </div>
                 <p class="text-start" style="margin-bottom: 0;">You are setup to use <a target="_blank" href="https://www.dwolla.com/security/">Dwolla</a> to safely and securely submit payments.</p>
-                <div class="alert alert-warning" role="alert" data-ng-if="$ctrl.isStripeEnabledOnGroup">
-                    Dwolla payments are being disabled October 10. Please switch over to Stripe or a different payment provider before then. We'll be reaching out to users via email to help with this transition.
+                <div class="alert alert-warning" role="alert" data-ng-if="!$ctrl.isStripeEnabledOnGroup">
+                    Dwolla payments are being disabled October 10. Please switch over to Stripe or a different payment provider before then. We'll be reaching out to users via email soon to help with this transition.
                 </div>
 
                 <div class="text-center d-inline-block">
