@@ -18,7 +18,7 @@
                 <div data-ng-if="$ctrl.selectedCategory">
 
                     <div data-ng-if="!$ctrl.shouldShowDeleteCategoryArea">
-                        Name: <input type="text" data-ng-model="$ctrl.editName" maxlength="128" data-ng-enter="$ctrl.updateCategoryName()" />
+                        Name: <input type="text" data-ng-model="$ctrl.editName" maxlength="128" data-ng-enter="$ctrl.updateCategoryName()" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         <div class="mt-2">
                             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.updateCategoryName()">Save</button>
                             <button type="button" class="btn btn-danger" data-ng-click="$ctrl.shouldShowDeleteCategoryArea = true; $ctrl.shouldShowNewCategoryArea = false;">Delete Category</button>
@@ -48,7 +48,7 @@
                             <legend style="font-size: 1em;">Add New Category</legend>
                             <div>
                                 Name:
-                                <input type="text" data-ng-model="$ctrl.newName" data-ng-enter="$ctrl.saveNewCategory()" maxlength="128" class="mt-2"/>
+                                <input type="text" data-ng-model="$ctrl.newName" data-ng-enter="$ctrl.saveNewCategory()" maxlength="128" class="mt-2" autocomplete="off" data-lpignore="true" data-form-type="other" />
                                 <br />
                                 <br />
                                 Parent Category:
