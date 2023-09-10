@@ -1,11 +1,14 @@
-﻿namespace Ally
+﻿declare var html2canvas: any;
+
+
+namespace Ally
 {
     /**
      * The controller for the page to track group spending
      */
     export class BudgetToolController implements ng.IController
     {
-        static $inject = ["$http", "appCacheService", "uiGridConstants", "$rootScope"];
+        static $inject = ["$http", "uiGridConstants", "$q", "$timeout", "SiteInfo"];
 
         isLoading: boolean = false;
         expenseGridOptions: uiGrid.IGridOptionsOf<BudgetRowLocalEdit>;
@@ -19,6 +22,9 @@
         curBudget: BudgetLocalEdit;
         totalExpense: number = 0;
         totalIncome: number = 0;
+        shouldRenderForPrint = false;
+        shouldShowPrintPreviewButton = false;
+        groupName: string;
         readonly EditAmountTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
 
 
@@ -26,9 +32,10 @@
         * The constructor for the class
         */
         constructor( private $http: ng.IHttpService,
-            private appCacheService: AppCacheService,
             private uiGridConstants: uiGrid.IUiGridConstants,
-            private $rootScope: ng.IRootScopeService )
+            private $q: ng.IQService,
+            private $timeout: ng.ITimeoutService,
+            private siteInfo: Ally.SiteInfoService )
         {
         }
 
@@ -78,6 +85,21 @@
             };
 
             this.refreshData();
+
+            this.shouldShowPrintPreviewButton = HtmlUtil.getSubdomain() === "hampshirevillageatmeadow" || HtmlUtil.getSubdomain() === "qa";
+            this.groupName = this.siteInfo.publicSiteInfo.fullName;
+
+            this.loadScript( "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" );
+            this.loadScript( "https://html2canvas.hertzen.com/dist/html2canvas.min.js" );
+        }
+
+
+        loadScript( sciptUrl: string )
+        {
+            const script = document.createElement( "script" );
+            script.type = "text/javascript";
+            script.src = sciptUrl;
+            document.body.appendChild( script );
         }
 
 
@@ -311,7 +333,7 @@
             this.expenseGridOptions.minRowsToShow = expenseRows.length;
             this.expenseGridOptions.virtualizationThreshold = expenseRows.length;
 
-            window.setTimeout( () =>
+            this.$timeout( () =>
             {
                 this.expenseGridApi.treeBase.expandAllRows();
                 this.incomeGridApi.treeBase.expandAllRows();
@@ -603,6 +625,97 @@
                     alert( "Failed to clone, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        static generatePdfForElement( elementId: string, $q: ng.IQService ): ng.IPromise<any>
+        {
+            const deferred = $q.defer<any>();
+
+            html2canvas( document.getElementById( elementId ) ).then(
+                ( canvas: HTMLCanvasElement ) =>
+                {
+                    const imgData = canvas.toDataURL( "image/jpeg", 0.98 );
+
+                    const jsPDF = ( <any>window ).jspdf;
+
+                    const pdfOpts: any = {
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: "letter",
+                        putOnlyUsedFonts: true,
+                        floatPrecision: 16, // or "smart", default is 16
+                        title: "care-team-dashboard"
+                    };
+
+                    const pdfDoc = new jsPDF.jsPDF( pdfOpts );
+
+                    const padding = 7;
+
+                    const pdfPageWidth = pdfDoc.internal.pageSize.getWidth();
+                    const pdfPageHeight = pdfDoc.internal.pageSize.getHeight();
+
+
+                    // Scale to fit on one page vertically
+                    //const targetImgHeight = pdfPageHeight - ( padding * 2 );
+                    //const targetImgWidth = ( canvas.width * targetImgHeight ) / canvas.height;
+                    //const xOffset = ( pdfPageWidth - targetImgWidth ) / 2;
+                    //pdfDoc.addImage( imgData, 'JPEG', xOffset, padding, targetImgWidth, targetImgHeight );
+
+
+
+                    // Scale so it fits fills the page width
+                    const targetImgWidth = pdfPageWidth - ( padding * 2 );
+                    const targetImgHeight = ( canvas.height * targetImgWidth ) / canvas.width;
+                    const xOffset = ( pdfPageWidth - targetImgWidth ) / 2;
+                    const numPages = Math.ceil( targetImgHeight / pdfPageHeight );
+
+                    pdfDoc.addImage( imgData, 'JPEG', xOffset, padding, targetImgWidth, targetImgHeight );
+
+                    for( let pageIndex = 1; pageIndex < numPages; ++pageIndex )
+                    {
+                        pdfDoc.addPage( "letter", "portrait" );
+                        const yOffset = ( pdfPageHeight * -pageIndex ) + padding;
+                        pdfDoc.addImage( imgData, 'JPEG', xOffset, yOffset, targetImgWidth, targetImgHeight );
+                    }
+
+
+                    //pdfDoc.save( "download.pdf" );
+                    //pdfDoc.output( 'dataurlnewwindow' );
+                    deferred.resolve( pdfDoc );
+                },
+                ( error: any ) =>
+                {
+                    deferred.reject( error );
+                }
+            );
+
+            return deferred.promise;
+        }
+
+
+        generatePdf()
+        {
+            this.isLoading = true;
+            this.shouldRenderForPrint = true;
+
+            this.$timeout( () =>
+            {
+                BudgetToolController.generatePdfForElement( "budget-data-container", this.$q ).then(
+                    ( pdfDoc: any ) =>
+                    {
+                        this.isLoading = false;
+                        this.shouldRenderForPrint = false;
+                        window.open( URL.createObjectURL( pdfDoc.output( "blob" ) ) )
+                    },
+                    () =>
+                    {
+                        this.isLoading = false;
+                        this.shouldRenderForPrint = false;
+                        alert( "Failed to generated PDF locally, please contact support" );
+                    }
+                );
+            }, 10 );
         }
     }
 

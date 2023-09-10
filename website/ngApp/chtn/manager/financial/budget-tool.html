@@ -27,32 +27,41 @@
                     <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.finalizeBudget()">Finalize Budget</button>
                     <button type="button" class="btn btn-primary ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.cloneBudget()">Clone Budget</button>
                     <button type="button" class="btn btn-danger ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.deleteBudget()">Delete Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.generatePdf()">View Print Friendly</button>
                 </div>
                 <div data-ng-if="$ctrl.selectedBudget.finalizedDateUtc">
                     <h3 style="display: inline;">{{$ctrl.curBudget.budgetName}}</h3>
                     <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.closeBudget()">Select Different Budget</button>
                     <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.cloneBudget()">Clone Budget</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.generatePdf()">View Print Friendly</button>
                     <div class="note-text">Budget finalized on {{$ctrl.selectedBudget.finalizedDateUtc | date:'short'}}</div>
                 </div>
                 <div data-ng-if="!$ctrl.selectedBudget.finalizedDateUtc">
                     Enter the expected amount your association will spend in the categories below. Parent categories are automatically calculated from their child category amounts.
                     Once you have multiple budgets, you'll be able to see past hisory during input.
                 </div>
-                <div class="mt-4" style="font-size: 1.25em;">
-                    <span>Total Expense: <span class="text-bold">{{$ctrl.totalExpense | currency}}</span></span>
-                    <span class="ms-4">Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
-                    <span class="ms-4">Net: <span class="text-bold">{{$ctrl.totalIncome - $ctrl.totalExpense | currency}}</span></span>
-                </div>
             </div>
         </div>
-        <div class="row mt-4" data-ng-if="$ctrl.curBudget">
-            <div class="col-md-6 col-sm-12">
-                <h4 class="mb-0">Expenses</h4>
-                <div data-ui-grid="$ctrl.expenseGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
+
+        <div id="budget-data-container" class="mt-4" data-ng-if="$ctrl.curBudget">
+            <h1 data-ng-if="$ctrl.shouldRenderForPrint" class="text-center mb-2">{{$ctrl.curBudget.budgetName}}</h1>
+            <h5 data-ng-if="$ctrl.shouldRenderForPrint" class="text-center mb-3">{{$ctrl.groupName}}</h5>
+
+            <div id="budget-print-header" data-ng-if="$ctrl.curBudget" class="mb-2 text-center" style="font-size: 1.5em;">
+                <span>Total Expense: <span class="text-bold">{{$ctrl.totalExpense | currency}}</span></span>
+                <span class="ms-4">Total Income: <span class="text-bold">{{$ctrl.totalIncome | currency}}</span></span>
+                <span class="ms-4">Net: <span class="text-bold">{{$ctrl.totalIncome - $ctrl.totalExpense | currency}}</span></span>
             </div>
-            <div class="col-md-6 col-sm-12 mt-sm-4 mt-md-0">
-                <h4 class="mb-0">Income</h4>
-                <div data-ui-grid="$ctrl.incomeGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
+
+            <div class="row">
+                <div class="col-md-6 col-sm-12">
+                    <h4 class="mb-1">Expenses</h4>
+                    <div data-ui-grid="$ctrl.expenseGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
+                </div>
+                <div class="col-md-6 col-sm-12 mt-sm-4 mt-md-0">
+                    <h4 class="mb-1">Income</h4>
+                    <div data-ui-grid="$ctrl.incomeGridOptions" ui-grid-resize-columns ui-grid-tree-view></div>
+                </div>
             </div>
         </div>
         <div class="text-end" data-ng-if="$ctrl.curBudget">
