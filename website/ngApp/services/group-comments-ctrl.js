@@ -1,19 +1,16 @@
 var Ally;
 (function (Ally) {
-    var Comment = /** @class */ (function () {
-        function Comment() {
-        }
-        return Comment;
-    }());
+    class Comment {
+    }
     Ally.Comment = Comment;
     /**
      * The controller for the committee home page
      */
-    var GroupCommentsController = /** @class */ (function () {
+    class GroupCommentsController {
         /**
          * The constructor for the class
          */
-        function GroupCommentsController($http, $rootScope) {
+        constructor($http, $rootScope) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.isLoading = false;
@@ -22,7 +19,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        GroupCommentsController.prototype.$onInit = function () {
+        $onInit() {
             this.isQaSite = false; //HtmlUtil.getSubdomain() === "qa" || HtmlUtil.getSubdomain() === "localtest";
             if (!this.threadId)
                 this.threadId = "Home";
@@ -32,120 +29,116 @@ var Ally;
                 replyToCommentId: null
             };
             this.refreshComments();
-        };
-        GroupCommentsController.prototype.displayDiscussModal = function () {
+        }
+        displayDiscussModal() {
             this.showDiscussModal = true;
-        };
-        GroupCommentsController.prototype.hideDiscussModal = function () {
+        }
+        hideDiscussModal() {
             //TODO put in a delay before we allow close to avoid the mobile tap-open-close issue
             this.showDiscussModal = false;
-        };
+        }
         /**
          * Retrieve the comments from the server for the current thread
          */
-        GroupCommentsController.prototype.refreshComments = function () {
-            var _this = this;
+        refreshComments() {
             this.isLoading = true;
-            this.$http.get("/api/Comment?threadId=" + this.threadId).then(function (response) {
-                _this.isLoading = false;
-                _this.commentList = response.data;
-                var processComments = function (c) {
-                    c.isMyComment = c.authorUserId === _this.$rootScope.userInfo.userId;
+            this.$http.get("/api/Comment?threadId=" + this.threadId).then((response) => {
+                this.isLoading = false;
+                this.commentList = response.data;
+                const processComments = (c) => {
+                    c.isMyComment = c.authorUserId === this.$rootScope.userInfo.userId;
                     if (c.replies)
                         _.each(c.replies, processComments);
                 };
                 // Convert the UTC dates to local dates and mark the user's comments
-                _.each(_this.commentList, processComments);
-            }, function (response) {
-                _this.isLoading = false;
+                _.each(this.commentList, processComments);
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to refresh comments: " + response.data.exceptionMessage);
             });
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Add a comment
         ///////////////////////////////////////////////////////////////////////////////////////////
-        GroupCommentsController.prototype.postComment = function (commentData) {
-            var _this = this;
+        postComment(commentData) {
             this.isLoading = true;
-            var httpFunc = this.$http.post;
+            let httpFunc = this.$http.post;
             if (typeof (commentData.existingCommentId) === "number")
                 httpFunc = this.$http.put;
-            httpFunc("/api/Comment", commentData).then(function () {
-                _this.isLoading = false;
-                _this.editComment = {};
-                _this.showReplyBoxId = -1;
-                _this.refreshComments();
-            }, function (response) {
-                _this.isLoading = false;
+            httpFunc("/api/Comment", commentData).then(() => {
+                this.isLoading = false;
+                this.editComment = {};
+                this.showReplyBoxId = -1;
+                this.refreshComments();
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to post comment: " + response.data.exceptionMessage);
             });
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Add a comment to the current thread
         ///////////////////////////////////////////////////////////////////////////////////////////
-        GroupCommentsController.prototype.onPostCommentClicked = function () {
+        onPostCommentClicked() {
             if (this.editComment.commentText.length === 0)
                 return;
             // Copy the object to avoid updating the UI
-            var commentData = {
+            const commentData = {
                 threadId: this.threadId,
                 commentText: this.editComment.commentText,
                 replyToCommentId: null,
                 existingCommentId: this.editComment.existingCommentId
             };
             this.postComment(commentData);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Edit an existing comment
         ///////////////////////////////////////////////////////////////////////////////////////////
-        GroupCommentsController.prototype.editMyComment = function (comment) {
+        editMyComment(comment) {
             this.editComment = {
                 commentText: comment.commentText,
                 existingCommentId: comment.commentId
             };
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Delete a comment
         ///////////////////////////////////////////////////////////////////////////////////////////
-        GroupCommentsController.prototype.deleteMyComment = function (comment) {
-            var _this = this;
+        deleteMyComment(comment) {
             this.isLoading = true;
-            this.$http.delete("/api/Comment?commentId=" + comment.commentId).then(function () {
-                _this.isLoading = false;
-                _this.refreshComments();
-            }, function (httpResponse) {
-                _this.isLoading = false;
-                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+            this.$http.delete("/api/Comment?commentId=" + comment.commentId).then(() => {
+                this.isLoading = false;
+                this.refreshComments();
+            }, (httpResponse) => {
+                this.isLoading = false;
+                const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to post comment: " + errorMessage);
             });
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Add a comment in response to a comment in the current thread
         ///////////////////////////////////////////////////////////////////////////////////////////
-        GroupCommentsController.prototype.onPostReplyCommentClicked = function () {
+        onPostReplyCommentClicked() {
             if (this.editComment.replyText.length === 0)
                 return;
             // Copy the object to avoid updating the UI
-            var commentData = {
+            const commentData = {
                 threadId: this.threadId,
                 commentText: this.editComment.replyText,
                 replyToCommentId: this.editComment.replyToCommentId
             };
             this.postComment(commentData);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to reply
         ///////////////////////////////////////////////////////////////////////////////////////////
-        GroupCommentsController.prototype.clickReplyToComment = function (commentId) {
+        clickReplyToComment(commentId) {
             this.showReplyBoxId = commentId;
             this.editComment = {
                 commentText: "",
                 replyToCommentId: commentId
             };
-        };
-        GroupCommentsController.$inject = ["$http", "$rootScope"];
-        return GroupCommentsController;
-    }());
+        }
+    }
+    GroupCommentsController.$inject = ["$http", "$rootScope"];
     Ally.GroupCommentsController = GroupCommentsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupComments", {

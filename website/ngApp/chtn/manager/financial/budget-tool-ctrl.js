@@ -1,38 +1,30 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Ally;
 (function (Ally) {
     /**
      * The controller for the page to track group spending
      */
-    var BudgetToolController = /** @class */ (function () {
+    class BudgetToolController {
         /**
         * The constructor for the class
         */
-        function BudgetToolController($http, appCacheService, uiGridConstants, $rootScope) {
+        constructor($http, uiGridConstants, $q, $timeout, siteInfo) {
             this.$http = $http;
-            this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
-            this.$rootScope = $rootScope;
+            this.$q = $q;
+            this.$timeout = $timeout;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
             this.financialCategoryMap = new Map();
             this.totalExpense = 0;
             this.totalIncome = 0;
+            this.shouldRenderForPrint = false;
+            this.shouldShowPrintPreviewButton = false;
             this.EditAmountTemplate = "<div class='ui-grid-cell-contents'><span data-ng-if='row.entity.hasChildren'>{{row.entity.amount | currency}}</span><span data-ng-if='!row.entity.hasChildren'>$<input type='number' style='width: 85%;' data-ng-model='row.entity.amount' data-ng-change='grid.appScope.$ctrl.onAmountChange(row.entity)' /></span></div>";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        BudgetToolController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.expenseGridOptions =
                 {
                     columnDefs: [
@@ -48,8 +40,8 @@ var Ally;
                     enableSorting: false,
                     enableTreeView: true,
                     showTreeRowHeader: true,
-                    onRegisterApi: function (gridApi) {
-                        _this.expenseGridApi = gridApi;
+                    onRegisterApi: (gridApi) => {
+                        this.expenseGridApi = gridApi;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                         //this.expenseGridApi.treeBase.on.rowExpanded( this.$rootScope, ( row ) =>
@@ -59,117 +51,123 @@ var Ally;
                     }
                 };
             this.incomeGridOptions = _.clone(this.expenseGridOptions);
-            this.incomeGridOptions.onRegisterApi = function (gridApi) {
-                _this.incomeGridApi = gridApi;
+            this.incomeGridOptions.onRegisterApi = (gridApi) => {
+                this.incomeGridApi = gridApi;
                 // Fix dumb scrolling
                 HtmlUtil.uiGridFixScroll();
             };
             this.refreshData();
-        };
+            this.shouldShowPrintPreviewButton = HtmlUtil.getSubdomain() === "hampshirevillageatmeadow" || HtmlUtil.getSubdomain() === "qa";
+            this.groupName = this.siteInfo.publicSiteInfo.fullName;
+            this.loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+            this.loadScript("https://html2canvas.hertzen.com/dist/html2canvas.min.js");
+        }
+        loadScript(sciptUrl) {
+            const script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = sciptUrl;
+            document.body.appendChild(script);
+        }
         /**
         * Retrieve the group budgets from the server
         */
-        BudgetToolController.prototype.refreshData = function () {
-            var _this = this;
+        refreshData() {
             this.isLoading = true;
-            return this.$http.get("/api/Budget/PageData").then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.budgets = httpResponse.data.budgets;
-                _this.rootFinancialCategory = httpResponse.data.rootFinancialCategory;
-                _this.financialCategoryMap.clear();
-                var visitNode = function (node) {
-                    _this.financialCategoryMap.set(node.financialCategoryId, node);
+            return this.$http.get("/api/Budget/PageData").then((httpResponse) => {
+                this.isLoading = false;
+                this.budgets = httpResponse.data.budgets;
+                this.rootFinancialCategory = httpResponse.data.rootFinancialCategory;
+                this.financialCategoryMap.clear();
+                const visitNode = (node) => {
+                    this.financialCategoryMap.set(node.financialCategoryId, node);
                     if (node.childCategories) {
-                        for (var i = 0; i < node.childCategories.length; ++i)
+                        for (let i = 0; i < node.childCategories.length; ++i)
                             visitNode(node.childCategories[i]);
                     }
                 };
-                visitNode(_this.rootFinancialCategory);
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                visitNode(this.rootFinancialCategory);
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
-        BudgetToolController.prototype.onAmountChange = function (row) {
+        }
+        onAmountChange(row) {
             if (row) {
-                var curParent = row.parentRow;
+                let curParent = row.parentRow;
                 while (curParent) {
-                    curParent.amount = _.reduce(curParent.childRows, function (memo, row) { return memo + row.amount; }, 0);
+                    curParent.amount = _.reduce(curParent.childRows, (memo, row) => memo + row.amount, 0);
                     curParent = curParent.parentRow;
                 }
             }
-            var incomeParentRow = _.find(this.curBudget.budgetRows, function (r) { return !r.parentRow && r.category.displayName === "Income"; });
+            const incomeParentRow = _.find(this.curBudget.budgetRows, r => !r.parentRow && r.category.displayName === "Income");
             this.totalIncome = incomeParentRow.amount;
-            var expenseLeafRows = this.curBudget.budgetRows.filter(function (r) { return !r.parentRow && r.category.displayName !== "Income"; });
-            this.totalExpense = _.reduce(expenseLeafRows, function (memo, r) { return memo + r.amount; }, 0);
-        };
-        BudgetToolController.prototype.createBudget = function () {
-            var _this = this;
+            const expenseLeafRows = this.curBudget.budgetRows.filter(r => !r.parentRow && r.category.displayName !== "Income");
+            this.totalExpense = _.reduce(expenseLeafRows, (memo, r) => memo + r.amount, 0);
+        }
+        createBudget() {
             this.curBudget = new BudgetLocalEdit();
             this.curBudget.budgetName = "Unnamed";
             this.curBudget.budgetRows = [];
-            var amountColumn = this.expenseGridOptions.columnDefs.find(function (c) { return c.field === "amount"; });
+            const amountColumn = this.expenseGridOptions.columnDefs.find(c => c.field === "amount");
             amountColumn.cellTemplate = this.EditAmountTemplate;
-            var visitNode = function (curNode, depth, isIncomeRow) {
-                var hasChildren = curNode.childCategories != null && curNode.childCategories.length > 0;
+            const visitNode = (curNode, depth, isIncomeRow) => {
+                const hasChildren = curNode.childCategories != null && curNode.childCategories.length > 0;
                 isIncomeRow = (depth === 0 && curNode.displayName === "Income") || isIncomeRow;
                 if (curNode.displayName) {
-                    var offsetDepth = isIncomeRow ? depth - 1 : depth;
-                    var labelPrefix = BudgetToolController.catToTreePrefix(offsetDepth);
-                    var parentRow = _.find(_this.curBudget.budgetRows, function (r) { return r.category.financialCategoryId === curNode.parentFinancialCategoryId; });
-                    var newRow = {
+                    const offsetDepth = isIncomeRow ? depth - 1 : depth;
+                    const labelPrefix = BudgetToolController.catToTreePrefix(offsetDepth);
+                    const parentRow = _.find(this.curBudget.budgetRows, r => r.category.financialCategoryId === curNode.parentFinancialCategoryId);
+                    const newRow = {
                         financialCategoryId: curNode.financialCategoryId,
                         categoryDisplayName: curNode.displayName,
                         categoryTreeLabel: labelPrefix + curNode.displayName,
                         amount: 0,
                         $$treeLevel: offsetDepth,
-                        hasChildren: hasChildren,
+                        hasChildren,
                         category: curNode,
-                        parentRow: parentRow,
+                        parentRow,
                         childRows: [],
-                        isIncomeRow: isIncomeRow,
+                        isIncomeRow,
                         parentBudgetRowId: null
                     };
                     if (parentRow)
                         newRow.parentRow.childRows.push(newRow);
-                    _this.curBudget.budgetRows.push(newRow);
+                    this.curBudget.budgetRows.push(newRow);
                 }
                 if (!hasChildren)
                     return;
-                for (var i = 0; i < curNode.childCategories.length; ++i) {
+                for (let i = 0; i < curNode.childCategories.length; ++i) {
                     visitNode(curNode.childCategories[i], depth + 1, isIncomeRow);
                 }
             };
             visitNode(this.rootFinancialCategory, -1, false); // Start at negative so the root's children have a level of 0
             this.refreshGridsFromCurBudget();
-        };
-        BudgetToolController.catToTreePrefix = function (treeDepth) {
+        }
+        static catToTreePrefix(treeDepth) {
             if (treeDepth < 1)
                 return "";
-            var labelPrefix = Array((treeDepth - 1) * 4).join(String.fromCharCode(160)) + "|--";
+            const labelPrefix = Array((treeDepth - 1) * 4).join(String.fromCharCode(160)) + "|--";
             return labelPrefix;
-        };
-        BudgetToolController.prototype.loadBudget = function (budget) {
-            var _this = this;
-            var getCatDepth = function (category, depth) {
-                if (depth === void 0) { depth = 0; }
+        }
+        loadBudget(budget) {
+            const getCatDepth = (category, depth = 0) => {
                 if (!category)
                     return depth;
-                if (category.parentFinancialCategoryId && _this.financialCategoryMap.has(category.parentFinancialCategoryId))
-                    return getCatDepth(_this.financialCategoryMap.get(category.parentFinancialCategoryId), depth + 1);
+                if (category.parentFinancialCategoryId && this.financialCategoryMap.has(category.parentFinancialCategoryId))
+                    return getCatDepth(this.financialCategoryMap.get(category.parentFinancialCategoryId), depth + 1);
                 return depth;
             };
-            var amountColumn = this.expenseGridOptions.columnDefs.find(function (c) { return c.field === "amount"; });
+            const amountColumn = this.expenseGridOptions.columnDefs.find(c => c.field === "amount");
             if (budget.finalizedDateUtc)
                 amountColumn.cellTemplate = null;
             else
                 amountColumn.cellTemplate = this.EditAmountTemplate;
-            var editRows = budget.rows.map(function (r) {
-                var cat = _this.financialCategoryMap.has(r.financialCategoryId) ? _this.financialCategoryMap.get(r.financialCategoryId) : undefined;
-                var treeDepth = getCatDepth(cat);
-                var offsetDepth = treeDepth; //isIncomeRow ? depth - 1 : depth;
-                var labelPrefix = BudgetToolController.catToTreePrefix(offsetDepth);
-                var editRow = {
+            const editRows = budget.rows.map(r => {
+                const cat = this.financialCategoryMap.has(r.financialCategoryId) ? this.financialCategoryMap.get(r.financialCategoryId) : undefined;
+                const treeDepth = getCatDepth(cat);
+                const offsetDepth = treeDepth; //isIncomeRow ? depth - 1 : depth;
+                const labelPrefix = BudgetToolController.catToTreePrefix(offsetDepth);
+                const editRow = {
                     amount: r.amount,
                     categoryDisplayName: r.categoryDisplayName,
                     financialCategoryId: r.financialCategoryId,
@@ -186,35 +184,32 @@ var Ally;
                 };
                 return editRow;
             });
-            var _loop_1 = function (i) {
-                var curRow = editRows[i];
-                var curCat = curRow.category;
+            // Fill in children and set the parent
+            for (let i = 0; i < editRows.length; ++i) {
+                const curRow = editRows[i];
+                const curCat = curRow.category;
                 if (curCat) {
                     curRow.hasChildren = curCat.childCategories && curCat.childCategories.length > 0;
                     if (curRow.hasChildren) {
-                        var childCatIds_1 = _.map(curCat.childCategories, function (c) { return c.financialCategoryId; });
-                        curRow.childRows = editRows.filter(function (r) { return childCatIds_1.indexOf(r.financialCategoryId) >= 0; });
+                        const childCatIds = _.map(curCat.childCategories, c => c.financialCategoryId);
+                        curRow.childRows = editRows.filter(r => childCatIds.indexOf(r.financialCategoryId) >= 0);
                     }
                     if (curCat.parentFinancialCategoryId)
-                        curRow.parentRow = _.find(editRows, function (r) { return r.financialCategoryId === curCat.parentFinancialCategoryId; });
+                        curRow.parentRow = _.find(editRows, r => r.financialCategoryId === curCat.parentFinancialCategoryId);
                 }
                 else if (curRow.parentBudgetRowId) {
-                    curRow.parentRow = _.find(editRows, function (r) { return r.budgetRowId === curRow.parentBudgetRowId; });
-                    curRow.childRows = editRows.filter(function (r) { return r.parentBudgetRowId === curRow.budgetRowId; });
+                    curRow.parentRow = _.find(editRows, r => r.budgetRowId === curRow.parentBudgetRowId);
+                    curRow.childRows = editRows.filter(r => r.parentBudgetRowId === curRow.budgetRowId);
                 }
-            };
-            // Fill in children and set the parent
-            for (var i = 0; i < editRows.length; ++i) {
-                _loop_1(i);
             }
-            var incomeCategory = this.rootFinancialCategory.childCategories.find(function (c) { return c.displayName === "Income"; });
-            var incomeRoot = editRows.find(function (r) { return r.financialCategoryId === incomeCategory.financialCategoryId; });
-            var markIncome = function (row) {
+            const incomeCategory = this.rootFinancialCategory.childCategories.find(c => c.displayName === "Income");
+            const incomeRoot = editRows.find(r => r.financialCategoryId === incomeCategory.financialCategoryId);
+            const markIncome = (row) => {
                 row.isIncomeRow = true;
                 --row.$$treeLevel; // We don't show the top level
                 row.categoryTreeLabel = BudgetToolController.catToTreePrefix(row.$$treeLevel) + row.categoryDisplayName;
                 if (row.childRows)
-                    row.childRows.forEach(function (r) { return markIncome(r); });
+                    row.childRows.forEach(r => markIncome(r));
             };
             markIncome(incomeRoot);
             this.curBudget = {
@@ -223,44 +218,41 @@ var Ally;
                 budgetRows: editRows
             };
             this.refreshGridsFromCurBudget();
-        };
-        BudgetToolController.prototype.refreshGridsFromCurBudget = function () {
-            var _this = this;
-            var incomeRows = this.curBudget.budgetRows.filter(function (r) { return r.$$treeLevel >= 0 && r.isIncomeRow; });
+        }
+        refreshGridsFromCurBudget() {
+            const incomeRows = this.curBudget.budgetRows.filter(r => r.$$treeLevel >= 0 && r.isIncomeRow);
             this.incomeGridOptions.data = incomeRows;
             this.incomeGridOptions.minRowsToShow = incomeRows.length;
             this.incomeGridOptions.virtualizationThreshold = incomeRows.length;
-            var expenseRows = this.curBudget.budgetRows.filter(function (r) { return !r.isIncomeRow; });
+            const expenseRows = this.curBudget.budgetRows.filter(r => !r.isIncomeRow);
             this.expenseGridOptions.data = expenseRows;
             this.expenseGridOptions.minRowsToShow = expenseRows.length;
             this.expenseGridOptions.virtualizationThreshold = expenseRows.length;
-            window.setTimeout(function () {
-                _this.expenseGridApi.treeBase.expandAllRows();
-                _this.incomeGridApi.treeBase.expandAllRows();
+            this.$timeout(() => {
+                this.expenseGridApi.treeBase.expandAllRows();
+                this.incomeGridApi.treeBase.expandAllRows();
             }, 50);
             this.onAmountChange(null);
-        };
-        BudgetToolController.prototype.closeBudget = function () {
+        }
+        closeBudget() {
             this.curBudget = null;
             this.selectedBudget = null;
             this.incomeGridOptions.data = [];
             this.expenseGridOptions.data = [];
-        };
-        BudgetToolController.prototype.saveBudget = function () {
+        }
+        saveBudget() {
             if (this.curBudget.budgetId)
                 this.saveExistingBudget();
             else
                 this.saveNewBudget();
-        };
-        BudgetToolController.prototype.saveExistingBudget = function (refreshAfterSave) {
-            var _this = this;
-            if (refreshAfterSave === void 0) { refreshAfterSave = true; }
+        }
+        saveExistingBudget(refreshAfterSave = true) {
             this.isLoading = true;
             // Create a slimmed down version
-            var putData = {
+            const putData = {
                 budgetId: this.curBudget.budgetId,
                 budgetName: this.curBudget.budgetName,
-                rows: _.map(this.curBudget.budgetRows, function (r) {
+                rows: _.map(this.curBudget.budgetRows, r => {
                     return {
                         budgetRowId: r.budgetRowId,
                         amount: r.amount,
@@ -268,24 +260,23 @@ var Ally;
                     };
                 })
             };
-            return this.$http.put("/api/Budget", putData).then(function () {
-                _this.isLoading = false;
+            return this.$http.put("/api/Budget", putData).then(() => {
+                this.isLoading = false;
                 if (refreshAfterSave)
-                    _this.completeRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                    this.completeRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
                 return Promise.reject(httpResponse);
             });
-        };
-        BudgetToolController.prototype.saveNewBudget = function () {
-            var _this = this;
+        }
+        saveNewBudget() {
             this.isLoading = true;
             // Create a slimmed down version
-            var postData = {
+            const postData = {
                 budgetId: 0,
                 budgetName: this.curBudget.budgetName,
-                rows: _.map(this.curBudget.budgetRows, function (r) {
+                rows: _.map(this.curBudget.budgetRows, r => {
                     return {
                         budgetRowId: 0,
                         amount: r.amount,
@@ -293,71 +284,69 @@ var Ally;
                     };
                 })
             };
-            this.$http.post("/api/Budget", postData).then(function () {
-                _this.isLoading = false;
-                _this.completeRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.post("/api/Budget", postData).then(() => {
+                this.isLoading = false;
+                this.completeRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user selects a budget to view
          */
-        BudgetToolController.prototype.onBudgetSelected = function () {
+        onBudgetSelected() {
             if (!this.selectedBudget)
                 return;
             this.loadBudget(this.selectedBudget);
-        };
+        }
         /**
          * Occurs when the user presses the button to delete a budget
          */
-        BudgetToolController.prototype.deleteBudget = function () {
-            var _this = this;
+        deleteBudget() {
             if (!confirm("Are you sure you want to deleted this budget?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Budget/" + this.curBudget.budgetId).then(function () {
-                _this.isLoading = false;
-                _this.completeRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.delete("/api/Budget/" + this.curBudget.budgetId).then(() => {
+                this.isLoading = false;
+                this.completeRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to delete, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
-        BudgetToolController.prototype.completeRefresh = function () {
+        }
+        completeRefresh() {
             this.curBudget = null;
             this.selectedBudget = null;
             this.incomeGridOptions.data = [];
             this.expenseGridOptions.data = [];
             return this.refreshData();
-        };
-        BudgetToolController.prototype.finalizeBudget = function () {
-            var _this = this;
+        }
+        finalizeBudget() {
             if (!confirm("This makes the budget permanently read-only. Are you sure you want to finalize the budget?"))
                 return;
             this.isLoading = true;
-            this.saveExistingBudget(false).then(function () {
-                _this.$http.put("/api/Budget/Finalize/" + _this.curBudget.budgetId, null).then(function () {
-                    _this.isLoading = false;
-                    _this.curBudget = null;
-                    _this.selectedBudget = null;
-                    _this.incomeGridOptions.data = [];
-                    _this.expenseGridOptions.data = [];
-                    _this.completeRefresh();
-                }, function (httpResponse) {
-                    _this.isLoading = false;
+            this.saveExistingBudget(false).then(() => {
+                this.$http.put("/api/Budget/Finalize/" + this.curBudget.budgetId, null).then(() => {
+                    this.isLoading = false;
+                    this.curBudget = null;
+                    this.selectedBudget = null;
+                    this.incomeGridOptions.data = [];
+                    this.expenseGridOptions.data = [];
+                    this.completeRefresh();
+                }, (httpResponse) => {
+                    this.isLoading = false;
                     alert("Failed to finalize, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
                 });
-            }, function () {
-                _this.isLoading = false;
+            }, () => {
+                this.isLoading = false;
                 // Error is prompted via saveExistingBudget
             });
-        };
-        BudgetToolController.prototype.exportToCsv = function () {
+        }
+        exportToCsv() {
             // We're sort of hacking the CSV logic to work for budgets since there's not a clear
             // column / row structure to it
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "",
                     fieldName: "col0"
@@ -379,20 +368,20 @@ var Ally;
                     fieldName: "col4"
                 }
             ];
-            var expenseRows = this.expenseGridOptions.data;
-            var incomeRows = this.incomeGridOptions.data;
-            var maxRows = Math.max(expenseRows.length, incomeRows.length);
-            var csvRows = [];
+            const expenseRows = this.expenseGridOptions.data;
+            const incomeRows = this.incomeGridOptions.data;
+            const maxRows = Math.max(expenseRows.length, incomeRows.length);
+            const csvRows = [];
             csvRows.push(new BudgetCsvRow("Budget:", this.curBudget.budgetName));
             csvRows.push(new BudgetCsvRow());
             csvRows.push(new BudgetCsvRow("Expenses", "", "", "Income"));
-            var getSlashedLabel = function (row) {
+            const getSlashedLabel = (row) => {
                 if (!row.parentRow)
                     return row.categoryDisplayName;
                 return getSlashedLabel(row.parentRow) + "/" + row.categoryDisplayName;
             };
-            for (var i = 0; i < maxRows; ++i) {
-                var newRow = new BudgetCsvRow();
+            for (let i = 0; i < maxRows; ++i) {
+                const newRow = new BudgetCsvRow();
                 if (i < expenseRows.length) {
                     newRow.col0 = getSlashedLabel(expenseRows[i]);
                     newRow.col1 = (expenseRows[i].amount || 0).toString();
@@ -408,91 +397,116 @@ var Ally;
             csvRows.push(new BudgetCsvRow("Expense Total", this.totalExpense.toString(), "", "Income Total", this.totalIncome.toString()));
             csvRows.push(new BudgetCsvRow());
             csvRows.push(new BudgetCsvRow("", "Net", (this.totalIncome - this.totalExpense).toString()));
-            var csvDataString = Ally.createCsvString(csvRows, csvColumns, false);
-            var fileName = "budget-" + Ally.HtmlUtil2.removeNonAlphanumeric(this.curBudget.budgetName) + ".csv";
+            const csvDataString = Ally.createCsvString(csvRows, csvColumns, false);
+            const fileName = "budget-" + Ally.HtmlUtil2.removeNonAlphanumeric(this.curBudget.budgetName) + ".csv";
             Ally.HtmlUtil2.downloadCsv(csvDataString, fileName);
-        };
+        }
         /**
          * Occurs when the user presses the button to delete a budget
          */
-        BudgetToolController.prototype.cloneBudget = function () {
-            var _this = this;
-            var newName = prompt("Enter the new, cloned budget's name:");
+        cloneBudget() {
+            const newName = prompt("Enter the new, cloned budget's name:");
             if (!newName)
                 return;
-            var cloneInfo = {
-                newName: newName,
+            const cloneInfo = {
+                newName,
                 budgetId: this.curBudget.budgetId
             };
             this.isLoading = true;
-            this.$http.put("/api/Budget/Clone", cloneInfo).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.completeRefresh().then(function () {
+            this.$http.put("/api/Budget/Clone", cloneInfo).then((httpResponse) => {
+                this.isLoading = false;
+                this.completeRefresh().then(() => {
                     // Select the newly created budget
-                    _this.selectedBudget = _this.budgets.find(function (b) { return b.budgetId === httpResponse.data; });
-                    _this.onBudgetSelected();
+                    this.selectedBudget = this.budgets.find(b => b.budgetId === httpResponse.data);
+                    this.onBudgetSelected();
                 });
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to clone, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
-        BudgetToolController.$inject = ["$http", "appCacheService", "uiGridConstants", "$rootScope"];
-        return BudgetToolController;
-    }());
+        }
+        static generatePdfForElement(elementId, $q) {
+            const deferred = $q.defer();
+            html2canvas(document.getElementById(elementId)).then((canvas) => {
+                const imgData = canvas.toDataURL("image/jpeg", 0.98);
+                const jsPDF = window.jspdf;
+                const pdfOpts = {
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: "letter",
+                    putOnlyUsedFonts: true,
+                    floatPrecision: 16,
+                    title: "care-team-dashboard"
+                };
+                const pdfDoc = new jsPDF.jsPDF(pdfOpts);
+                const padding = 7;
+                const pdfPageWidth = pdfDoc.internal.pageSize.getWidth();
+                const pdfPageHeight = pdfDoc.internal.pageSize.getHeight();
+                // Scale to fit on one page vertically
+                //const targetImgHeight = pdfPageHeight - ( padding * 2 );
+                //const targetImgWidth = ( canvas.width * targetImgHeight ) / canvas.height;
+                //const xOffset = ( pdfPageWidth - targetImgWidth ) / 2;
+                //pdfDoc.addImage( imgData, 'JPEG', xOffset, padding, targetImgWidth, targetImgHeight );
+                // Scale so it fits fills the page width
+                const targetImgWidth = pdfPageWidth - (padding * 2);
+                const targetImgHeight = (canvas.height * targetImgWidth) / canvas.width;
+                const xOffset = (pdfPageWidth - targetImgWidth) / 2;
+                const numPages = Math.ceil(targetImgHeight / pdfPageHeight);
+                pdfDoc.addImage(imgData, 'JPEG', xOffset, padding, targetImgWidth, targetImgHeight);
+                for (let pageIndex = 1; pageIndex < numPages; ++pageIndex) {
+                    pdfDoc.addPage("letter", "portrait");
+                    const yOffset = (pdfPageHeight * -pageIndex) + padding;
+                    pdfDoc.addImage(imgData, 'JPEG', xOffset, yOffset, targetImgWidth, targetImgHeight);
+                }
+                //pdfDoc.save( "download.pdf" );
+                //pdfDoc.output( 'dataurlnewwindow' );
+                deferred.resolve(pdfDoc);
+            }, (error) => {
+                deferred.reject(error);
+            });
+            return deferred.promise;
+        }
+        generatePdf() {
+            this.isLoading = true;
+            this.shouldRenderForPrint = true;
+            this.$timeout(() => {
+                BudgetToolController.generatePdfForElement("budget-data-container", this.$q).then((pdfDoc) => {
+                    this.isLoading = false;
+                    this.shouldRenderForPrint = false;
+                    window.open(URL.createObjectURL(pdfDoc.output("blob")));
+                }, () => {
+                    this.isLoading = false;
+                    this.shouldRenderForPrint = false;
+                    alert("Failed to generated PDF locally, please contact support");
+                });
+            }, 10);
+        }
+    }
+    BudgetToolController.$inject = ["$http", "uiGridConstants", "$q", "$timeout", "SiteInfo"];
     Ally.BudgetToolController = BudgetToolController;
-    var BudgetCsvRow = /** @class */ (function () {
-        function BudgetCsvRow(c0, c1, c2, c3, c4) {
-            if (c0 === void 0) { c0 = ""; }
-            if (c1 === void 0) { c1 = ""; }
-            if (c2 === void 0) { c2 = ""; }
-            if (c3 === void 0) { c3 = ""; }
-            if (c4 === void 0) { c4 = ""; }
+    class BudgetCsvRow {
+        constructor(c0 = "", c1 = "", c2 = "", c3 = "", c4 = "") {
             this.col0 = c0;
             this.col1 = c1;
             this.col2 = c2;
             this.col3 = c3;
             this.col4 = c4;
         }
-        return BudgetCsvRow;
-    }());
-    var SaveBudgetRow = /** @class */ (function () {
-        function SaveBudgetRow() {
-        }
-        return SaveBudgetRow;
-    }());
-    var SaveBudget = /** @class */ (function () {
-        function SaveBudget() {
-        }
-        return SaveBudget;
-    }());
-    var BudgetPageInfo = /** @class */ (function () {
-        function BudgetPageInfo() {
-        }
-        return BudgetPageInfo;
-    }());
-    var BudgetDto = /** @class */ (function () {
-        function BudgetDto() {
-        }
-        return BudgetDto;
-    }());
-    var BudgetLocalEdit = /** @class */ (function () {
-        function BudgetLocalEdit() {
-        }
-        return BudgetLocalEdit;
-    }());
-    var BudgetRowDto = /** @class */ (function () {
-        function BudgetRowDto() {
-        }
-        return BudgetRowDto;
-    }());
-    var BudgetRowLocalEdit = /** @class */ (function (_super) {
-        __extends(BudgetRowLocalEdit, _super);
-        function BudgetRowLocalEdit() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return BudgetRowLocalEdit;
-    }(BudgetRowDto));
+    }
+    class SaveBudgetRow {
+    }
+    class SaveBudget {
+    }
+    class BudgetPageInfo {
+    }
+    class BudgetDto {
+    }
+    class BudgetLocalEdit {
+    }
+    class BudgetRowDto {
+    }
+    class BudgetRowLocalEdit extends BudgetRowDto {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("budgetTool", {
     bindings: {},

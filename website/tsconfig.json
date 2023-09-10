@@ -3,12 +3,11 @@
   "compilerOptions": {
     "allowJs": false,
     "noImplicitAny": true,
-    "target": "ES5",
+    "target": "es2021",
     "lib": [
-      "ES5",
       "DOM",
-      "ScriptHost",
-      "ES2015"
+      "es7",
+      "es2021"
     ]
   },
   "exclude": [ "*.js", "**/*.js", "obj", "bin" ]

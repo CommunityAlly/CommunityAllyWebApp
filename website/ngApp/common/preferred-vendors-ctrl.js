@@ -1,24 +1,19 @@
-/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../Scripts/typings/moment/moment.d.ts" />
-/// <reference path="../Services/html-util.ts" />
-/// <reference path="../Common/map-util.ts" />
 var Ally;
 (function (Ally) {
-    var PreferredVendor = /** @class */ (function () {
-        function PreferredVendor() {
+    class PreferredVendor {
+        constructor() {
             this.fullAddress = new Ally.FullAddress();
         }
-        return PreferredVendor;
-    }());
+    }
     Ally.PreferredVendor = PreferredVendor;
     /**
      * The controller for the vendors page
      */
-    var PreferredVendorsController = /** @class */ (function () {
+    class PreferredVendorsController {
         /**
          * The constructor for the class
          */
-        function PreferredVendorsController($http, siteInfo) {
+        constructor($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.allVendors = [];
@@ -33,7 +28,7 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        PreferredVendorsController.prototype.$onInit = function () {
+        $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
             if (!this.entriesSortField) {
@@ -43,41 +38,40 @@ var Ally;
             else
                 this.entriesSortAscending = window.localStorage[PreferredVendorsController.StorageKey_SortDir] === "true";
             this.retrieveVendors();
-        };
+        }
         /**
          * Populate the vendors
          */
-        PreferredVendorsController.prototype.retrieveVendors = function () {
-            var _this = this;
+        retrieveVendors() {
             this.isLoading = true;
-            this.$http.get("/api/PreferredVendors").then(function (response) {
-                var vendors = response.data;
-                _this.isLoading = false;
-                _this.allVendors = vendors;
-                _this.filteredVendors = vendors;
-                _this.sortEntries();
+            this.$http.get("/api/PreferredVendors").then((response) => {
+                const vendors = response.data;
+                this.isLoading = false;
+                this.allVendors = vendors;
+                this.filteredVendors = vendors;
+                this.sortEntries();
                 // Process the tags into an array for the ng-tag-input control, build the list of
                 // all used tags, and convert the add dates to local time
-                _this.usedServiceTags = [];
-                _.each(_this.allVendors, function (v) {
+                this.usedServiceTags = [];
+                _.each(this.allVendors, (v) => {
                     v.servicesTagArray = [];
-                    _.each(v.servicesProvidedSplit, function (ss) { return v.servicesTagArray.push({ text: ss }); });
-                    _this.usedServiceTags = _this.usedServiceTags.concat(v.servicesProvidedSplit);
+                    _.each(v.servicesProvidedSplit, (ss) => v.servicesTagArray.push({ text: ss }));
+                    this.usedServiceTags = this.usedServiceTags.concat(v.servicesProvidedSplit);
                     // Convert the added timestamps to local time
                     v.addedDateUtc = moment.utc(v.addedDateUtc).toDate();
                 });
                 // Remove any duplicate tags
-                _this.usedServiceTags = _.uniq(_this.usedServiceTags);
-                _this.usedServiceTags.sort();
+                this.usedServiceTags = _.uniq(this.usedServiceTags);
+                this.usedServiceTags.sort();
             });
-        };
+        }
         /**
          * Export the vendor list as a CSV
          */
-        PreferredVendorsController.prototype.exportVendorCsv = function () {
+        exportVendorCsv() {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportResidentCsv');
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Company Name",
                     fieldName: "companyName"
@@ -93,7 +87,7 @@ var Ally;
                 {
                     headerText: "Address",
                     fieldName: "fullAddress",
-                    dataMapper: function (value) {
+                    dataMapper: (value) => {
                         return !value ? "" : value.oneLiner;
                     }
                 },
@@ -130,9 +124,8 @@ var Ally;
             ];
             var csvDataString = Ally.createCsvString(this.allVendors, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Vendors.csv");
-        };
-        PreferredVendorsController.prototype.onTagFilterToggle = function (tagName) {
-            var _this = this;
+        }
+        onTagFilterToggle(tagName) {
             // Add if the tag to our filter list if it's not there, remove it if it is
             var tagCurrentIndex = this.filterTags.indexOf(tagName);
             if (tagCurrentIndex === -1)
@@ -144,22 +137,21 @@ var Ally;
             else {
                 this.filteredVendors = [];
                 // Grab any vendors that have one of the tags by which we're filtering
-                _.each(this.allVendors, function (v) {
-                    if (_.intersection(v.servicesProvidedSplit, _this.filterTags).length > 0)
-                        _this.filteredVendors.push(v);
+                _.each(this.allVendors, (v) => {
+                    if (_.intersection(v.servicesProvidedSplit, this.filterTags).length > 0)
+                        this.filteredVendors.push(v);
                 });
             }
-        };
-        PreferredVendorsController.prototype.onAddedNewVendor = function () {
+        }
+        onAddedNewVendor() {
             this.retrieveVendors();
-        };
+        }
         /**
          * Sort the entries by a certain field
          */
-        PreferredVendorsController.prototype.sortEntries = function () {
-            var _this = this;
-            var sortEntry = function (pv) {
-                if (_this.entriesSortField === "name")
+        sortEntries() {
+            const sortEntry = (pv) => {
+                if (this.entriesSortField === "name")
                     return pv.companyName.trim().toLocaleUpperCase();
                 else
                     return pv.addedDateUtc;
@@ -167,11 +159,11 @@ var Ally;
             this.filteredVendors = _.sortBy(this.filteredVendors, sortEntry);
             if (this.entriesSortAscending)
                 this.filteredVendors.reverse();
-        };
+        }
         /**
          * Sort the entries by a certain field
          */
-        PreferredVendorsController.prototype.updateEntriesSort = function (fieldName) {
+        updateEntriesSort(fieldName) {
             if (!fieldName)
                 fieldName = "entryDate";
             if (this.entriesSortField === fieldName)
@@ -183,12 +175,11 @@ var Ally;
             window.localStorage[PreferredVendorsController.StorageKey_SortField] = this.entriesSortField;
             window.localStorage[PreferredVendorsController.StorageKey_SortDir] = this.entriesSortAscending;
             this.sortEntries();
-        };
-        PreferredVendorsController.$inject = ["$http", "SiteInfo"];
-        PreferredVendorsController.StorageKey_SortField = "vendors_entriesSortField";
-        PreferredVendorsController.StorageKey_SortDir = "vendors_entriesSortAscending";
-        return PreferredVendorsController;
-    }());
+        }
+    }
+    PreferredVendorsController.$inject = ["$http", "SiteInfo"];
+    PreferredVendorsController.StorageKey_SortField = "vendors_entriesSortField";
+    PreferredVendorsController.StorageKey_SortDir = "vendors_entriesSortAscending";
     Ally.PreferredVendorsController = PreferredVendorsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("preferredVendors", {

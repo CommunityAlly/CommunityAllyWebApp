@@ -1,10 +1,4 @@
-﻿/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../Scripts/typings/moment/moment.d.ts" />
-/// <reference path="../Services/html-util.ts" />
-/// <reference path="../Common/map-util.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
     export class PreferredVendor
     {

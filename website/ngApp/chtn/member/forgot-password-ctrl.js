@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the page that allows users to reset their password
      */
-    var ForgotPasswordController = /** @class */ (function () {
+    class ForgotPasswordController {
         /**
          * The constructor for the class
          */
-        function ForgotPasswordController($http, appCacheService) {
+        constructor($http, appCacheService) {
             this.$http = $http;
             this.appCacheService = appCacheService;
             this.isLoading = false;
@@ -17,30 +17,28 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ForgotPasswordController.prototype.$onInit = function () {
+        $onInit() {
             this.loginInfo.emailAddress = this.appCacheService.getAndClear("forgotEmail");
-        };
+        }
         /**
          * Occurs when the user clicks the log-in button
          */
-        ForgotPasswordController.prototype.onSubmitEmail = function () {
-            var _this = this;
+        onSubmitEmail() {
             this.isLoading = true;
             // Retrieve information for the current association
-            this.$http.post("/api/Login/Forgot", this.loginInfo).then(function () {
-                _this.shouldHideControls = true;
-                _this.isLoading = false;
-                _this.resultText = "Please check your email for updated login information.";
-                _this.resultTextColor = "#00F";
-            }, function (httpResponse) {
-                _this.isLoading = false;
-                _this.resultText = "Failed to process your request: " + httpResponse.data.exceptionMessage;
-                _this.resultTextColor = "#F00";
+            this.$http.post("/api/Login/Forgot", this.loginInfo).then(() => {
+                this.shouldHideControls = true;
+                this.isLoading = false;
+                this.resultText = "Please check your email for updated login information.";
+                this.resultTextColor = "#00F";
+            }, (httpResponse) => {
+                this.isLoading = false;
+                this.resultText = "Failed to process your request: " + httpResponse.data.exceptionMessage;
+                this.resultTextColor = "#F00";
             });
-        };
-        ForgotPasswordController.$inject = ["$http", "appCacheService"];
-        return ForgotPasswordController;
-    }());
+        }
+    }
+    ForgotPasswordController.$inject = ["$http", "appCacheService"];
     Ally.ForgotPasswordController = ForgotPasswordController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("forgotPassword", {

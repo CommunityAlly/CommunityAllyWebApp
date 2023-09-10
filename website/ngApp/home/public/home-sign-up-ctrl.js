@@ -2,38 +2,31 @@
 /// <reference path="../../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;
 (function (Ally) {
-    var SignerUpInfo = /** @class */ (function () {
-        function SignerUpInfo() {
-        }
-        return SignerUpInfo;
-    }());
-    var HomeInfo = /** @class */ (function () {
-        function HomeInfo() {
-        }
-        return HomeInfo;
-    }());
+    class SignerUpInfo {
+    }
+    class HomeInfo {
+    }
     Ally.HomeInfo = HomeInfo;
-    var SignUpInfo = /** @class */ (function () {
-        function SignUpInfo() {
+    class SignUpInfo {
+        constructor() {
             this.signerUpInfo = new SignerUpInfo();
             this.streetAddress = "";
             this.homeInfo = new HomeInfo();
         }
-        return SignUpInfo;
-    }());
-    var LotSizeType_Acres = "Acres";
-    var LotSizeType_SquareFeet = "SquareFeet";
-    var SquareFeetPerAcre = 43560;
+    }
+    const LotSizeType_Acres = "Acres";
+    const LotSizeType_SquareFeet = "SquareFeet";
+    const SquareFeetPerAcre = 43560;
     /**
      * The controller for the Home Ally sign-up page
      */
-    var HomeSignUpController = /** @class */ (function () {
+    class HomeSignUpController {
         /**
          * The constructor for the class
          * @param $http The HTTP service object
          * @param $scope The Angular scope object
          */
-        function HomeSignUpController($http, $scope, WizardHandler) {
+        constructor($http, $scope, WizardHandler) {
             this.$http = $http;
             this.$scope = $scope;
             this.WizardHandler = WizardHandler;
@@ -49,40 +42,38 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        HomeSignUpController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             // Listen for step changes
-            this.$scope.$on('wizard:stepChanged', function (event, args) {
+            this.$scope.$on('wizard:stepChanged', (event, args) => {
                 // If we're now on the second step
                 if (args.index === 1)
-                    _this.retrieveHomeInfoForAddress();
+                    this.retrieveHomeInfoForAddress();
             });
             // The controller is ready, but let's wait a bit for the page to be ready
             var innerThis = this;
-            setTimeout(function () { _this.initMap(); }, 300);
-        };
+            setTimeout(() => { this.initMap(); }, 300);
+        }
         /**
          * Retrieve information about the address provided from Zillow
          */
-        HomeSignUpController.prototype.retrieveHomeInfoForAddress = function () {
-            var _this = this;
+        retrieveHomeInfoForAddress() {
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.streetAddress) || this.hasAlreadyCheckedForHomeInfo)
                 return;
             this.hasAlreadyCheckedForHomeInfo = true;
             var getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent(this.signUpInfo.streetAddress);
-            this.$http.get(getUri, { cache: true }).then(function (response) {
+            this.$http.get(getUri, { cache: true }).then((response) => {
                 if (!response.data)
                     return;
-                _this.signUpInfo.homeInfo = response.data;
-                _this.didLoadHomeInfo = true;
-                _this.processLotSizeHint(_this.signUpInfo.homeInfo.lotSquareFeet);
+                this.signUpInfo.homeInfo = response.data;
+                this.didLoadHomeInfo = true;
+                this.processLotSizeHint(this.signUpInfo.homeInfo.lotSquareFeet);
             });
-        };
+        }
         /**
          * Convert a lot size hint from Zillow into a UI friendly value
          * @param lotSquareFeet
          */
-        HomeSignUpController.prototype.processLotSizeHint = function (lotSquareFeet) {
+        processLotSizeHint(lotSquareFeet) {
             if (!lotSquareFeet)
                 return;
             // Choose a square feet that makes sense
@@ -96,11 +87,11 @@ var Ally;
                 this.lotSizeUnit = LotSizeType_SquareFeet;
                 this.lotSquareUnits = lotSquareFeet;
             }
-        };
+        }
         /**
          * Initialize the Google map on the page
          */
-        HomeSignUpController.prototype.initMap = function () {
+        initMap() {
             var mapDiv = document.getElementById("address-map");
             this.map = new google.maps.Map(mapDiv, {
                 center: { lat: 41.869638, lng: -87.657423 },
@@ -133,17 +124,17 @@ var Ally;
                     innerThis.centerMap(place.geometry);
                 $("#association-name-text-box").focus();
             });
-        };
+        }
         /**
          * Occurs when the user hits enter in the address box
          */
-        HomeSignUpController.prototype.goNextStep = function () {
+        goNextStep() {
             this.WizardHandler.wizard().next();
-        };
+        }
         /**
          * Called when the user completes the wizard
          */
-        HomeSignUpController.prototype.onFinishedWizard = function () {
+        onFinishedWizard() {
             //if( this.lotSizeUnit === LotSizeType_Acres )
             //    this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits * SquareFeetPerAcre;
             //else
@@ -152,7 +143,7 @@ var Ally;
             var innerThis = this;
             this.$http.post("/api/HomeSignUp", this.signUpInfo).then(function (httpResponse) {
                 innerThis.isLoading = false;
-                var signUpResult = httpResponse.data;
+                let signUpResult = httpResponse.data;
                 // If we successfully created the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
@@ -173,11 +164,11 @@ var Ally;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to complete sign-up: " + errorMessage);
             });
-        };
+        }
         /**
          * Called when the user types in a new street address
          */
-        HomeSignUpController.prototype.onHomeAddressChanged = function () {
+        onHomeAddressChanged() {
             var innerThis = this;
             HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
                 innerThis.$scope.$apply(function () {
@@ -193,12 +184,12 @@ var Ally;
                     innerThis.centerMap(results[0].geometry);
                 });
             });
-        };
+        }
         /**
          * Center the map on a position
          * @param geometry The geometry on which to center
          */
-        HomeSignUpController.prototype.centerMap = function (geometry) {
+        centerMap(geometry) {
             // If the place has a geometry, then present it on a map.
             if (geometry.viewport) {
                 this.map.fitBounds(geometry.viewport);
@@ -209,31 +200,30 @@ var Ally;
             }
             this.mapMarker.setPosition(geometry.location);
             this.mapMarker.setVisible(true);
-        };
+        }
         /**
          * Retrieve the home information from the server
          */
-        HomeSignUpController.prototype.prepopulateHomeInfo = function () {
+        prepopulateHomeInfo() {
             if (!this.selectedSplitAddress)
                 return;
             this.isLoadingHomeInfo = true;
-            var getUri = "/api/PropertyResearch/HomeInfo?street=" + encodeURIComponent(this.selectedSplitAddress.street) + "&city=" + encodeURIComponent(this.selectedSplitAddress.city) + "&state=" + this.selectedSplitAddress.state + "&zip=" + this.selectedSplitAddress.zip;
+            let getUri = `/api/PropertyResearch/HomeInfo?street=${encodeURIComponent(this.selectedSplitAddress.street)}&city=${encodeURIComponent(this.selectedSplitAddress.city)}&state=${this.selectedSplitAddress.state}&zip=${this.selectedSplitAddress.zip}`;
             var innerThis = this;
-            this.$http.get(getUri).then(function (httpResponse) {
+            this.$http.get(getUri).then((httpResponse) => {
                 innerThis.isLoadingHomeInfo = false;
-                var homeInfo = httpResponse.data;
+                let homeInfo = httpResponse.data;
                 if (homeInfo) {
                     innerThis.didLoadHomeInfo = true;
                     innerThis.signUpInfo.homeInfo = homeInfo;
                     innerThis.processLotSizeHint(homeInfo.lotSquareFeet);
                 }
-            }, function () {
+            }, () => {
                 innerThis.isLoadingHomeInfo = false;
             });
-        };
-        HomeSignUpController.$inject = ["$http", "$scope", "WizardHandler"];
-        return HomeSignUpController;
-    }());
+        }
+    }
+    HomeSignUpController.$inject = ["$http", "$scope", "WizardHandler"];
     Ally.HomeSignUpController = HomeSignUpController;
 })(Ally || (Ally = {}));
 CA.angularApp.component('homeSignUp', {

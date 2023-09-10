@@ -1,18 +1,15 @@
 var Ally;
 (function (Ally) {
-    var PaymentInfo = /** @class */ (function () {
-        function PaymentInfo() {
-        }
-        return PaymentInfo;
-    }());
+    class PaymentInfo {
+    }
     /**
      * The controller for the widget that lets residents pay their assessments
      */
-    var PayPalPaymentFormController = /** @class */ (function () {
+    class PayPalPaymentFormController {
         /**
          * The constructor for the class
          */
-        function PayPalPaymentFormController($http, siteInfo, $rootScope) {
+        constructor($http, siteInfo, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$rootScope = $rootScope;
@@ -22,8 +19,7 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        PayPalPaymentFormController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             // Grab the assessment from the user's unit (TODO handle multiple units)
             if (this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0)
                 this.assessmentAmount = this.siteInfo.userInfo.usersUnits[0].assessment;
@@ -59,7 +55,7 @@ var Ally;
                     this.updatePaymentText();
                 }
             }
-            setTimeout(function () {
+            setTimeout(() => {
                 $('#btn_view_pay_history').click(function () {
                     $('#pm_info').collapse('hide');
                     $('#payment_history').collapse('show');
@@ -84,8 +80,8 @@ var Ally;
                     sandbox: null,
                     production: "AW51-dH9dRrczrhVVf1kZyavtifN8z23Q0BTJwpWcTJQL6YoqGCTwOb0JfbCHTJIA_usIXAgrxwQ7osQ"
                 },
-                payment: function (data, actions) {
-                    _this.isLoading = true;
+                payment: (data, actions) => {
+                    this.isLoading = true;
                     /*
                      * Set up the payment here
                      */
@@ -93,66 +89,66 @@ var Ally;
                         payment: {
                             transactions: [
                                 {
-                                    amount: { total: _this.paymentInfo.amount.toString(), currency: 'USD' }
+                                    amount: { total: this.paymentInfo.amount.toString(), currency: 'USD' }
                                 }
                             ]
                         }
                     });
                 },
-                onAuthorize: function (data, actions) {
+                onAuthorize: (data, actions) => {
                     /*
                      * Execute the payment here
                      */
-                    return actions.payment.execute().then(function (payment) {
+                    return actions.payment.execute().then((payment) => {
                         // The payment is complete!
                         // Tell the server about payment.id with memo
                         var memoInfo = {
                             PayPalCheckoutId: payment.id,
-                            Memo: _this.paymentInfo.note
+                            Memo: this.paymentInfo.note
                         };
-                        _this.isLoading = true;
-                        _this.$http.put("/api/OnlinePayment/SetMemo", memoInfo).then(function (httpResponse) {
-                            _this.isLoading = false;
-                        }, function (httpResponse) {
-                            _this.isLoading = false;
+                        this.isLoading = true;
+                        this.$http.put("/api/OnlinePayment/SetMemo", memoInfo).then((httpResponse) => {
+                            this.isLoading = false;
+                        }, (httpResponse) => {
+                            this.isLoading = false;
                             alert("Failed to save: " + httpResponse.data.exceptionMessage);
                         });
                         // You can now show a confirmation message to the customer
                     });
                 },
-                onCancel: function (data, actions) {
-                    _this.isLoading = false;
+                onCancel: (data, actions) => {
+                    this.isLoading = false;
                     /*
                      * Buyer canceled the payment
                      */
                 },
-                onError: function (err) {
-                    _this.isLoading = false;
+                onError: (err) => {
+                    this.isLoading = false;
                     /*
                      * An error occurred during the transaction
                      */
                 }
             }, "#paypal-button");
-        };
+        }
         /**
          * Occurs when the user clicks the helper link to prep an email to inquire the board as to
          * why their records don't line up.
          */
-        PayPalPaymentFormController.prototype.onIncorrectPayDetails = function () {
+        onIncorrectPayDetails() {
             // Get the friendly looking assessment value (ex: 100, 101, 102.50)
-            var amountString = this.assessmentAmount.toString();
+            let amountString = this.assessmentAmount.toString();
             if (Math.round(this.assessmentAmount) != this.assessmentAmount)
                 amountString = this.assessmentAmount.toFixed(2);
             // Tell the groupSendEmail component to prep an email for the board
-            var prepEventData = amountString;
+            let prepEventData = amountString;
             if (this.knowsNextPayment && HtmlUtil.isValidString(this.nextPaymentText))
                 prepEventData += "|" + this.nextPaymentText;
             this.$rootScope.$broadcast("prepAssessmentEmailToBoard", prepEventData);
-        };
+        }
         /**
          * Generate the friendly string describing to what the member's next payment applies
          */
-        PayPalPaymentFormController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
+        getNextPaymentText(payPeriods, assessmentFrequency) {
             if (payPeriods == null)
                 return "";
             // Ensure the periods is an array
@@ -179,19 +175,19 @@ var Ally;
                 this.paymentInfo.paysFor = [curPeriod];
             }
             return paymentText;
-        };
+        }
         /**
          * Occurs when the user selects a payment type radio button
          */
-        PayPalPaymentFormController.prototype.onSelectPaymentType = function (paymentType) {
+        onSelectPaymentType(paymentType) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
             this.updatePaymentText();
-        };
+        }
         /**
          * Refresh the note text for the payment field
          */
-        PayPalPaymentFormController.prototype.updatePaymentText = function () {
+        updatePaymentText() {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                 // If we have a next payment string
                 if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
@@ -205,10 +201,9 @@ var Ally;
             else {
                 this.paymentInfo.note = "";
             }
-        };
-        PayPalPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope"];
-        return PayPalPaymentFormController;
-    }());
+        }
+    }
+    PayPalPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope"];
     Ally.PayPalPaymentFormController = PayPalPaymentFormController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("paypalPaymentForm", {

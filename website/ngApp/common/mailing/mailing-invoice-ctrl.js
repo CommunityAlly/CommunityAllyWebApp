@@ -1,81 +1,29 @@
 //declare var StripeCheckout: any;
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var Ally;
 (function (Ally) {
-    var InvoiceMailingEntry = /** @class */ (function () {
-        function InvoiceMailingEntry() {
+    class InvoiceMailingEntry {
+        constructor() {
             this.isValidMailingAddress = null;
         }
-        return InvoiceMailingEntry;
-    }());
-    var InvoiceFullMailing = /** @class */ (function () {
-        function InvoiceFullMailing() {
-        }
-        return InvoiceFullMailing;
-    }());
-    var FullMailingResult = /** @class */ (function () {
-        function FullMailingResult() {
-        }
-        return FullMailingResult;
-    }());
-    var AddressVerificationResult = /** @class */ (function () {
-        function AddressVerificationResult() {
-        }
-        return AddressVerificationResult;
-    }());
-    var InvoicePreviewInfo = /** @class */ (function () {
-        function InvoicePreviewInfo() {
-        }
-        return InvoicePreviewInfo;
-    }());
-    var InvoicePreviewInfoResult = /** @class */ (function () {
-        function InvoicePreviewInfoResult() {
-        }
-        return InvoicePreviewInfoResult;
-    }());
+    }
+    class InvoiceFullMailing {
+    }
+    class FullMailingResult {
+    }
+    class AddressVerificationResult {
+    }
+    class InvoicePreviewInfo {
+    }
+    class InvoicePreviewInfoResult {
+    }
     /**
      * The controller for the invoice mailing view
      */
-    var MailingInvoiceController = /** @class */ (function () {
+    class MailingInvoiceController {
         /**
         * The constructor for the class
         */
-        function MailingInvoiceController($http, siteInfo, fellowResidents, wizardHandler, $scope, $timeout, $location) {
-            var _this = this;
+        constructor($http, siteInfo, fellowResidents, wizardHandler, $scope, $timeout, $location) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
@@ -97,7 +45,7 @@ var Ally;
             this.stripeApi = null;
             this.stripeCardElement = null;
             this.payButtonText = "Pay $10";
-            var amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" autocomplete="off" data-lpignore="true" data-form-type="other" /></div>';
+            const amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" autocomplete="off" data-lpignore="true" data-form-type="other" /></div>';
             this.homesGridOptions =
                 {
                     data: [],
@@ -150,16 +98,16 @@ var Ally;
                     enableRowHeaderSelection: true,
                     multiSelect: true,
                     enableSelectAll: true,
-                    onRegisterApi: function (gridApi) {
-                        _this.gridApi = gridApi;
-                        var updateFromSelection = function () {
-                            var selectedRows = gridApi.selection.getSelectedRows();
-                            _this.selectedEntries = selectedRows;
+                    onRegisterApi: (gridApi) => {
+                        this.gridApi = gridApi;
+                        const updateFromSelection = () => {
+                            const selectedRows = gridApi.selection.getSelectedRows();
+                            this.selectedEntries = selectedRows;
                             //_.forEach( <InvoiceMailingEntry[]>this.homesGridOptions.data, e => e.shouldIncludeForSending = false );
                             //_.forEach( this.selectedEntries, e => e.shouldIncludeForSending = true );
                         };
-                        gridApi.selection.on.rowSelectionChanged($scope, function () { return updateFromSelection(); });
-                        gridApi.selection.on.rowSelectionChangedBatch($scope, function () { return updateFromSelection(); });
+                        gridApi.selection.on.rowSelectionChanged($scope, () => updateFromSelection());
+                        gridApi.selection.on.rowSelectionChangedBatch($scope, () => updateFromSelection());
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -168,17 +116,16 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        MailingInvoiceController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.authToken = this.siteInfo.authToken;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.loadMailingInfo();
-            this.$scope.$on('wizard:stepChanged', function (event, args) {
-                _this.activeStepIndex = args.index;
-                console.log("wizard:stepChanged, step " + _this.activeStepIndex);
+            this.$scope.$on('wizard:stepChanged', (event, args) => {
+                this.activeStepIndex = args.index;
+                console.log("wizard:stepChanged, step " + this.activeStepIndex);
                 // If we moved to the second step, amounts due
-                if (_this.activeStepIndex === 1) {
-                    _this.$timeout(function () {
+                if (this.activeStepIndex === 1) {
+                    this.$timeout(() => {
                         // Tell the grid to resize as there is a bug with UI-Grid
                         //$( window ).resize();
                         //$( window ).resize();
@@ -186,27 +133,25 @@ var Ally;
                         //evt.initUIEvent( 'resize', true, false, window, 0 );
                         //window.dispatchEvent( evt );
                         // Update the grid to show the selection based on our internal selection
-                        for (var _i = 0, _a = _this.selectedEntries; _i < _a.length; _i++) {
-                            var curRow = _a[_i];
-                            _this.gridApi.selection.selectRow(curRow);
-                        }
+                        for (const curRow of this.selectedEntries)
+                            this.gridApi.selection.selectRow(curRow);
                         //this.$timeout( () => this.gridApi.selection.selectAllRows(), 200 );
                     }, 250);
                 }
                 // Or if we moved to the third step, contact method
-                if (_this.activeStepIndex === 2) {
+                if (this.activeStepIndex === 2) {
                     // Filter out any fields with an empty due
                     // TWC - 6/25/19 - Had a request to still be able to send out $0 invoices, makes sense
                     //this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
                     // For long lists of homes, make sure the user is brought to the top
-                    window.setTimeout(function () { return document.getElementById("delivery-method-header").scrollIntoView(true); }, 50);
+                    window.setTimeout(() => document.getElementById("delivery-method-header").scrollIntoView(true), 50);
                 }
                 // Or if we moved to the last step
-                else if (_this.activeStepIndex === 3) {
-                    _this.numEmailsToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendEmail; }).length;
-                    _this.numPaperLettersToSend = _.filter(_this.selectedEntries, function (e) { return e.shouldSendPaperMail; }).length;
-                    if (_this.numPaperLettersToSend > 0)
-                        _this.$timeout(function () { return _this.initStripePayment(); }, 100);
+                else if (this.activeStepIndex === 3) {
+                    this.numEmailsToSend = _.filter(this.selectedEntries, e => e.shouldSendEmail).length;
+                    this.numPaperLettersToSend = _.filter(this.selectedEntries, e => e.shouldSendPaperMail).length;
+                    if (this.numPaperLettersToSend > 0)
+                        this.$timeout(() => this.initStripePayment(), 100);
                 }
             });
             this.shouldShowAutoUnselect = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled
@@ -224,13 +169,13 @@ var Ally;
             }
             // This will be needed for ACH payments
             //this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
-        };
-        MailingInvoiceController.getCurrentPayPeriod = function (assessmentFrequency) {
-            var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+        }
+        static getCurrentPayPeriod(assessmentFrequency) {
+            const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
             if (!payPeriodInfo)
                 return null;
-            var today = new Date();
-            var periodInfo = {
+            const today = new Date();
+            const periodInfo = {
                 year: today.getFullYear(),
                 period: -1,
                 period1Based: -1
@@ -245,90 +190,87 @@ var Ally;
                 periodInfo.period = 0;
             periodInfo.period1Based = periodInfo.period + 1;
             return periodInfo;
-        };
-        MailingInvoiceController.getCurrentPayPeriodLabel = function (assessmentFrequency) {
-            var payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+        }
+        static getCurrentPayPeriodLabel(assessmentFrequency) {
+            const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
             if (!payPeriodInfo)
                 return null;
-            var periodNames = GetLongPayPeriodNames(payPeriodInfo.intervalName);
+            const periodNames = GetLongPayPeriodNames(payPeriodInfo.intervalName);
             if (!periodNames)
                 return new Date().getFullYear().toString();
-            var currentPeriod = MailingInvoiceController.getCurrentPayPeriod(assessmentFrequency);
-            var yearString = currentPeriod.year.toString();
+            const currentPeriod = MailingInvoiceController.getCurrentPayPeriod(assessmentFrequency);
+            const yearString = currentPeriod.year.toString();
             return periodNames[currentPeriod.period] + " " + yearString;
-        };
-        MailingInvoiceController.prototype.customizeNotes = function (recipient) {
+        }
+        customizeNotes(recipient) {
             recipient.overrideNotes = this.fullMailingInfo.notes || " ";
-        };
-        MailingInvoiceController.prototype.uncustomizeNotes = function (recipient) {
+        }
+        uncustomizeNotes(recipient) {
             recipient.overrideNotes = null;
-        };
-        MailingInvoiceController.prototype.setAllDues = function () {
-            var _this = this;
-            _.forEach(this.fullMailingInfo.mailingEntries, function (e) { return e.amountDue = _this.allDuesSetAmount; });
-        };
-        MailingInvoiceController.prototype.getTotalDue = function (recipient) {
+        }
+        setAllDues() {
+            _.forEach(this.fullMailingInfo.mailingEntries, e => e.amountDue = this.allDuesSetAmount);
+        }
+        getTotalDue(recipient) {
             return recipient.amountDue - Math.abs(recipient.balanceForward || 0) + (recipient.lateFee || 0);
-        };
-        MailingInvoiceController.prototype.onShouldSendPaperMailChange = function (recipient) {
+        }
+        onShouldSendPaperMailChange(recipient) {
             //if( recipient.shouldSendPaperMail )
             //    this.validateAddress( recipient );
             if (recipient.shouldSendPaperMail)
                 this.testAddressRequiredFields(recipient);
             else {
                 recipient.isValidMailingAddress = recipient.validationMessage = null;
-                this.numInvalidMailingAddresses = _.filter(this.selectedEntries, function (e) { return e.isValidMailingAddress === false; }).length;
+                this.numInvalidMailingAddresses = _.filter(this.selectedEntries, e => e.isValidMailingAddress === false).length;
             }
-        };
-        MailingInvoiceController.prototype.onAddressChanged = function (recipient) {
+        }
+        onAddressChanged(recipient) {
             //if( recipient.shouldSendPaperMail )
             //    this.validateAddress( recipient );
             if (recipient.shouldSendPaperMail)
                 this.testAddressRequiredFields(recipient);
-        };
+        }
         /**
          * Test the mailability of an address
          */
-        MailingInvoiceController.prototype.testAddressRequiredFields = function (recipient) {
-            var _this = this;
+        testAddressRequiredFields(recipient) {
             recipient.isValidating = true;
             recipient.isValidMailingAddress = null;
             recipient.validationMessage = null;
-            return this.$http.post("/api/Mailing/TestMailability", recipient.streetAddressObject).then(function (response) {
+            return this.$http.post("/api/Mailing/TestMailability", recipient.streetAddressObject).then((response) => {
                 recipient.isValidating = false;
                 recipient.isValidMailingAddress = response.data.isValid;
                 recipient.validationMessage = response.data.verificationMessage;
-                _this.numInvalidMailingAddresses = _.filter(_this.selectedEntries, function (e) { return e.isValidMailingAddress === false; }).length;
-            }, function (response) {
+                this.numInvalidMailingAddresses = _.filter(this.selectedEntries, e => e.isValidMailingAddress === false).length;
+            }, (response) => {
                 recipient.isValidating = false;
                 recipient.isValidMailingAddress = false;
                 recipient.validatedAddress = null;
                 recipient.validationMessage = "Address validation failed: " + response.data.exceptionMessage;
             });
-        };
+        }
         /**
          * Run the recipient addresses through an address validator
          */
-        MailingInvoiceController.prototype.validateAddress = function (recipient) {
+        validateAddress(recipient) {
             recipient.isValidating = true;
             recipient.isValidMailingAddress = null;
-            var validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent(JSON.stringify(recipient.streetAddressObject));
-            return this.$http.get(validateUri).then(function (response) {
+            const validateUri = "/api/Mailing/VerifyAddress?address=" + encodeURIComponent(JSON.stringify(recipient.streetAddressObject));
+            return this.$http.get(validateUri).then((response) => {
                 recipient.isValidating = false;
                 recipient.isValidMailingAddress = response.data.isValid;
                 recipient.validationMessage = response.data.verificationMessage;
                 if (recipient.isValidMailingAddress)
                     recipient.validatedAddress = response.data.parsedStreetAddress.multiLiner;
-            }, function (response) {
+            }, (response) => {
                 recipient.isValidating = false;
                 recipient.isValidMailingAddress = false;
                 recipient.validatedAddress = null;
                 recipient.validationMessage = response.data.exceptionMessage;
             });
-        };
-        MailingInvoiceController.prototype.previewInvoice = function (entry) {
-            var _this = this;
-            var previewPostInfo = new InvoicePreviewInfo();
+        }
+        previewInvoice(entry) {
+            const previewPostInfo = new InvoicePreviewInfo();
             previewPostInfo.invoiceTitleString = this.fullMailingInfo.invoiceTitleString;
             previewPostInfo.dueDateString = this.fullMailingInfo.dueDateString;
             previewPostInfo.duesLabel = this.fullMailingInfo.duesLabel;
@@ -337,20 +279,20 @@ var Ally;
             previewPostInfo.notes = entry.overrideNotes || this.fullMailingInfo.notes;
             this.isLoading = true;
             entry.wasPopUpBlocked = false;
-            this.$http.post("/api/Mailing/Preview/Invoice", previewPostInfo).then(function (response) {
-                _this.isLoading = false;
-                var getUri = _this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
-                var newWindow = window.open(getUri, "_blank");
+            this.$http.post("/api/Mailing/Preview/Invoice", previewPostInfo).then((response) => {
+                this.isLoading = false;
+                const getUri = this.siteInfo.publicSiteInfo.baseApiUrl + "PublicMailing/Preview/Invoice/" + response.data.previewId;
+                const newWindow = window.open(getUri, "_blank");
                 entry.wasPopUpBlocked = !newWindow || newWindow.closed || typeof newWindow.closed === "undefined";
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to preview invoice: " + response.data.exceptionMessage);
             });
             //var entryInfo = encodeURIComponent( JSON.stringify( entry ) );
             //var invoiceUri = `/api/Mailing/Preview/Invoice?ApiAuthToken=${this.authToken}&fromAddress=${encodeURIComponent( JSON.stringify( this.fullMailingInfo.fromStreetAddress ) )}&notes=${encodeURIComponent( this.fullMailingInfo.notes )}&dueDateString=${encodeURIComponent( this.fullMailingInfo.dueDateString )}&duesLabel=${encodeURIComponent( this.fullMailingInfo.duesLabel )}&mailingInfo=${entryInfo}`;
             //window.open( invoiceUri, "_blank" );
-        };
-        MailingInvoiceController.prototype.onFinishedWizard = function () {
+        }
+        onFinishedWizard() {
             if (this.numPaperLettersToSend === 0) {
                 if (this.numEmailsToSend === 0)
                     alert("No emails or paper letters selected to send.");
@@ -385,55 +327,52 @@ var Ally;
             //{
             //    checkoutHandler.close();
             //} );
-        };
-        MailingInvoiceController.prototype.submitFullMailingAfterCharge = function () {
-            var _this = this;
+        }
+        submitFullMailingAfterCharge() {
             this.isLoading = true;
-            this.$http.post("/api/Mailing/Send/Invoice", this.fullMailingInfo).then(function (response) {
-                _this.isLoading = false;
-                var message = "Your invoices have been successfully sent" + (response.data.hadErrors ? ', but there were errors' : '') + ". You can view the status in the history tab.";
+            this.$http.post("/api/Mailing/Send/Invoice", this.fullMailingInfo).then((response) => {
+                this.isLoading = false;
+                const message = `Your invoices have been successfully sent${response.data.hadErrors ? ', but there were errors' : ''}. You can view the status in the history tab.`;
                 alert(message);
-                _this.$location.path("/Mailing/History");
-            }, function (response) {
-                _this.isLoading = false;
+                this.$location.path("/Mailing/History");
+            }, (response) => {
+                this.isLoading = false;
                 alert("There was a problem sending your mailing, none were sent and you were not charged. Error: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Retrieve mailing info from the server
         */
-        MailingInvoiceController.prototype.loadMailingInfo = function () {
-            var _this = this;
+        loadMailingInfo() {
             this.isLoading = true;
-            this.$http.get("/api/Mailing/RecipientInfo").then(function (response) {
-                _this.isLoading = false;
-                _this.fullMailingInfo = response.data;
-                _this.homesGridOptions.data = response.data.mailingEntries;
-                _this.homesGridOptions.minRowsToShow = response.data.mailingEntries.length;
-                _this.homesGridOptions.virtualizationThreshold = response.data.mailingEntries.length;
-                _this.selectedEntries = _.clone(response.data.mailingEntries);
+            this.$http.get("/api/Mailing/RecipientInfo").then((response) => {
+                this.isLoading = false;
+                this.fullMailingInfo = response.data;
+                this.homesGridOptions.data = response.data.mailingEntries;
+                this.homesGridOptions.minRowsToShow = response.data.mailingEntries.length;
+                this.homesGridOptions.virtualizationThreshold = response.data.mailingEntries.length;
+                this.selectedEntries = _.clone(response.data.mailingEntries);
             });
-        };
+        }
         /**
          * Scroll to the first invalid mail address
          */
-        MailingInvoiceController.prototype.scrollToFirstAddressError = function () {
-            var firstBadAddress = _.find(this.selectedEntries, function (e) { return e.isValidMailingAddress === false; });
+        scrollToFirstAddressError() {
+            const firstBadAddress = _.find(this.selectedEntries, e => e.isValidMailingAddress === false);
             if (!firstBadAddress)
                 return;
-            var badAddressIndex = _.indexOf(this.selectedEntries, firstBadAddress);
+            const badAddressIndex = _.indexOf(this.selectedEntries, firstBadAddress);
             if (badAddressIndex === -1)
                 return;
-            var badAddressElem = document.getElementById("recipient-entry-" + badAddressIndex);
+            const badAddressElem = document.getElementById("recipient-entry-" + badAddressIndex);
             badAddressElem.scrollIntoView();
-        };
-        MailingInvoiceController.prototype.toggleAllSending = function (type) {
-            var _this = this;
+        }
+        toggleAllSending(type) {
             if (this.selectedEntries.length === 0)
                 return;
             if (type === "email") {
-                var shouldSetTo = !this.selectedEntries[0].shouldSendEmail;
-                for (var i = 0; i < this.selectedEntries.length; ++i) {
+                const shouldSetTo = !this.selectedEntries[0].shouldSendEmail;
+                for (let i = 0; i < this.selectedEntries.length; ++i) {
                     if (HtmlUtil.isNullOrWhitespace(this.selectedEntries[i].emailAddresses) || !this.selectedEntries[i].amountDue)
                         this.selectedEntries[i].shouldSendEmail = false;
                     else
@@ -442,8 +381,8 @@ var Ally;
             }
             // Otherwise the user toggled sending for paper mail
             else {
-                var shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
-                for (var i = 0; i < this.selectedEntries.length; ++i) {
+                const shouldSetTo = !this.selectedEntries[0].shouldSendPaperMail;
+                for (let i = 0; i < this.selectedEntries.length; ++i) {
                     if (!this.selectedEntries[i].streetAddressObject || !this.selectedEntries[i].amountDue)
                         this.selectedEntries[i].shouldSendPaperMail = false;
                     else
@@ -451,12 +390,12 @@ var Ally;
                 }
                 // If we disabled paper mail sending then clear the errors
                 if (!shouldSetTo) {
-                    _.each(this.selectedEntries, function (e) { return e.isValidMailingAddress = e.validationMessage = null; });
+                    _.each(this.selectedEntries, e => e.isValidMailingAddress = e.validationMessage = null);
                     this.numInvalidMailingAddresses = 0;
                 }
                 // Otherwise if we enabled the sending and there are selected recipients, then verify all addresses
                 else if (shouldSetTo && this.selectedEntries.length > 0) {
-                    var recipientsToVerify_1 = _.clone(this.selectedEntries);
+                    const recipientsToVerify = _.clone(this.selectedEntries);
                     //const validateAllStep = () =>
                     //{
                     //    this.validateAddress( recipientsToVerify[0] ).then( () =>
@@ -469,48 +408,42 @@ var Ally;
                     //    } );
                     //};
                     //validateAllStep();
-                    this.numAddressesToBulkValidate = recipientsToVerify_1.length;
-                    var testAddressAllStep_1 = function () {
-                        _this.testAddressRequiredFields(recipientsToVerify_1[0]).then(function () {
-                            recipientsToVerify_1.splice(0, 1);
-                            while (recipientsToVerify_1.length > 0 && !recipientsToVerify_1[0].amountDue)
-                                recipientsToVerify_1.splice(0, 1);
-                            _this.numAddressesToBulkValidate = recipientsToVerify_1.length;
-                            if (recipientsToVerify_1.length > 0)
-                                testAddressAllStep_1();
+                    this.numAddressesToBulkValidate = recipientsToVerify.length;
+                    const testAddressAllStep = () => {
+                        this.testAddressRequiredFields(recipientsToVerify[0]).then(() => {
+                            recipientsToVerify.splice(0, 1);
+                            while (recipientsToVerify.length > 0 && !recipientsToVerify[0].amountDue)
+                                recipientsToVerify.splice(0, 1);
+                            this.numAddressesToBulkValidate = recipientsToVerify.length;
+                            if (recipientsToVerify.length > 0)
+                                testAddressAllStep();
                         });
                     };
-                    testAddressAllStep_1();
+                    testAddressAllStep();
                 }
             }
-        };
-        MailingInvoiceController.prototype.autoUnselectPaidOwners = function () {
-            var _this = this;
+        }
+        autoUnselectPaidOwners() {
             this.isLoading = true;
-            var currentPeriod = MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
-            var getUri = "/api/PaymentHistory/RecentPayPeriod/" + currentPeriod.year + "/" + currentPeriod.period1Based;
-            this.$http.get(getUri).then(function (response) {
-                _this.isLoading = false;
-                var _loop_1 = function (mailingEntry) {
-                    var paidUnits = response.data.filter(function (u) { return mailingEntry.unitIds.indexOf(u.unitId) !== -1; });
-                    var isPaid = paidUnits.length > 0;
+            const currentPeriod = MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
+            const getUri = `/api/PaymentHistory/RecentPayPeriod/${currentPeriod.year}/${currentPeriod.period1Based}`;
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
+                for (const mailingEntry of this.homesGridOptions.data) {
+                    const paidUnits = response.data.filter(u => mailingEntry.unitIds.indexOf(u.unitId) !== -1);
+                    const isPaid = paidUnits.length > 0;
                     if (isPaid)
-                        _this.gridApi.selection.unSelectRow(mailingEntry, null);
+                        this.gridApi.selection.unSelectRow(mailingEntry, null);
                     else
-                        _this.gridApi.selection.selectRow(mailingEntry, null);
-                };
-                for (var _i = 0, _a = _this.homesGridOptions.data; _i < _a.length; _i++) {
-                    var mailingEntry = _a[_i];
-                    _loop_1(mailingEntry);
+                        this.gridApi.selection.selectRow(mailingEntry, null);
                 }
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to retrieve assessment status: " + response.data.exceptionMessage);
             });
-        };
-        MailingInvoiceController.prototype.initStripePayment = function () {
-            var _this = this;
-            var style = {
+        }
+        initStripePayment() {
+            const style = {
                 base: {
                     color: "#32325d",
                     fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
@@ -525,52 +458,41 @@ var Ally;
                     iconColor: "#fa755a"
                 }
             };
-            var elements = this.stripeApi.elements();
+            const elements = this.stripeApi.elements();
             this.stripeCardElement = elements.create("card", { style: style });
             this.stripeCardElement.mount("#stripe-card-element");
-            var onCardChange = function (event) {
+            const onCardChange = (event) => {
                 if (event.error)
-                    _this.showStripeError(event.error.message);
+                    this.showStripeError(event.error.message);
                 else
-                    _this.showStripeError(null);
+                    this.showStripeError(null);
             };
             this.stripeCardElement.on('change', onCardChange);
-        };
-        MailingInvoiceController.prototype.showStripeError = function (errorMessage) {
-            var displayError = document.getElementById("card-errors");
+        }
+        showStripeError(errorMessage) {
+            const displayError = document.getElementById("card-errors");
             if (HtmlUtil.isNullOrWhitespace(errorMessage))
                 displayError.textContent = null; //'Unknown Error';
             else
                 displayError.textContent = errorMessage;
-        };
-        MailingInvoiceController.prototype.submitCardToStripe = function () {
-            return __awaiter(this, void 0, void 0, function () {
-                var _a, token, error, errorElement;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
-                        case 0:
-                            this.isLoading = true;
-                            return [4 /*yield*/, this.stripeApi.createToken(this.stripeCardElement)];
-                        case 1:
-                            _a = _b.sent(), token = _a.token, error = _a.error;
-                            this.isLoading = false;
-                            if (error) {
-                                errorElement = document.getElementById('card-errors');
-                                errorElement.textContent = error.message;
-                            }
-                            else {
-                                this.fullMailingInfo.stripePaymentToken = token.id;
-                                this.submitFullMailingAfterCharge();
-                                this.$scope.$apply();
-                            }
-                            return [2 /*return*/];
-                    }
-                });
-            });
-        };
-        MailingInvoiceController.$inject = ["$http", "SiteInfo", "fellowResidents", "WizardHandler", "$scope", "$timeout", "$location"];
-        return MailingInvoiceController;
-    }());
+        }
+        async submitCardToStripe() {
+            this.isLoading = true;
+            const { token, error } = await this.stripeApi.createToken(this.stripeCardElement);
+            this.isLoading = false;
+            if (error) {
+                // Inform the customer that there was an error.
+                const errorElement = document.getElementById('card-errors');
+                errorElement.textContent = error.message;
+            }
+            else {
+                this.fullMailingInfo.stripePaymentToken = token.id;
+                this.submitFullMailingAfterCharge();
+                this.$scope.$apply();
+            }
+        }
+    }
+    MailingInvoiceController.$inject = ["$http", "SiteInfo", "fellowResidents", "WizardHandler", "$scope", "$timeout", "$location"];
     Ally.MailingInvoiceController = MailingInvoiceController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("mailingInvoice", {

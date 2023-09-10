@@ -1,18 +1,15 @@
 var Ally;
 (function (Ally) {
-    var ActivityLogEntry = /** @class */ (function () {
-        function ActivityLogEntry() {
-        }
-        return ActivityLogEntry;
-    }());
+    class ActivityLogEntry {
+    }
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
-    var ViewActivityLogController = /** @class */ (function () {
+    class ViewActivityLogController {
         /**
         * The constructor for the class
         */
-        function ViewActivityLogController($http) {
+        constructor($http) {
             this.$http = $http;
             this.isLoading = false;
             this.shouldHideLoginAndEmailMessages = false;
@@ -20,47 +17,45 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ViewActivityLogController.prototype.$onInit = function () {
+        $onInit() {
             this.shouldHideLoginAndEmailMessages = window.localStorage["activityLog_hideLoginAndEmailMessages"] === "true";
             // Initialize the UI
             this.retrieveEntries();
-        };
+        }
         /**
          * Occurs when the users toggles the login/email filter checkbox
          */
-        ViewActivityLogController.prototype.onHideLoginAndEmailMessagesChange = function () {
+        onHideLoginAndEmailMessagesChange() {
             window.localStorage["activityLog_hideLoginAndEmailMessages"] = this.shouldHideLoginAndEmailMessages;
             this.filterMessages();
-        };
+        }
         /**
          * Load the activity log data
          */
-        ViewActivityLogController.prototype.retrieveEntries = function () {
-            var _this = this;
+        retrieveEntries() {
             this.isLoading = true;
-            this.$http.get("/api/ActivityLog").then(function (logResponse) {
-                _this.isLoading = false;
-                _this.allLogEntries = logResponse.data;
+            this.$http.get("/api/ActivityLog").then((logResponse) => {
+                this.isLoading = false;
+                this.allLogEntries = logResponse.data;
                 // The date comes down as a string so let's convert it to a Date object for the local time zone
-                _.each(_this.allLogEntries, function (e) { return e.postDate = moment(e.postDate).toDate(); });
-                _this.filterMessages();
-            }, function (errorResponse) {
-                _this.isLoading = false;
+                _.each(this.allLogEntries, (e) => e.postDate = moment(e.postDate).toDate());
+                this.filterMessages();
+            }, (errorResponse) => {
+                this.isLoading = false;
                 alert("Failed to load activity log: " + errorResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Update the visible messages based on filter criteria
          */
-        ViewActivityLogController.prototype.filterMessages = function () {
+        filterMessages() {
             if (this.shouldHideLoginAndEmailMessages)
-                this.filteredLogEntries = _.filter(this.allLogEntries, function (e) { return e.activityMessage !== "Logged in" && e.activityMessage.indexOf("Group email sent") !== 0; });
+                this.filteredLogEntries = _.filter(this.allLogEntries, e => e.activityMessage !== "Logged in" && e.activityMessage.indexOf("Group email sent") !== 0);
             else
                 this.filteredLogEntries = this.allLogEntries;
-        };
-        ViewActivityLogController.$inject = ["$http"];
-        return ViewActivityLogController;
-    }());
+        }
+    }
+    ViewActivityLogController.$inject = ["$http"];
     Ally.ViewActivityLogController = ViewActivityLogController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("viewActivityLog", {

@@ -1,19 +1,16 @@
 var Ally;
 (function (Ally) {
-    var MemberSignUpInfo = /** @class */ (function () {
-        function MemberSignUpInfo() {
-        }
-        return MemberSignUpInfo;
-    }());
+    class MemberSignUpInfo {
+    }
     /**
      * The controller for the page that allows anonymous users share their contact info to be
      * invited to the group's site
      */
-    var PendingMemberSignUpController = /** @class */ (function () {
+    class PendingMemberSignUpController {
         /**
          * The constructor for the class
          */
-        function PendingMemberSignUpController($http, $rootScope, siteInfo, $timeout, appCacheService) {
+        constructor($http, $rootScope, siteInfo, $timeout, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -27,17 +24,16 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        PendingMemberSignUpController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.groupName = this.siteInfo.publicSiteInfo.fullName;
             this.showSchoolField = AppConfig.appShortName === "pta";
-            window.setTimeout(function () { return _this.hookupAddressAutocomplete(); }, 300);
-            this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 100);
-        };
+            window.setTimeout(() => this.hookupAddressAutocomplete(), 300);
+            this.$timeout(() => grecaptcha.render("recaptcha-check-elem"), 100);
+        }
         /**
          * Attach the Google Places auto-complete logic to the address text box
          */
-        PendingMemberSignUpController.prototype.hookupAddressAutocomplete = function () {
+        hookupAddressAutocomplete() {
             // If we know our group's position, let's tighten the auto-complete suggestion radius
             var autocompleteOptions = undefined;
             //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
@@ -61,9 +57,8 @@ var Ally;
                 var place = innerThis.addressAutocomplete.getPlace();
                 innerThis.signUpInfo.streetAddress = place.formatted_address;
             });
-        };
-        PendingMemberSignUpController.prototype.submitInfo = function () {
-            var _this = this;
+        }
+        submitInfo() {
             this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
                 this.errorMessage = "Please complete the reCAPTCHA field";
@@ -71,17 +66,16 @@ var Ally;
             }
             this.isLoading = true;
             this.errorMessage = null;
-            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then(function (response) {
-                _this.isLoading = false;
-                _this.showInputForm = false;
-            }, function (response) {
-                _this.isLoading = false;
-                _this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
+            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then((response) => {
+                this.isLoading = false;
+                this.showInputForm = false;
+            }, (response) => {
+                this.isLoading = false;
+                this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
             });
-        };
-        PendingMemberSignUpController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
-        return PendingMemberSignUpController;
-    }());
+        }
+    }
+    PendingMemberSignUpController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
     Ally.PendingMemberSignUpController = PendingMemberSignUpController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("pendingMemberSignUp", {

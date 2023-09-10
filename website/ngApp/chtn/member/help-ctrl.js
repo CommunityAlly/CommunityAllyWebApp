@@ -1,18 +1,15 @@
 var Ally;
 (function (Ally) {
-    var HelpSendInfo = /** @class */ (function () {
-        function HelpSendInfo() {
-        }
-        return HelpSendInfo;
-    }());
+    class HelpSendInfo {
+    }
     /**
      * The controller for the page that allows users to submit feedback
      */
-    var HelpFormController = /** @class */ (function () {
+    class HelpFormController {
         /**
          * The constructor for the class
          */
-        function HelpFormController($http, siteInfo) {
+        constructor($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.sendInfo = new HelpSendInfo();
@@ -24,23 +21,22 @@ var Ally;
              * Occurs when the user clicks the log-in button
              */
             this.onSendHelp = function () {
-                var _this = this;
                 $("#help-form").validate();
                 if (!$("#help-form").valid())
                     return;
                 this.isLoading = true;
                 // Retrieve information for the current association
-                this.$http.post("/api/Help", this.sendInfo).then(function () {
-                    _this.isLoading = false;
-                    _this.sendInfo = {};
-                    _this.sendInfo.clientUrl = window.location.href;
-                    _this.wasMessageSent = true;
-                    _this.resultStyle.color = "#00F";
-                    _this.sendResult = "Your message has been sent. We'll do our best to get back to you within 24 hours.";
-                }, function () {
-                    _this.isLoading = false;
-                    _this.resultStyle.color = "#F00";
-                    _this.sendResult = "Failed to send message.";
+                this.$http.post("/api/Help", this.sendInfo).then(() => {
+                    this.isLoading = false;
+                    this.sendInfo = {};
+                    this.sendInfo.clientUrl = window.location.href;
+                    this.wasMessageSent = true;
+                    this.resultStyle.color = "#00F";
+                    this.sendResult = "Your message has been sent. We'll do our best to get back to you within 24 hours.";
+                }, () => {
+                    this.isLoading = false;
+                    this.resultStyle.color = "#F00";
+                    this.sendResult = "Failed to send message.";
                 });
             };
             this.resultStyle = {
@@ -52,20 +48,18 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        HelpFormController.prototype.$onInit = function () {
-            var _this = this;
-            this.$http.get("/api/PublicAllyAppSettings/IsHelpPageEnabled").then(function (httpResponse) { return _this.isPageEnabled = httpResponse.data; }, function (httpResponse) {
-                _this.isPageEnabled = true; // Default to true if we can't get the setting
+        $onInit() {
+            this.$http.get("/api/PublicAllyAppSettings/IsHelpPageEnabled").then((httpResponse) => this.isPageEnabled = httpResponse.data, (httpResponse) => {
+                this.isPageEnabled = true; // Default to true if we can't get the setting
                 console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
             });
             if (this.siteInfo.isLoggedIn)
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
             this.sendInfo.clientUrl = window.location.href;
             this.shouldShowGroupNameField = HtmlUtil.getSubdomain(window.location.host) === "login";
-        };
-        HelpFormController.$inject = ["$http", "SiteInfo"];
-        return HelpFormController;
-    }());
+        }
+    }
+    HelpFormController.$inject = ["$http", "SiteInfo"];
     Ally.HelpFormController = HelpFormController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("helpForm", {

@@ -1,21 +1,20 @@
 var Ally;
 (function (Ally) {
-    var LoginInfo = /** @class */ (function () {
-        function LoginInfo() {
+    class LoginInfo {
+        constructor() {
             this.emailAddress = "";
             this.password = "";
         }
-        return LoginInfo;
-    }());
+    }
     Ally.LoginInfo = LoginInfo;
     /**
      * The controller for the login page
      */
-    var LoginController = /** @class */ (function () {
+    class LoginController {
         /**
          * The constructor for the class
          */
-        function LoginController($http, $rootScope, $location, appCacheService, siteInfo, xdLocalStorage) {
+        constructor($http, $rootScope, $location, appCacheService, siteInfo, xdLocalStorage) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$location = $location;
@@ -29,11 +28,11 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        LoginController.prototype.$onInit = function () {
+        $onInit() {
             if (!HtmlUtil.isLocalStorageAllowed())
                 this.loginResultMessage = "You have cookies/local storage disabled. Condo Ally requires these features, please enable to continue. You may be in private browsing mode.";
-            var nav = navigator.userAgent.toLowerCase();
-            var ieVersion = (nav.indexOf('msie') != -1) ? parseInt(nav.split('msie')[1]) : 0;
+            const nav = navigator.userAgent.toLowerCase();
+            const ieVersion = (nav.indexOf('msie') != -1) ? parseInt(nav.split('msie')[1]) : 0;
             //var isIEBrowser = window.navigator.userAgent.indexOf( "MSIE " ) >= 0;
             if (ieVersion > 0 && ieVersion < 10)
                 document.getElementById("bad-browser-panel").style.display = "block";
@@ -54,7 +53,7 @@ var Ally;
                     "max-width": "100%"
                 };
                 // Pre-size the welcome image container to avoid jumping around
-                var savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
+                const savedWelcomeImageWidth = window.localStorage["welcomeImage_width"];
                 if (savedWelcomeImageWidth && savedWelcomeImageWidth != "0" && !HtmlUtil.isNullOrWhitespace(this.loginImageUrl)) {
                     this.welcomeImageContainerStyle["width"] = savedWelcomeImageWidth + "px";
                     this.welcomeImageContainerStyle["height"] = window.localStorage["welcomeImage_height"] + "px";
@@ -86,81 +85,79 @@ var Ally;
             setTimeout(function () {
                 $("#login-email-textbox").focus();
             }, 200);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image loads
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.onWelcomeImageLoaded = function () {
-            var welcomeImageElem = document.getElementById("welcome-image");
+        onWelcomeImageLoaded() {
+            const welcomeImageElem = document.getElementById("welcome-image");
             //console.log( `Welcome image loaded ${welcomeImageElem.width}x${welcomeImageElem.height}` );
             window.localStorage["welcomeImage_width"] = welcomeImageElem.naturalWidth;
             window.localStorage["welcomeImage_height"] = welcomeImageElem.naturalHeight;
             this.welcomeImageContainerStyle["width"] = welcomeImageElem.naturalWidth + "px";
             this.welcomeImageContainerStyle["height"] = "auto";
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the welcome image fails to load
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.onWelcomeImageError = function () {
+        onWelcomeImageError() {
             //var welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
-            console.log("Welcome image error");
+            console.log(`Welcome image error`);
             window.localStorage.removeItem("welcomeImage_width");
             window.localStorage.removeItem("welcomeImage_height");
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button when they forgot their password
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.onForgotPassword = function () {
+        onForgotPassword() {
             this.appCacheService.set("forgotEmail", this.loginInfo.emailAddress);
             this.$location.path("/ForgotPassword");
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Log-in 
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.demoLogin = function () {
+        demoLogin() {
             this.loginInfo = {
                 emailAddress: "testuser",
                 password: "demosite"
             };
             this.onLogin();
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the log-in button
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        LoginController.prototype.onLogin = function () {
-            var _this = this;
+        onLogin() {
             this.isLoading = true;
             // Retrieve information for the current association
-            this.$http.post("/api/Login", this.loginInfo).then(function (httpResponse) {
-                _this.isLoading = false;
-                var data = httpResponse.data;
-                var redirectPath = _this.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
-                _this.siteInfo.setAuthToken(data.authToken);
-                _this.siteInfo.handleSiteInfo(data.siteInfo, _this.$rootScope);
-                if (_this.rememberMe) {
-                    window.localStorage["rememberMe_Email"] = _this.loginInfo.emailAddress;
-                    window.localStorage["rememberMe_Password"] = btoa(_this.loginInfo.password);
+            this.$http.post("/api/Login", this.loginInfo).then((httpResponse) => {
+                this.isLoading = false;
+                const data = httpResponse.data;
+                let redirectPath = this.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
+                this.siteInfo.setAuthToken(data.authToken);
+                this.siteInfo.handleSiteInfo(data.siteInfo, this.$rootScope);
+                if (this.rememberMe) {
+                    window.localStorage["rememberMe_Email"] = this.loginInfo.emailAddress;
+                    window.localStorage["rememberMe_Password"] = btoa(this.loginInfo.password);
                 }
                 else {
                     window.localStorage["rememberMe_Email"] = null;
                     window.localStorage["rememberMe_Password"] = null;
                 }
                 // If the user hasn't accepted the terms yet then make them go to the profile page
-                if (!data.siteInfo.userInfo.acceptedTermsDate && !_this.isDemoSite)
-                    _this.$location.path("/MyProfile");
+                if (!data.siteInfo.userInfo.acceptedTermsDate && !this.isDemoSite)
+                    this.$location.path("/MyProfile");
                 else {
                     if (!HtmlUtil.isValidString(redirectPath) && redirectPath !== "/Login")
                         redirectPath = "/Home";
-                    _this.$location.path(redirectPath);
+                    this.$location.path(redirectPath);
                 }
-            }, function (httpResponse) {
-                _this.isLoading = false;
-                _this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
             });
-        };
-        LoginController.$inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "xdLocalStorage"];
-        return LoginController;
-    }());
+        }
+    }
+    LoginController.$inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "xdLocalStorage"];
     Ally.LoginController = LoginController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("loginPage", {

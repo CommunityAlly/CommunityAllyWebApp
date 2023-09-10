@@ -1,52 +1,24 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Ally;
 (function (Ally) {
-    var SimpleUserEntry = /** @class */ (function () {
-        function SimpleUserEntry() {
-        }
-        return SimpleUserEntry;
-    }());
+    class SimpleUserEntry {
+    }
     Ally.SimpleUserEntry = SimpleUserEntry;
-    var SimpleUserEntryWithTerms = /** @class */ (function (_super) {
-        __extends(SimpleUserEntryWithTerms, _super);
-        function SimpleUserEntryWithTerms() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return SimpleUserEntryWithTerms;
-    }(SimpleUserEntry));
+    class SimpleUserEntryWithTerms extends SimpleUserEntry {
+    }
     Ally.SimpleUserEntryWithTerms = SimpleUserEntryWithTerms;
-    var ProfileUserInfo = /** @class */ (function (_super) {
-        __extends(ProfileUserInfo, _super);
-        function ProfileUserInfo() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return ProfileUserInfo;
-    }(SimpleUserEntryWithTerms));
-    var PtaMember = /** @class */ (function (_super) {
-        __extends(PtaMember, _super);
-        function PtaMember() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return PtaMember;
-    }(SimpleUserEntry));
+    class ProfileUserInfo extends SimpleUserEntryWithTerms {
+    }
+    class PtaMember extends SimpleUserEntry {
+    }
     Ally.PtaMember = PtaMember;
     /**
      * The controller for the profile page
      */
-    var MyProfileController = /** @class */ (function () {
+    class MyProfileController {
         /**
          * The constructor for the class
          */
-        function MyProfileController($rootScope, $http, $location, appCacheService, siteInfo, $scope) {
+        constructor($rootScope, $http, $location, appCacheService, siteInfo, $scope) {
             this.$rootScope = $rootScope;
             this.$http = $http;
             this.$location = $location;
@@ -61,51 +33,49 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        MyProfileController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.isDemoSite = HtmlUtil.getSubdomain() === "demosite";
             if (this.siteInfo.privateSiteInfo)
                 this.canHideContactInfo = this.siteInfo.privateSiteInfo.canHideContactInfo;
             this.retrieveProfileData();
-            var hookUpPhotoFileUpload = function () {
-                var uploader = $('#JQFileUploader');
+            const hookUpPhotoFileUpload = () => {
+                const uploader = $('#JQFileUploader');
                 uploader.fileupload({
                     dropZone: null,
                     pasteZone: null,
-                    add: function (e, data) {
-                        data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + _this.siteInfo.authToken;
-                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
-                            data.url = _this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
-                        _this.$scope.$apply(function () { return _this.isLoading = true; });
-                        var xhr = data.submit();
-                        xhr.done(function (result) {
-                            _this.$scope.$apply(function () {
+                    add: (e, data) => {
+                        data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + this.siteInfo.authToken;
+                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
+                        this.$scope.$apply(() => this.isLoading = true);
+                        const xhr = data.submit();
+                        xhr.done((result) => {
+                            this.$scope.$apply(() => {
                                 // Reload the page to see the changes
                                 window.location.reload();
                             });
                         });
                     },
-                    beforeSend: function (xhr) {
-                        if (_this.siteInfo.publicSiteInfo.baseApiUrl)
-                            xhr.setRequestHeader("Authorization", "Bearer " + _this.$rootScope.authToken);
+                    beforeSend: (xhr) => {
+                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + this.$rootScope.authToken);
                         else
-                            xhr.setRequestHeader("ApiAuthToken", _this.$rootScope.authToken);
+                            xhr.setRequestHeader("ApiAuthToken", this.$rootScope.authToken);
                     },
-                    fail: function (e, data) {
-                        _this.$scope.$apply(function () {
-                            _this.isLoading = false;
+                    fail: (e, data) => {
+                        this.$scope.$apply(() => {
+                            this.isLoading = false;
                             alert("Upload Failed: " + data.jqXHR.responseJSON.exceptionMessage);
                         });
                     }
                 });
             };
             setTimeout(hookUpPhotoFileUpload, 500);
-        };
+        }
         /**
          * Save the user's profile photo setting
          */
-        MyProfileController.prototype.saveProfilePhoto = function (type) {
-            var _this = this;
+        saveProfilePhoto(type) {
             if (this.initialProfileImageType === "upload") {
                 if (!confirm("Are you sure you want to change your profile image away from your uploaded photo? Your uploaded photo will be deleted.")) {
                     this.profileImageType = this.initialProfileImageType;
@@ -113,94 +83,91 @@ var Ally;
                 }
             }
             this.isLoading = true;
-            this.$http.put("/api/MyProfile/ProfileImage?type=" + type, null).then(function () {
-                _this.isLoading = false;
-                _this.initialProfileImageType = _this.profileImageType;
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.put("/api/MyProfile/ProfileImage?type=" + type, null).then(() => {
+                this.isLoading = false;
+                this.initialProfileImageType = this.profileImageType;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user checks to box to see what they're typing
          */
-        MyProfileController.prototype.onShowPassword = function () {
-            var passwordTextBox = document.getElementById("passwordTextBox");
+        onShowPassword() {
+            const passwordTextBox = document.getElementById("passwordTextBox");
             passwordTextBox.type = this.shouldShowPassword ? "text" : "password";
-        };
+        }
         /**
          * Populate the page
          */
-        MyProfileController.prototype.retrieveProfileData = function () {
-            var _this = this;
+        retrieveProfileData() {
             this.isLoading = true;
-            this.$http.get("/api/MyProfile").then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.profileInfo = httpResponse.data;
-                _this.initialProfileImageType = "blank";
-                if (!_this.profileInfo.avatarUrl || _this.profileInfo.avatarUrl.indexOf("blank-headshot") !== -1)
-                    _this.initialProfileImageType = "blank";
-                else if (_this.profileInfo.avatarUrl && _this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
-                    _this.initialProfileImageType = "gravatar";
-                else if (_this.profileInfo.avatarUrl && _this.profileInfo.avatarUrl.length > 0)
-                    _this.initialProfileImageType = "upload";
-                if (_this.initialProfileImageType !== "upload")
-                    _this.profileInfo.avatarUrl = null;
-                _this.profileImageType = _this.initialProfileImageType;
-                _this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((_this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
+            this.$http.get("/api/MyProfile").then((httpResponse) => {
+                this.isLoading = false;
+                this.profileInfo = httpResponse.data;
+                this.initialProfileImageType = "blank";
+                if (!this.profileInfo.avatarUrl || this.profileInfo.avatarUrl.indexOf("blank-headshot") !== -1)
+                    this.initialProfileImageType = "blank";
+                else if (this.profileInfo.avatarUrl && this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
+                    this.initialProfileImageType = "gravatar";
+                else if (this.profileInfo.avatarUrl && this.profileInfo.avatarUrl.length > 0)
+                    this.initialProfileImageType = "upload";
+                if (this.initialProfileImageType !== "upload")
+                    this.profileInfo.avatarUrl = null;
+                this.profileImageType = this.initialProfileImageType;
+                this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
                 // Don't show empty email address
-                if (HtmlUtil.endsWith(_this.profileInfo.email, "@condoally.com"))
-                    _this.profileInfo.email = "";
-                _this.needsToAcceptTerms = _this.profileInfo.acceptedTermsDate === null && !_this.isDemoSite;
-                _this.hasAcceptedTerms = !_this.needsToAcceptTerms; // Gets set by the checkbox
-                _this.$rootScope.shouldHideMenu = _this.needsToAcceptTerms;
+                if (HtmlUtil.endsWith(this.profileInfo.email, "@condoally.com"))
+                    this.profileInfo.email = "";
+                this.needsToAcceptTerms = this.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
+                this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
+                this.$rootScope.shouldHideMenu = this.needsToAcceptTerms;
                 // Was used before, here for convenience
-                _this.saveButtonStyle = {
+                this.saveButtonStyle = {
                     width: "100px",
                     "font-size": "1em"
                 };
             });
-        };
+        }
         /**
          * Occurs when the user hits the save button
          */
-        MyProfileController.prototype.onSaveInfo = function () {
-            var _this = this;
+        onSaveInfo() {
             this.isLoading = true;
-            this.$http.put("/api/MyProfile", this.profileInfo).then(function () {
-                _this.profileInfo.password = null;
-                _this.resultMessage = "Your changes have been saved.";
+            this.$http.put("/api/MyProfile", this.profileInfo).then(() => {
+                this.profileInfo.password = null;
+                this.resultMessage = "Your changes have been saved.";
                 // $rootScope.hideMenu is true when this is the user's first login
-                if (_this.$rootScope.shouldHideMenu) {
-                    _this.$rootScope.shouldHideMenu = false;
-                    _this.$location.path("/Home");
+                if (this.$rootScope.shouldHideMenu) {
+                    this.$rootScope.shouldHideMenu = false;
+                    this.$location.path("/Home");
                 }
-                _this.isLoading = false;
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                this.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user modifies the password field
          */
-        MyProfileController.prototype.onPasswordChange = function () {
+        onPasswordChange() {
             if (!this.profileInfo.password || this.profileInfo.password.length < 6) {
                 this.passwordComplexity = "short";
                 return;
             }
-            var hasLetter = !!this.profileInfo.password.match(/[a-z]+/i);
-            var hasNumber = !!this.profileInfo.password.match(/[0-9]+/);
-            var hasSymbol = !!this.profileInfo.password.match(/[^a-z0-9]+/i);
-            var isComplex = this.profileInfo.password.length >= 12
+            const hasLetter = !!this.profileInfo.password.match(/[a-z]+/i);
+            const hasNumber = !!this.profileInfo.password.match(/[0-9]+/);
+            const hasSymbol = !!this.profileInfo.password.match(/[^a-z0-9]+/i);
+            const isComplex = this.profileInfo.password.length >= 12
                 && hasLetter
                 && hasNumber
                 && hasSymbol;
             this.passwordComplexity = isComplex ? "complex" : "simple";
-        };
-        MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
-        return MyProfileController;
-    }());
+        }
+    }
+    MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
     Ally.MyProfileController = MyProfileController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("myProfile", {

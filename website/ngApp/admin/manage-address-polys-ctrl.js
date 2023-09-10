@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
-    var ManageAddressPolysController = /** @class */ (function () {
+    class ManageAddressPolysController {
         /**
         * The constructor for the class
         */
-        function ManageAddressPolysController($http, $q) {
+        constructor($http, $q) {
             this.$http = $http;
             this.$q = $q;
             this.isLoading = false;
@@ -16,72 +16,74 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ManageAddressPolysController.prototype.$onInit = function () {
+        $onInit() {
             // Initialize the UI
             this.refreshAddresses();
-        };
-        ManageAddressPolysController.prototype.getPolyInfo = function (url, polyType) {
-            var _this = this;
-            var deferred = this.$q.defer();
+        }
+        getPolyInfo(url, polyType) {
+            const deferred = this.$q.defer();
             this.isLoading = true;
-            this.$http.get(url).then(function (httpResponse) {
-                _this.isLoading = false;
-                var addresses = httpResponse.data;
+            this.$http.get(url).then((httpResponse) => {
+                this.isLoading = false;
+                const addresses = httpResponse.data;
                 // Mark address as opposed to group bounds
-                _.each(addresses, function (a) {
+                _.each(addresses, (a) => {
                     a.polyType = polyType;
-                    if (polyType == "Group")
-                        a.oneLiner = a.shortName + ", " + a.appName;
+                    if (polyType === "Group") {
+                        a.oneLiner = `${a.shortName}, ${a.appName} (ID: ${a.groupId})`;
+                        if (a.appName === "Condo")
+                            a.visitUrl = `https://${a.shortName}.condoally.com/`;
+                        else if (a.appName === "Hoa")
+                            a.visitUrl = `https://${a.shortName}.hoaally.org/`;
+                    }
                 });
-                $.merge(_this.addresses, addresses);
-                deferred.resolve(_this.addresses);
-            }, function (httpResponse) {
-                _this.isLoading = false;
-                var errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                $.merge(this.addresses, addresses);
+                deferred.resolve(this.addresses);
+            }, (httpResponse) => {
+                this.isLoading = false;
+                const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to retrieve addresses: " + errorMessage);
                 deferred.reject();
             });
             return deferred.promise;
-        };
-        ManageAddressPolysController.prototype.getGroupBoundPolys = function () {
+        }
+        getGroupBoundPolys() {
             return this.getPolyInfo("/api/AdminMap/GetGroupBounds?filter=" + this.filterAddresses, "Group");
-        };
-        ManageAddressPolysController.prototype.getAddressPolys = function () {
+        }
+        getAddressPolys() {
             return this.getPolyInfo("/api/AdminMap/GetAll?filter=" + this.filterAddresses, "Address");
-        };
+        }
         // Get the addresses that are missing bounding polys
-        ManageAddressPolysController.prototype.refreshAddresses = function () {
-            var _this = this;
+        refreshAddresses() {
             this.isLoading = true;
             this.addresses = [];
-            var handleAddrs = function (addresses) {
-                _this.addressPoints = [];
-                _.each(addresses, function (a) {
+            const handleAddrs = (addresses) => {
+                this.addressPoints = [];
+                _.each(addresses, (a) => {
                     if (a.gpsPos) {
                         // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
                         a.gpsPos.fullAddress = a.oneLiner;
-                        _this.addressPoints.push(a.gpsPos);
+                        this.addressPoints.push(a.gpsPos);
                     }
                 });
             };
             if (this.includeAddresses)
-                this.getAddressPolys().then(function () { return _this.getGroupBoundPolys(); }).then(handleAddrs);
+                this.getAddressPolys().then(() => this.getGroupBoundPolys()).then(handleAddrs);
             else
                 this.getGroupBoundPolys().then(handleAddrs);
-        };
-        ManageAddressPolysController.prototype.onSavePoly = function () {
-            var _this = this;
+        }
+        onSavePoly() {
             this.isLoading = true;
-            var serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
-            var url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
-            this.$http.put(url, serverVerts).then(function () {
-                _this.isLoading = false;
-            }, function () {
-                _this.isLoading = false;
+            const serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
+            const url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
+            this.$http.put(url, serverVerts).then(() => {
+                this.isLoading = false;
+            }, () => {
+                this.isLoading = false;
             });
-        };
-        // Occurs when the user clicks an address
-        ManageAddressPolysController.prototype.onAddressSelected = function (address) {
+        }
+        // Occurs when the user clicks an address link
+        onAddressSelected(address) {
             //if ( address.gpsPos )
             //    this.mapInstance.setCenter( { lat: address.gpsPos.lat, lng: address.gpsPos.lon } );
             this.selectedAddress = address;
@@ -103,11 +105,12 @@ var Ally;
             }
             this.selectedGpsPoly = address.gpsBounds;
             //createPolygon( this.mapInstance, address.gpsBounds.vertices );
-        };
-        ManageAddressPolysController.$inject = ["$http", "$q"];
-        return ManageAddressPolysController;
-    }());
+        }
+    }
+    ManageAddressPolysController.$inject = ["$http", "$q"];
     Ally.ManageAddressPolysController = ManageAddressPolysController;
+    class GroupBoundInfo {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageAddressPolys", {
     templateUrl: "/ngApp/admin/manage-address-polys.html",

@@ -1,19 +1,16 @@
 var Ally;
 (function (Ally) {
-    var CommentThread = /** @class */ (function () {
-        function CommentThread() {
-        }
-        return CommentThread;
-    }());
+    class CommentThread {
+    }
     Ally.CommentThread = CommentThread;
     /**
      * The controller for the discussion threads directive
      */
-    var GroupCommentThreadsController = /** @class */ (function () {
+    class GroupCommentThreadsController {
         /**
          * The constructor for the class
          */
-        function GroupCommentThreadsController($http, $rootScope, siteInfo, $scope, fellowResidents, $timeout) {
+        constructor($http, $rootScope, siteInfo, $scope, fellowResidents, $timeout) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -32,14 +29,13 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        GroupCommentThreadsController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if (!this.canCreateThreads) {
                 if (this.committeeId) {
                     // Make sure committee members can manage their data
-                    this.fellowResidents.isCommitteeMember(this.committeeId).then(function (isCommitteeMember) { return _this.canCreateThreads = isCommitteeMember; });
+                    this.fellowResidents.isCommitteeMember(this.committeeId).then(isCommitteeMember => this.canCreateThreads = isCommitteeMember);
                 }
                 else {
                     if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
@@ -53,45 +49,42 @@ var Ally;
                 commentText: "",
                 replyToCommentId: null
             };
-            this.$scope.$on("refreshCommentThreadList", function (event, data) { return _this.refreshCommentThreads(false); });
+            this.$scope.$on("refreshCommentThreadList", (event, data) => this.refreshCommentThreads(false));
             this.refreshCommentThreads(false);
-        };
-        GroupCommentThreadsController.prototype.setDisplayCreateModal = function (shouldShow) {
-            var _this = this;
+        }
+        setDisplayCreateModal(shouldShow) {
             this.showCreateNewModal = shouldShow;
             this.newThreadTitle = "";
             this.newThreadIsBoardOnly = false;
             this.newThreadIsReadOnly = false;
             this.shouldSendNoticeForNewThread = true;
             this.newThreadErrorMessage = "";
-            Ally.HtmlUtil2.initTinyMce("new-thread-body-rte", 200, Ally.GroupCommentThreadViewController.TinyMceSettings).then(function (e) { return _this.newBodyMceEditor = e; });
+            Ally.HtmlUtil2.initTinyMce("new-thread-body-rte", 200, Ally.GroupCommentThreadViewController.TinyMceSettings).then(e => this.newBodyMceEditor = e);
             // If we're displaying the modal, focus on the title text box
             if (shouldShow)
-                setTimeout(function () { return $("#new-thread-title-text-box").focus(); }, 100);
-        };
-        GroupCommentThreadsController.prototype.displayDiscussModal = function (thread) {
+                setTimeout(() => $("#new-thread-title-text-box").focus(), 100);
+        }
+        displayDiscussModal(thread) {
             this.viewingThread = thread;
-        };
-        GroupCommentThreadsController.prototype.hideDiscussModal = function () {
+        }
+        hideDiscussModal() {
             this.viewingThread = null;
-        };
+        }
         /**
          * Occurs when the user clicks the pin to toggle a thread's pinned status
          * @param thread
          */
-        GroupCommentThreadsController.prototype.onClickPin = function (thread) {
-            var _this = this;
+        onClickPin(thread) {
             this.isLoading = true;
-            this.$http.put("/api/CommentThread/TogglePinned/" + thread.commentThreadId, null).then(function (response) {
-                _this.isLoading = false;
-                _this.refreshCommentThreads();
-            }, function (response) {
-                _this.isLoading = false;
+            this.$http.put("/api/CommentThread/TogglePinned/" + thread.commentThreadId, null).then((response) => {
+                this.isLoading = false;
+                this.refreshCommentThreads();
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to toggle: " + response.data.exceptionMessage);
             });
-        };
-        GroupCommentThreadsController.prototype.createNewThread = function () {
-            var _this = this;
+        }
+        createNewThread() {
             console.log("In createNewThread");
             this.isLoading = true;
             this.newThreadErrorMessage = null;
@@ -103,7 +96,7 @@ var Ally;
             //    shouldSendNotice: this.shouldSendNoticeForNewThread,
             //    committeeId: this.committeeId
             //};
-            var newThreadFormData = new FormData();
+            const newThreadFormData = new FormData();
             newThreadFormData.append("title", this.newThreadTitle);
             newThreadFormData.append("body", this.newBodyMceEditor.getContent());
             newThreadFormData.append("isBoardOnly", this.newThreadIsBoardOnly.toString());
@@ -113,65 +106,62 @@ var Ally;
                 newThreadFormData.append("committeeId", this.committeeId.toString());
             if (this.attachmentFile)
                 newThreadFormData.append("attachedFile", this.attachmentFile);
-            var postHeaders = {
+            const postHeaders = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
-            this.$http.post("/api/CommentThread/CreateThreadFromForm", newThreadFormData, postHeaders).then(function () {
-                _this.isLoading = false;
-                _this.showCreateNewModal = false;
-                _this.removeAttachment();
-                _this.refreshCommentThreads(false);
-            }, function (response) {
-                _this.isLoading = false;
-                _this.newThreadErrorMessage = response.data.exceptionMessage;
+            this.$http.post("/api/CommentThread/CreateThreadFromForm", newThreadFormData, postHeaders).then(() => {
+                this.isLoading = false;
+                this.showCreateNewModal = false;
+                this.removeAttachment();
+                this.refreshCommentThreads(false);
+            }, (response) => {
+                this.isLoading = false;
+                this.newThreadErrorMessage = response.data.exceptionMessage;
             });
-        };
+        }
         /**
          * Retrieve the comments from the server for the current thread
          */
-        GroupCommentThreadsController.prototype.refreshCommentThreads = function (retrieveArchived) {
-            var _this = this;
-            if (retrieveArchived === void 0) { retrieveArchived = false; }
+        refreshCommentThreads(retrieveArchived = false) {
             this.isLoading = true;
-            var getUri = "/api/CommentThread";
+            let getUri = "/api/CommentThread";
             if (retrieveArchived)
                 getUri += "/Archived";
             if (this.committeeId)
                 getUri += "?committeeId=" + this.committeeId;
-            this.$http.get(getUri).then(function (response) {
-                _this.isLoading = false;
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
                 // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                response.data = _.sortBy(response.data, function (ct) { return ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate(); }).reverse();
+                response.data = _.sortBy(response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
                 if (retrieveArchived)
-                    _this.archivedThreads = response.data;
+                    this.archivedThreads = response.data;
                 else {
-                    _this.commentThreads = response.data;
-                    _this.archivedThreads = null;
+                    this.commentThreads = response.data;
+                    this.archivedThreads = null;
                     // If we should automatically open a discussion thread
-                    if (_this.autoOpenThreadId) {
-                        var autoOpenThread_1 = _.find(_this.commentThreads, function (t) { return t.commentThreadId === _this.autoOpenThreadId; });
-                        if (autoOpenThread_1)
-                            _this.$timeout(function () { return _this.displayDiscussModal(autoOpenThread_1); }, 125);
+                    if (this.autoOpenThreadId) {
+                        const autoOpenThread = _.find(this.commentThreads, t => t.commentThreadId === this.autoOpenThreadId);
+                        if (autoOpenThread)
+                            this.$timeout(() => this.displayDiscussModal(autoOpenThread), 125);
                         // Don't open again
-                        _this.autoOpenThreadId = null;
+                        this.autoOpenThreadId = null;
                     }
                 }
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
             });
-        };
-        GroupCommentThreadsController.prototype.onFileAttached = function (event) {
+        }
+        onFileAttached(event) {
             this.attachmentFile = event.target.files[0];
-        };
-        GroupCommentThreadsController.prototype.removeAttachment = function () {
+        }
+        removeAttachment() {
             this.attachmentFile = null;
-            var fileInput = document.getElementById("comment-attachment-input");
+            const fileInput = document.getElementById("comment-attachment-input");
             if (fileInput)
                 fileInput.value = null;
-        };
-        GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents", "$timeout"];
-        return GroupCommentThreadsController;
-    }());
+        }
+    }
+    GroupCommentThreadsController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "fellowResidents", "$timeout"];
     Ally.GroupCommentThreadsController = GroupCommentThreadsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupCommentThreads", {

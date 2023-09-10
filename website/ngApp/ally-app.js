@@ -3,14 +3,14 @@
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
-var StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
+const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
         $locationProvider.hashPrefix('!');
-        var isLoginRequired = function ($location, $q, siteInfo, appCacheService) {
-            var deferred = $q.defer();
+        const isLoginRequired = function ($location, $q, siteInfo, appCacheService) {
+            const deferred = $q.defer();
             // We have no user information so they must login
-            var isPublicHash = $location.path() === "/Home" || $location.path() === "/Login" || AppConfig.isPublicRoute($location.path());
+            const isPublicHash = $location.path() === "/Home" || $location.path() === "/Login" || AppConfig.isPublicRoute($location.path());
             if (!siteInfo.userInfo && !isPublicHash) {
                 // Home, the default page, and login don't need special redirection or user messaging
                 if ($location.path() !== "/Home" || $location.path() !== "/Login") {
@@ -25,7 +25,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                 deferred.resolve();
             return deferred.promise;
         };
-        var universalResolvesWithLogin = {
+        const universalResolvesWithLogin = {
             app: ["$q", "$http", "$rootScope", "$sce", "$location", "xdLocalStorage", "appCacheService",
                 function ($q, $http, $rootScope, $sce, $location, xdLocalStorage, appCacheService) {
                     return Ally.SiteInfoHelper.loginInit($q, $http, $rootScope, $sce, xdLocalStorage).then(function (siteInfo) {
@@ -33,11 +33,11 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     });
                 }]
         };
-        var universalResolves = {
+        const universalResolves = {
             app: ["$q", "$http", "$rootScope", "$sce", "xdLocalStorage", Ally.SiteInfoHelper.loginInit]
         };
         // This allows us to require SiteInfo to be retrieved before the app runs
-        var customRouteProvider = angular.extend({}, $routeProvider, {
+        const customRouteProvider = angular.extend({}, $routeProvider, {
             when: function (path, route) {
                 route.resolve = (route.resolve) ? route.resolve : {};
                 if (route.allyRole === Role_All)
@@ -49,9 +49,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
             }
         });
         // Build our Angular routes
-        for (var i = 0; i < AppConfig.menu.length; ++i) {
-            var menuItem = AppConfig.menu[i];
-            var routeObject = {
+        for (let i = 0; i < AppConfig.menu.length; ++i) {
+            const menuItem = AppConfig.menu[i];
+            const routeObject = {
                 controller: menuItem.controller,
                 allyRole: menuItem.role,
                 reloadOnSearch: menuItem.reloadOnSearch
@@ -73,7 +73,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                         return response;
                     },
                     responseError: function (response) {
-                        var status = response.status;
+                        const status = response.status;
                         // 401 - Unauthorized (not logged-in)
                         // 403 - Forbidden (Logged-in, but not allowed to perform the action
                         if (status === 401 || status === 403) {
@@ -86,27 +86,27 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                 appCacheService.set(AppCacheService.Key_WasLoggedIn403, "true");
                             // If the user is unauthorized but has saved credentials, try to log-in then retry the request
                             if (status === 401 && HtmlUtil.isValidString(window.localStorage["rememberMe_Email"])) {
-                                var $http_1 = $injector.get("$http");
+                                const $http = $injector.get("$http");
                                 // Multiple requests can come in at the same time with 401, so let's store
                                 // our login promise so subsequent calls can tie into the first login
                                 // request
                                 if (!$rootScope.retryLoginDeffered) {
                                     $rootScope.retryLoginDeffered = $q.defer();
-                                    var loginInfo_1 = {
+                                    const loginInfo = {
                                         emailAddress: window.localStorage["rememberMe_Email"],
                                         password: atob(window.localStorage["rememberMe_Password"])
                                     };
-                                    var retryLogin = function () {
-                                        $http_1.post("/api/Login", loginInfo_1).then(function (httpResponse) {
-                                            var loginData = httpResponse.data;
-                                            var siteInfo = $injector.get("SiteInfo");
+                                    const retryLogin = function () {
+                                        $http.post("/api/Login", loginInfo).then(function (httpResponse) {
+                                            const loginData = httpResponse.data;
+                                            const siteInfo = $injector.get("SiteInfo");
                                             // Store the new auth token
                                             siteInfo.setAuthToken(loginData.authToken);
-                                            var loginDeffered = $rootScope.retryLoginDeffered;
+                                            const loginDeffered = $rootScope.retryLoginDeffered;
                                             loginDeffered.resolve();
                                         }, function () {
                                             // Login failed so bail out all the way
-                                            var loginDeffered = $rootScope.retryLoginDeffered;
+                                            const loginDeffered = $rootScope.retryLoginDeffered;
                                             $rootScope.onLogOut_ClearData();
                                             loginDeffered.reject();
                                         }).finally(function () {
@@ -116,10 +116,10 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     // Wait, just a bit, to let any other requests come in with a 401
                                     setTimeout(retryLogin, 1000);
                                 }
-                                var retryRequestDeferred_1 = $q.defer();
+                                const retryRequestDeferred = $q.defer();
                                 $rootScope.retryLoginDeffered.promise.then(function () {
                                     // Retry the request
-                                    retryRequestDeferred_1.resolve($http_1(response.config));
+                                    retryRequestDeferred.resolve($http(response.config));
                                     //$http( response.config ).then( function( newResponse )
                                     //{
                                     //    retryRequestDeferred.resolve( newResponse );
@@ -128,9 +128,9 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                                     //    retryRequestDeferred.reject( response );
                                     //} );
                                 }, function () {
-                                    retryRequestDeferred_1.reject(response);
+                                    retryRequestDeferred.reject(response);
                                 });
-                                return retryRequestDeferred_1.promise;
+                                return retryRequestDeferred.promise;
                             }
                             // Home, the default page, and login don't need special redirection or user messaging
                             if (status === 401 && $location.path() !== "/Home" && $location.path() !== "/Login") {
@@ -163,13 +163,13 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 return {
                     request: function (reqConfig) {
-                        var BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
-                        var BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
-                        var isMakingGenericApiRequest = HtmlUtil.startsWith(reqConfig.url, BaseGenericUri)
+                        const BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
+                        const BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
+                        const isMakingGenericApiRequest = HtmlUtil.startsWith(reqConfig.url, BaseGenericUri)
                             || HtmlUtil.startsWith(reqConfig.url, BaseLocalGenericUri);
                         // If we're talking to the Community Ally API server, then we need to complete the
                         // relative URL and add the auth token
-                        var isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/") || isMakingGenericApiRequest;
+                        const isMakingApiRequest = HtmlUtil.startsWith(reqConfig.url, "/api/") || isMakingGenericApiRequest;
                         if (isMakingApiRequest) {
                             //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
                             // If we have an overridden URL to use for API requests
@@ -213,14 +213,14 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
         $rootScope.publicMenuItems = null;
         // Populate the custom page list, setting to null if not valid
-        $rootScope.populatePublicPageMenu = function () {
+        $rootScope.populatePublicPageMenu = () => {
             $rootScope.publicMenuItems = null;
             if (!$rootScope.publicSiteInfo || !$rootScope.publicSiteInfo.customPages)
                 return;
-            var customPages = $rootScope.publicSiteInfo.customPages;
+            const customPages = $rootScope.publicSiteInfo.customPages;
             if (customPages.length == 0)
                 return;
-            customPages.forEach(function (p) { return p.path = "/Page/" + p.pageSlug; });
+            customPages.forEach(p => p.path = "/Page/" + p.pageSlug);
             $rootScope.publicMenuItems = customPages;
         };
         // Test localStorage here, fails in private browsing mode
@@ -274,12 +274,12 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             //console.log( "In $routeChangeSuccess", event, toState );
             $rootScope.curPath = $location.path();
             // If there is a query string, track it
-            var queryString = "";
-            var path = $location.path();
+            let queryString = "";
+            const path = $location.path();
             if (path.indexOf("?") !== -1)
                 queryString = path.substring(path.indexOf("?"), path.length);
             // If there is a referrer, track it
-            var referrer = "";
+            let referrer = "";
             if (fromState && fromState.name)
                 referrer = $location.protocol() + "://" + $location.host() + "/#" + fromState.url;
             // Tell Segment about the route change
@@ -293,7 +293,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             if ($rootScope.publicSiteInfo && $rootScope.publicSiteInfo.fullName) {
                 document.title = $rootScope.publicSiteInfo.fullName;
                 if (toState.$$route && toState.$$route.originalPath) {
-                    var menuItem = _.find(AppConfig.menu, function (menuItem) { return menuItem.path === toState.$$route.originalPath; });
+                    const menuItem = _.find(AppConfig.menu, menuItem => menuItem.path === toState.$$route.originalPath);
                     if (menuItem) {
                         if (menuItem.pageTitle)
                             document.title = $rootScope.publicSiteInfo.fullName + " - " + menuItem.pageTitle;
@@ -322,10 +322,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
 //}] );
 var Ally;
 (function (Ally) {
-    var MenuItem_v3 = /** @class */ (function () {
-        function MenuItem_v3() {
-        }
-        return MenuItem_v3;
-    }());
+    class MenuItem_v3 {
+    }
     Ally.MenuItem_v3 = MenuItem_v3;
 })(Ally || (Ally = {}));

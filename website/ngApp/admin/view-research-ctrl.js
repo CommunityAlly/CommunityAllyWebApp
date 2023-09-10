@@ -3,23 +3,23 @@ var Ally;
     /**
      * The controller for the admin-only page to view address research data
      */
-    var ViewResearchController = /** @class */ (function () {
+    class ViewResearchController {
         /**
         * The constructor for the class
         */
-        function ViewResearchController($http) {
+        constructor($http) {
             this.$http = $http;
             this.isLoading = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ViewResearchController.prototype.$onInit = function () {
+        $onInit() {
             this.mapCenter = { lat: 41.99114, lng: -87.690425 };
             // Initialize the UI
             this.refreshCells();
-        };
-        ViewResearchController.prototype.addLine = function (map, minLat, minLon, maxLat, maxLon) {
+        }
+        addLine(map, minLat, minLon, maxLat, maxLon) {
             var lineCoordinates = [
                 { lat: minLat, lng: minLon },
                 { lat: maxLat, lng: maxLon }
@@ -32,10 +32,10 @@ var Ally;
                 strokeWeight: 2
             });
             linePath.setMap(map);
-        };
-        ViewResearchController.prototype.onBuildingSelected = function (building) {
-        };
-        ViewResearchController.prototype.onCellSelected = function (cell) {
+        }
+        onBuildingSelected(building) {
+        }
+        onCellSelected(cell) {
             cell.gpsBounds.mapShapeObject.setOptions({ fillOpacity: 0.1 });
             if (this.selectedCell) {
                 this.selectedCell.gpsBounds.mapShapeObject.setOptions({ fillOpacity: 0.35 });
@@ -45,12 +45,12 @@ var Ally;
                 if (s.minLat != 0)
                     this.addLine(cell.gpsBounds.mapShapeObject.map, s.minLat, s.minLon, s.maxLat, s.maxLon);
             });
-        };
+        }
         // Get the addresses that are missing bounding polys
-        ViewResearchController.prototype.refreshCells = function () {
+        refreshCells() {
             this.isLoading = true;
             var innerThis = this;
-            this.$http.get("/api/ResearchMap").then(function (response) {
+            this.$http.get("/api/ResearchMap").then((response) => {
                 innerThis.isLoading = false;
                 innerThis.cells = response.data;
                 //this.cellPolys = _.map( this.cells, function ( c )
@@ -90,9 +90,9 @@ var Ally;
                 innerThis.isLoading = false;
                 alert("Failed to retrieve cells: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         // Occurs when the user clicks an address
-        ViewResearchController.prototype.onAddressSelected = function (address) {
+        onAddressSelected(address) {
             //if ( address.gpsPos )
             //    this.mapInstance.setCenter( { lat: address.gpsPos.lat, lng: address.gpsPos.lon } );
             this.selectedAddress = address;
@@ -114,10 +114,9 @@ var Ally;
             }
             this.selectedGpsPoly = address.gpsBounds;
             //createPolygon( this.mapInstance, address.gpsBounds.vertices );
-        };
-        ViewResearchController.$inject = ["$http"];
-        return ViewResearchController;
-    }());
+        }
+    }
+    ViewResearchController.$inject = ["$http"];
     Ally.ViewResearchController = ViewResearchController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("viewResearch", {

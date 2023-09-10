@@ -3,21 +3,21 @@ var Ally;
     /**
      * The controller for the admin-only page to polygon data
      */
-    var ViewPolysController = /** @class */ (function () {
+    class ViewPolysController {
         /**
         * The constructor for the class
         */
-        function ViewPolysController($http) {
+        constructor($http) {
             this.$http = $http;
             this.isLoading = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ViewPolysController.prototype.$onInit = function () {
+        $onInit() {
             this.refreshAddresses();
-        };
-        ViewPolysController.prototype.findCenter = function (polys) {
+        }
+        findCenter(polys) {
             var currentCenter = {
                 lat: 0,
                 lng: 0
@@ -43,27 +43,25 @@ var Ally;
             currentCenter.lat /= polys.length;
             currentCenter.lng /= polys.length;
             return currentCenter;
-        };
+        }
         // Get the polygons to display
-        ViewPolysController.prototype.refreshAddresses = function () {
-            var _this = this;
+        refreshAddresses() {
             this.isLoading = true;
             this.neighborhoodPolys = [];
             var innerThis = this;
-            this.$http.get("/api/Neighborhood/GetAll").then(function (httpResponse) {
+            this.$http.get("/api/Neighborhood/GetAll").then((httpResponse) => {
                 innerThis.isLoading = false;
                 innerThis.neighborhoods = httpResponse.data;
                 innerThis.neighborhoodPolys = _.select(innerThis.neighborhoods, function (n) { return n.Bounds; });
-                innerThis.mapCenter = innerThis.findCenter(_this.neighborhoodPolys);
-            }, function (httpResponse) {
+                innerThis.mapCenter = innerThis.findCenter(this.neighborhoodPolys);
+            }, (httpResponse) => {
                 innerThis.isLoading = false;
                 alert("Failed to retrieve neighborhoods: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         ;
-        ViewPolysController.$inject = ["$http", "$q"];
-        return ViewPolysController;
-    }());
+    }
+    ViewPolysController.$inject = ["$http", "$q"];
     Ally.ViewPolysController = ViewPolysController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("viewPolys", {

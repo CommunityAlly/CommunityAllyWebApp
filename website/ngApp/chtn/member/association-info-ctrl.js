@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the page used to navigate to other group info pages
      */
-    var AssociationInfoController = /** @class */ (function () {
+    class AssociationInfoController {
         /**
          * The constructor for the class
          */
-        function AssociationInfoController(siteInfo, $routeParams) {
+        constructor(siteInfo, $routeParams) {
             this.siteInfo = siteInfo;
             this.$routeParams = $routeParams;
             this.hideDocuments = false;
@@ -22,7 +22,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        AssociationInfoController.prototype.$onInit = function () {
+        $onInit() {
             this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.hideVendors = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club";
             this.showMaintenance = AppConfig.appShortName === "home"
@@ -35,16 +35,15 @@ var Ally;
                 this.selectedView = "Docs";
             if (HtmlUtil.isValidString(this.$routeParams.viewName))
                 this.selectedView = this.$routeParams.viewName;
-        };
+        }
         /**
         * Occurs when the user clicks the link to force refresh the page
         */
-        AssociationInfoController.prototype.forceRefresh = function () {
-            window.location.reload(true);
-        };
-        AssociationInfoController.$inject = ["SiteInfo", "$routeParams"];
-        return AssociationInfoController;
-    }());
+        forceRefresh() {
+            window.location.reload();
+        }
+    }
+    AssociationInfoController.$inject = ["SiteInfo", "$routeParams"];
     Ally.AssociationInfoController = AssociationInfoController;
 })(Ally || (Ally = {}));
 CA.condoAllyControllers.
@@ -66,7 +65,7 @@ CA.condoAllyControllers.
                 read(); // initialize
                 // Write data to the model
                 function read() {
-                    var html = element.html();
+                    let html = element.html();
                     // When we clear the content editable the browser leaves a <br> behind
                     // If strip-br attribute is provided then we strip this out
                     if (attrs.stripBr && html === "<br>") {

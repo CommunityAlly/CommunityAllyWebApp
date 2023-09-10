@@ -1,32 +1,20 @@
 var Ally;
 (function (Ally) {
-    var MaintenanceProject = /** @class */ (function () {
-        function MaintenanceProject() {
-        }
-        return MaintenanceProject;
-    }());
+    class MaintenanceProject {
+    }
     Ally.MaintenanceProject = MaintenanceProject;
-    var TagPickerItem = /** @class */ (function () {
-        function TagPickerItem() {
-        }
-        return TagPickerItem;
-    }());
-    var Equipment = /** @class */ (function () {
-        function Equipment() {
-        }
-        return Equipment;
-    }());
-    var VendorListItem = /** @class */ (function () {
-        function VendorListItem() {
-        }
-        return VendorListItem;
-    }());
+    class TagPickerItem {
+    }
+    class Equipment {
+    }
+    class VendorListItem {
+    }
     Ally.VendorListItem = VendorListItem;
-    var MaintenanceController = /** @class */ (function () {
+    class MaintenanceController {
         /**
          * The constructor for the class
          */
-        function MaintenanceController($http, $rootScope, siteInfo, maintenanceService, fellowResidents) {
+        constructor($http, $rootScope, siteInfo, maintenanceService, fellowResidents) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -38,15 +26,14 @@ var Ally;
             this.maintenanceEntries = [];
             this.assigneeOptions = [];
             this.entriesSortAscending = true;
-            this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, function (o) { return o.text; });
-            this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, function (o) { return o.text; });
+            this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, o => o.text);
+            this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, o => o.text);
             this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        MaintenanceController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.equipmentGridOptions =
                 {
                     data: [],
@@ -74,7 +61,7 @@ var Ally;
                     }
                 };
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.fellowResidents.getResidents().then(function (residents) { return _this.assigneeOptions = _.clone(residents); }); // Cloned so we can edit locally
+            this.fellowResidents.getResidents().then(residents => this.assigneeOptions = _.clone(residents)); // Cloned so we can edit locally
             this.entriesSortField = window.localStorage[MaintenanceController.StorageKey_SortField];
             if (!this.entriesSortField) {
                 this.entriesSortField = "entryDate";
@@ -83,171 +70,164 @@ var Ally;
             else
                 this.entriesSortAscending = window.localStorage[MaintenanceController.StorageKey_SortDir] === "true";
             this.loadEquipment()
-                .then(function () { return _this.loadVendors(); })
-                .then(function () { return _this.loadProjects(); })
-                .then(function () { return _this.loadMaintenanceTodos(); })
-                .then(function () { return _this.rebuildMaintenanceEntries(); });
-        };
+                .then(() => this.loadVendors())
+                .then(() => this.loadProjects())
+                .then(() => this.loadMaintenanceTodos())
+                .then(() => this.rebuildMaintenanceEntries());
+        }
         /**
         * Rebuild the arrow of projects and to-do's
         */
-        MaintenanceController.prototype.rebuildMaintenanceEntries = function () {
-            var _this = this;
+        rebuildMaintenanceEntries() {
             this.maintenanceEntries = [];
-            _.forEach(this.projects, function (p) {
+            _.forEach(this.projects, p => {
                 var newEntry = new Ally.MaintenanceEntry();
                 newEntry.project = p;
-                _this.maintenanceEntries.push(newEntry);
+                this.maintenanceEntries.push(newEntry);
             });
-            _.forEach(this.maintenanceTodos.todoItems, function (t) {
+            _.forEach(this.maintenanceTodos.todoItems, t => {
                 var newEntry = new Ally.MaintenanceEntry();
                 newEntry.todo = t;
-                _this.maintenanceEntries.push(newEntry);
+                this.maintenanceEntries.push(newEntry);
             });
             this.sortEntries();
-        };
+        }
         /**
         * Retrieve the equipment available for this group
         */
-        MaintenanceController.prototype.loadEquipment = function () {
-            var _this = this;
+        loadEquipment() {
             this.isLoading = true;
-            return this.$http.get("/api/Maintenance/Equipment").then(function (response) {
-                _this.isLoading = false;
-                _this.equipmentOptions = response.data;
+            return this.$http.get("/api/Maintenance/Equipment").then((response) => {
+                this.isLoading = false;
+                this.equipmentOptions = response.data;
                 // Deep clone the data so we can modify the data
-                _this.equipmentGridOptions.data = JSON.parse(JSON.stringify(_this.equipmentOptions));
+                this.equipmentGridOptions.data = JSON.parse(JSON.stringify(this.equipmentOptions));
                 var addNewOption = new Equipment();
                 addNewOption.name = "Add New...";
                 addNewOption.equipmentId = MaintenanceController.EquipmentId_AddNew;
-                _this.equipmentOptions.push(addNewOption);
-                _.forEach(_this.equipmentOptions, function (e) {
+                this.equipmentOptions.push(addNewOption);
+                _.forEach(this.equipmentOptions, e => {
                     e.typeTags = [{ text: e.type }];
                     e.locationTags = [{ text: e.location }];
                 });
                 // If this model displayed from the edit project modal
-                if (_this.editingProject
-                    && _this.editingProject.equipmentId === MaintenanceController.EquipmentId_AddNew
-                    && _this.equipmentOptions.length > 0) {
-                    _this.editingProject.equipmentId = _.max(_this.equipmentOptions, function (e) { return e.equipmentId; }).equipmentId;
+                if (this.editingProject
+                    && this.editingProject.equipmentId === MaintenanceController.EquipmentId_AddNew
+                    && this.equipmentOptions.length > 0) {
+                    this.editingProject.equipmentId = _.max(this.equipmentOptions, e => e.equipmentId).equipmentId;
                 }
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to retrieve equipment: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Occurs when the user clicks the button to delete equipment
         */
-        MaintenanceController.prototype.deleteEquipment = function () {
-            var _this = this;
+        deleteEquipment() {
             if (!confirm("Are you sure you want to delete this equipment? This action cannot be undone."))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Maintenance/Equipment/" + this.editingEquipment.equipmentId).then(function () {
-                _this.isLoading = false;
-                _this.editingEquipment = null;
-                _this.shouldShowEditEquipmentModal = false;
-                _this.loadEquipment()
-                    .then(function () { return _this.loadProjects(); })
-                    .then(function () { return _this.rebuildMaintenanceEntries(); });
-            }, function (response) {
-                _this.isLoading = false;
+            this.$http.delete("/api/Maintenance/Equipment/" + this.editingEquipment.equipmentId).then(() => {
+                this.isLoading = false;
+                this.editingEquipment = null;
+                this.shouldShowEditEquipmentModal = false;
+                this.loadEquipment()
+                    .then(() => this.loadProjects())
+                    .then(() => this.rebuildMaintenanceEntries());
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to delete the equipment: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Retrieve the equipment available for this group
         */
-        MaintenanceController.prototype.loadVendors = function () {
-            var _this = this;
+        loadVendors() {
             this.isLoading = true;
-            return this.$http.get("/api/PreferredVendors/ListItems").then(function (response) {
-                _this.isLoading = false;
-                _this.vendorOptions = response.data;
-            }, function (response) {
-                _this.isLoading = false;
+            return this.$http.get("/api/PreferredVendors/ListItems").then((response) => {
+                this.isLoading = false;
+                this.vendorOptions = response.data;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to retrieve vendors: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Occurs when the user selects an equipment from the project modal
         */
-        MaintenanceController.prototype.onEquipmentSelectionChange = function () {
+        onEquipmentSelectionChange() {
             if (this.editingProject.equipmentId === MaintenanceController.EquipmentId_AddNew)
                 this.openAddNewEquipment();
-        };
+        }
         /**
         * Retrieve the maintenance projects from the server
         */
-        MaintenanceController.prototype.loadProjects = function () {
-            var _this = this;
+        loadProjects() {
             this.isLoading = true;
-            return this.maintenanceService.loadProjects().then(function (projects) {
-                _this.isLoading = false;
-                _this.projects = projects;
-            }, function (error) {
-                _this.isLoading = false;
+            return this.maintenanceService.loadProjects().then((projects) => {
+                this.isLoading = false;
+                this.projects = projects;
+            }, (error) => {
+                this.isLoading = false;
                 alert("Failed to retrieve projects: " + error.exceptionMessage);
             });
-        };
+        }
         /**
         * Retrieve the maintenance to-do's from the server
         */
-        MaintenanceController.prototype.loadMaintenanceTodos = function () {
-            var _this = this;
+        loadMaintenanceTodos() {
             this.isLoading = true;
-            return this.$http.get("/api/Todo/MaintenanceList").then(function (response) {
-                _this.isLoading = false;
-                _this.maintenanceTodos = response.data;
+            return this.$http.get("/api/Todo/MaintenanceList").then((response) => {
+                this.isLoading = false;
+                this.maintenanceTodos = response.data;
             });
-        };
+        }
         /**
          * An event handler invoked when the user selects a project start date
          */
-        MaintenanceController.prototype.onProjectStartDateChange = function () {
+        onProjectStartDateChange() {
             if (!this.editingProject.endDate)
                 this.editingProject.endDate = this.editingProject.startDate;
-        };
+        }
         /**
          * Display the modal to create a new project
          */
-        MaintenanceController.prototype.openAddNewProject = function () {
+        openAddNewProject() {
             this.editingProject = new MaintenanceProject();
-            setTimeout(function () { return $("#project-title-text-box").focus(); }, 100);
-        };
+            setTimeout(() => $("#project-title-text-box").focus(), 100);
+        }
         /**
          * Display the modal to add a new piece of equipment
          */
-        MaintenanceController.prototype.openAddNewEquipment = function () {
+        openAddNewEquipment() {
             this.shouldShowEditEquipmentModal = true;
             this.editingEquipment = new Equipment();
-            setTimeout(function () { return $("#equipment-name-text-box").focus(); }, 100);
-        };
+            setTimeout(() => $("#equipment-name-text-box").focus(), 100);
+        }
         /**
          * Save a project
          */
-        MaintenanceController.prototype.saveProject = function () {
-            var _this = this;
+        saveProject() {
             this.isLoading = true;
-            var httpFunc;
+            let httpFunc;
             if (this.editingProject.maintenanceProjectId)
                 httpFunc = this.$http.put;
             else
                 httpFunc = this.$http.post;
-            httpFunc("/api/Maintenance/Project", this.editingProject).then(function () {
-                _this.isLoading = false;
-                _this.editingProject = null;
-                _this.loadProjects().then(function () { return _this.rebuildMaintenanceEntries(); });
-            }, function (response) {
-                _this.isLoading = false;
+            httpFunc("/api/Maintenance/Project", this.editingProject).then(() => {
+                this.isLoading = false;
+                this.editingProject = null;
+                this.loadProjects().then(() => this.rebuildMaintenanceEntries());
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user changes the new entry type
          */
-        MaintenanceController.prototype.onEntryTypeChange = function (type) {
+        onEntryTypeChange(type) {
             if (type === "todo") {
                 this.editingTodo = new Ally.TodoItem();
                 this.editingTodo.owningTodoListId = this.maintenanceTodoListId;
@@ -255,44 +235,42 @@ var Ally;
                 if (this.editingProject)
                     this.editingTodo.description = this.editingProject.title;
                 this.editingProject = null;
-                setTimeout(function () { return $("#edit-todo-name-text-box").focus(); }, 50);
+                setTimeout(() => $("#edit-todo-name-text-box").focus(), 50);
             }
             else {
                 this.editingProject = new MaintenanceProject();
                 if (this.editingTodo)
                     this.editingProject.title = this.editingTodo.description;
                 this.editingTodo = null;
-                setTimeout(function () { return $("#project-title-text-box").focus(); }, 50);
+                setTimeout(() => $("#project-title-text-box").focus(), 50);
             }
-        };
+        }
         /**
          * Save a todo
          */
-        MaintenanceController.prototype.saveTodo = function () {
-            var _this = this;
+        saveTodo() {
             this.isLoading = true;
             if (this.selectedAssignee && this.selectedAssignee.length > 0)
                 this.editingTodo.assignedToUserId = this.selectedAssignee[0].userId;
-            var httpFunc;
+            let httpFunc;
             if (this.editingTodo.todoItemId)
                 httpFunc = this.$http.put;
             else
                 httpFunc = this.$http.post;
-            httpFunc("/api/Todo/Item", this.editingTodo).then(function () {
-                _this.isLoading = false;
-                _this.editingTodo = null;
-                _this.selectedAssignee = [];
-                _this.loadMaintenanceTodos().then(function () { return _this.rebuildMaintenanceEntries(); });
-            }, function (response) {
-                _this.isLoading = false;
+            httpFunc("/api/Todo/Item", this.editingTodo).then(() => {
+                this.isLoading = false;
+                this.editingTodo = null;
+                this.selectedAssignee = [];
+                this.loadMaintenanceTodos().then(() => this.rebuildMaintenanceEntries());
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Save equipment information
          */
-        MaintenanceController.prototype.saveEquipment = function () {
-            var _this = this;
+        saveEquipment() {
             this.isLoading = true;
             // Convert the tags to strings
             //if( this.editingEquipment.typeTags && this.editingEquipment.typeTags.length > 0 )
@@ -303,57 +281,56 @@ var Ally;
             //    this.editingEquipment.location = this.editingEquipment.locationTags[0].text;
             //else
             //    this.editingEquipment.location = undefined;            
-            var httpFunc;
+            let httpFunc;
             if (this.editingEquipment.equipmentId)
                 httpFunc = this.$http.put;
             else
                 httpFunc = this.$http.post;
-            httpFunc("/api/Maintenance/Equipment", this.editingEquipment).then(function () {
-                _this.isLoading = false;
-                _this.shouldShowEditEquipmentModal = false;
-                _this.loadEquipment();
-            }, function (response) {
-                _this.isLoading = false;
+            httpFunc("/api/Maintenance/Equipment", this.editingEquipment).then(() => {
+                this.isLoading = false;
+                this.shouldShowEditEquipmentModal = false;
+                this.loadEquipment();
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
-        };
-        MaintenanceController.prototype.getEquipmentLocationAutocomplete = function (enteredText) {
+        }
+        getEquipmentLocationAutocomplete(enteredText) {
             if (HtmlUtil.isNullOrWhitespace(enteredText))
                 return MaintenanceController.AutocompleteLocationOptions;
-            return _.where(MaintenanceController.AutocompleteLocationOptions, function (option) { return option.text.toLowerCase().indexOf(enteredText.toLowerCase()) !== -1; });
-        };
+            return _.where(MaintenanceController.AutocompleteLocationOptions, (option) => option.text.toLowerCase().indexOf(enteredText.toLowerCase()) !== -1);
+        }
         /**
          * Get the auto-complete options based on when the user has already typed
          */
-        MaintenanceController.prototype.getEquipmentTypeAutocomplete = function (enteredText) {
+        getEquipmentTypeAutocomplete(enteredText) {
             if (this.editingEquipment.typeTags && this.editingEquipment.typeTags.length > 0 && !HtmlUtil.isNullOrWhitespace(this.editingEquipment.typeTags[0].text))
                 return [];
             if (HtmlUtil.isNullOrWhitespace(enteredText))
                 return MaintenanceController.AutocompleteEquipmentTypeOptions;
-            return _.where(MaintenanceController.AutocompleteEquipmentTypeOptions, function (option) { return option.text.toLowerCase().indexOf(enteredText.toLowerCase()) !== -1; });
-        };
+            return _.where(MaintenanceController.AutocompleteEquipmentTypeOptions, (option) => option.text.toLowerCase().indexOf(enteredText.toLowerCase()) !== -1);
+        }
         /**
          * Open the equipment edit modal for the selected project
          */
-        MaintenanceController.prototype.editEquipment = function (equipment) {
+        editEquipment(equipment) {
             this.shouldShowEditEquipmentModal = true;
             this.editingEquipment = _.clone(equipment);
-            setTimeout(function () { return $("#equipment-name-text-box").focus(); }, 100);
-        };
+            setTimeout(() => $("#equipment-name-text-box").focus(), 100);
+        }
         /**
          * Occurs when the user clicks the button to edit a selected entry
          */
-        MaintenanceController.prototype.onEditEntry = function (entry) {
-            var _this = this;
+        onEditEntry(entry) {
             if (entry.project)
                 this.editProject(entry.project);
             else {
                 this.editingTodo = _.clone(entry.todo);
                 // Needed for the searchable drop-down
-                for (var i = 0; i < this.assigneeOptions.length; ++i)
+                for (let i = 0; i < this.assigneeOptions.length; ++i)
                     (this.assigneeOptions[i]).isSelectedAssignee = false;
                 //_.forEach( this.assigneeOptions, u => ( <any>u ).isSelectedAssignee = false );
-                var foundAssignee = _.find(this.assigneeOptions, function (u) { return u.userId === _this.editingTodo.assignedToUserId; });
+                var foundAssignee = _.find(this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId);
                 if (foundAssignee) {
                     // Set isSelectedAssignee on a cloned object so we don't change the base list
                     foundAssignee.isSelectedAssignee = true;
@@ -361,57 +338,55 @@ var Ally;
                 }
                 else
                     this.selectedAssignee = [];
-                setTimeout(function () { return $("#edit-todo-name-text-box").focus(); }, 100);
+                setTimeout(() => $("#edit-todo-name-text-box").focus(), 100);
             }
-        };
+        }
         /**
          * Occurs when the user clicks the button to edit a selected entry
          */
-        MaintenanceController.prototype.onDeleteEntry = function (entry) {
-            var _this = this;
+        onDeleteEntry(entry) {
             if (!confirm("Are you sure you want to delete this entry? This action cannot be undone."))
                 return;
             if (entry.project)
                 this.onDeleteProject(entry.project);
             else {
                 this.isLoading = true;
-                this.$http.delete("/api/Todo/Item/" + entry.todo.todoItemId).then(function () {
-                    _this.isLoading = false;
-                    _this.loadMaintenanceTodos().then(function () { return _this.rebuildMaintenanceEntries(); });
-                }, function (response) {
-                    _this.isLoading = false;
+                this.$http.delete("/api/Todo/Item/" + entry.todo.todoItemId).then(() => {
+                    this.isLoading = false;
+                    this.loadMaintenanceTodos().then(() => this.rebuildMaintenanceEntries());
+                }, (response) => {
+                    this.isLoading = false;
                     alert("Failed to delete to-do: " + response.data.exceptionMessage);
                 });
             }
-        };
+        }
         /**
          * Open the project edit modal for the selected project
          */
-        MaintenanceController.prototype.editProject = function (project) {
+        editProject(project) {
             this.editingProject = _.clone(project);
-            setTimeout(function () { return $("#project-title-text-box").focus(); }, 100);
-        };
+            setTimeout(() => $("#project-title-text-box").focus(), 100);
+        }
         /**
          * Occurs when the user clicks the button to remove a project
          */
-        MaintenanceController.prototype.onDeleteProject = function (project) {
-            var _this = this;
+        onDeleteProject(project) {
             this.isLoading = true;
-            this.$http.delete("/api/Maintenance/Project/" + project.maintenanceProjectId).then(function () {
-                _this.isLoading = false;
-                _this.loadProjects().then(function () { return _this.rebuildMaintenanceEntries(); });
-            }, function (response) {
-                _this.isLoading = false;
+            this.$http.delete("/api/Maintenance/Project/" + project.maintenanceProjectId).then(() => {
+                this.isLoading = false;
+                this.loadProjects().then(() => this.rebuildMaintenanceEntries());
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to delete: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Export the maintenance records as a CSV (Ignores to-do items for simplicity's sake)
          */
-        MaintenanceController.prototype.exportMaintenanceCsv = function () {
+        exportMaintenanceCsv() {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportMaintenanceCsv');
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Title",
                     fieldName: "title"
@@ -463,33 +438,32 @@ var Ally;
                     fieldName: "assignedTo"
                 }
             ];
-            var projects = _.map(_.filter(this.maintenanceEntries, function (e) { return !!e.project; }), function (e) { return e.project; });
-            var csvDataString = Ally.createCsvString(projects, csvColumns);
+            const projects = _.map(_.filter(this.maintenanceEntries, e => !!e.project), e => e.project);
+            const csvDataString = Ally.createCsvString(projects, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Maintenance.csv");
-        };
+        }
         /**
          * Sort the entries by a certain field
          */
-        MaintenanceController.prototype.sortEntries = function () {
-            var _this = this;
-            var sortEntry = function (e) {
-                if (_this.entriesSortField === "status")
+        sortEntries() {
+            const sortEntry = (e) => {
+                if (this.entriesSortField === "status")
                     return e.project ? e.project.status : "ZZZZZ";
-                else if (_this.entriesSortField === "startDate")
+                else if (this.entriesSortField === "startDate")
                     return e.project ? e.project.startDate : new Date(1001, 12, 30);
                 else
                     return e.getCreatedDate();
             };
             //console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
             this.maintenanceEntries = _.sortBy(this.maintenanceEntries, sortEntry);
-            var shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
+            const shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
             if (shouldReverse)
                 this.maintenanceEntries.reverse();
-        };
+        }
         /**
          * Sort the entries by a certain field
          */
-        MaintenanceController.prototype.updateEntriesSort = function (fieldName) {
+        updateEntriesSort(fieldName) {
             if (!fieldName)
                 fieldName = "entryDate";
             if (this.entriesSortField === fieldName)
@@ -501,32 +475,31 @@ var Ally;
             window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
             window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
             this.sortEntries();
-        };
-        MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
-        MaintenanceController.StorageKey_SortField = "maintenance_entriesSortField";
-        MaintenanceController.StorageKey_SortDir = "maintenance_entriesSortAscending";
-        MaintenanceController.EquipmentId_AddNew = -5;
-        MaintenanceController.AutocompleteLocationOptions = [{ text: "Attic" },
-            { text: "Back Yard" },
-            { text: "Basement" },
-            { text: "Front Yard" },
-            { text: "Garage" },
-            { text: "Interior" },
-            { text: "Kitchen" },
-            { text: "Exterior" },
-            { text: "Side of Building" },
-            { text: "Structural" }];
-        MaintenanceController.AutocompleteEquipmentTypeOptions = [{ text: "Appliance" },
-            { text: "Deck" },
-            { text: "Driveway" },
-            { text: "HVAC" },
-            { text: "Patio" },
-            { text: "Plumbing" },
-            { text: "Roof" },
-            { text: "Siding" },
-            { text: "Structural" }];
-        return MaintenanceController;
-    }());
+        }
+    }
+    MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
+    MaintenanceController.StorageKey_SortField = "maintenance_entriesSortField";
+    MaintenanceController.StorageKey_SortDir = "maintenance_entriesSortAscending";
+    MaintenanceController.EquipmentId_AddNew = -5;
+    MaintenanceController.AutocompleteLocationOptions = [{ text: "Attic" },
+        { text: "Back Yard" },
+        { text: "Basement" },
+        { text: "Front Yard" },
+        { text: "Garage" },
+        { text: "Interior" },
+        { text: "Kitchen" },
+        { text: "Exterior" },
+        { text: "Side of Building" },
+        { text: "Structural" }];
+    MaintenanceController.AutocompleteEquipmentTypeOptions = [{ text: "Appliance" },
+        { text: "Deck" },
+        { text: "Driveway" },
+        { text: "HVAC" },
+        { text: "Patio" },
+        { text: "Plumbing" },
+        { text: "Roof" },
+        { text: "Siding" },
+        { text: "Structural" }];
     Ally.MaintenanceController = MaintenanceController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("maintenance", {

@@ -1,15 +1,14 @@
 /// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
-    var HoaSignerUpInfo = /** @class */ (function () {
-        function HoaSignerUpInfo() {
+    class HoaSignerUpInfo {
+        constructor() {
             this.boardPositionValue = 1;
         }
-        return HoaSignerUpInfo;
-    }());
+    }
     Ally.HoaSignerUpInfo = HoaSignerUpInfo;
-    var HoaSignUpInfo = /** @class */ (function () {
-        function HoaSignUpInfo() {
+    class HoaSignUpInfo {
+        constructor() {
             this.name = "";
             this.streetAddress = "";
             this.isResident = true;
@@ -17,17 +16,16 @@ var Ally;
             this.referralSource = "";
             this.recaptchaKey = "";
         }
-        return HoaSignUpInfo;
-    }());
+    }
     Ally.HoaSignUpInfo = HoaSignUpInfo;
     /**
      * The controller for the HOA Ally sign-up page
      */
-    var HoaSignUpWizardController = /** @class */ (function () {
+    class HoaSignUpWizardController {
         /**
         * The constructor for the class
         */
-        function HoaSignUpWizardController($scope, $http, $timeout, WizardHandler) {
+        constructor($scope, $http, $timeout, WizardHandler) {
             this.$scope = $scope;
             this.$http = $http;
             this.$timeout = $timeout;
@@ -49,42 +47,41 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        HoaSignUpWizardController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.signUpInfo.referralSource = HtmlUtil.GetQueryStringParameter("utm_sourcecapterra");
             // Normalize anything invalid to null
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.referralSource))
                 this.signUpInfo.referralSource = null;
-            this.$scope.$on('wizard:stepChanged', function (event, args) {
+            this.$scope.$on('wizard:stepChanged', (event, args) => {
                 if (args.index === 1)
-                    _this.$timeout(function () { return _this.showMap = true; }, 50);
+                    this.$timeout(() => this.showMap = true, 50);
                 else if (args.index === 2)
-                    _this.$timeout(function () { return grecaptcha.render("recaptcha-check-elem"); }, 50);
+                    this.$timeout(() => grecaptcha.render("recaptcha-check-elem"), 50);
                 else
-                    _this.showMap = false;
+                    this.showMap = false;
             });
-            this.$http.get("/api/PublicAllyAppSettings/IsSignUpEnabled").then(function (httpResponse) { return _this.isPageEnabled = httpResponse.data; }, function (httpResponse) {
-                _this.isPageEnabled = true; // Default to true if we can't get the setting
+            this.$http.get("/api/PublicAllyAppSettings/IsSignUpEnabled").then((httpResponse) => this.isPageEnabled = httpResponse.data, (httpResponse) => {
+                this.isPageEnabled = true; // Default to true if we can't get the setting
                 console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs as the user presses keys in the HOA name field
          */
-        HoaSignUpWizardController.prototype.onHoaNameChanged = function () {
+        onHoaNameChanged() {
             if (!this.signUpInfo || !this.signUpInfo.name) {
                 this.shouldShowCondoMessage = false;
                 return;
             }
-            var shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf("condo") !== -1;
+            const shouldShowCondoMessage = this.signUpInfo.name.toLowerCase().indexOf("condo") !== -1;
             if (shouldShowCondoMessage && !this.shouldShowCondoMessage)
                 $("#suggestCondoMessageLabel").css("font-size", "1.3em").css("margin", "25px auto").addClass("alert alert-warning").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeIn(200).fadeOut(200).fadeIn(200);
             this.shouldShowCondoMessage = shouldShowCondoMessage;
-        };
+        }
         /**
          * Center the Google map on a polygon
          */
-        HoaSignUpWizardController.prototype.centerMap = function (geometry) {
+        centerMap(geometry) {
             // If the place has a geometry, then present it on a map.
             if (geometry.viewport) {
                 this.map.fitBounds(geometry.viewport);
@@ -95,16 +92,15 @@ var Ally;
             }
             this.mapMarker.setPosition(geometry.location);
             this.mapMarker.setVisible(true);
-        };
+        }
         /**
          * Perform initialization to create the map and hook up address autocomplete
          */
-        HoaSignUpWizardController.prototype.initMapStep = function () {
-            var _this = this;
+        initMapStep() {
             if (typeof (window.analytics) !== "undefined")
                 window.analytics.track("condoSignUpStarted");
             this.showMap = true;
-            var addressInput = document.getElementById("association-address-text-box");
+            const addressInput = document.getElementById("association-address-text-box");
             if (addressInput) {
                 this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput);
                 this.addressAutocomplete.bindTo('bounds', this.map);
@@ -117,57 +113,56 @@ var Ally;
             });
             // Occurs when the user selects a Google suggested address
             if (this.addressAutocomplete) {
-                var onPlaceChanged_1 = function () {
-                    _this.setPlaceWasSelected();
+                const onPlaceChanged = () => {
+                    this.setPlaceWasSelected();
                     //infowindow.close();
-                    _this.mapMarker.setVisible(false);
-                    var place = _this.addressAutocomplete.getPlace();
-                    var readableAddress = place.formatted_address;
+                    this.mapMarker.setVisible(false);
+                    const place = this.addressAutocomplete.getPlace();
+                    let readableAddress = place.formatted_address;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    _this.signUpInfo.streetAddress = readableAddress;
+                    this.signUpInfo.streetAddress = readableAddress;
                     if (!place.geometry)
                         return;
-                    _this.setEditPolyForAddress(place.geometry.location);
-                    _this.centerMap(place.geometry);
+                    this.setEditPolyForAddress(place.geometry.location);
+                    this.centerMap(place.geometry);
                 };
-                this.addressAutocomplete.addListener('place_changed', function () {
-                    _this.$scope.$apply(onPlaceChanged_1);
+                this.addressAutocomplete.addListener('place_changed', () => {
+                    this.$scope.$apply(onPlaceChanged);
                 });
             }
-        };
-        HoaSignUpWizardController.prototype.onMapEditorReady = function (mapInstance) {
+        }
+        onMapEditorReady(mapInstance) {
             this.map = mapInstance;
             this.initMapStep();
-        };
+        }
         /**
          * Refresh the map to center typed in address
          */
-        HoaSignUpWizardController.prototype.checkAddress = function () {
+        checkAddress() {
             if (this.placeWasSelected || !this.shouldCheckAddress)
                 return;
             this.shouldCheckAddress = false;
             this.refreshMapForAddress();
-        };
+        }
         /**
          * Occurs when the user selects an address from the Google suggestions
          */
-        HoaSignUpWizardController.prototype.setPlaceWasSelected = function () {
-            var _this = this;
+        setPlaceWasSelected() {
             this.placeWasSelected = true;
             this.shouldCheckAddress = false;
             // Clear the flag in case the user types in a new address
-            setTimeout(function () {
-                _this.placeWasSelected = true;
+            setTimeout(() => {
+                this.placeWasSelected = true;
             }, 500);
-        };
+        }
         /**
          * Refresh the map edit box when a place is geocoded
          */
-        HoaSignUpWizardController.prototype.setEditPolyForAddress = function (homePos) {
-            var OffsetLat = 0.001;
-            var OffsetLon = 0.0014;
+        setEditPolyForAddress(homePos) {
+            const OffsetLat = 0.001;
+            const OffsetLon = 0.0014;
             this.hoaPoly = {
                 vertices: [
                     { lat: homePos.lat() - OffsetLat, lon: homePos.lng() - OffsetLon },
@@ -176,37 +171,35 @@ var Ally;
                     { lat: homePos.lat() - OffsetLat, lon: homePos.lng() + OffsetLon }
                 ]
             };
-        };
+        }
         /**
          * Refresh the map to center typed in address
          */
-        HoaSignUpWizardController.prototype.refreshMapForAddress = function () {
-            var _this = this;
+        refreshMapForAddress() {
             this.isLoadingMap = true;
-            HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
-                _this.$scope.$apply(function () {
-                    _this.isLoadingMap = false;
+            HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, (results, status) => {
+                this.$scope.$apply(() => {
+                    this.isLoadingMap = false;
                     if (status != google.maps.GeocoderStatus.OK) {
                         //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
                         return;
                     }
-                    var readableAddress = results[0].formatted_address;
+                    let readableAddress = results[0].formatted_address;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    _this.signUpInfo.streetAddress = readableAddress;
+                    this.signUpInfo.streetAddress = readableAddress;
                     if (!results[0].geometry)
                         return;
-                    _this.setEditPolyForAddress(results[0].geometry.location);
-                    _this.centerMap(results[0].geometry);
+                    this.setEditPolyForAddress(results[0].geometry.location);
+                    this.centerMap(results[0].geometry);
                 });
             });
-        };
+        }
         /**
          * Called when the user press the button to complete the sign-up process
          */
-        HoaSignUpWizardController.prototype.onFinishedWizard = function () {
-            var _this = this;
+        onFinishedWizard() {
             this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
                 alert("Please complete the reCAPTCHA field");
@@ -214,13 +207,13 @@ var Ally;
             }
             this.isLoading = true;
             this.signUpInfo.boundsGpsVertices = this.hoaPoly.vertices;
-            this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then(function (httpResponse) {
-                _this.isLoading = false;
-                var signUpResult = httpResponse.data;
+            this.$http.post("/api/SignUpWizard/Hoa", this.signUpInfo).then((httpResponse) => {
+                this.isLoading = false;
+                const signUpResult = httpResponse.data;
                 // If the was an error creating the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
-                    _this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                    this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                     grecaptcha.reset();
                 }
                 // Otherwise create succeeded
@@ -230,11 +223,11 @@ var Ally;
                     // Log this as a conversion
                     if (typeof (window.goog_report_conversion) !== "undefined")
                         window.goog_report_conversion();
-                    if (_this.signUpInfo.referralSource && typeof (window.capterra_trackingListener_v2) !== "undefined")
+                    if (this.signUpInfo.referralSource && typeof (window.capterra_trackingListener_v2) !== "undefined")
                         window.capterra_trackingListener_v2();
                     // Track HOA Ally sign-up with Fathom
                     if (typeof window.fathom === "object") {
-                        var numHomesInt = parseInt(_this.signUpInfo.numHomes);
+                        let numHomesInt = parseInt(this.signUpInfo.numHomes);
                         if (isNaN(numHomesInt))
                             numHomesInt = 0;
                         else
@@ -244,41 +237,39 @@ var Ally;
                     // Or if the user created an active signUpResult
                     if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
                         // Delay just a bit to let the Capterra tracking log, if needed
-                        window.setTimeout(function () { return window.location.href = signUpResult.createUrl; }, 50);
+                        window.setTimeout(() => window.location.href = signUpResult.createUrl, 50);
                     }
                     // Otherwise the user needs to confirm sign-up via email
                     else {
-                        _this.hideWizard = true;
-                        _this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
+                        this.hideWizard = true;
+                        this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                     }
                 }
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to complete sign-up: " + httpResponse.data.exceptionMessage);
                 grecaptcha.reset();
             });
-        };
+        }
         /**
          * Called when the user press the button to submit their email address
          */
-        HoaSignUpWizardController.prototype.submitEmailForHoaNotify = function () {
-            var _this = this;
+        submitEmailForHoaNotify() {
             if (HtmlUtil.isNullOrWhitespace(this.hoaAlertEmail)) {
                 alert("Please enter a valid email address");
                 return;
             }
             this.isLoading = true;
-            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes)).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.didSignUpForHoaAlert = true;
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes)).then((httpResponse) => {
+                this.isLoading = false;
+                this.didSignUpForHoaAlert = true;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to submit: " + httpResponse.data.exceptionMessage);
             });
-        };
-        HoaSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];
-        return HoaSignUpWizardController;
-    }());
+        }
+    }
+    HoaSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];
     Ally.HoaSignUpWizardController = HoaSignUpWizardController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("hoaSignUpWizard", {

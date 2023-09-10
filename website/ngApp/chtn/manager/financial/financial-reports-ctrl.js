@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the page to track group spending
      */
-    var FinancialReportsController = /** @class */ (function () {
+    class FinancialReportsController {
         /**
         * The constructor for the class
         */
-        function FinancialReportsController($http, siteInfo, appCacheService, $location) {
+        constructor($http, siteInfo, appCacheService, $location) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
@@ -23,7 +23,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        FinancialReportsController.prototype.$onInit = function () {
+        $onInit() {
             if (window.sessionStorage.getItem("financialReport_startDate"))
                 this.startDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_startDate")));
             if (!this.startDate || isNaN(this.startDate.getTime()))
@@ -32,14 +32,14 @@ var Ally;
                 this.endDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_endDate")));
             if (!this.endDate || isNaN(this.endDate.getTime()))
                 this.endDate = moment().toDate();
-            var innerThis = this;
+            const innerThis = this;
             this.doughnutChartOptions = {
                 onClick: function (event) {
-                    var elements = this.getElementAtEvent(event);
+                    const elements = this.getElementAtEvent(event);
                     if (elements.length) {
-                        var elem = elements[0];
-                        var isExpenseChart = event.target.id === "expense-category-chart";
-                        var categoryId = void 0;
+                        const elem = elements[0];
+                        const isExpenseChart = event.target.id === "expense-category-chart";
+                        let categoryId;
                         if (isExpenseChart) {
                             //console.log( "Clicked on expense category: " + innerThis.expenseByCategoryLabels[elem._index] );
                             categoryId = innerThis.expenseByCategoryCatIds[elem._index];
@@ -57,66 +57,52 @@ var Ally;
                 },
             };
             this.refreshData();
-        };
+        }
         /**
         * Retrieve the report data
         */
-        FinancialReportsController.prototype.refreshData = function () {
-            var _this = this;
+        refreshData() {
             this.isLoading = true;
-            this.$http.get("/api/FinancialReports/ChartData?startDate=" + encodeURIComponent(this.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.endDate.toISOString())).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.reportData = httpResponse.data;
-                _this.reportData.incomeByCategory = _.sortBy(_this.reportData.incomeByCategory, function (e) { return e.amount; });
-                _this.incomeByCategoryData = _.map(_this.reportData.incomeByCategory, function (e) { return Math.abs(e.amount); });
-                _this.incomeByCategoryLabels = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryName; });
-                _this.incomeByCategoryCatIds = _.map(_this.reportData.incomeByCategory, function (e) { return e.parentFinancialCategoryId; });
-                _this.reportData.expenseByCategory = _.sortBy(_this.reportData.expenseByCategory, function (e) { return e.amount; });
-                _this.expenseByCategoryData = _.map(_this.reportData.expenseByCategory, function (e) { return Math.abs(e.amount); });
-                _this.expenseByCategoryLabels = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryName; });
-                _this.expenseByCategoryCatIds = _.map(_this.reportData.expenseByCategory, function (e) { return e.parentFinancialCategoryId; });
-                window.sessionStorage.setItem("financialReport_startDate", _this.startDate.getTime().toString());
-                window.sessionStorage.setItem("financialReport_endDate", _this.endDate.getTime().toString());
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.get(`/api/FinancialReports/ChartData?startDate=${encodeURIComponent(this.startDate.toISOString())}&endDate=${encodeURIComponent(this.endDate.toISOString())}`).then((httpResponse) => {
+                this.isLoading = false;
+                this.reportData = httpResponse.data;
+                this.reportData.incomeByCategory = _.sortBy(this.reportData.incomeByCategory, e => e.amount);
+                this.incomeByCategoryData = _.map(this.reportData.incomeByCategory, e => Math.abs(e.amount));
+                this.incomeByCategoryLabels = _.map(this.reportData.incomeByCategory, e => e.parentFinancialCategoryName);
+                this.incomeByCategoryCatIds = _.map(this.reportData.incomeByCategory, e => e.parentFinancialCategoryId);
+                this.reportData.expenseByCategory = _.sortBy(this.reportData.expenseByCategory, e => e.amount);
+                this.expenseByCategoryData = _.map(this.reportData.expenseByCategory, e => Math.abs(e.amount));
+                this.expenseByCategoryLabels = _.map(this.reportData.expenseByCategory, e => e.parentFinancialCategoryName);
+                this.expenseByCategoryCatIds = _.map(this.reportData.expenseByCategory, e => e.parentFinancialCategoryId);
+                window.sessionStorage.setItem("financialReport_startDate", this.startDate.getTime().toString());
+                window.sessionStorage.setItem("financialReport_endDate", this.endDate.getTime().toString());
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve report data: " + httpResponse.data.exceptionMessage);
             });
-        };
-        FinancialReportsController.prototype.onByCategoryClickChart = function (points, event) {
+        }
+        onByCategoryClickChart(points, event) {
             if (!points || points.length === 0)
                 return;
-            var isExpenseChart = points[0]._chart.canvas.id === "expense-category-chart";
+            const isExpenseChart = points[0]._chart.canvas.id === "expense-category-chart";
             console.log("Clicked", isExpenseChart, points[0], event);
             if (isExpenseChart) {
                 console.log("Clicked on expense category: " + this.expenseByCategoryLabels[points[0]._index]);
             }
             else
                 console.log("Clicked on income category: " + this.incomeByCategoryLabels[points[0]._index]);
-        };
-        FinancialReportsController.$inject = ["$http", "SiteInfo", "appCacheService", "$location"];
-        return FinancialReportsController;
-    }());
+        }
+    }
+    FinancialReportsController.$inject = ["$http", "SiteInfo", "appCacheService", "$location"];
     Ally.FinancialReportsController = FinancialReportsController;
-    var DoughnutChartEntry = /** @class */ (function () {
-        function DoughnutChartEntry() {
-        }
-        return DoughnutChartEntry;
-    }());
-    var BalanceEntry = /** @class */ (function () {
-        function BalanceEntry() {
-        }
-        return BalanceEntry;
-    }());
-    var AccountBalanceMonth = /** @class */ (function () {
-        function AccountBalanceMonth() {
-        }
-        return AccountBalanceMonth;
-    }());
-    var FinancialReportData = /** @class */ (function () {
-        function FinancialReportData() {
-        }
-        return FinancialReportData;
-    }());
+    class DoughnutChartEntry {
+    }
+    class BalanceEntry {
+    }
+    class AccountBalanceMonth {
+    }
+    class FinancialReportData {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("financialReports", {
     templateUrl: "/ngApp/chtn/manager/financial/financial-reports.html",

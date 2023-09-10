@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the settings parent view
      */
-    var SettingsParentController = /** @class */ (function () {
+    class SettingsParentController {
         /**
         * The constructor for the class
         */
-        function SettingsParentController($http, siteInfo, $routeParams) {
+        constructor($http, siteInfo, $routeParams) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$routeParams = $routeParams;
@@ -20,11 +20,10 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        SettingsParentController.prototype.$onInit = function () {
-        };
-        SettingsParentController.$inject = ["$http", "SiteInfo", "$routeParams"];
-        return SettingsParentController;
-    }());
+        $onInit() {
+        }
+    }
+    SettingsParentController.$inject = ["$http", "SiteInfo", "$routeParams"];
     Ally.SettingsParentController = SettingsParentController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("settingsParent", {

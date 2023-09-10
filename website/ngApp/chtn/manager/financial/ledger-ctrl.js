@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the page to track group spending
      */
-    var LedgerController = /** @class */ (function () {
+    class LedgerController {
         /**
         * The constructor for the class
         */
-        function LedgerController($http, siteInfo, appCacheService, uiGridConstants, $rootScope, $timeout) {
+        constructor($http, siteInfo, appCacheService, uiGridConstants, $rootScope, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
@@ -43,18 +43,17 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        LedgerController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
-            var addAmountOverAllRows = function () {
-                var allGridRows = _this.ledgerGridApi.grid.rows;
-                var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
-                var sum = 0;
-                visibleGridRows.forEach(function (item) { return sum += (item.entity.amount || 0); });
+            const addAmountOverAllRows = () => {
+                const allGridRows = this.ledgerGridApi.grid.rows;
+                const visibleGridRows = allGridRows.filter(r => r.visible && r.entity && !isNaN(r.entity.amount));
+                let sum = 0;
+                visibleGridRows.forEach(item => sum += (item.entity.amount || 0));
                 return sum;
             };
             this.ledgerGridOptions =
@@ -86,32 +85,32 @@ var Ally;
                     enableSelectAll: true,
                     enableFullRowSelection: false,
                     enableRowHeaderSelection: true,
-                    onRegisterApi: function (gridApi) {
-                        _this.ledgerGridApi = gridApi;
+                    onRegisterApi: (gridApi) => {
+                        this.ledgerGridApi = gridApi;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
-                        gridApi.edit.on.afterCellEdit(_this.$rootScope, function (rowEntity, colDef, newValue, oldValue) {
+                        gridApi.edit.on.afterCellEdit(this.$rootScope, (rowEntity, colDef, newValue, oldValue) => {
                             console.log('edited row amount:' + rowEntity.amount + ' Column', colDef, ' newValue:' + newValue + ' oldValue:' + oldValue);
                             // Ignore no changes
                             if (oldValue === newValue)
                                 return;
-                            if (colDef.field === "categoryDisplayName" && rowEntity.financialCategoryId === _this.ManageCategoriesDropId) {
+                            if (colDef.field === "categoryDisplayName" && rowEntity.financialCategoryId === this.ManageCategoriesDropId) {
                                 rowEntity.financialCategoryId = oldValue;
-                                _this.shouldShowCategoryEditModal = true;
+                                this.shouldShowCategoryEditModal = true;
                                 return;
                             }
-                            var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === rowEntity.financialCategoryId; });
+                            const catEntry = this.flatCategoryList.find(c => c.financialCategoryId === rowEntity.financialCategoryId);
                             rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
-                            var unitEntry = _this.unitListEntries.find(function (c) { return c.unitId === rowEntity.associatedUnitId; });
+                            const unitEntry = this.unitListEntries.find(c => c.unitId === rowEntity.associatedUnitId);
                             rowEntity.unitGridLabel = unitEntry ? unitEntry.unitWithOwnerLast : null;
-                            _this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(function () { return _this.regenerateDateDonutChart(); });
+                            this.$http.put("/api/Ledger/UpdateEntry", rowEntity).then(() => this.regenerateDateDonutChart());
                             //vm.msg.lastCellEdited = 'edited row id:' + rowEntity.id + ' Column:' + colDef.name + ' newValue:' + newValue + ' oldValue:' + oldValue;
                             //$scope.$apply();
                         });
-                        gridApi.core.on.filterChanged(_this.$rootScope, function () {
-                            var hasFilter = false;
+                        gridApi.core.on.filterChanged(this.$rootScope, () => {
+                            let hasFilter = false;
                             //let s = "";
-                            for (var i = 0; i < gridApi.grid.columns.length; ++i) {
+                            for (let i = 0; i < gridApi.grid.columns.length; ++i) {
                                 if (gridApi.grid.columns[i].filters && gridApi.grid.columns[i].filters.length > 0 && gridApi.grid.columns[i].filters[0].term) {
                                     hasFilter = true;
                                     break;
@@ -119,27 +118,26 @@ var Ally;
                                 //    s += `|${gridApi.grid.columns[i].displayName}=${gridApi.grid.columns[i].filters[0].condition}`;
                             }
                             console.log("filterChanged", "hasFilter", hasFilter);
-                            var needsFilterUpdate = _this.hasActiveTxGridColFilter !== hasFilter;
-                            _this.hasActiveTxGridColFilter = hasFilter;
+                            const needsFilterUpdate = this.hasActiveTxGridColFilter !== hasFilter;
+                            this.hasActiveTxGridColFilter = hasFilter;
                             if (needsFilterUpdate)
-                                _this.updateLocalData();
+                                this.updateLocalData();
                         });
-                        var onSelectionChange = function () {
-                            _this.selectedEntries = _.clone(gridApi.selection.getSelectedRows());
-                            var hasSplitTx = false;
-                            for (var _i = 0, _a = _this.selectedEntries; _i < _a.length; _i++) {
-                                var curRow = _a[_i];
+                        const onSelectionChange = () => {
+                            this.selectedEntries = _.clone(gridApi.selection.getSelectedRows());
+                            let hasSplitTx = false;
+                            for (const curRow of this.selectedEntries) {
                                 if (curRow.isSplit) {
                                     gridApi.selection.unSelectRow(curRow);
                                     hasSplitTx = true;
                                 }
                             }
-                            _this.selectedEntries = _.clone(gridApi.selection.getSelectedRows());
+                            this.selectedEntries = _.clone(gridApi.selection.getSelectedRows());
                             if (hasSplitTx)
                                 alert("You cannot bulk recategorize split transactions. Split rows have been deslected.");
                         };
-                        gridApi.selection.on.rowSelectionChanged(_this.$rootScope, function () { return onSelectionChange(); });
-                        gridApi.selection.on.rowSelectionChangedBatch(_this.$rootScope, function () { return onSelectionChange(); });
+                        gridApi.selection.on.rowSelectionChanged(this.$rootScope, () => onSelectionChange());
+                        gridApi.selection.on.rowSelectionChangedBatch(this.$rootScope, () => onSelectionChange());
                     }
                 };
             this.pendingGridOptions =
@@ -178,17 +176,17 @@ var Ally;
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     enableColumnMenus: false
                 };
-            var preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
+            const preselectStartMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_start"));
             if (!isNaN(preselectStartMillis)) {
                 // Let the page finish loading then update the filter or else the date filter will overwrite our date
-                window.setTimeout(function () {
-                    _this.filter.startDate = new Date(preselectStartMillis);
-                    var preselectEndMillis = parseInt(_this.appCacheService.getAndClear("ledger_preselect_end"));
-                    _this.filter.endDate = new Date(preselectEndMillis);
-                    _this.preselectCategoryId = parseInt(_this.appCacheService.getAndClear("ledger_preselect_categoryId"));
-                    if (isNaN(_this.preselectCategoryId))
-                        _this.preselectCategoryId = undefined;
-                    _this.fullRefresh();
+                window.setTimeout(() => {
+                    this.filter.startDate = new Date(preselectStartMillis);
+                    const preselectEndMillis = parseInt(this.appCacheService.getAndClear("ledger_preselect_end"));
+                    this.filter.endDate = new Date(preselectEndMillis);
+                    this.preselectCategoryId = parseInt(this.appCacheService.getAndClear("ledger_preselect_categoryId"));
+                    if (isNaN(this.preselectCategoryId))
+                        this.preselectCategoryId = undefined;
+                    this.fullRefresh();
                 }, 100);
             }
             else {
@@ -196,104 +194,99 @@ var Ally;
                 this.filter.endDate = moment().toDate();
                 this.fullRefresh();
             }
-            this.$timeout(function () { return _this.loadImportHistory(); }, 1500);
-            this.$http.get("/api/Ledger/OwnerTxNote").then(function (httpResponse) { return _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote; }, function (httpResponse) { return console.log("Failed to load owner tx note: " + httpResponse.data.exceptionMessage); });
-        };
+            this.$timeout(() => this.loadImportHistory(), 1500);
+            this.$http.get("/api/Ledger/OwnerTxNote").then((httpResponse) => this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote, (httpResponse) => console.log("Failed to load owner tx note: " + httpResponse.data.exceptionMessage));
+        }
         /**
          * Load all of the data on the page
          */
-        LedgerController.prototype.fullRefresh = function () {
-            var _this = this;
+        fullRefresh() {
             this.isLoading = true;
-            var getUri = "/api/Ledger/PageInfo?startDate=" + encodeURIComponent(this.filter.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.filter.endDate.toISOString());
+            let getUri = `/api/Ledger/PageInfo?startDate=${encodeURIComponent(this.filter.startDate.toISOString())}&endDate=${encodeURIComponent(this.filter.endDate.toISOString())}`;
             if (this.filter.description.length > 3)
                 getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
-            this.$http.get(getUri).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.selectedEntries = [];
-                var pageInfo = httpResponse.data;
-                _this.ledgerAccounts = pageInfo.accounts;
-                _.forEach(_this.ledgerAccounts, function (a) { return a.shouldShowInGrid = true; });
+            this.$http.get(getUri).then((httpResponse) => {
+                this.isLoading = false;
+                this.selectedEntries = [];
+                const pageInfo = httpResponse.data;
+                this.ledgerAccounts = pageInfo.accounts;
+                _.forEach(this.ledgerAccounts, a => a.shouldShowInGrid = true);
                 // Hide the account column if there's only one account
-                var accountColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "accountName"; });
+                const accountColumn = this.ledgerGridOptions.columnDefs.find(c => c.field === "accountName");
                 if (accountColumn)
-                    accountColumn.visible = _this.ledgerAccounts.length > 1;
+                    accountColumn.visible = this.ledgerAccounts.length > 1;
                 // Add only the first account needing login for a Plaid item
-                var accountsNeedingLogin = _this.ledgerAccounts.filter(function (a) { return a.plaidNeedsRelogin; });
-                _this.accountsNeedingLogin = [];
-                var _loop_1 = function (i) {
-                    if (!_this.accountsNeedingLogin.find(function (a) { return a.plaidItemId === accountsNeedingLogin[i].plaidItemId; }))
-                        _this.accountsNeedingLogin.push(accountsNeedingLogin[i]);
-                };
-                for (var i = 0; i < accountsNeedingLogin.length; ++i) {
-                    _loop_1(i);
+                const accountsNeedingLogin = this.ledgerAccounts.filter(a => a.plaidNeedsRelogin);
+                this.accountsNeedingLogin = [];
+                for (let i = 0; i < accountsNeedingLogin.length; ++i) {
+                    if (!this.accountsNeedingLogin.find(a => a.plaidItemId === accountsNeedingLogin[i].plaidItemId))
+                        this.accountsNeedingLogin.push(accountsNeedingLogin[i]);
                 }
-                accountColumn.filter.selectOptions = _this.ledgerAccounts.map(function (a) { return { value: a.accountName, label: a.accountName }; });
-                _this.hasPlaidAccounts = _.any(_this.ledgerAccounts, function (a) { return a.syncType === 'plaid'; });
-                _this.allEntries = pageInfo.entries;
-                _this.pendingGridOptions.data = pageInfo.pendingEntries;
-                _this.flatCategoryList = [];
-                var visitNode = function (curNode, depth) {
+                accountColumn.filter.selectOptions = this.ledgerAccounts.map(a => { return { value: a.accountName, label: a.accountName }; });
+                this.hasPlaidAccounts = _.any(this.ledgerAccounts, a => a.syncType === 'plaid');
+                this.allEntries = pageInfo.entries;
+                this.pendingGridOptions.data = pageInfo.pendingEntries;
+                this.flatCategoryList = [];
+                const visitNode = (curNode, depth) => {
                     if (curNode.displayName) {
-                        var labelPrefix = "";
+                        let labelPrefix = "";
                         if (depth > 1)
                             labelPrefix = Array((depth - 2) * 4).join(String.fromCharCode(160)) + "|--";
                         curNode.dropDownLabel = labelPrefix + curNode.displayName;
-                        _this.flatCategoryList.push(curNode);
+                        this.flatCategoryList.push(curNode);
                     }
                     if (curNode.childCategories == null || curNode.childCategories.length == 0)
                         return;
-                    for (var i = 0; i < curNode.childCategories.length; ++i) {
+                    for (let i = 0; i < curNode.childCategories.length; ++i) {
                         visitNode(curNode.childCategories[i], depth + 1);
                     }
                 };
                 visitNode(pageInfo.rootFinancialCategory, 0);
-                _this.updateLocalData();
-                _this.uiGridCategoryDropDown = [];
-                _this.uiGridCategoryDropDown.push({ id: null, value: "" });
-                for (var i = 0; i < _this.flatCategoryList.length; ++i) {
-                    _this.uiGridCategoryDropDown.push({ id: _this.flatCategoryList[i].financialCategoryId, value: _this.flatCategoryList[i].dropDownLabel });
+                this.updateLocalData();
+                this.uiGridCategoryDropDown = [];
+                this.uiGridCategoryDropDown.push({ id: null, value: "" });
+                for (let i = 0; i < this.flatCategoryList.length; ++i) {
+                    this.uiGridCategoryDropDown.push({ id: this.flatCategoryList[i].financialCategoryId, value: this.flatCategoryList[i].dropDownLabel });
                 }
-                _this.uiGridCategoryDropDown.push({ id: _this.ManageCategoriesDropId, value: "Manage Categories..." });
-                var categoryColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "categoryDisplayName"; });
-                categoryColumn.editDropdownOptionsArray = _this.uiGridCategoryDropDown;
-                if (_this.preselectCategoryId) {
-                    window.setTimeout(function () {
-                        var selectedCatEntry = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === _this.preselectCategoryId; })[0];
-                        _this.preselectCategoryId = undefined;
-                        var categoryColumn = _this.ledgerGridApi.grid.columns.filter(function (c) { return c.displayName === "Category"; })[0];
+                this.uiGridCategoryDropDown.push({ id: this.ManageCategoriesDropId, value: "Manage Categories..." });
+                const categoryColumn = this.ledgerGridOptions.columnDefs.find(c => c.field === "categoryDisplayName");
+                categoryColumn.editDropdownOptionsArray = this.uiGridCategoryDropDown;
+                if (this.preselectCategoryId) {
+                    window.setTimeout(() => {
+                        const selectedCatEntry = this.flatCategoryList.filter(c => c.financialCategoryId === this.preselectCategoryId)[0];
+                        this.preselectCategoryId = undefined;
+                        const categoryColumn = this.ledgerGridApi.grid.columns.filter(c => c.displayName === "Category")[0];
                         categoryColumn.filters[0] = {
                             term: selectedCatEntry.displayName
                         };
                     }, 100);
                 }
-                _this.unitListEntries = pageInfo.unitListEntries;
+                this.unitListEntries = pageInfo.unitListEntries;
                 // Populate the object used for quick editing the home
-                var uiGridUnitDropDown = [];
+                const uiGridUnitDropDown = [];
                 uiGridUnitDropDown.push({ id: null, value: "" });
-                for (var i = 0; i < _this.unitListEntries.length; ++i)
-                    uiGridUnitDropDown.push({ id: _this.unitListEntries[i].unitId, value: _this.unitListEntries[i].unitWithOwnerLast });
-                var unitColumn = _this.ledgerGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+                for (let i = 0; i < this.unitListEntries.length; ++i)
+                    uiGridUnitDropDown.push({ id: this.unitListEntries[i].unitId, value: this.unitListEntries[i].unitWithOwnerLast });
+                const unitColumn = this.ledgerGridOptions.columnDefs.find(c => c.field === "unitGridLabel");
                 unitColumn.editDropdownOptionsArray = uiGridUnitDropDown;
-                _this.populateGridUnitLabels(_this.allEntries);
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                this.populateGridUnitLabels(this.allEntries);
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Populate the text that is shown for the unit column and split for category
          */
-        LedgerController.prototype.populateGridUnitLabels = function (entries) {
-            var _this = this;
+        populateGridUnitLabels(entries) {
             if (!entries || entries.length === 0)
                 return;
             // Populate the unit names for the grid
-            _.each(entries, function (entry) {
+            _.each(entries, (entry) => {
                 if (entry.isSplit)
                     entry.categoryDisplayName = "(split)";
                 if (entry.associatedUnitId) {
-                    var unitListEntry = _this.unitListEntries.find(function (u) { return u.unitId === entry.associatedUnitId; });
+                    const unitListEntry = this.unitListEntries.find(u => u.unitId === entry.associatedUnitId);
                     if (unitListEntry)
                         entry.unitGridLabel = unitListEntry.unitWithOwnerLast;
                     else
@@ -301,40 +294,39 @@ var Ally;
                 }
                 // Populate split entries
                 if (entry.splitEntries && entry.splitEntries.length > 0)
-                    _this.populateGridUnitLabels(entry.splitEntries);
+                    this.populateGridUnitLabels(entry.splitEntries);
             });
-        };
-        LedgerController.prototype.refreshEntries = function () {
-            var _this = this;
+        }
+        refreshEntries() {
             this.isLoadingEntries = true;
-            var getUri = "/api/Ledger/PageInfo?startDate=" + encodeURIComponent(this.filter.startDate.toISOString()) + "&endDate=" + encodeURIComponent(this.filter.endDate.toISOString());
+            let getUri = `/api/Ledger/PageInfo?startDate=${encodeURIComponent(this.filter.startDate.toISOString())}&endDate=${encodeURIComponent(this.filter.endDate.toISOString())}`;
             if (this.filter.description.length > 3)
                 getUri += "&descriptionSearch=" + encodeURIComponent(this.filter.description);
-            this.$http.get(getUri).then(function (httpResponse) {
-                _this.isLoadingEntries = false;
-                _this.allEntries = httpResponse.data.entries;
-                _this.updateLocalData();
-                _this.populateGridUnitLabels(_this.allEntries);
+            this.$http.get(getUri).then((httpResponse) => {
+                this.isLoadingEntries = false;
+                this.allEntries = httpResponse.data.entries;
+                this.updateLocalData();
+                this.populateGridUnitLabels(this.allEntries);
             });
-        };
-        LedgerController.prototype.updateLocalData = function () {
-            var enabledAccountIds = this.ledgerAccounts.filter(function (a) { return a.shouldShowInGrid; }).map(function (a) { return a.ledgerAccountId; });
-            var filteredList = this.allEntries.filter(function (e) { return enabledAccountIds.indexOf(e.ledgerAccountId) > -1; });
+        }
+        updateLocalData() {
+            const enabledAccountIds = this.ledgerAccounts.filter(a => a.shouldShowInGrid).map(a => a.ledgerAccountId);
+            let filteredList = this.allEntries.filter(e => enabledAccountIds.indexOf(e.ledgerAccountId) > -1);
             // If the user is filtering on a column, we need to break out split transactions
             if (this.hasActiveTxGridColFilter) {
                 // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
-                var newFilteredList = [];
-                for (var i = 0; i < filteredList.length; ++i) {
-                    var isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
+                const newFilteredList = [];
+                for (let i = 0; i < filteredList.length; ++i) {
+                    const isSplit = filteredList[i].isSplit && filteredList[i].splitEntries && filteredList[i].splitEntries.length > 0;
                     if (!isSplit) {
                         newFilteredList.push(filteredList[i]);
                         continue;
                     }
                     // Remove the parent entry
-                    var parentEntry = filteredList[i];
-                    for (var splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex) {
+                    const parentEntry = filteredList[i];
+                    for (let splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex) {
                         // Clone the split so we can prefix the label with split
-                        var curSplitCopy = _.clone(parentEntry.splitEntries[splitIndex]);
+                        const curSplitCopy = _.clone(parentEntry.splitEntries[splitIndex]);
                         curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
                         curSplitCopy.accountName = parentEntry.accountName; // Account name doesn't get populated for split entries so copy it
                         newFilteredList.push(curSplitCopy);
@@ -347,17 +339,16 @@ var Ally;
             this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
             this.ledgerGridOptions.virtualizationThreshold = this.ledgerGridOptions.minRowsToShow;
             this.regenerateDateDonutChart();
-        };
+        }
         /**
          * Rebuild the data needed to populate the donut chart
          */
-        LedgerController.prototype.regenerateDateDonutChart = function () {
-            var _this = this;
+        regenerateDateDonutChart() {
             this.spendingChartData = null;
             if (this.allEntries.length === 0)
                 return;
-            var getParentCategoryId = function (financialCategoryId) {
-                var cat = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === financialCategoryId; });
+            const getParentCategoryId = (financialCategoryId) => {
+                const cat = this.flatCategoryList.filter(c => c.financialCategoryId === financialCategoryId);
                 if (cat && cat.length > 0) {
                     if (!cat[0].parentFinancialCategoryId)
                         return cat[0].financialCategoryId;
@@ -365,58 +356,52 @@ var Ally;
                 }
                 return 0;
             };
-            var flattenedTransactions = [];
-            for (var i = 0; i < this.allEntries.length; ++i) {
+            const flattenedTransactions = [];
+            for (let i = 0; i < this.allEntries.length; ++i) {
                 if (this.allEntries[i].isSplit) {
-                    for (var _i = 0, _a = this.allEntries[i].splitEntries; _i < _a.length; _i++) {
-                        var e = _a[_i];
+                    for (const e of this.allEntries[i].splitEntries)
                         flattenedTransactions.push(e);
-                    }
                 }
                 else
                     flattenedTransactions.push(this.allEntries[i]);
             }
-            var entriesByParentCat = _.groupBy(flattenedTransactions, function (e) { return getParentCategoryId(e.financialCategoryId); });
-            var spendingChartEntries = [];
+            const entriesByParentCat = _.groupBy(flattenedTransactions, e => getParentCategoryId(e.financialCategoryId));
+            let spendingChartEntries = [];
             // Go through all the parent categories and sum the transactions under them
-            var parentCatIds = _.keys(entriesByParentCat);
-            var _loop_2 = function (i) {
-                var parentCategoryId = +parentCatIds[i];
-                var entries = entriesByParentCat[parentCategoryId];
-                var cats = this_1.flatCategoryList.filter(function (c) { return c.financialCategoryId === +parentCategoryId; });
-                var parentCategory = null;
+            const parentCatIds = _.keys(entriesByParentCat);
+            for (let i = 0; i < parentCatIds.length; ++i) {
+                const parentCategoryId = +parentCatIds[i];
+                const entries = entriesByParentCat[parentCategoryId];
+                const cats = this.flatCategoryList.filter(c => c.financialCategoryId === +parentCategoryId);
+                let parentCategory = null;
                 if (cats && cats.length > 0)
                     parentCategory = cats[0];
-                var sumTotal = 0;
-                for (var entryIndex = 0; entryIndex < entries.length; ++entryIndex)
+                let sumTotal = 0;
+                for (let entryIndex = 0; entryIndex < entries.length; ++entryIndex)
                     sumTotal += entries[entryIndex].amount;
-                var newEntry = {
-                    parentCategoryId: parentCategoryId,
+                const newEntry = {
+                    parentCategoryId,
                     parentCategoryDisplayName: parentCategory ? parentCategory.displayName : "Uncategorized",
                     sumTotal: Math.abs(sumTotal),
                     numLedgerEntries: entries.length
                 };
                 spendingChartEntries.push(newEntry);
-            };
-            var this_1 = this;
-            for (var i = 0; i < parentCatIds.length; ++i) {
-                _loop_2(i);
             }
-            spendingChartEntries = _.sortBy(spendingChartEntries, function (e) { return e.sumTotal; }).reverse();
+            spendingChartEntries = _.sortBy(spendingChartEntries, e => e.sumTotal).reverse();
             this.spendingChartData = [];
             this.spendingChartLabels = [];
-            for (var i = 0; i < spendingChartEntries.length; ++i) {
+            for (let i = 0; i < spendingChartEntries.length; ++i) {
                 this.spendingChartData.push(spendingChartEntries[i].sumTotal);
                 this.spendingChartLabels.push(spendingChartEntries[i].parentCategoryDisplayName);
             }
             // Force redraw
             this.showDonut = false;
-            this.$timeout(function () { return _this.showDonut = true; }, 100);
-        };
+            this.$timeout(() => this.showDonut = true, 100);
+        }
         /**
          * Occurs when the user clicks the button to add a new transaction
          */
-        LedgerController.prototype.onAddTransaction = function () {
+        onAddTransaction() {
             if (this.ledgerAccounts.length === 0) {
                 alert("Please add at least one account first");
                 return;
@@ -424,102 +409,98 @@ var Ally;
             this.editingTransaction = new LedgerEntry();
             this.editingTransaction.ledgerAccountId = this.ledgerAccounts[0].ledgerAccountId;
             this.editingTransaction.transactionDate = new Date();
-            window.setTimeout(function () { return document.getElementById("transaction-amount-input").focus(); }, 50);
-        };
-        LedgerController.prototype.completePlaidSync = function (accessToken, updatePlaidItemId, selectedAccountIds) {
-            var _this = this;
+            window.setTimeout(() => document.getElementById("transaction-amount-input").focus(), 50);
+        }
+        completePlaidSync(accessToken, updatePlaidItemId, selectedAccountIds) {
             this.isLoading = true;
             this.plaidSuccessProgressMsg = "Contacting Plaid server for selected account information";
-            var postData = {
-                accessToken: accessToken,
-                updatePlaidItemId: updatePlaidItemId,
-                selectedAccountIds: selectedAccountIds
+            const postData = {
+                accessToken,
+                updatePlaidItemId,
+                selectedAccountIds
             };
-            var postUri = updatePlaidItemId ? "/api/Plaid/UpdateAccessToken" : "/api/Plaid/ProcessNewAccessToken";
-            this.$http.post(postUri, postData).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.plaidSuccessProgressMsg = "Account information successfully retrieved";
-                _this.newPlaidAccounts = httpResponse.data;
+            const postUri = updatePlaidItemId ? "/api/Plaid/UpdateAccessToken" : "/api/Plaid/ProcessNewAccessToken";
+            this.$http.post(postUri, postData).then((httpResponse) => {
+                this.isLoading = false;
+                this.plaidSuccessProgressMsg = "Account information successfully retrieved";
+                this.newPlaidAccounts = httpResponse.data;
                 if (updatePlaidItemId)
                     window.location.reload();
-            }, function (httpResponse) {
-                _this.isLoading = false;
-                _this.plaidSuccessProgressMsg = "Failed to retrieve account information from Plaid: " + httpResponse.data.exceptionMessage;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                this.plaidSuccessProgressMsg = "Failed to retrieve account information from Plaid: " + httpResponse.data.exceptionMessage;
                 alert("Failed to link: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.showAddAccount = function () {
+        }
+        showAddAccount() {
             this.createAccountInfo = new CreateAccountInfo();
             this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-        };
-        LedgerController.prototype.updateAccountLink = function (ledgerAccount) {
+        }
+        updateAccountLink(ledgerAccount) {
             //this.createAccountInfo = new CreateAccountInfo();
             //this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-            var _this = this;
             if (!this.isPremiumPlanActive)
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId).then(function (httpResponse) {
-                _this.isLoading = false;
-                var newLinkToken = httpResponse.data;
+            this.$http.get("/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId).then((httpResponse) => {
+                this.isLoading = false;
+                const newLinkToken = httpResponse.data;
                 if (!newLinkToken) {
                     alert("Something went wrong on the server. Please contact support.");
                     return;
                 }
-                var plaidConfig = {
+                const plaidConfig = {
                     token: newLinkToken,
-                    onSuccess: function (public_token) {
+                    onSuccess: (public_token) => {
                         console.log("Plaid update onSuccess");
-                        _this.completePlaidSync(public_token, ledgerAccount.plaidItemId, null);
+                        this.completePlaidSync(public_token, ledgerAccount.plaidItemId, null);
                     },
-                    onLoad: function () { },
-                    onExit: function (err, metadata) { console.log("onExit.err", err, metadata); },
-                    onEvent: function (eventName, metadata) { console.log("onEvent.eventName", eventName, metadata); },
+                    onLoad: () => { },
+                    onExit: (err, metadata) => { console.log("onExit.err", err, metadata); },
+                    onEvent: (eventName, metadata) => { console.log("onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
                 };
-                _this.plaidHandler = Plaid.create(plaidConfig);
-                _this.plaidHandler.open();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                this.plaidHandler = Plaid.create(plaidConfig);
+                this.plaidHandler.open();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to update account link: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user wants to edit a transaction
          */
-        LedgerController.prototype.editEntry = function (entry) {
+        editEntry(entry) {
             if (entry.parentLedgerEntryId) {
-                var parentEntry = this.allEntries.find(function (e) { return e.ledgerEntryId === entry.parentLedgerEntryId; });
+                const parentEntry = this.allEntries.find(e => e.ledgerEntryId === entry.parentLedgerEntryId);
                 this.editingTransaction = _.clone(parentEntry);
             }
             else
                 this.editingTransaction = _.clone(entry);
             if (this.editingTransaction.isSplit)
                 this.onSplitAmountChange();
-        };
+        }
         /**
          * Occurs when the user wants to delete a transaction
          */
-        LedgerController.prototype.deleteEntry = function (entry) {
-            var _this = this;
+        deleteEntry(entry) {
             if (!confirm("Are you sure you want to delete this entry? Deletion is permanent."))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(function () {
-                _this.isLoading = false;
-                _this.editAccount = null;
-                _this.editingTransaction = null;
-                _this.fullRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.delete("/api/Ledger/DeleteEntry/" + entry.ledgerEntryId).then(() => {
+                this.isLoading = false;
+                this.editAccount = null;
+                this.editingTransaction = null;
+                this.fullRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user clicks the button to save transaction details
          */
-        LedgerController.prototype.onSaveEntry = function () {
-            var _this = this;
+        onSaveEntry() {
             if (!this.editingTransaction.isSplit) {
                 if (!this.editingTransaction.description) {
                     alert("Description is required");
@@ -531,7 +512,7 @@ var Ally;
                 }
             }
             else {
-                for (var i = 0; i < this.editingTransaction.splitEntries.length; ++i) {
+                for (let i = 0; i < this.editingTransaction.splitEntries.length; ++i) {
                     if (!this.editingTransaction.splitEntries[i].amount) {
                         alert("A non-zero amount is required for all split transaction entries");
                         return;
@@ -539,232 +520,222 @@ var Ally;
                 }
             }
             this.isLoading = true;
-            var onSave = function () {
-                _this.isLoading = false;
-                _this.editingTransaction = null;
-                _this.refreshEntries();
+            const onSave = () => {
+                this.isLoading = false;
+                this.editingTransaction = null;
+                this.refreshEntries();
             };
-            var onError = function (httpResponse) {
-                _this.isLoading = false;
+            const onError = (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             };
             if (this.editingTransaction.ledgerEntryId)
                 this.$http.put("/api/Ledger/UpdateEntry", this.editingTransaction).then(onSave, onError);
             else
                 this.$http.post("/api/Ledger/NewManualEntry", this.editingTransaction).then(onSave, onError);
-        };
+        }
         /**
          * Occurs when the user clicks the button to add a new account
          */
-        LedgerController.prototype.onSaveNewAccount = function () {
-            var _this = this;
+        onSaveNewAccount() {
             this.isLoading = true;
-            var onSave = function () {
-                _this.isLoading = false;
-                _this.createAccountInfo = null;
-                _this.fullRefresh();
+            const onSave = () => {
+                this.isLoading = false;
+                this.createAccountInfo = null;
+                this.fullRefresh();
             };
-            var onError = function (httpResponse) {
-                _this.isLoading = false;
+            const onError = (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             };
             this.$http.post("/api/Ledger/NewBankAccount", this.createAccountInfo).then(onSave, onError);
-        };
-        LedgerController.prototype.startPlaidFlow = function () {
-            var _this = this;
+        }
+        startPlaidFlow() {
             if (this.createAccountInfo)
                 this.createAccountInfo.type = 'plaid';
             if (!this.isPremiumPlanActive)
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Plaid/NewLinkToken").then(function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.get("/api/Plaid/NewLinkToken").then((httpResponse) => {
+                this.isLoading = false;
                 if (!httpResponse.data)
                     return;
-                var plaidConfig = {
+                const plaidConfig = {
                     token: httpResponse.data,
-                    onSuccess: function (public_token, metadata) {
+                    onSuccess: (public_token, metadata) => {
                         console.log("Plaid onSuccess", metadata);
-                        var selectedAccountIds = null;
+                        let selectedAccountIds = null;
                         if (metadata && metadata.accounts && metadata.accounts.length > 0)
-                            selectedAccountIds = metadata.accounts.map(function (a) { return a.id; });
-                        _this.completePlaidSync(public_token, null, selectedAccountIds);
+                            selectedAccountIds = metadata.accounts.map((a) => a.id);
+                        this.completePlaidSync(public_token, null, selectedAccountIds);
                     },
-                    onLoad: function () { },
-                    onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
-                    onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
+                    onLoad: () => { },
+                    onExit: (err, metadata) => { console.log("update onExit.err", err, metadata); },
+                    onEvent: (eventName, metadata) => { console.log("update onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
                 };
-                _this.plaidHandler = Plaid.create(plaidConfig);
-                _this.plaidHandler.open();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                this.plaidHandler = Plaid.create(plaidConfig);
+                this.plaidHandler.open();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to start Plaid sign-up: " + httpResponse.data.exceptionMessage);
-                _this.closeAccountAndReload();
+                this.closeAccountAndReload();
             });
-        };
-        LedgerController.prototype.openEditAccountModal = function (account) {
+        }
+        openEditAccountModal(account) {
             this.editAccount = _.clone(account);
-        };
-        LedgerController.prototype.closeAccountAndReload = function () {
+        }
+        closeAccountAndReload() {
             this.createAccountInfo = null;
             this.fullRefresh();
-        };
-        LedgerController.prototype.onEditAccount = function () {
-            var _this = this;
-            var putUri = "/api/Ledger/UpdateAccount/" + this.editAccount.ledgerAccountId + "?newName=" + encodeURIComponent(this.editAccount.accountName) + "&newType=" + encodeURIComponent(this.editAccount.accountType);
+        }
+        onEditAccount() {
+            const putUri = `/api/Ledger/UpdateAccount/${this.editAccount.ledgerAccountId}?newName=${encodeURIComponent(this.editAccount.accountName)}&newType=${encodeURIComponent(this.editAccount.accountType)}`;
             this.isLoading = true;
-            this.$http.put(putUri, null).then(function () {
-                _this.isLoading = false;
-                _this.editAccount = null;
-                _this.fullRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.put(putUri, null).then(() => {
+                this.isLoading = false;
+                this.editAccount = null;
+                this.fullRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to update: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.syncPlaidAccounts = function (shouldSyncRecent) {
-            var _this = this;
+        }
+        syncPlaidAccounts(shouldSyncRecent) {
             this.isLoading = true;
-            var getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
-            this.$http.get(getUri).then(function () {
-                _this.isLoading = false;
-                _this.refreshEntries();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            const getUri = shouldSyncRecent ? "/api/Plaid/SyncRecentTransactions" : "/api/Plaid/SyncTwoYearTransactions";
+            this.$http.get(getUri).then(() => {
+                this.isLoading = false;
+                this.refreshEntries();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to sync: " + httpResponse.data.exceptionMessage);
                 if (httpResponse.data.exceptionMessage && httpResponse.data.exceptionMessage.indexOf("login credentials") > -1)
                     window.location.reload();
             });
-        };
-        LedgerController.prototype.onFilterDescriptionChange = function () {
+        }
+        onFilterDescriptionChange() {
             if (this.filter.description.length > 2 || this.filter.description.length == 0)
                 this.refreshEntries();
-        };
-        LedgerController.prototype.onEditTransactionCategoryChange = function () {
+        }
+        onEditTransactionCategoryChange() {
             // Not used
-        };
-        LedgerController.prototype.onCategoryManagerClosed = function (didMakeChanges) {
+        }
+        onCategoryManagerClosed(didMakeChanges) {
             this.shouldShowCategoryEditModal = false;
             if (didMakeChanges)
                 this.fullRefresh();
-        };
-        LedgerController.prototype.onDeleteAccount = function () {
-            var _this = this;
+        }
+        onDeleteAccount() {
             if (!confirm("Are you sure you want to remove this account?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId).then(function () {
-                _this.isLoading = false;
-                _this.editAccount = null;
-                _this.fullRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.delete("/api/Ledger/DeleteAccount/" + this.editAccount.ledgerAccountId).then(() => {
+                this.isLoading = false;
+                this.editAccount = null;
+                this.fullRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.splitTransaction = function () {
+        }
+        splitTransaction() {
             if (!this.editingTransaction.splitEntries)
                 this.editingTransaction.splitEntries = [];
             this.editingTransaction.splitEntries.push(new LedgerEntry());
             this.editingTransaction.isSplit = true;
-        };
-        LedgerController.prototype.onSplitAmountChange = function () {
-            this.splitAmountTotal = this.editingTransaction.splitEntries.reduce(function (sum, e) { return sum + e.amount; }, 0);
-            var roundedSplit = Math.round(this.splitAmountTotal * 100);
-            var roundedTotal = Math.round(this.editingTransaction.amount * 100);
+        }
+        onSplitAmountChange() {
+            this.splitAmountTotal = this.editingTransaction.splitEntries.reduce((sum, e) => sum + e.amount, 0);
+            const roundedSplit = Math.round(this.splitAmountTotal * 100);
+            const roundedTotal = Math.round(this.editingTransaction.amount * 100);
             this.isSplitAmountEqual = roundedSplit === roundedTotal;
-        };
-        LedgerController.prototype.removeSplit = function (splitEntry) {
+        }
+        removeSplit(splitEntry) {
             this.editingTransaction.splitEntries.splice(this.editingTransaction.splitEntries.indexOf(splitEntry), 1);
             this.onSplitAmountChange();
-        };
-        LedgerController.prototype.openImportFilePicker = function () {
+        }
+        openImportFilePicker() {
             document.getElementById('importTransactionFileInput').click();
-        };
-        LedgerController.prototype.openImportModal = function () {
+        }
+        openImportModal() {
             this.shouldShowImportModal = true;
             this.previewImportGridOptions.data = null;
-        };
-        LedgerController.prototype.onImportFileSelected = function (event) {
-            var _this = this;
-            var importTransactionsFile = event.target.files[0];
+        }
+        onImportFileSelected(event) {
+            const importTransactionsFile = event.target.files[0];
             if (!importTransactionsFile)
                 return;
             this.isLoading = true;
             this.importTxNotes = "";
-            var formData = new FormData();
+            const formData = new FormData();
             formData.append("importFile", importTransactionsFile);
-            var postHeaders = {
+            const postHeaders = {
                 headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
             };
-            var fileElem = document.getElementById("importTransactionFileInput");
-            this.$http.post("/api/Ledger/PreviewImport", formData, postHeaders).then(function (httpResponse) {
-                _this.isLoading = false;
+            const fileElem = document.getElementById("importTransactionFileInput");
+            this.$http.post("/api/Ledger/PreviewImport", formData, postHeaders).then((httpResponse) => {
+                this.isLoading = false;
                 // Clear the value so the user can re-select the same file and trigger this handler
                 fileElem.value = "";
-                _this.previewImportGridOptions.data = httpResponse.data;
-                var _loop_3 = function (i) {
-                    var curEntry = _this.previewImportGridOptions.data[i];
+                this.previewImportGridOptions.data = httpResponse.data;
+                for (let i = 0; i < this.previewImportGridOptions.data.length; ++i) {
+                    const curEntry = this.previewImportGridOptions.data[i];
                     curEntry.ledgerEntryId = i;
-                    var unit = _this.unitListEntries.find(function (u) { return u.unitId === curEntry.associatedUnitId; });
+                    const unit = this.unitListEntries.find(u => u.unitId === curEntry.associatedUnitId);
                     if (unit)
                         curEntry.unitGridLabel = unit.unitWithOwnerLast;
-                    var catEntry = _this.flatCategoryList.find(function (c) { return c.financialCategoryId === curEntry.financialCategoryId; });
+                    const catEntry = this.flatCategoryList.find(c => c.financialCategoryId === curEntry.financialCategoryId);
                     curEntry.categoryDisplayName = catEntry ? catEntry.displayName : null;
-                };
-                for (var i = 0; i < _this.previewImportGridOptions.data.length; ++i) {
-                    _loop_3(i);
                 }
-                _this.previewImportGridOptions.minRowsToShow = httpResponse.data.length;
-                _this.previewImportGridOptions.virtualizationThreshold = _this.previewImportGridOptions.minRowsToShow;
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                this.previewImportGridOptions.minRowsToShow = httpResponse.data.length;
+                this.previewImportGridOptions.virtualizationThreshold = this.previewImportGridOptions.minRowsToShow;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 // Clear the value so the user can re-select the same file and trigger this handler
                 fileElem.value = "";
                 alert("Failed to upload document: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.selectManualAccount = function () {
+        }
+        selectManualAccount() {
             this.createAccountInfo.type = "manual";
-            setTimeout(function () { return document.getElementById("new-account-name-field").focus(); }, 100);
-        };
+            setTimeout(() => document.getElementById("new-account-name-field").focus(), 100);
+        }
         /** Bulk import transactions */
-        LedgerController.prototype.importPreviewTransactions = function () {
-            var _this = this;
+        importPreviewTransactions() {
             if (!this.bulkImportAccountId) {
                 alert("Please select the account into which these transactions will be imported using the drop-down above the grid.");
                 return;
             }
             this.isLoading = true;
-            var entries = this.previewImportGridOptions.data;
-            for (var i = 0; i < entries.length; ++i)
+            const entries = this.previewImportGridOptions.data;
+            for (let i = 0; i < entries.length; ++i)
                 entries[i].ledgerAccountId = this.bulkImportAccountId;
-            var postTx = {
+            const postTx = {
                 notes: this.importTxNotes,
                 entries: this.previewImportGridOptions.data
             };
-            this.$http.post("/api/Ledger/BulkImport", postTx).then(function () {
-                _this.previewImportGridOptions.data = null;
-                _this.shouldShowImportModal = false;
-                _this.isLoading = false;
-                _this.refreshEntries();
-                _this.$timeout(function () { return _this.loadImportHistory(); }, 1000);
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.post("/api/Ledger/BulkImport", postTx).then(() => {
+                this.previewImportGridOptions.data = null;
+                this.shouldShowImportModal = false;
+                this.isLoading = false;
+                this.refreshEntries();
+                this.$timeout(() => this.loadImportHistory(), 1000);
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to import: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.removeImportRow = function (entry) {
+        }
+        removeImportRow(entry) {
             // For import rows, the row index is stored in ledgerEntryId
-            var importEntries = this.previewImportGridOptions.data;
+            const importEntries = this.previewImportGridOptions.data;
             importEntries.splice(entry.ledgerEntryId, 1);
-            for (var i = 0; i < importEntries.length; ++i)
+            for (let i = 0; i < importEntries.length; ++i)
                 importEntries[i].ledgerEntryId = i;
-        };
+        }
         /** Export the transactions list as a CSV */
-        LedgerController.prototype.exportTransactionsCsv = function () {
-            var csvColumns = [
+        exportTransactionsCsv() {
+            const csvColumns = [
                 {
                     headerText: "Date",
                     fieldName: "transactionDate",
@@ -795,133 +766,94 @@ var Ally;
                     fieldName: "accountName"
                 }
             ];
-            var csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
+            const csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
-        };
+        }
         /** Occurs when the user changes the setting to share transactions with owners */
-        LedgerController.prototype.onShowOwnerTxnsChange = function () {
-            var _this = this;
+        onShowOwnerTxnsChange() {
             this.isLoading = true;
-            var putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
-            this.$http.put(putUri, null).then(function () {
-                _this.isLoading = false;
-                _this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = _this.shouldShowOwnerFinanceTxn;
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            const putUri = "/api/Ledger/SetOwnerTxnViewing?shouldAllow=" + this.shouldShowOwnerFinanceTxn;
+            this.$http.put(putUri, null).then(() => {
+                this.isLoading = false;
+                this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = this.shouldShowOwnerFinanceTxn;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /** Retrieve the financial transaction import history */
-        LedgerController.prototype.loadImportHistory = function () {
-            var _this = this;
-            this.$http.get("/api/Ledger/TxImportHistory").then(function (httpResponse) {
-                _this.importHistoryEntries = httpResponse.data;
-            }, function (httpResponse) {
+        loadImportHistory() {
+            this.$http.get("/api/Ledger/TxImportHistory").then((httpResponse) => {
+                this.importHistoryEntries = httpResponse.data;
+            }, (httpResponse) => {
                 console.log("Failed to retrieve tx history: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.saveOwnerTxNote = function () {
-            var _this = this;
-            var putData = {
+        }
+        saveOwnerTxNote() {
+            const putData = {
                 ownerFinanceTxNote: this.ownerFinanceTxNote
             };
             this.isLoading = true;
-            this.$http.put("/api/Ledger/OwnerTxNote", putData).then(function () {
-                _this.isLoading = false;
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.put("/api/Ledger/OwnerTxNote", putData).then(() => {
+                this.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save note: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.prototype.bulkRecategorize = function () {
-            var _this = this;
+        }
+        bulkRecategorize() {
             if (this.selectedEntries.length === 0)
                 return;
-            var putInfo = {
-                entryIds: this.selectedEntries.map(function (e) { return e.ledgerEntryId; }),
+            const putInfo = {
+                entryIds: this.selectedEntries.map(e => e.ledgerEntryId),
                 financialCategoryId: this.bulkRecategorizeCategoryId
             };
             //console.log( `Setting ${putInfo.entryIds.join( ',' )} to category ${this.bulkRecategorizeCategoryId}` );
             this.isLoading = true;
-            this.$http.put("/api/Ledger/BulkRecategorize", putInfo).then(function () {
-                _this.isLoading = false;
-                _this.fullRefresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.put("/api/Ledger/BulkRecategorize", putInfo).then(() => {
+                this.isLoading = false;
+                this.fullRefresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to update: " + httpResponse.data.exceptionMessage);
             });
-        };
-        LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
-        return LedgerController;
-    }());
+        }
+    }
+    LedgerController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$rootScope", "$timeout"];
     Ally.LedgerController = LedgerController;
-    var BulkRecategorizeInfo = /** @class */ (function () {
-        function BulkRecategorizeInfo() {
-        }
-        return BulkRecategorizeInfo;
-    }());
-    var CategoryDropDownOption = /** @class */ (function () {
-        function CategoryDropDownOption() {
-        }
-        return CategoryDropDownOption;
-    }());
-    var UiGridRow = /** @class */ (function () {
-        function UiGridRow() {
-        }
-        return UiGridRow;
-    }());
+    class BulkRecategorizeInfo {
+    }
+    class CategoryDropDownOption {
+    }
+    class UiGridRow {
+    }
     Ally.UiGridRow = UiGridRow;
-    var CreateAccountInfo = /** @class */ (function () {
-        function CreateAccountInfo() {
-        }
-        return CreateAccountInfo;
-    }());
-    var SpendingChartEntry = /** @class */ (function () {
-        function SpendingChartEntry() {
-        }
-        return SpendingChartEntry;
-    }());
-    var LedgerAccount = /** @class */ (function () {
-        function LedgerAccount() {
-        }
-        return LedgerAccount;
-    }());
-    var LedgerEntry = /** @class */ (function () {
-        function LedgerEntry() {
-        }
-        return LedgerEntry;
-    }());
+    class CreateAccountInfo {
+    }
+    class SpendingChartEntry {
+    }
+    class LedgerAccount {
+    }
+    class LedgerEntry {
+    }
     Ally.LedgerEntry = LedgerEntry;
-    var LedgerPageInfo = /** @class */ (function () {
-        function LedgerPageInfo() {
-        }
-        return LedgerPageInfo;
-    }());
-    var BasicUnitListEntry = /** @class */ (function () {
-        function BasicUnitListEntry() {
-        }
-        return BasicUnitListEntry;
-    }());
-    var FilterCriteria = /** @class */ (function () {
-        function FilterCriteria() {
+    class LedgerPageInfo {
+    }
+    class BasicUnitListEntry {
+    }
+    class FilterCriteria {
+        constructor() {
             this.description = "";
             this.startDate = new Date();
             this.endDate = new Date();
             this.category = "";
         }
-        return FilterCriteria;
-    }());
-    var FinancialCategory = /** @class */ (function () {
-        function FinancialCategory() {
-        }
-        return FinancialCategory;
-    }());
+    }
+    class FinancialCategory {
+    }
     Ally.FinancialCategory = FinancialCategory;
-    var FinancialTxImportHistoryEntry = /** @class */ (function () {
-        function FinancialTxImportHistoryEntry() {
-        }
-        return FinancialTxImportHistoryEntry;
-    }());
+    class FinancialTxImportHistoryEntry {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("ledger", {
     templateUrl: "/ngApp/chtn/manager/financial/ledger.html",

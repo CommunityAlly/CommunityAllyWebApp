@@ -3,19 +3,16 @@ var Ally;
     /**
      * Represents a column in a CSV spreadsheet
      */
-    var CsvColumnDescriptor = /** @class */ (function () {
-        function CsvColumnDescriptor() {
-        }
-        return CsvColumnDescriptor;
-    }());
+    class CsvColumnDescriptor {
+    }
     Ally.CsvColumnDescriptor = CsvColumnDescriptor;
     function ValueToCsvValue(valueObj) {
         if (!valueObj)
             return "";
-        var value = valueObj.toString();
+        let value = valueObj.toString();
         if (HtmlUtil.isNullOrWhitespace(value))
             return "";
-        var needsEscaping = value.indexOf('"') !== -1
+        const needsEscaping = value.indexOf('"') !== -1
             || value.indexOf(',') !== -1
             || value.indexOf('\r') !== -1
             || value.indexOf('\n') !== -1;
@@ -31,12 +28,11 @@ var Ally;
     /**
      * Generate a CSV for client-side download
      */
-    function createCsvString(itemArray, descriptorArray, includeHeader) {
-        if (includeHeader === void 0) { includeHeader = true; }
-        var csvText = "";
+    function createCsvString(itemArray, descriptorArray, includeHeader = true) {
+        let csvText = "";
         // Write the header
         if (includeHeader) {
-            for (var i = 0; i < descriptorArray.length; ++i) {
+            for (let i = 0; i < descriptorArray.length; ++i) {
                 if (i > 0)
                     csvText += ",";
                 csvText += ValueToCsvValue(descriptorArray[i].headerText);
@@ -44,13 +40,13 @@ var Ally;
             csvText += "\n";
         }
         // Write the rows
-        for (var rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
-            var curRow = itemArray[rowIndex];
-            for (var columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex) {
+        for (let rowIndex = 0; rowIndex < itemArray.length; ++rowIndex) {
+            const curRow = itemArray[rowIndex];
+            for (let columnIndex = 0; columnIndex < descriptorArray.length; ++columnIndex) {
                 if (columnIndex > 0)
                     csvText += ",";
-                var curColumn = descriptorArray[columnIndex];
-                var columnValue = curRow[curColumn.fieldName];
+                const curColumn = descriptorArray[columnIndex];
+                let columnValue = curRow[curColumn.fieldName];
                 if (curColumn.dataMapper)
                     columnValue = curColumn.dataMapper(columnValue);
                 csvText += ValueToCsvValue(columnValue);

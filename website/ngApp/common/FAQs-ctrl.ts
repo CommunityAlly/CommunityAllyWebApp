@@ -1,9 +1,4 @@
-﻿/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../Services/html-util.ts" />
-
-
-
-namespace Ally
+﻿namespace Ally
 {
     export class InfoItem
     {

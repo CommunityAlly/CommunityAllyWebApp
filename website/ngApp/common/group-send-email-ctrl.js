@@ -1,24 +1,20 @@
 var Ally;
 (function (Ally) {
-    var SendEmailRecpientEntry = /** @class */ (function () {
-        function SendEmailRecpientEntry() {
-        }
-        return SendEmailRecpientEntry;
-    }());
-    var HomeEmailMessage = /** @class */ (function () {
-        function HomeEmailMessage() {
+    class SendEmailRecpientEntry {
+    }
+    class HomeEmailMessage {
+        constructor() {
             this.recipientType = "board";
         }
-        return HomeEmailMessage;
-    }());
+    }
     /**
      * The controller for the widget that lets members send emails to the group
      */
-    var GroupSendEmailController = /** @class */ (function () {
+    class GroupSendEmailController {
         /**
          * The constructor for the class
          */
-        function GroupSendEmailController($http, fellowResidents, $rootScope, siteInfo, $scope) {
+        constructor($http, fellowResidents, $rootScope, siteInfo, $scope) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$rootScope = $rootScope;
@@ -39,8 +35,7 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        GroupSendEmailController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.messageObject = new HomeEmailMessage();
             this.showSendEmail = true;
@@ -52,7 +47,7 @@ var Ally;
                 this.loadGroupEmails();
                 // Handle the global message that tells this component to prepare a draft of a message
                 // to inquire about assessment inaccuracies
-                this.$scope.$on("prepAssessmentEmailToBoard", function (event, data) { return _this.prepBadAssessmentEmailForBoard(data); });
+                this.$scope.$on("prepAssessmentEmailToBoard", (event, data) => this.prepBadAssessmentEmailForBoard(data));
                 if (AppConfig.appShortName === "pta") {
                     this.defaultSubject = "A message from a PTA member";
                     this.memberLabel = "member";
@@ -62,30 +57,29 @@ var Ally;
                     this.defaultSubject = "A message from your neighbor";
             }
             this.messageObject.subject = this.defaultSubject;
-        };
+        }
         /**
          * Populate the group email options
          */
-        GroupSendEmailController.prototype.loadGroupEmails = function () {
-            var _this = this;
+        loadGroupEmails() {
             this.isLoadingEmail = true;
-            this.fellowResidents.getGroupEmailObject().then(function (emailList) {
-                _this.isLoadingEmail = false;
-                _this.availableEmailGroups = emailList.filter(function (e) { return e.recipientType !== "Treasurer"; }); // No need to show treasurer in this list since it's a single person
-                if (_this.availableEmailGroups.length > 0) {
-                    _this.defaultMessageRecipient = _this.availableEmailGroups[0];
-                    _this.selectedRecipient = _this.availableEmailGroups[0];
-                    _this.onSelectEmailGroup();
+            this.fellowResidents.getGroupEmailObject().then((emailList) => {
+                this.isLoadingEmail = false;
+                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer"); // No need to show treasurer in this list since it's a single person
+                if (this.availableEmailGroups.length > 0) {
+                    this.defaultMessageRecipient = this.availableEmailGroups[0];
+                    this.selectedRecipient = this.availableEmailGroups[0];
+                    this.onSelectEmailGroup();
                 }
             });
-        };
+        }
         /**
          * Setup an email to be sent to the board for assessment issues
          */
-        GroupSendEmailController.prototype.prepBadAssessmentEmailForBoard = function (emitEventData) {
-            var emitDataParts = emitEventData.split("|");
-            var assessmentAmount = emitDataParts[0];
-            var nextPaymentText = null;
+        prepBadAssessmentEmailForBoard(emitEventData) {
+            const emitDataParts = emitEventData.split("|");
+            const assessmentAmount = emitDataParts[0];
+            let nextPaymentText = null;
             if (emitDataParts.length > 1)
                 nextPaymentText = emitDataParts[1];
             // Create a message to the board
@@ -96,12 +90,11 @@ var Ally;
             else
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $INSERT_PROPER_AMOUNT_HERE. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
-        };
+        }
         /**
          * Occurs when the user presses the button to send an email to members of the building
          */
-        GroupSendEmailController.prototype.onSendEmail = function () {
-            var _this = this;
+        onSendEmail() {
             $("#message-form").validate();
             if (!$("#message-form").valid())
                 return;
@@ -111,59 +104,58 @@ var Ally;
             analytics.track("sendEmail", {
                 recipientId: this.messageObject.recipientType
             });
-            this.$http.post("/api/Email/v2", this.messageObject).then(function () {
-                _this.$rootScope.dontHandle403 = false;
-                _this.isLoadingEmail = false;
-                _this.messageObject = new HomeEmailMessage();
-                _this.selectedRecipient = _this.defaultMessageRecipient;
-                _this.messageObject.recipientType = _this.defaultMessageRecipient.recipientType;
-                _this.messageObject.subject = _this.defaultSubject;
-                _this.onSelectEmailGroup();
-                if (_this.committee)
-                    _this.messageObject.committeeId = _this.committee.committeeId;
-                _this.showSendConfirmation = true;
-                _this.showSendEmail = false;
-            }, function (httpResponse) {
-                _this.isLoadingEmail = false;
-                _this.$rootScope.dontHandle403 = false;
+            this.$http.post("/api/Email/v2", this.messageObject).then(() => {
+                this.$rootScope.dontHandle403 = false;
+                this.isLoadingEmail = false;
+                this.messageObject = new HomeEmailMessage();
+                this.selectedRecipient = this.defaultMessageRecipient;
+                this.messageObject.recipientType = this.defaultMessageRecipient.recipientType;
+                this.messageObject.subject = this.defaultSubject;
+                this.onSelectEmailGroup();
+                if (this.committee)
+                    this.messageObject.committeeId = this.committee.committeeId;
+                this.showSendConfirmation = true;
+                this.showSendEmail = false;
+            }, (httpResponse) => {
+                this.isLoadingEmail = false;
+                this.$rootScope.dontHandle403 = false;
                 if (httpResponse.status === 403) {
-                    _this.showEmailForbidden = true;
+                    this.showEmailForbidden = true;
                 }
                 else
                     alert("Unable to send email: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user selects an email group from the drop-down
          */
-        GroupSendEmailController.prototype.onSelectEmailGroup = function () {
+        onSelectEmailGroup() {
             if (!this.selectedRecipient)
                 return;
             this.messageObject.recipientType = this.selectedRecipient.recipientType;
-            var isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === Ally.FellowResidentsService.CustomRecipientType;
+            const isCustomRecipientGroup = this.messageObject.recipientType.toUpperCase() === Ally.FellowResidentsService.CustomRecipientType;
             this.messageObject.customRecipientShortName = isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : null;
             this.groupEmailAddress = (isCustomRecipientGroup ? this.selectedRecipient.recipientTypeName : this.selectedRecipient.recipientType) + "." + this.siteInfo.publicSiteInfo.shortName + "@inmail." + AppConfig.baseTld;
             // No need to show this right now as the showRestrictedGroupWarning is more clear
             this.showDiscussionEveryoneWarning = false; // this.messageObject.recipientType === "Everyone";
-            var isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
+            const isSendingToOwners = this.messageObject.recipientType.toLowerCase().indexOf("owners") !== -1;
             if (!this.showDiscussionEveryoneWarning
                 && isSendingToOwners
                 && this.siteInfo.privateSiteInfo.numUnits > 30)
                 this.showDiscussionLargeWarning = true;
             else
                 this.showDiscussionLargeWarning = false;
-            var isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf("discussion") !== -1;
-            var isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
-            var isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
+            const isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf("discussion") !== -1;
+            const isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
+            const isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
             this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
-        };
-        GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
-        return GroupSendEmailController;
-    }());
+        }
+    }
+    GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
     Ally.GroupSendEmailController = GroupSendEmailController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupSendEmail", {

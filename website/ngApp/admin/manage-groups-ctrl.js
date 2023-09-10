@@ -1,23 +1,17 @@
 var Ally;
 (function (Ally) {
-    var GroupEntry = /** @class */ (function () {
-        function GroupEntry() {
-        }
-        return GroupEntry;
-    }());
-    var FoundGroup = /** @class */ (function () {
-        function FoundGroup() {
-        }
-        return FoundGroup;
-    }());
+    class GroupEntry {
+    }
+    class FoundGroup {
+    }
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
-    var ManageGroupsController = /** @class */ (function () {
+    class ManageGroupsController {
         /**
         * The constructor for the class
         */
-        function ManageGroupsController($http, siteInfo, $timeout) {
+        constructor($http, siteInfo, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
@@ -33,13 +27,12 @@ var Ally;
              * Retrieve the active group list
              */
             this.retrieveGroups = function () {
-                var _this = this;
                 this.isLoading = true;
-                this.$http.get("/api/Association/AdminList").then(function (response) {
-                    _this.isLoading = false;
-                    _this.groups = response.data;
+                this.$http.get("/api/Association/AdminList").then((response) => {
+                    this.isLoading = false;
+                    this.groups = response.data;
                     // Add the app type string
-                    _.each(_this.groups, function (g) {
+                    _.each(this.groups, function (g) {
                         if (g.appName === 0) {
                             g.appNameString = "Condo";
                             g.baseUrl = "https://" + g.shortName + ".CondoAlly.com/";
@@ -69,8 +62,8 @@ var Ally;
                             g.baseUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
                         }
                     });
-                }, function () {
-                    _this.isLoading = false;
+                }, () => {
+                    this.isLoading = false;
                     alert("Failed to retrieve groups");
                 });
             };
@@ -78,8 +71,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ManageGroupsController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
             this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
@@ -100,13 +92,12 @@ var Ally;
                 paymentMethodId: "",
                 status: "Complete"
             };
-            this.$timeout(function () { return _this.loadAllyAppSettings(); }, 100);
-        };
+            this.$timeout(() => this.loadAllyAppSettings(), 100);
+        }
         /**
          * Change a group's short name
          */
-        ManageGroupsController.prototype.changeShortName = function () {
-            var _this = this;
+        changeShortName() {
             this.changeShortNameResult = null;
             // Make sure the new short name is only letters and numbers and lower case
             if (/[^a-zA-Z0-9]/.test(this.changeShortNameData.newShortName)) {
@@ -122,299 +113,274 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then(function (response) {
-                _this.isLoading = false;
-                _this.changeShortNameResult = "Successfully changed";
-            }, function (response) {
-                _this.isLoading = false;
-                _this.changeShortNameResult = "Failed to change: " + response.data.exceptionMessage;
+            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then((response) => {
+                this.isLoading = false;
+                this.changeShortNameResult = "Successfully changed";
+            }, (response) => {
+                this.isLoading = false;
+                this.changeShortNameResult = "Failed to change: " + response.data.exceptionMessage;
             });
-        };
+        }
         /**
          * Find the groups to which a user, via email address, belongs
          */
-        ManageGroupsController.prototype.findAssociationsForUser = function () {
-            var _this = this;
+        findAssociationsForUser() {
             this.isLoading = true;
-            this.$http.get("/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail).then(function (response) {
-                _this.isLoading = false;
-                _this.foundUserAssociations = response.data;
-                _.forEach(_this.foundUserAssociations, function (g) {
-                    g.viewUrl = "https://" + g.shortName + ".condoally.com/";
+            this.$http.get("/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail).then((response) => {
+                this.isLoading = false;
+                this.foundUserAssociations = response.data;
+                _.forEach(this.foundUserAssociations, g => {
+                    g.viewUrl = `https://${g.shortName}.condoally.com/`;
                     if (g.appName === 2)
-                        g.viewUrl = "https://" + g.shortName + ".homeally.org/";
+                        g.viewUrl = `https://${g.shortName}.homeally.org/`;
                     else if (g.appName === 3)
-                        g.viewUrl = "https://" + g.shortName + ".hoaally.org/";
+                        g.viewUrl = `https://${g.shortName}.hoaally.org/`;
                     else if (g.appName === 4)
-                        g.viewUrl = "https://" + g.shortName + ".NeighborhoodAlly.org/";
+                        g.viewUrl = `https://${g.shortName}.NeighborhoodAlly.org/`;
                     else if (g.appName === 6)
-                        g.viewUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
+                        g.viewUrl = `https://${g.shortName}.BlockClubAlly.org/`;
                     else
                         console.log("Unknown appName value: " + g.appName);
                 });
-            }, function () {
-                _this.isLoading = false;
+            }, () => {
+                this.isLoading = false;
                 alert("Failed to find associations for user");
             });
-        };
+        }
         /**
          * Delete a CHTN group
          */
-        ManageGroupsController.prototype.deleteAssociation = function (association) {
-            var _this = this;
+        deleteAssociation(association) {
             if (!confirm("Are you sure you want to delete this association?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/Association/chtn/" + association.groupId).then(function () {
-                _this.isLoading = false;
-                _this.retrieveGroups();
-            }, function (error) {
-                _this.isLoading = false;
+            this.$http.delete("/api/Association/chtn/" + association.groupId).then(() => {
+                this.isLoading = false;
+                this.retrieveGroups();
+            }, (error) => {
+                this.isLoading = false;
                 console.log(error.data.exceptionMessage);
                 alert("Failed to delete group: " + error.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Add an address to full address
          */
-        ManageGroupsController.prototype.addAddress = function () {
-            var _this = this;
+        addAddress() {
             this.newAddressId = null;
             this.isLoading = true;
-            this.$http.post("/api/AdminHelper/AddAddress?address=" + encodeURIComponent(this.newAddress), null).then(function (response) {
-                _this.isLoading = false;
-                _this.newAddressId = response.data.newAddressId;
-            }, function (response) {
-                _this.isLoading = false;
+            this.$http.post("/api/AdminHelper/AddAddress?address=" + encodeURIComponent(this.newAddress), null).then((response) => {
+                this.isLoading = false;
+                this.newAddressId = response.data.newAddressId;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to add address: " + response.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Occurs when the user presses the button to create a new association
          */
-        ManageGroupsController.prototype.onCreateAssociationClick = function () {
-            var _this = this;
+        onCreateAssociationClick() {
             this.isLoading = true;
-            this.$http.post("/api/Association", this.newAssociation).then(function () {
-                _this.isLoading = false;
-                _this.newAssociation = new GroupEntry();
-                _this.retrieveGroups();
+            this.$http.post("/api/Association", this.newAssociation).then(() => {
+                this.isLoading = false;
+                this.newAssociation = new GroupEntry();
+                this.retrieveGroups();
             });
-        };
-        ManageGroupsController.prototype.onSendTestEmail = function () {
-            this.makeHelperRequest("/api/AdminHelper/SendTestEmail?testEmailRecipient=" + encodeURIComponent(this.testEmailRecipient) + "&sendFromInmail=" + (this.sendTestFromInmail ? 'true' : 'false'));
-        };
-        ManageGroupsController.prototype.onSendTaylorTestEmail = function () {
+        }
+        onSendTestEmail() {
+            this.makeHelperRequest(`/api/AdminHelper/SendTestEmail?testEmailRecipient=${encodeURIComponent(this.testEmailRecipient)}&sendFromInmail=${this.sendTestFromInmail ? 'true' : 'false'}`);
+        }
+        onSendTaylorTestEmail() {
             this.makeHelperRequest("/api/AdminHelper/SendFromTaylorEmail?testEmailRecipient=" + encodeURIComponent(this.testTaylorEmailRecipient));
-        };
-        ManageGroupsController.prototype.onSendTaylorBulkUpdateEmail = function () {
+        }
+        onSendTaylorBulkUpdateEmail() {
             if (!confirm("Are you sure you want to SEND TO EVERYONE?!?!"))
                 return;
             this.makeHelperRequest("/api/AdminHelper/SendBulkTaylorEmail3");
-        };
-        ManageGroupsController.prototype.onSendTestPostmarkEmail = function () {
-            var _this = this;
+        }
+        onSendTestPostmarkEmail() {
             this.isLoading = true;
-            this.$http.get("/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail).then(function () {
-                _this.isLoading = false;
+            this.$http.get("/api/AdminHelper/SendTestPostmarkEmail?email=" + this.testPostmarkEmail).then(() => {
+                this.isLoading = false;
                 alert("Successfully sent email");
-            }, function () {
-                _this.isLoading = false;
+            }, () => {
+                this.isLoading = false;
                 alert("Failed to send email");
             });
-        };
-        ManageGroupsController.prototype.onSendTestCalendarEmail = function () {
-            var _this = this;
+        }
+        onSendTestCalendarEmail() {
             this.isLoading = true;
-            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").then(function () {
-                _this.isLoading = false;
+            this.$http.get("/api/AdminHelper/SendTestCalendarEmail").then(() => {
+                this.isLoading = false;
                 alert("Successfully sent email");
-            }, function () {
-                _this.isLoading = false;
+            }, () => {
+                this.isLoading = false;
                 alert("Failed to send email");
             });
-        };
-        ManageGroupsController.prototype.onSendNoReplyEmail = function () {
-            var _this = this;
+        }
+        onSendNoReplyEmail() {
             this.isLoading = true;
-            this.$http.post("/api/AdminHelper/SendNoReplyPostmarkEmail", this.noReplyEmailInfo).then(function () {
-                _this.isLoading = false;
+            this.$http.post("/api/AdminHelper/SendNoReplyPostmarkEmail", this.noReplyEmailInfo).then(() => {
+                this.isLoading = false;
                 alert("Successfully sent email");
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to send email: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.makeHelperRequest = function (apiPath, postData) {
-            var _this = this;
-            if (postData === void 0) { postData = null; }
+        }
+        makeHelperRequest(apiPath, postData = null) {
             this.isLoadingHelper = true;
-            var request;
+            let request;
             if (postData)
                 request = this.$http.post(apiPath, postData);
             else
                 request = this.$http.get(apiPath);
-            request.then(function () { return _this.isLoadingHelper = false; }, function (response) {
-                _this.isLoadingHelper = false;
-                var msg = response.data ? response.data.exceptionMessage : "";
+            request.then(() => this.isLoadingHelper = false, (response) => {
+                this.isLoadingHelper = false;
+                const msg = response.data ? response.data.exceptionMessage : "";
                 alert("Failed: " + msg);
             });
-        };
-        ManageGroupsController.prototype.onTestException = function () {
+        }
+        onTestException() {
             this.makeHelperRequest("/api/AdminHelper/TestException");
-        };
-        ManageGroupsController.prototype.onClearElmahLogs = function () {
+        }
+        onClearElmahLogs() {
             this.makeHelperRequest("/api/AdminHelper/ClearElmah");
-        };
-        ManageGroupsController.prototype.onClearCurrentAppGroupCache = function () {
+        }
+        onClearCurrentAppGroupCache() {
             this.makeHelperRequest("/api/AdminHelper/ClearCurrentGroupFromCache");
-        };
-        ManageGroupsController.prototype.onClearEntireAppGroupCache = function () {
+        }
+        onClearEntireAppGroupCache() {
             this.makeHelperRequest("/api/AdminHelper/ClearGroupCache");
-        };
-        ManageGroupsController.prototype.onSendInactiveGroupsMail = function () {
-            var postData = {
+        }
+        onSendInactiveGroupsMail() {
+            const postData = {
                 shortNameLines: this.inactiveShortNames
             };
             this.makeHelperRequest("/api/AdminHelper/SendInactiveGroupsMail", postData);
-        };
-        ManageGroupsController.prototype.logInAs = function () {
-            var _this = this;
+        }
+        logInAs() {
             this.isLoading = true;
-            this.$http.get("/api/AdminHelper/LogInAs?email=" + this.logInAsEmail).then(function (response) {
-                _this.siteInfo.setAuthToken(response.data);
+            this.$http.get("/api/AdminHelper/LogInAs?email=" + this.logInAsEmail).then((response) => {
+                this.siteInfo.setAuthToken(response.data);
                 window.location.href = "/#!/Home";
                 window.location.reload();
-            }, function (response) {
+            }, (response) => {
                 alert("Failed to perform login: " + response.data.exceptionMessage);
-            }).finally(function () { return _this.isLoading = false; });
-        };
-        ManageGroupsController.prototype.populateEmptyDocumentUsage = function () {
-            var _this = this;
+            }).finally(() => this.isLoading = false);
+        }
+        populateEmptyDocumentUsage() {
             this.isLoading = true;
-            var getUri = "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10";
+            let getUri = "/api/AdminHelper/FillInMissingDocumentUsage?numGroups=10";
             if (this.populateDocUsageGroupId)
                 getUri += "&groupId=" + this.populateDocUsageGroupId;
-            this.$http.get(getUri).then(function (response) {
-                _this.isLoading = false;
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
                 alert("Succeeded: " + response.data);
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.refreshCurGroupDocumentUsage = function () {
-            var _this = this;
+        }
+        refreshCurGroupDocumentUsage() {
             this.isLoading = true;
-            var getUri = "/api/AdminHelper/RecalcGroupDocumentUsage?groupId=" + this.curGroupId;
-            this.$http.get(getUri).then(function (response) {
-                _this.isLoading = false;
+            const getUri = "/api/AdminHelper/RecalcGroupDocumentUsage?groupId=" + this.curGroupId;
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
                 console.log("Recalc Succeeded", response.data);
                 alert("Succeeded: " + response.data);
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.onAddAllyPayment = function () {
-            var _this = this;
+        }
+        onAddAllyPayment() {
             this.isLoading = true;
-            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then(function (response) {
-                _this.isLoading = false;
-                _this.newAllyPaymentEntry.amount = 0;
-                _this.newAllyPaymentEntry.netAmount = null;
-                _this.newAllyPaymentEntry.paymentMethodId = "";
+            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then((response) => {
+                this.isLoading = false;
+                this.newAllyPaymentEntry.amount = 0;
+                this.newAllyPaymentEntry.netAmount = null;
+                this.newAllyPaymentEntry.paymentMethodId = "";
                 alert("Succeeded");
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.updatePremiumCost = function () {
-            var _this = this;
+        }
+        updatePremiumCost() {
             this.isLoading = true;
-            var postUri = "/api/AdminHelper/SetPremiumCost/" + this.premiumUpdateGroupId + "?cost=" + this.premiumNewCost;
-            this.$http.put(postUri, null).then(function (response) {
-                _this.isLoading = false;
-                _this.premiumNewCost = 0;
+            const postUri = `/api/AdminHelper/SetPremiumCost/${this.premiumUpdateGroupId}?cost=${this.premiumNewCost}`;
+            this.$http.put(postUri, null).then((response) => {
+                this.isLoading = false;
+                this.premiumNewCost = 0;
                 alert("Succeeded");
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.updatePremiumExpiration = function () {
-            var _this = this;
+        }
+        updatePremiumExpiration() {
             if (!this.premiumNewExpiration) {
                 alert("Hey, dummy, enter a date. Ha!");
                 return;
             }
             this.isLoading = true;
-            var postUri = "/api/AdminHelper/SetPremiumExpiration/" + this.premiumUpdateGroupId + "?expirationDate=" + encodeURIComponent(this.premiumNewExpiration.toISOString());
-            this.$http.put(postUri, null).then(function (response) {
-                _this.isLoading = false;
-                _this.premiumNewExpiration = null;
+            const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
+            this.$http.put(postUri, null).then((response) => {
+                this.isLoading = false;
+                this.premiumNewExpiration = null;
                 alert("Succeeded");
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.onDeactivateGroup = function () {
-            var _this = this;
+        }
+        onDeactivateGroup() {
             this.isLoading = true;
-            var getUri = "/api/AdminHelper/DeactivateGroups?groupIdsCsv=" + this.deactivateGroupIdsCsv;
-            this.$http.get(getUri).then(function (response) {
-                _this.isLoading = false;
-                _this.deactivateGroupIdsCsv = null;
+            const getUri = `/api/AdminHelper/DeactivateGroups?groupIdsCsv=${this.deactivateGroupIdsCsv}`;
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
+                this.deactivateGroupIdsCsv = null;
                 alert("Deactivate Succeeded: " + response.data);
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Deactivate Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.onReactivateGroup = function () {
-            var _this = this;
+        }
+        onReactivateGroup() {
             this.isLoading = true;
-            var getUri = "/api/AdminHelper/ReactivateGroup?groupId=" + this.reactivateGroupId;
-            this.$http.get(getUri).then(function (response) {
-                _this.isLoading = false;
-                _this.reactivateGroupId = null;
+            const getUri = `/api/AdminHelper/ReactivateGroup?groupId=${this.reactivateGroupId}`;
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
+                this.reactivateGroupId = null;
                 alert("Reactivate Succeeded: " + response.data);
-            }, function (response) {
-                _this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Reactivate Failed: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.loadAllyAppSettings = function () {
-            var _this = this;
+        }
+        loadAllyAppSettings() {
             this.allAllyAppSettings = [];
             this.isLoadingAllyAppSettings = true;
-            this.$http.get("/api/AllyAppSettings/All").then(function (response) {
-                _this.isLoadingAllyAppSettings = false;
-                _this.allAllyAppSettings = response.data;
-            }, function (response) {
-                _this.isLoadingAllyAppSettings = false;
+            this.$http.get(`/api/AllyAppSettings/All`).then((response) => {
+                this.isLoadingAllyAppSettings = false;
+                this.allAllyAppSettings = response.data;
+            }, (response) => {
+                this.isLoadingAllyAppSettings = false;
                 alert("Failed to retrieve settings: " + response.data.exceptionMessage);
             });
-        };
-        ManageGroupsController.prototype.saveAllyAppSetting = function () {
+        }
+        saveAllyAppSetting() {
             this.$http.post("", this.editAllyAppSetting);
-        };
-        ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
-        return ManageGroupsController;
-    }());
+        }
+    }
+    ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.ManageGroupsController = ManageGroupsController;
-    var AllyPaymentEntry = /** @class */ (function () {
-        function AllyPaymentEntry() {
-        }
-        return AllyPaymentEntry;
-    }());
-    var AllyAppSetting = /** @class */ (function () {
-        function AllyAppSetting() {
-        }
-        return AllyAppSetting;
-    }());
+    class AllyPaymentEntry {
+    }
+    class AllyAppSetting {
+    }
     Ally.AllyAppSetting = AllyAppSetting;
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageGroups", {

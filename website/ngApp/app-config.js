@@ -1,5 +1,4 @@
-function RoutePath(path, templateUrl, controller, menuTitle, role) {
-    if (role === void 0) { role = null; }
+function RoutePath(path, templateUrl, controller, menuTitle, role = null) {
     if (path[0] !== '/')
         path = "/" + path;
     this.path = path;
@@ -24,15 +23,12 @@ function RoutePath_v2(routeOptions) {
 }
 var Ally;
 (function (Ally) {
-    var RouteOptions_v3 = /** @class */ (function () {
-        function RouteOptions_v3() {
-        }
-        return RouteOptions_v3;
-    }());
+    class RouteOptions_v3 {
+    }
     Ally.RouteOptions_v3 = RouteOptions_v3;
     // For use with the newer Angular component objects
-    var RoutePath_v3 = /** @class */ (function () {
-        function RoutePath_v3(routeOptions) {
+    class RoutePath_v3 {
+        constructor(routeOptions) {
             this.reloadOnSearch = true;
             if (routeOptions.path[0] !== '/')
                 routeOptions.path = "/" + routeOptions.path;
@@ -43,22 +39,15 @@ var Ally;
             this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
             this.pageTitle = routeOptions.pageTitle;
         }
-        return RoutePath_v3;
-    }());
+    }
     Ally.RoutePath_v3 = RoutePath_v3;
-    var AppConfigInfo = /** @class */ (function () {
-        function AppConfigInfo() {
-        }
-        AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
-        AppConfigInfo.dwollaEnvironmentName = "prod";
-        return AppConfigInfo;
-    }());
+    class AppConfigInfo {
+    }
+    AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
+    AppConfigInfo.dwollaEnvironmentName = "prod";
     Ally.AppConfigInfo = AppConfigInfo;
-    var PeriodicPaymentFrequency = /** @class */ (function () {
-        function PeriodicPaymentFrequency() {
-        }
-        return PeriodicPaymentFrequency;
-    }());
+    class PeriodicPaymentFrequency {
+    }
     Ally.PeriodicPaymentFrequency = PeriodicPaymentFrequency;
 })(Ally || (Ally = {}));
 var Role_Authorized = "authorized";
@@ -105,7 +94,7 @@ function GetShortPayPeriodNames(intervalName) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Condo Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var CondoAllyAppConfig = {
+const CondoAllyAppConfig = {
     appShortName: "condo",
     appName: "Condo Ally",
     baseTld: "condoally.com",
@@ -204,7 +193,7 @@ var CondoAllyAppConfig = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Home Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var HomeAppConfig = {
+const HomeAppConfig = {
     appShortName: "home",
     appName: "Home Ally",
     baseTld: "homeally.org",
@@ -233,7 +222,7 @@ var HomeAppConfig = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // HOA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var HOAAppConfig = _.clone(CondoAllyAppConfig);
+const HOAAppConfig = _.clone(CondoAllyAppConfig);
 HOAAppConfig.appShortName = "hoa";
 HOAAppConfig.appName = "HOA Ally";
 HOAAppConfig.baseTld = "hoaally.org";
@@ -243,7 +232,7 @@ HOAAppConfig.menu.push(new Ally.RoutePath_v3({ path: "HoaSignUp", templateHtml: 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Neighborhood Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var NeighborhoodAppConfig = _.clone(CondoAllyAppConfig);
+const NeighborhoodAppConfig = _.clone(CondoAllyAppConfig);
 NeighborhoodAppConfig.appShortName = "neighborhood";
 NeighborhoodAppConfig.appName = "Neighborhood Ally";
 NeighborhoodAppConfig.baseTld = "neighborhoodally.org";
@@ -262,7 +251,7 @@ NeighborhoodAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignU
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Block Club Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var BlockClubAppConfig = _.clone(CondoAllyAppConfig);
+const BlockClubAppConfig = _.clone(CondoAllyAppConfig);
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
 BlockClubAppConfig.baseTld = "blockclubally.org";
@@ -282,7 +271,7 @@ BlockClubAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp",
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // PTA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-var PtaAppConfig = _.clone(CondoAllyAppConfig);
+const PtaAppConfig = _.clone(CondoAllyAppConfig);
 PtaAppConfig.appShortName = "pta";
 PtaAppConfig.appName = "PTA Ally";
 PtaAppConfig.baseTld = "ptaally.org";
@@ -315,7 +304,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin })
 ];
 var AppConfig = null;
-var lowerDomain = document.domain.toLowerCase();
+let lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")
     lowerDomain = OverrideOriginalUrl;
 if (!lowerDomain)
@@ -353,11 +342,11 @@ AppConfig.isPublicRoute = function (path) {
     if (HtmlUtil.startsWith(path, "#!"))
         path = path.substr(2);
     // If the path has a parameter, only test the first word
-    var hasParameter = path.indexOf("/", 1) !== -1;
+    const hasParameter = path.indexOf("/", 1) !== -1;
     if (hasParameter)
         path = path.substr(0, path.indexOf("/", 1));
-    var route = _.find(AppConfig.menu, function (m) {
-        var testPath = m.path;
+    const route = _.find(AppConfig.menu, function (m) {
+        let testPath = m.path;
         if (!testPath)
             return false;
         // Only test the first part of paths with parameters

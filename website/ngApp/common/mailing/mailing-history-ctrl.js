@@ -1,53 +1,23 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Ally;
 (function (Ally) {
-    var MailingHistoryInfo = /** @class */ (function () {
-        function MailingHistoryInfo() {
-        }
-        return MailingHistoryInfo;
-    }());
-    var MailingResultBase = /** @class */ (function () {
-        function MailingResultBase() {
-        }
-        return MailingResultBase;
-    }());
-    var MailingResultEmail = /** @class */ (function (_super) {
-        __extends(MailingResultEmail, _super);
-        function MailingResultEmail() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return MailingResultEmail;
-    }(MailingResultBase));
-    var MailingResultPaperMail = /** @class */ (function (_super) {
-        __extends(MailingResultPaperMail, _super);
-        function MailingResultPaperMail() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return MailingResultPaperMail;
-    }(MailingResultBase));
-    var MailingResults = /** @class */ (function () {
-        function MailingResults() {
-        }
-        return MailingResults;
-    }());
+    class MailingHistoryInfo {
+    }
+    class MailingResultBase {
+    }
+    class MailingResultEmail extends MailingResultBase {
+    }
+    class MailingResultPaperMail extends MailingResultBase {
+    }
+    class MailingResults {
+    }
     /**
      * The controller for the invoice mailing view
      */
-    var MailingHistoryController = /** @class */ (function () {
+    class MailingHistoryController {
         /**
         * The constructor for the class
         */
-        function MailingHistoryController($http, siteInfo, $timeout) {
-            var _this = this;
+        constructor($http, siteInfo, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
@@ -99,8 +69,8 @@ var Ally;
                     enableVerticalScrollbar: 0,
                     enableColumnMenus: false,
                     minRowsToShow: 5,
-                    onRegisterApi: function (gridApi) {
-                        _this.historyGridApi = gridApi;
+                    onRegisterApi: (gridApi) => {
+                        this.historyGridApi = gridApi;
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -137,7 +107,7 @@ var Ally;
                     enableVerticalScrollbar: 0,
                     enableColumnMenus: false,
                     minRowsToShow: 5,
-                    onRegisterApi: function (gridApi) {
+                    onRegisterApi: (gridApi) => {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -146,52 +116,49 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        MailingHistoryController.prototype.$onInit = function () {
+        $onInit() {
             this.refreshHistory();
-        };
+        }
         /**
          * Display the results for a mailing
          */
-        MailingHistoryController.prototype.showMailingResults = function (mailingEntry) {
-            var _this = this;
+        showMailingResults(mailingEntry) {
             // We need to put this in a timeout because ui-grid cannot properly size itself until
             // the DOM element for the grid is shown
-            this.$timeout(function () {
-                _.forEach(mailingEntry.mailingResultObject.emailResults, function (r) { return r.mailingType = "E-mail"; });
-                _.forEach(mailingEntry.mailingResultObject.paperMailResults, function (r) { return r.mailingType = "Paper Letter"; });
-                var resultsRows = [];
+            this.$timeout(() => {
+                _.forEach(mailingEntry.mailingResultObject.emailResults, r => r.mailingType = "E-mail");
+                _.forEach(mailingEntry.mailingResultObject.paperMailResults, r => r.mailingType = "Paper Letter");
+                let resultsRows = [];
                 resultsRows = resultsRows.concat(mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults);
-                _this.resultsGridOptions.data = resultsRows;
-                _this.resultsGridOptions.minRowsToShow = resultsRows.length;
-                _this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
-                _this.resultsGridheight = (resultsRows.length + 1) * _this.resultsGridOptions.rowHeight;
-                _this.$timeout(function () {
-                    _this.viewingResults = mailingEntry.mailingResultObject;
+                this.resultsGridOptions.data = resultsRows;
+                this.resultsGridOptions.minRowsToShow = resultsRows.length;
+                this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
+                this.resultsGridheight = (resultsRows.length + 1) * this.resultsGridOptions.rowHeight;
+                this.$timeout(() => {
+                    this.viewingResults = mailingEntry.mailingResultObject;
                     //var evt = document.createEvent( 'UIEvents' );
                     //evt.initUIEvent( 'resize', true, false, window, 0 );
                     //window.dispatchEvent( evt );
                 }, 10);
             }, 0);
-        };
+        }
         /**
          * Load the mailing history
          */
-        MailingHistoryController.prototype.refreshHistory = function () {
-            var _this = this;
+        refreshHistory() {
             this.isLoading = true;
-            this.$http.get("/api/Mailing/History").then(function (response) {
-                _this.isLoading = false;
-                _this.historyGridOptions.data = response.data;
-                _this.historyGridOptions.minRowsToShow = response.data.length;
-                _this.historyGridOptions.virtualizationThreshold = response.data.length;
-            }, function (response) {
-                _this.isLoading = false;
+            this.$http.get("/api/Mailing/History").then((response) => {
+                this.isLoading = false;
+                this.historyGridOptions.data = response.data;
+                this.historyGridOptions.minRowsToShow = response.data.length;
+                this.historyGridOptions.virtualizationThreshold = response.data.length;
+            }, (response) => {
+                this.isLoading = false;
                 alert("Failed to load mailing history: " + response.data.exceptionMessage);
             });
-        };
-        MailingHistoryController.$inject = ["$http", "SiteInfo", "$timeout"];
-        return MailingHistoryController;
-    }());
+        }
+    }
+    MailingHistoryController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.MailingHistoryController = MailingHistoryController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("mailingHistory", {

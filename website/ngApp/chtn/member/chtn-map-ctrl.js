@@ -1,18 +1,15 @@
 var Ally;
 (function (Ally) {
-    var WelcomeTip = /** @class */ (function () {
-        function WelcomeTip() {
-        }
-        return WelcomeTip;
-    }());
+    class WelcomeTip {
+    }
     /**
      * The controller for the page that shows useful info on a map
      */
-    var ChtnMapController = /** @class */ (function () {
+    class ChtnMapController {
         /**
          * The constructor for the class
          */
-        function ChtnMapController($scope, $timeout, $http, siteInfo, appCacheService) {
+        constructor($scope, $timeout, $http, siteInfo, appCacheService) {
             this.$scope = $scope;
             this.$timeout = $timeout;
             this.$http = $http;
@@ -26,7 +23,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ChtnMapController.prototype.$onInit = function () {
+        $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             // If we know our group's position, let's tighten the 
             var autocompleteOptions = undefined;
@@ -53,32 +50,31 @@ var Ally;
             });
             this.retrieveHoaHomes();
             var innerThis = this;
-            this.$timeout(function () { return innerThis.getWalkScore(); }, 1000);
+            this.$timeout(() => innerThis.getWalkScore(), 1000);
             MapCtrlMapMgr.Init(this.siteInfo, this.$scope, this);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Populate the page
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.refresh = function () {
-            var _this = this;
+        refresh() {
             this.isLoading = true;
-            this.$http.get("/api/WelcomeTip").then(function (httpResponse) {
-                _this.tips = httpResponse.data;
+            this.$http.get("/api/WelcomeTip").then((httpResponse) => {
+                this.tips = httpResponse.data;
                 MapCtrlMapMgr.ClearAllMarkers();
                 if (AppConfig.appShortName === "condo")
                     MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
-                for (var locationIndex = 0; locationIndex < _this.tips.length; ++locationIndex) {
-                    var curLocation = _this.tips[locationIndex];
+                for (var locationIndex = 0; locationIndex < this.tips.length; ++locationIndex) {
+                    var curLocation = this.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
                     curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
                 // Add HOA homes
-                _.each(_this.hoaHomes, function (home) {
+                _.each(this.hoaHomes, (home) => {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
                         var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
                         var markerText = home.name;
-                        if (_.any(_this.siteInfo.userInfo.usersUnits, function (u) { return u.unitId === home.unitId; })) {
+                        if (_.any(this.siteInfo.userInfo.usersUnits, u => u.unitId === home.unitId)) {
                             markerIcon = MapCtrlMapMgr.MarkerNumber_MyHome;
                             markerText = "Your home: " + markerText;
                         }
@@ -86,52 +82,50 @@ var Ally;
                     }
                 });
                 MapCtrlMapMgr.OnMarkersReady();
-                _this.isLoading = false;
+                this.isLoading = false;
             });
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to edit a tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.onEditTip = function (tip) {
+        onEditTip(tip) {
             this.editingTip = jQuery.extend({}, tip);
             window.scrollTo(0, document.body.scrollHeight);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to move a tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.onMoveMarker = function (tip) {
+        onMoveMarker(tip) {
             MapCtrlMapMgr.SetMarkerDraggable(tip.markerIndex, true);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to delete a tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.onDeleteTip = function (tip) {
-            var _this = this;
+        onDeleteTip(tip) {
             if (!confirm('Are you sure you want to delete this item?'))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/WelcomeTip/" + tip.itemId).then(function () {
-                _this.isLoading = false;
-                _this.refresh();
+            this.$http.delete("/api/WelcomeTip/" + tip.itemId).then(() => {
+                this.isLoading = false;
+                this.refresh();
             });
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to add a new tip
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.onSaveTip = function () {
-            var _this = this;
+        onSaveTip() {
             if (this.editingTip === null)
                 return;
             //$( "#new-item-form" ).validate();
             //if ( !$( "#new-item-form" ).valid() )
             //    return;
-            var onSave = function () {
-                _this.isLoading = false;
-                _this.editingTip = new WelcomeTip();
-                _this.refresh();
+            var onSave = () => {
+                this.isLoading = false;
+                this.editingTip = new WelcomeTip();
+                this.refresh();
             };
-            var onFailure = function (response) {
-                _this.isLoading = false;
+            var onFailure = (response) => {
+                this.isLoading = false;
                 alert("Failed to save item: " + response.data.exceptionMessage);
             };
             this.isLoading = true;
@@ -141,20 +135,20 @@ var Ally;
             // Otherwise create a new one
             else
                 this.$http.post("/api/WelcomeTip", this.editingTip).then(onSave, onFailure);
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Used by the ng-repeats to filter locations vs tips
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.isLocationTip = function (tip) {
+        isLocationTip(tip) {
             return tip.gpsPos !== null;
-        };
-        ChtnMapController.prototype.isNotLocationTip = function (tip) {
+        }
+        isNotLocationTip(tip) {
             return tip.gpsPos === null;
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Get the URL to the image for a specific marker
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.getMarkerIconUrl = function (markerNumber) {
+        getMarkerIconUrl(markerNumber) {
             var MarkerNumber_Home = -2;
             var MarkerNumber_Hospital = -3;
             var MarkerNumber_PostOffice = -4;
@@ -171,11 +165,11 @@ var Ally;
                 retPath += "green_blank";
             retPath += ".png";
             return retPath;
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Move a marker's position
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        ChtnMapController.prototype.updateItemGpsLocation = function (markerIndex, lat, lon) {
+        updateItemGpsLocation(markerIndex, lat, lon) {
             var tip = _.find(this.tips, function (t) { return t.markerIndex === markerIndex; });
             var updateInfo = {
                 itemId: tip.itemId,
@@ -187,11 +181,11 @@ var Ally;
             this.$http.put("/api/WelcomeTip/UpdateGpsLocation", updateInfo).then(function () {
                 innerThis.isLoading = false;
             });
-        };
+        }
         /**
          * Set the walkscore info
          */
-        ChtnMapController.prototype.getWalkScore = function () {
+        getWalkScore() {
             var handleWalkScoreResult = function (httpResponse) {
                 if (!httpResponse || !httpResponse.data || httpResponse.data === "Error") {
                     $("#WalkScorePanel").html("Failed to load Walk Score.");
@@ -201,45 +195,41 @@ var Ally;
                     $("#WalkScorePanel").html(httpResponse.data);
             };
             this.$http.get("/api/WelcomeTip/GetWalkScore").then(handleWalkScoreResult, handleWalkScoreResult);
-        };
+        }
         /**
         * Load the houses onto the map
         */
-        ChtnMapController.prototype.retrieveHoaHomes = function () {
-            var _this = this;
-            this.$http.get("/api/BuildingResidents/FullUnits").then(function (httpResponse) {
+        retrieveHoaHomes() {
+            this.$http.get("/api/BuildingResidents/FullUnits").then((httpResponse) => {
                 if (httpResponse.data) {
                     if (AppConfig.appShortName === "condo") {
                         // Only show homes if our units have an address other than the condo's address
-                        var nonMainAddresses = _.filter(httpResponse.data, function (u) { return u.addressId && !!u.fullAddress; });
-                        nonMainAddresses = _.filter(nonMainAddresses, function (u) { return u.fullAddress.oneLiner != _this.siteInfo.privateSiteInfo.groupAddress.oneLiner; });
+                        let nonMainAddresses = _.filter(httpResponse.data, u => u.addressId && !!u.fullAddress);
+                        nonMainAddresses = _.filter(nonMainAddresses, u => u.fullAddress.oneLiner != this.siteInfo.privateSiteInfo.groupAddress.oneLiner);
                         if (nonMainAddresses.length > 0)
-                            _this.hoaHomes = httpResponse.data;
+                            this.hoaHomes = httpResponse.data;
                     }
                     else if (AppConfig.appShortName === "hoa")
-                        _this.hoaHomes = httpResponse.data;
+                        this.hoaHomes = httpResponse.data;
                 }
-                _this.refresh();
-            }, function () {
-                _this.refresh();
+                this.refresh();
+            }, () => {
+                this.refresh();
             });
-        };
-        ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
-        return ChtnMapController;
-    }());
+        }
+    }
+    ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
     Ally.ChtnMapController = ChtnMapController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnMap", {
     templateUrl: "/ngApp/chtn/member/chtn-map.html",
     controller: Ally.ChtnMapController
 });
-var MapCtrlMapMgr = /** @class */ (function () {
-    function MapCtrlMapMgr() {
-    }
+class MapCtrlMapMgr {
     /**
     * Called when the DOM structure is ready
     */
-    MapCtrlMapMgr.Init = function (siteInfo, scope, mapCtrl) {
+    static Init(siteInfo, scope, mapCtrl) {
         MapCtrlMapMgr.ngScope = scope;
         MapCtrlMapMgr.mapCtrl = mapCtrl;
         if (typeof (google) === "undefined")
@@ -264,18 +254,18 @@ var MapCtrlMapMgr = /** @class */ (function () {
         //    if( !MapCtrlMapMgr._markers[markerIndex].getMap() )
         //        MapCtrlMapMgr._markers[markerIndex].setMap( MapCtrlMapMgr._mainMap );
         //}
-    };
-    MapCtrlMapMgr.OnMapReady = function () {
+    }
+    static OnMapReady() {
         MapCtrlMapMgr._isMapReady = true;
         if (MapCtrlMapMgr._areMarkersReady)
             MapCtrlMapMgr.OnMapAndMarkersReady();
-    };
-    MapCtrlMapMgr.OnMarkersReady = function () {
+    }
+    static OnMarkersReady() {
         MapCtrlMapMgr._areMarkersReady = true;
         if (MapCtrlMapMgr._isMapReady)
             MapCtrlMapMgr.OnMapAndMarkersReady();
-    };
-    MapCtrlMapMgr.OnMapAndMarkersReady = function () {
+    }
+    static OnMapAndMarkersReady() {
         for (var markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex) {
             var tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
             var markerImageUrl = null;
@@ -334,25 +324,25 @@ var MapCtrlMapMgr = /** @class */ (function () {
             MapCtrlMapMgr._groupBoundsShape = new google.maps.Polygon(groupBoundsPolylineOptions);
         }
         MapCtrlMapMgr.ZoomMapToFitMarkers();
-    };
+    }
     /**
     * Add a marker to the map
     */
-    MapCtrlMapMgr.ClearAllMarkers = function () {
+    static ClearAllMarkers() {
         for (var i = 0; i < MapCtrlMapMgr._markers.length; i++)
             MapCtrlMapMgr._markers[i].setMap(null);
         MapCtrlMapMgr._markers = [];
-    };
+    }
     /**
     * Make a marker draggable or not
     */
-    MapCtrlMapMgr.SetMarkerDraggable = function (markerIndex, isDraggable) {
+    static SetMarkerDraggable(markerIndex, isDraggable) {
         MapCtrlMapMgr._markers[markerIndex].setDraggable(isDraggable);
-    };
+    }
     /**
     * Add a marker to the map and return the index of that new marker
     */
-    MapCtrlMapMgr.AddMarker = function (lat, lon, name, markerNumber, unitId) {
+    static AddMarker(lat, lon, name, markerNumber, unitId) {
         MapCtrlMapMgr._tempMarkers.push({
             lat: lat,
             lon: lon,
@@ -361,11 +351,11 @@ var MapCtrlMapMgr = /** @class */ (function () {
             unitId: unitId
         });
         return MapCtrlMapMgr._tempMarkers.length - 1;
-    };
+    }
     /**
     * Set the map zoom so all markers are visible
     */
-    MapCtrlMapMgr.ZoomMapToFitMarkers = function () {
+    static ZoomMapToFitMarkers() {
         //  Create a new viewpoint bound
         var bounds = new google.maps.LatLngBounds();
         //  Go through each marker and make the bounds extend to fit it
@@ -378,57 +368,56 @@ var MapCtrlMapMgr = /** @class */ (function () {
         }
         //  Fit these bounds to the map
         MapCtrlMapMgr._mainMap.fitBounds(bounds);
-    };
-    //onMapApiLoaded: function ()
-    //{
-    //    MapCtrlMapMgr.Init();
-    //},
-    /*
-    * The map displaying the area around the building
-    * @type {google.maps.Map}
-    */
-    MapCtrlMapMgr._mainMap = null;
-    /*
-    * The position of our home building
-    * @type {google.maps.LatLng}
-    */
-    MapCtrlMapMgr._homeGpsPos = null;
-    MapCtrlMapMgr._groupGpsBounds = null;
-    MapCtrlMapMgr._groupBoundsShape = null;
-    /*
-    * The array of markers on the map. We keep track in case the map wasn't created yet when
-    * AddMarker was called.
-    * @type {Array.<google.maps.Marker>}
-    */
-    MapCtrlMapMgr._markers = [];
-    /**
-    * The marker number that indicates the home marker icon
-    * @type {Number}
-    * @const
-    */
-    MapCtrlMapMgr.MarkerNumber_Home = -2;
-    /**
-    * The marker number that indicates the home marker icon for the user's home
-    * @type {Number}
-    * @const
-    */
-    MapCtrlMapMgr.MarkerNumber_MyHome = -5;
-    /**
-    * The marker number that indicates the hospital marker icon
-    * @type {Number}
-    * @const
-    */
-    MapCtrlMapMgr.MarkerNumber_Hospital = -3;
-    /**
-    * The marker number that indicates the post office marker icon
-    * @type {Number}
-    * @const
-    */
-    MapCtrlMapMgr.MarkerNumber_PostOffice = -4;
-    MapCtrlMapMgr._isMapReady = false;
-    MapCtrlMapMgr._areMarkersReady = false;
-    MapCtrlMapMgr._tempMarkers = [];
-    MapCtrlMapMgr.ngScope = null;
-    MapCtrlMapMgr.mapCtrl = null;
-    return MapCtrlMapMgr;
-}());
+    }
+}
+//onMapApiLoaded: function ()
+//{
+//    MapCtrlMapMgr.Init();
+//},
+/*
+* The map displaying the area around the building
+* @type {google.maps.Map}
+*/
+MapCtrlMapMgr._mainMap = null;
+/*
+* The position of our home building
+* @type {google.maps.LatLng}
+*/
+MapCtrlMapMgr._homeGpsPos = null;
+MapCtrlMapMgr._groupGpsBounds = null;
+MapCtrlMapMgr._groupBoundsShape = null;
+/*
+* The array of markers on the map. We keep track in case the map wasn't created yet when
+* AddMarker was called.
+* @type {Array.<google.maps.Marker>}
+*/
+MapCtrlMapMgr._markers = [];
+/**
+* The marker number that indicates the home marker icon
+* @type {Number}
+* @const
+*/
+MapCtrlMapMgr.MarkerNumber_Home = -2;
+/**
+* The marker number that indicates the home marker icon for the user's home
+* @type {Number}
+* @const
+*/
+MapCtrlMapMgr.MarkerNumber_MyHome = -5;
+/**
+* The marker number that indicates the hospital marker icon
+* @type {Number}
+* @const
+*/
+MapCtrlMapMgr.MarkerNumber_Hospital = -3;
+/**
+* The marker number that indicates the post office marker icon
+* @type {Number}
+* @const
+*/
+MapCtrlMapMgr.MarkerNumber_PostOffice = -4;
+MapCtrlMapMgr._isMapReady = false;
+MapCtrlMapMgr._areMarkersReady = false;
+MapCtrlMapMgr._tempMarkers = [];
+MapCtrlMapMgr.ngScope = null;
+MapCtrlMapMgr.mapCtrl = null;

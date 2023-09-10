@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the mailing parent view
      */
-    var MailingParentController = /** @class */ (function () {
+    class MailingParentController {
         /**
         * The constructor for the class
         */
-        function MailingParentController($http, siteInfo, $routeParams, $cacheFactory, $rootScope) {
+        constructor($http, siteInfo, $routeParams, $cacheFactory, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$routeParams = $routeParams;
@@ -19,11 +19,10 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        MailingParentController.prototype.$onInit = function () {
-        };
-        MailingParentController.$inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
-        return MailingParentController;
-    }());
+        $onInit() {
+        }
+    }
+    MailingParentController.$inject = ["$http", "SiteInfo", "$routeParams", "$cacheFactory", "$rootScope"];
     Ally.MailingParentController = MailingParentController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("mailingParent", {

@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the group site home page
      */
-    var ChtnHomeController = /** @class */ (function () {
+    class ChtnHomeController {
         /**
          * The constructor for the class
          */
-        function ChtnHomeController($http, $rootScope, siteInfo, $timeout, $scope, $routeParams, $sce) {
+        constructor($http, $rootScope, siteInfo, $timeout, $scope, $routeParams, $sce) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -24,8 +24,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        ChtnHomeController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.testPay_ShouldShow = false; //this.siteInfo.publicSiteInfo.shortName === "qa" || this.siteInfo.publicSiteInfo.shortName === "localtest";
             if (this.testPay_ShouldShow) {
                 this.testPay_ReturnUrl = window.location.href;
@@ -44,9 +43,12 @@ var Ally;
             if (this.canMakePayment) {
                 // Temporary logic until we're full to Stripe. If this site only has Dwolla active
                 // and this user is not already active with Dwolla then they can't make payments.
-                var onlyDwollaIsActive = this.siteInfo.privateSiteInfo.isDwollaPaymentActive && !this.siteInfo.privateSiteInfo.isWePayPaymentActive && !this.siteInfo.privateSiteInfo.isStripePaymentActive;
-                if (onlyDwollaIsActive && !this.siteInfo.userInfo.dwollaFundingSourceIsVerified)
-                    this.canMakePayment = false;
+                const onlyDwollaIsActive = this.siteInfo.privateSiteInfo.isDwollaPaymentActive && !this.siteInfo.privateSiteInfo.isWePayPaymentActive && !this.siteInfo.privateSiteInfo.isStripePaymentActive;
+                if (onlyDwollaIsActive && !this.siteInfo.userInfo.dwollaFundingSourceIsVerified) {
+                    //TEMP for user to make payment
+                    if (this.siteInfo.userInfo.userId !== "c310aff7-6b80-4380-8832-f3a47fdc09e1")
+                        this.canMakePayment = false;
+                }
             }
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
@@ -67,44 +69,39 @@ var Ally;
             if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
             var innerThis = this;
-            this.$scope.$on("homeHasActivePolls", function () { return innerThis.shouldShowAlertSection = true; });
-            this.$http.get("/api/Committee/MyCommittees", { cache: true }).then(function (response) {
-                _this.usersCommittees = response.data;
-                if (_this.usersCommittees)
-                    _this.usersCommittees = _.sortBy(_this.usersCommittees, function (c) { return c.name.toLowerCase(); });
+            this.$scope.$on("homeHasActivePolls", () => innerThis.shouldShowAlertSection = true);
+            this.$http.get("/api/Committee/MyCommittees", { cache: true }).then((response) => {
+                this.usersCommittees = response.data;
+                if (this.usersCommittees)
+                    this.usersCommittees = _.sortBy(this.usersCommittees, c => c.name.toLowerCase());
             });
             // Delay the survey check since it's low priority and it lets the other parts of the page load faster
             if (AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa")
-                this.$timeout(function () { return _this.checkForSurveys(); }, 250);
-        };
+                this.$timeout(() => this.checkForSurveys(), 250);
+        }
         /**
         * See if there's any surveys waiting to be completed for the current group+user
         */
-        ChtnHomeController.prototype.checkForSurveys = function () {
-            var _this = this;
-            this.$http.get("/api/AllySurvey/AnySurvey").then(function (response) {
-                _this.allySurvey = response.data;
-            }, function (errorResponse) {
+        checkForSurveys() {
+            this.$http.get("/api/AllySurvey/AnySurvey").then((response) => {
+                this.allySurvey = response.data;
+            }, (errorResponse) => {
                 console.log("Failed to load ally survey", errorResponse.data.exceptionMessage);
             });
             this.allySurvey = null;
-        };
-        ChtnHomeController.prototype.onTestPayAmtChange = function () {
+        }
+        onTestPayAmtChange() {
             this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
-        };
-        ChtnHomeController.prototype.hideFirstVisit = function () {
+        }
+        hideFirstVisit() {
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
-        };
-        ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
-        return ChtnHomeController;
-    }());
-    Ally.ChtnHomeController = ChtnHomeController;
-    var AllySurveyInfo = /** @class */ (function () {
-        function AllySurveyInfo() {
         }
-        return AllySurveyInfo;
-    }());
+    }
+    ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
+    Ally.ChtnHomeController = ChtnHomeController;
+    class AllySurveyInfo {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnHome", {
     templateUrl: "/ngApp/chtn/member/chtn-home.html",

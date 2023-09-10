@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the page to track group spending
      */
-    var CustomPageViewController = /** @class */ (function () {
+    class CustomPageViewController {
         /**
         * The constructor for the class
         */
-        function CustomPageViewController($http, siteInfo, $sce, $routeParams) {
+        constructor($http, siteInfo, $sce, $routeParams) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$sce = $sce;
@@ -17,29 +17,24 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        CustomPageViewController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.isLoading = true;
-            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug, { cache: true }).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.customPage = httpResponse.data;
-                _this.markupHtml = _this.$sce.trustAsHtml(_this.customPage.markupHtml);
+            this.$http.get("/api/PublicCustomPage/View/" + this.$routeParams.slug, { cache: true }).then((httpResponse) => {
+                this.isLoading = false;
+                this.customPage = httpResponse.data;
+                this.markupHtml = this.$sce.trustAsHtml(this.customPage.markupHtml);
                 // Make <a> links open in new tabs
-                setTimeout(function () { return Ally.RichTextHelper.makeLinksOpenNewTab("custom-page-content"); }, 500);
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                setTimeout(() => Ally.RichTextHelper.makeLinksOpenNewTab("custom-page-content"), 500);
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to load page, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
-        CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce", "$routeParams"];
-        return CustomPageViewController;
-    }());
-    Ally.CustomPageViewController = CustomPageViewController;
-    var CustomPage = /** @class */ (function () {
-        function CustomPage() {
         }
-        return CustomPage;
-    }());
+    }
+    CustomPageViewController.$inject = ["$http", "SiteInfo", "$sce", "$routeParams"];
+    Ally.CustomPageViewController = CustomPageViewController;
+    class CustomPage {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("customPageView", {
     templateUrl: "/ngApp/common/custom-page-view.html",

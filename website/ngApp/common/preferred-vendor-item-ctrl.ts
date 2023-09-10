@@ -1,10 +1,4 @@
-﻿/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../Services/html-util.ts" />
-/// <reference path="../Common/map-util.ts" />
-/// <reference path="preferred-vendors-ctrl.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
     /**
      * The controller for an individual vendor entry

@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the page to view group premium plan settings
      */
-    var PremiumPlanSettingsController = /** @class */ (function () {
+    class PremiumPlanSettingsController {
         /**
          * The constructor for the class
          */
-        function PremiumPlanSettingsController($http, siteInfo, appCacheService, $timeout, $scope) {
+        constructor($http, siteInfo, appCacheService, $timeout, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
@@ -48,43 +48,40 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        PremiumPlanSettingsController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
             this.refreshData();
             // Get a view token to view the premium plan invoice should one be generated
             if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
-                this.$timeout(function () { return _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; }); }, 250);
+                this.$timeout(() => this.$http.get("/api/DocumentLink/0").then((response) => this.viewPremiumInvoiceViewId = response.data.vid), 250);
             this.shouldShowTrialNote = this.siteInfo.privateSiteInfo.isPremiumPlanActive && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(3, "months"));
-        };
+        }
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal
          */
-        PremiumPlanSettingsController.prototype.cancelPremiumAutoRenew = function () {
-            var _this = this;
+        cancelPremiumAutoRenew() {
             if (!confirm("Are you sure?"))
                 return;
             this.isLoading = true;
-            this.$http.put("/api/Settings/CancelPremium", null).then(function () {
-                _this.isLoading = false;
-                _this.settings.premiumPlanIsAutoRenewed = false;
-                _this.shouldShowPaymentForm = false;
-                _this.refreshData();
-            }, function () {
-                _this.isLoading = false;
+            this.$http.put("/api/Settings/CancelPremium", null).then(() => {
+                this.isLoading = false;
+                this.settings.premiumPlanIsAutoRenewed = false;
+                this.shouldShowPaymentForm = false;
+                this.refreshData();
+            }, () => {
+                this.isLoading = false;
                 alert("Failed to cancel the premium plan. Refresh the page and try again or contact support if the problem persists.");
             });
-        };
-        PremiumPlanSettingsController.prototype.showStripeError = function (errorMessage) {
-            var displayError = document.getElementById('card-errors');
+        }
+        showStripeError(errorMessage) {
+            const displayError = document.getElementById('card-errors');
             if (HtmlUtil.isNullOrWhitespace(errorMessage))
                 displayError.textContent = null; //'Unknown Error';
             else
                 displayError.textContent = errorMessage;
-        };
-        PremiumPlanSettingsController.prototype.initStripePayment = function () {
-            var _this = this;
-            var style = {
+        }
+        initStripePayment() {
+            const style = {
                 base: {
                     color: "#32325d",
                     fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
@@ -99,48 +96,47 @@ var Ally;
                     iconColor: "#fa755a"
                 }
             };
-            var elements = this.stripeApi.elements();
+            const elements = this.stripeApi.elements();
             this.stripeCardElement = elements.create("card", { style: style });
             this.stripeCardElement.mount("#stripe-card-element");
-            var onCardChange = function (event) {
+            const onCardChange = (event) => {
                 if (event.error)
-                    _this.showStripeError(event.error.message);
+                    this.showStripeError(event.error.message);
                 else
-                    _this.showStripeError(null);
+                    this.showStripeError(null);
             };
             this.stripeCardElement.on('change', onCardChange);
-        };
-        PremiumPlanSettingsController.prototype.submitCardToStripe = function () {
-            var _this = this;
+        }
+        submitCardToStripe() {
             this.isLoading = true;
             return this.stripeApi.createPaymentMethod({
                 type: 'card',
                 card: this.stripeCardElement,
             })
-                .then(function (result) {
+                .then((result) => {
                 if (result.error) {
-                    _this.isLoading = false;
-                    _this.showStripeError(result.error.message);
+                    this.isLoading = false;
+                    this.showStripeError(result.error.message);
                 }
                 else {
-                    var activateInfo = {
+                    const activateInfo = {
                         stripePaymentMethodId: result.paymentMethod.id,
-                        shouldPayAnnually: _this.isActivatingAnnual
+                        shouldPayAnnually: this.isActivatingAnnual
                     };
-                    _this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function () {
-                        _this.isLoading = false;
-                        _this.settings.premiumPlanIsAutoRenewed = true;
-                        _this.shouldShowPaymentForm = false;
-                        _this.refreshData();
-                    }, function (errorResponse) {
-                        _this.isLoading = false;
+                    this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(() => {
+                        this.isLoading = false;
+                        this.settings.premiumPlanIsAutoRenewed = true;
+                        this.shouldShowPaymentForm = false;
+                        this.refreshData();
+                    }, (errorResponse) => {
+                        this.isLoading = false;
                         alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
                     });
                     //this.createSubscription( result.paymentMethod.id );
                 }
-                _this.$scope.$apply();
+                this.$scope.$apply();
             });
-        };
+        }
         /**
          * Occurs when the user clicks the button to generate an annual invoice PDF
          */
@@ -165,26 +161,25 @@ var Ally;
         /**
          * Occurs when the user clicks the button to generate a Stripe invoice
          */
-        PremiumPlanSettingsController.prototype.generateStripeInvoice = function (numMonths, shouldIncludeWireInfo) {
-            var _this = this;
-            var getUri = "PublicSettings/ViewPremiumInvoice?vid=" + this.viewPremiumInvoiceViewId + "&numMonths=" + numMonths + "&shouldIncludeWireInfo=" + shouldIncludeWireInfo;
+        generateStripeInvoice(numMonths, shouldIncludeWireInfo) {
+            const getUri = `PublicSettings/ViewPremiumInvoice?vid=${this.viewPremiumInvoiceViewId}&numMonths=${numMonths}&shouldIncludeWireInfo=${shouldIncludeWireInfo}`;
             window.open(this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank");
-            this.$timeout(function () {
+            this.$timeout(() => {
                 // Refresh the view token in case the user clicks again
-                _this.$http.get("/api/DocumentLink/0").then(function (response) { return _this.viewPremiumInvoiceViewId = response.data.vid; });
+                this.$http.get("/api/DocumentLink/0").then((response) => this.viewPremiumInvoiceViewId = response.data.vid);
             }, 1250);
-        };
+        }
         /**
          * Occurs when the user clicks the button to enable premium plan auto-renewal
          */
-        PremiumPlanSettingsController.prototype.activatePremiumRenewal = function () {
+        activatePremiumRenewal() {
             this.shouldShowPaymentForm = true;
             this.updateCheckoutDescription();
             this.onPaymentTypeChange();
-        };
-        PremiumPlanSettingsController.prototype.updateCheckoutDescription = function () {
-            var renewedInPast = moment(this.premiumPlanRenewDate).isBefore();
-            var payAmount;
+        }
+        updateCheckoutDescription() {
+            const renewedInPast = moment(this.premiumPlanRenewDate).isBefore();
+            let payAmount;
             if (this.isActivatingAnnual) {
                 payAmount = this.settings.premiumPlanCostDollars * 11;
                 this.checkoutDescription = "You will be charged $" + payAmount + " ";
@@ -206,9 +201,8 @@ var Ally;
                 this.payButtonText = "Pay $" + payAmount;
             else
                 this.payButtonText = "Schedule Payment";
-        };
-        PremiumPlanSettingsController.prototype.createSubscription = function (paymentMethodId) {
-            var _this = this;
+        }
+        createSubscription(paymentMethodId) {
             return (fetch('/create-subscription', {
                 method: 'post',
                 headers: {
@@ -218,11 +212,11 @@ var Ally;
                     paymentMethodId: paymentMethodId
                 }),
             })
-                .then(function (response) {
+                .then((response) => {
                 return response.json();
             })
                 // If the card is declined, display an error to the user.
-                .then(function (result) {
+                .then((result) => {
                 if (result.error) {
                     // The card had an error when trying to attach it to a customer.
                     throw result;
@@ -231,7 +225,7 @@ var Ally;
             })
                 // Normalize the result to contain the object returned by Stripe.
                 // Add the addional details we need.
-                .then(function (result) {
+                .then((result) => {
                 return {
                     paymentMethodId: result.paymentMethodId,
                     priceId: result.priceId,
@@ -255,29 +249,27 @@ var Ally;
                 //        paymentId: 1
                 //    };
                 //} )
-                .catch(function (error) {
+                .catch((error) => {
                 // An error has happened. Display the failure to the user here.
                 // We utilize the HTML element we created.
-                _this.showStripeError(error);
+                this.showStripeError(error);
             }));
-        };
-        PremiumPlanSettingsController.prototype.handlePaymentThatRequiresCustomerAction = function (_a) {
-            var _this = this;
-            var subscription = _a.subscription, invoice = _a.invoice, priceId = _a.priceId, paymentMethodId = _a.paymentMethodId, isRetry = _a.isRetry;
+        }
+        handlePaymentThatRequiresCustomerAction({ subscription, invoice, priceId, paymentMethodId, isRetry }) {
             if (subscription && subscription.status === 'active') {
                 // Subscription is active, no customer actions required.
-                return { subscription: subscription, priceId: priceId, paymentMethodId: paymentMethodId };
+                return { subscription, priceId, paymentMethodId };
             }
             // If it's a first payment attempt, the payment intent is on the subscription latest invoice.
             // If it's a retry, the payment intent will be on the invoice itself.
-            var paymentIntent = invoice ? invoice.payment_intent : subscription.latest_invoice.payment_intent;
+            const paymentIntent = invoice ? invoice.payment_intent : subscription.latest_invoice.payment_intent;
             if (paymentIntent.status === 'requires_action' ||
                 (isRetry === true && paymentIntent.status === 'requires_payment_method')) {
                 return this.stripeApi
                     .confirmCardPayment(paymentIntent.client_secret, {
                     payment_method: paymentMethodId,
                 })
-                    .then(function (result) {
+                    .then((result) => {
                     if (result.error) {
                         // Start code flow to handle updating the payment details.
                         // Display error message in your UI.
@@ -298,20 +290,19 @@ var Ally;
                         }
                     }
                 })
-                    .catch(function (error) {
-                    _this.showStripeError(error);
+                    .catch((error) => {
+                    this.showStripeError(error);
                 });
             }
             else {
                 // No customer action needed.
-                return { subscription: subscription, priceId: priceId, paymentMethodId: paymentMethodId };
+                return { subscription, priceId, paymentMethodId };
             }
-        };
-        PremiumPlanSettingsController.prototype.handleRequiresPaymentMethod = function (_a) {
-            var subscription = _a.subscription, paymentMethodId = _a.paymentMethodId, priceId = _a.priceId;
+        }
+        handleRequiresPaymentMethod({ subscription, paymentMethodId, priceId, }) {
             if (subscription.status === 'active') {
                 // subscription is active, no customer actions required.
-                return { subscription: subscription, priceId: priceId, paymentMethodId: paymentMethodId };
+                return { subscription, priceId, paymentMethodId };
             }
             else if (subscription.latest_invoice.payment_intent.status === 'requires_payment_method') {
                 // Using localStorage to manage the state of the retry here,
@@ -322,43 +313,42 @@ var Ally;
                 throw { error: { message: 'Your card was declined.' } };
             }
             else {
-                return { subscription: subscription, priceId: priceId, paymentMethodId: paymentMethodId };
+                return { subscription, priceId, paymentMethodId };
             }
-        };
+        }
         /**
          * Retrieve the email usage from the server
          */
-        PremiumPlanSettingsController.prototype.refreshMeteredUsage = function () {
-            var _this = this;
+        refreshMeteredUsage() {
             this.isLoadingUsage = true;
-            this.$http.get("/api/Settings/MeteredFeaturesUsage").then(function (response) {
-                _this.isLoadingUsage = false;
-                _this.meteredUsage = response.data;
-                _this.meteredUsage.months = _.sortBy(_this.meteredUsage.months, function (m) { return m.year.toString() + "_" + (m.month > 9 ? "" : "0") + m.month; });
-                _this.emailUsageChartLabels = [];
-                var emailsSentChartData = [];
-                var groupEmailChartData = [];
-                var totalEmailsSent = 0;
-                var totalGroupEmailProcessed = 0;
-                for (var i = 0; i < response.data.months.length; ++i) {
-                    var curMonth = response.data.months[i];
-                    var monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
+            this.$http.get("/api/Settings/MeteredFeaturesUsage").then((response) => {
+                this.isLoadingUsage = false;
+                this.meteredUsage = response.data;
+                this.meteredUsage.months = _.sortBy(this.meteredUsage.months, m => m.year.toString() + "_" + (m.month > 9 ? "" : "0") + m.month);
+                this.emailUsageChartLabels = [];
+                const emailsSentChartData = [];
+                const groupEmailChartData = [];
+                let totalEmailsSent = 0;
+                let totalGroupEmailProcessed = 0;
+                for (let i = 0; i < response.data.months.length; ++i) {
+                    const curMonth = response.data.months[i];
+                    const monthName = moment([curMonth.year, curMonth.month - 1, 1]).format("MMMM");
                     // Add the year to the first and last entries
-                    if (i === 0 || i === _this.meteredUsage.months.length - 1)
-                        _this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
+                    if (i === 0 || i === this.meteredUsage.months.length - 1)
+                        this.emailUsageChartLabels.push(monthName + " " + curMonth.year);
                     else
-                        _this.emailUsageChartLabels.push(monthName);
+                        this.emailUsageChartLabels.push(monthName);
                     emailsSentChartData.push(curMonth.numEmailsSent);
                     groupEmailChartData.push(curMonth.numGroupEmailsProcessed);
                     totalEmailsSent += curMonth.numEmailsSent;
                     totalGroupEmailProcessed += curMonth.numGroupEmailsProcessed;
                 }
-                _this.emailUsageChartData = [emailsSentChartData];
-                _this.groupEmailChartData = [groupEmailChartData];
-                _this.emailUsageAverageNumMonths = response.data.months.length;
-                if (_this.emailUsageAverageNumMonths > 1) {
-                    _this.emailUsageAverageSent = Math.round(totalEmailsSent / _this.emailUsageAverageNumMonths);
-                    _this.groupEmailAverage = Math.round(totalGroupEmailProcessed / _this.emailUsageAverageNumMonths);
+                this.emailUsageChartData = [emailsSentChartData];
+                this.groupEmailChartData = [groupEmailChartData];
+                this.emailUsageAverageNumMonths = response.data.months.length;
+                if (this.emailUsageAverageNumMonths > 1) {
+                    this.emailUsageAverageSent = Math.round(totalEmailsSent / this.emailUsageAverageNumMonths);
+                    this.groupEmailAverage = Math.round(totalGroupEmailProcessed / this.emailUsageAverageNumMonths);
                 }
             });
             this.emailUsageChartOptions = {
@@ -378,133 +368,121 @@ var Ally;
                     ]
                 }
             };
-        };
+        }
         /**
          * Populate the page from the server
          */
-        PremiumPlanSettingsController.prototype.refreshData = function () {
-            var _this = this;
+        refreshData() {
             this.isLoading = true;
-            this.$http.get("/api/Settings").then(function (response) {
-                _this.isLoading = false;
-                _this.settings = response.data;
-                _this.isPremiumPlanActive = _this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-                _this.premiumPlanRenewDate = new Date();
-                _this.premiumPlanRenewDate = moment(_this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
-                if (_this.settings.premiumPlanIsAutoRenewed) {
-                    _this.planExpirationColor = "green";
-                    _this.$http.get("/api/Settings/StripeBillingPortal").then(function (response) { return _this.stripePortalUrl = response.data.portalUrl; });
+            this.$http.get("/api/Settings").then((response) => {
+                this.isLoading = false;
+                this.settings = response.data;
+                this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+                this.premiumPlanRenewDate = new Date();
+                this.premiumPlanRenewDate = moment(this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
+                if (this.settings.premiumPlanIsAutoRenewed) {
+                    this.planExpirationColor = "green";
+                    this.$http.get("/api/Settings/StripeBillingPortal").then((response) => this.stripePortalUrl = response.data.portalUrl);
                 }
                 else {
-                    var twoMonthsBefore = moment(_this.settings.premiumPlanExpirationDate).add(-2, "months");
+                    const twoMonthsBefore = moment(this.settings.premiumPlanExpirationDate).add(-2, "months");
                     if (moment().isBefore(twoMonthsBefore))
-                        _this.planExpirationColor = "green";
+                        this.planExpirationColor = "green";
                     else
-                        _this.planExpirationColor = "red";
+                        this.planExpirationColor = "red";
                 }
-                _this.refreshMeteredUsage();
+                this.refreshMeteredUsage();
             });
-        };
+        }
         /**
          * Bring the user to view their email history
          */
-        PremiumPlanSettingsController.prototype.goToEmailHistory = function () {
+        goToEmailHistory() {
             this.appCacheService.set("goToEmailHistory", "true");
             window.location.hash = "#!/ManageResidents";
             return true;
-        };
+        }
         /**
          * Start the Stripe-Plaid ACH-linking flow
          */
-        PremiumPlanSettingsController.prototype.startPlaidAchConnection = function () {
-            var _this = this;
+        startPlaidAchConnection() {
             this.isLoading = true;
-            this.$http.get("/api/Plaid/StripeLinkToken").then(function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.get("/api/Plaid/StripeLinkToken").then((httpResponse) => {
+                this.isLoading = false;
                 if (!httpResponse.data) {
                     alert("Failed to start Plaid connection. Please contact support.");
                     return;
                 }
-                var plaidConfig = {
+                const plaidConfig = {
                     token: httpResponse.data,
-                    onSuccess: function (public_token, metadata) {
+                    onSuccess: (public_token, metadata) => {
                         console.log("Plaid StripeLinkToken onSuccess", metadata);
-                        _this.completePlaidAchConnection(public_token, metadata.account_id);
+                        this.completePlaidAchConnection(public_token, metadata.account_id);
                     },
-                    onLoad: function () { },
-                    onExit: function (err, metadata) { console.log("update onExit.err", err, metadata); },
-                    onEvent: function (eventName, metadata) { console.log("update onEvent.eventName", eventName, metadata); },
+                    onLoad: () => { },
+                    onExit: (err, metadata) => { console.log("update onExit.err", err, metadata); },
+                    onEvent: (eventName, metadata) => { console.log("update onEvent.eventName", eventName, metadata); },
                     receivedRedirectUri: null,
                 };
-                var plaidHandler = Plaid.create(plaidConfig);
+                const plaidHandler = Plaid.create(plaidConfig);
                 plaidHandler.open();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to start Plaid connection: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Complete the Stripe-Plaid ACH-linking flow
          */
-        PremiumPlanSettingsController.prototype.completePlaidAchConnection = function (accessToken, accountId) {
-            var _this = this;
+        completePlaidAchConnection(accessToken, accountId) {
             this.isLoading = true;
-            var postData = {
-                accessToken: accessToken,
+            const postData = {
+                accessToken,
                 selectedAccountIds: [accountId]
             };
-            this.$http.post("/api/Plaid/ProcessStripeAccessToken", postData).then(function () {
-                _this.isLoading = false;
-                _this.checkoutDescription = "Account successfully linked, reloading...";
+            this.$http.post("/api/Plaid/ProcessStripeAccessToken", postData).then(() => {
+                this.isLoading = false;
+                this.checkoutDescription = "Account successfully linked, reloading...";
                 window.location.reload();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to link account: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
          * Complete the Stripe-Plaid ACH-linking flow
          */
-        PremiumPlanSettingsController.prototype.makeAchStripePayment = function () {
-            var _this = this;
+        makeAchStripePayment() {
             this.isLoading = true;
-            var activateInfo = {
+            const activateInfo = {
                 shouldPayAnnually: this.isActivatingAnnual,
                 payViaAch: true
             };
-            this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(function () {
-                _this.isLoading = false;
-                _this.settings.premiumPlanIsAutoRenewed = true;
-                _this.shouldShowPaymentForm = false;
-                _this.refreshData();
-            }, function (errorResponse) {
-                _this.isLoading = false;
+            this.$http.put("/api/Settings/ActivatePremium", activateInfo).then(() => {
+                this.isLoading = false;
+                this.settings.premiumPlanIsAutoRenewed = true;
+                this.shouldShowPaymentForm = false;
+                this.refreshData();
+            }, (errorResponse) => {
+                this.isLoading = false;
                 alert("Failed to activate the premium plan. Refresh the page and try again or contact support if the problem persists: " + errorResponse.data.exceptionMessage);
             });
-        };
-        PremiumPlanSettingsController.prototype.onPaymentTypeChange = function () {
-            var _this = this;
+        }
+        onPaymentTypeChange() {
             // Tell Stripe to populate the card info area
             if (this.paymentType === "creditCard")
-                this.$timeout(function () { return _this.initStripePayment(); }, 250);
-        };
-        PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService", "$timeout", "$scope"];
-        return PremiumPlanSettingsController;
-    }());
-    Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;
-    var GroupMonthEmails = /** @class */ (function () {
-        function GroupMonthEmails() {
+                this.$timeout(() => this.initStripePayment(), 250);
         }
-        return GroupMonthEmails;
-    }());
+    }
+    PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService", "$timeout", "$scope"];
+    Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;
+    class GroupMonthEmails {
+    }
     Ally.GroupMonthEmails = GroupMonthEmails;
 })(Ally || (Ally = {}));
 CA.angularApp.component("premiumPlanSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/premium-plan-settings.html",
     controller: Ally.PremiumPlanSettingsController
 });
-var MeteredFeaturesUsage = /** @class */ (function () {
-    function MeteredFeaturesUsage() {
-    }
-    return MeteredFeaturesUsage;
-}());
+class MeteredFeaturesUsage {
+}

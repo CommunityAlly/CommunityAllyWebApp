@@ -1,6 +1,3 @@
-/// <reference path="../../../Scripts/typings/ui-grid/ui-grid.d.ts" />
-
-
 namespace Ally
 {
     export class Unit

@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the widget that shows news headlines for the local area
      */
-    var LocalNewsFeedController = /** @class */ (function () {
+    class LocalNewsFeedController {
         /**
          * The constructor for the class
          */
-        function LocalNewsFeedController($http, siteInfo, $timeout) {
+        constructor($http, siteInfo, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
@@ -16,27 +16,25 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        LocalNewsFeedController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             // Load the news with a slight delay to help the page load faster
             this.isLoading = true;
-            this.$timeout(function () { return _this.loadNewsStories(); }, 200);
-        };
+            this.$timeout(() => this.loadNewsStories(), 200);
+        }
         /**
          * Refresh the local news feed
          */
-        LocalNewsFeedController.prototype.loadNewsStories = function () {
-            var _this = this;
+        loadNewsStories() {
             //window.location.host is subdomain.domain.com
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
+            const subDomain = HtmlUtil.getSubdomain(window.location.host);
             // A little test to help the automated tests run faster
-            var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
+            let isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
             isTestSubdomain = false; // Allow on test sites for now
             if (isTestSubdomain)
                 return;
             this.isLoading = true;
-            var localNewsUri;
-            var queryParams;
+            let localNewsUri;
+            let queryParams;
             if (this.siteInfo.privateSiteInfo.country === "US") {
                 localNewsUri = "https://localnewsally.azurewebsites.net/api/LocalNews";
                 queryParams = {
@@ -59,14 +57,13 @@ var Ally;
             this.$http.get(localNewsUri, {
                 cache: true,
                 params: queryParams
-            }).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.localNewStories = httpResponse.data;
+            }).then((httpResponse) => {
+                this.isLoading = false;
+                this.localNewStories = httpResponse.data;
             });
-        };
-        LocalNewsFeedController.$inject = ["$http", "SiteInfo", "$timeout"];
-        return LocalNewsFeedController;
-    }());
+        }
+    }
+    LocalNewsFeedController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.LocalNewsFeedController = LocalNewsFeedController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("localNewsFeed", {

@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for display a resident's financial transaction history
      */
-    var ResidentTransactionsController = /** @class */ (function () {
+    class ResidentTransactionsController {
         /**
          * The constructor for the class
          */
-        function ResidentTransactionsController($http, siteInfo, $timeout, uiGridConstants, $scope) {
+        constructor($http, siteInfo, $timeout, uiGridConstants, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
@@ -21,15 +21,14 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        ResidentTransactionsController.prototype.$onInit = function () {
-            var _this = this;
+        $onInit() {
             this.homeName = AppConfig.homeName || "Unit";
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
-            var addAmountOverAllRows = function () {
-                var allGridRows = _this.transactionGridApi.grid.rows;
-                var visibleGridRows = allGridRows.filter(function (r) { return r.visible && r.entity && !isNaN(r.entity.amount); });
-                var sum = 0;
-                visibleGridRows.forEach(function (item) { return sum += (item.entity.amount || 0); });
+            const addAmountOverAllRows = () => {
+                const allGridRows = this.transactionGridApi.grid.rows;
+                const visibleGridRows = allGridRows.filter(r => r.visible && r.entity && !isNaN(r.entity.amount));
+                let sum = 0;
+                visibleGridRows.forEach(item => sum += (item.entity.amount || 0));
                 return sum;
             };
             this.transactionGridOptions =
@@ -58,51 +57,49 @@ var Ally;
                     paginationPageSize: this.HistoryPageSize,
                     paginationPageSizes: [this.HistoryPageSize],
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function (gridApi) {
-                        _this.transactionGridApi = gridApi;
+                    onRegisterApi: (gridApi) => {
+                        this.transactionGridApi = gridApi;
                     }
                 };
-        };
+        }
         /**
          * Populate the text that is shown for the unit column in the resident grid
          */
-        ResidentTransactionsController.prototype.populateGridUnitLabels = function () {
-            var _this = this;
-            return this.$http.get("/api/MemberUnit/NamesOnly").then(function (httpResponse) {
-                var allUnits = httpResponse.data;
-                _.each(_this.allFinancialTxns, function (tx) {
+        populateGridUnitLabels() {
+            return this.$http.get("/api/MemberUnit/NamesOnly").then((httpResponse) => {
+                const allUnits = httpResponse.data;
+                _.each(this.allFinancialTxns, (tx) => {
                     if (!tx.associatedUnitId)
                         return;
-                    var unit = allUnits.find(function (u) { return u.unitId === tx.associatedUnitId; });
+                    const unit = allUnits.find(u => u.unitId === tx.associatedUnitId);
                     if (!unit)
                         return;
                     tx.unitGridLabel = unit.name;
                 });
-            }, function (httpResponse) {
+            }, (httpResponse) => {
                 //this.isLoading = false;
                 console.log("Failed to load units");
                 //alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
             });
-        };
-        ResidentTransactionsController.prototype.showModal = function () {
+        }
+        showModal() {
             this.shouldShowModal = true;
             this.refreshEntries();
-        };
-        ResidentTransactionsController.prototype.refreshEntries = function () {
-            var _this = this;
+        }
+        refreshEntries() {
             this.isLoading = true;
-            this.$http.get("/api/OwnerLedger/MyTransactions").then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.allFinancialTxns = httpResponse.data.entries;
-                _this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
-                _this.ownerBalance = httpResponse.data.ownerBalance;
+            this.$http.get(`/api/OwnerLedger/MyTransactions`).then((httpResponse) => {
+                this.isLoading = false;
+                this.allFinancialTxns = httpResponse.data.entries;
+                this.ownerFinanceTxNote = httpResponse.data.ownerFinanceTxNote;
+                this.ownerBalance = httpResponse.data.ownerBalance;
                 // Hide the unit column if the owner only has one unit
-                var allUnitIds = _this.allFinancialTxns.map(function (u) { return u.associatedUnitId; });
-                var uniqueUnitIds = allUnitIds.filter(function (v, i, a) { return a.indexOf(v) === i; });
-                var unitColumn = _this.transactionGridOptions.columnDefs.find(function (c) { return c.field === "unitGridLabel"; });
+                const allUnitIds = this.allFinancialTxns.map(u => u.associatedUnitId);
+                const uniqueUnitIds = allUnitIds.filter((v, i, a) => a.indexOf(v) === i);
+                const unitColumn = this.transactionGridOptions.columnDefs.find(c => c.field === "unitGridLabel");
                 if (unitColumn) {
-                    unitColumn.visible = uniqueUnitIds.length > 1 || _this.siteInfo.userInfo.usersUnits.length > 1;
-                    _this.isUnitColVisible = unitColumn.visible;
+                    unitColumn.visible = uniqueUnitIds.length > 1 || this.siteInfo.userInfo.usersUnits.length > 1;
+                    this.isUnitColVisible = unitColumn.visible;
                 }
                 //this.transactionGridOptions.data = httpResponse.data;
                 //if( this.transactionGridOptions.data.length <= this.HistoryPageSize )
@@ -110,26 +107,26 @@ var Ally;
                 //    this.transactionGridOptions.enablePagination = false;
                 //    this.transactionGridOptions.enablePaginationControls = false;
                 //}
-                var initialLoad = function () {
-                    if (_this.allFinancialTxns.length > 1) {
+                const initialLoad = () => {
+                    if (this.allFinancialTxns.length > 1) {
                         // Transactions come down newest first
-                        _this.filterEndDate = _this.allFinancialTxns[0].transactionDate;
-                        _this.filterStartDate = _this.allFinancialTxns[_this.allFinancialTxns.length - 1].transactionDate;
+                        this.filterEndDate = this.allFinancialTxns[0].transactionDate;
+                        this.filterStartDate = this.allFinancialTxns[this.allFinancialTxns.length - 1].transactionDate;
                     }
-                    _this.onFilterDateRangeChange();
+                    this.onFilterDateRangeChange();
                 };
                 // Put this in a slight delay so the date range picker can exist
-                _this.$timeout(function () {
-                    if (_this.isUnitColVisible)
-                        _this.populateGridUnitLabels().then(initialLoad, initialLoad);
+                this.$timeout(() => {
+                    if (this.isUnitColVisible)
+                        this.populateGridUnitLabels().then(initialLoad, initialLoad);
                     else
                         initialLoad();
                 }, 100);
-            }, function () {
-                _this.isLoading = false;
+            }, () => {
+                this.isLoading = false;
             });
-        };
-        ResidentTransactionsController.prototype.exportTransactionsCsv = function () {
+        }
+        exportTransactionsCsv() {
             var csvColumns = [
                 {
                     headerText: "Date",
@@ -159,31 +156,26 @@ var Ally;
             ];
             var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
-        };
-        ResidentTransactionsController.prototype.onFilterDateRangeChange = function () {
-            var _this = this;
+        }
+        onFilterDateRangeChange() {
             if (!this.filterStartDate || !this.filterEndDate)
                 return;
             // Wrap this in $timeout so it refreshes properly, from here: https://stackoverflow.com/a/17958847/10315651
-            this.$timeout(function () {
-                var txRows = _this.allFinancialTxns.filter(function (t) { return t.transactionDate >= _this.filterStartDate && t.transactionDate <= _this.filterEndDate; });
-                _this.transactionGridOptions.data = txRows;
-                _this.transactionGridOptions.virtualizationThreshold = txRows.length + 1;
-                if (_this.transactionGridOptions.data.length <= _this.HistoryPageSize) {
-                    _this.transactionGridOptions.enablePagination = false;
-                    _this.transactionGridOptions.enablePaginationControls = false;
+            this.$timeout(() => {
+                const txRows = this.allFinancialTxns.filter(t => t.transactionDate >= this.filterStartDate && t.transactionDate <= this.filterEndDate);
+                this.transactionGridOptions.data = txRows;
+                this.transactionGridOptions.virtualizationThreshold = txRows.length + 1;
+                if (this.transactionGridOptions.data.length <= this.HistoryPageSize) {
+                    this.transactionGridOptions.enablePagination = false;
+                    this.transactionGridOptions.enablePaginationControls = false;
                 }
             }, 10);
-        };
-        ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "uiGridConstants", "$scope"];
-        return ResidentTransactionsController;
-    }());
-    Ally.ResidentTransactionsController = ResidentTransactionsController;
-    var OwnerTxInfo = /** @class */ (function () {
-        function OwnerTxInfo() {
         }
-        return OwnerTxInfo;
-    }());
+    }
+    ResidentTransactionsController.$inject = ["$http", "SiteInfo", "$timeout", "uiGridConstants", "$scope"];
+    Ally.ResidentTransactionsController = ResidentTransactionsController;
+    class OwnerTxInfo {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("residentTransactions", {
     templateUrl: "/ngApp/common/financial/resident-transactions.html",

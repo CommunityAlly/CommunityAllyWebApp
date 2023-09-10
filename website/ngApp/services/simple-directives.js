@@ -3,7 +3,7 @@
 angular.module("CondoAlly").directive("ngEnter", function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
-            var EnterKeyCode = 13;
+            const EnterKeyCode = 13;
             if (event.which === EnterKeyCode) {
                 scope.$apply(function () {
                     scope.$eval(attrs.ngEnter, { '$event': event });
@@ -17,7 +17,7 @@ angular.module("CondoAlly").directive("ngEnter", function () {
 angular.module("CondoAlly").directive("ngCtrlEnter", function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
-            var EnterKeyCode = 13;
+            const EnterKeyCode = 13;
             if (event.which === EnterKeyCode && event.ctrlKey) {
                 scope.$apply(function () {
                     scope.$eval(attrs.ngEnter, { '$event': event });
@@ -30,7 +30,7 @@ angular.module("CondoAlly").directive("ngCtrlEnter", function () {
 angular.module("CondoAlly").directive("ngEscape", function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
-            var EscapeKeyCode = 27;
+            const EscapeKeyCode = 27;
             if (event.which === EscapeKeyCode) {
                 scope.$apply(function () {
                     scope.$eval(attrs.ngEscape, { '$event': event });

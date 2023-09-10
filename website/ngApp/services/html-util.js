@@ -1,17 +1,15 @@
 /// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;
 (function (Ally) {
-    var HtmlUtil2 = /** @class */ (function () {
-        function HtmlUtil2() {
-        }
-        HtmlUtil2.convertStringsToDates = function (obj) {
+    class HtmlUtil2 {
+        static convertStringsToDates(obj) {
             if ($.isArray(obj)) {
                 HtmlUtil2.convertDatesFromArray(obj);
             }
             if (HtmlUtil2.isObject(obj)) {
                 // Recursively evaluate nested objects
-                for (var curPropName in obj) {
-                    var value = obj[curPropName];
+                for (const curPropName in obj) {
+                    const value = obj[curPropName];
                     if (HtmlUtil2.isObject(value)) {
                         HtmlUtil2.convertStringsToDates(value);
                     }
@@ -20,7 +18,7 @@ var Ally;
                     }
                     else if (HtmlUtil2.isString(value) && value.length > 10 && HtmlUtil2.dotNetTimeRegEx2.test(value)) {
                         //If it is a string of the expected form convert to date
-                        var parsedDate = void 0;
+                        let parsedDate;
                         if (HtmlUtil.endsWith(curPropName, "_UTC")
                             || HtmlUtil.endsWith(curPropName, "Utc")) {
                             parsedDate = HtmlUtil2.serverUtcDateToLocal(value);
@@ -31,10 +29,10 @@ var Ally;
                     }
                 }
             }
-        };
-        HtmlUtil2.convertDatesFromArray = function (array) {
-            for (var i = 0; i < array.length; i++) {
-                var value = array[i];
+        }
+        static convertDatesFromArray(array) {
+            for (let i = 0; i < array.length; i++) {
+                const value = array[i];
                 if (HtmlUtil2.isObject(value)) {
                     HtmlUtil2.convertStringsToDates(value);
                 }
@@ -42,30 +40,30 @@ var Ally;
                     array[i] = new Date(value);
                 }
             }
-        };
-        HtmlUtil2.isObject = function (value) {
+        }
+        static isObject(value) {
             return Object.prototype.toString.call(value) === "[object Object]";
-        };
-        HtmlUtil2.isString = function (value) {
+        }
+        static isString(value) {
             return Object.prototype.toString.call(value) === "[object String]";
-        };
+        }
         /// Test if an object is a string, if it is not empty, and if it's not "null"
-        HtmlUtil2.isValidString = function (str) {
+        static isValidString(str) {
             if (!str || typeof (str) !== "string")
                 return false;
             if (str === "null")
                 return false;
             return str.length > 0;
-        };
+        }
         // Convert a UTC date string from the server to a local date object
-        HtmlUtil2.serverUtcDateToLocal = function (dbString) {
+        static serverUtcDateToLocal(dbString) {
             if (typeof dbString !== "string")
                 return dbString;
             if (HtmlUtil.isNullOrWhitespace(dbString))
                 return null;
             return moment.utc(dbString).toDate();
-        };
-        HtmlUtil2.showTooltip = function (element, text) {
+        }
+        static showTooltip(element, text) {
             $(element).qtip({
                 style: {
                     classes: 'qtip-light qtip-shadow'
@@ -82,84 +80,82 @@ var Ally;
                 }
             });
             $(element).qtip("show");
-        };
-        HtmlUtil2.removeNonAlphanumeric = function (str) {
+        }
+        static removeNonAlphanumeric(str) {
             return str.replace(/\W/g, '');
-        };
+        }
         /** Download a CSV string as a file */
-        HtmlUtil2.downloadCsv = function (csvText, downloadFileName) {
+        static downloadCsv(csvText, downloadFileName) {
             HtmlUtil2.downloadFile(csvText, downloadFileName, "text/csv");
-        };
+        }
         /** Download a XML string as a file */
-        HtmlUtil2.downloadXml = function (xmlText, downloadFileName) {
+        static downloadXml(xmlText, downloadFileName) {
             HtmlUtil2.downloadFile(xmlText, downloadFileName, "text/xml");
-        };
+        }
         /** Download a string as a file */
-        HtmlUtil2.downloadFile = function (fileContents, downloadFileName, contentType) {
+        static downloadFile(fileContents, downloadFileName, contentType) {
             if (typeof (Blob) !== "undefined") {
-                var a = document.createElement("a");
+                const a = document.createElement("a");
                 document.body.appendChild(a);
                 a.style.display = "none";
-                var blob = new Blob([fileContents], { type: contentType });
-                var url = window.URL.createObjectURL(blob);
+                const blob = new Blob([fileContents], { type: contentType });
+                const url = window.URL.createObjectURL(blob);
                 a.href = url;
                 a.download = downloadFileName;
                 a.click();
                 window.URL.revokeObjectURL(url);
             }
             else {
-                var wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
-                var encodedFileDataUri = encodeURI(wrappedFileDataString);
-                var downloadLink_1 = document.createElement("a");
-                downloadLink_1.setAttribute("href", encodedFileDataUri);
-                downloadLink_1.setAttribute("download", downloadFileName);
-                document.body.appendChild(downloadLink_1);
-                downloadLink_1.click(); // This will download the file
-                setTimeout(function () { document.body.removeChild(downloadLink_1); }, 500);
+                const wrappedFileDataString = "data:" + contentType + ";charset=utf-8," + fileContents;
+                const encodedFileDataUri = encodeURI(wrappedFileDataString);
+                const downloadLink = document.createElement("a");
+                downloadLink.setAttribute("href", encodedFileDataUri);
+                downloadLink.setAttribute("download", downloadFileName);
+                document.body.appendChild(downloadLink);
+                downloadLink.click(); // This will download the file
+                setTimeout(function () { document.body.removeChild(downloadLink); }, 500);
             }
-        };
+        }
         /** Determine if a string starts with a numeric string */
-        HtmlUtil2.startsWithNumber = function (testString, shouldTrim) {
-            if (shouldTrim === void 0) { shouldTrim = true; }
+        static startsWithNumber(testString, shouldTrim = true) {
             if (HtmlUtil.isNullOrWhitespace(testString))
                 return false;
             if (shouldTrim)
                 testString = testString.trim();
-            var firstWhitespaceIndex = testString.search(/[\s,]/); // Find the first whitespace or comma
+            let firstWhitespaceIndex = testString.search(/[\s,]/); // Find the first whitespace or comma
             // If no whitespace was found then test the whole string
             if (firstWhitespaceIndex === -1)
                 firstWhitespaceIndex = testString.length;
             testString = testString.substring(0, firstWhitespaceIndex);
             return HtmlUtil.isNumericString(testString);
-        };
+        }
         /** Determine if a string ends with a numeric string */
-        HtmlUtil2.endsWithNumber = function (testString, shouldTrim) {
-            if (shouldTrim === void 0) { shouldTrim = true; }
+        static endsWithNumber(testString, shouldTrim = true) {
             if (HtmlUtil.isNullOrWhitespace(testString))
                 return false;
             if (shouldTrim)
                 testString = testString.trim();
             return /[0-9]+$/.test(testString);
-        };
+        }
         /** Get the number at the end of a string, null if the string doesn't end with a number */
-        HtmlUtil2.getNumberAtEnd = function (testString) {
+        static getNumberAtEnd(testString) {
             if (HtmlUtil2.endsWithNumber(testString))
                 return parseInt(testString.match(/[0-9]+$/)[0]);
             return null;
-        };
+        }
         /** Get the number at the start of a string, null if the string doesn't start with a number */
-        HtmlUtil2.getNumberAtStart = function (testString) {
+        static getNumberAtStart(testString) {
             if (HtmlUtil2.startsWithNumber(testString))
                 return parseInt(testString.match(/^[0-9]+/)[0]);
             return null;
-        };
-        HtmlUtil2.isAndroid = function () {
-            var ua = navigator.userAgent.toLowerCase();
+        }
+        static isAndroid() {
+            const ua = navigator.userAgent.toLowerCase();
             return ua.indexOf("android") > -1;
-        };
+        }
         // From https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-        HtmlUtil2.copyTextToClipboard = function (text) {
-            var textArea = document.createElement("textarea");
+        static copyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
             //
             // *** This styling is an extra step which is likely not required. ***
             //
@@ -195,10 +191,10 @@ var Ally;
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-            var didCopy = false;
+            let didCopy = false;
             try {
-                var successful = document.execCommand("copy");
-                var msg = successful ? "successful" : "unsuccessful";
+                const successful = document.execCommand("copy");
+                const msg = successful ? "successful" : "unsuccessful";
                 console.log("Copying text command was " + msg);
                 didCopy = successful;
             }
@@ -207,128 +203,124 @@ var Ally;
             }
             document.body.removeChild(textArea);
             return didCopy;
-        };
+        }
         /* eslint-disable  @typescript-eslint/no-explicit-any */
-        HtmlUtil2.smartSortStreetAddresses = function (homeList, namePropName) {
+        static smartSortStreetAddresses(homeList, namePropName) {
             if (!homeList || homeList.length === 0)
                 return homeList;
             // If all homes have a numeric name then lets sort numerically
-            var shouldUseNumericNames = _.every(homeList, function (u) { return HtmlUtil.isNumericString(u[namePropName]); });
+            const shouldUseNumericNames = _.every(homeList, u => HtmlUtil.isNumericString(u[namePropName]));
             if (shouldUseNumericNames)
-                return _.sortBy(homeList, function (u) { return +u[namePropName]; });
+                return _.sortBy(homeList, u => +u[namePropName]);
             // If all homes share the same suffix then sort by only the first part, if numeric
-            var firstHomeName = homeList[0][namePropName];
-            var firstSuffix = firstHomeName.substr(firstHomeName.indexOf(" "));
-            var allHaveNumericPrefix = _.every(homeList, function (u) { return HtmlUtil2.startsWithNumber(u[namePropName]); });
-            var allHaveSameSuffix = _.every(homeList, function (u) { return HtmlUtil.endsWith(u[namePropName], firstSuffix); });
+            const firstHomeName = homeList[0][namePropName];
+            const firstSuffix = firstHomeName.substr(firstHomeName.indexOf(" "));
+            const allHaveNumericPrefix = _.every(homeList, u => HtmlUtil2.startsWithNumber(u[namePropName]));
+            const allHaveSameSuffix = _.every(homeList, u => HtmlUtil.endsWith(u[namePropName], firstSuffix));
             if (allHaveNumericPrefix && allHaveSameSuffix)
-                return _.sortBy(homeList, function (u) { return parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))); });
+                return _.sortBy(homeList, u => parseInt(u[namePropName].substr(0, u[namePropName].indexOf(" "))));
             // And the flip, if all names start with the same string "Unit #" and end with a number, sort by that number
-            var firstNumberIndex = firstHomeName.search(/[0-9]/);
+            const firstNumberIndex = firstHomeName.search(/[0-9]/);
             if (firstNumberIndex >= 0) {
-                var firstPrefix_1 = firstHomeName.substr(0, firstNumberIndex);
-                var allHaveSamePrefix = _.every(homeList, function (u) { return HtmlUtil.startsWith(u[namePropName], firstPrefix_1); });
-                var allEndWithNumber = _.every(homeList, function (u) { return HtmlUtil2.endsWithNumber(u[namePropName]); });
+                const firstPrefix = firstHomeName.substr(0, firstNumberIndex);
+                const allHaveSamePrefix = _.every(homeList, u => HtmlUtil.startsWith(u[namePropName], firstPrefix));
+                const allEndWithNumber = _.every(homeList, u => HtmlUtil2.endsWithNumber(u[namePropName]));
                 if (allHaveSamePrefix && allEndWithNumber)
-                    return _.sortBy(homeList, function (u) { return HtmlUtil2.getNumberAtEnd(u[namePropName]); });
+                    return _.sortBy(homeList, u => HtmlUtil2.getNumberAtEnd(u[namePropName]));
             }
             // If all units start with a number and end with a string (Like,
             // 123 Elm St) then first sort by the street, then number
             if (allHaveNumericPrefix) {
-                var sortByStreet_1 = function (s1, s2) {
-                    var suffix1 = getAfterNumber_1(s1);
-                    var suffix2 = getAfterNumber_1(s2);
+                const sortByStreet = (s1, s2) => {
+                    const suffix1 = getAfterNumber(s1);
+                    const suffix2 = getAfterNumber(s2);
                     if (suffix1 === suffix2) {
-                        var num1 = parseInt(s1.substr(0, s1.search(/\s/)));
-                        var num2 = parseInt(s2.substr(0, s2.search(/\s/)));
+                        const num1 = parseInt(s1.substr(0, s1.search(/\s/)));
+                        const num2 = parseInt(s2.substr(0, s2.search(/\s/)));
                         return num1 - num2;
                     }
                     return suffix1.localeCompare(suffix2);
                 };
-                var getAfterNumber_1 = function (str) { return str.substring(str.search(/\s/) + 1); };
-                return homeList.sort(function (h1, h2) { return sortByStreet_1(h1[namePropName], h2[namePropName]); });
+                const getAfterNumber = (str) => str.substring(str.search(/\s/) + 1);
+                return homeList.sort((h1, h2) => sortByStreet(h1[namePropName], h2[namePropName]));
                 //return _.sortBy( homeList, u => [getAfterNumber( u[namePropName] ), parseInt( u[namePropName].substr( 0, u[namePropName].search( /\s/ ) ) )] );
             }
-            var firstPrefix = null;
+            let firstPrefix = null;
             if (firstHomeName.includes(" "))
                 firstPrefix = firstHomeName.substr(0, firstHomeName.indexOf(" ") + 1); // +1 to include the space
             if (firstPrefix) {
-                var allHaveSamePrefix = _.every(homeList, function (u) { return HtmlUtil.startsWith(u[namePropName], firstPrefix); });
+                const allHaveSamePrefix = _.every(homeList, u => HtmlUtil.startsWith(u[namePropName], firstPrefix));
                 if (allHaveSamePrefix) {
-                    var allHaveNumAfterPrefix = _.every(homeList, function (u) { return HtmlUtil2.startsWithNumber(u[namePropName].substr(firstPrefix.length)); });
+                    const allHaveNumAfterPrefix = _.every(homeList, u => HtmlUtil2.startsWithNumber(u[namePropName].substr(firstPrefix.length)));
                     if (allHaveNumAfterPrefix) {
-                        return _.sortBy(homeList, function (u) { return HtmlUtil2.getNumberAtStart(u[namePropName].substr(firstPrefix.length)); });
+                        return _.sortBy(homeList, u => HtmlUtil2.getNumberAtStart(u[namePropName].substr(firstPrefix.length)));
                     }
                 }
             }
-            return _.sortBy(homeList, function (u) { return (u[namePropName] || "").toLowerCase(); });
-        };
+            return _.sortBy(homeList, u => (u[namePropName] || "").toLowerCase());
+        }
         /**
          * Resize a base 64 image. From https://stackoverflow.com/a/63348962/10315651
          * @param {String} base64 - The base64 string (must include MIME type)
          * @param {Number} newWidth - The width of the image in pixels
          * @param {Number} newHeight - The height of the image in pixels
          */
-        HtmlUtil2.resizeBase64Img = function (base64, newWidth, newHeight) {
-            return new Promise(function (resolve, reject) {
-                var canvas = document.createElement("canvas");
+        static resizeBase64Img(base64, newWidth, newHeight) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
-                var context = canvas.getContext("2d");
-                var image = document.createElement("img");
+                const context = canvas.getContext("2d");
+                const image = document.createElement("img");
                 image.onload = function () {
                     context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
                     resolve(canvas.toDataURL());
                 };
                 image.src = base64;
             });
-        };
+        }
         /**
          * Resize an image
          * @param {HTMLImageElement} image - The image to resize
          * @param {Number} newWidth - The width of the image in pixels
          * @param {Number} newHeight - The height of the image in pixels
          */
-        HtmlUtil2.resizeFromImg = function (image, newWidth, newHeight) {
-            return new Promise(function (resolve, reject) {
-                var canvas = document.createElement("canvas");
+        static resizeFromImg(image, newWidth, newHeight) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
-                var context = canvas.getContext("2d");
+                const context = canvas.getContext("2d");
                 context.scale(newWidth / image.width, newHeight / image.height);
                 context.drawImage(image, 0, 0);
                 resolve(canvas.toDataURL());
             });
-        };
+        }
         /**
          * Resize an image and output a blob
          * @param {HTMLImageElement} image - The image to resize
          * @param {Number} newWidth - The width of the image in pixels
          * @param {Number} newHeight - The height of the image in pixels
          */
-        HtmlUtil2.resizeFromImgToBlob = function (image, newWidth, newHeight, mimeType) {
-            if (mimeType === void 0) { mimeType = "image/jpeg"; }
-            return new Promise(function (resolve, reject) {
-                var canvas = document.createElement("canvas");
+        static resizeFromImgToBlob(image, newWidth, newHeight, mimeType = "image/jpeg") {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
-                var context = canvas.getContext("2d");
+                const context = canvas.getContext("2d");
                 context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
-                canvas.toBlob(function (blob) {
+                canvas.toBlob((blob) => {
                     resolve(blob);
                 }, mimeType, 0.75);
             });
-        };
-        HtmlUtil2.initTinyMce = function (elemId, heightPixels, overrideOptions) {
-            if (elemId === void 0) { elemId = "tiny-mce-editor"; }
-            if (heightPixels === void 0) { heightPixels = 400; }
-            if (overrideOptions === void 0) { overrideOptions = null; }
-            var mcePromise = new Promise(function (resolve, reject) {
-                var loadRtes = function () {
+        }
+        static initTinyMce(elemId = "tiny-mce-editor", heightPixels = 400, overrideOptions = null) {
+            const mcePromise = new Promise((resolve, reject) => {
+                const loadRtes = () => {
                     tinymce.remove();
-                    var menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
-                    var toolbar = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.toolbar : "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table";
-                    var autoFocusElemId = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.autoFocusElemId : undefined;
+                    const menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
+                    const toolbar = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.toolbar : "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table";
+                    const autoFocusElemId = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.autoFocusElemId : undefined;
                     tinymce.init({
                         selector: '#' + elemId,
                         auto_focus: autoFocusElemId,
@@ -336,11 +328,11 @@ var Ally;
                         elementpath: false,
                         wordcount: true,
                         resize: true,
-                        menubar: menubar,
+                        menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
                         plugins: 'image link autolink lists media table code emoticons',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
-                        toolbar: toolbar,
+                        toolbar,
                         //toolbar_mode: 'floating',
                         //tinycomments_mode: 'embedded',
                         //tinycomments_author: 'Author name',
@@ -348,7 +340,7 @@ var Ally;
                         file_picker_types: 'image',
                         image_description: false,
                         file_picker_callback: function (cb, value, meta) {
-                            var input = document.createElement('input');
+                            const input = document.createElement('input');
                             input.setAttribute('type', 'file');
                             input.setAttribute('accept', 'image/*');
                             /*
@@ -360,32 +352,32 @@ var Ally;
                             */
                             input.onchange = function (evt) {
                                 // debugger; // This code gets called on uploaded file selection
-                                var selectedFile = evt.target.files[0];
-                                var reader = new FileReader();
+                                const selectedFile = evt.target.files[0];
+                                const reader = new FileReader();
                                 reader.onload = function (fileObject) {
                                     /*
                                       Note: Now we need to register the blob in TinyMCEs image blob
                                       registry. In the next release this part hopefully won't be
                                       necessary, as we are looking to handle it internally.
                                     */
-                                    var newBlobId = 'blobid' + (new Date()).getTime();
-                                    var blobCache = tinymce.activeEditor.editorUpload.blobCache;
-                                    var base64 = reader.result.split(',')[1];
+                                    const newBlobId = 'blobid' + (new Date()).getTime();
+                                    const blobCache = tinymce.activeEditor.editorUpload.blobCache;
+                                    const base64 = reader.result.split(',')[1];
                                     //console.log( "Image base64 size: " + base64.length );
                                     // If the image is larger than 1MB, let's downsize
-                                    var OneMB = 1024 * 1024;
+                                    const OneMB = 1024 * 1024;
                                     if (base64.length > OneMB) {
-                                        var tempImage_1 = new Image();
-                                        tempImage_1.onload = function () {
+                                        const tempImage = new Image();
+                                        tempImage.onload = function () {
                                             // access image size here 
                                             //console.log( "image width", tempImage.width );
                                             // Resize so the largest edge is 1k pixels
-                                            var xScalar = 1000 / tempImage_1.width;
-                                            var yScalar = 1000 / tempImage_1.height;
-                                            var imageScalar = xScalar;
+                                            const xScalar = 1000 / tempImage.width;
+                                            const yScalar = 1000 / tempImage.height;
+                                            let imageScalar = xScalar;
                                             if (yScalar < xScalar)
                                                 imageScalar = yScalar;
-                                            HtmlUtil2.resizeFromImgToBlob(tempImage_1, Math.round(tempImage_1.width * imageScalar), Math.round(tempImage_1.height * imageScalar), selectedFile.type).then(function (resizedBlob) {
+                                            HtmlUtil2.resizeFromImgToBlob(tempImage, Math.round(tempImage.width * imageScalar), Math.round(tempImage.height * imageScalar), selectedFile.type).then((resizedBlob) => {
                                                 //console.log( "Resized image base64 size: " + resizedBlob.size );
                                                 //const resizedTempImage = new Image();
                                                 //resizedTempImage.onload = function()
@@ -405,22 +397,22 @@ var Ally;
                                                 //};
                                                 //var resizedImgUrl = URL.createObjectURL( resizedBlob );
                                                 //resizedTempImage.src = resizedImgUrl;
-                                                var resizedReader = new FileReader();
+                                                const resizedReader = new FileReader();
                                                 resizedReader.readAsDataURL(resizedBlob);
                                                 resizedReader.onloadend = function () {
-                                                    var resizedFileObject = new File([resizedBlob], selectedFile.name, resizedBlob);
-                                                    var resizedBase64 = resizedReader.result.split(',')[1];
-                                                    var blobInfo = blobCache.create(newBlobId, resizedFileObject, resizedBase64);
+                                                    const resizedFileObject = new File([resizedBlob], selectedFile.name, resizedBlob);
+                                                    const resizedBase64 = resizedReader.result.split(',')[1];
+                                                    const blobInfo = blobCache.create(newBlobId, resizedFileObject, resizedBase64);
                                                     blobCache.add(blobInfo);
                                                     /* call the callback and populate the Title field with the file name */
                                                     cb(blobInfo.blobUri(), { title: selectedFile.name });
                                                 };
                                             });
                                         };
-                                        tempImage_1.src = fileObject.target.result;
+                                        tempImage.src = fileObject.target.result;
                                     }
                                     else {
-                                        var blobInfo = blobCache.create(newBlobId, selectedFile, base64);
+                                        const blobInfo = blobCache.create(newBlobId, selectedFile, base64);
                                         blobCache.add(blobInfo);
                                         /* call the callback and populate the Title field with the file name */
                                         cb(blobInfo.blobUri(), { title: selectedFile.name });
@@ -430,31 +422,31 @@ var Ally;
                             };
                             input.click();
                         },
-                    }).then(function (e) {
+                    }).then((e) => {
                         resolve(e[0]);
                     });
                 };
                 // Need to delay a bit for TinyMCE to load in case the user is started from a fresh
                 // page reload
-                setTimeout(function () {
+                setTimeout(() => {
                     if (typeof (tinymce) === "undefined")
-                        setTimeout(function () { return loadRtes(); }, 400);
+                        setTimeout(() => loadRtes(), 400);
                     else
                         loadRtes();
                 }, 100);
             });
             return mcePromise;
-        };
+        }
         /**
          * Get the icon for a file
          * @param fileName The full path, file name, extension, or extension with dot
          * @returns A path to the image file for this type
          */
-        HtmlUtil2.getFileIcon = function (fileName) {
+        static getFileIcon(fileName) {
             if (!fileName)
                 fileName = "";
-            var extension = fileName.split('.').pop().toLowerCase();
-            var imagePath = null;
+            const extension = fileName.split('.').pop().toLowerCase();
+            let imagePath = null;
             switch (extension) {
                 case "pdf":
                     imagePath = "PdfIcon.png";
@@ -492,14 +484,14 @@ var Ally;
                     break;
             }
             return "/assets/images/FileIcons/" + imagePath;
-        };
-        HtmlUtil2.getStripeFeeInfo = function (paymentAmount, payerPaysFee, isPremiumPlanActive) {
-            var feeAmount;
-            var totalAmountPaid;
-            var groupReceives;
-            var payerFee;
-            var StripeAchFeePercent = 0.008;
-            var StripeMaxFee = 5;
+        }
+        static getStripeFeeInfo(paymentAmount, payerPaysFee, isPremiumPlanActive) {
+            let feeAmount;
+            let totalAmountPaid;
+            let groupReceives;
+            let payerFee;
+            const StripeAchFeePercent = 0.008;
+            const StripeMaxFee = 5;
             if (payerPaysFee) {
                 groupReceives = paymentAmount;
                 // dwollaFeePercent is in display percent, so 0.8 = 0.8% = 0.008 scalar
@@ -508,8 +500,8 @@ var Ally;
                 feeAmount = totalAmountPaid - paymentAmount;
                 //paymentAmount = totalAmountPaid - paymentAmount;
                 // Cap the fee at $5 for premium, $10 for free plan groups
-                var MaxFeeAmount = 5;
-                var useMaxFee = feeAmount > MaxFeeAmount;
+                const MaxFeeAmount = 5;
+                const useMaxFee = feeAmount > MaxFeeAmount;
                 if (useMaxFee) {
                     feeAmount = MaxFeeAmount;
                     totalAmountPaid = paymentAmount + feeAmount;
@@ -541,29 +533,25 @@ var Ally;
                 groupReceives = paymentAmount - feeAmount;
             }
             return {
-                totalAmountPaid: totalAmountPaid,
-                feeAmount: feeAmount,
-                groupReceives: groupReceives,
-                payerFee: payerFee
+                totalAmountPaid,
+                feeAmount,
+                groupReceives,
+                payerFee
             };
-        };
-        // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
-        //"2018-03-12T22:00:33"
-        HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
-        //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
-        // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
-        // regex is needed for the dates that come down
-        HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
-        return HtmlUtil2;
-    }());
+        }
+    }
+    // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
+    //"2018-03-12T22:00:33"
+    HtmlUtil2.iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+    //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
+    // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
+    // regex is needed for the dates that come down
+    HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
     Ally.HtmlUtil2 = HtmlUtil2;
     /**
      * Represents an exception returned from an API endpoint
      */
-    var ExceptionResult = /** @class */ (function () {
-        function ExceptionResult() {
-        }
-        return ExceptionResult;
-    }());
+    class ExceptionResult {
+    }
     Ally.ExceptionResult = ExceptionResult;
 })(Ally || (Ally = {}));

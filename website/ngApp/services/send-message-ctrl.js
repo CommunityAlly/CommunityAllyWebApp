@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the committee home page
      */
-    var SendMessageController = /** @class */ (function () {
+    class SendMessageController {
         /**
          * The constructor for the class
          */
-        function SendMessageController($rootScope, fellowResidents, siteInfo) {
+        constructor($rootScope, fellowResidents, siteInfo) {
             this.$rootScope = $rootScope;
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
@@ -21,57 +21,55 @@ var Ally;
             this.isSendingToSelf = false;
             this.shouldShowSendAsBoard = false;
             this.shouldSendAsBoard = false;
-            this.messageSubject = siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
+            this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }
         /// Called on each controller after all the controllers on an element have been constructed
-        SendMessageController.prototype.$onInit = function () {
+        $onInit() {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
-            var isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
+            const isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
             this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isRecipientWholeBoard;
-        };
+        }
         /// Display the send modal
-        SendMessageController.prototype.showSendModal = function () {
+        showSendModal() {
             this.shouldShowSendModal = true;
             this.sendResultMessage = "";
             this.shouldShowButtons = true;
             // Focus on the message box once displayed
             if (this.isPremiumPlanActive)
-                setTimeout(function () { return document.getElementById("message-text-box").focus(); }, 100);
-        };
+                setTimeout(() => document.getElementById("message-text-box").focus(), 100);
+        }
         /// Hide the send modal
-        SendMessageController.prototype.hideModal = function () {
+        hideModal() {
             this.shouldShowSendModal = false;
             this.messageBody = "";
-        };
+        }
         /// Send the user's message
-        SendMessageController.prototype.sendMessage = function () {
-            var _this = this;
+        sendMessage() {
             this.shouldShowButtons = false;
             this.isSending = true;
             this.sendResultMessage = "";
-            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.shouldSendAsBoard).then(function (response) {
-                _this.isSending = false;
-                _this.sendResultIsError = false;
-                _this.messageBody = "";
-                _this.sendResultMessage = "Message sent successfully!";
-            }, function (response) {
-                _this.shouldShowButtons = true;
-                _this.isSending = false;
-                _this.sendResultIsError = true;
-                _this.sendResultMessage = "Failed to send: " + response.data.exceptionMessage;
+            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.shouldSendAsBoard).then((response) => {
+                this.isSending = false;
+                this.sendResultIsError = false;
+                this.messageBody = "";
+                this.sendResultMessage = "Message sent successfully!";
+            }, (response) => {
+                this.shouldShowButtons = true;
+                this.isSending = false;
+                this.sendResultIsError = true;
+                this.sendResultMessage = "Failed to send: " + response.data.exceptionMessage;
             });
-        };
+        }
         /// Occurs when the user clicks the checkbox to toggle if they're sending as the board
-        SendMessageController.prototype.onSendAsBoardChanged = function () {
+        onSendAsBoardChanged() {
             if (this.shouldSendAsBoard)
-                this.messageSubject = "Your " + this.siteInfo.publicSiteInfo.fullName + " board has sent you a message via your " + AppConfig.appName + " site";
+                this.messageSubject = `Your ${this.siteInfo.publicSiteInfo.fullName} board has sent you a message via your ${AppConfig.appName} site`;
             else
-                this.messageSubject = this.siteInfo.userInfo.fullName + " has sent you a message via your " + AppConfig.appName + " site";
-        };
-        SendMessageController.$inject = ["$rootScope", "fellowResidents", "SiteInfo"];
-        return SendMessageController;
-    }());
+                this.messageSubject = `${this.siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
+        }
+    }
+    SendMessageController.$inject = ["$rootScope", "fellowResidents", "SiteInfo"];
     Ally.SendMessageController = SendMessageController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("sendMessage", {

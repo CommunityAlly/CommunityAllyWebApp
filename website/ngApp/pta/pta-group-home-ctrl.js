@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the PTA Ally home page
      */
-    var PtaGroupHomeController = /** @class */ (function () {
+    class PtaGroupHomeController {
         /**
          * The constructor for the class
          */
-        function PtaGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService) {
+        constructor($http, $rootScope, siteInfo, $timeout, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -17,7 +17,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        PtaGroupHomeController.prototype.$onInit = function () {
+        $onInit() {
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
@@ -41,9 +41,9 @@ var Ally;
                     this.updatePaymentText();
                 }
             }
-        };
+        }
         // Refresh the not text for the payment field
-        PtaGroupHomeController.prototype.updatePaymentText = function () {
+        updatePaymentText() {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                 // If we have a next payment string
                 if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
@@ -57,13 +57,13 @@ var Ally;
             else {
                 this.paymentInfo.note = "";
             }
-        };
-        PtaGroupHomeController.prototype.onSelectPaymentType = function (paymentType) {
+        }
+        onSelectPaymentType(paymentType) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType === "periodic" ? this.siteInfo.userInfo.assessmentAmount : 0;
             this.updatePaymentText();
-        };
-        PtaGroupHomeController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
+        }
+        getNextPaymentText(payPeriods, assessmentFrequency) {
             if (payPeriods === null)
                 return "";
             // Ensure the periods is an array
@@ -90,12 +90,12 @@ var Ally;
                 this.paymentInfo.paysFor = [curPeriod];
             }
             return paymentText;
-        };
-        PtaGroupHomeController.prototype.hideFirstVisit = function () {
+        }
+        hideFirstVisit() {
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
-        };
-        PtaGroupHomeController.prototype.onIncorrectPayDetails = function () {
+        }
+        onIncorrectPayDetails() {
             // Create a message to the board
             this.messageObject.recipientType = "board";
             if (this.knowsNextPayment)
@@ -103,10 +103,9 @@ var Ally;
             else
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
-        };
-        PtaGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
-        return PtaGroupHomeController;
-    }());
+        }
+    }
+    PtaGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
     Ally.PtaGroupHomeController = PtaGroupHomeController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("ptaGroupHome", {

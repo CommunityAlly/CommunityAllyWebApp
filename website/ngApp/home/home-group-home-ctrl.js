@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the Home Ally home page
      */
-    var HomeGroupHomeController = /** @class */ (function () {
+    class HomeGroupHomeController {
         /**
          * The constructor for the class
          */
-        function HomeGroupHomeController($http, $rootScope, siteInfo, $timeout, appCacheService) {
+        constructor($http, $rootScope, siteInfo, $timeout, appCacheService) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -17,7 +17,7 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        HomeGroupHomeController.prototype.$onInit = function () {
+        $onInit() {
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
@@ -42,9 +42,9 @@ var Ally;
                 }
             }
             this.refreshData();
-        };
+        }
         // Refresh the not text for the payment field
-        HomeGroupHomeController.prototype.updatePaymentText = function () {
+        updatePaymentText() {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                 // If we have a next payment string
                 if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
@@ -58,13 +58,13 @@ var Ally;
             else {
                 this.paymentInfo.note = "";
             }
-        };
-        HomeGroupHomeController.prototype.onSelectPaymentType = function (paymentType) {
+        }
+        onSelectPaymentType(paymentType) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType === "periodic" ? this.siteInfo.userInfo.assessmentAmount : 0;
             this.updatePaymentText();
-        };
-        HomeGroupHomeController.prototype.getNextPaymentText = function (payPeriods, assessmentFrequency) {
+        }
+        getNextPaymentText(payPeriods, assessmentFrequency) {
             if (payPeriods === null)
                 return "";
             // Ensure the periods is an array
@@ -91,12 +91,12 @@ var Ally;
                 this.paymentInfo.paysFor = [curPeriod];
             }
             return paymentText;
-        };
-        HomeGroupHomeController.prototype.hideFirstVisit = function () {
+        }
+        hideFirstVisit() {
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
-        };
-        HomeGroupHomeController.prototype.onIncorrectPayDetails = function () {
+        }
+        onIncorrectPayDetails() {
             // Create a message to the board
             this.messageObject.recipientType = "board";
             if (this.knowsNextPayment)
@@ -104,11 +104,11 @@ var Ally;
             else
                 this.messageObject.message = "Hello Board Members,\n\nOur association's home page says my assessment payment is $" + this.siteInfo.userInfo.assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $[INSERT PROPER AMOUNT HERE]. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
             document.getElementById("send-email-panel").scrollIntoView();
-        };
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Populate the page from the server
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        HomeGroupHomeController.prototype.refreshData = function () {
+        refreshData() {
             //window.location.host is subdomain.domain.com
             var subDomain = HtmlUtil.getSubdomain(window.location.host);
             // A little test to help the automated tests run faster
@@ -144,10 +144,9 @@ var Ally;
                     innerThis.isLoading_LocalNews = false;
                 });
             }
-        };
-        HomeGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
-        return HomeGroupHomeController;
-    }());
+        }
+    }
+    HomeGroupHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "appCacheService"];
     Ally.HomeGroupHomeController = HomeGroupHomeController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("homeGroupHome", {

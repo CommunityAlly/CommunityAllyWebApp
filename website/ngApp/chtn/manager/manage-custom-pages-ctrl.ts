@@ -1,7 +1,4 @@
-﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../../Scripts/typings/underscore/underscore.d.ts" />
-/// <reference path="../../Services/html-util.ts" />
-declare var tinymce: any;
+﻿declare var tinymce: any;
 
 namespace Ally
 {

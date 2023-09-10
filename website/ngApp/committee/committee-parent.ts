@@ -1,9 +1,4 @@
-﻿/// <reference path="../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../Services/html-util.ts" />
-/// <reference path="../chtn/manager/manage-committees-ctrl.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
     interface ICommitteeParentRouteParams extends ng.route.IRouteParamsService
     {

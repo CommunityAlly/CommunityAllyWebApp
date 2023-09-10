@@ -3,31 +3,30 @@ var Ally;
     /**
      * The controller for the vendors page
      */
-    var StreetAddressFormController = /** @class */ (function () {
+    class StreetAddressFormController {
         /**
          * The constructor for the class
          */
-        function StreetAddressFormController($http, siteInfo) {
+        constructor($http, siteInfo) {
             this.$http = $http;
             this.siteInfo = siteInfo;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        StreetAddressFormController.prototype.$onInit = function () {
+        $onInit() {
             // Normalize the values that could come from the binding
             this.shouldHideName = !this.shouldHideName ? false : true;
-        };
+        }
         /**
          * Occurs when one of the input fields is changed
          */
-        StreetAddressFormController.prototype.onComponentChange = function () {
+        onComponentChange() {
             if (this.onChange)
                 this.onChange();
-        };
-        StreetAddressFormController.$inject = ["$http", "SiteInfo"];
-        return StreetAddressFormController;
-    }());
+        }
+    }
+    StreetAddressFormController.$inject = ["$http", "SiteInfo"];
     Ally.StreetAddressFormController = StreetAddressFormController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("streetAddressForm", {

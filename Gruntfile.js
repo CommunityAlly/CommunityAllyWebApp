@@ -3,33 +3,33 @@ const sass = require('sass');
 module.exports = function(grunt) {
 
 var allyLibTopFiles = [
-    'Website/js/lib/jquery/jquery-1.12.4.js',
-    'Website/js/lib/angular/core/angular.js',
-    'Website/js/lib/angular/core/angular-resource.js',
-    'Website/js/lib/angular/core/angular-route.js',
-    'Website/js/lib/angular/core/angular-sanitize.js',
-    'Website/js/lib/angular/third-party/ng-date.js',
-    'Website/js/lib/angular/third-party/ng-grid-2.0.11.min.js',
-    'Website/js/lib/angular/third-party/ng-grid-flexible-height.js',
-    'Website/js/lib/angular/third-party/ng-tags-input.js',
-    'Website/js/lib/angular/third-party/angular-wizard.min.js',
-    'Website/js/lib/angular/third-party/isteven-multi-select.js',
-    'Website/js/lib/angular/third-party/xd-utils.js',
-    'Website/js/lib/angular/third-party/xdLocalStorage.js',
-    'Website/js/lib/angular/third-party/ng-xdLocalStorage.js',
-    'Website/js/lib/ui-grid/ui-grid.min.js',
-    'Website/js/lib/angular/third-party/angular-google-maps.min.js',
-    'Website/js/lib/charts/Chart.min.js',
-    'Website/js/lib/charts/angular-chart.js',
-    'Website/js/lib/calendar/moment.min.js',
-    'Website/js/lib/calendar/moment-timezone-with-data-10-year-range.js',
-    'Website/js/lib/other/jsnlog.min.js',
-    'Website/js/lib/other/lodash.compat.min.js',
-    'Website/js/HtmlUtil.js',
-    'Website/js/design_v2/jquery.hotkeys.js',
-    'Website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
-    'Website/js/design_v2/main.js',
-    'Website/js/lib/jquery/jquery-ui-1.11.2.min.js'
+    'website/js/lib/jquery/jquery-1.12.4.js',
+    'website/js/lib/angular/core/angular.js',
+    'website/js/lib/angular/core/angular-resource.js',
+    'website/js/lib/angular/core/angular-route.js',
+    'website/js/lib/angular/core/angular-sanitize.js',
+    'website/js/lib/angular/third-party/ng-date.js',
+    'website/js/lib/angular/third-party/ng-grid-2.0.11.min.js',
+    'website/js/lib/angular/third-party/ng-grid-flexible-height.js',
+    'website/js/lib/angular/third-party/ng-tags-input.js',
+    'website/js/lib/angular/third-party/angular-wizard.min.js',
+    'website/js/lib/angular/third-party/isteven-multi-select.js',
+    'website/js/lib/angular/third-party/xd-utils.js',
+    'website/js/lib/angular/third-party/xdLocalStorage.js',
+    'website/js/lib/angular/third-party/ng-xdLocalStorage.js',
+    'website/js/lib/ui-grid/ui-grid.min.js',
+    'website/js/lib/angular/third-party/angular-google-maps.min.js',
+    'website/js/lib/charts/Chart.min.js',
+    'website/js/lib/charts/angular-chart.js',
+    'website/js/lib/calendar/moment.min.js',
+    'website/js/lib/calendar/moment-timezone-with-data-10-year-range.js',
+    'website/js/lib/other/jsnlog.min.js',
+    'website/js/lib/other/lodash.compat.min.js',
+    'website/js/HtmlUtil.js',
+    'website/js/design_v2/jquery.hotkeys.js',
+    'website/js/design_v2/jquery.mCustomScrollbar.concat.min.js',
+    'website/js/design_v2/main.js',
+    'website/js/lib/jquery/jquery-ui-1.11.2.min.js'
 ];
 
 // Project configuration.
@@ -62,7 +62,6 @@ grunt.initConfig({
 
     // Make the ally-app-bundle.js file which contains all of the AngularJS app code
     concat: {
-
         allyAppBundle: {
             src : ['website/ngApp/**/*.js',
                     '!website/ngApp/ally-app-bundle.js',
@@ -90,7 +89,7 @@ grunt.initConfig({
                 }
             },
             files:{
-                'Website/js/AllyLibTop.min.js': allyLibTopFiles
+                'website/js/AllyLibTop.min.js': allyLibTopFiles
             }
         },
 
@@ -102,32 +101,32 @@ grunt.initConfig({
                 mangle:false
             },
             files:{
-                'Website/js/AllyLibBottom.min.js': [
-                    'Website/js/lib/jquery/jquery.jeditable.mini.js',
-                    'Website/js/lib/jquery/jquery.maskedinput.js',
-                    'Website/js/lib/jquery/jquery.validate.min.js',
-                    'Website/js/lib/jquery/jquery.timepicker.js',
-                    'Website/js/lib/jquery/jquery.csv.min.js',
-                    'Website/js/lib/jquery/livestamp.min.js',
-                    'Website/js/lib/calendar/fullcalendar.js',
-                    'Website/js/lib/other/diQuery-collapsiblePanel.js',
-                    'Website/js/lib/other/jquery.qtip.min.js',
-                    'Website/js/lib/other/xeditable.min.js',
-                    'Website/js/lib/other/FileUpload/jquery.fileupload.js',
-                    'Website/js/lib/other/FileUpload/jquery.iframe-transport.js',
-                    'Website/js/lib/other/FileUpload/vendor/jquery.ui.widget.js',
-                    'Website/js/lib/other/clipboard.js',
-                    'Website/js/lib/other/popper.min.js',
-                    'Website/js/lib/other/tether.min.js',
-                    'Website/js/lib/other/bootstrap.bundle.min.js',
-                    'Website/js/lib/other/md5.js'
+                'website/js/AllyLibBottom.min.js': [
+                    'website/js/lib/jquery/jquery.jeditable.mini.js',
+                    'website/js/lib/jquery/jquery.maskedinput.js',
+                    'website/js/lib/jquery/jquery.validate.min.js',
+                    'website/js/lib/jquery/jquery.timepicker.js',
+                    'website/js/lib/jquery/jquery.csv.min.js',
+                    'website/js/lib/jquery/livestamp.min.js',
+                    'website/js/lib/calendar/fullcalendar.js',
+                    'website/js/lib/other/diQuery-collapsiblePanel.js',
+                    'website/js/lib/other/jquery.qtip.min.js',
+                    'website/js/lib/other/xeditable.min.js',
+                    'website/js/lib/other/FileUpload/jquery.fileupload.js',
+                    'website/js/lib/other/FileUpload/jquery.iframe-transport.js',
+                    'website/js/lib/other/FileUpload/vendor/jquery.ui.widget.js',
+                    'website/js/lib/other/clipboard.js',
+                    'website/js/lib/other/popper.min.js',
+                    'website/js/lib/other/tether.min.js',
+                    'website/js/lib/other/bootstrap.bundle.min.js',
+                    'website/js/lib/other/md5.js'
                 ]
             }
         },
 
         templates:{
             files:{
-                'Website/ngTemplates.min.js': ['Website/ngTemplates.js']
+                'website/ngTemplates.min.js': ['website/ngTemplates.js']
             }
         }
     },
@@ -140,7 +139,7 @@ grunt.initConfig({
         },
         dist: {
             files: {
-                'Website/assets/compiled-css/style.css': 'Website/assets/scss/style.scss'
+                'website/assets/compiled-css/style.css': 'website/assets/scss/style.scss'
             }
         }
     },
@@ -149,26 +148,26 @@ grunt.initConfig({
     cssmin: {
         dist: {
             files: {
-                'Website/assets/compiled.min.css': [
-                    'Website/third-party-css/font-awesome.css',
-                    'Website/third-party-css/jquery.selectbox.css',
-                    'Website/third-party-css/jquery.mCustomScrollbar.css',
-                    'Website/third-party-css/jquery-ui-1.10.3.custom.css',
-                    'Website/third-party-css/ng-tags-input.css',
-                    'Website/third-party-css/editor.css',
-                    'Website/third-party-css/animate.css',
-                    'Website/third-party-css/diQuery-collapsiblePanel.css',
-                    'Website/third-party-css/xeditable.css',
-                    'Website/third-party-css/ng-grid.min.css',
-                    'Website/js/lib/ui-grid/ui-grid.css',
-                    'Website/third-party-css/angular-chart.css',
-                    'Website/third-party-css/jquery.qtip.min.css',
-                    'Website/third-party-css/jquery.timepicker.css',
-                    'Website/third-party-css/angular-wizard.min.css',
-                    'Website/third-party-css/isteven-multi-select.css',
-                    'Website/assets/lib/fullcalendar/fullcalendar.min.css',
-                    'Website/assets/compiled-css/bootstrap.min.css',
-                    'Website/assets/compiled-css/style.css'
+                'website/assets/compiled.min.css': [
+                    'website/third-party-css/font-awesome.css',
+                    'website/third-party-css/jquery.selectbox.css',
+                    'website/third-party-css/jquery.mCustomScrollbar.css',
+                    'website/third-party-css/jquery-ui-1.10.3.custom.css',
+                    'website/third-party-css/ng-tags-input.css',
+                    'website/third-party-css/editor.css',
+                    'website/third-party-css/animate.css',
+                    'website/third-party-css/diQuery-collapsiblePanel.css',
+                    'website/third-party-css/xeditable.css',
+                    'website/third-party-css/ng-grid.min.css',
+                    'website/js/lib/ui-grid/ui-grid.css',
+                    'website/third-party-css/angular-chart.css',
+                    'website/third-party-css/jquery.qtip.min.css',
+                    'website/third-party-css/jquery.timepicker.css',
+                    'website/third-party-css/angular-wizard.min.css',
+                    'website/third-party-css/isteven-multi-select.css',
+                    'website/assets/lib/fullcalendar/fullcalendar.min.css',
+                    'website/assets/compiled-css/bootstrap.min.css',
+                    'website/assets/compiled-css/style.css'
                 ]
             }
         }
@@ -183,24 +182,24 @@ grunt.initConfig({
         },
         
         templates:{
-            files: ['Website/ngApp/**/*.html'],
+            files: ['website/ngApp/**/*.html'],
             tasks: ['ngtemplates', 'uglify:templates'],
             options:{ livereload: 35735 }
         },
 
         // allyAppBundle: {
-        //     files: ['Website/ngApp/**/*.js',
-        //             '!Website/ngApp/ally-app-bundle.js',
-        //             '!Website/ngApp/ally-app-bundle.min.js'],
+        //     files: ['website/ngApp/**/*.js',
+        //             '!website/ngApp/ally-app-bundle.js',
+        //             '!website/ngApp/ally-app-bundle.min.js'],
         //     tasks: ['ally-app-bundle', 'uglify:allyAppBundleMin']
         // },
 
         css: {
-            files: ['Website/third-party-css/**/*.css',
-                'Website/assets/**/*.css',
-                'Website/assets/**/*.scss',
-                '!Website/assets/compiled-css/style.css',
-                '!Website/assets/compiled.min.css'],
+            files: ['website/third-party-css/**/*.css',
+                'website/assets/**/*.css',
+                'website/assets/**/*.scss',
+                '!website/assets/compiled-css/style.css',
+                '!website/assets/compiled.min.css'],
             tasks: ['css-only'],
             options:{ livereload: 35735 }
         },
@@ -220,7 +219,7 @@ grunt.initConfig({
                 comments: true,
                 sourceMap: false
             },
-            src: ['Website/ngApp/**/*.ts']
+            src: ['website/ngApp/**/*.ts']
         }
     },
 
@@ -290,7 +289,7 @@ grunt.initConfig({
     grunt.loadNpmTasks('grunt-contrib-connect');
 
     // Build the Angular templates, app code, and CSS
-    grunt.registerTask('default', ['ngtemplates','concat','uglify:allyAppBundleMin','uglify:templates','sass', 'cssmin']);
+    grunt.registerTask('default', ['ngtemplates','ts','concat:allyAppBundle','uglify:allyAppBundleMin','uglify:templates','sass', 'cssmin']);
 
     // Compile the SASS and minify the CSS
     grunt.registerTask('css-only', ['sass', 'cssmin']);

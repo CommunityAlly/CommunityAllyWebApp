@@ -3,21 +3,21 @@ var Ally;
     /**
      * The controller for the page that redirects to another group from Condo Ally
      */
-    var GroupRedirectController = /** @class */ (function () {
+    class GroupRedirectController {
         /**
          * The constructor for the class
          */
-        function GroupRedirectController($routeParams) {
+        constructor($routeParams) {
             this.$routeParams = $routeParams;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        GroupRedirectController.prototype.$onInit = function () {
+        $onInit() {
             var lowerAppName = (this.$routeParams.appName || "").toLowerCase();
             var appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
-            var domainName = null;
-            for (var i = 0; i < appConfigs.length; ++i) {
+            let domainName = null;
+            for (let i = 0; i < appConfigs.length; ++i) {
                 if (appConfigs[i].appShortName.toLowerCase() === lowerAppName) {
                     domainName = appConfigs[i].baseTld;
                     break;
@@ -26,12 +26,11 @@ var Ally;
             if (!domainName)
                 domainName = "condoally.com";
             domainName = "myhoaally.org";
-            var redirectUrl = "https://" + this.$routeParams.shortName + "." + domainName + "/";
+            var redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
             window.location.href = redirectUrl;
-        };
-        GroupRedirectController.$inject = ["$routeParams"];
-        return GroupRedirectController;
-    }());
+        }
+    }
+    GroupRedirectController.$inject = ["$routeParams"];
     Ally.GroupRedirectController = GroupRedirectController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupRedirect", {

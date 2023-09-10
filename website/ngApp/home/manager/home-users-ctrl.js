@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the widget that lets members send emails to the group
      */
-    var HomeUsersController = /** @class */ (function () {
+    class HomeUsersController {
         /**
          * The constructor for the class
          */
-        function HomeUsersController($http, $rootScope, siteInfo) {
+        constructor($http, $rootScope, siteInfo) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -17,12 +17,11 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        HomeUsersController.prototype.$onInit = function () {
+        $onInit() {
             // Placeholder
-        };
-        HomeUsersController.$inject = ["$http", "$rootScope", "SiteInfo"];
-        return HomeUsersController;
-    }());
+        }
+    }
+    HomeUsersController.$inject = ["$http", "$rootScope", "SiteInfo"];
     Ally.HomeUsersController = HomeUsersController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("homeUsers", {

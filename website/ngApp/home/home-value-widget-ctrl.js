@@ -1,18 +1,15 @@
 var Ally;
 (function (Ally) {
-    var HomeValueResponse = /** @class */ (function () {
-        function HomeValueResponse() {
-        }
-        return HomeValueResponse;
-    }());
+    class HomeValueResponse {
+    }
     /**
      * The controller for the widget that lets members send emails to the group
      */
-    var HomeValueWidgetController = /** @class */ (function () {
+    class HomeValueWidgetController {
         /**
          * The constructor for the class
          */
-        function HomeValueWidgetController($http, $rootScope, siteInfo) {
+        constructor($http, $rootScope, siteInfo) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.siteInfo = siteInfo;
@@ -22,28 +19,26 @@ var Ally;
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
-        HomeValueWidgetController.prototype.$onInit = function () {
+        $onInit() {
             this.retrieveInfo();
-        };
+        }
         /**
          * Retrieve the home value information from the server
          */
-        HomeValueWidgetController.prototype.retrieveInfo = function () {
-            var _this = this;
+        retrieveInfo() {
             this.isLoading = true;
-            this.$http.get("/api/HomeValue/ZillowInfo").then(function (response) {
-                _this.isLoading = false;
-                _this.shouldShowWidget = !!response.data && !!response.data.chartImageUri;
-                if (_this.shouldShowWidget)
-                    _this.valueInfo = response.data;
-            }, function (response) {
-                _this.isLoading = false;
-                _this.shouldShowWidget = false;
+            this.$http.get("/api/HomeValue/ZillowInfo").then((response) => {
+                this.isLoading = false;
+                this.shouldShowWidget = !!response.data && !!response.data.chartImageUri;
+                if (this.shouldShowWidget)
+                    this.valueInfo = response.data;
+            }, (response) => {
+                this.isLoading = false;
+                this.shouldShowWidget = false;
             });
-        };
-        HomeValueWidgetController.$inject = ["$http", "$rootScope", "SiteInfo"];
-        return HomeValueWidgetController;
-    }());
+        }
+    }
+    HomeValueWidgetController.$inject = ["$http", "$rootScope", "SiteInfo"];
     Ally.HomeValueWidgetController = HomeValueWidgetController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("homeValueWidget", {

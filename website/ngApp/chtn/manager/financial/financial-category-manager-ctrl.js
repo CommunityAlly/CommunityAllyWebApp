@@ -3,11 +3,11 @@ var Ally;
     /**
      * The controller for the component to manage financial categories
      */
-    var FinancialCategoryManagerController = /** @class */ (function () {
+    class FinancialCategoryManagerController {
         /**
         * The constructor for the class
         */
-        function FinancialCategoryManagerController($http, siteInfo, appCacheService, $rootScope) {
+        constructor($http, siteInfo, appCacheService, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
@@ -24,141 +24,136 @@ var Ally;
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
-        FinancialCategoryManagerController.prototype.$onInit = function () {
+        $onInit() {
             this.refresh();
-        };
+        }
         /**
          * Load all of the data on the page
          */
-        FinancialCategoryManagerController.prototype.refresh = function () {
-            var _this = this;
+        refresh() {
             this.isLoading = true;
-            this.$http.get("/api/Ledger/FinancialCategories").then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.rootFinancialCategory = httpResponse.data;
-                _this.flatCategoryList = [];
-                var visitNode = function (curNode, depth) {
+            this.$http.get(`/api/Ledger/FinancialCategories`).then((httpResponse) => {
+                this.isLoading = false;
+                this.rootFinancialCategory = httpResponse.data;
+                this.flatCategoryList = [];
+                const visitNode = (curNode, depth) => {
                     if (curNode.displayName) {
-                        var labelPrefix = "";
+                        let labelPrefix = "";
                         if (depth > 1)
                             labelPrefix = Array((depth - 2) * 4).join(String.fromCharCode(160)) + "|--";
                         curNode.dropDownLabel = labelPrefix + curNode.displayName;
-                        _this.flatCategoryList.push(curNode);
+                        this.flatCategoryList.push(curNode);
                     }
                     if (curNode.childCategories == null || curNode.childCategories.length == 0)
                         return;
-                    for (var i = 0; i < curNode.childCategories.length; ++i) {
+                    for (let i = 0; i < curNode.childCategories.length; ++i) {
                         visitNode(curNode.childCategories[i], depth + 1);
                     }
                 };
-                visitNode(_this.rootFinancialCategory, 0);
-                _this.selectedCategory = _this.flatCategoryList[0];
-                if (_this.preselectById) {
-                    var preselectCat = _this.flatCategoryList.filter(function (c) { return c.financialCategoryId === _this.preselectById; });
+                visitNode(this.rootFinancialCategory, 0);
+                this.selectedCategory = this.flatCategoryList[0];
+                if (this.preselectById) {
+                    const preselectCat = this.flatCategoryList.filter(c => c.financialCategoryId === this.preselectById);
                     if (preselectCat && preselectCat.length > 0)
-                        _this.selectedCategory = preselectCat[0];
-                    _this.preselectById = null;
+                        this.selectedCategory = preselectCat[0];
+                    this.preselectById = null;
                 }
-                _this.onCategorySelected();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+                this.onCategorySelected();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve data, try refreshing the page. If the problem persists, contact support: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Occurs when a category is selected from the list
         */
-        FinancialCategoryManagerController.prototype.onCategorySelected = function () {
+        onCategorySelected() {
             this.editName = this.selectedCategory ? this.selectedCategory.displayName : "";
-        };
+        }
         /**
         * Called when the user wants to close the manager
         */
-        FinancialCategoryManagerController.prototype.closeManager = function () {
+        closeManager() {
             this.onClosed({ didMakeChanges: this.didMakeChanges });
-        };
+        }
         /**
         * Display the section to add a new category
         */
-        FinancialCategoryManagerController.prototype.showNewCategoryArea = function () {
+        showNewCategoryArea() {
             this.shouldShowNewCategoryArea = true;
             this.shouldShowDeleteCategoryArea = false;
             this.newName = "";
             this.newCategoryParent = null;
-        };
+        }
         /**
         * Update a category name
         */
-        FinancialCategoryManagerController.prototype.updateCategoryName = function () {
-            var _this = this;
+        updateCategoryName() {
             if (!this.editName) {
                 alert("Please enter a name");
                 return;
             }
             this.isLoading = true;
-            var putUri = "/api/Ledger/FinancialCategory/UpdateName/" + this.selectedCategory.financialCategoryId + "?newName=" + encodeURIComponent(this.editName);
-            this.$http.put(putUri, null).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.didMakeChanges = true;
-                _this.shouldShowNewCategoryArea = false;
-                _this.newName = "";
-                _this.preselectById = _this.selectedCategory.financialCategoryId;
-                _this.refresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            const putUri = `/api/Ledger/FinancialCategory/UpdateName/${this.selectedCategory.financialCategoryId}?newName=${encodeURIComponent(this.editName)}`;
+            this.$http.put(putUri, null).then((httpResponse) => {
+                this.isLoading = false;
+                this.didMakeChanges = true;
+                this.shouldShowNewCategoryArea = false;
+                this.newName = "";
+                this.preselectById = this.selectedCategory.financialCategoryId;
+                this.refresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to update: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Called when the user wants to add a new category
         */
-        FinancialCategoryManagerController.prototype.saveNewCategory = function () {
-            var _this = this;
+        saveNewCategory() {
             if (!this.newName) {
                 alert("Please enter a name");
                 return;
             }
             this.isLoading = true;
-            var postUri = "/api/Ledger/FinancialCategory/Add?name=" + encodeURIComponent(this.newName);
+            let postUri = `/api/Ledger/FinancialCategory/Add?name=${encodeURIComponent(this.newName)}`;
             if (this.newCategoryParent)
                 postUri += "&parentCategoryId=" + this.newCategoryParent.financialCategoryId;
-            this.$http.post(postUri, null).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.didMakeChanges = true;
-                _this.preselectById = httpResponse.data;
-                _this.shouldShowNewCategoryArea = false;
-                _this.refresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.post(postUri, null).then((httpResponse) => {
+                this.isLoading = false;
+                this.didMakeChanges = true;
+                this.preselectById = httpResponse.data;
+                this.shouldShowNewCategoryArea = false;
+                this.refresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
-        };
+        }
         /**
         * Called when the user wants to remove a category
         */
-        FinancialCategoryManagerController.prototype.deleteCategory = function () {
-            var _this = this;
+        deleteCategory() {
             if (this.selectedCategory.displayName === "Income") {
                 alert("You cannot delete the income category");
                 return;
             }
             this.isLoading = true;
-            var deleteUri = "/api/Ledger/FinancialCategory/" + this.selectedCategory.financialCategoryId;
+            let deleteUri = `/api/Ledger/FinancialCategory/${this.selectedCategory.financialCategoryId}`;
             if (this.deleteCategoryRessignTo)
                 deleteUri += "?reassignToCategoryId=" + this.deleteCategoryRessignTo.financialCategoryId;
-            this.$http.delete(deleteUri).then(function (httpResponse) {
-                _this.isLoading = false;
-                _this.didMakeChanges = true;
-                _this.shouldShowDeleteCategoryArea = false;
-                _this.refresh();
-            }, function (httpResponse) {
-                _this.isLoading = false;
+            this.$http.delete(deleteUri).then((httpResponse) => {
+                this.isLoading = false;
+                this.didMakeChanges = true;
+                this.shouldShowDeleteCategoryArea = false;
+                this.refresh();
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to delete: " + httpResponse.data.exceptionMessage);
             });
-        };
-        FinancialCategoryManagerController.$inject = ["$http", "SiteInfo", "appCacheService", "$rootScope"];
-        return FinancialCategoryManagerController;
-    }());
+        }
+    }
+    FinancialCategoryManagerController.$inject = ["$http", "SiteInfo", "appCacheService", "$rootScope"];
     Ally.FinancialCategoryManagerController = FinancialCategoryManagerController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("financialCategoryManager", {
