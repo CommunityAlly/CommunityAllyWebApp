@@ -179,12 +179,12 @@
         <div class="col-12">
             <div class="col-3"></div>
             <div class="col-9">
-                <label class="mb-3"><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('blank')" value="blank" /><img src="/assets/images/blank-headshot.png" style="width: 80px; height: 80px;" /> Blank Image</label><br />
-                <label class="mb-3"><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('gravatar')" value="gravatar" /><img data-ng-src="{{ $ctrl.gravatarUrl }}" style="width: 80px; height: 80px;" /> Gravatar (<a href="https://en.gravatar.com/" target="_blank">Learn more</a>)</label><br />
-                <label><input type="radio" name="profile" data-ng-model="$ctrl.profileImageType" value="upload" />Uploaded Photo</label>
+                <label class="mb-3"><input id="profile-image-radio-blank" type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('blank')" value="blank" /><img src="/assets/images/blank-headshot.png" style="width: 80px; height: 80px;" /> Blank Image</label><br />
+                <label class="mb-3"><input id="profile-image-radio-gravatar" type="radio" name="profile" data-ng-model="$ctrl.profileImageType" data-ng-click="$ctrl.saveProfilePhoto('gravatar')" value="gravatar" /><img data-ng-src="{{ $ctrl.gravatarUrl }}" style="width: 80px; height: 80px;" /> Gravatar (<a href="https://en.gravatar.com/" target="_blank">Learn more</a>)</label><br />
+                <label><input id="profile-image-radio-photo" type="radio" name="profile" data-ng-model="$ctrl.profileImageType" value="upload" />Uploaded Photo</label>
                 <div data-ng-show="$ctrl.profileImageType === 'upload'">
                     <div style="float: left; width: 82px; height: 82px; border: 1px solid black;">
-                        <img data-ng-if="$ctrl.profileImageType === 'upload' && $ctrl.profileInfo.avatarUrl" style="width: 80px; height: 80px;" data-ng-src="{{$ctrl.profileInfo.avatarUrl}}" alt="Profile image" />
+                        <img id="profile-image-uploaded" data-ng-if="$ctrl.profileImageType === 'upload' && $ctrl.profileInfo.avatarUrl" style="width: 80px; height: 80px;" data-ng-src="{{$ctrl.profileInfo.avatarUrl}}" alt="Profile image" />
                     </div>
                     <div style="margin-left: 90px;">
                         <span>The image will be cropped to a square.</span><br />
