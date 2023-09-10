@@ -266,7 +266,7 @@ namespace Ally
                 // Hook up the address copy link
                 setTimeout( () =>
                 {
-                    const clipboard: any = new Clipboard( ".clipboard-button" );
+                    const clipboard: any = new ClipboardJS( ".clipboard-button" );
 
                     clipboard.on( "success", ( e: any ) =>
                     {
@@ -363,7 +363,6 @@ namespace Ally
                     this.residentsGridApi = gridApi;
                     gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row ) =>
                     {
-                        const msg = 'row selected ' + row.isSelected;
                         this.setEdit( row.entity );
                     } );
 
@@ -760,18 +759,22 @@ namespace Ally
         {
             this.isLoadingPending = true;
             
-            this.$http.get( "/api/Member/Pending" ).then( ( response: ng.IHttpPromiseCallbackArg<PendingMember[]> ) =>
-            {
-                this.isLoadingPending = false;
+            this.$http.get( "/api/Member/Pending" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<PendingMember[]> ) =>
+                {
+                    this.isLoadingPending = false;
 
-                this.pendingMemberGridOptions.data = response.data;
-                this.pendingMemberGridOptions.minRowsToShow = response.data.length;
-                this.pendingMemberGridOptions.virtualizationThreshold = response.data.length;
+                    this.pendingMemberGridOptions.data = response.data;
+                    this.pendingMemberGridOptions.minRowsToShow = response.data.length;
+                    this.pendingMemberGridOptions.virtualizationThreshold = response.data.length;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoadingPending = false;
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingPending = false;
+                    console.log( "Failed to load pending members: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -1417,7 +1420,7 @@ namespace Ally
 
                     if( newRow.email && newRow.email.indexOf( " / " ) !== -1 )
                     {
-                        let splitEmail = newRow.email.split( " / " );
+                        const splitEmail = newRow.email.split( " / " );
                         newRow.email = splitEmail[0];
                         spouseRow.email = splitEmail[1];
                     }
@@ -1429,7 +1432,7 @@ namespace Ally
                 
                 if( this.bulkParseNormalizeNameCase )
                 {
-                    let capitalizeFirst = ( str: string ) =>
+                    const capitalizeFirst = ( str: string ) =>
                     {
                         if( !str )
                             return str;
@@ -1437,7 +1440,7 @@ namespace Ally
                         if( str.length === 1 )
                             return str.toUpperCase();
 
-                        return str.charAt( 0 ).toUpperCase() + str.substr( 1 ).toLowerCase();
+                        return str.charAt( 0 ).toUpperCase() + str.substring( 1 ).toLowerCase();
                     };
 
                     newRow.firstName = capitalizeFirst( newRow.firstName );
@@ -1458,7 +1461,7 @@ namespace Ally
             }
 
             // Find any duplicate email addresses
-            for( let curRow of this.bulkImportRows )
+            for( const curRow of this.bulkImportRows )
                 curRow.emailHasDupe = curRow.email && this.bulkImportRows.filter( r => r.email === curRow.email ).length > 1;
         }
 

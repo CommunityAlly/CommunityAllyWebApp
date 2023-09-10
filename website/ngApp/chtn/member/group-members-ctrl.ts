@@ -1,4 +1,4 @@
-declare var Clipboard: any;
+declare var ClipboardJS: any;
 
 
 namespace Ally
@@ -231,7 +231,7 @@ namespace Ally
                     // Hook up the address copy link
                     setTimeout( function ()
                     {
-                        const clipboard = new Clipboard( ".clipboard-button" );
+                        const clipboard = new ClipboardJS( ".clipboard-button" );
 
                         clipboard.on( "success", function ( e: any )
                         {
