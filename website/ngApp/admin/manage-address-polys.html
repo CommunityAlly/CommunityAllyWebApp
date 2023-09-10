@@ -24,7 +24,7 @@
         <h2>Addresses</h2>
         <div>
             <p class="text-link" data-ng-repeat="address in $ctrl.addresses" data-ng-click="$ctrl.onAddressSelected( address )">
-                ({{ address.polyType }}) {{ address.oneLiner }}
+                ({{ address.polyType }}) {{ address.oneLiner }} <a data-ng-if="address.visitUrl" data-ng-href="{{address.visitUrl}}" target="_blank" class="ms-3">Visit Site</a>
             </p>
         </div>
     </div>

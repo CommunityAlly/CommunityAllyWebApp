@@ -8,10 +8,10 @@
         static $inject = ["$http", "$q"];
         isLoading: boolean = false;
         filterAddresses: string;
-        addresses: any[];
+        addresses: GroupBoundInfo[];
         addressPoints: any[];
-        selectedAddress: any;
-        selectedGpsPoly: any;
+        selectedAddress: GroupBoundInfo;
+        selectedGpsPoly: GpsPolygon;
         includeAddresses: boolean = false;
 
 
@@ -40,19 +40,26 @@
             this.isLoading = true;
 
             this.$http.get( url ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                ( httpResponse: ng.IHttpPromiseCallbackArg<GroupBoundInfo[]> ) =>
                 {
                     this.isLoading = false;
 
                     const addresses = httpResponse.data;
 
                     // Mark address as opposed to group bounds
-                    _.each( addresses, ( a:any ) =>
+                    _.each( addresses, ( a: GroupBoundInfo ) =>
                     {
                         a.polyType = polyType;
 
-                        if( polyType == "Group" )
-                            a.oneLiner = a.shortName + ", " + a.appName;
+                        if( polyType === "Group" )
+                        {
+                            a.oneLiner = `${a.shortName}, ${a.appName} (ID: ${a.groupId})`;
+
+                            if( a.appName === "Condo" )
+                                a.visitUrl = `https://${a.shortName}.condoally.com/`;
+                            else if( a.appName === "Hoa" )
+                                a.visitUrl = `https://${a.shortName}.hoaally.org/`;
+                        }
                     } );
 
                     $.merge( this.addresses, addresses );
@@ -114,6 +121,7 @@
                 this.getGroupBoundPolys().then( handleAddrs );
         }
 
+
         onSavePoly()
         {
             this.isLoading = true;
@@ -134,8 +142,9 @@
             );
         }
 
-        // Occurs when the user clicks an address
-        onAddressSelected( address: any )
+
+        // Occurs when the user clicks an address link
+        onAddressSelected( address: GroupBoundInfo )
         {
             //if ( address.gpsPos )
             //    this.mapInstance.setCenter( { lat: address.gpsPos.lat, lng: address.gpsPos.lon } );
@@ -185,6 +194,23 @@
 
         //    newShape.myName = "Name" + ( Math.floor( Math.random() * 10000 ) );
         //} );
+    }
+
+
+    class GroupBoundInfo
+    {
+        groupId: number;
+        shortName: string;
+        fullName: string;
+        appName: string;
+        gpsPos: GpsPoint;
+        gpsBounds: GpsPolygon;
+
+        // Not from server, used in the UI
+        polyType: string;
+        oneLiner: string;
+        visitUrl: string;
+        addressId: number;
     }
 }
 
