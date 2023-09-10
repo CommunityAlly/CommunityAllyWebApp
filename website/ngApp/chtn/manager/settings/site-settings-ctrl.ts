@@ -117,7 +117,8 @@ namespace Ally
                     HtmlUtil2.initTinyMce( "tiny-mce-editor", 400, tinyMceOpts ).then( e =>
                     {
                         this.tinyMceEditor = e;
-                        this.tinyMceEditor.setContent( this.settings.welcomeMessage );
+                        if( this.settings.welcomeMessage )
+                            this.tinyMceEditor.setContent( this.settings.welcomeMessage );
                         this.tinyMceEditor.on( "keyup", () =>
                         {
                             // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
@@ -141,17 +142,33 @@ namespace Ally
 
             this.isLoading = true;
 
-            this.$http.get( "/api/Settings/ClearLoginImage" ).then( () =>
-            {
-                this.isLoading = false;
-                this.siteInfo.publicSiteInfo.loginImageUrl = "";
-                this.loginImageUrl = "";                
+            this.$http.get( "/api/Settings/ClearLoginImage" ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.siteInfo.publicSiteInfo.loginImageUrl = "";
+                    this.loginImageUrl = "";
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to remove loading image: " + httpResponse.data.exceptionMessage );
-            } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to remove loading image: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        static isEmptyHtml( testHtml: string )
+        {
+            if( HtmlUtil.isNullOrWhitespace( testHtml ) )
+                return true;
+
+            testHtml = testHtml.replaceAll( "<p>", "" );
+            testHtml = testHtml.replaceAll( "&nbsp;", "" );
+            testHtml = testHtml.replaceAll( "</p>", "" );
+
+            return HtmlUtil.isNullOrWhitespace( testHtml );
         }
 
 
@@ -174,6 +191,8 @@ namespace Ally
                     // Update the locally-stored values
                     this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
                     this.siteInfo.privateSiteInfo.welcomeMessage = this.settings.welcomeMessage;
+                    if( ChtnSettingsController.isEmptyHtml( this.siteInfo.privateSiteInfo.welcomeMessage ) )
+                        this.siteInfo.privateSiteInfo.welcomeMessage = null;
                     this.siteInfo.privateSiteInfo.ptaUnitId = this.settings.ptaUnitId;
 
                     const didChangeFullName = this.settings.fullName !== this.originalSettings.fullName;
@@ -308,7 +327,7 @@ namespace Ally
          */
         forceRefresh()
         {
-            window.location.reload( true );
+            window.location.reload();
         }
 
         onWelcomeMessageEdit()
