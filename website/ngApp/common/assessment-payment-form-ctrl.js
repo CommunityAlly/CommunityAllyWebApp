@@ -45,12 +45,14 @@ var Ally;
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
+            this.shouldShowStripeAutoPayArea = true;
             this.currentDwollaAutoPayAmount = null;
             this.hasMultipleProviders = false;
             this.allowDwollaSignUp = false;
             this.stripePaymentSucceeded = false;
             this.userHasStripeAutoPay = false;
             this.shouldAllowStripeAutoPay = false;
+            this.hasStripePendingMicroDeposits = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -67,9 +69,8 @@ var Ally;
             const shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if (shouldShowDwolla)
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
-            const isSpecialUser = this.siteInfo.publicSiteInfo.shortName === "mesaridge" && this.siteInfo.userInfo.userId === "8fcc4783-b554-490e-91cc-82f5ddb3d1b7";
             this.isStripeEnabledOnGroup = this.siteInfo.privateSiteInfo.isStripePaymentActive;
-            if (this.isStripeEnabledOnGroup || isSpecialUser)
+            if (this.isStripeEnabledOnGroup)
                 this.stripeApi = Stripe(StripeApiKey, { stripeAccount: this.siteInfo.privateSiteInfo.stripeConnectAccountId });
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaStripeMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
@@ -88,6 +89,8 @@ var Ally;
             this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountId ? this.siteInfo.userInfo.stripeBankAccountHint : null;
             this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPaySubscriptionId;
             this.shouldAllowStripeAutoPay = this.siteInfo.publicSiteInfo.shortName === "qa";
+            this.stripeAutoPayAmount = this.siteInfo.userInfo.stripeAutoPayAmount;
+            this.hasStripePendingMicroDeposits = this.siteInfo.userInfo.hasStripePendingMicroDeposits;
             if (this.isDwollaEnabledOnGroup) {
                 this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
                 if (this.isDwollaUserAccountVerified) {
@@ -186,7 +189,8 @@ var Ally;
                 || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
             // Temporarily disable while we figure out the contract
             this.shouldShowDwollaAutoPayArea = false;
-            if (this.shouldShowDwollaAutoPayArea) {
+            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup && this.siteInfo.userInfo.stripeBankAccountId && this.siteInfo.publicSiteInfo.shortName === "qa";
+            if (this.shouldShowDwollaAutoPayArea || this.shouldShowStripeAutoPayArea) {
                 this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency);
             }
             this.paymentInfo =
@@ -909,24 +913,56 @@ var Ally;
                 alert("Failed to disconnect account: " + httpResponse.data.exceptionMessage);
             });
         }
-        setupStripeAutoPay() {
+        enableStripeAutoPay() {
             this.isLoading_Payment = true;
             this.$http.put("/api/StripePayments/SetupUserAutoPay", null).then(() => {
                 this.isLoading_Payment = false;
                 this.userHasStripeAutoPay = true;
+                alert("Auto-pay successfully enabled");
             }, (httpResponse) => {
                 this.isLoading_Payment = false;
                 alert("Failed to setup auto-pay: " + httpResponse.data.exceptionMessage);
             });
         }
-        cancelStripeAutoPay() {
+        disableStripeAutoPay() {
             this.isLoading_Payment = true;
             this.$http.delete("/api/StripePayments/CancelUserAutoPay").then(() => {
                 this.isLoading_Payment = false;
                 this.userHasStripeAutoPay = false;
             }, (httpResponse) => {
                 this.isLoading_Payment = false;
-                alert("Failed to setup auto-pay: " + httpResponse.data.exceptionMessage);
+                alert("Failed to cancel auto-pay: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /**
+         * Prompt the user to enter their Plaid micro-deposit amounts to finish adding a bank
+         * account for Stripe
+         */
+        completeStripeMicroDeposits() {
+            this.isLoading_Payment = true;
+            this.$http.get("/api/Plaid/MicroDepositLinkToken").then((httpResponse) => {
+                this.isLoading_Payment = false;
+                const newLinkToken = httpResponse.data;
+                if (!newLinkToken) {
+                    alert("Something went wrong on the server. Please contact support.");
+                    return;
+                }
+                const plaidConfig = {
+                    token: newLinkToken,
+                    onSuccess: (public_token, metadata) => {
+                        console.log("Plaid micro-deposits update onSuccess");
+                        this.completePlaidAchConnection(public_token, metadata.account_id);
+                    },
+                    onLoad: () => { },
+                    onExit: (err, metadata) => { console.log("onExit.err", err, metadata); },
+                    onEvent: (eventName, metadata) => { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                };
+                const plaidHandler = Plaid.create(plaidConfig);
+                plaidHandler.open();
+            }, (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to start verification: " + httpResponse.data.exceptionMessage);
             });
         }
     }

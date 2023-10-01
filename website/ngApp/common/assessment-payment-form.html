@@ -112,10 +112,19 @@
         </div>
 
         <div id="stripe-sign-up-form" class="mb-4" data-ng-if="$ctrl.isStripeEnabledOnGroup && !$ctrl.usersStripeBankAccountHint">
-            Community Ally uses <a href="https://plaid.com/why-is-plaid-involved/" target="_blank">Plaid</a> to connect bank accounts for security and simplicity. Once you connect a bank account you'll be able to make payments via <a href="https://stripe.com/docs/security" target="_blank">Stripe</a>
-            ACH. <a href="https://help.communityally.org/sign-up-with-stripe-to-make-payments/" target="_blank">Sign-up Help Guide</a>
-            <div class="text-center mt-2">
-                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account{{($ctrl.isWePayPaymentActive || $ctrl.isDwollaReadyForPayment) ? " For Stripe" : ""}}</button>
+            <div data-ng-if="!$ctrl.hasStripePendingMicroDeposits">
+                Community Ally uses <a href="https://plaid.com/why-is-plaid-involved/" target="_blank">Plaid</a> to connect bank accounts for security and simplicity. Once you connect a bank account you'll be able to make payments via <a href="https://stripe.com/docs/security" target="_blank">Stripe</a>
+                ACH. <a href="https://help.communityally.org/sign-up-with-stripe-to-make-payments/" target="_blank">Sign-up Help Guide</a>
+                <div class="text-center mt-2">
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account{{($ctrl.isWePayPaymentActive || $ctrl.isDwollaReadyForPayment) ? " For Stripe" : ""}}</button>
+                </div>
+            </div>
+
+            <div class="mt-5" data-ng-if="$ctrl.hasStripePendingMicroDeposits">
+                You have pending micro-deposits from Plaid. Please click the button below to complete the verification process.
+                <div class="text-center mt-2">
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.completeStripeMicroDeposits()">Complete Account Verification</button>
+                </div>
             </div>
         </div>
 
@@ -153,7 +162,7 @@
             <div data-ng-if="$ctrl.isStripeEnabledOnGroup && $ctrl.usersStripeBankAccountHint" class="margin-top-30">
                 <h5 data-ng-if="$ctrl.hasMultipleProviders">Stripe</h5>
                 <p style="margin-bottom: 0;">Your association has setup <a target="_blank" href="https://stripe.com/">Stripe</a> to safely and securely accept payments.</p>
-                
+
                 <div class="mt-3">
                     <div data-ng-if="!$ctrl.stripePaymentSucceeded">
                         You have connected Stripe to this account:
@@ -161,6 +170,9 @@
                         <b>{{$ctrl.usersStripeBankAccountHint}}</b>
                         - <span class="text-link note-text" data-ng-click="$ctrl.unlinkStripeFundingSource()">Unlink bank account</span>
                         <br />
+                        <div data-ng-if="$ctrl.userHasStripeAutoPay" class="text-error my-3" style="color: blue;">
+                            NOTE: You have auto-pay setup so be careful of double payments.
+                        </div>
                         <div class="text-center mt-3">
                             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.makeStripeAchPayment()">Submit E-Check Payment via Stripe</button>
                             <br />
@@ -353,6 +365,8 @@
                 </div>
             </div>
 
+
+            <!-- WePay Auto-Pay -->
             <fieldset data-ng-style="{'display': $ctrl.isWePayAutoPayActive ? 'block':'none'}">
                 <legend>WePay Auto-Pay</legend>
                 <div data-ng-show="$ctrl.isWePayAutoPayActive">
@@ -391,6 +405,8 @@
                 </div>
             </fieldset>
 
+
+            <!-- Dwolla Auto-Pay -->
             <fieldset class="mt-5" data-ng-if="$ctrl.shouldShowDwollaAutoPayArea">
                 <legend style="font-size: large;">Auto-Pay</legend>
                 <div data-ng-if="$ctrl.currentDwollaAutoPayAmount > 0">
@@ -421,6 +437,39 @@
                     </p>
                 </div>
             </fieldset>
+
+            <!-- Stripe Auto-Pay -->
+            <fieldset class="mt-5" data-ng-if="$ctrl.shouldShowStripeAutoPayArea">
+                <legend style="font-size: large;">Stripe Auto-Pay</legend>
+                <div data-ng-if="$ctrl.userHasStripeAutoPay">
+                    Auto-pay is enabled for <b>{{$ctrl.stripeAutoPayAmount | currency}}</b> (<span class="note-text">plus Stripe fees</span>). {{ $ctrl.nextAutoPayText }}
+                    <br />
+                    <br />
+                    <div class="text-center"><button class="btn btn-warning" data-ng-click="$ctrl.disableStripeAutoPay()">Disable Auto-Pay</button></div>
+                </div>
+                <div data-ng-if="!$ctrl.userHasStripeAutoPay">
+                    <p>You can setup automatic assessment payments that will occur {{$ctrl.assessmentFrequencyInfo.name.toLowerCase()}} ({{$ctrl.assessmentFrequencyInfo.signUpNote}}). You will receive an email a few days before payment occurs. {{ $ctrl.nextAutoPayText }}</p>
+                    <div style="text-align: center;">
+                        Your auto-pay amount will be <b>{{$ctrl.assessmentAmount | currency}}</b>, your assessment payment.
+                        <br />
+                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.enableStripeAutoPay()" value="Enable Auto-Pay">
+                        <br />
+                        {{$ctrl.stripeAchFeeAmountString}} Stripe fee applies.
+                    </div>
+                    <br />
+                    <p class="note-text">
+                        <cite>
+                            Unfortunately, we cannot make any guarantees regarding the automatic payment system as that is handled by our
+                            secure third-party payment provider. You are responsible for making sure your payments are made on time to
+                            avoid any late penalties that your association may enforce.
+                        </cite>
+                    </p>
+                </div>
+            </fieldset>
+
+            <!--<div data-ng-if="$ctrl.shouldShowStripeAutoPayArea && $ctrl.isStripeEnabledOnGroup" class="alert alert-info m-3">
+                Stripe auto-pay is coming soon.
+            </div>-->
         </form>
 
         <div class="mb-2 mt-2" data-ng-if="$ctrl.dwollaBalance > 0 && !$ctrl.dwollaBalanceMessage">

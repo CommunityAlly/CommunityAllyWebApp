@@ -77,7 +77,9 @@ namespace Ally
         dwollaMicroDepositAmount2String: string = "0.01";
         shouldShowOwnerFinanceTxn: boolean = false;
         shouldShowDwollaAutoPayArea: boolean = true;
+        shouldShowStripeAutoPayArea: boolean = true;
         currentDwollaAutoPayAmount: number | null = null;
+        stripeAutoPayAmount: number | null;
         customFinancialInstructions: string;
         stripeApi: any;
         stripeElements: any;
@@ -87,6 +89,9 @@ namespace Ally
         hasMultipleProviders = false;
         allowDwollaSignUp: boolean = false;
         stripePaymentSucceeded = false;
+        userHasStripeAutoPay = false;
+        shouldAllowStripeAutoPay = false;
+        hasStripePendingMicroDeposits = false;
 
 
         /**
@@ -123,9 +128,8 @@ namespace Ally
             if( shouldShowDwolla )
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
 
-            const isSpecialUser = this.siteInfo.publicSiteInfo.shortName === "mesaridge" && this.siteInfo.userInfo.userId === "8fcc4783-b554-490e-91cc-82f5ddb3d1b7";
             this.isStripeEnabledOnGroup = this.siteInfo.privateSiteInfo.isStripePaymentActive;
-            if( this.isStripeEnabledOnGroup || isSpecialUser )
+            if( this.isStripeEnabledOnGroup )
                 this.stripeApi = Stripe( StripeApiKey, { stripeAccount: this.siteInfo.privateSiteInfo.stripeConnectAccountId } );
 
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
@@ -134,7 +138,7 @@ namespace Ally
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if( this.siteInfo.privateSiteInfo.customFinancialInstructions )
                 this.customFinancialInstructions = this.$sce.trustAsHtml( this.siteInfo.privateSiteInfo.customFinancialInstructions );
-
+            
             let numProviders = 0;
             if( this.isWePayPaymentActive )
                 ++numProviders;
@@ -145,6 +149,10 @@ namespace Ally
             this.hasMultipleProviders = numProviders > 1;
 
             this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountId ? this.siteInfo.userInfo.stripeBankAccountHint : null;
+            this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPaySubscriptionId;
+            this.shouldAllowStripeAutoPay = this.siteInfo.publicSiteInfo.shortName === "qa";
+            this.stripeAutoPayAmount = this.siteInfo.userInfo.stripeAutoPayAmount;
+            this.hasStripePendingMicroDeposits = this.siteInfo.userInfo.hasStripePendingMicroDeposits;
 
             if( this.isDwollaEnabledOnGroup )
             {
@@ -277,8 +285,9 @@ namespace Ally
 
             // Temporarily disable while we figure out the contract
             this.shouldShowDwollaAutoPayArea = false;
+            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup && this.siteInfo.userInfo.stripeBankAccountId && this.siteInfo.publicSiteInfo.shortName === "qa";
 
-            if( this.shouldShowDwollaAutoPayArea )
+            if( this.shouldShowDwollaAutoPayArea || this.shouldShowStripeAutoPayArea )
             {
                 this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find( ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency );
             }
@@ -1184,10 +1193,10 @@ namespace Ally
                     this.isLoading_Payment = true;
 
                     this.$http.post( "/api/StripePayments/StartPaymentIntent", this.paymentInfo ).then(
-                        async ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                        ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                         {
                             // Confirm the PaymentIntent using the details collected by the Payment Element
-                            const { error } = await this.stripeApi.confirmPayment( {
+                            this.stripeApi.confirmPayment( {
                                 elements: this.stripeElements,
                                 clientSecret: response.data,
                                 confirmParams: {
@@ -1215,8 +1224,6 @@ namespace Ally
             //    this.showStripeError( submitError.message );
             //    return;
             //}
-
-
         }
 
 
@@ -1389,7 +1396,91 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading_Payment = false;
-                    alert( "Failed to disconnect account" + httpResponse.data.exceptionMessage );
+                    alert( "Failed to disconnect account: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        enableStripeAutoPay()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.put( "/api/StripePayments/SetupUserAutoPay", null ).then(
+                () =>
+                {
+                    this.isLoading_Payment = false;
+                    this.userHasStripeAutoPay = true;
+                    alert( "Auto-pay successfully enabled" );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to setup auto-pay: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        disableStripeAutoPay()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.delete( "/api/StripePayments/CancelUserAutoPay" ).then(
+                () =>
+                {
+                    this.isLoading_Payment = false;
+                    this.userHasStripeAutoPay = false;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to cancel auto-pay: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Prompt the user to enter their Plaid micro-deposit amounts to finish adding a bank
+         * account for Stripe
+         */
+        completeStripeMicroDeposits()
+        {
+            this.isLoading_Payment = true;
+
+            this.$http.get( "/api/Plaid/MicroDepositLinkToken" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading_Payment = false;
+
+                    const newLinkToken = httpResponse.data;
+                    if( !newLinkToken )
+                    {
+                        alert( "Something went wrong on the server. Please contact support." );
+                        return;
+                    }
+
+                    const plaidConfig: any = {
+                        token: newLinkToken,
+                        onSuccess: ( public_token: string, metadata: any ) =>
+                        {
+                            console.log( "Plaid micro-deposits update onSuccess" );
+                            this.completePlaidAchConnection( public_token, metadata.account_id );
+                        },
+                        onLoad: () => { /* */ },
+                        onExit: ( err: any, metadata: any ) => { console.log( "onExit.err", err, metadata ); },
+                        onEvent: ( eventName: string, metadata: any ) => { console.log( "onEvent.eventName", eventName, metadata ); },
+                        receivedRedirectUri: null,
+                    };
+
+                    const plaidHandler = Plaid.create( plaidConfig );
+                    plaidHandler.open();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to start verification: " + httpResponse.data.exceptionMessage );
                 }
             );
         }
