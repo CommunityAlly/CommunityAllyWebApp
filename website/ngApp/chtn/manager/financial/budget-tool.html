@@ -27,7 +27,7 @@
                     <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.finalizeBudget()">Finalize Budget</button>
                     <button type="button" class="btn btn-primary ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.cloneBudget()">Clone Budget</button>
                     <button type="button" class="btn btn-danger ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.deleteBudget()">Delete Budget</button>
-                    <button type="button" class="btn btn-primary ms-2" data-ng-if="$ctrl.curBudget.budgetId" data-ng-click="$ctrl.generatePdf()">View Print Friendly</button>
+                    <button type="button" class="btn btn-primary ms-2" data-ng-click="$ctrl.generatePdf()">View Print Friendly</button>
                 </div>
                 <div data-ng-if="$ctrl.selectedBudget.finalizedDateUtc">
                     <h3 style="display: inline;">{{$ctrl.curBudget.budgetName}}</h3>
