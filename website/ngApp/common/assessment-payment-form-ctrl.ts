@@ -1449,7 +1449,7 @@ namespace Ally
         {
             this.isLoading_Payment = true;
 
-            this.$http.get( "/api/Plaid/MicroDepositLinkToken" ).then(
+            this.$http.get( "/api/PlaidMember/MicroDepositLinkToken" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading_Payment = false;

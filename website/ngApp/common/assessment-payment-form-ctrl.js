@@ -940,7 +940,7 @@ var Ally;
          */
         completeStripeMicroDeposits() {
             this.isLoading_Payment = true;
-            this.$http.get("/api/Plaid/MicroDepositLinkToken").then((httpResponse) => {
+            this.$http.get("/api/PlaidMember/MicroDepositLinkToken").then((httpResponse) => {
                 this.isLoading_Payment = false;
                 const newLinkToken = httpResponse.data;
                 if (!newLinkToken) {
