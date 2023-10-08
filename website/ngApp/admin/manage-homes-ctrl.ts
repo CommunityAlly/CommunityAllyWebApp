@@ -242,6 +242,36 @@
                 alert( "Failed to delete units: " + response.data.exceptionMessage );
             } );
         }
+
+
+        /**
+         * Export the home list as a CSV
+         */
+        exportHomesCsv()
+        {
+            if( typeof ( analytics ) !== "undefined" )
+                analytics.track( 'exportHomesCsv' );
+
+            const csvColumns = [
+                {
+                    headerText: "Name/Label",
+                    fieldName: "name"
+                },
+                {
+                    headerText: "Address",
+                    fieldName: "fullAddress",
+                    dataMapper: ( value: FullAddress ) => value.oneLiner
+                },
+                {
+                    headerText: "Notes",
+                    fieldName: "notes"
+                }
+            ];
+
+            const csvDataString = Ally.createCsvString( <any[]>this.units, csvColumns );
+
+            HtmlUtil2.downloadCsv( csvDataString, this.siteInfo.publicSiteInfo.shortName + "-homes.csv" );
+        }
     }
 }
 

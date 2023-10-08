@@ -160,6 +160,30 @@ var Ally;
                 alert("Failed to delete units: " + response.data.exceptionMessage);
             });
         }
+        /**
+         * Export the home list as a CSV
+         */
+        exportHomesCsv() {
+            if (typeof (analytics) !== "undefined")
+                analytics.track('exportHomesCsv');
+            const csvColumns = [
+                {
+                    headerText: "Name/Label",
+                    fieldName: "name"
+                },
+                {
+                    headerText: "Address",
+                    fieldName: "fullAddress",
+                    dataMapper: (value) => value.oneLiner
+                },
+                {
+                    headerText: "Notes",
+                    fieldName: "notes"
+                }
+            ];
+            const csvDataString = Ally.createCsvString(this.units, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-homes.csv");
+        }
     }
     ManageHomesController.$inject = ["$http", "SiteInfo"];
     Ally.ManageHomesController = ManageHomesController;

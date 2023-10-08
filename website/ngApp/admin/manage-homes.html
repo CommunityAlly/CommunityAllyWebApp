@@ -9,7 +9,7 @@
         your home data you will be charged an hourly fee for the time it takes to correct the issue.
     </div>
 
-    <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span><br />
+    <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span><span class="text-link ms-3" data-ng-click="$ctrl.exportHomesCsv()">Export to CSV</span><br />
 
     <div style="position:relative;">
         <table border="1" class="table-bordered">
@@ -41,7 +41,9 @@
             </tbody>
         </table>
     </div>
+
     <br />
+
     <fieldset id="unit-edit-panel">
         <legend>{{$ctrl.isEdit == false | iif : "Add New" : "Edit"}} {{$ctrl.homeName}}</legend>
         <form id="AddUnitForm">
