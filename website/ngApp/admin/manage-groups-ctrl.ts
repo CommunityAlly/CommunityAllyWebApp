@@ -246,7 +246,7 @@
          */
         deleteAssociation( association: GroupEntry )
         {
-            if( !confirm( "Are you sure you want to delete this association?" ) )
+            if( !confirm( `Are you sure you want to delete this (${association.shortName}, ID: ${association.groupId}) association?` ) )
                 return;
 
             this.isLoading = true;
