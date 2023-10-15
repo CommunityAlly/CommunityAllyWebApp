@@ -246,6 +246,9 @@ namespace Ally
 
                     const data = httpResponse.data;
                     this.paymentInfo = data;
+                    this.paymentInfo.isWePaySetup = false;
+                    this.paymentInfo.isDwollaSetup = false;
+
                     this.paymentsGridOptions.data = this.paymentInfo.electronicPayments;
                     this.paymentsGridOptions.enablePaginationControls = this.paymentInfo.electronicPayments.length > this.HistoryPageSize;
                     this.paymentsGridOptions.minRowsToShow = Math.min( this.paymentInfo.electronicPayments.length, this.HistoryPageSize );

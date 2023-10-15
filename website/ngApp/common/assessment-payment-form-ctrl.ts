@@ -123,10 +123,12 @@ namespace Ally
             // Disable to Stripe testing
             if( this.siteInfo.publicSiteInfo.groupId === 28 )
                 this.isWePayPaymentActive = false;
+            this.isWePayPaymentActive = false;
 
-            const shouldShowDwolla = true; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
+            const shouldShowDwolla = false; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if( shouldShowDwolla )
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
+            this.isDwollaEnabledOnGroup = false;
 
             this.isStripeEnabledOnGroup = this.siteInfo.privateSiteInfo.isStripePaymentActive;
             if( this.isStripeEnabledOnGroup )
@@ -263,6 +265,7 @@ namespace Ally
                 // The user just set up auto-pay and it may take a second
                 this.isWePayAutoPayActive = true;
             }
+            this.isWePayAutoPayActive = false;
 
             this.nextAutoPayText = this.siteInfo.userInfo.nextAutoPayText;
             
