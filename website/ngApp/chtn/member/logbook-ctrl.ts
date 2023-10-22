@@ -508,7 +508,7 @@ namespace Ally
         {
             this.$timeout( () =>
             {
-                HtmlUtil2.initTinyMce( "tiny-mce-editor", 200, { menubar: false } ).then( e =>
+                HtmlUtil2.initTinyMce( "tiny-mce-editor", 200, { menubar: false, toolbar: "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent link | code" } ).then( e =>
                 {
                     this.tinyMceEditor = e;
 
