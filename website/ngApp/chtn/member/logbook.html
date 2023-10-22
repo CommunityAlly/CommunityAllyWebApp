@@ -21,7 +21,7 @@
 
         <div id="calendar-event-panel" class="modal-container" data-ng-show="$ctrl.editEvent != null">
             <div class="modal-overlay" data-ng-click="$ctrl.setEditEvent( null )"></div>
-            <form id="calendarEditEvent" data-ng-class="{expanded : $ctrl.showExpandedCalendarEventModel}"
+            <form id="calendarEditEvent" data-ng-class="{'expanded': $ctrl.showExpandedCalendarEventModel, 'modal-lg': $ctrl.showExpandedCalendarEventModel}"
                   name="calendarEditEvent" novalidate class="ca-modal-dialog p-4" action="javascript:(void)"
                   data-ng-escape="$ctrl.setEditEvent( null )">
 
