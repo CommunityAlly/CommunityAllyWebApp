@@ -40,16 +40,6 @@ var Ally;
                 Ally.RichTextHelper.makeLinksOpenNewTab("welcome-message-panel");
             }
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
-            if (this.canMakePayment) {
-                // Temporary logic until we're full to Stripe. If this site only has Dwolla active
-                // and this user is not already active with Dwolla then they can't make payments.
-                const onlyDwollaIsActive = this.siteInfo.privateSiteInfo.isDwollaPaymentActive && !this.siteInfo.privateSiteInfo.isWePayPaymentActive && !this.siteInfo.privateSiteInfo.isStripePaymentActive;
-                if (onlyDwollaIsActive && !this.siteInfo.userInfo.dwollaFundingSourceIsVerified) {
-                    //TEMP for user to make payment
-                    if (this.siteInfo.userInfo.userId !== "c310aff7-6b80-4380-8832-f3a47fdc09e1")
-                        this.canMakePayment = false;
-                }
-            }
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;

@@ -151,7 +151,7 @@ var Ally;
          * Delete a CHTN group
          */
         deleteAssociation(association) {
-            if (!confirm("Are you sure you want to delete this association?"))
+            if (!confirm(`Are you sure you want to delete this (${association.shortName}, ID: ${association.groupId}) association?`))
                 return;
             this.isLoading = true;
             this.$http.delete("/api/Association/chtn/" + association.groupId).then(() => {

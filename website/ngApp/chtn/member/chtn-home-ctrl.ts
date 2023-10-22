@@ -75,14 +75,6 @@
             }
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
-            if( this.canMakePayment )
-            {
-                // Temporary logic until we're full to Stripe. If this site only has Dwolla active
-                // and this user is not already active with Dwolla then they can't make payments.
-                const onlyDwollaIsActive = this.siteInfo.privateSiteInfo.isDwollaPaymentActive && !this.siteInfo.privateSiteInfo.isWePayPaymentActive && !this.siteInfo.privateSiteInfo.isStripePaymentActive;
-                if( onlyDwollaIsActive && !this.siteInfo.userInfo.dwollaFundingSourceIsVerified )
-                    this.canMakePayment = false;
-            }
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
