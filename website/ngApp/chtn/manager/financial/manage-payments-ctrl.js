@@ -67,8 +67,8 @@ var Ally;
             this.allowStripeSignUp = (StripeEnabledGroups.indexOf(this.siteInfo.publicSiteInfo.shortName) !== -1) || createdRecently;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             // Allow a single HOA to try WePay
-            const wePayExemptGroupShortNames = ["tigertrace", "7mthope", "qa"];
-            this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf(this.siteInfo.publicSiteInfo.shortName) > -1;
+            //const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
+            //this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             this.payments = [
                 {
                     Date: "",
