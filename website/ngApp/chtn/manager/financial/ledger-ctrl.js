@@ -439,8 +439,10 @@ var Ally;
         updateAccountLink(ledgerAccount) {
             //this.createAccountInfo = new CreateAccountInfo();
             //this.createAccountInfo.type = null; // Explicitly set to simplify UI logic
-            if (!this.isPremiumPlanActive)
+            if (!this.isPremiumPlanActive) {
+                alert("We cannot refresh your bank account connection while on our free plan. Sorry for the inconvenience.");
                 return;
+            }
             this.isLoading = true;
             this.$http.get("/api/Plaid/UpdateLinkToken/" + ledgerAccount.plaidItemId).then((httpResponse) => {
                 this.isLoading = false;
