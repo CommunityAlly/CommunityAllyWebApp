@@ -380,7 +380,7 @@
                         <span data-ng-if="$ctrl.editAccount.syncType === 'plaid'" title="Do this if your bank transactions are no longer downloading" class="text-link note-text" data-ng-click="$ctrl.updateAccountLink($ctrl.editAccount)">Refresh Bank Link</span>
                         <span data-ng-if="$ctrl.isSuperAdmin" class="note-text"> (acct id: {{$ctrl.editAccount.ledgerAccountId}})</span>
                     </div>
-                    <button class="btn btn-danger me-4" type="button" data-ng-click="$ctrl.onDeleteAccount()">Delete Account</button>
+                    <button class="btn btn-danger me-4" type="button" data-ng-click="$ctrl.deleteAccount()">Delete Account</button>
                     <button id="save-entry-button" class="btn btn-primary" type="button" value="Save" data-ng-click="$ctrl.onEditAccount()">Save</button>
                     <button id="cancel-entry-button" class="btn btn-primary" type="button" value="Cancel" data-ng-click="$ctrl.editAccount = null">Cancel</button>
                 </div>

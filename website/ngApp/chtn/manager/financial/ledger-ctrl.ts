@@ -932,7 +932,7 @@ namespace Ally
         }
 
 
-        onDeleteAccount()
+        deleteAccount()
         {
             if( !confirm( "Are you sure you want to remove this account?" ) )
                 return;

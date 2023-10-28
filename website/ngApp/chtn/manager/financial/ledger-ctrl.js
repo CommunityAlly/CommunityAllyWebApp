@@ -628,7 +628,7 @@ var Ally;
             if (didMakeChanges)
                 this.fullRefresh();
         }
-        onDeleteAccount() {
+        deleteAccount() {
             if (!confirm("Are you sure you want to remove this account?"))
                 return;
             this.isLoading = true;
