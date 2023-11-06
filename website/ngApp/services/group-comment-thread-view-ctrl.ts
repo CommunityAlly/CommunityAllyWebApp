@@ -75,16 +75,18 @@
         initCommentTinyMce( elemId: string )
         {
             // Auto-focus on replies and edits
-            if( elemId === "reply-tiny-mce-editor" || elemId === "edit-tiny-mce-editor" )
+            if( elemId && ( elemId.indexOf( "reply-tiny-mce-editor-" ) === 0 || elemId.indexOf( "edit-tiny-mce-editor-" ) === 0 ) )
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = elemId;
             else
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = undefined;
 
             HtmlUtil2.initTinyMce( elemId, 200, GroupCommentThreadViewController.TinyMceSettings ).then( e =>
             {
-                if( elemId === "reply-tiny-mce-editor" )
+                console.log( "TinyMCE initialized: " + elemId );
+
+                if( elemId && elemId.indexOf( "reply-tiny-mce-editor-" ) === 0 )
                     this.replyTinyMceEditor = e;
-                else if( elemId === "edit-tiny-mce-editor" )
+                else if( elemId && elemId.indexOf( "edit-tiny-mce-editor" ) === 0 )
                     this.editTinyMceEditor = e;
                 else
                     this.newCommentTinyMceEditor = e;
@@ -94,9 +96,9 @@
                 {
                     this.$scope.$apply( () =>
                     {
-                        if( elemId === "reply-tiny-mce-editor" )
+                        if( elemId && elemId.indexOf( "reply-tiny-mce-editor-" ) === 0 )
                             this.submitReplyComment();
-                        else if( elemId === "edit-tiny-mce-editor" )
+                        else if( elemId && elemId.indexOf( "edit-tiny-mce-editor-" ) === 0 )
                             this.submitCommentEdit();
                         else
                             this.submitNewComment();
@@ -197,7 +199,7 @@
             this.editCommentId = -1;
 
             this.shouldShowAddComment = false;
-            this.initCommentTinyMce( "reply-tiny-mce-editor" );
+            this.initCommentTinyMce( "reply-tiny-mce-editor-" + comment.commentId );
         }
 
 
@@ -213,7 +215,7 @@
             this.replyToCommentId = -1;
 
             this.shouldShowAddComment = false;
-            this.initCommentTinyMce( "edit-tiny-mce-editor" );
+            this.initCommentTinyMce( "edit-tiny-mce-editor-" + comment.commentId );
         }
 
 

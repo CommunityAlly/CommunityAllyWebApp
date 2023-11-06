@@ -87,7 +87,7 @@
                     </div>
 
                     <div data-ng-if="comment.commentId === $ctrl.editCommentId">
-                        <textarea id="edit-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" data-ng-model="$ctrl.editCommentText" class="form-control" maxlength="4000"></textarea>
+                        <textarea id="edit-tiny-mce-editor-{{comment.commentId}}" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" data-ng-model="$ctrl.editCommentText" class="form-control" maxlength="4000"></textarea>
 
                         <div data-ng-if="comment.attachedDocPath && comment.attachedDocDisplayName && !$ctrl.editCommentShouldRemoveAttachment" class="text-link" data-ng-click="$ctrl.editCommentShouldRemoveAttachment = true">
                             Remove attachment
@@ -127,7 +127,7 @@
 
                     <p data-ng-if="replyComment.commentId !== $ctrl.editCommentId" ng-bind-html="replyComment.commentText"></p>
                     <div data-ng-if="replyComment.commentId === $ctrl.editCommentId">
-                        <textarea id="edit-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="4000"></textarea>
+                        <textarea id="edit-tiny-mce-editor-{{replyComment.commentId}}" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="4000"></textarea>
                         <div style="text-align: right;">
                             <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()">Save Changes</button>
                             <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentEdit()">Cancel</button>
@@ -142,7 +142,7 @@
             </p>
 
             <div data-ng-show="$ctrl.replyToCommentId === comment.commentId" class="mt-3">
-                <textarea id="reply-tiny-mce-editor" data-ng-ctrl-enter="$ctrl.submitReplyComment()" class="form-control reply-to-textarea" data-ng-model="$ctrl.replyCommentText" maxlength="4000" placeholder="Enter your reply here"></textarea>
+                <textarea id="reply-tiny-mce-editor-{{comment.commentId}}" data-ng-ctrl-enter="$ctrl.submitReplyComment()" class="form-control reply-to-textarea" data-ng-model="$ctrl.replyCommentText" maxlength="4000" placeholder="Enter your reply here"></textarea>
                 <div class="text-end">
                     <button class="btn btn-primary" data-ng-click="$ctrl.submitReplyComment()">Add Comment</button>
                     <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentReply()">Cancel</button>
