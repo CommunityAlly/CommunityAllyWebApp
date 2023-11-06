@@ -35,6 +35,7 @@ var Ally;
             this.showInvoiceSection = false;
             this.paymentType = "ach";
             this.shouldShowTrialNote = false;
+            this.shouldShowHomeSetupNote = false;
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
@@ -55,6 +56,8 @@ var Ally;
             if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
                 this.$timeout(() => this.$http.get("/api/DocumentLink/0").then((response) => this.viewPremiumInvoiceViewId = response.data.vid), 250);
             this.shouldShowTrialNote = this.siteInfo.privateSiteInfo.isPremiumPlanActive && moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(3, "months"));
+            const isLessThan6MonthsOld = moment().isBefore(moment(this.siteInfo.privateSiteInfo.creationDate).add(6, "months"));
+            this.shouldShowHomeSetupNote = this.settings.premiumPlanCostDollars === 1 || (this.settings.premiumPlanCostDollars < 3 && isLessThan6MonthsOld);
         }
         /**
          * Occurs when the user clicks the button to cancel the premium plan auto-renewal

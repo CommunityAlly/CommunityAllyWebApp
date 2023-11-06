@@ -41,7 +41,7 @@ namespace Ally
         showInvoiceSection: boolean = false;
         paymentType: string = "ach";
         shouldShowTrialNote = false;
-
+        shouldShowHomeSetupNote = false;
 
         /**
          * The constructor for the class
@@ -80,6 +80,9 @@ namespace Ally
                 this.$timeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid ), 250 );
 
             this.shouldShowTrialNote = this.siteInfo.privateSiteInfo.isPremiumPlanActive && moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 3, "months" ) );
+
+            const isLessThan6MonthsOld = moment().isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ).add( 6, "months" ) );
+            this.shouldShowHomeSetupNote = this.settings.premiumPlanCostDollars === 1 || ( this.settings.premiumPlanCostDollars < 3 && isLessThan6MonthsOld );
         }
 
 
