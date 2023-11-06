@@ -58,6 +58,7 @@
                 </label>
                 <input id="emailTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.email" type="text" />
                 <div class="form-text">This is also used for login. Your email address will never be used for anything other than communication with your association and we will never give out your contact information.</div>
+                <div data-ng-if="$ctrl.profileInfo.pendingEmailAddress" class="note-text fw-bold" style="color: blue;">Email has a pending change: {{$ctrl.profileInfo.pendingEmailAddress}}. This will expire 15min after requested unless you click the confirmation link in the email.</div>
             </div>
 
             <div class="col-12">

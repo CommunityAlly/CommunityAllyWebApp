@@ -29,6 +29,7 @@ namespace Ally
         alternatePhoneNumber: string;
         mailingAddressObject: FullAddress;
         defaultDigestFrequency: string;
+        pendingEmailAddress: string;
     }
 
     export class PtaMember extends SimpleUserEntry
@@ -219,26 +220,36 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.put( "/api/MyProfile", this.profileInfo ).then( () =>
-            {
-                this.profileInfo.password = null;
-                this.resultMessage = "Your changes have been saved.";
-
-                // $rootScope.hideMenu is true when this is the user's first login
-                if( this.$rootScope.shouldHideMenu )
+            this.$http.put( "/api/MyProfile", this.profileInfo ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<MyProfileSaveResult> ) =>
                 {
-                    this.$rootScope.shouldHideMenu = false;
-                    this.$location.path( "/Home" );
+                    this.isLoading = false;
+                    this.profileInfo.password = null;
+                    this.resultMessage = "Your changes have been saved.";
+
+                    if( httpResponse.data.failedToUpdateEmail )
+                    {
+                        this.resultMessage = "Profile changes have been saved, except we were unable to update your email address: " + httpResponse.data.failureDetails;
+                    }
+                    else if( httpResponse.data.emailUpdatedWasInitiated )
+                    {
+                        this.profileInfo.pendingEmailAddress = this.profileInfo.email;
+                        this.resultMessage = "Your changes have been saved. An email has been sent to confirm your email address change before it can take effect.";
+                    }
+
+                    // $rootScope.hideMenu is true when this is the user's first login
+                    if( this.$rootScope.shouldHideMenu )
+                    {
+                        this.$rootScope.shouldHideMenu = false;
+                        this.$location.path( "/Home" );
+                    }
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to save: " + httpResponse.data.exceptionMessage );
                 }
-
-                this.isLoading = false;
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-
-                alert( "Failed to save: " + httpResponse.data.exceptionMessage );
-            } );
+            );
         }
 
 
@@ -264,6 +275,14 @@ namespace Ally
 
             this.passwordComplexity = isComplex ? "complex" : "simple";
         }
+    }
+
+
+    class MyProfileSaveResult
+    {
+        failureDetails: string;
+        failedToUpdateEmail: boolean;
+        emailUpdatedWasInitiated: boolean;
     }
 }
 

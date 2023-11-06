@@ -135,15 +135,22 @@ var Ally;
          */
         onSaveInfo() {
             this.isLoading = true;
-            this.$http.put("/api/MyProfile", this.profileInfo).then(() => {
+            this.$http.put("/api/MyProfile", this.profileInfo).then((httpResponse) => {
+                this.isLoading = false;
                 this.profileInfo.password = null;
                 this.resultMessage = "Your changes have been saved.";
+                if (httpResponse.data.failedToUpdateEmail) {
+                    this.resultMessage = "Profile changes have been saved, except we were unable to update your email address: " + httpResponse.data.failureDetails;
+                }
+                else if (httpResponse.data.emailUpdatedWasInitiated) {
+                    this.profileInfo.pendingEmailAddress = this.profileInfo.email;
+                    this.resultMessage = "Your changes have been saved. An email has been sent to confirm your email address change before it can take effect.";
+                }
                 // $rootScope.hideMenu is true when this is the user's first login
                 if (this.$rootScope.shouldHideMenu) {
                     this.$rootScope.shouldHideMenu = false;
                     this.$location.path("/Home");
                 }
-                this.isLoading = false;
             }, (httpResponse) => {
                 this.isLoading = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
@@ -169,6 +176,8 @@ var Ally;
     }
     MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
     Ally.MyProfileController = MyProfileController;
+    class MyProfileSaveResult {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("myProfile", {
     templateUrl: "/ngApp/chtn/member/my-profile.html",
