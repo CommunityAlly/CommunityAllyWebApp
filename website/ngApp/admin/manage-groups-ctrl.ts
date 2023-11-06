@@ -283,7 +283,7 @@
                     this.isLoading = false;
                     this.newAddressId = response.data.newAddressId;
                 },
-                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     alert( "Failed to add address: " + response.data.exceptionMessage );
@@ -299,14 +299,21 @@
         {
             this.isLoading = true;
 
-            this.$http.post( "/api/Association", this.newAssociation ).then(() =>
-            {
-                this.isLoading = false;
+            this.$http.post( "/api/Association", this.newAssociation ).then(
+                () =>
+                {
+                    this.isLoading = false;
 
-                this.newAssociation = new GroupEntry();
+                    this.newAssociation = new GroupEntry();
 
-                this.retrieveGroups();
-            } );
+                    this.retrieveGroups();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to create group: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 

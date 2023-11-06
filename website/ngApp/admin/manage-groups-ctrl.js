@@ -186,6 +186,9 @@ var Ally;
                 this.isLoading = false;
                 this.newAssociation = new GroupEntry();
                 this.retrieveGroups();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to create group: " + response.data.exceptionMessage);
             });
         }
         onSendTestEmail() {
