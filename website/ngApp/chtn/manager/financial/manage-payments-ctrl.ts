@@ -125,7 +125,6 @@ namespace Ally
         shouldShowCustomInstructions: boolean = false;
         pageContentTinyMce: ITinyMce;
         hasMultipleProviders = false;
-        allowStripeSignUp = false;
         stripePayoutAccounts: string[] = null;
         exampleFeeService = "stripe";
         isPremiumPlanActive = false;
@@ -158,8 +157,6 @@ namespace Ally
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             
             const StripeEnabledGroups = ["qa", "502wainslie"];
-            const createdRecently = moment(new Date(2023,6,25)).isBefore( moment( this.siteInfo.privateSiteInfo.creationDate ) );
-            this.allowStripeSignUp = ( StripeEnabledGroups.indexOf( this.siteInfo.publicSiteInfo.shortName ) !== -1 ) || createdRecently;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             // Allow a single HOA to try WePay

@@ -147,7 +147,7 @@
                     <h5 data-ng-if="$ctrl.hasMultipleProviders">Stripe</h5>
 
                     <div data-ng-if="!$ctrl.paymentInfo.stripeConnectChargesEnabled">
-                        Stripe has not yet enabled your account to accept payments. You may need to add more information or wait for their Approval.
+                        Stripe has not yet enabled your account to accept payments. You may need to add more information or wait for their approval.
                         <br />
                         <span class="text-link" data-ng-click="$ctrl.signUpForStripe()">Log-in to Stripe Now</span>
                     </div>
@@ -460,7 +460,6 @@
                                     <td class="text-start"><span class="text-button" data-onshow="$ctrl.selectText();" e-maxlength="250" data-onaftersave="$ctrl.onUnitAssessmentChanged( unit );" data-editable-text="unit.adjustedAssessmentReason">{{ unit.adjustedAssessmentReason || "edit" }}</span></td>
                                 </tr>
                             </tbody>
-                            tb
                             <tfoot>
                                 <tr>
                                     <th class="text-end">Total</th>

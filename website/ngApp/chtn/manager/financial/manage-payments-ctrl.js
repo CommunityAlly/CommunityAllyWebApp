@@ -46,7 +46,6 @@ var Ally;
             this.isDwollaIavDone = false;
             this.shouldShowCustomInstructions = false;
             this.hasMultipleProviders = false;
-            this.allowStripeSignUp = false;
             this.stripePayoutAccounts = null;
             this.exampleFeeService = "stripe";
             this.isPremiumPlanActive = false;
@@ -63,8 +62,6 @@ var Ally;
                 this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             const StripeEnabledGroups = ["qa", "502wainslie"];
-            const createdRecently = moment(new Date(2023, 6, 25)).isBefore(moment(this.siteInfo.privateSiteInfo.creationDate));
-            this.allowStripeSignUp = (StripeEnabledGroups.indexOf(this.siteInfo.publicSiteInfo.shortName) !== -1) || createdRecently;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             // Allow a single HOA to try WePay
             //const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
