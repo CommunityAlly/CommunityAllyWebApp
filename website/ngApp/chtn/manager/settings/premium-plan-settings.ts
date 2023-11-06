@@ -669,6 +669,24 @@ namespace Ally
             if( this.paymentType === "creditCard" )
                 this.$timeout( () => this.initStripePayment(), 250 );
         }
+
+
+        disconnectBankAccount()
+        {
+            this.isLoading = true;
+
+            this.$http.put( "/api/Settings/ClearPremiumBankAccount", null ).then(
+                () =>
+                {
+                    window.location.reload();
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to disconnect bank account: " + errorResponse.data.exceptionMessage );
+                }
+            );
+        }
     }
 
 
