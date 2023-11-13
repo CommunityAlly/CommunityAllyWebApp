@@ -1320,8 +1320,11 @@ namespace Ally
         }
 
 
-        makeStripeAchPayment()
+        submitStripeAchPayment()
         {
+            if( !confirm( `Are you sure you want to submit payment for $${this.paymentInfo.amount}?` ) )
+                return;
+
             this.isLoading_Payment = true;
 
             this.$http.post( "/api/StripePayments/StartPaymentIntent", this.paymentInfo ).then(
@@ -1343,6 +1346,7 @@ namespace Ally
                             {
                                 this.isLoading_Payment = false;
                                 this.stripePaymentSucceeded = true;
+                                this.refreshHistoricPayments();
                             } );
 
                             if( result.error )

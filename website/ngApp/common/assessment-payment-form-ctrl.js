@@ -865,7 +865,9 @@ var Ally;
                 alert("Failed to start Plaid connection: " + httpResponse.data.exceptionMessage);
             });
         }
-        makeStripeAchPayment() {
+        submitStripeAchPayment() {
+            if (!confirm(`Are you sure you want to submit payment for $${this.paymentInfo.amount}?`))
+                return;
             this.isLoading_Payment = true;
             this.$http.post("/api/StripePayments/StartPaymentIntent", this.paymentInfo).then((response) => {
                 const intentClientSecret = response.data;
@@ -877,6 +879,7 @@ var Ally;
                     this.$scope.$apply(() => {
                         this.isLoading_Payment = false;
                         this.stripePaymentSucceeded = true;
+                        this.refreshHistoricPayments();
                     });
                     if (result.error) {
                         // Inform the customer that there was an error.
