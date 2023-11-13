@@ -485,6 +485,33 @@ var Ally;
                 alert("Failed to disconnect bank account: " + errorResponse.data.exceptionMessage);
             });
         }
+        completeStripeMicroDeposits() {
+            this.isLoading = true;
+            this.$http.get("/api/Plaid/PremiumMicroDepositLinkToken").then((httpResponse) => {
+                this.isLoading = false;
+                const newLinkToken = httpResponse.data;
+                if (!newLinkToken) {
+                    alert("Something went wrong on the server. Please contact support.");
+                    return;
+                }
+                const plaidConfig = {
+                    token: newLinkToken,
+                    onSuccess: (public_token, metadata) => {
+                        console.log("Plaid micro-deposits update onSuccess");
+                        this.completePlaidAchConnection(public_token, metadata.account_id);
+                    },
+                    onLoad: () => { },
+                    onExit: (err, metadata) => { console.log("onExit.err", err, metadata); },
+                    onEvent: (eventName, metadata) => { console.log("onEvent.eventName", eventName, metadata); },
+                    receivedRedirectUri: null,
+                };
+                const plaidHandler = Plaid.create(plaidConfig);
+                plaidHandler.open();
+            }, (httpResponse) => {
+                this.isLoading = false;
+                alert("Failed to start verification: " + httpResponse.data.exceptionMessage);
+            });
+        }
     }
     PremiumPlanSettingsController.$inject = ["$http", "SiteInfo", "appCacheService", "$timeout", "$scope"];
     Ally.PremiumPlanSettingsController = PremiumPlanSettingsController;

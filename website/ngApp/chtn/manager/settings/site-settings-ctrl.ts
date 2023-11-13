@@ -32,6 +32,7 @@ namespace Ally
         hasStripeAchAccount: string;
         stripeAchAccountBankHint: string;
         ptaUnitId: number;
+        hasStripePremiumPendingAchAccount: boolean;
     }
 
 

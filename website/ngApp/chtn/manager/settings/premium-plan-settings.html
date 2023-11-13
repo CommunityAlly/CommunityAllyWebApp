@@ -104,13 +104,21 @@
                     <div data-ng-if="$ctrl.paymentType === 'ach'">
                         <h5 class="card-title">Checking Account Payment</h5>
                         <div class="card-text">
-                            <div data-ng-if="!$ctrl.settings.hasStripeAchAccount">
+                            <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && !$ctrl.settings.hasStripePremiumPendingAchAccount">
                                 We use Plaid to connect to bank accounts for security and simplicity.
                                 <div class="text-center">
                                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account</button>
                                 </div>
                                 <span class="note-text">Once you connect a bank account you'll be able to make payment via ACH.</span>
                             </div>
+
+                            <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && $ctrl.settings.hasStripePremiumPendingAchAccount">
+                                You have a pending account setup with Plaid. Please click the button below to complete the verification process.
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.completeStripeMicroDeposits()">Complete Account Verification</button>
+                                </div>
+                            </div>
+
                             <div data-ng-if="$ctrl.settings.hasStripeAchAccount">
                                 <p>
                                     We'll use the checking account (<b>{{$ctrl.settings.stripeAchAccountBankHint}}</b> - <span data-ng-click="$ctrl.disconnectBankAccount()" class="note-text text-link">disconnect</span>) you've already connected to make the payment.
