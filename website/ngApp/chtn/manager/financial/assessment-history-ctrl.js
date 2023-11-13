@@ -214,8 +214,14 @@ var Ally;
             for (let periodIndex = 0; periodIndex < this.visiblePeriodEntries.length; ++periodIndex) {
                 const curPeriodEntry = this.visiblePeriodEntries[periodIndex];
                 let curPeriodPayment;
-                if (curPeriodEntry.specialAssessmentId)
+                let entryAmount = unit.assessment;
+                if (curPeriodEntry.specialAssessmentId) {
+                    //console.log( `In special assessment find for ID ${curPeriodEntry.specialAssessmentId}, unit ${unit.name}` );
                     curPeriodPayment = _.find(unit.allPayments, p => p.specialAssessmentId === curPeriodEntry.specialAssessmentId);
+                    const specialAssessmentEntry = this.specialAssessments.find(a => a.specialAssessmentId === curPeriodEntry.specialAssessmentId);
+                    if (specialAssessmentEntry)
+                        entryAmount = specialAssessmentEntry.amount;
+                }
                 else
                     curPeriodPayment = _.find(unit.allPayments, (p) => p.period === curPeriodEntry.periodValue && p.year === curPeriodEntry.year);
                 // If this pay period has not payment entry then add a filler
@@ -225,7 +231,7 @@ var Ally;
                         isPaid: false,
                         period: curPeriodEntry.periodValue,
                         year: curPeriodEntry.year,
-                        amount: unit.assessment,
+                        amount: entryAmount,
                         payerUserId: defaultOwnerUserId,
                         paymentDate: new Date(),
                         isEmptyEntry: true,
@@ -462,10 +468,12 @@ var Ally;
                     // Since allPayments is sorted newest first, let's grab the first payment marked as paid
                     unit.estBalance = this.getEstimatedBalance(unit);
                 });
-                this.totalEstBalance = paymentInfo.units
-                    .filter((u) => u.estBalance !== undefined && !isNaN(u.estBalance))
-                    .map((u) => u.estBalance || 0)
-                    .reduce((total, val) => total + val, 0);
+                if (paymentInfo.units) {
+                    this.totalEstBalance = paymentInfo.units
+                        .filter((u) => u.estBalance !== undefined && !isNaN(u.estBalance))
+                        .map((u) => u.estBalance || 0)
+                        .reduce((total, val) => total + val, 0);
+                }
                 // Sort the units by name
                 const sortedUnits = Array.from(this.unitPayments.values());
                 this.nameSortedUnitPayments = Ally.HtmlUtil2.smartSortStreetAddresses(sortedUnits, "name");
@@ -634,11 +642,11 @@ var Ally;
             this.isSavingPayment = true;
             if (this.editPayment.payment.paymentId) {
                 analytics.track("editAssessmentHistoryPayment");
-                this.$http.put("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+                this.$http.put("/api/PaymentHistory/UpdatePaymentEntry", this.editPayment.payment).then(onSave, onError);
             }
             else {
                 analytics.track("addAssessmentHistoryPayment");
-                this.$http.post("/api/PaymentHistory", this.editPayment.payment).then(onSave, onError);
+                this.$http.post("/api/PaymentHistory/NewPaymentEntry", this.editPayment.payment).then(onSave, onError);
             }
             // Return false as this method may be invoked from an enter key press and we don't want
             // that to propogate
