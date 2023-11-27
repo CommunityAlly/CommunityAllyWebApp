@@ -192,7 +192,7 @@ var Ally;
                 || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
             // Temporarily disable while we figure out the contract
             this.shouldShowDwollaAutoPayArea = false;
-            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup && this.siteInfo.userInfo.stripeBankAccountId && this.siteInfo.publicSiteInfo.shortName === "qa";
+            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup && !!this.siteInfo.userInfo.stripeBankAccountId;
             if (this.shouldShowDwollaAutoPayArea || this.shouldShowStripeAutoPayArea) {
                 this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency);
             }
