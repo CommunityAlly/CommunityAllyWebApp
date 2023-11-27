@@ -178,6 +178,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
     homeName: "Unit",
     memberTypeLabel: "Resident",
     menu: [
+        // Member-only pages
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" } ),
         new Ally.RoutePath_v3( { path: "Home/DiscussionThread/:discussionThreadId", templateHtml: "<chtn-home></chtn-home>", pageTitle: "Discussion Thread" } ),
         new Ally.RoutePath_v3( { path: "Info/Docs", templateHtml: "<association-info></association-info>", menuTitle: "Documents & Info", reloadOnSearch: false, pageTitle: "Documents" } ),
@@ -188,7 +189,10 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Directory" } ),
         new Ally.RoutePath_v3( { path: "Committee/:committeeId/:viewName", templateHtml: "<committee-parent></committee-parent>", pageTitle: "Committee" } ),
         new Ally.RoutePath_v3( { path: "Committee/:committeeId/Home/DiscussionThread/:discussionThreadId", templateHtml: "<committee-parent></committee-parent>" } ),
+        new Ally.RoutePath_v3( { path: "EmailChangeConfirm/:emailChangeId", templateHtml: "<email-change-confirm></email-change-confirm>" } ),
+        new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>", pageTitle: "My Profile" } ),
 
+        // Public pages
         new Ally.RoutePath_v3( { path: "ForgotPassword", templateHtml: "<forgot-password></forgot-password>", menuTitle: null, role: Role_All, pageTitle: "Forgot Password" } ),
         new Ally.RoutePath_v3( { path: "Login", templateHtml: "<login-page></login-page>", menuTitle: null, role: Role_All, pageTitle: "Login" } ),
         new Ally.RoutePath_v3( { path: "Help", templateHtml: "<help-form></help-form>", menuTitle: null, role: Role_All, pageTitle: "Help" } ),
@@ -200,7 +204,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All } ),
         new Ally.RoutePath_v3( { path: "Page/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All } ),
 
-        new Ally.RoutePath_v3( { path: "MyProfile", templateHtml: "<my-profile></my-profile>", pageTitle: "My Profile" } ),
+        // Manager pages
         new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ),
         new Ally.RoutePath_v3( { path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager } ),
         new Ally.RoutePath_v3( { path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager } ),
