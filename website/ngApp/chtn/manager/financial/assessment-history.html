@@ -192,6 +192,7 @@
         <div id="create-special-assessment-container" class="modal-container" data-ng-if="$ctrl.editSpecialAssessment" data-ng-escape="$ctrl.editSpecialAssessment = null">
             <div class="modal-overlay" data-ng-click="$ctrl.editSpecialAssessment = null"></div>
             <form class="ca-modal-dialog">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.editSpecialAssessment = null">&times;</span>
                 <h3>{{$ctrl.editSpecialAssessment.specialAssessmentId ? 'Edit' : 'Create'}} Special Assessment</h3>
 
