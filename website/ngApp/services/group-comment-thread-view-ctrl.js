@@ -22,6 +22,7 @@ var Ally;
             this.shouldShowAdminControls = false;
             this.digestFrequency = null;
             this.shouldShowAddComment = true;
+            this.canEditTitle = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -31,6 +32,7 @@ var Ally;
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.canEditTitle = this.siteInfo.userInfo.isSiteManager || this.thread.authorUserId === this.siteInfo.userInfo.userId;
             this.retrieveComments();
             if (!this.thread.isReadOnly && !this.thread.archiveDateUtc)
                 this.initCommentTinyMce("new-comment-tiny-mce-editor");
@@ -322,6 +324,19 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to open document: " + response.data.exceptionMessage);
+            });
+        }
+        /**
+         * Occurs after the user confirms thread title edit using the inline editor
+         */
+        updateThreadTitle() {
+            this.isLoading = true;
+            const putUri = `/api/CommentThread/${this.thread.commentThreadId}/EditTitle?newTitle=${encodeURIComponent(this.thread.title)}`;
+            this.$http.put(putUri, null).then(() => {
+                this.isLoading = false;
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to update title: " + response.data.exceptionMessage);
             });
         }
     }

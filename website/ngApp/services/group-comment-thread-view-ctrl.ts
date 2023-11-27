@@ -42,6 +42,7 @@
         editTinyMceEditor: ITinyMce;
         shouldShowAddComment = true;
         attachmentFile: File;
+        canEditTitle = false;
         static readonly TinyMceSettings: any = {
             menubar: false,
             toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link emoticons"
@@ -64,6 +65,7 @@
             this.shouldShowAdminControls = this.siteInfo.userInfo.isSiteManager;
             this.threadUrl = this.siteInfo.publicSiteInfo.baseUrl + "/#!/Home/DiscussionThread/" + this.thread.commentThreadId;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.canEditTitle = this.siteInfo.userInfo.isSiteManager || this.thread.authorUserId === this.siteInfo.userInfo.userId;
 
             this.retrieveComments();
 
@@ -508,6 +510,28 @@
                 {
                     this.isLoading = false;
                     alert( "Failed to open document: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Occurs after the user confirms thread title edit using the inline editor
+         */
+        updateThreadTitle()
+        {
+            this.isLoading = true;
+
+            const putUri = `/api/CommentThread/${this.thread.commentThreadId}/EditTitle?newTitle=${encodeURIComponent( this.thread.title )}`;
+            this.$http.put( putUri, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to update title: " + response.data.exceptionMessage );
                 }
             );
         }

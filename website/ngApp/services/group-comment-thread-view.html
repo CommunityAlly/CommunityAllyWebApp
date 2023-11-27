@@ -6,8 +6,9 @@
 
         <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeModal(false)">&times;</span>
 
-        <h2 style="margin-bottom: 0;">{{ $ctrl.thread.title }}</h2>
-        
+        <h2 data-ng-if="!$ctrl.canEditTitle" style="margin-bottom: 0;">{{ $ctrl.thread.title }}</h2>
+        <h2 data-ng-if="$ctrl.canEditTitle" class="can-edit-inline" data-onaftersave="$ctrl.updateThreadTitle()" data-editable-text="$ctrl.thread.title" style="margin-bottom: 0;">{{ $ctrl.thread.title }}</h2>
+
         <a style="float: right;" data-ng-href="{{$ctrl.threadUrl}}" class="note-text" data-ng-click="$ctrl.copyThreadLink($event)">Copy thread link to clipboard</a>
 
         <div>
