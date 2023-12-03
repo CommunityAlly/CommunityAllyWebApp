@@ -971,6 +971,18 @@ var Ally;
                 alert("Failed to start verification: " + httpResponse.data.exceptionMessage);
             });
         }
+        cancelStripeAccountAddition() {
+            if (!confirm("Are you sure you want to cancel adding this bank account? You can restart the process at any time."))
+                return;
+            this.isLoading_Payment = true;
+            this.$http.get("/api/PlaidMember/CancelStripeAccountAddition").then(() => {
+                this.isLoading_Payment = false;
+                this.hasStripePendingMicroDeposits = false;
+            }, (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to cancel account addition: " + httpResponse.data.exceptionMessage);
+            });
+        }
     }
     AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q", "$scope"];
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
