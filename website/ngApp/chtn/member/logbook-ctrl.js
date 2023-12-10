@@ -25,6 +25,7 @@ var Ally;
             this.currentTimeZoneAbbreviation = "CT";
             this.localTimeZoneDiffersFromGroup = false;
             this.associatedGroups = [];
+            this.canEditEvents = false;
             this.GroupShortNameIndividuals = "Individuals";
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // Hide the read-only calendar event view
@@ -56,6 +57,7 @@ var Ally;
         */
         $onInit() {
             this.currentTimeZoneAbbreviation = this.getTimezoneAbbreviation();
+            this.canEditEvents = this.siteInfo.userInfo.isSiteManager;
             if (this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana) {
                 this.groupTimeZoneAbbreviation = this.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
                 if (this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation)
@@ -67,9 +69,8 @@ var Ally;
                     this.residents = _.sortBy(this.residents, (r) => r.lastName);
                 });
             }
-            const innerThis = this;
             /* config object */
-            var uiConfig = {
+            const uiConfig = {
                 height: 600,
                 editable: false,
                 header: {
@@ -81,38 +82,42 @@ var Ally;
                 viewRender: (view, element) => {
                     $(element).css("cursor", "pointer");
                 },
-                dayClick: function (date) {
-                    if (!innerThis.$rootScope.isSiteManager)
+                dayClick: (date) => {
+                    if (!this.$rootScope.isSiteManager)
                         return;
                     // The date is wrong if time zone is considered
                     var clickedDate = moment(moment.utc(date).format(LogbookController.DateFormat)).toDate();
-                    innerThis.$scope.$apply(function () {
-                        var maxDaysBack = null; //3;
+                    this.$scope.$apply(() => {
+                        const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
                         //    maxDaysBack = moment( clickedDate ).diff( moment(), 'day' );
-                        var eventDetails = {
+                        const eventDetails = {
                             date: clickedDate,
                             dateOnly: clickedDate,
                             associatedUserIds: [],
                             notificationEmailDaysBefore: maxDaysBack
                         };
-                        innerThis.setEditEvent(eventDetails, false);
+                        this.setEditEvent(eventDetails, false);
                     });
                 },
-                eventClick: function (event) {
-                    innerThis.$scope.$apply(function () {
+                eventClick: (event) => {
+                    this.$scope.$apply(() => {
                         if (event.calendarEventObject) {
-                            if (innerThis.$rootScope.isSiteManager)
-                                innerThis.setEditEvent(event.calendarEventObject, true);
-                            else {
-                                innerThis.viewEvent = event.calendarEventObject;
-                                // Make <a> links open in new tabs
-                                //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
-                            }
+                            this.viewEvent = event.calendarEventObject;
+                            //if( this.$rootScope.isSiteManager )
+                            //    this.setEditEvent( event.calendarEventObject, true );
+                            //else
+                            //{
+                            //    this.viewEvent = event.calendarEventObject;
+                            //    // Make <a> links open in new tabs
+                            //    //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
+                            //}
                         }
+                        else
+                            alert("This is an informational entry that does not have data to display");
                     });
                 },
-                eventRender: function (event, element) {
+                eventRender: (event, element) => {
                     //$( element ).css( "cursor", "default" );
                     $(element).qtip({
                         style: {
@@ -126,12 +131,12 @@ var Ally;
                 },
                 eventSources: [{
                         events: (start, end, timezone, callback) => {
-                            innerThis.getAssociationEvents(start, end, timezone, callback);
+                            this.getAssociationEvents(start, end, timezone, callback);
                         }
                     },
                     {
                         events: (start, end, timezone, callback) => {
-                            innerThis.getCalendarEvents(start, end, timezone, callback);
+                            this.getCalendarEvents(start, end, timezone, callback);
                         }
                     }]
             };
@@ -368,6 +373,8 @@ var Ally;
         setEditEvent(eventObject, showDetails) {
             this.showExpandedCalendarEventModel = showDetails || false;
             this.editEvent = eventObject;
+            // Make sure both modals can't be opened at the same time
+            this.viewEvent = null;
             // Clear this warning in case the user is clicking around quickly
             this.showBadNotificationDateWarning = false;
             if (this.editEvent) {
@@ -485,6 +492,9 @@ var Ally;
         }
         getNumSelectedGroups() {
             return this.associatedGroups.filter(g => g.isAssociated).length;
+        }
+        editViewingEvent() {
+            this.setEditEvent(this.viewEvent, true);
         }
     }
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];

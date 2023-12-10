@@ -9,7 +9,7 @@ namespace Ally
 
         calendarEvents: uiCalendarEntry[];
         residents: FellowChtnResident[];
-        viewEvent: any;
+        viewEvent: CalendarEvent;
         editEvent: CalendarEvent;
         maxDaysBack: number;
         showBadNotificationDateWarning: boolean = false;
@@ -24,6 +24,7 @@ namespace Ally
         localTimeZoneDiffersFromGroup: boolean = false;
         tinyMceEditor: ITinyMce;
         associatedGroups: AssociatedGroup[] = [];
+        canEditEvents = false;
         readonly GroupShortNameIndividuals = "Individuals";
 
         static DateFormat = "YYYY-MM-DD";
@@ -34,7 +35,7 @@ namespace Ally
         /**
          * The constructor for the class
          */
-        constructor( private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $q: ng.IQService, private fellowResidents: Ally.FellowResidentsService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $http: ng.IHttpService, private $rootScope: ng.IRootScopeService, private $q: ng.IQService, private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService )
         {
         }
 
@@ -70,6 +71,7 @@ namespace Ally
         $onInit()
         {
             this.currentTimeZoneAbbreviation = this.getTimezoneAbbreviation();
+            this.canEditEvents = this.siteInfo.userInfo.isSiteManager;
 
             if( this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
             {
@@ -88,10 +90,8 @@ namespace Ally
                 } );
             }
 
-            const innerThis = this;
-
             /* config object */
-            var uiConfig = {
+            const uiConfig = {
                 height: 600,
                 editable: false,
                 header: {
@@ -104,49 +104,52 @@ namespace Ally
                 {
                     $( element ).css( "cursor", "pointer" );
                 },
-                dayClick: function( date: moment.Moment )
+                dayClick: ( date: moment.Moment ) =>
                 {
-                    if( !innerThis.$rootScope.isSiteManager )
+                    if( !this.$rootScope.isSiteManager )
                         return;
 
                     // The date is wrong if time zone is considered
                     var clickedDate = moment( moment.utc( date ).format( LogbookController.DateFormat ) ).toDate();
 
-                    innerThis.$scope.$apply( function()
+                    this.$scope.$apply( () =>
                     {
-                        var maxDaysBack: number = null; //3;
+                        const maxDaysBack: number = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
                         //    maxDaysBack = moment( clickedDate ).diff( moment(), 'day' );
 
-                        var eventDetails = {
+                        const eventDetails = {
                             date: clickedDate,
                             dateOnly: clickedDate,
                             associatedUserIds: <any[]>[],
                             notificationEmailDaysBefore: maxDaysBack
                         };
 
-                        innerThis.setEditEvent( eventDetails, false );
+                        this.setEditEvent( eventDetails, false );
                     } );
                 },
-                eventClick: function( event: any )
+                eventClick: ( event: any ) =>
                 {
-                    innerThis.$scope.$apply( function()
+                    this.$scope.$apply( () =>
                     {
                         if( event.calendarEventObject )
                         {
-                            if( innerThis.$rootScope.isSiteManager )
-                                innerThis.setEditEvent( event.calendarEventObject, true );
-                            else
-                            {
-                                innerThis.viewEvent = event.calendarEventObject;
-                                
-                                // Make <a> links open in new tabs
-                                //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
-                            }
+                            this.viewEvent = event.calendarEventObject;
+                            //if( this.$rootScope.isSiteManager )
+                            //    this.setEditEvent( event.calendarEventObject, true );
+                            //else
+                            //{
+                            //    this.viewEvent = event.calendarEventObject;
+
+                            //    // Make <a> links open in new tabs
+                            //    //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
+                            //}
                         }
+                        else
+                            alert( "This is an informational entry that does not have data to display" );
                     } );
                 },
-                eventRender: function( event: any, element: JQuery )
+                eventRender: ( event: any, element: JQuery ) =>
                 {
                     //$( element ).css( "cursor", "default" );
 
@@ -163,13 +166,13 @@ namespace Ally
                 eventSources: [{
                     events: ( start: moment.Moment, end: moment.Moment, timezone: string, callback: ( calendarEvents: any[] ) => void ) =>
                     {
-                        innerThis.getAssociationEvents( start, end, timezone, callback )
+                        this.getAssociationEvents( start, end, timezone, callback )
                     }
                 },
                 {
                     events: ( start: moment.Moment, end: moment.Moment, timezone: string, callback: ( calendarEvents: any[] ) => void ) =>
                     {
-                        innerThis.getCalendarEvents( start, end, timezone, callback )
+                        this.getCalendarEvents( start, end, timezone, callback )
                     }
                 }]
             };
@@ -538,6 +541,9 @@ namespace Ally
             this.showExpandedCalendarEventModel = showDetails || false;
             this.editEvent = eventObject;
 
+            // Make sure both modals can't be opened at the same time
+            this.viewEvent = null;
+
             // Clear this warning in case the user is clicking around quickly
             this.showBadNotificationDateWarning = false;
 
@@ -712,6 +718,12 @@ namespace Ally
         getNumSelectedGroups()
         {
             return this.associatedGroups.filter( g => g.isAssociated ).length;
+        }
+
+
+        editViewingEvent()
+        {
+            this.setEditEvent( this.viewEvent, true );
         }
     }
 

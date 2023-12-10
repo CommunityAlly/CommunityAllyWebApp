@@ -257,7 +257,8 @@
                     </div>
                 </form>
 
-                <span class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="position: absolute; bottom: 5px; right: 5px;">Close</span>
+                <span class="text-link" data-ng-click="$ctrl.editViewingEvent()" style="position: absolute; bottom: 5px; left: 8px;" data-ng-if="$ctrl.canEditEvents">Edit Event</span>
+                <span class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="position: absolute; bottom: 5px; right: 8px;">Close</span>
             </div>
         </div>
 
