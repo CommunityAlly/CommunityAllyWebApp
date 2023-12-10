@@ -1237,6 +1237,45 @@ namespace Ally
                 }
             );
         }
+
+
+        /**
+         * Disconnect the group's ledger accounts from Plaid. This would usually be done to free
+         * groups that lose the premium perk of bank account syncing, which costs us money.
+         */
+        disconnectFromPlaid()
+        {
+            const hasPlaidAccts = this.ledgerAccounts.some( a => !!a.plaidItemId );
+            if( !hasPlaidAccts )
+            {
+                alert( "This group has no Plaid-synced accounts" );
+                return;
+            }
+
+            if( !confirm( "Are you sure? The group could be pissed!" ) )
+                return;
+
+            if( this.siteInfo.privateSiteInfo.isPremiumPlanActive )
+            {
+                if( !confirm( "HOLD UP! This group is on the premium plan, you should leave their Plaid accounts alone! Are you sure you want to continue." ) )
+                    return;
+            }
+
+            this.isLoading = true;
+            this.$http.put( "/api/Ledger/DisconnectPlaidForGroup", null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Accounts successfully disconnected" );
+                    window.location.reload();
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to disconnect: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
     }
 
 

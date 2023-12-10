@@ -33,6 +33,9 @@
                 <span class="note-text text-link" data-ng-click="$ctrl.openImportModal()">Import Transactions</span>
                 <br />
                 <span class="note-text text-link" data-ng-click="$ctrl.shouldShowCategoryEditModal = true">Manage Categories</span>
+                <div data-ng-if="$ctrl.isSuperAdmin">
+                    <span class="note-text text-link" style="color: red; font-size: xx-small;" data-ng-click="$ctrl.disconnectFromPlaid()">Disconnect Group from Plaid</span>
+                </div>
             </div>
         </div>
         <div class="row mt-3 mb-4">
