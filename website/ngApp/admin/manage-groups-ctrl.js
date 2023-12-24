@@ -75,6 +75,7 @@ var Ally;
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
             this.curGroupId = this.curGroupApiUri.substring("https://".length, this.curGroupApiUri.indexOf("."));
             this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
+            this.stripeConnectAccountId = this.siteInfo.privateSiteInfo.stripeConnectAccountId;
             this.premiumUpdateGroupId = parseInt(this.curGroupId);
             // A little shortcut for updating
             if (AppConfig.appShortName === "hoa")
