@@ -136,6 +136,8 @@
         specialAssessments: SpecialAssessmentEntry[];
         shouldShowAllUnits = false;
         hasUnitsWithoutOwners = false;
+        shouldShowQuickFilter = false;
+        quickFilterText = "";
 
 
         /**
@@ -174,7 +176,10 @@
             if( this.isForMemberGroup )
                 this.showRowType = "member";
             else if( AppConfig.isChtnSite )
+            {
                 this.showRowType = "unit";
+                this.shouldShowQuickFilter = this.siteInfo.privateSiteInfo.numUnits > 10;
+            }
             else
                 console.log( "Unhandled app type for payment history: " + AppConfig.appShortName );
 
@@ -737,6 +742,7 @@
                 // Sort the units by name
                 const sortedUnits: UnitWithPayment[] = Array.from( this.unitPayments.values() );
                 this.nameSortedUnitPayments = HtmlUtil2.smartSortStreetAddresses( sortedUnits, "name" );
+                this.filteredUnitRows = this.nameSortedUnitPayments;
 
                 this.payers = _.sortBy( paymentInfo.payers, payer => payer.name );
 
@@ -1101,6 +1107,39 @@
                     alert( "Failed to delete special assessment entry: " + errorMessage );
                 }
             );
+        }
+
+
+        /**
+         * Occurs when the user enters quick filter text to filter the list of units
+         */
+        onQuickFilterChange()
+        {
+            if( !this.quickFilterText )
+                this.filteredUnitRows = this.nameSortedUnitPayments;
+            else
+            {
+                const lowerFilter = this.quickFilterText.toLowerCase();
+
+                const unitContainsFilter = ( unit: UnitWithPayment ) =>
+                {
+                    if( unit.name.toLowerCase().indexOf( lowerFilter ) !== -1 )
+                        return true;
+
+                    // Use displayOwners instead of owners because it's confusing to show results
+                    // that don't match the filter
+                    //if( unit.owners && unit.owners.length > 0 )
+                    if( unit.displayOwners && unit.displayOwners.length > 0 )
+                    {
+                        if( unit.displayOwners.some( o => o.name.toLowerCase().indexOf( lowerFilter ) !== -1 ) )
+                            return true;
+                    }
+
+                    return false;
+                };
+
+                this.filteredUnitRows = this.nameSortedUnitPayments.filter( u => unitContainsFilter( u ) );
+            }
         }
     }
 

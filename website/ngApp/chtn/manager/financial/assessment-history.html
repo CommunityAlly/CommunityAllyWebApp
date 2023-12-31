@@ -21,6 +21,7 @@
             <label class="ms-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
             <button class="btn btn-primary ms-3" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
         </p>
+        
         <div data-ng-if="$ctrl.shouldShowFillInSection" style="padding: 10px; border: 1px solid black;">
             You can speed things up by marking all homes as paid back to a certain date.<br />
             <br />
@@ -28,22 +29,29 @@
             <select data-ng-model="$ctrl.selectedFillInPeriod" data-ng-options="p as p.name for p in $ctrl.visiblePeriodEntries"></select>
             <button type="button" data-ng-click="$ctrl.populatePaidForPeriod()" class="btn btn-primary">Mark As Paid</button>
         </div>
+
         <div class="margin-top-10 spinner-effect">
             <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
             <div>
-                <span class="text-link" style="margin-left: 15%;" data-ng-click="$ctrl.browseFuture()">Ahead 6 {{ $ctrl.payPeriodName }}s</span>
-                <span class="text-link pull-right" data-ng-click="$ctrl.browsePast()">Back 6 {{ $ctrl.payPeriodName }}s</span>
+                <span class="note-text">Click on a cell to edit payment</span>
+                <span class="text-link" style="margin-left: 17px;" data-ng-click="$ctrl.browseFuture()">&lt; Ahead 6 {{ $ctrl.payPeriodName }}s</span>
+                <span class="text-link pull-right" data-ng-click="$ctrl.browsePast()">Back 6 {{ $ctrl.payPeriodName }}s &gt;</span>
             </div>
-
-            <span class="note-text">Click on a cell to edit payment</span>
 
             <!--The main table of payments-->
             <table id="assessment-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th class="text-end" style="width: 15%;">
-
+                        <th style="width: 15%; font-size: inherit; font-weight: initial;">
+                            <div data-ng-if="$ctrl.shouldShowQuickFilter">
+                                Quick Filter:
+                                <br />
+                                <input type="text" class="form-control form-control-sm" style="display: inline-block" data-ng-model="$ctrl.quickFilterText" data-ng-change="$ctrl.onQuickFilterChange()" />
+                                <span class="text-error" data-ng-if="$ctrl.quickFilterText && $ctrl.nameSortedUnitPayments.length > 0 && $ctrl.filteredUnitRows.length === 0">No rows to display</span>
+                                <br />
+                                <span class="note-text">Filters home/owner name</span>
+                            </div>
                         </th>
                         <th data-ng-if="$ctrl.shouldShowBalanceCol">
                             Est. Balance
@@ -56,7 +64,7 @@
                 </thead>
 
                 <tbody data-ng-if="$ctrl.showRowType === 'unit'">
-                    <tr data-ng-repeat="unit in $ctrl.nameSortedUnitPayments" ng-init="unitIndex = $index">
+                    <tr data-ng-repeat="unit in $ctrl.filteredUnitRows" ng-init="unitIndex = $index">
                         <td class="text-bold text-end">
                             <span title="{{ unit.unitId }}">{{ unit.name }}</span>
                             <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
