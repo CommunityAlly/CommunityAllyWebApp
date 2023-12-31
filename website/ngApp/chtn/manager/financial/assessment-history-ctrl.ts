@@ -56,6 +56,7 @@
         payments: PeriodicPayment[];
         specialAssessments: SpecialAssessmentEntry[];
         payers: PayerInfo[];
+        hasUnitsWithoutOwners: boolean;
     }
 
 
@@ -117,6 +118,7 @@
         visiblePeriodEntries: PeriodEntry[];
         unitPayments: Map<number, UnitWithPayment>;
         nameSortedUnitPayments: UnitWithPayment[];
+        filteredUnitRows: UnitWithPayment[];
         payers: PayerInfo[];
         editPayment: EditPaymentInfo;
         showRowType: "unit" | "member" = "unit";
@@ -132,6 +134,8 @@
         todaysPayPeriod: PeriodYear;
         totalEstBalance: number;
         specialAssessments: SpecialAssessmentEntry[];
+        shouldShowAllUnits = false;
+        hasUnitsWithoutOwners = false;
 
 
         /**
@@ -139,6 +143,8 @@
         */
         constructor( private $http: ng.IHttpService, private $location: ng.ILocationService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
         {
+            if( window.localStorage["assessmentHistory_showAllUnits"] )
+                this.shouldShowAllUnits = window.localStorage["assessmentHistory_showAllUnits"] === "true";
         }
 
 
@@ -662,12 +668,18 @@
         retrievePaymentHistory(): void
         {
             this.isLoading = true;
+            let getUri = "/api/PaymentHistory/FullHistory?oldestDate=";
+            if( this.shouldShowAllUnits )
+                getUri += "&showAllUnits=true";
 
-            this.$http.get( "/api/PaymentHistory?oldestDate=" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
+            window.localStorage["assessmentHistory_showAllUnits"] = this.shouldShowAllUnits;
+
+            this.$http.get( getUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
             {
                 const paymentInfo = httpResponse.data;
                 this.specialAssessments = httpResponse.data.specialAssessments;
-                
+                this.hasUnitsWithoutOwners = paymentInfo.hasUnitsWithoutOwners;
+
                 this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || ( paymentInfo.payments.length < 2 && paymentInfo.units.length > 3 );
 
                 // Build the map of unit ID to unit information

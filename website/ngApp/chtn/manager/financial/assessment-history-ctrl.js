@@ -47,6 +47,10 @@ var Ally;
             this.selectedFillInPeriod = null;
             this.shouldShowNeedsAssessmentSetup = false;
             this.hasAssessments = null;
+            this.shouldShowAllUnits = false;
+            this.hasUnitsWithoutOwners = false;
+            if (window.localStorage["assessmentHistory_showAllUnits"])
+                this.shouldShowAllUnits = window.localStorage["assessmentHistory_showAllUnits"] === "true";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -433,9 +437,14 @@ var Ally;
          */
         retrievePaymentHistory() {
             this.isLoading = true;
-            this.$http.get("/api/PaymentHistory?oldestDate=").then((httpResponse) => {
+            let getUri = "/api/PaymentHistory/FullHistory?oldestDate=";
+            if (this.shouldShowAllUnits)
+                getUri += "&showAllUnits=true";
+            window.localStorage["assessmentHistory_showAllUnits"] = this.shouldShowAllUnits;
+            this.$http.get(getUri).then((httpResponse) => {
                 const paymentInfo = httpResponse.data;
                 this.specialAssessments = httpResponse.data.specialAssessments;
+                this.hasUnitsWithoutOwners = paymentInfo.hasUnitsWithoutOwners;
                 this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || (paymentInfo.payments.length < 2 && paymentInfo.units.length > 3);
                 // Build the map of unit ID to unit information
                 this.unitPayments = new Map();
