@@ -9,6 +9,9 @@ var Ally;
     class UnitWithOwner extends Unit {
     }
     Ally.UnitWithOwner = UnitWithOwner;
+    class UnitDisplayOwner {
+    }
+    Ally.UnitDisplayOwner = UnitDisplayOwner;
     class UnitWithPayment extends UnitWithOwner {
     }
     Ally.UnitWithPayment = UnitWithPayment;

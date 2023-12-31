@@ -21,6 +21,8 @@ var Ally;
             this.groupEmailDomain = "";
             this.shouldShowNewCustomEmailModal = false;
             this.isPremiumPlanActive = false;
+            this.shouldShowQuickFilter = false;
+            this.quickFilterText = "";
             this.allyAppName = AppConfig.appName;
             this.groupShortName = siteInfo.publicSiteInfo.shortName;
             this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
@@ -33,9 +35,11 @@ var Ally;
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            if (AppConfig.isChtnSite)
+                this.shouldShowQuickFilter = this.siteInfo.privateSiteInfo.numUnits > 10;
             this.fellowResidents.getByUnitsAndResidents().then((data) => {
                 this.isLoading = false;
-                this.unitList = data.byUnit;
+                this.allUnitList = data.byUnit;
                 this.allResidents = data.residents;
                 this.committees = data.committees;
                 if (!this.allResidents && data.ptaMembers)
@@ -84,7 +88,7 @@ var Ally;
                     Array.prototype.push.apply(memo, unit.owners);
                     return memo;
                 };
-                this.allOwners = _.reduce(this.unitList, getEmails, []);
+                this.allOwners = _.reduce(this.allUnitList, getEmails, []);
                 this.allOwners = _.map(_.groupBy(this.allOwners, function (resident) {
                     return resident.email;
                 }), function (grouped) {
@@ -94,8 +98,9 @@ var Ally;
                 this.allOwnerEmails = _.reduce(this.allOwners, function (memo, owner) { if (HtmlUtil.isValidString(owner.email)) {
                     memo.push(owner.email);
                 } return memo; }, []);
-                if (this.unitList && this.unitList.length > 0)
-                    this.unitList = Ally.HtmlUtil2.smartSortStreetAddresses(this.unitList, "name");
+                if (this.allUnitList && this.allUnitList.length > 0)
+                    this.allUnitList = Ally.HtmlUtil2.smartSortStreetAddresses(this.allUnitList, "name");
+                this.filteredUnitList = this.allUnitList;
                 if (this.committees) {
                     // Only show committees with a contact person
                     //TWC - 10/19/18 - Show committees even without a contact person
@@ -236,6 +241,30 @@ var Ally;
                 this.isLoadingGroupEmails = false;
                 this.groupEmailSaveError = "Failed to process your request: " + httpResponse.data.exceptionMessage;
             });
+        }
+        /**
+         * Occurs when the user enters quick filter text to filter the list of units
+         */
+        onQuickFilterChange() {
+            if (!this.quickFilterText)
+                this.filteredUnitList = this.allUnitList;
+            else {
+                const lowerFilter = this.quickFilterText.toLowerCase();
+                const unitContainsFilter = (unit) => {
+                    if (unit.name.toLowerCase().indexOf(lowerFilter) !== -1)
+                        return true;
+                    if (unit.owners && unit.owners.length > 0) {
+                        if (unit.owners.some(o => o.fullName?.toLowerCase()?.indexOf(lowerFilter) !== -1))
+                            return true;
+                    }
+                    if (unit.renters && unit.renters.length > 0) {
+                        if (unit.renters.some(o => o.fullName?.toLowerCase()?.indexOf(lowerFilter) !== -1))
+                            return true;
+                    }
+                    return false;
+                };
+                this.filteredUnitList = this.allUnitList.filter(u => unitContainsFilter(u));
+            }
         }
     }
     GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];

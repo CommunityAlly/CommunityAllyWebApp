@@ -55,11 +55,19 @@
                 <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateMemberFilter()" data-ng-model="$ctrl.memberSearchTerm" data-ng-model-options="{ debounce: 1 }" placeholder="Search" aria-describedby="basic-addon2" />
             </div>
 
-            <div class="title">{{ $ctrl.showMemberList ? "Members" : "Residents" }}</div>
+            <span class="title" style="display: inline-block;">{{ $ctrl.showMemberList ? "Members" : "Residents" }}</span>
+
+            <span data-ng-if="$ctrl.shouldShowQuickFilter" class="ms-5">
+                Quick Filter:
+                <input type="text" class="form-control form-control-sm" style="width: 200px; display: inline-block" data-ng-model="$ctrl.quickFilterText" data-ng-change="$ctrl.onQuickFilterChange()" />
+                <span class="text-error" data-ng-if="$ctrl.quickFilterText && $ctrl.nameSortedUnitPayments.length > 0 && $ctrl.filteredUnitRows.length === 0">No rows to display</span>
+                <span class="note-text">Filters home/owner name</span>
+                <span class="text-error" data-ng-if="$ctrl.quickFilterText && $ctrl.allUnitList.length > 0 && $ctrl.filteredUnitList.length === 0">No rows to display</span>
+            </span>
         </div>
 
         <div class="portlet-body" data-ng-if="!$ctrl.showMemberList">
-            <div data-ng-repeat="curUnit in $ctrl.unitList" id="unit-id-{{curUnit.unitId}}">
+            <div data-ng-repeat="curUnit in $ctrl.filteredUnitList" id="unit-id-{{curUnit.unitId}}">
                 <h5 id="unit-name-{{ $index }}">{{ $ctrl.unitPrefix }}{{ curUnit.name }}</h5>
                 <div>
                     <span data-ng-if="curUnit.renters.length > 0" style="font-weight:bold;">Owned by:<br></span>

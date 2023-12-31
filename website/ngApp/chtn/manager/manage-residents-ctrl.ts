@@ -29,20 +29,29 @@ namespace Ally
         name: string;
     }
 
+
     export class UnitWithOwner extends Unit
     {
         owners: PayerInfo[];
     }
 
+
+    export class UnitDisplayOwner
+    {
+        name: string;
+    }
+
+
     export class UnitWithPayment extends UnitWithOwner
     {
         // Not from server
         owners: PayerInfo[];
-        displayOwners: any[];
+        displayOwners: UnitDisplayOwner[];
         allPayments: AssessmentPayment[];
         displayPayments: AssessmentPayment[]; // The payments visible in the assessment grid
         estBalance: number | undefined;
     }
+
 
     export class HomeEntry
     {
