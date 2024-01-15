@@ -139,13 +139,16 @@
             );
         }
     </script>
-    <script src="https://cdn.usefathom.com/script.js" site="SHLEWGEJ" auto="false" spa="hash" defer></script>
+    <script src="https://cdn.usefathom.com/script.js" data-site="SHLEWGEJ" defer></script>
+
     <script>
-        analytics = {
+        var analytics = {
+            isSetup: false,
             identify: function() { },
             page: function() { },
             track: function() { }
         }
+
         function setupAnalytics()
         {
             if( typeof ( gtag ) === "function" )
@@ -161,7 +164,9 @@
                     {
                         gtag( 'event', actionName );
                     }
-                }
+                };
+
+                analytics.isSetup = true;
             }
 
             if( typeof ( fathom ) === "object" )
@@ -170,15 +175,36 @@
                     identify: function() { },
                     page: function( pageInfo )
                     {
-                        fathom.trackPageview( { url: pageInfo.path } );
+                        // Fathom doesn't like hashbangs
+                        //const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/#!/Home"
+                        const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/Home"
+                        
+                        // First log the active URL with correct domain so we can see activity by group
+                        //console.log( "Tracking page view", postValue );
+                        fathom.trackPageview( { url: postValue } );
+
+                        // Then log the path with the generic domain so we can see activity by page
+                        const genericPostValue = "https://fathom.condoally.com" + pageInfo.path; // pageInfo.path Looks like "/Home"
+                        fathom.trackPageview( { url: genericPostValue } );
                     },
                     track: function( actionName )
                     {
                     }
-                }
+                };
+
+                analytics.isSetup = true;
             }
         }
-        window.setTimeout( setupAnalytics, 500 );
+
+        analytics.page = function( pageInfo )
+        {
+            if( !analytics.isSetup )
+                setupAnalytics();
+
+            analytics.page( pageInfo );
+        };
+
+        //window.setTimeout( setupAnalytics, 500 );
     </script>
     <!-- Fonts -->
     <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700&display=swap' rel='stylesheet' type='text/css'>
@@ -222,7 +248,7 @@
 
                 <div data-ng-cloak>
                     <h1 data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
-                    <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText();" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
+                    <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText()" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
                     <h1 data-ng-if="siteTitle.logoHtml" style="color:white !important;" data-ng-bind-html="siteTitle.logoHtml"></h1>
                 </div>
             </div>
