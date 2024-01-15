@@ -200,50 +200,56 @@ namespace Ally
                 deferred.resolve( siteInfo );
             };
 
-            const onRequestFailed = () =>
+            const onRequestFailed = ( errorResult: ExceptionResult ) =>
             {
                 $rootScope.isLoadingSite = false;
-                deferred.reject();
+                deferred.reject( errorResult );
             };
 
             // Retrieve information for the current association
             //const GetInfoUri = "/api/GroupSite";
             const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
-            $http.get( GetInfoUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                // If we received data but the user isn't logged-in
-                if( httpResponse.data && !httpResponse.data.userInfo )
+            $http.get( GetInfoUri ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    // Check the cross-domain localStorage for an auth token
-                    this.xdLocalStorage.getItem("allyApiAuthToken").then( ( response:any ) =>
+                    // If we received data but the user isn't logged-in
+                    if( httpResponse.data && !httpResponse.data.userInfo )
                     {
-                        // If we received an auth token then retry accessing the group data
-                        if( response && HtmlUtil.isValidString( response.value ) )
+                        // Check the cross-domain localStorage for an auth token
+                        this.xdLocalStorage.getItem( "allyApiAuthToken" ).then( ( response: any ) =>
                         {
-                            //console.log( "Received cross domain token:" + response.value );
-                            this.setAuthToken( response.value );
-
-                            $http.get( GetInfoUri ).then(( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                            // If we received an auth token then retry accessing the group data
+                            if( response && HtmlUtil.isValidString( response.value ) )
                             {
+                                //console.log( "Received cross domain token:" + response.value );
+                                this.setAuthToken( response.value );
+
+                                $http.get( GetInfoUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                {
+                                    onSiteInfoReceived( httpResponse.data );
+                                }, onRequestFailed );
+                            }
+                            // Otherwise just handle what we received
+                            else
                                 onSiteInfoReceived( httpResponse.data );
-                            }, onRequestFailed );
-                        }
-                        // Otherwise just handle what we received
-                        else
+
+                        }, () =>
+                        {
+                            // We failed to get a cross domain token so continue on with what we received
                             onSiteInfoReceived( httpResponse.data );
+                        } );
 
-                    }, () =>
-                    {
-                        // We failed to get a cross domain token so continue on with what we received
+                    }
+                    else
                         onSiteInfoReceived( httpResponse.data );
-                    });
-                    
-                }
-                else
-                    onSiteInfoReceived( httpResponse.data );
 
-            }, onRequestFailed );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    onRequestFailed( httpResponse.data );
+                }
+            );
 
             return deferred.promise;
         };
@@ -454,33 +460,42 @@ namespace Ally
             }
             else
             {
-                SiteInfoProvider.siteInfo.refreshSiteInfo( $rootScope, $http, $q ).then( () =>
-                {
-                    SiteInfoProvider.isSiteInfoLoaded = true;
-
-                    // Used to control the loading indicator on the site
-                    $rootScope.isSiteInfoLoaded = true;
-
-                    $rootScope.siteTitle = {
-                        text: $rootScope.publicSiteInfo.siteTitleText
-                    };
-
-                    // The logo contains markup so use sce to display HTML content
-                    if( $rootScope.publicSiteInfo.siteLogo )
-                        $rootScope.siteTitle.logoHtml = $sce.trustAsHtml( $rootScope.publicSiteInfo.siteLogo );
-
-                    //$rootScope.siteTitleText = $rootScope.publicSiteInfo.siteTitleText;
-
-                    // Occurs when the user saves changes to the site title
-                    $rootScope.onUpdateSiteTitleText = () =>
+                SiteInfoProvider.siteInfo.refreshSiteInfo( $rootScope, $http, $q ).then(
+                    () =>
                     {
-                        analytics.track( "updateSiteTitle" );
+                        SiteInfoProvider.isSiteInfoLoaded = true;
 
-                        $http.put( "/api/Settings", { siteTitle: $rootScope.siteTitle.text } );
-                    };
+                        // Used to control the loading indicator on the site
+                        $rootScope.isSiteInfoLoaded = true;
 
-                    deferred.resolve( SiteInfoProvider.siteInfo );
-                } );
+                        $rootScope.siteTitle = {
+                            text: $rootScope.publicSiteInfo.siteTitleText
+                        };
+
+                        // The logo contains markup so use sce to display HTML content
+                        if( $rootScope.publicSiteInfo.siteLogo )
+                            $rootScope.siteTitle.logoHtml = $sce.trustAsHtml( $rootScope.publicSiteInfo.siteLogo );
+
+                        //$rootScope.siteTitleText = $rootScope.publicSiteInfo.siteTitleText;
+
+                        // Occurs when the user saves changes to the site title
+                        $rootScope.onUpdateSiteTitleText = () =>
+                        {
+                            analytics.track( "updateSiteTitle" );
+
+                            $http.put( "/api/Settings", { siteTitle: $rootScope.siteTitle.text } );
+                        };
+
+                        deferred.resolve( SiteInfoProvider.siteInfo );
+                    },
+                    ( errorResult: ExceptionResult ) =>
+                    {
+                        // For some reason, this does not invoke the caller's error callback, so we need to redirect here
+                        //deferred.reject( errorResult );
+
+                        GlobalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
+                    }
+                );
             }
 
             return deferred.promise;

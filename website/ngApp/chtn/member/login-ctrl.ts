@@ -200,8 +200,10 @@
                         window.localStorage["rememberMe_Password"] = null;
                     }
 
-                    // If the user hasn't accepted the terms yet then make them go to the profile page
-                    if( !data.siteInfo.userInfo.acceptedTermsDate && !this.isDemoSite )
+                    // If the user hasn't accepted the terms yet then make them go to the profile
+                    // page. But no need if this is a demo site.
+                    const shouldSendToProfile = !data.siteInfo.userInfo.acceptedTermsDate && !this.isDemoSite;
+                    if( shouldSendToProfile )
                         this.$location.path( "/MyProfile" );
                     else
                     {

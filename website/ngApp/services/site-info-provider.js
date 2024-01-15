@@ -63,9 +63,9 @@ var Ally;
                 this.handleSiteInfo(siteInfo, $rootScope);
                 deferred.resolve(siteInfo);
             };
-            const onRequestFailed = () => {
+            const onRequestFailed = (errorResult) => {
                 $rootScope.isLoadingSite = false;
-                deferred.reject();
+                deferred.reject(errorResult);
             };
             // Retrieve information for the current association
             //const GetInfoUri = "/api/GroupSite";
@@ -94,7 +94,9 @@ var Ally;
                 }
                 else
                     onSiteInfoReceived(httpResponse.data);
-            }, onRequestFailed);
+            }, (httpResponse) => {
+                onRequestFailed(httpResponse.data);
+            });
             return deferred.promise;
         }
         ;
@@ -262,6 +264,10 @@ var Ally;
                         $http.put("/api/Settings", { siteTitle: $rootScope.siteTitle.text });
                     };
                     deferred.resolve(SiteInfoProvider.siteInfo);
+                }, (errorResult) => {
+                    // For some reason, this does not invoke the caller's error callback, so we need to redirect here
+                    //deferred.reject( errorResult );
+                    GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
                 });
             }
             return deferred.promise;

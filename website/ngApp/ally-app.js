@@ -28,8 +28,12 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
         const universalResolvesWithLogin = {
             app: ["$q", "$http", "$rootScope", "$sce", "$location", "xdLocalStorage", "appCacheService",
                 function ($q, $http, $rootScope, $sce, $location, xdLocalStorage, appCacheService) {
-                    return Ally.SiteInfoHelper.loginInit($q, $http, $rootScope, $sce, xdLocalStorage).then(function (siteInfo) {
+                    return Ally.SiteInfoHelper.loginInit($q, $http, $rootScope, $sce, xdLocalStorage).then((siteInfo) => {
                         return isLoginRequired($location, $q, siteInfo, appCacheService);
+                    }, (errorResult) => {
+                        // Something went wrong trying to load the site info so let's go to the generic login page
+                        console.log("Failed to get site info, redirecting to generic login", errorResult);
+                        GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
                     });
                 }]
         };

@@ -59,10 +59,18 @@ CA.angularApp.config(
         app: ["$q", "$http", "$rootScope", "$sce", "$location", "xdLocalStorage", "appCacheService",
         function( $q: ng.IQService, $http: ng.IHttpService, $rootScope: ng.IRootScopeService, $sce: ng.ISCEService, $location: ng.ILocationService, xdLocalStorage: any, appCacheService: AppCacheService )
         {
-            return Ally.SiteInfoHelper.loginInit( $q, $http, $rootScope, $sce, xdLocalStorage ).then( function( siteInfo: Ally.SiteInfoService )
-            {
-                return isLoginRequired( $location, $q, siteInfo, appCacheService );
-            } );
+            return Ally.SiteInfoHelper.loginInit( $q, $http, $rootScope, $sce, xdLocalStorage ).then(
+                ( siteInfo: Ally.SiteInfoService ) =>
+                {
+                    return isLoginRequired( $location, $q, siteInfo, appCacheService );
+                },
+                ( errorResult: any ) =>
+                {
+                    // Something went wrong trying to load the site info so let's go to the generic login page
+                    console.log( "Failed to get site info, redirecting to generic login", errorResult );
+                    GlobalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
+                }
+            );
         }]
     };
 
