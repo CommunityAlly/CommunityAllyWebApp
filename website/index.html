@@ -51,7 +51,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=856;
+        var appVer=884;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -59,17 +59,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=849" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=884" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=849" );
+                    localStorage.setItem( Key_JSVersion, "appVer=884" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=849"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=849"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=884"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=884"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -146,62 +146,50 @@
             isSetup: false,
             identify: function() { },
             page: function() { },
+            internalPage: null,
             track: function() { }
         }
 
-        function setupAnalytics()
+        function getPageViewFunction()
         {
-            if( typeof ( gtag ) === "function" )
-            {
-                analytics = {
-                    identify: function() { },
-                    page: function( pageInfo )
-                    {
-                        gtag( 'config', 'UA-32323638-5', { 'page_path': pageInfo.path } );
-                        gtag( 'event', 'page_view' );
-                    },
-                    track: function( actionName )
-                    {
-                        gtag( 'event', actionName );
-                    }
-                };
-
-                analytics.isSetup = true;
-            }
-
             if( typeof ( fathom ) === "object" )
             {
-                analytics = {
-                    identify: function() { },
-                    page: function( pageInfo )
-                    {
-                        // Fathom doesn't like hashbangs
-                        //const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/#!/Home"
-                        const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/Home"
-                        
-                        // First log the active URL with correct domain so we can see activity by group
-                        //console.log( "Tracking page view", postValue );
-                        fathom.trackPageview( { url: postValue } );
+                return function( pageInfo )
+                {
+                    // Fathom doesn't like hashbangs
+                    //const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/#!/Home"
+                    const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/Home"
 
-                        // Then log the path with the generic domain so we can see activity by page
-                        const genericPostValue = "https://fathom.condoally.com" + pageInfo.path; // pageInfo.path Looks like "/Home"
-                        fathom.trackPageview( { url: genericPostValue } );
-                    },
-                    track: function( actionName )
-                    {
-                    }
+                    // First log the active URL with correct domain so we can see activity by group
+                    //console.log( "Tracking page view", postValue );
+                    fathom.trackPageview( { url: postValue } );
+
+                    // Then log the path with the generic domain so we can see activity by page
+                    const genericPostValue = "https://fathom.condoally.com" + pageInfo.path; // pageInfo.path Looks like "/Home"
+                    fathom.trackPageview( { url: genericPostValue } );
                 };
-
-                analytics.isSetup = true;
             }
+            else if( typeof ( gtag ) === "function" )
+            {
+                return function( pageInfo )
+                {
+                    gtag( 'config', 'UA-32323638-5', { 'page_path': pageInfo.path } );
+                    gtag( 'event', 'page_view' );
+                };
+                    //,track: function( actionName )
+                    //{
+                    //    gtag( 'event', actionName );
+                    //}
+            }            
         }
 
         analytics.page = function( pageInfo )
         {
-            if( !analytics.isSetup )
-                setupAnalytics();
+            if( !analytics.internalPage )
+                analytics.internalPage = getPageViewFunction();
 
-            analytics.page( pageInfo );
+            if( analytics.internalPage )
+                analytics.internalPage( pageInfo );
         };
 
         //window.setTimeout( setupAnalytics, 500 );
