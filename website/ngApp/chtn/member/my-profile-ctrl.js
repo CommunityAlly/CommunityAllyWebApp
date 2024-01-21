@@ -25,6 +25,7 @@ var Ally;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.isResultMessageGood = false;
             this.showPassword = false;
             this.shouldShowPassword = false;
             this.selectedProfileView = "Primary";
@@ -135,9 +136,11 @@ var Ally;
          */
         onSaveInfo() {
             this.isLoading = true;
+            this.resultMessage = "";
             this.$http.put("/api/MyProfile", this.profileInfo).then((httpResponse) => {
                 this.isLoading = false;
                 this.profileInfo.password = null;
+                this.isResultMessageGood = true;
                 this.resultMessage = "Your changes have been saved.";
                 if (httpResponse.data.failedToUpdateEmail) {
                     this.resultMessage = "Profile changes have been saved, except we were unable to update your email address: " + httpResponse.data.failureDetails;
@@ -153,6 +156,8 @@ var Ally;
                 }
             }, (httpResponse) => {
                 this.isLoading = false;
+                this.resultMessage = httpResponse.data.exceptionMessage;
+                this.isResultMessageGood = false;
                 alert("Failed to save: " + httpResponse.data.exceptionMessage);
             });
         }

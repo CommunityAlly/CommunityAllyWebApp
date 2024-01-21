@@ -155,7 +155,7 @@
                 Save
             </button>
             <br />
-            <span id="profile-error-label" style="font-weight: bold; font-size: 1.25em" data-ng-style="{color:'#0C0'}">{{ $ctrl.resultMessage }}</span>
+            <span id="profile-error-label" style="font-weight: bold; font-size: 1.25em" data-ng-style="{color:($ctrl.isResultMessageGood ? '#0C0' : '#C00')}">{{ $ctrl.resultMessage }}</span>
         </div>
     </div>
 

@@ -53,6 +53,7 @@ namespace Ally
         hasAcceptedTerms: boolean;
         saveButtonStyle: any;
         resultMessage: string;
+        isResultMessageGood = false;
         initialProfileImageType: string;
         profileImageType: string;
         gravatarUrl: string;
@@ -219,12 +220,14 @@ namespace Ally
         onSaveInfo()
         {
             this.isLoading = true;
+            this.resultMessage = "";
 
             this.$http.put( "/api/MyProfile", this.profileInfo ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<MyProfileSaveResult> ) =>
                 {
                     this.isLoading = false;
                     this.profileInfo.password = null;
+                    this.isResultMessageGood = true;
                     this.resultMessage = "Your changes have been saved.";
 
                     if( httpResponse.data.failedToUpdateEmail )
@@ -247,6 +250,8 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
+                    this.resultMessage = httpResponse.data.exceptionMessage;
+                    this.isResultMessageGood = false;
                     alert( "Failed to save: " + httpResponse.data.exceptionMessage );
                 }
             );
