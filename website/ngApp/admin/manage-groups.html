@@ -209,6 +209,10 @@
             <input type="number" data-ng-model="$ctrl.reactivateGroupId" data-ng-enter="$ctrl.onReactivateGroup()" autocomplete="off" data-lpignore="true" data-form-type="other">
             <input type="button" value="Reactivate Single Group by ID" data-ng-click="$ctrl.onReactivateGroup()">
         </div>
+        <div>
+            <input type="text" data-ng-model="$ctrl.reactivateEmail" data-ng-enter="$ctrl.onReactivateEmail()" autocomplete="off" data-lpignore="true" data-form-type="other">
+            <input type="button" value="Reactivate Spam-Marked Email Address" data-ng-click="$ctrl.onReactivateEmail()">
+        </div>
         <br />
         <fieldset class="my-4">
             <legend>No Reply Email</legend>

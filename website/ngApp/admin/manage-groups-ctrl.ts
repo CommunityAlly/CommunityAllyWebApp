@@ -62,6 +62,7 @@
         reactivateGroupId: number;
         allAllyAppSettings: AllyAppSetting[];
         editAllyAppSetting: AllyAppSetting;
+        reactivateEmail: string;
 
 
         /**
@@ -595,12 +596,12 @@
                 {
                     this.isLoading = false;
                     this.deactivateGroupIdsCsv = null;
-                    alert( "Deactivate Succeeded: " + response.data );
+                    alert( "Deactivate Group Succeeded: " + response.data );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Deactivate Failed: " + response.data.exceptionMessage );
+                    alert( "Deactivate Group Failed: " + response.data.exceptionMessage );
                 }
             );
         }
@@ -616,12 +617,12 @@
                 {
                     this.isLoading = false;
                     this.reactivateGroupId = null;
-                    alert( "Reactivate Succeeded: " + response.data );
+                    alert( "Reactivate Group Succeeded: " + response.data );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Reactivate Failed: " + response.data.exceptionMessage );
+                    alert( "Reactivate Group Failed: " + response.data.exceptionMessage );
                 }
             );
         }
@@ -650,6 +651,27 @@
         saveAllyAppSetting()
         {
             this.$http.post( "", this.editAllyAppSetting );
+        }
+
+
+        onReactivateEmail()
+        {
+            this.isLoading = true;
+
+            const getUri = `/api/AdminHelper/ClearBadEmailStatus?emailAddress=${this.reactivateEmail}`;
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    this.reactivateEmail = null;
+                    alert( "Reactivate Email Succeeded: " + response.data );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Reactivate Failed: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 
