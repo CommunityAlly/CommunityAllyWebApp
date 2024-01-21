@@ -85,7 +85,7 @@
             </span>
         </p>
 
-        <p data-ng-if="!$ctrl.editingItem.postDate">
+        <p data-ng-if="!$ctrl.editingItem.postDateUtc">
             <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.isAnonymous"> Responses are anonymous</label><br />
             <span class="note-text">
                 If selected, you will not be able to see how units voted, only total response counts. Anonymous polls can help to provide
@@ -93,7 +93,7 @@
             </span>
         </p>
 
-        <p data-ng-if="!$ctrl.editingItem.postDate">
+        <p data-ng-if="!$ctrl.editingItem.postDateUtc">
             <div data-ng-if="$ctrl.isPremiumPlanActive">
                 <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.shouldSendAnnouncementEmail"> Send announcement email</label>
                 <br />
@@ -115,8 +115,8 @@
         </p>
 
         <p class="text-end">
-            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDate != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSavePoll();" />
-            <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDate != null" data-ng-click="$ctrl.cancelEdit()" />
+            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDateUtc != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSavePoll();" />
+            <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDateUtc != null" data-ng-click="$ctrl.cancelEdit()" />
         </p>
     </form>
 
@@ -148,7 +148,7 @@
                     <td class="poll-entry-{{ $index }}-who">
                         <span>{{::$ctrl.formatVoteGroupName(pollItem.votingGroupShortName)}}</span>
                     </td>
-                    <td class="poll-entry-{{ $index }}-post-date">{{::pollItem.postDate | date:'M/d/yyyy'}}</td>
+                    <td class="poll-entry-{{ $index }}-post-date">{{::pollItem.postDateUtc | date:'M/d/yyyy'}}</td>
                     <td class="poll-entry-{{ $index }}-expiration-date">{{::pollItem.expirationDate | date:'M/d/yyyy'}}</td>
                     <td class="poll-entry-{{ $index }}-author-name">{{::pollItem.authorName | date:'M/d/yyyy'}}</td>
                     <td class="text-center">

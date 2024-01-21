@@ -262,6 +262,7 @@
         isAnonymous: boolean = true;
         expirationDate: Date;
         postDate: Date;
+        postDateUtc: Date;
         authorUserId: string;
         authorName: string;
         questionText: string;
