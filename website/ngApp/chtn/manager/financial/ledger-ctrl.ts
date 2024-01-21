@@ -55,6 +55,8 @@ namespace Ally
         hasActiveTxGridColFilter = false;
         uiGridCategoryDropDown: CategoryDropDownOption[] = [];
         bulkRecategorizeCategoryId: number;
+        shouldShowFullCatPathInGrid = false;
+        static readonly StoreKeyShouldShowFullCatPathInGrid = "LedgerShouldShowFullCatPathInGrid";
 
 
         /**
@@ -67,6 +69,8 @@ namespace Ally
             private $rootScope: ng.IRootScopeService,
             private $timeout: ng.ITimeoutService )
         {
+            if( window.localStorage && window.localStorage[LedgerController.StoreKeyShouldShowFullCatPathInGrid] )
+                this.shouldShowFullCatPathInGrid = window.localStorage[LedgerController.StoreKeyShouldShowFullCatPathInGrid] === "true";
         }
 
 
@@ -96,25 +100,52 @@ namespace Ally
             {
                 columnDefs:
                     [
-                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false },
+                        { field: 'transactionDate', displayName: 'Date', width: 70, type: 'date', cellFilter: "date:'shortDate'", enableFiltering: false, enableColumnMenu: false },
                         {
                             field: 'accountName', filter: {
                                 type: this.uiGridConstants.filter.SELECT,
                                 selectOptions: []
-                            }, displayName: 'Account', enableCellEdit: false, width: 140, enableFiltering: true
+                            },
+                            displayName: 'Account',
+                            enableCellEdit: false,
+                            width: 140,
+                            enableFiltering: true,
+                            enableColumnMenu: false
                         },
-                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" } },
-                        { field: 'categoryDisplayName', editModelField: "financialCategoryId", displayName: 'Category', width: 170, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true },
-                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>' },
-                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red; margin-left: 18px;">&times;</span></div>' }
+                        { field: 'description', displayName: 'Description', enableCellEditOnFocus: true, enableFiltering: true, filter: { placeholder: "search" }, enableColumnMenu: false },
+                        {
+                            field: 'categoryDisplayName',
+                            editModelField: "financialCategoryId",
+                            displayName: 'Category',
+                            width: 220,
+                            editableCellTemplate: "ui-grid/dropdownEditor",
+                            editDropdownOptionsArray: [],
+                            enableFiltering: true,
+                            enableColumnMenu: true,
+                            menuItems: [
+                                {
+                                    title: 'Full Category Path',
+                                    active: () => this.shouldShowFullCatPathInGrid,
+                                    action: () =>
+                                    {
+                                        this.shouldShowFullCatPathInGrid = !this.shouldShowFullCatPathInGrid;
+                                        if( window.localStorage )
+                                            window.localStorage[LedgerController.StoreKeyShouldShowFullCatPathInGrid] = this.shouldShowFullCatPathInGrid;
+                                        this.refreshCategoryLabels();
+                                    }
+                                }
+                            ]
+                        },
+                        { field: 'unitGridLabel', editModelField: "associatedUnitId", displayName: this.homeName, width: 120, editableCellTemplate: "ui-grid/dropdownEditor", editDropdownOptionsArray: [], enableFiltering: true, enableColumnMenu: false },
+                        { field: 'amount', displayName: 'Amount', width: 140, type: 'number', cellFilter: "currency", enableFiltering: true, aggregationType: addAmountOverAllRows, footerCellTemplate: '<div class="ui-grid-cell-contents">Total: {{col.getAggregationValue() | currency }}</div>', enableColumnMenu: false },
+                        { field: 'id', displayName: 'Actions', enableSorting: false, enableCellEdit: false, enableFiltering: false, width: 90, cellTemplate: '<div class="ui-grid-cell-contents text-center"><img style="cursor: pointer;" data-ng-click="grid.appScope.$ctrl.editEntry( row.entity )" src="/assets/images/pencil-active.png" /><span class="close-x mt-0 mb-0 ml-3" data-ng-click="grid.appScope.$ctrl.deleteEntry( row.entity )" style="color: red; margin-left: 18px;">&times;</span></div>', enableColumnMenu: false }
                     ],
                 enableFiltering: true,
                 enableSorting: true,
                 showColumnFooter: true,
                 enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                 enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
-                enableColumnMenus: false,
+                enableColumnMenus: true,
                 enablePaginationControls: true,
                 paginationPageSize: this.HistoryPageSize,
                 paginationPageSizes: [this.HistoryPageSize],
@@ -138,6 +169,7 @@ namespace Ally
                         if( oldValue === newValue )
                             return;
 
+                        // If the user selected the "Manage Categories" option
                         if( colDef.field === "categoryDisplayName" && rowEntity.financialCategoryId === this.ManageCategoriesDropId )
                         {
                             rowEntity.financialCategoryId = oldValue;
@@ -145,8 +177,7 @@ namespace Ally
                             return;
                         }
 
-                        const catEntry = this.flatCategoryList.find( c => c.financialCategoryId === rowEntity.financialCategoryId );
-                        rowEntity.categoryDisplayName = catEntry ? catEntry.displayName : null;
+                        rowEntity.categoryDisplayName = this.getCategoryDisplayLabel( rowEntity.financialCategoryId );
 
                         const unitEntry = this.unitListEntries.find( c => c.unitId === rowEntity.associatedUnitId );
                         rowEntity.unitGridLabel = unitEntry ? unitEntry.unitWithOwnerLast : null;
@@ -279,6 +310,35 @@ namespace Ally
         }
 
 
+        getCategoryDisplayLabel( financialCategoryId: number )
+        {
+            if( !financialCategoryId )
+                return "";
+
+            const catEntry = this.flatCategoryList.find( c => c.financialCategoryId === financialCategoryId );
+            if( !catEntry )
+                return "[N/A]";
+
+            if( !this.shouldShowFullCatPathInGrid )
+                return catEntry.displayName;
+
+            let getFullPath: ( curEntry: FinancialCategory, curPath: string ) => string;
+            getFullPath = ( curEntry: FinancialCategory, curPath: string ) =>
+            {
+                if( !curEntry.parentFinancialCategoryId )
+                    return curPath;
+
+                const parentEntry = this.flatCategoryList.find( c => c.financialCategoryId === curEntry.parentFinancialCategoryId );
+                if( !parentEntry )
+                    return curPath;
+
+                return getFullPath( parentEntry, parentEntry.displayName + "/" + curPath );
+            };
+
+            return getFullPath( catEntry, catEntry.displayName );
+        }
+
+
         /**
          * Load all of the data on the page
          */
@@ -393,6 +453,22 @@ namespace Ally
         }
 
 
+        refreshCategoryLabels()
+        {
+            if( !this.allEntries || this.allEntries.length === 0 )
+                return;
+
+            // Populate the unit names for the grid
+            _.each( this.allEntries, ( entry ) =>
+            {
+                if( entry.isSplit )
+                    entry.categoryDisplayName = "(split)";
+                else
+                    entry.categoryDisplayName = this.getCategoryDisplayLabel( entry.financialCategoryId );
+            } );
+        }
+
+
         /**
          * Populate the text that is shown for the unit column and split for category
          */
@@ -406,6 +482,8 @@ namespace Ally
             {
                 if( entry.isSplit )
                     entry.categoryDisplayName = "(split)";
+                else
+                    entry.categoryDisplayName = this.getCategoryDisplayLabel( entry.financialCategoryId );
 
                 if( entry.associatedUnitId )
                 {
