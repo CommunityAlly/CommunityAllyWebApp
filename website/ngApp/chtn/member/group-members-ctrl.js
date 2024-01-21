@@ -254,11 +254,13 @@ var Ally;
                     if (unit.name.toLowerCase().indexOf(lowerFilter) !== -1)
                         return true;
                     if (unit.owners && unit.owners.length > 0) {
-                        if (unit.owners.some(o => o.fullName?.toLowerCase()?.indexOf(lowerFilter) !== -1))
+                        const ownerNames = unit.owners.filter(o => !!o.fullName).map(o => o.fullName.toLowerCase());
+                        if (ownerNames.some(on => on.indexOf(lowerFilter) !== -1))
                             return true;
                     }
                     if (unit.renters && unit.renters.length > 0) {
-                        if (unit.renters.some(o => o.fullName?.toLowerCase()?.indexOf(lowerFilter) !== -1))
+                        const renterNames = unit.renters.filter(o => !!o.fullName).map(o => o.fullName.toLowerCase());
+                        if (renterNames.some(rn => rn.indexOf(lowerFilter) !== -1))
                             return true;
                     }
                     return false;
