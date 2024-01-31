@@ -1,5 +1,7 @@
+
 # Community Ally
 **Online tools that let offline groups accomplish greater things.** Manage documents, payments, to-dos, calendars, committees, private communication, events, history, polls, maintenance, membership and more in a tool uniquely tailored for condos, HOAs, and neighborhoods. It's the perfect tool for these groups because it's built by board members that use it every day.
+
 
 [![N|Logo](https://communityally.org/images/community-ally-800.png)](https://communityally.org/)
 
@@ -24,7 +26,9 @@ If you want to jump right in to changing the main UI, look in the "website\ngApp
 
 The main app code is in "website\ngApp". Third-party libraries are in "website\js". The CSS is in the "website\assets\scss" directory, see style.scss for the breakdown.
 
+
 # Tech
+
 
 Community Ally uses a number of amazing open source libraries:
 
