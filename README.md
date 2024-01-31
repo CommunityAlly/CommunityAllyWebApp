@@ -24,7 +24,9 @@ If you want to jump right in to changing the main UI, look in the "website\ngApp
 
 The main app code is in "website\ngApp". Third-party libraries are in "website\js". The CSS is in the "website\assets\scss" directory, see style.scss for the breakdown.
 
+
 # Tech
+
 
 Community Ally uses a number of amazing open source libraries:
 
