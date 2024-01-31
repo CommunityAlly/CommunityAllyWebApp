@@ -38,7 +38,9 @@ Community Ally uses a number of amazing open source libraries:
 
 We can setup, host, and modify custom sites for your community association. Simply contact us here on Github or reach out using the form at the bottom of our [home page](https://communityally.org/).
 
+
 License
 ----
 
 MIT
+
