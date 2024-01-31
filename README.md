@@ -1,3 +1,4 @@
+
 # Community Ally
 **Online tools that let offline groups accomplish greater things.** Manage documents, payments, to-dos, calendars, committees, private communication, events, history, polls, maintenance, membership and more in a tool uniquely tailored for condos, HOAs, and neighborhoods. It's the perfect tool for these groups because it's built by board members that use it every day.
 
