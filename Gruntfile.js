@@ -251,6 +251,7 @@ grunt.initConfig({
                         "third-party-css/fontawesome-webfont.ttf",
                         "js/lib/ui-grid/ui-grid.woff",
                         "js/lib/ui-grid/ui-grid.ttf",
+                        "js/lib/other/acctoolbar.min.js",
                     ],
                     dest: 'dist/'
                 },
