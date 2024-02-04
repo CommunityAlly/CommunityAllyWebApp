@@ -30,7 +30,7 @@
                     <br />
                 </div>
 
-                <form data-ng-if="!$ctrl.isDemoSite" style="max-width: 500px; margin: 0 auto;" data-ng-submit="$ctrl.onLogin()">
+                <form data-ng-if="!$ctrl.isDemoSite" style="max-width: 500px; margin: 0 auto;" data-ng-submit="$ctrl.onLogin($event)">
 
                     <div class="row mb-3 text-start">
                         <label for="login-email-textbox" class="form-label">Email Address:</label>

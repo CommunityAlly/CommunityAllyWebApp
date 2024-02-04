@@ -1,7 +1,7 @@
 // Here for easier debugging
 function GlobalRedirect( path )
 {
-    window.location = path;
+    window.location.href = path;
 }
 
 

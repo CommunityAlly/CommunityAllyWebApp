@@ -243,10 +243,11 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                 $rootScope.populatePublicPageMenu();
             }
         }
-        xdLocalStorage.init({
-            iframeUrl: "https://www.communityally.org/xd-local-storage.html"
-        }).then(function () {
+        // Initialize our cross-domain storage so the user can login to multiple Ally sites
+        xdLocalStorage.init({ iframeUrl: "https://www.communityally.org/xd-local-storage.html" }).then(() => {
             //console.log( 'Got xdomain iframe ready' );
+        }, () => {
+            console.log('Failed to initialize xdomain');
         });
         // Clear all local information about the logged-in user
         $rootScope.onLogOut_ClearData = function () {
@@ -255,8 +256,11 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             $rootScope.isAdmin = false;
             $rootScope.isSiteManager = false;
             $rootScope.authToken = "";
-            window.localStorage["rememberMe_Email"] = null;
-            window.localStorage["rememberMe_Password"] = null;
+            if (window.localStorage) {
+                window.localStorage.removeItem("rememberMe_Email");
+                window.localStorage.removeItem("rememberMe_Password");
+                window.localStorage.removeItem("ApiAuthToken");
+            }
             xdLocalStorage.removeItem("allyApiAuthToken");
             // Clear cached request results
             $cacheFactory.get('$http').removeAll();

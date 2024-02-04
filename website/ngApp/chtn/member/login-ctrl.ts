@@ -38,6 +38,8 @@
         */
         $onInit()
         {
+            //console.log( "In LoginController.$onInit" );
+
             if( !HtmlUtil.isLocalStorageAllowed() )
                 this.loginResultMessage = "You have cookies/local storage disabled. Condo Ally requires these features, please enable to continue. You may be in private browsing mode.";
 
@@ -166,29 +168,34 @@
                 password: "demosite"
             };
 
-            this.onLogin();
+            this.onLogin(null);
         }
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the log-in button
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onLogin()
+        onLogin( event: Event )
         {
+            if( event )
+                event.preventDefault();
+
             this.isLoading = true;
 
             // Retrieve information for the current association
             this.$http.post( "/api/Login", this.loginInfo ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                ( httpResponse: ng.IHttpPromiseCallbackArg<LoginResults> ) =>
                 {
                     this.isLoading = false;
 
                     const data = httpResponse.data;
 
                     let redirectPath = this.appCacheService.getAndClear( AppCacheService.Key_AfterLoginRedirect );
-                    this.siteInfo.setAuthToken( data.authToken );
-                    this.siteInfo.handleSiteInfo( data.siteInfo, this.$rootScope );
+                    if( !redirectPath && data.redirectUrl )
+                        redirectPath = data.redirectUrl;
 
+                    this.siteInfo.setAuthToken( data.authToken );
+                    
                     if( this.rememberMe )
                     {
                         window.localStorage["rememberMe_Email"] = this.loginInfo.emailAddress;
@@ -199,6 +206,10 @@
                         window.localStorage["rememberMe_Email"] = null;
                         window.localStorage["rememberMe_Password"] = null;
                     }
+
+                    // handleSiteInfo returns true if we redirect the user so stop processing if we did
+                    if( this.siteInfo.handleSiteInfo( data.siteInfo, this.$rootScope ) )
+                        return;
 
                     // If the user hasn't accepted the terms yet then make them go to the profile
                     // page. But no need if this is a demo site.

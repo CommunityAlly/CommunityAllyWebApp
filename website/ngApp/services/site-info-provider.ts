@@ -217,28 +217,33 @@ namespace Ally
                     if( httpResponse.data && !httpResponse.data.userInfo )
                     {
                         // Check the cross-domain localStorage for an auth token
-                        this.xdLocalStorage.getItem( "allyApiAuthToken" ).then( ( response: any ) =>
-                        {
-                            // If we received an auth token then retry accessing the group data
-                            if( response && HtmlUtil.isValidString( response.value ) )
+                        this.xdLocalStorage.getItem( "allyApiAuthToken" ).then(
+                            ( xdResponse: any ) =>
                             {
-                                //console.log( "Received cross domain token:" + response.value );
-                                this.setAuthToken( response.value );
-
-                                $http.get( GetInfoUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                // If we received an auth token then retry accessing the group data
+                                if( xdResponse && HtmlUtil.isValidString( xdResponse.value ) )
                                 {
-                                    onSiteInfoReceived( httpResponse.data );
-                                }, onRequestFailed );
-                            }
-                            // Otherwise just handle what we received
-                            else
-                                onSiteInfoReceived( httpResponse.data );
+                                    //console.log( "Received cross domain token:" + response.value );
+                                    this.setAuthToken( xdResponse.value );
 
-                        }, () =>
-                        {
-                            // We failed to get a cross domain token so continue on with what we received
-                            onSiteInfoReceived( httpResponse.data );
-                        } );
+                                    $http.get( GetInfoUri ).then(
+                                        ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                        {
+                                            onSiteInfoReceived( httpResponse.data );
+                                        },
+                                        onRequestFailed
+                                    );
+                                }
+                                // Otherwise just handle what we received
+                                else
+                                    onSiteInfoReceived( httpResponse.data );
+                            },
+                            () =>
+                            {
+                                // We failed to get a cross domain token so continue on with what we received
+                                onSiteInfoReceived( httpResponse.data );
+                            }
+                        );
 
                     }
                     else
@@ -274,7 +279,8 @@ namespace Ally
 
         // Log-in and application start both retrieve information about the current association's site.
         // This function should be used to properly populate the scope with the information.
-        handleSiteInfo( siteInfo: any, $rootScope: ng.IRootScopeService )
+        // Returns true if we redirected the user, otherwise false
+        handleSiteInfo( siteInfo: AllySiteInfo, $rootScope: ng.IRootScopeService )
         {
             const subdomain = HtmlUtil.getSubdomain( window.location.host );
 
@@ -282,7 +288,7 @@ namespace Ally
                 this.setAuthToken( $rootScope.authToken );
 
             // If we're at an unknown subdomain
-            if( siteInfo === null || siteInfo === "null" || siteInfo === "" )
+            if( !siteInfo )
             {
                 // Allow the user to log-in with no subdomain, create a temp site info object
                 const isNeutralSubdomain = subdomain === null || subdomain === "www" || subdomain === "login";
@@ -291,22 +297,21 @@ namespace Ally
                 if( isNeutralSubdomain && isNeutralPage )
                 {
                     // Create a default object used to populate a site
-                    siteInfo = {};
-                    siteInfo.publicSiteInfo =
-                        {
-                            bgImagePath: "",
-                            fullName: AppConfig.appName,
-                            //siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to <a style='color:#a3e0ff; text-decoration: underline;' href='https://" + AppConfig.baseTld + "'>" + AppConfig.appName + "</a></span>"
-                            siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "</span>",
-                            baseApiUrl: "https://0.webappapi.communityally.org/api/"
-                        };
+                    siteInfo = new AllySiteInfo();
+                    siteInfo.publicSiteInfo = new PublicSiteInfo();
+                    siteInfo.publicSiteInfo.fullName = AppConfig.appName;
+                    //siteLogo: "<span style='font-size: 22pt; color: #FFF;'>Welcome to <a style='color:#a3e0ff; text-decoration: underline;' href='https://" + AppConfig.baseTld + "'>" + AppConfig.appName + "</a></span>"
+                    siteInfo.publicSiteInfo.siteLogo = "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "</span>";
+                    siteInfo.publicSiteInfo.baseApiUrl = "https://0.webappapi.communityally.org/api/";
                 }
                 // Otherwise we are at an unknown, non-neutral subdomain so get back to safety!
                 else
                 {
                     // Go to generic login                
                     GlobalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
-                    return;
+
+                    // Indicate we redirected
+                    return true;
                 }
             }
 
@@ -318,9 +323,9 @@ namespace Ally
             // Handle private (logged-in only) info
             let privateSiteInfo = siteInfo.privateSiteInfo;
             if( !privateSiteInfo )
-                privateSiteInfo = {};
+                privateSiteInfo = new PrivateSiteInfo();
             
-            this.privateSiteInfo = privateSiteInfo;
+            this.privateSiteInfo = privateSiteInfo as ChtnPrivateSiteInfo;
 
             // Store the Google lat/lon object to make life easier later
             if( this.privateSiteInfo.gpsPosition && typeof ( google ) !== "undefined" )
@@ -340,6 +345,7 @@ namespace Ally
 
             // If the user is logged-in
             this.isLoggedIn = $rootScope.userInfo !== null && $rootScope.userInfo !== undefined;
+            const didLoginJustNow = this.isLoggedIn && !$rootScope.isLoggedIn;
             $rootScope.isLoggedIn = this.isLoggedIn;
 
             // Update the background
@@ -408,10 +414,13 @@ namespace Ally
                         //$location.path( "/Login" );
                         //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
 
-                        return;
+                        
                     }
                     else
                         GlobalRedirect( "https://login." + AppConfig.baseTld + LoginPath );
+
+                    // Indicate we redirected
+                    return true;
                 }
             }
 
@@ -421,9 +430,19 @@ namespace Ally
                 if( ( subdomain === null || subdomain !== this.publicSiteInfo.shortName )
                     && HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
                 {
+                    // Since we're leaving the site, don't let the menu show up for a cleaner experience
+                    if( didLoginJustNow )
+                        $rootScope.isLoggedIn = false;
+
                     GlobalRedirect( this.publicSiteInfo.baseUrl + "/#!/Home" );
+
+                    // Indicate we redirected
+                    return true;
                 }
             }
+
+            // We did not redirect
+            return false;
         }
 
 
@@ -434,10 +453,16 @@ namespace Ally
 
             this._rootScope.authToken = authToken;
 
-            this.xdLocalStorage.setItem( "allyApiAuthToken", authToken ).then( ( response: any ) =>
-            {
-                //console.log( "Set cross domain auth token" );
-            } );
+            this.xdLocalStorage.setItem( "allyApiAuthToken", authToken ).then(
+                () =>
+                {
+                    console.log( "Set cross domain auth token" );
+                },
+                ( response: any ) =>
+                {
+                    console.log( "Failed to set cross domain auth token", response );
+                }
+            );
 
             this.authToken = authToken;
 
@@ -518,6 +543,21 @@ namespace Ally
 
             return SiteInfoProvider.siteInfo;
         }
+    }
+
+
+    export class AllySiteInfo {
+        publicSiteInfo: PublicSiteInfo;
+        privateSiteInfo: PrivateSiteInfo;
+        userInfo: UserInfo;
+    }
+
+
+    export class LoginResults {
+        authToken: string;
+        tokenExpirationUtc: Date;
+        siteInfo: AllySiteInfo;
+        redirectUrl: string;
     }
 }
 

@@ -63,8 +63,6 @@
         homes: HomeEntry[];
         boardPosition: number;
         wePayAutoPayIsActive: boolean;
-        showPhoneInMeetNeighbors: boolean;
-        postmarkReportedBadEmailUtc: Date;
         includeInDiscussionEmail: boolean;
         isSiteManager: boolean;
 
