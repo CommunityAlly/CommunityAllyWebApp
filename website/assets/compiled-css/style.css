@@ -237,7 +237,7 @@ h2 {
 }
 
 a {
-  color: #08c;
+  color: #007CBC;
 }
 
 .bb, .portlet-box .portlet-header {
@@ -374,7 +374,7 @@ a {
 /** text & button settings **/
 .text-button, .text-link {
   cursor: pointer;
-  color: #08c;
+  color: #007CBC;
   font-weight: 600;
   text-decoration: none;
 }
@@ -913,7 +913,7 @@ header .settings {
   min-width: 160px;
 }
 header .settings a, header .settings .text-button {
-  color: #08c;
+  color: #007CBC;
   font-weight: 600;
 }
 @media (max-width: 1200px) {
@@ -997,7 +997,7 @@ header .settings a, header .settings .text-button {
 }
 
 footer {
-  background: #434343;
+  background: #404040;
   clear: both;
   padding: 60px 0;
   font-size: 16px;
@@ -1069,7 +1069,7 @@ footer a:hover {
   padding: 4px;
 }
 .page-documents .info-welcome .nav-pills li a.selected {
-  border: 1px solid #08c;
+  border: 1px solid #007CBC;
   border-radius: 10px;
 }
 .page-documents .info li {

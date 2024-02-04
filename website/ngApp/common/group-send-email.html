@@ -1,6 +1,6 @@
 ﻿<div class="send_email portlet-box white margin-vertical" id="send-email-panel" data-ng-if="$ctrl.availableEmailGroups.length > 0 || $ctrl.committee">
     <div class="portlet-header">
-        <h3 class="title">Send Email</h3>
+        <h2 class="title">Send Email</h2>
     </div>
 
     <div class="portlet-body" style="position: relative;">
@@ -51,13 +51,13 @@
                 </div>
 
                 <div class="row mb-3 px-3">
-                    <label class="form-label">Subject:</label>
-                    <input type="text" class="form-control" data-ng-model="$ctrl.messageObject.subject" />
+                    <label for="message-subject-text" class="form-label">Subject:</label>
+                    <input id="message-subject-text" type="text" class="form-control" data-ng-model="$ctrl.messageObject.subject" />
                 </div>
 
                 <div class="row mb-3 px-3">
-                    <label class="form-label">Email Contents:</label>
-                    <textarea class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
+                    <label for="message-body-text" class="form-label">Email Contents:</label>
+                    <textarea id="message-body-text" class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
                 </div>
                 <div class="mb-4" data-ng-if="$ctrl.shouldShowSendAsBoard">
                     <label><input type="checkbox" data-ng-model="$ctrl.messageObject.shouldSendAsBoard" />Send from the board group email address</label>

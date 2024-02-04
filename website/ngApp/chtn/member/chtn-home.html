@@ -32,7 +32,7 @@
         <div class="col-md-6">
             <div data-ng-if="$ctrl.usersCommittees.length > 0" class="portlet-box white margin-vertical">
                 <div class="portlet-header">
-                    <h3 class="title">Your Committees</h3>
+                    <h2 class="title">Your Committees</h2>
                 </div>
 
                 <div class="portlet-body">
@@ -46,7 +46,9 @@
 
             <!--Show this box if payments are disabled but custom payment instructions are set-->
             <div class="portlet-box white payment_bl margin-vertical" data-ng-if="!$ctrl.canMakePayment && $ctrl.siteInfo.privateSiteInfo.customFinancialInstructions">
-                <div class="portlet-header"><div class="title">Payment</div></div>
+                <div class="portlet-header">
+                    <h2 class="title">Payment</h2>
+                </div>
                 <div class="portlet-body">
                     <div style="font-family: inherit; font-size: 1rem;" data-ng-bind-html="$ctrl.siteInfo.privateSiteInfo.customFinancialInstructions"></div>
                 </div>
