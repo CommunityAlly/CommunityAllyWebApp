@@ -103,6 +103,7 @@
             private fellowResidents: Ally.FellowResidentsService,
             private $location: ng.ILocationService )
         {
+            // Get or create the docs data cache
             this.docsHttpCache = this.$cacheFactory.get( "docs-http-cache" ) || this.$cacheFactory( "docs-http-cache" );
 
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
@@ -164,6 +165,7 @@
 
                         xhr.done( () =>
                         {
+                            // Clear the cached documents since we uploaded a file
                             this.docsHttpCache.removeAll();
 
                             $( "#FileUploadProgressContainer" ).hide();
@@ -469,6 +471,7 @@
                                     {
                                         this.isLoading = false;
 
+                                        // Clear the docs cache so we fully refresh the file list since a file has moved
                                         this.docsHttpCache.removeAll();
 
                                         this.Refresh();
@@ -639,6 +642,7 @@
             this.$http.put( putUri, null ).then(
                 () =>
                 {
+                    // Clear the docs cache so we fully refresh the file list since a new directory exists
                     this.docsHttpCache.removeAll();
 
                     this.newDirectoryName = "";
@@ -704,6 +708,7 @@
             this.$http.put( "/api/ManageDocuments/RenameFile", fileAction ).then(
                 () =>
                 {
+                    // Clear the docs cache so we fully refresh the file list since a file was renamed
                     this.docsHttpCache.removeAll();
 
                     this.Refresh();
@@ -732,6 +737,7 @@
                 this.$http.delete( "/api/ManageDocuments?docPath=" + document.relativeS3Path ).then(
                     () =>
                     {
+                        // Clear the docs cache so we fully refresh the file list since a file was deleted
                         this.docsHttpCache.removeAll();
 
                         this.Refresh();
@@ -773,6 +779,7 @@
             this.$http.put( "/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null ).then(
                 () =>
                 {
+                    // Clear the docs cache so we fully refresh the file list since a directory was renamed
                     this.docsHttpCache.removeAll();
 
                     // Update the selected directory name so we can reselect it
@@ -812,6 +819,7 @@
                 this.$http.delete( "/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent( dirPath ) ).then(
                     () =>
                     {
+                        // Clear the docs cache so we fully refresh the file list since a directory was deleted
                         this.docsHttpCache.removeAll();
 
                         this.Refresh();

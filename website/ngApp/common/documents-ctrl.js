@@ -39,6 +39,7 @@ var Ally;
             this.getDocsUri = "/api/ManageDocuments";
             this.showPopUpWarning = false;
             this.shouldShowSubdirectories = true;
+            // Get or create the docs data cache
             this.docsHttpCache = this.$cacheFactory.get("docs-http-cache") || this.$cacheFactory("docs-http-cache");
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
             if (!this.fileSortType)
@@ -80,6 +81,7 @@ var Ally;
                             data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload?dirPath=" + encodeURIComponent(dirPath);
                         const xhr = data.submit();
                         xhr.done(() => {
+                            // Clear the cached documents since we uploaded a file
                             this.docsHttpCache.removeAll();
                             $("#FileUploadProgressContainer").hide();
                             this.Refresh();
@@ -291,6 +293,7 @@ var Ally;
                             // Tell the server
                             this.$http.put("/api/ManageDocuments/MoveFile", fileAction).then(() => {
                                 this.isLoading = false;
+                                // Clear the docs cache so we fully refresh the file list since a file has moved
                                 this.docsHttpCache.removeAll();
                                 this.Refresh();
                                 //innerThis.documentTree = httpResponse.data;
@@ -413,6 +416,7 @@ var Ally;
             if (this.createUnderParentDirName)
                 putUri += encodeURIComponent(this.createUnderParentDirName);
             this.$http.put(putUri, null).then(() => {
+                // Clear the docs cache so we fully refresh the file list since a new directory exists
                 this.docsHttpCache.removeAll();
                 this.newDirectoryName = "";
                 this.Refresh();
@@ -456,6 +460,7 @@ var Ally;
                 destinationFolderPath: ""
             };
             this.$http.put("/api/ManageDocuments/RenameFile", fileAction).then(() => {
+                // Clear the docs cache so we fully refresh the file list since a file was renamed
                 this.docsHttpCache.removeAll();
                 this.Refresh();
             }, (response) => {
@@ -472,6 +477,7 @@ var Ally;
                 // Display the loading image
                 this.isLoading = true;
                 this.$http.delete("/api/ManageDocuments?docPath=" + document.relativeS3Path).then(() => {
+                    // Clear the docs cache so we fully refresh the file list since a file was deleted
                     this.docsHttpCache.removeAll();
                     this.Refresh();
                 }, (response) => {
@@ -497,6 +503,7 @@ var Ally;
             const oldDirectoryPath = encodeURIComponent(this.getSelectedDirectoryPath());
             const newDirectoryNameQS = encodeURIComponent(newDirectoryName);
             this.$http.put("/api/ManageDocuments/RenameDirectory?directoryPath=" + oldDirectoryPath + "&newDirectoryName=" + newDirectoryNameQS, null).then(() => {
+                // Clear the docs cache so we fully refresh the file list since a directory was renamed
                 this.docsHttpCache.removeAll();
                 // Update the selected directory name so we can reselect it
                 this.selectedDirectory.name = newDirectoryName;
@@ -521,6 +528,7 @@ var Ally;
                 this.isLoading = true;
                 const dirPath = this.getSelectedDirectoryPath();
                 this.$http.delete("/api/ManageDocuments/DeleteDirectory?directoryPath=" + encodeURIComponent(dirPath)).then(() => {
+                    // Clear the docs cache so we fully refresh the file list since a directory was deleted
                     this.docsHttpCache.removeAll();
                     this.Refresh();
                 }, (httpResult) => {

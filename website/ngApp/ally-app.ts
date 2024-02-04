@@ -402,9 +402,19 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
             }
             xdLocalStorage.removeItem( "allyApiAuthToken" );
 
-            // Clear cached request results
-            $cacheFactory.get( '$http' ).removeAll();
+            // Clear any cached HTTP request results
+            if( $cacheFactory )
+            {
+                //console.log( "BEFORE $cacheFactory.info", $cacheFactory.info() );
 
+                const cacheFactoryKeys = Object.keys( $cacheFactory.info() );
+                for( const curKey of cacheFactoryKeys )
+                    $cacheFactory.get( curKey ).removeAll();
+
+                //console.log( "AFTER $cacheFactory.info", $cacheFactory.info() );
+            }
+
+            //$cacheFactory.
             if( window.localStorage )
                 window.localStorage.removeItem( "siteInfo" );
             $location.path( '/Login' );
