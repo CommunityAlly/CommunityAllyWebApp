@@ -266,8 +266,12 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             if ($cacheFactory) {
                 //console.log( "BEFORE $cacheFactory.info", $cacheFactory.info() );
                 const cacheFactoryKeys = Object.keys($cacheFactory.info());
-                for (const curKey of cacheFactoryKeys)
+                for (const curKey of cacheFactoryKeys) {
+                    // Don't remove the HTML tempaltes
+                    if (curKey === "templates")
+                        continue;
                     $cacheFactory.get(curKey).removeAll();
+                }
                 //console.log( "AFTER $cacheFactory.info", $cacheFactory.info() );
             }
             //$cacheFactory.
