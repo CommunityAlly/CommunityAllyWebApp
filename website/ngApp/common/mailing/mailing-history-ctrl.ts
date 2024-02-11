@@ -21,6 +21,12 @@
 
         // Not from the server
         mailingType: string;
+        amount: number;
+        balanceForward: number | null;
+        lateFee: number | null;
+
+        // Populated locally
+        recipientLabel: string;
     }
 
 
@@ -128,25 +134,49 @@
                             {
                                 field: "mailingType",
                                 displayName: "Type",
-                                width: 100
+                                width: 100,
+                                type: "string"
                             },
                             {
-                                field: "recipient",
+                                field: "recipientLabel",
                                 displayName: "Recipient",
                                 width: 300,
-                                cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{ row.entity.recipientEmail || row.entity.recipientStreetAddress.oneLiner }}</span></div>'
+                                //cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{ row.entity.recipientEmail || row.entity.recipientStreetAddress.oneLiner }}</span></div>',
+                                type: "string"
                             },
                             {
                                 field: "didSuccessfullySend",
-                                displayName: "Successful",
+                                displayName: "Did Send",
                                 width: 100,
                                 type: "boolean"
                             },
                             {
                                 field: "resultMessage",
                                 displayName: "Result Message",
-                                cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.resultMessage}}">{{row.entity.resultMessage}}</span></div>'
+                                cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.resultMessage}}">{{row.entity.resultMessage}}</span></div>',
+                                type: "string"
+                            },
+                            {
+                                field: "amount",
+                                displayName: "Amount",
+                                cellFilter: "currency",
+                                type: "number"
+                            },
+                            {
+                                field: "balanceForward",
+                                displayName: "Balance Fwd",
+                                width: 130,
+                                cellFilter: "currency",
+                                type: "number"
+                            },
+                            {
+                                field: "lateFee",
+                                displayName: "Late Fee",
+                                cellFilter: "currency",
+                                type: "number"
                             }
+
+                            
                         ],
                     enableSorting: true,
                     enableHorizontalScrollbar: 0,
@@ -185,6 +215,7 @@
 
                 let resultsRows: MailingResultBase[] = [];
                 resultsRows = resultsRows.concat( mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults );
+                resultsRows.forEach( r => r.recipientLabel = ( r as any ).recipientEmail || ( ( r as any ).recipientStreetAddress ? ( r as any ).recipientStreetAddress.oneLiner : "" ) );
 
                 this.resultsGridOptions.data = resultsRows;
                 this.resultsGridOptions.minRowsToShow = resultsRows.length;

@@ -8,8 +8,8 @@
     <div class="note-text" data-ng-if="$ctrl.historyGridOptions.data.length === 0">Your group has not sent any mailings.</div>
 
     <div class="modal-container" data-ng-if="$ctrl.viewingResults" data-ng-escape="$ctrl.viewingResults = null">
-        <div class="modal-overlay"></div>
-        <div novalidate class="ca-modal-dialog modal-lg">
+        <div class="modal-overlay" data-ng-click="$ctrl.viewingResults = null"></div>
+        <div novalidate class="ca-modal-dialog modal-lg" style="width: 1100px; margin-left: -550px;">
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.viewingResults = null">&times;</span>
 
             <div data-ui-grid="$ctrl.resultsGridOptions" ui-grid-auto-resize ui-grid-resize-columns data-ng-style="{'height':$ctrl.resultsGridheight+'px'}" class="gridStyle margin-top-20"></div>

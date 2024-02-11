@@ -82,24 +82,46 @@ var Ally;
                         {
                             field: "mailingType",
                             displayName: "Type",
-                            width: 100
+                            width: 100,
+                            type: "string"
                         },
                         {
-                            field: "recipient",
+                            field: "recipientLabel",
                             displayName: "Recipient",
                             width: 300,
-                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{ row.entity.recipientEmail || row.entity.recipientStreetAddress.oneLiner }}</span></div>'
+                            //cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.recipient}}">{{ row.entity.recipientEmail || row.entity.recipientStreetAddress.oneLiner }}</span></div>',
+                            type: "string"
                         },
                         {
                             field: "didSuccessfullySend",
-                            displayName: "Successful",
+                            displayName: "Did Send",
                             width: 100,
                             type: "boolean"
                         },
                         {
                             field: "resultMessage",
                             displayName: "Result Message",
-                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.resultMessage}}">{{row.entity.resultMessage}}</span></div>'
+                            cellTemplate: '<div class="ui-grid-cell-contents"><span title="{{row.entity.resultMessage}}">{{row.entity.resultMessage}}</span></div>',
+                            type: "string"
+                        },
+                        {
+                            field: "amount",
+                            displayName: "Amount",
+                            cellFilter: "currency",
+                            type: "number"
+                        },
+                        {
+                            field: "balanceForward",
+                            displayName: "Balance Fwd",
+                            width: 130,
+                            cellFilter: "currency",
+                            type: "number"
+                        },
+                        {
+                            field: "lateFee",
+                            displayName: "Late Fee",
+                            cellFilter: "currency",
+                            type: "number"
                         }
                     ],
                     enableSorting: true,
@@ -130,6 +152,7 @@ var Ally;
                 _.forEach(mailingEntry.mailingResultObject.paperMailResults, r => r.mailingType = "Paper Letter");
                 let resultsRows = [];
                 resultsRows = resultsRows.concat(mailingEntry.mailingResultObject.emailResults, mailingEntry.mailingResultObject.paperMailResults);
+                resultsRows.forEach(r => r.recipientLabel = r.recipientEmail || (r.recipientStreetAddress ? r.recipientStreetAddress.oneLiner : ""));
                 this.resultsGridOptions.data = resultsRows;
                 this.resultsGridOptions.minRowsToShow = resultsRows.length;
                 this.resultsGridOptions.virtualizationThreshold = resultsRows.length;
