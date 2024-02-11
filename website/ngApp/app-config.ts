@@ -76,6 +76,8 @@ namespace Ally
     export class AppConfigInfo
     {
         appShortName: string;
+
+        /// The full, friendly app name like "Condo Ally" or "HOA Ally"
         appName: string;
         baseTld: string;
         baseUrl: string;

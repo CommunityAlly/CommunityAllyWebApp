@@ -115,9 +115,23 @@
                 setTimeout( adjustZopimPos, 1000 ); // Zopim delays 5sec before setup so wait longer than than
 
             } )( document, 'script' );
-
         } );
 
+        var setupFreshdesk = function()
+        {
+            window.fwSettings = {
+                'widget_id': 154000001283
+            };
+            !function() { if( "function" != typeof window.FreshworksWidget ) { var n = function() { n.q.push( arguments ) }; n.q = [], window.FreshworksWidget = n } }();
+
+            var fdScript = document.createElement( "script" );
+            fdScript.type = "text/javascript";
+            fdScript.async = true;
+            fdScript.defer = true;
+            fdScript.src = "https://widget.freshworks.com/widgets/154000001283.js";
+            document.head.appendChild( fdScript );
+        };
+        
         var subdomain = HtmlUtil.getSubdomain( window.location.host );
         var shouldNotLoadZopim = subdomain === "qa" || subdomain === "localtest" || subdomain === "login";
         if( !shouldNotLoadZopim )
@@ -126,10 +140,11 @@
             {
                 // Delay loading a bit for sites that get spam via Zopim
                 var isSpammedSite = subdomain === "themaples";
-                var zopimDelay = isSpammedSite ? 20000 : 5000;
+                var zopimDelay = isSpammedSite ? 20000 : 4000;
                 setTimeout( function()
                 {
-                    setupZopim();
+                    setupFreshdesk();
+                    //setupZopim();
                 }, zopimDelay );
             };
 
@@ -430,7 +445,7 @@
             enableGoogleTranslate();
     </script>
     <script src="https://js.stripe.com/v3/?advancedFraudSignals=false" defer></script>
-    <script src="https://cdn.dwolla.com/1/dwolla.js" defer></script>
+    <!--<script src="https://cdn.dwolla.com/1/dwolla.js" defer></script>-->
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" defer></script>
     <script src="https://cdn.tiny.cloud/1/9zacv8cnbzzsp7wl1vlv8f3a0rk735bvkn3aemat479m4s9m/tinymce/6/tinymce.min.js" referrerpolicy="origin" defer></script>
     <script src="/js/lib/other/acctoolbar.min.js" async defer></script>

@@ -24,7 +24,6 @@ namespace Ally
     {
         period: number;
         year: number;
-        frequency: number;
     }
 
 
@@ -356,6 +355,26 @@ namespace Ally
             {
                 const prepopulateZopim = () =>
                 {
+                    // Prefill the contact form with details about a customer
+                    if( typeof ( ( window as any ).FreshworksWidget ) !== "undefined" )
+                    {
+                        let effectiveName = $rootScope.userInfo.firstName ?? "";
+                        if( $rootScope.userInfo.lastName )
+                            effectiveName += " " + $rootScope.userInfo.lastName;
+
+                        let effectiveEmail: string = null;
+                        if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                            effectiveEmail = $rootScope.userInfo.emailAddress;
+
+                        ( window as any ).FreshworksWidget( 'identify', 'ticketForm', { name: effectiveName, email: effectiveEmail } );
+                        
+                        // Prefill the subject so it shows up nicely in Freshdesk...
+                        ( window as any ).FreshworksWidget( 'prefill', 'ticketForm', { subject: AppConfig.appName + ' Support Request ' + new Date().toLocaleDateString() } );
+
+                        // But then hide that same subject field because it doesn't add value, in our situation
+                        ( window as any ).FreshworksWidget( 'hide', 'ticketForm', ['subject'] );
+                    }
+
                     if( typeof ( $zopim ) !== "undefined" )
                     {
                         $zopim( () =>
@@ -371,7 +390,11 @@ namespace Ally
                     }
                 };
 
-                setTimeout( prepopulateZopim, 8000 ); // Zopim delays 5sec before setup so wait longer than than
+                const subdomain = HtmlUtil.getSubdomain( window.location.host );
+                const isSpammedSite = subdomain === "themaples";
+                const prepopDelayMs = isSpammedSite ? 24000 : 8000; // Zopim delays 4sec before setup so wait longer than than
+
+                setTimeout( prepopulateZopim, prepopDelayMs );
 
                 $rootScope.isAdmin = $rootScope.userInfo.isAdmin;
                 $rootScope.isSiteManager = $rootScope.userInfo.isSiteManager;
