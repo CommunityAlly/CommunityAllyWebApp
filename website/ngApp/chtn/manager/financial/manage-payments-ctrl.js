@@ -242,6 +242,13 @@ var Ally;
          * Save the allow setting
          */
         saveAllowSetting() {
+            // If we're disabling auto-pay
+            const mightHaveAutoPay = !this.paymentInfo.areOnlinePaymentsAllowed && (this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0);
+            if (mightHaveAutoPay) {
+                const residentsWithAutoPay = _.map(this.paymentInfo.usersWithAutoPay, u => u.fullName).join(",");
+                if (!confirm(`For any members (${residentsWithAutoPay}) using auto-pay, this will disable those automatic payments and will send them an email saying online payment has been disabled. Would you like to continue?`))
+                    return;
+            }
             this.isLoading = true;
             this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(() => {
                 window.location.reload();
