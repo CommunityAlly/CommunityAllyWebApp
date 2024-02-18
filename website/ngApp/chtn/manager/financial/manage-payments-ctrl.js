@@ -242,7 +242,8 @@ var Ally;
          * Save the allow setting
          */
         saveAllowSetting() {
-            // If we're disabling auto-pay
+            // If we're disabling auto-pay then warn the user that auto-pay users will receive an
+            // email notification
             const mightHaveAutoPay = !this.paymentInfo.areOnlinePaymentsAllowed && (this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0);
             if (mightHaveAutoPay) {
                 const residentsWithAutoPay = _.map(this.paymentInfo.usersWithAutoPay, u => u.fullName).join(",");

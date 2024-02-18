@@ -20,7 +20,6 @@
         isSiteManager: boolean;
         showFirstVisitModal: boolean;
         allyAppName: string;
-        homeRightColumnType: string;
         showDiscussionThreads: boolean = false;
         autoOpenDiscussionThreadId: number;
         showLocalNews: boolean = false;
@@ -83,19 +82,19 @@
             
             this.allyAppName = AppConfig.appName;
 
-            this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if( !this.homeRightColumnType && this.homeRightColumnType !== "" )
-                this.homeRightColumnType = "localnews";
+            let homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
+            if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
+                homeRightColumnType = "localnews";
 
             if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate )
             {
                 this.showDiscussionThreads = true;
-                this.showLocalNews = this.homeRightColumnType.indexOf( "localnews" ) > -1;
+                this.showLocalNews = homeRightColumnType.indexOf( "localnews" ) > -1;
             }
             else
             {
-                this.showDiscussionThreads = this.homeRightColumnType.indexOf( "chatwall" ) > -1;
-                this.showLocalNews = this.homeRightColumnType.indexOf( "localnews" ) > -1;
+                this.showDiscussionThreads = homeRightColumnType.indexOf( "chatwall" ) > -1;
+                this.showLocalNews = homeRightColumnType.indexOf( "localnews" ) > -1;
             }
 
             if( this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
