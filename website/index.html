@@ -24,9 +24,10 @@
         }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob:; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';" />
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
-    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=60" />
+    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=61" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=44"></script>
@@ -51,7 +52,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=897;
+        var appVer=906;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -59,17 +60,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=897" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=906" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=897" );
+                    localStorage.setItem( Key_JSVersion, "appVer=906" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=897"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=897"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=906"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=906"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -369,7 +370,7 @@
         </div>
     </footer>
 
-    <script type="text/javascript" src="/js/AllyLibBottom.min.js?libVer=43"></script>
+    <script type="text/javascript" src="/js/AllyLibBottom.min.js?libVer=44"></script>
 
     <script>
         // Remove the need for iOS users to double-tap links
