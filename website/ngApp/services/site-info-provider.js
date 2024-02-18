@@ -136,7 +136,7 @@ var Ally;
                 // Otherwise we are at an unknown, non-neutral subdomain so get back to safety!
                 else {
                     // Go to generic login                
-                    GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
+                    Ally.HtmlUtil2.globalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
                     // Indicate we redirected
                     return true;
                 }
@@ -228,10 +228,10 @@ var Ally;
                         else
                             window.location.hash = LoginPath;
                         //$location.path( "/Login" );
-                        //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
+                        //Ally.HtmlUtil2.globalRedirect( this.publicSiteInfo.baseUrl + loginPath );
                     }
                     else
-                        GlobalRedirect("https://login." + AppConfig.baseTld + LoginPath);
+                        Ally.HtmlUtil2.globalRedirect("https://login." + AppConfig.baseTld + LoginPath);
                     // Indicate we redirected
                     return true;
                 }
@@ -243,7 +243,7 @@ var Ally;
                     // Since we're leaving the site, don't let the menu show up for a cleaner experience
                     if (didLoginJustNow)
                         $rootScope.isLoggedIn = false;
-                    GlobalRedirect(this.publicSiteInfo.baseUrl + "/#!/Home");
+                    Ally.HtmlUtil2.globalRedirect(this.publicSiteInfo.baseUrl + "/#!/Home");
                     // Indicate we redirected
                     return true;
                 }
@@ -294,7 +294,7 @@ var Ally;
                 }, (errorResult) => {
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here
                     //deferred.reject( errorResult );
-                    GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
+                    Ally.HtmlUtil2.globalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
                 });
             }
             return deferred.promise;

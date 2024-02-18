@@ -2,7 +2,7 @@
 declare var $zopim: any;
 declare var analytics: any;
 declare var OverrideBaseApiPath: string;
-declare function GlobalRedirect( path: string ): void;
+
 
 namespace Ally
 {
@@ -281,6 +281,9 @@ namespace Ally
         // Returns true if we redirected the user, otherwise false
         handleSiteInfo( siteInfo: AllySiteInfo, $rootScope: ng.IRootScopeService )
         {
+            //console.log( "In handleSiteInfo" );
+            //debugger;
+
             const subdomain = HtmlUtil.getSubdomain( window.location.host );
 
             if( !this.authToken && $rootScope.authToken )
@@ -307,7 +310,7 @@ namespace Ally
                 else
                 {
                     // Go to generic login                
-                    GlobalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
+                    Ally.HtmlUtil2.globalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
 
                     // Indicate we redirected
                     return true;
@@ -435,12 +438,12 @@ namespace Ally
                             window.location.hash = LoginPath;
 
                         //$location.path( "/Login" );
-                        //GlobalRedirect( this.publicSiteInfo.baseUrl + loginPath );
+                        //Ally.HtmlUtil2.globalRedirect( this.publicSiteInfo.baseUrl + loginPath );
 
                         
                     }
                     else
-                        GlobalRedirect( "https://login." + AppConfig.baseTld + LoginPath );
+                        Ally.HtmlUtil2.globalRedirect( "https://login." + AppConfig.baseTld + LoginPath );
 
                     // Indicate we redirected
                     return true;
@@ -457,7 +460,7 @@ namespace Ally
                     if( didLoginJustNow )
                         $rootScope.isLoggedIn = false;
 
-                    GlobalRedirect( this.publicSiteInfo.baseUrl + "/#!/Home" );
+                    Ally.HtmlUtil2.globalRedirect( this.publicSiteInfo.baseUrl + "/#!/Home" );
 
                     // Indicate we redirected
                     return true;
@@ -541,7 +544,7 @@ namespace Ally
                         // For some reason, this does not invoke the caller's error callback, so we need to redirect here
                         //deferred.reject( errorResult );
 
-                        GlobalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
+                        Ally.HtmlUtil2.globalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
                     }
                 );
             }

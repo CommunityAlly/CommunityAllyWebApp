@@ -539,6 +539,11 @@ var Ally;
                 payerFee
             };
         }
+        static globalRedirect(path) {
+            // Here for debugging
+            //debugger;
+            window.location.href = path;
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"

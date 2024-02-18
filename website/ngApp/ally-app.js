@@ -33,7 +33,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     }, (errorResult) => {
                         // Something went wrong trying to load the site info so let's go to the generic login page
                         console.log("Failed to get site info, redirecting to generic login", errorResult);
-                        GlobalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
+                        Ally.HtmlUtil2.globalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
                     });
                 }]
         };

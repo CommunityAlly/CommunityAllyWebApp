@@ -785,6 +785,14 @@ namespace Ally
                 payerFee
             };
         }
+
+
+        static globalRedirect( path: string )
+        {
+            // Here for debugging
+            //debugger;
+            window.location.href = path;
+        }
     }
 
 
