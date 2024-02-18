@@ -185,7 +185,7 @@ var Ally;
             let payAmount;
             if (this.isActivatingAnnual) {
                 payAmount = this.settings.premiumPlanCostDollars * 11;
-                this.checkoutDescription = "You will be charged $" + payAmount + " ";
+                this.checkoutDescription = "Once you click this button, you will be charged $" + payAmount + " ";
                 if (renewedInPast)
                     this.checkoutDescription += " today and you will be charged annually on this date thereafter.";
                 else
@@ -194,7 +194,7 @@ var Ally;
             // Otherwise they'll be paying monthly
             else {
                 payAmount = this.settings.premiumPlanCostDollars;
-                this.checkoutDescription = "You will be charged $" + this.settings.premiumPlanCostDollars + " ";
+                this.checkoutDescription = "Once you click this button, you will be charged $" + this.settings.premiumPlanCostDollars + " ";
                 if (renewedInPast)
                     this.checkoutDescription += " today and you will be charged monthly on this date thereafter.";
                 else
