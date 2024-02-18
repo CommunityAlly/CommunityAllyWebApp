@@ -57,8 +57,11 @@ namespace Ally
         stripeBankAccountHint: string;
         stripeAutoPaySubscriptionId: string;
         stripeAutoPayAmount: number | null;
-        hasStripePendingMicroDeposits: boolean;
-
+        hasStripePlaidPendingMicroDeposits: boolean;
+        hasStripeAchPendingMicroDeposits: boolean;
+        stripeAchSetupIntentId: string;
+        stripeAchPaymentMethodId: string;
+        
         boardPosition: number;
         assessmentPaymentHistory: string[];
         assessmentAmount: number;

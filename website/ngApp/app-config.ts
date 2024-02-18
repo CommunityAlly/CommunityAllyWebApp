@@ -98,7 +98,7 @@ namespace Ally
     export class PeriodicPaymentFrequency
     {
         name: string;
-        intervalName: string;
+        intervalName: "month" | "quarter" | "half-year" | "year";
         id: number;
         signUpNote: string;
     }

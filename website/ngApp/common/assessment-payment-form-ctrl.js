@@ -40,19 +40,22 @@ var Ally;
             this.dwollaDocUploadFile = null;
             this.dwollaBalance = -1;
             this.isDwollaIavDone = false;
-            this.shouldShowMicroDepositModal = false;
+            this.shouldShowDwollaMicroDepositModal = false;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
-            this.shouldShowStripeAutoPayArea = true;
+            this.shouldShowStripeAutoPayArea = false;
             this.currentDwollaAutoPayAmount = null;
             this.hasMultipleProviders = false;
             this.allowDwollaSignUp = false;
             this.stripePaymentSucceeded = false;
             this.userHasStripeAutoPay = false;
-            this.shouldAllowStripeAutoPay = false;
-            this.hasStripePendingMicroDeposits = false;
+            this.hasStripePlaidPendingMicroDeposits = false;
+            this.hasStripeAchPendingMicroDeposits = false;
+            this.shouldShowStripeAchMandate = false;
+            this.shouldShowStripeAchRefresh = false;
+            this.pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -88,11 +91,13 @@ var Ally;
             if (this.isStripeEnabledOnGroup)
                 ++numProviders;
             this.hasMultipleProviders = numProviders > 1;
-            this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountId ? this.siteInfo.userInfo.stripeBankAccountHint : null;
+            this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountHint;
+            this.usersStripeBankAccountId = this.siteInfo.userInfo.stripeBankAccountId;
+            this.usersStripeAchPaymentMethodId = this.siteInfo.userInfo.stripeAchPaymentMethodId;
             this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPaySubscriptionId;
-            this.shouldAllowStripeAutoPay = this.siteInfo.publicSiteInfo.shortName === "qa";
             this.stripeAutoPayAmount = this.siteInfo.userInfo.stripeAutoPayAmount;
-            this.hasStripePendingMicroDeposits = this.siteInfo.userInfo.hasStripePendingMicroDeposits;
+            this.hasStripePlaidPendingMicroDeposits = this.siteInfo.userInfo.hasStripePlaidPendingMicroDeposits;
+            this.hasStripeAchPendingMicroDeposits = this.siteInfo.userInfo.hasStripeAchPendingMicroDeposits;
             if (this.isDwollaEnabledOnGroup) {
                 this.isDwollaUserAccountVerified = this.siteInfo.userInfo.isDwollaAccountVerified;
                 if (this.isDwollaUserAccountVerified) {
@@ -442,7 +447,11 @@ var Ally;
             const periodNames = GetLongPayPeriodNames(frequencyInfo.intervalName);
             if (periodNames)
                 paymentText = periodNames[curPeriod.period - 1];
-            paymentText += " " + curPeriod.year;
+            // Avoid the extra space for annual payments
+            if (frequencyInfo.intervalName === "year")
+                paymentText = curPeriod.year.toString();
+            else
+                paymentText += " " + curPeriod.year;
             this.paymentInfo.paysFor = [curPeriod];
             return paymentText;
         }
@@ -866,8 +875,23 @@ var Ally;
             });
         }
         submitStripeAchPayment() {
-            if (!confirm(`Are you sure you want to submit payment for $${this.paymentInfo.amount}?`))
-                return;
+            let didWarnAboutRecentPayment = false;
+            if (this.historicPayments && this.historicPayments.length > 0) {
+                // If the user has made a payment in the last 30min, warn them
+                const lastPayment = this.historicPayments[0];
+                const lastPaymentDateMoment = moment(lastPayment.date);
+                const thirtyMinAgo = moment().subtract(30, "minutes");
+                if (lastPaymentDateMoment.isAfter(thirtyMinAgo)) {
+                    if (!confirm(`It looks like you already submitted a payment for $${lastPayment.amount.toFixed(2)} a few minutes ago. Are you sure you want to submit another payment?`))
+                        return;
+                    didWarnAboutRecentPayment = true;
+                }
+            }
+            // If we didn't warn about a recent payment, then confirm payment
+            if (!didWarnAboutRecentPayment) {
+                if (!confirm(`Are you sure you want to submit payment for $${this.paymentInfo.amount}?`))
+                    return;
+            }
             this.isLoading_Payment = true;
             this.$http.post("/api/StripePayments/StartPaymentIntent", this.paymentInfo).then((response) => {
                 const intentClientSecret = response.data;
@@ -977,15 +1001,176 @@ var Ally;
             this.isLoading_Payment = true;
             this.$http.get("/api/PlaidMember/CancelStripeAccountAddition").then(() => {
                 this.isLoading_Payment = false;
-                this.hasStripePendingMicroDeposits = false;
+                this.hasStripePlaidPendingMicroDeposits = false;
             }, (httpResponse) => {
                 this.isLoading_Payment = false;
                 alert("Failed to cancel account addition: " + httpResponse.data.exceptionMessage);
             });
         }
+        startStripeAchConnection() {
+            this.isLoading_Payment = true;
+            this.$http.get("/api/StripePayments/StartUserBankSignUp").then((httpResponse) => {
+                if (!httpResponse.data) {
+                    this.isLoading_Payment = false;
+                    alert("Failed to start Stripe connection. Please contact support.");
+                    return;
+                }
+                this.pendingStripeAchClientSecret = httpResponse.data;
+                const stripeSetupData = {
+                    clientSecret: this.pendingStripeAchClientSecret,
+                    params: {
+                        payment_method_type: 'us_bank_account',
+                        payment_method_data: {
+                            billing_details: {
+                                name: this.siteInfo.userInfo.fullName,
+                                email: this.siteInfo.userInfo.emailAddress
+                            },
+                        },
+                    },
+                    expand: ['payment_method']
+                };
+                console.log("Starting Stripe connect ACH");
+                // Calling this method will open the instant verification dialog
+                this.stripeApi.collectBankAccountForSetup(stripeSetupData)
+                    .then((result) => {
+                    console.log("In Stripe connect then", result);
+                    // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                    this.$scope.$apply(() => {
+                        this.isLoading_Payment = false;
+                        if (result.error) {
+                            console.error(result.error.message);
+                            // PaymentMethod collection failed for some reason.
+                        }
+                        else if (result.setupIntent.status === "requires_payment_method") {
+                            // Customer canceled the hosted verification modal. Present them with other
+                            // payment method type options.
+                        }
+                        else if (result.setupIntent.status === "requires_confirmation") {
+                            // We collected an account - possibly instantly verified, but possibly
+                            // manually-entered. Display payment method details and mandate text
+                            // to the customer and confirm the intent once they accept
+                            // the mandate.
+                            this.shouldShowStripeAchMandate = true;
+                        }
+                    });
+                });
+            }, (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to start Stripe connection: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /**
+         * Occurs when the user accepts or denies the mandate for a Stripe ACH payment method
+         */
+        acceptStripeAchMandate(didAccept) {
+            console.log("In acceptStripeAchMandate", didAccept);
+            if (!didAccept)
+                this.shouldShowStripeAchMandate = false;
+            else {
+                this.isLoading_Payment = true;
+                this.stripeApi.confirmUsBankAccountSetup(this.pendingStripeAchClientSecret)
+                    .then((result) => {
+                    console.log("In acceptStripeAchMandate then", result);
+                    // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                    this.$scope.$apply(() => {
+                        if (result.error) {
+                            this.isLoading_Payment = false;
+                            this.shouldShowStripeAchMandate = false;
+                            console.error(result.error.message);
+                            alert("Failed to confirm: " + result.error.message);
+                            // The payment failed for some reason.
+                        }
+                        else if (result.setupIntent.status === "requires_payment_method") {
+                            // Confirmation failed. Attempt again with a different payment method.
+                            this.isLoading_Payment = false;
+                            this.shouldShowStripeAchMandate = false;
+                        }
+                        else if (result.setupIntent.next_action?.type === "verify_with_microdeposits") {
+                            // The account needs to be verified via microdeposits.
+                            // Display a message to consumer with next steps (consumer waits for
+                            // microdeposits, then enters a statement descriptor code on a page sent to them via email).
+                            //this.isLoading_Payment = false;
+                            this.shouldShowStripeAchMandate = false;
+                            window.location.reload();
+                        }
+                        else {
+                            this.$http.get("/api/StripePayments/CompleteUserBankSignUp").then(() => {
+                                this.isLoading_Payment = false;
+                                this.shouldShowStripeAchMandate = false;
+                                window.location.reload();
+                            }, (httpResponse) => {
+                                this.isLoading_Payment = false;
+                                alert("Failed to cancel account addition: " + httpResponse.data.exceptionMessage);
+                            });
+                        }
+                    });
+                    //else if( result.setupIntent.status === "succeeded" )
+                    //{
+                    //    // Confirmation succeeded! The account is now saved.
+                    //    // Display a message to customer.
+                    //}
+                });
+            }
+        }
+        /**
+         * Cancel the process of adding a Stripe checking account via micro-deposits
+         */
+        cancelStripeAchMicroDeposits() {
+            if (!confirm("Are you sure you want to cancel adding your bank account?"))
+                return;
+            this.isLoading_Payment = true;
+            this.$http.get("/api/StripePayments/CancelUserBankSignUp").then(() => {
+                window.location.reload();
+            }, (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to cancel sign-up: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /**
+         * Verify the microdeposits that were sent to the user's bank account to confirm adding a
+         * checking account via Stripe
+         */
+        verifyStripeMicroDeposits() {
+            this.isLoading_Payment = true;
+            this.$http.get("/api/StripePayments/MicroDepositsUrl").then((httpResponse) => {
+                this.isLoading_Payment = false;
+                window.open(httpResponse.data, "_blank");
+                this.shouldShowStripeAchRefresh = true;
+                //window.location.href = httpResponse.data;
+            }, (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to get to verification step: " + httpResponse.data.exceptionMessage);
+            });
+            //this.stripeApi.verifyMicrodepositsForSetup( this.pendingStripeAchClientSecret, {
+            //    // Provide either a descriptor_code OR amounts, not both
+            //    // https://docs.stripe.com/payments/ach-debit/set-up-payment?platform=web#web-verify-with-microdeposits
+            //    descriptor_code: `SMT86W`,
+            //    amounts: [32, 45],
+            //} ).then( ( result: StripeAchStartResult ) =>
+            //{
+            //    console.log( "In verifyStripeMicroDeposits then", result );
+            //    // Handle result.error or result.setupIntent
+            //} );
+        }
+        refreshPage() {
+            window.location.reload();
+        }
+        upgradeBankAccountToPaymentMethod() {
+            this.isLoading_Payment = true;
+            this.$http.get("/api/StripePayments/ConfirmExistingAch").then((httpResponse) => {
+                this.isLoading_Payment = false;
+                this.pendingStripeAchClientSecret = httpResponse.data;
+                this.shouldShowStripeAchMandate = true;
+            }, (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to get to verification step: " + httpResponse.data.exceptionMessage);
+            });
+        }
     }
     AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q", "$scope"];
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
+    class StripeAchStartResult {
+    }
     class CheckoutRequest {
     }
     class DwollaAccountStatusInfo {

@@ -116,6 +116,8 @@ var Ally;
         // This function should be used to properly populate the scope with the information.
         // Returns true if we redirected the user, otherwise false
         handleSiteInfo(siteInfo, $rootScope) {
+            //console.log( "In handleSiteInfo" );
+            //debugger;
             const subdomain = HtmlUtil.getSubdomain(window.location.host);
             if (!this.authToken && $rootScope.authToken)
                 this.setAuthToken($rootScope.authToken);
