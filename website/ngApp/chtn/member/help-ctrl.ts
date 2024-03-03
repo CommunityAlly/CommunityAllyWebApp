@@ -2,7 +2,7 @@
 {
     class HelpSendInfo
     {
-        emailAddress: string;
+        emailAddress = "";
         message: string;
         clientUrl: string;
         groupName: string;
@@ -14,7 +14,7 @@
      */
     export class HelpFormController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "$sce"];
 
         sendInfo: HelpSendInfo = new HelpSendInfo();
         resultStyle: any;
@@ -23,12 +23,13 @@
         sendResult: string;
         isPageEnabled: boolean = null;
         shouldShowGroupNameField = false;
+        freshdeskFormUrl: string = null;
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $sce: ng.ISCEService )
         {
             this.resultStyle = {
                 "text-align": "center",
@@ -52,8 +53,15 @@
                 }
             );
 
+            this.freshdeskFormUrl = "https://communityally.freshdesk.com/widgets/feedback_widget/new?&widgetType=embedded&submitTitle=Send+Message&submitThanks=Thank+you+for+your+message%2C+we'll+get+back+to+you+as+soon+as+possible.&searchArea=no";
+
             if( this.siteInfo.isLoggedIn )
+            {
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
+                this.freshdeskFormUrl += `&helpdesk_ticket[requester]=${this.siteInfo.userInfo.emailAddress}&disable[requester]=true`;
+            }
+
+            this.freshdeskFormUrl = this.$sce.trustAsResourceUrl( this.freshdeskFormUrl );
 
             this.sendInfo.clientUrl = window.location.href;
             this.shouldShowGroupNameField = HtmlUtil.getSubdomain( window.location.host ) === "login";

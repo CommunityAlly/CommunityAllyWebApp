@@ -1,6 +1,9 @@
 var Ally;
 (function (Ally) {
     class HelpSendInfo {
+        constructor() {
+            this.emailAddress = "";
+        }
     }
     /**
      * The controller for the page that allows users to submit feedback
@@ -9,14 +12,16 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo) {
+        constructor($http, siteInfo, $sce) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$sce = $sce;
             this.sendInfo = new HelpSendInfo();
             this.isLoading = false;
             this.wasMessageSent = false;
             this.isPageEnabled = null;
             this.shouldShowGroupNameField = false;
+            this.freshdeskFormUrl = null;
             /**
              * Occurs when the user clicks the log-in button
              */
@@ -53,13 +58,17 @@ var Ally;
                 this.isPageEnabled = true; // Default to true if we can't get the setting
                 console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
             });
-            if (this.siteInfo.isLoggedIn)
+            this.freshdeskFormUrl = "https://communityally.freshdesk.com/widgets/feedback_widget/new?&widgetType=embedded&submitTitle=Send+Message&submitThanks=Thank+you+for+your+message%2C+we'll+get+back+to+you+as+soon+as+possible.&searchArea=no";
+            if (this.siteInfo.isLoggedIn) {
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
+                this.freshdeskFormUrl += `&helpdesk_ticket[requester]=${this.siteInfo.userInfo.emailAddress}&disable[requester]=true`;
+            }
+            this.freshdeskFormUrl = this.$sce.trustAsResourceUrl(this.freshdeskFormUrl);
             this.sendInfo.clientUrl = window.location.href;
             this.shouldShowGroupNameField = HtmlUtil.getSubdomain(window.location.host) === "login";
         }
     }
-    HelpFormController.$inject = ["$http", "SiteInfo"];
+    HelpFormController.$inject = ["$http", "SiteInfo", "$sce"];
     Ally.HelpFormController = HelpFormController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("helpForm", {
