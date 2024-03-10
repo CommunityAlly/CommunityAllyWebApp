@@ -162,7 +162,7 @@
                 <div class="text-center mt-2">
                     In the new tab that just opened, enter your micro-deposit information. Once successfully completed, click the button to refresh the page.
                     <br />
-                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.refreshPage()">Refresh Page</button>
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.refreshPageAfterStripeVerify()">Refresh Page</button>
                     <br />
                     <br />
                     Or <span class="text-link note-text" data-ng-click="$ctrl.cancelStripeAchMicroDeposits()">Cancel Process</span>
@@ -215,7 +215,7 @@
                         <b>{{$ctrl.usersStripeBankAccountHint}}</b>
                         - <span class="text-link note-text" data-ng-click="$ctrl.unlinkStripeFundingSource()">Unlink bank account</span>
                         <br />
-                        <div data-ng-if="$ctrl.userHasStripeAutoPay" class="text-error my-3" style="color: blue;">
+                        <div data-ng-if="$ctrl.userHasStripeAutoPay" class="text-error my-3 mt-5 text-center" style="color: blue;">
                             NOTE: You have auto-pay setup so be careful of double payments.
                         </div>
                         <div class="text-center mt-3">
@@ -493,39 +493,25 @@
                     <div class="text-center"><button class="btn btn-warning" data-ng-click="$ctrl.disableStripeAutoPay()">Disable Auto-Pay</button></div>
                 </div>
                 <div data-ng-if="!$ctrl.userHasStripeAutoPay">
-
-                    <div class="mt-5" data-ng-if="$ctrl.usersStripeBankAccountId && !$ctrl.usersStripeAchPaymentMethodId">
-                        Upgrade account:
-                        <div class="text-center mt-2">
-                            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.upgradeBankAccountToPaymentMethod()">Validate Account to Enable Auto-Pay</button>
-                        </div>
+                    <p>You can setup automatic assessment payments that will occur {{$ctrl.assessmentFrequencyInfo.name.toLowerCase()}} ({{$ctrl.assessmentFrequencyInfo.signUpNote}}). You will receive an email a few days before payment occurs. {{ $ctrl.nextAutoPayText }}</p>
+                    <div style="text-align: center;">
+                        Your auto-pay amount will be <b>{{$ctrl.assessmentAmount | currency}}</b>, your assessment payment.
+                        <br />
+                        <input type="button" class="btn btn-primary" data-ng-click="$ctrl.startEnableStripeAutoPay()" value="Enable Auto-Pay">
+                        <br />
+                        {{$ctrl.stripeAutoPayFeeAmountString}} Stripe fee applies.
                     </div>
-
-                    Auto-pay sign-up is currently disabled, but we hope to re-enable it before the end of the year.
-                    <!--<p>You can setup automatic assessment payments that will occur {{$ctrl.assessmentFrequencyInfo.name.toLowerCase()}} ({{$ctrl.assessmentFrequencyInfo.signUpNote}}). You will receive an email a few days before payment occurs. {{ $ctrl.nextAutoPayText }}</p>
-                <div style="text-align: center;">
-                    Your auto-pay amount will be <b>{{$ctrl.assessmentAmount | currency}}</b>, your assessment payment.
                     <br />
-                    <input type="button" class="btn btn-primary" data-ng-click="$ctrl.enableStripeAutoPay()" value="Enable Auto-Pay">
-                    <br />
-                    {{$ctrl.stripeAchFeeAmountString}} Stripe fee applies.
-                </div>
-                <br />
-                <p class="note-text">
-                    <cite>
-                        Unfortunately, we cannot make any guarantees regarding the automatic payment system as that is handled by our
-                        secure third-party payment provider. You are responsible for making sure your payments are made on time to
-                        avoid any late penalties that your association may enforce.
-                    </cite>
-                </p>-->
+                    <p class="note-text">
+                        <cite>
+                            Unfortunately, we cannot make any guarantees regarding the automatic payment system as that is handled by our
+                            secure third-party payment provider. You are responsible for making sure your payments are made on time to
+                            avoid any late penalties that your association may enforce.
+                        </cite>
+                    </p>
                 </div>
             </fieldset>
 
-
-
-            <!--<div data-ng-if="$ctrl.shouldShowStripeAutoPayArea && $ctrl.isStripeEnabledOnGroup" class="alert alert-info m-3">
-            Stripe auto-pay is coming soon.
-        </div>-->
         </form>
 
         <div class="mb-2 mt-2" data-ng-if="$ctrl.dwollaBalance > 0 && !$ctrl.dwollaBalanceMessage">

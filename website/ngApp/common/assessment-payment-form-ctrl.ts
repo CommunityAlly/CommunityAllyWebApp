@@ -88,6 +88,7 @@ namespace Ally
         usersStripeBankAccountId: string;
         usersStripeAchPaymentMethodId: string;
         stripeAchFeeAmountString: string;
+        stripeAutoPayFeeAmountString: string;
         hasMultipleProviders = false;
         allowDwollaSignUp: boolean = false;
         stripePaymentSucceeded = false;
@@ -96,6 +97,7 @@ namespace Ally
         hasStripeAchPendingMicroDeposits = false;
         shouldShowStripeAchMandate = false;
         shouldShowStripeAchRefresh = false;
+        isUpgradingStripePaymentForAutoPay = false;
         pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
 
 
@@ -158,7 +160,7 @@ namespace Ally
             this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountHint;
             this.usersStripeBankAccountId = this.siteInfo.userInfo.stripeBankAccountId;
             this.usersStripeAchPaymentMethodId = this.siteInfo.userInfo.stripeAchPaymentMethodId;
-            this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPaySubscriptionId;
+            this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPayAmount;
             this.stripeAutoPayAmount = this.siteInfo.userInfo.stripeAutoPayAmount;
             this.hasStripePlaidPendingMicroDeposits = this.siteInfo.userInfo.hasStripePlaidPendingMicroDeposits;
             this.hasStripeAchPendingMicroDeposits = this.siteInfo.userInfo.hasStripeAchPendingMicroDeposits;
@@ -295,13 +297,15 @@ namespace Ally
 
             // Temporarily disable while we figure out the contract
             this.shouldShowDwollaAutoPayArea = false;
-            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup && !!this.siteInfo.userInfo.stripeBankAccountId;
+
+            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup
+                && ( !!this.siteInfo.userInfo.stripeBankAccountId || !!this.siteInfo.userInfo.stripeAchPaymentMethodId );
 
             if( this.shouldShowDwollaAutoPayArea || this.shouldShowStripeAutoPayArea )
             {
                 this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find( ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency );
             }
-
+            
             this.paymentInfo =
             {
                 paymentType: "other",
@@ -312,6 +316,7 @@ namespace Ally
             };
 
             this.onPaymentAmountChange();
+            this.stripeAutoPayFeeAmountString = this.stripeAchFeeAmountString;
 
             const MaxNumRecentPayments: number = 24;
             this.historicPayments = this.siteInfo.userInfo.recentPayments;
@@ -1450,6 +1455,9 @@ namespace Ally
                     this.isLoading_Payment = false;
                     this.userHasStripeAutoPay = true;
                     alert( "Auto-pay successfully enabled" );
+
+                    if( this.isUpgradingStripePaymentForAutoPay )
+                        window.location.reload();
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -1457,6 +1465,32 @@ namespace Ally
                     alert( "Failed to setup auto-pay: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        startEnableStripeAutoPay()
+        {
+            if( this.assessmentAmount < 10 )
+            {
+                alert( "Your auto-pay amount cannot be less than $10" );
+                return;
+            }
+
+            // If the user doesn't have a bank account
+            if( !this.usersStripeAchPaymentMethodId && !this.usersStripeBankAccountId )
+            {
+                alert( "You don't appear to have a connected checking account. Please connect your account or contact support." );
+                return;
+            }
+
+            // If the user has a bank account that has not yet been upgraded to a payment method
+            if( !this.usersStripeAchPaymentMethodId && this.usersStripeBankAccountId )
+            {
+                this.isUpgradingStripePaymentForAutoPay = true;
+                this.upgradeBankAccountToPaymentMethod();
+            }
+            else
+                this.enableStripeAutoPay();
         }
 
 
@@ -1606,6 +1640,7 @@ namespace Ally
                                     // to the customer and confirm the intent once they accept
                                     // the mandate.
 
+                                    this.isUpgradingStripePaymentForAutoPay = false;
                                     this.shouldShowStripeAchMandate = true;
                                 }
                             } );
@@ -1646,9 +1681,9 @@ namespace Ally
                                 this.isLoading_Payment = false;
                                 this.shouldShowStripeAchMandate = false;
 
+                                // The payment failed for some reason.
                                 console.error( result.error.message );
                                 alert( "Failed to confirm: " + result.error.message );
-                                // The payment failed for some reason.
                             }
                             else if( result.setupIntent.status === "requires_payment_method" )
                             {
@@ -1672,7 +1707,12 @@ namespace Ally
                                     {
                                         this.isLoading_Payment = false;
                                         this.shouldShowStripeAchMandate = false;
-                                        window.location.reload();
+
+                                        if( this.isUpgradingStripePaymentForAutoPay )
+                                            this.enableStripeAutoPay();
+                                        else
+                                            window.location.reload();
+
                                     },
                                     ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                                     {
@@ -1753,16 +1793,23 @@ namespace Ally
         }
 
 
-        refreshPage()
+        refreshPageAfterStripeVerify()
         {
-            window.location.reload();
+            this.$http.get( "/api/StripePayments/RefreshStripeAchInfo" ).then(
+                () => window.location.reload(),
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading_Payment = false;
+                    alert( "Failed to refresh status: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
         upgradeBankAccountToPaymentMethod()
         {
             this.isLoading_Payment = true;
-
+            
             this.$http.get( "/api/StripePayments/ConfirmExistingAch" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
