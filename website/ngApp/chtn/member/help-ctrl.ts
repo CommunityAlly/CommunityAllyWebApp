@@ -58,13 +58,61 @@
             if( this.siteInfo.isLoggedIn )
             {
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
-                this.freshdeskFormUrl += `&helpdesk_ticket[requester]=${this.siteInfo.userInfo.emailAddress}&disable[requester]=true`;
+                //this.freshdeskFormUrl += `&helpdesk_ticket[requester]=${this.siteInfo.userInfo.emailAddress}&disable[requester]=true`;
+                //window.setTimeout( () => this.prePopulateZohoForm(), 300 );
             }
 
             this.freshdeskFormUrl = this.$sce.trustAsResourceUrl( this.freshdeskFormUrl );
 
             this.sendInfo.clientUrl = window.location.href;
             this.shouldShowGroupNameField = HtmlUtil.getSubdomain( window.location.host ) === "login";
+
+            
+        }
+
+
+        numZohoChecks = 0;
+
+        prePopulateZohoForm()
+        {
+            //let populateZohoForm: () => void;
+            //populateZohoForm = () =>
+            {
+                console.log( "In populateZohoForm This is me writing good thinks about time." );
+                const firstNameField = document.getElementById( "feedbNameTxtField" ) as HTMLInputElement;
+                if( !firstNameField )
+                {
+                    // Just try 5 times, or for 1.25secs
+                    ++this.numZohoChecks;
+                    if( this.numZohoChecks > 5 )
+                        return;
+
+                    setTimeout( () => this.prePopulateZohoForm(), 250 );
+                    return;
+                }
+
+                if( !HtmlUtil.isNullOrWhitespace( this.siteInfo.userInfo.fullName ) )
+                {
+                    firstNameField.value = this.siteInfo.userInfo.fullName;
+                    firstNameField.readOnly = true;
+                    firstNameField.disabled = true;
+                    firstNameField.style.setProperty( "background-color", "#eee", "important" );
+                }
+
+                if( this.siteInfo.userInfo.emailAddress )
+                {
+                    const emailField = document.getElementById( "feedbEmailTxtField" ) as HTMLInputElement;
+                    emailField.value = this.siteInfo.userInfo.emailAddress;
+                    emailField.readOnly = true;
+                    emailField.disabled = true;
+                    emailField.style.setProperty( "background-color", "#eee", "important" );
+                }
+
+                //const changeEvent = new Event( 'change' );
+                //emailField.dispatchEvent( changeEvent );
+            };
+
+            
         }
 
 
