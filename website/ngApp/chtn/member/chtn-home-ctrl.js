@@ -45,9 +45,9 @@ var Ally;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
             this.allyAppName = AppConfig.appName;
-            let homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if (HtmlUtil.isNullOrWhitespace(homeRightColumnType))
-                homeRightColumnType = "localnews";
+            const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
+            //if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
+            //    homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
                 this.showDiscussionThreads = true;
                 this.showLocalNews = homeRightColumnType.indexOf("localnews") > -1;

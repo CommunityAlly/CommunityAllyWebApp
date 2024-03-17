@@ -82,9 +82,9 @@
             
             this.allyAppName = AppConfig.appName;
 
-            let homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
-                homeRightColumnType = "localnews";
+            const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
+            //if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
+            //    homeRightColumnType = "localnews";
 
             if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate )
             {
