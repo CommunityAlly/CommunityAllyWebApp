@@ -38,7 +38,7 @@ var Ally;
                 this.isLoading = false;
                 this.allLogEntries = logResponse.data;
                 // The date comes down as a string so let's convert it to a Date object for the local time zone
-                _.each(this.allLogEntries, (e) => e.postDate = moment(e.postDate).toDate());
+                _.each(this.allLogEntries, (e) => e.entryDateUtc = moment(e.entryDateUtc).toDate());
                 this.filterMessages();
             }, (errorResponse) => {
                 this.isLoading = false;

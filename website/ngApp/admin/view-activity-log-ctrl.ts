@@ -3,7 +3,7 @@
     class ActivityLogEntry
     {
         userName: string;
-        postDate: Date;
+        entryDateUtc: Date;
         activityMessage: string;
         activityData: string;
         url: string;
@@ -67,7 +67,7 @@
                     this.allLogEntries = logResponse.data;
 
                     // The date comes down as a string so let's convert it to a Date object for the local time zone
-                    _.each( this.allLogEntries, ( e ) => e.postDate = moment( ( e as any ).postDate ).toDate() );
+                    _.each( this.allLogEntries, ( e ) => e.entryDateUtc = moment( ( e as any ).entryDateUtc ).toDate() );
 
                     this.filterMessages();
                 },

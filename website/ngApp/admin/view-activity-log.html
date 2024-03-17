@@ -7,7 +7,7 @@
         <thead>
             <tr>
                 <th>User Name</th>
-                <th>Post Date</th>
+                <th>Entry Date</th>
                 <th>Message</th>
                 <th>Data</th>
                 <th>Url</th>
@@ -17,7 +17,7 @@
         <tbody style="font-size:small;">
             <tr data-ng-repeat="entry in $ctrl.filteredLogEntries">
                 <td>{{ ::entry.userName }}</td>
-                <td>{{ ::entry.postDate | date:'short' }}</td>
+                <td>{{ ::entry.entryDateUtc | date:'short' }}</td>
                 <td>{{ ::entry.activityMessage }}</td>
                 <td>{{ ::entry.activityData }}</td>
                 <td><a href="{{ ::entry.url }}">{{ ::entry.url }}</a></td>
