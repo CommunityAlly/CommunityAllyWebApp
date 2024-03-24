@@ -875,7 +875,7 @@
         /**
          * Occurs when the user toggles whether or not to show payment info
          */
-        onshowPaymentInfo(): void
+        onShowPaymentInfo(): void
         {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
             window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
@@ -1039,7 +1039,7 @@
                 ++numPosts;
 
                 // Poor man's async for-loop
-                window.setTimeout( () => this.$http.post( "/api/PaymentHistory", postData ), numPosts * 350 );
+                window.setTimeout( () => this.$http.post( "/api/PaymentHistory/NewPaymentEntry", postData ), numPosts * 350 );
             }
 
             window.setTimeout( () =>

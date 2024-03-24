@@ -580,7 +580,7 @@ var Ally;
         /**
          * Occurs when the user toggles whether or not to show payment info
          */
-        onshowPaymentInfo() {
+        onShowPaymentInfo() {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
             window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
         }
@@ -696,7 +696,7 @@ var Ally;
                 };
                 ++numPosts;
                 // Poor man's async for-loop
-                window.setTimeout(() => this.$http.post("/api/PaymentHistory", postData), numPosts * 350);
+                window.setTimeout(() => this.$http.post("/api/PaymentHistory/NewPaymentEntry", postData), numPosts * 350);
             }
             window.setTimeout(() => {
                 this.isLoading = false;

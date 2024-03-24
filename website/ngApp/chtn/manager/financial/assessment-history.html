@@ -16,8 +16,8 @@
             <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
         </p>
         <p class="clearfix">
-            <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onshowPaymentInfo()">Show Payment Amounts</label>
-            <label class="ms-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onshowPaymentInfo()">Color-code Paid/Partial</label>
+            <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onShowPaymentInfo()">Show Payment Amounts</label>
+            <label class="ms-3" data-ng-if="$ctrl.showPaymentInfo"><input type="checkbox" data-ng-model="$ctrl.shouldColorCodePayments" data-ng-change="$ctrl.onShowPaymentInfo()">Color-code Paid/Partial</label>
             <label class="ms-3" title="This will show the simple calculation of a home's assessment amount multiplied by the # payments missed since the last payment. Late fees and gaps in payments are not included." data-toggle="tooltip"><input type="checkbox" data-ng-model="$ctrl.shouldShowBalanceCol" data-ng-change="$ctrl.onshowBalanceCol()">Show Est. Balance</label>
             <button class="btn btn-primary ms-3" data-ng-click="$ctrl.showCreateSpecialAssessment()" type="button">Add Special Assessment</button>
         </p>
