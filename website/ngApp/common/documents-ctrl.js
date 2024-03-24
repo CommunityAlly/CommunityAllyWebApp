@@ -372,10 +372,9 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        CreateSubDirectory() {
+        createSubDirectory() {
+            //console.log( "In createSubDirectory", this.selectedDirectory.fullDirectoryPath );
             this.createUnderParentDirName = this.selectedDirectory.fullDirectoryPath;
-            if (this.committee)
-                this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
             this.shouldShowCreateFolderModal = true;
             setTimeout(() => $('#CreateDirectoryNameTextBox').focus(), 50);
         }
