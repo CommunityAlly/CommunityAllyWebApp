@@ -679,82 +679,87 @@
 
             window.localStorage["assessmentHistory_showAllUnits"] = this.shouldShowAllUnits;
 
-            this.$http.get( getUri ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
-            {
-                const paymentInfo = httpResponse.data;
-                this.specialAssessments = httpResponse.data.specialAssessments;
-                this.hasUnitsWithoutOwners = paymentInfo.hasUnitsWithoutOwners;
-
-                this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || ( paymentInfo.payments.length < 2 && paymentInfo.units.length > 3 );
-
-                // Build the map of unit ID to unit information
-                this.unitPayments = new Map<number, UnitWithPayment>();
-                _.each( paymentInfo.units, ( unit: UnitWithOwner ) =>
+            this.$http.get( getUri ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FullPaymentHistory> ) =>
                 {
-                    this.unitPayments.set( unit.unitId, unit as UnitWithPayment );
-                    const curEntry: UnitWithPayment = this.unitPayments.get( unit.unitId );
+                    const paymentInfo = httpResponse.data;
+                    this.specialAssessments = httpResponse.data.specialAssessments;
+                    this.hasUnitsWithoutOwners = paymentInfo.hasUnitsWithoutOwners;
 
-                    // Only take the first two owners for now
-                    curEntry.displayOwners = _.first( unit.owners, 2 );
-                    while( curEntry.displayOwners.length < 2 )
-                        curEntry.displayOwners.push( { name: "" } );
+                    this.shouldShowFillInSection = this.siteInfo.userInfo.isAdmin || ( paymentInfo.payments.length < 2 && paymentInfo.units.length > 3 );
 
-                    curEntry.displayPayments = [];
-                } );
-
-                // Add the payment information to the members
-                if( this.isForMemberGroup && httpResponse.data.payers )
-                {
-                    _.each( httpResponse.data.payers, ( payer ) =>
+                    // Build the map of unit ID to unit information
+                    this.unitPayments = new Map<number, UnitWithPayment>();
+                    _.each( paymentInfo.units, ( unit: UnitWithOwner ) =>
                     {
-                        payer.enteredPayments = _.filter( paymentInfo.payments, p => p.payerUserId === payer.userId );
+                        this.unitPayments.set( unit.unitId, unit as UnitWithPayment );
+                        const curEntry: UnitWithPayment = this.unitPayments.get( unit.unitId );
+
+                        // Only take the first two owners for now
+                        curEntry.displayOwners = _.first( unit.owners, 2 );
+                        while( curEntry.displayOwners.length < 2 )
+                            curEntry.displayOwners.push( { name: "" } );
+
+                        curEntry.displayPayments = [];
                     } );
+
+                    // Add the payment information to the members
+                    if( this.isForMemberGroup && httpResponse.data.payers )
+                    {
+                        _.each( httpResponse.data.payers, ( payer ) =>
+                        {
+                            payer.enteredPayments = _.filter( paymentInfo.payments, p => p.payerUserId === payer.userId );
+                        } );
+                    }
+
+                    // Add the payment information to the units
+                    _.each( paymentInfo.payments, ( payment: AssessmentPayment ) =>
+                    {
+                        if( this.unitPayments.has( payment.unitId ) )
+                            this.unitPayments.get( payment.unitId ).displayPayments.push( payment );
+                    } );
+
+                    // Store all of the payments rather than just what is visible
+                    _.each( paymentInfo.units, ( unit: UnitWithPayment ) =>
+                    {
+                        // The newest payment will be at the start
+                        unit.displayPayments = _.sortBy( unit.displayPayments, p => p.year * 100 + p.period );
+                        unit.displayPayments.reverse();
+
+                        unit.allPayments = unit.displayPayments;
+
+                        // Since allPayments is sorted newest first, let's grab the first payment marked as paid
+                        unit.estBalance = this.getEstimatedBalance( unit );
+                    } );
+
+                    if( paymentInfo.units )
+                    {
+                        this.totalEstBalance = paymentInfo.units
+                            .filter( ( u: UnitWithPayment ) => u.estBalance !== undefined && !isNaN( u.estBalance ) )
+                            .map( ( u: UnitWithPayment ) => u.estBalance || 0 )
+                            .reduce( ( total, val ) => total + val, 0 );
+                    }
+
+                    // Sort the units by name
+                    const sortedUnits: UnitWithPayment[] = Array.from( this.unitPayments.values() );
+                    this.nameSortedUnitPayments = HtmlUtil2.smartSortStreetAddresses( sortedUnits, "name" );
+                    this.filteredUnitRows = this.nameSortedUnitPayments;
+
+                    this.payers = _.sortBy( paymentInfo.payers, payer => payer.name );
+
+                    this.displayPaymentsForRange( this.startYearValue, this.startPeriodValue );
+
+                    this.isLoading = false;
+
+                    if( this.quickFilterText )
+                        this.onQuickFilterChange();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve payment history: " + response.data.exceptionMessage );
                 }
-
-                // Add the payment information to the units
-                _.each( paymentInfo.payments, ( payment: AssessmentPayment ) =>
-                {
-                    if( this.unitPayments.has(payment.unitId) )
-                        this.unitPayments.get(payment.unitId).displayPayments.push( payment );
-                } );
-
-                // Store all of the payments rather than just what is visible
-                _.each( paymentInfo.units, ( unit: UnitWithPayment ) =>
-                {
-                    // The newest payment will be at the start
-                    unit.displayPayments = _.sortBy( unit.displayPayments, p => p.year * 100 + p.period );
-                    unit.displayPayments.reverse();
-                    
-                    unit.allPayments = unit.displayPayments;
-
-                    // Since allPayments is sorted newest first, let's grab the first payment marked as paid
-                    unit.estBalance = this.getEstimatedBalance( unit );
-                } );
-
-                if( paymentInfo.units )
-                {
-                    this.totalEstBalance = paymentInfo.units
-                        .filter( ( u: UnitWithPayment ) => u.estBalance !== undefined && !isNaN( u.estBalance ) )
-                        .map( ( u: UnitWithPayment ) => u.estBalance || 0 )
-                        .reduce( ( total, val ) => total + val, 0 );
-                }
-
-                // Sort the units by name
-                const sortedUnits: UnitWithPayment[] = Array.from( this.unitPayments.values() );
-                this.nameSortedUnitPayments = HtmlUtil2.smartSortStreetAddresses( sortedUnits, "name" );
-                this.filteredUnitRows = this.nameSortedUnitPayments;
-
-                this.payers = _.sortBy( paymentInfo.payers, payer => payer.name );
-
-                this.displayPaymentsForRange( this.startYearValue, this.startPeriodValue );
-
-                this.isLoading = false;
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to retrieve payment history: " + response.data.exceptionMessage );
-            } );
+            );
         }
 
 

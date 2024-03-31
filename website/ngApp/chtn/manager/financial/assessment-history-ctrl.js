@@ -494,6 +494,8 @@ var Ally;
                 this.payers = _.sortBy(paymentInfo.payers, payer => payer.name);
                 this.displayPaymentsForRange(this.startYearValue, this.startPeriodValue);
                 this.isLoading = false;
+                if (this.quickFilterText)
+                    this.onQuickFilterChange();
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to retrieve payment history: " + response.data.exceptionMessage);
