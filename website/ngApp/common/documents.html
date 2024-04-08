@@ -63,15 +63,20 @@
                     <div id="public-folder-note" data-ng-show="$ctrl.selectedDirectory.isPublic">
                         This is a public folder. You can share links to these documents with non-residents.
                     </div>
-                    <div data-ng-show="$ctrl.selectedDirectory != null" style="margin-top:15px;">
-                        <div class="pull-right margin-right-10">
-                            Sort By:<br /><span class="text-link" data-ng-class="{'bold-underline': $ctrl.fileSortType === 'title'}" data-ng-click="$ctrl.SetFileSortType('title')">Name</span> - <span data-ng-class="{'bold-underline': $ctrl.fileSortType === 'uploadDate'}" data-ng-click="$ctrl.SetFileSortType('uploadDate')" class="text-link">Upload Date</span>
+                    <div data-ng-show="$ctrl.selectedDirectory != null" class="row mb-3" style="margin-top:15px; border-bottom: 1px solid #CCC;">
+                        <div class="col-12 col-lg-9">
+                            <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                <button type="button" class="btn btn-outline-primary" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" onclick="$('#JQDocsFileUploader').click();">Upload File</button>
+                                <button type="button" class="btn btn-outline-primary" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.RenameSelectedDirectory()">Rename Folder</button>
+                                <button type="button" class="btn btn-outline-danger" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</button>
+                                <button type="button" class="btn btn-outline-primary" data-ng-if="$ctrl.selectedDirectory != null && $ctrl.selectedDirectory.directoryDepth < 2 && $ctrl.canManage" data-ng-click="$ctrl.createSubDirectory()">Create Sub-Folder</button>
+                            </div>
                         </div>
-                        <a href="javascript:void(0)" id="rename-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.RenameSelectedDirectory()">Rename Folder</a>
-                        <a href="javascript:void(0)" id="delete-directory-button" class="btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</a>
-                        <a href="javascript:void(0)" id="create-subdirectory-button" class="btn-create-folder" data-ng-if="$ctrl.selectedDirectory != null && $ctrl.selectedDirectory.directoryDepth < 2 && $ctrl.canManage" data-ng-click="$ctrl.createSubDirectory()">Create Sub-Folder</a>
-
-                        <a href="javascript:void(0)" class="upload_btn btn-create-folder" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" onclick="$('#JQDocsFileUploader').click();">+ Upload File</a>
+                        <div class="col-12 col-lg-3">
+                            <div class="margin-right-10">
+                                Sort By:<br /><span class="text-link" data-ng-class="{'bold-underline': $ctrl.fileSortType === 'title'}" data-ng-click="$ctrl.SetFileSortType('title')">Name</span> - <span data-ng-class="{'bold-underline': $ctrl.fileSortType === 'uploadDate'}" data-ng-click="$ctrl.SetFileSortType('uploadDate')" class="text-link">Upload Date</span>
+                            </div>
+                        </div>
                     </div>
                     <p data-ng-show="$ctrl.selectedDirectory.files.length === 0">
                         This folder contains no files

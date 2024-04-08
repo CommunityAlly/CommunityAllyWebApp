@@ -1266,21 +1266,6 @@ footer a:hover {
     text-align: left;
   }
 }
-.page-documents .btn-create-folder {
-  background: #ccc;
-  background: -moz-linear-gradient(top, #ccc 0%, #e9e7e6 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ccc), color-stop(100%, #e9e7e6));
-  background: -webkit-linear-gradient(top, #ccc 0%, #e9e7e6 100%);
-  background: -o-linear-gradient(top, #ccc 0%, #e9e7e6 100%);
-  background: -ms-linear-gradient(top, #ccc 0%, #e9e7e6 100%);
-  background: linear-gradient(to bottom, #ccc 0%, #e9e7e6 100%);
-  padding: 6px 12px;
-  color: #4583b6;
-  width: auto;
-  margin: 0 0 1em 1em;
-  border-radius: 5px;
-  display: inline-block;
-}
 
 .page-document-info {
   min-height: 500px;
