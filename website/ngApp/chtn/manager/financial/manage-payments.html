@@ -488,14 +488,13 @@
                         <div data-ng-if="!$ctrl.isAssessmentTrackingEnabled" class="gray-overlay"></div>
                         <div data-ng-show="$ctrl.isLoading || $ctrl.isLoadingLateFee" class="loading-overlay"></div>
                         <form data-ng-submit="$ctrl.saveLateFee()">
-                            <p>
+                            <div>
                                 Add a late fee if a resident hasn't paid their assessment by the <input style="width: 45px;" maxlength="2" class="form-control form-control-sm d-inline-block" type="text" data-ng-model="$ctrl.lateFeeInfo.lateFeeDayOfMonth" /><sup>{{ getLateFeeDateSuper() }}</sup> day of the month.
-
-                            </p>
+                                <div class="note-text">If you enter a day like the 31st, then on months with less than 31 days, the fee takes affect after the last day of the month.</div>
+                            </div>
                             <div class="margin-top" data-ng-style="{ 'color': !$ctrl.lateFeeInfo.lateFeeDayOfMonth ? '#AAA' : '#000'}">
                                 How much is the late fee? <input type="text" class="form-control form-control-sm d-inline" style="width: 200px;" data-ng-model="$ctrl.lateFeeInfo.lateFeeAmount" />
-                                <br />
-                                <span class="note-text">You can enter a flat amount like $124.45 or a percent like 10%</span>
+                                <div class="note-text">You can enter a flat amount like $124.45 or a percent like 10%</div>
                             </div>
                             <p class="text-end" style="max-width:450px;">
                                 <button class="btn btn-primary" type="submit">Save</button>
