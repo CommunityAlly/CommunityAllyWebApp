@@ -6,7 +6,7 @@
 
     <div class="container" data-ng-if="$ctrl.boardMembers.length > 0 || $ctrl.committees.length > 0 || $ctrl.boardPropMgrs.length > 0">
         <div class="row">
-            <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.boardMembers.length > 0 || $ctrl.boardPropMgrs.length > 0">
+            <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="::$ctrl.boardMembers.length > 0 || $ctrl.boardPropMgrs.length > 0">
                 <div class="portlet-header">
                     <div id="board-member-header" style="display: inline-block;" class="title">Board Members</div><div data-ng-if="$ctrl.boardMessageRecipient && $ctrl.isPremiumPlanActive" style="display: inline-block;"><span>&nbsp;-&nbsp;<send-message id="board-member-send-msg" data-recipient-info="$ctrl.boardMessageRecipient"></send-message></span></div>
                 </div>
@@ -16,21 +16,21 @@
                         No board members have been assigned
                     </div>
                     <div data-ng-repeat="member in $ctrl.boardMembers">
-                        <span id="board-member-title-{{$index}}" style="font-weight: bold;">{{ member.boardPositionName }}</span>&nbsp;-&nbsp;<span id="board-member-name-{{$index}}">{{ member.fullName }}</span><span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="board-member-send-msg-{{$index}}" data-recipient-info="member"></send-message></span><br />
+                        <span id="board-member-title-{{::$index}}" style="font-weight: bold;">{{ ::member.boardPositionName }}</span>&nbsp;-&nbsp;<span id="board-member-name-{{::$index}}">{{ ::member.fullName }}</span><span data-ng-if="::!member.hasEmail">*</span><span data-ng-if="::member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="board-member-send-msg-{{::$index}}" data-recipient-info="member"></send-message></span><br />
                     </div>
                     <br />
                 </div>
 
-                <div class="portlet-body" data-ng-if="$ctrl.boardPropMgrs.length > 0">
+                <div class="portlet-body" data-ng-if="::$ctrl.boardPropMgrs.length > 0">
                     <h6>Property Managers</h6>
                     <div data-ng-repeat="member in $ctrl.boardPropMgrs">
-                        <span id="prop-mgr-name-{{$index}}">{{ member.fullName }}</span><span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="prop-mgr-send-msg-{{$index}}" data-recipient-info="member"></send-message></span><br />
+                        <span id="prop-mgr-name-{{::$index}}">{{ ::member.fullName }}</span><span data-ng-if="!member.hasEmail">*</span><span data-ng-if="member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="prop-mgr-send-msg-{{::$index}}" data-recipient-info="member"></send-message></span><br />
                     </div>
                     <br />
                 </div>
             </div>
 
-            <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="$ctrl.committees.length > 0">
+            <div class="portlet-box no-padding col-12 col-md-6" data-ng-if="::$ctrl.committees.length > 0">
                 <div class="portlet-header">
                     <div id="committee-header" style="display: inline-block;" class="title">Committees</div>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="portlet-body">
                     <p style="margin-bottom: 7px; display: none;" class="note-text">Contact the residents below if you'd like to learn more about a certain committee</p>
                     <div data-ng-repeat="committee in $ctrl.committees">
-                        <span id="committee-name-{{$index}}" style="font-weight: bold;">{{ committee.committeeName }}</span>&nbsp;(<a data-ng-if="!committee.isPrivate" data-ng-href="#!/Committee/{{ committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="committee.contactUser">&nbsp;-&nbsp;<span id="committee-contact-name-{{$index}}">{{ committee.contactUser.fullName }}</span><span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="committee-send-msg-{{$index}}" data-recipient-info="committee.contactUser"></send-message></span></span><br />
+                        <span id="committee-name-{{::$index}}" style="font-weight: bold;">{{ ::committee.committeeName }}</span>&nbsp;(<a data-ng-if="::!committee.isPrivate" data-ng-href="#!/Committee/{{ ::committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="::committee.contactUser">&nbsp;-&nbsp;<span id="committee-contact-name-{{::$index}}">{{ ::committee.contactUser.fullName }}</span><span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="committee-send-msg-{{$index}}" data-recipient-info="committee.contactUser"></send-message></span></span><br />
                     </div>
                     <br />
                 </div>
@@ -67,30 +67,30 @@
         </div>
 
         <div class="portlet-body" data-ng-if="!$ctrl.showMemberList">
-            <div data-ng-repeat="curUnit in $ctrl.filteredUnitList" id="unit-id-{{curUnit.unitId}}">
-                <h5 id="unit-name-{{ $index }}">{{ $ctrl.unitPrefix }}{{ curUnit.name }}</h5>
+            <div data-ng-repeat="curUnit in $ctrl.filteredUnitList" id="unit-id-{{::curUnit.unitId}}">
+                <h5 id="unit-name-{{ ::$index }}">{{ ::$ctrl.unitPrefix }}{{ ::curUnit.name }}</h5>
                 <div>
                     <span data-ng-if="curUnit.renters.length > 0" style="font-weight:bold;">Owned by:<br></span>
                     <div data-ng-repeat="user in curUnit.owners" class="mb-2">
-                        <img style="width: 80px; height: 80px;" data-ng-if="user.shouldShowAvatarInListing && user.avatarUrl" alt="Profile for {{ user.fullName }}" data-ng-src="{{user.avatarUrl}}" />
+                        <img style="width: 80px; height: 80px;" data-ng-if="::user.shouldShowAvatarInListing && user.avatarUrl" alt="Profile for {{ ::user.fullName }}" data-ng-src="{{ ::user.avatarUrl }}" />
                         
-                        <span id="owner-name-{{ $parent.$index }}-{{ $index }}">{{ user.fullName }}</span><span data-ng-if="!user.hasEmail">*</span>
-                        <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
-                            (<a id="owner-email-{{ $parent.$parent.$index }}-{{ $parent.$index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ user.phoneNumber }}" id="owner-phone-{{ $parent.$parent.$index }}-{{ $parent.$index }}">{{ user.phoneNumber | tel }}</a>)
+                        <span id="owner-name-{{ ::$parent.$index }}-{{ ::$index }}">{{ ::user.fullName }}</span><span data-ng-if="::!user.hasEmail">*</span>
+                        <span data-ng-if="::user.email.length > 0 || user.phoneNumber.length > 0">
+                            (<a id="owner-email-{{ ::$parent.$parent.$index }}-{{ ::$parent.$index }}" href="mailto:{{ ::user.email }}">{{ ::user.email }}</a>{{ ::user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ ::user.phoneNumber }}" id="owner-phone-{{ ::$parent.$parent.$index }}-{{ ::$parent.$index }}">{{ ::user.phoneNumber | tel }}</a>)
                         </span>
-                        <span data-ng-if="user.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
+                        <span data-ng-if="::user.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
                         <br />
                     </div>
                 </div>
-                <div data-ng-show="curUnit.renters.length > 0">
+                <div data-ng-show="::curUnit.renters.length > 0">
                     <br>
                     <span style="font-weight:bold;">Currently rented by:</span><br>
                     <div data-ng-repeat="user in curUnit.renters" class="mb-2">
-                        <span id="renter-name-{{ $parent.$index }}-{{ $index }}">{{ user.fullName }}</span><span data-ng-if="!user.hasEmail">*</span>
-                        <span data-ng-if="user.email.length > 0 || user.phoneNumber.length > 0">
-                            (<a id="renter-email-{{ $parent.$parent.$index }}-{{ $parent.$index }}" href="mailto:{{ user.email }}">{{ user.email }}</a>{{ user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ user.phoneNumber }}" id="renter-phone-{{ $parent.$parent.$index }}-{{ $parent.$index }}">{{ user.phoneNumber | tel }}</a>)
+                        <span id="renter-name-{{ ::$parent.$index }}-{{ ::$index }}">{{ ::user.fullName }}</span><span data-ng-if="::!user.hasEmail">*</span>
+                        <span data-ng-if="::user.email.length > 0 || user.phoneNumber.length > 0">
+                            (<a id="renter-email-{{ ::$parent.$parent.$index }}-{{ ::$parent.$index }}" href="mailto:{{ ::user.email }}">{{ ::user.email }}</a>{{ ::user.email.length > 0 && user.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ ::user.phoneNumber }}" id="renter-phone-{{ ::$parent.$parent.$index }}-{{ ::$parent.$index }}">{{ ::user.phoneNumber | tel }}</a>)
                         </span>                        
-                        <span data-ng-if="user.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
+                        <span data-ng-if="::user.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="user"></send-message></span>
                         <br />
                     </div>
                 </div>
@@ -102,24 +102,16 @@
             <h4>Members</h4>
             <div class="row">
                 <div class="col-md-4 col-sm-12" data-ng-repeat="resident in $ctrl.allResidents">
-                    <span id="owner-name-{{ $index }}">{{ resident.fullName }}</span><span data-ng-if="!resident.hasEmail">*</span>
+                    <span id="owner-name-{{ ::$index }}">{{ ::resident.fullName }}</span><span data-ng-if="::!resident.hasEmail">*</span>
                     <span data-ng-if="resident.email.length > 0 || resident.phoneNumber.length > 0">
-                        (<a id="owner-email-{{ $index }}" href="mailto:{{ resident.email }}">{{ resident.email }}</a>{{ resident.email.length > 0 && resident.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ resident.phoneNumber }}" id="owner-phone-{{ $index }}">{{ resident.phoneNumber | tel }}</a>)
+                        (<a id="owner-email-{{ ::$index }}" href="mailto:{{ ::resident.email }}">{{ ::resident.email }}</a>{{ ::resident.email.length > 0 && resident.phoneNumber.length > 0 ? " - " : "" }}<a data-ng-href="tel:{{ ::resident.phoneNumber }}" id="owner-phone-{{ ::$index }}">{{ ::resident.phoneNumber | tel }}</a>)
                     </span>
-                    <span data-ng-if="resident.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="resident"></send-message></span>                    
+                    <span data-ng-if="::resident.hasEmail && $ctrl.isPremiumPlanActive">-&nbsp;<send-message data-recipient-info="resident"></send-message></span>                    
                 </div>
             </div>
         </div>
         <br />
         <div class="note-text" data-ng-if="$ctrl.hasMissingEmails">* Unable to send messages to this person because we don't have their email address</div>
-    </div>
-
-    <div data-ng-if="false">
-        <h5>Owner Email Addresses</h5>
-        For easy copy-and-paste into your email client.<br /><br />
-        {{ $ctrl.allOwnerEmails[0] }}
-        <span data-ng-repeat="curOwnerEmail in $ctrl.allOwnerEmails track by $index" ng-hide="$first">, {{ curOwnerEmail }}</span>
-        <br />
     </div>
 
     <div class="portlet-box white margin-top no-padding" style="position: relative;">
@@ -137,22 +129,22 @@
 
             <div data-ng-repeat="g in $ctrl.emailLists">
                 <div>
-                    &bull; Send an email to&nbsp;<h5 id="group-email-address-{{ $index }}" style="display: inline;">{{ g.recipientType }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ $index }}" data-clipboard-target="#group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    &bull; Send an email to&nbsp;<h5 id="group-email-address-{{ ::$index }}" style="display: inline;">{{ ::g.recipientType }}.{{ ::$ctrl.groupShortName }}@{{ ::$ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="group-email-address-copy-button-{{ ::$index }}" data-clipboard-target="#group-email-address-{{ ::$index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
-                    {{ g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="$first">, {{ personName }}<span></span></span>
+                    {{ ::g.usersFullNames[0] }}<span data-ng-repeat="personName in g.usersFullNames track by $index" ng-hide="::$first">, {{ ::personName }}<span></span></span>
                 </div>
-                <div data-ng-if="g.isRestrictedGroup" class="note-text" style="color: blue; font-weight: bold;">
+                <div data-ng-if="::g.isRestrictedGroup" class="note-text" style="color: blue; font-weight: bold;">
                     This group email address is restricted meaning replies will be sent only to you and not the entire group.
                 </div>
-                <div data-ng-if="g.recipientType ==='Everyone'" class="note-text" style="color: red; font-weight: bold;">
+                <div data-ng-if="::g.recipientType ==='Everyone'" class="note-text" style="color: red; font-weight: bold;">
                     In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
                     sent to the discussion group. The discussion group allows residents to unsubscribe from
                     individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.
                     <br />
                     <br />
                 </div>
-                <div data-ng-if="g.recipientType ==='Treasurer'" class="note-text" style="color: blue;">
+                <div data-ng-if="::g.recipientType ==='Treasurer'" class="note-text" style="color: blue;">
                     The "Treasurer" group will forward to the user or users that are marked as treasurer or secretary+treasurer. If no users are marked as treasurer then the whole
                     board will receive messages sent to this group email address. Payment-related messages are automatically sent to this email address.
                 </div>
@@ -164,18 +156,18 @@
             <div class="mt-2 mb-2" data-ng-if="$ctrl.customEmailList.length === 0">You do not have any custom group email addresses defined.</div>
             <div data-ng-repeat="g in $ctrl.customEmailList track by $index">
                 <div>
-                    &bull; Send an email to&nbsp;<h5 id="custom-group-email-address-{{ $index }}" style="display: inline;">{{ g.shortName }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="custom-group-email-address-copy-button-{{ $index }}" data-clipboard-target="#custom-group-email-address-{{ $index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    &bull; Send an email to&nbsp;<h5 id="custom-group-email-address-{{ ::$index }}" style="display: inline;">{{ ::g.shortName }}.{{ ::$ctrl.groupShortName }}@{{ ::$ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="custom-group-email-address-copy-button-{{ ::$index }}" data-clipboard-target="#custom-group-email-address-{{ ::$index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
                 </div>
                 <div class="note-text">
-                    <span data-ng-repeat="u in g.usersFullNames track by $index"><span data-ng-if="$index > 0">, </span>{{ u }}</span>
+                    <span data-ng-repeat="u in g.usersFullNames track by $index"><span data-ng-if="::$index > 0">, </span>{{ ::u }}</span>
                 </div>
                 <div class="note-text text-danger" data-ng-if="!g.usersFullNames || g.usersFullNames.length === 0">
                     This group has no members so it will not be shown elsewhere on the site.
                 </div>
                 <div class="note-text mt-1" data-ng-if="g.description">
-                    Description: {{g.description}}
+                    Description: {{::g.description}}
                 </div>
-                <div data-ng-if="g.allowPublicIncoming" class="note-text" style="color: blue; font-weight: bold;">
+                <div data-ng-if="::g.allowPublicIncoming" class="note-text" style="color: blue; font-weight: bold;">
                     Allows public incoming emails
                 </div>
                 <div data-ng-if="$ctrl.isSiteManager">
@@ -184,7 +176,7 @@
                 </div>
                 <br />
             </div>
-            <button data-ng-if="$ctrl.isSiteManager" type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
+            <button data-ng-if="::$ctrl.isSiteManager" type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
 
             <div class="text-bold mt-5">
                 <u>How to Use Group Emails</u>
@@ -227,7 +219,7 @@
                 <div class="col-sm-10 col-12 px-0">
                     <div class="resident-list-box" style="max-height: 250px !important;">
                         <label data-ng-repeat="resident in $ctrl.allResidents" style="display: block" class="form-label">
-                            <input type="checkbox" data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onGroupEmailMemberClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No email on file)" }}
+                            <input type="checkbox" data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onGroupEmailMemberClicked( resident )"> {{::resident.fullName}} {{ ::resident.hasEmail ? "" : "(No email on file)" }}
                         </label>
                     </div>
                 </div>

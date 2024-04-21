@@ -22,24 +22,24 @@
                     <div data-ng-class="{'directory-list-panel':$ctrl.canManage, 'directory-list-panel-full': !$ctrl.canManage}">
 
                         <div data-ng-repeat="curDirectory in $ctrl.documentTree.subdirectories">
-                            <div id="directory-name-{{ $index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-public':curDirectory.isPublic, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
-                                 data-ng-click="$ctrl.onDirectoryClicked(curDirectory);" data-folder-path="{{ curDirectory.fullDirectoryPath }}">
+                            <div id="directory-name-{{ ::$index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-public':curDirectory.isPublic, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
+                                 data-ng-click="$ctrl.onDirectoryClicked(curDirectory);" data-folder-path="{{ ::curDirectory.fullDirectoryPath }}">
                                 <span data-ng-class="{ 'folder-icon': curDirectory.subdirectories.length === 0, 'folder-multi-icon': curDirectory.subdirectories.length > 0 }"></span>
                                 <span class="directory-name">{{curDirectory.name}}</span>
                             </div>
 
                             <div data-ng-if="(curDirectory === $ctrl.selectedDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory.parentDirectory) && $ctrl.shouldShowSubdirectories" data-ng-repeat="subDirectory in curDirectory.subdirectories">
-                                <div id="sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-public':subDirectory.isPublic, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
-                                     data-ng-click="$ctrl.onDirectoryClicked(subDirectory)" data-folder-path="{{ subDirectory.fullDirectoryPath }}">
+                                <div id="sub-directory-name-{{ ::$parent.$index }}-{{ ::$index }}" style="display: inline-block;" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-public':subDirectory.isPublic, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
+                                     data-ng-click="$ctrl.onDirectoryClicked(subDirectory)" data-folder-path="{{ ::subDirectory.fullDirectoryPath }}">
                                     <span data-ng-class="{ 'folder-icon': true, 'folder-multi-icon': subDirectory.subdirectories && subDirectory.subdirectories.length > 0 }"></span>
-                                    <span class="directory-name">{{subDirectory.name}}</span>
+                                    <span class="directory-name">{{ ::subDirectory.name }}</span>
                                 </div>
 
                                 <div data-ng-if="(subSubDirectory === $ctrl.selectedDirectory || subDirectory === $ctrl.selectedDirectory || subDirectory === $ctrl.selectedDirectory.parentDirectory) && $ctrl.shouldShowSubdirectories" data-ng-repeat="subSubDirectory in subDirectory.subdirectories">
-                                    <div id="sub-sub-directory-name-{{ $parent.$index }}-{{ $index }}" style="display: inline-block;" data-ng-class="{ 'sub-sub-directory': true, droppable:true, directory: !subSubDirectory.isPrivate, 'directory-private':subSubDirectory.isPrivate, 'directory-public':subSubDirectory.isPublic, 'directory-selected':subSubDirectory == $ctrl.selectedDirectory }"
-                                         data-ng-click="$ctrl.onDirectoryClicked(subSubDirectory)" data-folder-path="{{ subSubDirectory.fullDirectoryPath }}">
+                                    <div id="sub-sub-directory-name-{{ ::$parent.$index }}-{{ ::$index }}" style="display: inline-block;" data-ng-class="{ 'sub-sub-directory': true, droppable:true, directory: !subSubDirectory.isPrivate, 'directory-private':subSubDirectory.isPrivate, 'directory-public':subSubDirectory.isPublic, 'directory-selected':subSubDirectory == $ctrl.selectedDirectory }"
+                                         data-ng-click="$ctrl.onDirectoryClicked(subSubDirectory)" data-folder-path="{{ ::subSubDirectory.fullDirectoryPath }}">
                                         <span class="folder-icon"></span>
-                                        <span class="directory-name">{{subSubDirectory.name}}</span>
+                                        <span class="directory-name">{{ ::subSubDirectory.name }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -82,23 +82,23 @@
                         This folder contains no files
                     </p>
 
-                    <div id="FileContainer_{{ $index }}" class="file_item p-2" data-ng-class="{'Document_File_Selected': $ctrl.selectedFile === curFile, 'Document_File': $ctrl.selectedFile !== curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
+                    <div id="FileContainer_{{ ::$index }}" class="file_item p-2" data-ng-class="{'Document_File_Selected': $ctrl.selectedFile === curFile, 'Document_File': $ctrl.selectedFile !== curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
                         <div class="file_info media-item margin-top">
                             <div class="media-thumbnail">
-                                <img id="File_{{ $index }}" class="file-thumbnail draggable" ng-dblclick="$ctrl.viewDoc( curFile, false )" ng-src="{{$ctrl.getFileIcon(curFile.fileName)}}" />
+                                <img id="File_{{ ::$index }}" class="file-thumbnail draggable" ng-dblclick="$ctrl.viewDoc( curFile, false )" ng-src="{{::$ctrl.getFileIcon(curFile.fileName)}}" />
                             </div>
 
                             <div class="media-content">
-                                <label id="file-name-{{ $index }}" class="file-name">{{ curFile.title }}</label>
+                                <label id="file-name-{{ ::$index }}" class="file-name">{{ ::curFile.title }}</label>
                                 <div class="row">
                                     <div class="col-md-7 uploader">
-                                        Uploaded {{ curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ curFile.uploaderFullName }}</span> - <span>{{ curFile.fileSizeBytes | filesize }}</span><span data-ng-if="$ctrl.isGenericIcon(curFile)"> - {{ $ctrl.getDisplayExtension( curFile ) }}</span><span> - {{ curFile.numViews }} view{{ curFile.numViews === 1 ? '' : 's' }}</span>
+                                        Uploaded {{ ::curFile.uploadDate | date:'MMMM d, y' }} <span data-ng-show="curFile.uploaderFullName">by {{ ::curFile.uploaderFullName }}</span> - <span>{{ ::curFile.fileSizeBytes | filesize }}</span><span data-ng-if="$ctrl.isGenericIcon(curFile)"> - {{ $ctrl.getDisplayExtension( curFile ) }}</span><span> - {{ curFile.numViews }} view{{ curFile.numViews === 1 ? '' : 's' }}</span>
                                     </div>
                                     <div class="col-md-5 text-md-end padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
                                         - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
-                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
-                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="delete-document-button-{{ $index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ ::$index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="delete-document-button-{{ ::$index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
                                     </div>
                                 </div>
                             </div>

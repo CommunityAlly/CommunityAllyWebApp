@@ -1,11 +1,11 @@
 <div class="page page-manage-assessmenthistory">
     <h1>{{ $ctrl.pageTitle }}</h1>
     
-    <div data-ng-if="$ctrl.shouldShowNeedsAssessmentSetup">
-        <div data-ng-if="$ctrl.hasAssessments === false">
+    <div data-ng-if="::$ctrl.shouldShowNeedsAssessmentSetup">
+        <div data-ng-if="::$ctrl.hasAssessments === false">
             Assessment tracking can only be enabled if you have regular assessments. You association indicated that you do not have regular assessments on the assessment questionnaire. If you need to change that, visit the bottom of <a href="#!/Financials/OnlinePayments">the online payments page</a>.
         </div>
-        <div data-ng-if="$ctrl.hasAssessments !== false">
+        <div data-ng-if="::$ctrl.hasAssessments !== false">
             Before you can start tracking assessments, you need to fill out the assessment questionnaire on <a href="#!/Financials/OnlinePayments">the online payments page</a>.
         </div>
     </div>
@@ -13,7 +13,7 @@
     <div data-ng-if="!$ctrl.shouldShowNeedsAssessmentSetup">
         <p data-ng-if="!$ctrl.isForMemberGroup">
             <label><input id="enable-tracking-checkbox" type="checkbox" data-ng-change="$ctrl.onChangePeriodicPaymentTracking()" data-ng-model="$ctrl.isPeriodicPaymentTrackingEnabled">Enable Payment History for Residents</label><br>
-            <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ $ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
+            <span style="font-size:small;">By enabling the payment history, residents will be able to see what {{ ::$ctrl.payPeriodName }} they're paying for. As payments are made, this chart will be automatically updated. Be certain to have at least each home's most recent payment recorded because that is how residents will know what payment they're making next.</span>
         </p>
         <p class="clearfix">
             <label><input type="checkbox" data-ng-model="$ctrl.showPaymentInfo" data-ng-change="$ctrl.onShowPaymentInfo()">Show Payment Amounts</label>
@@ -57,7 +57,7 @@
                             Est. Balance
                         </th>
                         <th data-ng-repeat="period in $ctrl.visiblePeriodEntries" class="text-center" data-ng-click="$ctrl.onPeriodHeaderClick( period )" data-ng-style="{'font-size': $ctrl.isForMemberGroup ? '1.1em' : '', 'background-color': period.isTodaysPeriod ? '#EEF' : 'default', 'color' : period.specialAssessmentId ? 'blue' : 'default', 'cursor' : period.specialAssessmentId ? 'pointer' : 'default', 'font-size': period.specialAssessmentId ? 'small' : 'default' }">
-                            {{ period.name }}
+                            {{ ::period.name }}
                             <div data-ng-if="period.specialAssessmentId" class="note-text" style="font-size: xx-small;">(Special)</div>
                         </th>
                     </tr>
@@ -66,39 +66,39 @@
                 <tbody data-ng-if="$ctrl.showRowType === 'unit'">
                     <tr data-ng-repeat="unit in $ctrl.filteredUnitRows" ng-init="unitIndex = $index">
                         <td class="text-bold text-end">
-                            <span title="{{ unit.unitId }}">{{ unit.name }}</span>
-                            <div class="unit-owner-names ellipsis" title="{{ owner.name }}" ng-repeat="owner in unit.displayOwners">{{ owner.name ? owner.name : "&nbsp;" }}</div>
+                            <span title="{{ ::unit.unitId }}">{{ ::unit.name }}</span>
+                            <div class="unit-owner-names ellipsis" title="{{ ::owner.name }}" ng-repeat="owner in unit.displayOwners">{{ ::owner.name ? owner.name : "&nbsp;" }}</div>
                         </td>
                         <td data-ng-if="$ctrl.shouldShowBalanceCol">
-                            {{ unit.estBalance | currency }}
+                            {{ ::unit.estBalance | currency }}
                         </td>
-                        <td ng-repeat="payment in unit.displayPayments" id="pay-cell-{{ unitIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
+                        <td data-ng-repeat="payment in unit.displayPayments" id="pay-cell-{{ ::unitIndex }}-{{ ::$index }}" class="month-cell" data-ng-click="$ctrl.onUnitPaymentCellClick( unit, payment )">
                             <div data-ng-if="!$ctrl.showPaymentInfo">
-                                <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
+                                <img src="/assets/images/check.png" data-ng-show="::payment.isPaid">
                             </div>
                             <div data-ng-if="$ctrl.showPaymentInfo">
-                                <div data-ng-if="!payment.isEmptyEntry && payment.amount != 0">
+                                <div data-ng-if="::!payment.isEmptyEntry && payment.amount != 0">
                                     <div data-ng-if="$ctrl.shouldColorCodePayments">
                                         <span data-ng-style="{'color': payment.amount !== null && payment.amount != undefined && !payment.isPaid ? 'red' : 'black'}">{{ payment.amount | currency }}</span>
                                     </div>
-                                    <div data-ng-if="!$ctrl.shouldColorCodePayments">{{ payment.amount | currency }}</div>
+                                    <div data-ng-if="!$ctrl.shouldColorCodePayments">{{ ::payment.amount | currency }}</div>
                                 </div>
                             </div>
                         </td>
                     </tr>
                 </tbody>
 
-                <tbody data-ng-if="$ctrl.showRowType === 'member'">
+                <tbody data-ng-if="::$ctrl.showRowType === 'member'">
                     <tr data-ng-repeat="payer in $ctrl.payers" ng-init="memberIndex = $index">
                         <td class="text-bold text-end">
-                            {{ payer.name }}
+                            {{ ::payer.name }}
                         </td>
-                        <td ng-repeat="payment in payer.displayPayments" id="pay-cell-{{ memberIndex }}-{{ $index }}" class="month-cell" data-ng-click="$ctrl.onMemberPaymentCellClick( payer, payment )">
+                        <td data-ng-repeat="payment in payer.displayPayments" id="pay-cell-{{ ::memberIndex }}-{{ ::$index }}" class="month-cell" data-ng-click="$ctrl.onMemberPaymentCellClick( payer, payment )">
                             <div data-ng-if="!$ctrl.showPaymentInfo">
-                                <img src="/assets/images/check.png" data-ng-show="payment.isPaid">
+                                <img src="/assets/images/check.png" data-ng-show="::payment.isPaid">
                             </div>
                             <div data-ng-if="$ctrl.showPaymentInfo">
-                                <span data-ng-show="payment.isPaid">{{ payment.amount | currency }}</span>
+                                <span data-ng-show="payment.isPaid">{{ ::payment.amount | currency }}</span>
                             </div>
                         </td>
                     </tr>
@@ -108,10 +108,10 @@
                     <tr data-ng-if="$ctrl.showPaymentInfo" class="text-bold">
                         <th class="text-end">Sum:</th>
                         <th data-ng-if="$ctrl.shouldShowBalanceCol">
-                            {{ $ctrl.totalEstBalance | currency }}
+                            {{ ::$ctrl.totalEstBalance | currency }}
                         </th>
-                        <th data-ng-repeat="period in $ctrl.visiblePeriodEntries" id="bottomsum-cell-{{ unitIndex }}-{{ $index }}" class="month-cell">
-                            {{ $ctrl.getPaymentSumForPayPeriod( $index ) | currency }}
+                        <th data-ng-repeat="period in $ctrl.visiblePeriodEntries" id="bottomsum-cell-{{ ::unitIndex }}-{{ ::$index }}" class="month-cell">
+                            {{ ::$ctrl.getPaymentSumForPayPeriod( $index ) | currency }}
                         </th>
                     </tr>
                 </tfoot>
@@ -124,7 +124,7 @@
                     <label data-ng-if="$ctrl.hasUnitsWithoutOwners || $ctrl.shouldShowAllUnits"><input type="checkbox" data-ng-model="$ctrl.shouldShowAllUnits" data-ng-change="$ctrl.retrievePaymentHistory()" /> Include homes without owners</label>
                 </div>
                 <div class="col-6 text-end">
-                    Export To: <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
+                    Export To: <a data-ng-href="{{::$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{::$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
                 </div>
               </div>
             </div>
@@ -173,9 +173,9 @@
                                 <option value=""></option>
                             </select>
                             <select class="form-control form-control-sm form-select" data-ng-if="false" data-ng-model="$ctrl.editPayment.payment.payerUserId">
-                                <option data-ng-repeat="owner in $ctrl.editPayment.unit.owners" value="{{ owner.userId }}">{{ owner.name }}</option>
+                                <option data-ng-repeat="owner in $ctrl.editPayment.unit.owners" value="{{ ::owner.userId }}">{{ ::owner.name }}</option>
                                 <option disabled="disabled">--------------</option>
-                                <option data-ng-repeat="payer in $ctrl.editPayment.filteredPayers" value="{{ payer.userId }}">{{ payer.name }}</option>
+                                <option data-ng-repeat="payer in $ctrl.editPayment.filteredPayers" value="{{ ::payer.userId }}">{{ ::payer.name }}</option>
                             </select>
                         </div>
                     </div>
