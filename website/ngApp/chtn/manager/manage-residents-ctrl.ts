@@ -65,6 +65,7 @@ namespace Ally
     export class HomeEntryWithName extends Ally.HomeEntry
     {
         name: string;
+        lotNumber: string;
     }
 
 
@@ -120,6 +121,7 @@ namespace Ally
         unitGridLabel: string;
         showAdvancedHomePicker: boolean;
         singleUnitId: number;
+        lotNumberLabel: string;
     }
 
 
@@ -358,6 +360,7 @@ namespace Ally
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                         { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'lotNumberLabel', displayName: 'Lot#', width: 140, enableFiltering: true, visible: false },
                     ],
                 multiSelect: false,
                 enableSorting: true,
@@ -666,7 +669,19 @@ namespace Ally
                         return u.name;
                 }, "" );
 
+                const lotNumberLabel = _.reduce( res.units, ( memo: string, u: Ally.HomeEntryWithName ) =>
+                {
+                    if( !u.lotNumber )
+                        return memo;
+
+                    if( memo.length > 0 )
+                        return memo + "," + (u.lotNumber || "");
+                    else
+                        return (u.lotNumber || "");
+                }, "" );
+
                 res.unitGridLabel = unitLabel;
+                res.lotNumberLabel = lotNumberLabel;
             } );
         }
 
@@ -891,7 +906,7 @@ namespace Ally
                 if( !this.editUser.singleUnitId )
                     this.editUser.units = [];
                 else
-                    this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
+                    this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false, lotNumber: null }];
             }
 
             this.isSavingUser = true;
@@ -1025,6 +1040,10 @@ namespace Ally
                 {
                     headerText: "Unit",
                     fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Lot#",
+                    fieldName: "lotNumberLabel"
                 },
                 {
                     headerText: "Is Renter",

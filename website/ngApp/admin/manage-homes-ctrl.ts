@@ -35,6 +35,7 @@
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
+            this.isHoaAlly = AppConfig.appShortName === "hoa";
 
             this.refresh();
         }
