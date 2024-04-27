@@ -6,6 +6,7 @@
         firstName: string;
         lastName: string;
         streetAddress: string;
+        requestFromUrl: string;
     }
 
 
@@ -72,6 +73,7 @@
                 return;
             }
 
+            this.signUpInfo.requestFromUrl = window.location.href;
             this.isLoading = true;
 
             this.$http.post( "/api/NeighborSignUp/SignUpNewUser", this.signUpInfo ).then(

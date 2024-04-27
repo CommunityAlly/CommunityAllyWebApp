@@ -46,6 +46,7 @@ var Ally;
                 alert("Please enter an email address");
                 return;
             }
+            this.signUpInfo.requestFromUrl = window.location.href;
             this.isLoading = true;
             this.$http.post("/api/NeighborSignUp/SignUpNewUser", this.signUpInfo).then(() => {
                 this.isLoading = false;
