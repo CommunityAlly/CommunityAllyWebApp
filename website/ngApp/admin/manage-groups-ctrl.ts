@@ -15,6 +15,7 @@
         groupId: number;
         appName: number;
         shortName: string;
+        deactivationDateUtc: Date;
 
         // Not from the server
         viewUrl: string;
