@@ -69,7 +69,7 @@ namespace Ally
      */
     export class ManagePaymentsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope"];
+        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope", "$timeout"];
 
         PaymentHistory: any[] = [];
         errorMessage = "";
@@ -138,7 +138,8 @@ namespace Ally
             private siteInfo: Ally.SiteInfoService,
             private appCacheService: AppCacheService,
             private uiGridConstants: uiGrid.IUiGridConstants,
-            private $scope: ng.IScope )
+            private $scope: ng.IScope,
+            private $timeout: ng.ITimeoutService )
         {
         }
 
@@ -405,7 +406,11 @@ namespace Ally
             {
                 const residentsWithAutoPay = _.map( this.paymentInfo.usersWithAutoPay, u => u.fullName ).join( "," );
                 if( !confirm( `For any members (${residentsWithAutoPay}) using auto-pay, this will disable those automatic payments and will send them an email saying online payment has been disabled. Would you like to continue?` ) )
+                {
+                    // Need to delay just a bit to let this handler finish
+                    this.$timeout( () => this.paymentInfo.areOnlinePaymentsAllowed = true, 100 );
                     return;
+                }
             }
 
             this.isLoading = true;

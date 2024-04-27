@@ -16,12 +16,13 @@ var Ally;
         /**
         * The constructor for the class
         */
-        constructor($http, siteInfo, appCacheService, uiGridConstants, $scope) {
+        constructor($http, siteInfo, appCacheService, uiGridConstants, $scope, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
             this.$scope = $scope;
+            this.$timeout = $timeout;
             this.PaymentHistory = [];
             this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
@@ -247,8 +248,11 @@ var Ally;
             const mightHaveAutoPay = !this.paymentInfo.areOnlinePaymentsAllowed && (this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0);
             if (mightHaveAutoPay) {
                 const residentsWithAutoPay = _.map(this.paymentInfo.usersWithAutoPay, u => u.fullName).join(",");
-                if (!confirm(`For any members (${residentsWithAutoPay}) using auto-pay, this will disable those automatic payments and will send them an email saying online payment has been disabled. Would you like to continue?`))
+                if (!confirm(`For any members (${residentsWithAutoPay}) using auto-pay, this will disable those automatic payments and will send them an email saying online payment has been disabled. Would you like to continue?`)) {
+                    // Need to delay just a bit to let this handler finish
+                    this.$timeout(() => this.paymentInfo.areOnlinePaymentsAllowed = true, 100);
                     return;
+                }
             }
             this.isLoading = true;
             this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(() => {
@@ -767,7 +771,7 @@ var Ally;
             });
         }
     }
-    ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope"];
+    ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope", "$timeout"];
     Ally.ManagePaymentsController = ManagePaymentsController;
     class ParagonPaymentDetails {
     }
