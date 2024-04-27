@@ -27,7 +27,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob:; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';" />
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
-    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=61" />
+    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=61" crossorigin="anonymous" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=44"></script>
@@ -52,7 +52,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=913;
+        var appVer=925;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -60,17 +60,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=913" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=925" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=913" );
+                    localStorage.setItem( Key_JSVersion, "appVer=925" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=913"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=913"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=925"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=925"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -248,7 +248,7 @@
     <link rel="apple-touch-icon" sizes="196x196" href="/assets/images/icons/Icon-196.png" />
 </head>
 
-<body data-ng-app="CondoAlly" ng-strict-di>
+<body data-ng-app="CondoAlly" ng-strict-di data-ng-style="{'font-family': siteDesignSettings.fontFamily, 'color': siteDesignSettings.bodyFontColor, 'background': siteDesignSettings.background}">
     <header id="app-header">
         <div class="container-fluid logo-container">
             <div class="container">
@@ -284,18 +284,18 @@
                     <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContentMain">
                         <ul class="navbar-nav m-auto justify-content-center">
                             <li class="nav-item" data-ng-repeat="menu in mainMenuItems">
-                                <a class="nav-link" data-ng-class="{'active':menu.path === curPath}" href="{{ '#!' + menu.path }}">{{ menu.menuTitle }}</a>
+                                <a class="nav-link" data-ng-class="{'active':menu.path === curPath}" href="{{ ::'#!' + menu.path }}">{{ ::menu.menuTitle }}</a>
                             </li>
 
-                            <li class="nav-item dropdown" data-ng-show="isSiteManager">
+                            <li class="nav-item dropdown" data-ng-if="isSiteManager">
                                 <a href="javascript:void(0)" class="nav-link dropdown-toggle" id="navbarManageDropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">Manage</a>
 
                                 <div class="dropdown-menu" aria-labelledby="navbarManageDropdownMenuLink">
-                                    <a data-ng-repeat="menu in manageMenuItems" class="dropdown-item" href="{{ '#!' + menu.path }}">{{ menu.menuTitle }}</a>
+                                    <a data-ng-repeat="menu in manageMenuItems" class="dropdown-item" href="{{ ::'#!' + menu.path }}">{{ ::menu.menuTitle }}</a>
 
-                                    <a data-ng-show="isAdmin" data-ng-repeat="menu in adminMenuItems"
-                                       class="dropdown-item" href="{{ '#!' + menu.path }}">
-                                        {{ menu.menuTitle }}
+                                    <a data-ng-if="isAdmin" data-ng-repeat="menu in adminMenuItems"
+                                       class="dropdown-item" href="{{ ::'#!' + menu.path }}">
+                                        {{ ::menu.menuTitle }}
                                     </a>
                                 </div>
                             </li>
@@ -303,7 +303,7 @@
                     </div>
                 </div>
                 <div class="settings pull-right text-end">
-                    Hi <span class="notranslate">{{ userInfo.firstName }}</span><br />
+                    Hi <span class="notranslate">{{ ::userInfo.firstName }}</span><br />
                     <a id="my-profile-link" href="#!/MyProfile">Profile</a> | <span id="log-out-button" class="text-button" data-ng-click="onLogOut();">Log Out</span>
                 </div>
             </nav>
@@ -316,7 +316,7 @@
                     <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContentPublic">
                         <ul class="navbar-nav m-auto">
                             <li class="nav-item" data-ng-repeat="menu in publicMenuItems">
-                                <a class="nav-link" data-ng-class="{'active':menu.path === curPath}" href="{{ '#!' + menu.path }}">{{ menu.title }}</a>
+                                <a class="nav-link" data-ng-class="{'active':menu.path === curPath, 'ally-active-nav':menu.path === curPath}" href="{{ '#!' + menu.path }}">{{ menu.title }}</a>
                             </li>
                         </ul>
                     </div>
@@ -339,7 +339,7 @@
         </div>
     </div>
 
-    <footer class="clearfix">
+    <footer class="clearfix" data-ng-style="{'background': siteDesignSettings.footerBg}">
         <div class="container">
             <div id="google_translate_element"></div>
         </div>

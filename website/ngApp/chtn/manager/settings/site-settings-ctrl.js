@@ -16,10 +16,9 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo, $timeout, $scope, $rootScope) {
+        constructor($http, siteInfo, $scope, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
-            this.$timeout = $timeout;
             this.$scope = $scope;
             this.$rootScope = $rootScope;
             this.settings = new ChtnSiteSettings();
@@ -29,6 +28,7 @@ var Ally;
             this.showLocalNewsSetting = false;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
+            this.shouldShowLoginMoved = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -37,12 +37,10 @@ var Ally;
             this.frontEndVersion = appVer.toString();
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
-            this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
-            // Hook up the file upload control after everything is loaded and setup
-            this.$timeout(() => this.hookUpLoginImageUpload(), 200);
+            this.shouldShowLoginMoved = this.siteInfo.privateSiteInfo.creationDate < ChtnSettingsController.MovedLoginImageDate;
             this.refreshData();
         }
         /**
@@ -73,21 +71,6 @@ var Ally;
                 }
             });
         }
-        /**
-         * Clear the login image
-         */
-        removeLoginImage() {
-            analytics.track("clearLoginImage");
-            this.isLoading = true;
-            this.$http.get("/api/Settings/ClearLoginImage").then(() => {
-                this.isLoading = false;
-                this.siteInfo.publicSiteInfo.loginImageUrl = "";
-                this.loginImageUrl = "";
-            }, (httpResponse) => {
-                this.isLoading = false;
-                alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
-            });
-        }
         static isEmptyHtml(testHtml) {
             if (HtmlUtil.isNullOrWhitespace(testHtml))
                 return true;
@@ -103,7 +86,7 @@ var Ally;
             analytics.track("editSettings");
             this.settings.welcomeMessage = this.tinyMceEditor.getContent();
             this.isLoading = true;
-            this.$http.put("/api/Settings", this.settings).then(() => {
+            this.$http.put("/api/Settings/UpdateSiteSettings", this.settings).then(() => {
                 this.isLoading = false;
                 // Update the locally-stored values
                 this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
@@ -126,7 +109,7 @@ var Ally;
         onImageClick(bgImage) {
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
-            this.$http.put("/api/Settings", { BGImageFileName: this.settings.bgImageFileName }).then(() => {
+            this.$http.put("/api/Settings/NOTUSED", { BGImageFileName: this.settings.bgImageFileName }).then(() => {
                 $(".test-bg-image").removeClass("test-bg-image-selected");
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
                 this.isLoading = false;
@@ -152,51 +135,6 @@ var Ally;
             });
         }
         /**
-         * Initialize the login image JQuery upload control
-         */
-        hookUpLoginImageUpload() {
-            $(() => {
-                $('#JQLoginImageFileUploader').fileupload({
-                    dropZone: null,
-                    pasteZone: null,
-                    autoUpload: true,
-                    add: (e, data) => {
-                        this.$scope.$apply(() => {
-                            this.isLoading = true;
-                        });
-                        analytics.track("setLoginImage");
-                        $("#FileUploadProgressContainer").show();
-                        data.url = "api/DocumentUpload/LoginImage";
-                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
-                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
-                        const xhr = data.submit();
-                        xhr.done((result) => {
-                            this.$scope.$apply(() => {
-                                this.isLoading = false;
-                                this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                this.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
-                            });
-                            $("#FileUploadProgressContainer").hide();
-                        });
-                    },
-                    beforeSend: (xhr) => {
-                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
-                            xhr.setRequestHeader("Authorization", "Bearer " + this.$rootScope.authToken);
-                        else
-                            xhr.setRequestHeader("ApiAuthToken", this.$rootScope.authToken);
-                    },
-                    progressall: (e, data) => {
-                        const progress = Math.floor((data.loaded * 100) / data.total);
-                        $('#FileUploadProgressBar').css('width', progress + '%');
-                        if (progress === 100)
-                            $("#FileUploadProgressLabel").text("Finalizing Upload...");
-                        else
-                            $("#FileUploadProgressLabel").text(progress + "%");
-                    }
-                });
-            });
-        }
-        /**
          * Occurs when the user clicks the link to force refresh the page
          */
         forceRefresh() {
@@ -208,7 +146,8 @@ var Ally;
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         }
     }
-    ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
+    ChtnSettingsController.$inject = ["$http", "SiteInfo", "$scope", "$rootScope"];
+    ChtnSettingsController.MovedLoginImageDate = new Date(2024, 3, 25); // Groups created after April 24, 2024 always have discussion enabled
     Ally.ChtnSettingsController = ChtnSettingsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnSiteSettings", {

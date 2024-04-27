@@ -179,15 +179,15 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             // If we have an overridden URL to use for API requests
                             if (!HtmlUtil.startsWith(reqConfig.url, "http")) {
                                 if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
-                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr("/api/".length);
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring("/api/".length);
                                 else if (siteInfo.publicSiteInfo.baseApiUrl)
-                                    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
+                                    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substring("/api/".length);
                             }
                             else if (isMakingGenericApiRequest && !HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
                                 if (HtmlUtil.startsWith(reqConfig.url, BaseGenericUri))
-                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr(BaseGenericUri.length);
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring(BaseGenericUri.length);
                                 else if (HtmlUtil.startsWith(reqConfig.url, BaseLocalGenericUri))
-                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr(BaseLocalGenericUri.length);
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring(BaseLocalGenericUri.length);
                             }
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
@@ -216,6 +216,14 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.manageMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Manager; });
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
         $rootScope.publicMenuItems = null;
+        // Load the site design
+        console.log("Loading site design settings", $rootScope.publicSiteInfo);
+        $rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
+        if (window.localStorage && window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey)) {
+            const settingsJson = window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey);
+            Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, settingsJson);
+        }
+        //Ally.SiteDesignSettings.ApplySiteDesignSettingsDelayed( $rootScope.siteDesignSettings );
         // Populate the custom page list, setting to null if not valid
         $rootScope.populatePublicPageMenu = () => {
             $rootScope.publicMenuItems = null;

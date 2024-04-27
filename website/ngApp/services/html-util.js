@@ -544,6 +544,44 @@ var Ally;
             //debugger;
             window.location.href = path;
         }
+        static getCssRule(ruleName) {
+            //console.log( "In getCssRule", ruleName );
+            ruleName = ruleName.toLowerCase();
+            let result = null;
+            const find = Array.prototype.find;
+            find.call(document.styleSheets, (styleSheet) => {
+                try {
+                    result = find.call(styleSheet.cssRules, (cssRule) => {
+                        return cssRule instanceof CSSStyleRule
+                            && cssRule.selectorText.toLowerCase() == ruleName;
+                    });
+                }
+                catch { } // Just suppress for now
+                return result != null;
+            });
+            return result;
+        }
+        static getAllCssRules(ruleName) {
+            //console.log( "In getAllCssRules", ruleName );
+            ruleName = ruleName.toLowerCase();
+            let foundRules = [];
+            const find = Array.prototype.forEach;
+            for (let i = 0; i < document.styleSheets.length; ++i) {
+                const curSheet = document.styleSheets[i];
+                let curSheetMatchingRules;
+                try {
+                    curSheetMatchingRules = Array.prototype.filter.call(curSheet.cssRules, (cssRule) => {
+                        return cssRule instanceof CSSStyleRule
+                            && cssRule.selectorText.toLowerCase() == ruleName;
+                    });
+                }
+                catch {
+                    curSheetMatchingRules = [];
+                }
+                foundRules.push(...curSheetMatchingRules);
+            }
+            return foundRules;
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"

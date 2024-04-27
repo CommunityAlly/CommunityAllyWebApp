@@ -87,6 +87,7 @@ namespace Ally
         siteTitleText: string;
         loginImageUrl: string;
         customLandingPagePath: string;
+        siteDesignSettingsJson: string;
 
         /** The root URI for this group's API, looks like "https://0.webappapi.communityally.org/api/" */
         baseApiUrl: string;
@@ -172,7 +173,7 @@ namespace Ally
         xdLocalStorage: any;
         _rootScope: ng.IRootScopeService;
         authToken: string;
-        static AlwaysDiscussDate = new Date( 2018, 7, 1 ); // Groups created after August 1, 2018 always have discussion enabled
+        static readonly AlwaysDiscussDate = new Date( 2018, 7, 1 ); // Groups created after August 1, 2018 always have discussion enabled
 
         // Retrieve the basic information for the current site
         refreshSiteInfo( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $q: ng.IQService ) : ng.IPromise<any>
@@ -354,8 +355,8 @@ namespace Ally
             $rootScope.isLoggedIn = this.isLoggedIn;
 
             // Update the background
-            if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
-                $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
+            //if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
+            //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
 
             if( this.isLoggedIn )
             {
@@ -539,6 +540,9 @@ namespace Ally
 
                             $http.put( "/api/Settings", { siteTitle: $rootScope.siteTitle.text } );
                         };
+
+                        if( $rootScope.publicSiteInfo.siteDesignSettingsJson )
+                            Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson( $rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson );
 
                         deferred.resolve( SiteInfoProvider.siteInfo );
                     },

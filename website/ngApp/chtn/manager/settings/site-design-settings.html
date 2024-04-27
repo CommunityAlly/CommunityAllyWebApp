@@ -1,0 +1,42 @@
+<div class="page" data-ng-if="$ctrl.siteDesignSettings">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+
+    <h2>Login Image</h2>
+    <div>
+        <input id="JQLoginImageFileUploader" type="file" name="files[]" data-url="" multiple style="display:none;" />
+        <button type="button" class="btn btn-primary" onclick="$('#JQLoginImageFileUploader').click();">Choose Image</button>
+        <button type="button" class="btn btn-secondary" data-ng-show="$ctrl.loginImageUrl" style="margin-left: 1em;" data-ng-click="$ctrl.removeLoginImage()">Remove Image</button>
+    </div>
+    <div class="note-text">Image will be resized to 706x396</div>
+    <p>
+        <img alt="Login Image" style="max-width: 100%;" data-ng-show="$ctrl.loginImageUrl" data-ng-src="{{ $ctrl.loginImageUrl }}" />
+    </p>
+
+
+    <h2 class="mt-5">Preset Designs</h2>
+    <div class="note-text mb-3">(Click on a design name to view and use that option)</div>
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-12 col-sm-3">
+                <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'default'}" data-ng-click="$ctrl.selectPreset('default')">Classic</div>
+            </div>
+            <div class="col-12 col-sm-3">
+                <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'modern'}" data-ng-click="$ctrl.selectPreset('modern')">Modern</div>
+            </div>
+            <div class="col-12 col-sm-3">
+                <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'peacefulPink'}" data-ng-click="$ctrl.selectPreset('peacefulPink')">Peaceful Pink</div>
+            </div>
+            <div class="col-12 col-sm-3">
+                <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'gatedCommunity'}" data-ng-click="$ctrl.selectPreset('gatedCommunity')">Gated Community</div>
+            </div>
+            <!--<div class="col-12 col-sm-3">
+                <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'custom'}" data-ng-click="$ctrl.selectPreset('custom')">Custom</div>
+            </div>-->
+        </div>
+    </div>
+    
+
+    <h2 class="mt-5">Custom Design Settings</h2>
+    <h5>Coming Soon</h5>
+</div>

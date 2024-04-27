@@ -261,6 +261,10 @@ a {
   margin: 30px 0px;
 }
 
+.margin-vertical-lg {
+  margin: 40px 0px;
+}
+
 .margin-top-50 {
   margin-top: 50px;
 }
@@ -337,8 +341,8 @@ a {
   padding-right: 30px;
 }
 
-.box-shadow, .page {
-  box-shadow: 0 10px 10px #eaeaeb;
+.box-shadow {
+  box-shadow: 0 10px 10px rgba(134, 134, 135, 0.3);
 }
 
 .spinner-effect {
@@ -440,6 +444,7 @@ a {
 /** portlet boxes */
 .portlet-box {
   padding: 21px 27px;
+  border-radius: 12px;
 }
 .portlet-box .portlet-header {
   margin-bottom: 18px;
@@ -582,6 +587,7 @@ section.header-pill-menu-section {
   border-radius: 10px;
   padding: 9px 17px;
   color: white;
+  border-radius: 12px;
 }
 
 section.header-pill-menu-section nav a {
@@ -726,6 +732,23 @@ a[data-edit="backColor #FFFFFF"]::before {
   border: 1px solid black;
   padding: 20px;
   margin: 1rem;
+}
+
+.ally-active-nav {
+  color: white !important;
+}
+
+.ally-inactive-nav {
+  color: white !important;
+}
+
+input[type=radio] {
+  accent-color: auto;
+}
+
+input[type=checkbox] {
+  accent-color: auto;
+  background-color: auto;
 }
 
 /* BS4-BS5 Updrade General CSS Change Start */
@@ -913,7 +936,6 @@ header .settings {
   min-width: 160px;
 }
 header .settings a, header .settings .text-button {
-  color: #007CBC;
   font-weight: 600;
 }
 @media (max-width: 1200px) {
@@ -994,6 +1016,8 @@ header .settings a, header .settings .text-button {
 .page {
   background: white;
   position: relative;
+  border-radius: 12px;
+  box-shadow: 0 10px 10px rgba(134, 134, 135, 0.3);
 }
 
 footer {
@@ -1031,7 +1055,7 @@ footer a:hover {
 .page-home .payment_bl .portlet-header {
   background: url(/assets/images/icons.png) no-repeat right -221px;
 }
-.page-home .send_email .portlet-header {
+.page-home .send-email .portlet-header {
   background: url(/assets/images/icons.png) no-repeat 106% -76px;
 }
 .page-home .generic .portlet-header {

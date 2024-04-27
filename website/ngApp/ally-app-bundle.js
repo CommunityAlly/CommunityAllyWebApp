@@ -548,6 +548,7 @@ var Ally;
             this.isAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.isCondoAlly = AppConfig.appShortName === "condo";
+            this.isHoaAlly = AppConfig.appShortName === "hoa";
             this.refresh();
         }
         /**
@@ -758,7 +759,7 @@ var Ally;
                 this.isLoading = false;
                 this.allLogEntries = logResponse.data;
                 // The date comes down as a string so let's convert it to a Date object for the local time zone
-                _.each(this.allLogEntries, (e) => e.postDate = moment(e.postDate).toDate());
+                _.each(this.allLogEntries, (e) => e.entryDateUtc = moment(e.entryDateUtc).toDate());
                 this.filterMessages();
             }, (errorResponse) => {
                 this.isLoading = false;
@@ -1161,15 +1162,15 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             // If we have an overridden URL to use for API requests
                             if (!HtmlUtil.startsWith(reqConfig.url, "http")) {
                                 if (!HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath))
-                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr("/api/".length);
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring("/api/".length);
                                 else if (siteInfo.publicSiteInfo.baseApiUrl)
-                                    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr("/api/".length);
+                                    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substring("/api/".length);
                             }
                             else if (isMakingGenericApiRequest && !HtmlUtil.isNullOrWhitespace(OverrideBaseApiPath)) {
                                 if (HtmlUtil.startsWith(reqConfig.url, BaseGenericUri))
-                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr(BaseGenericUri.length);
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring(BaseGenericUri.length);
                                 else if (HtmlUtil.startsWith(reqConfig.url, BaseLocalGenericUri))
-                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr(BaseLocalGenericUri.length);
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring(BaseLocalGenericUri.length);
                             }
                             // Add the auth token
                             reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
@@ -1198,6 +1199,14 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.manageMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Manager; });
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
         $rootScope.publicMenuItems = null;
+        // Load the site design
+        console.log("Loading site design settings", $rootScope.publicSiteInfo);
+        $rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
+        if (window.localStorage && window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey)) {
+            const settingsJson = window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey);
+            Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, settingsJson);
+        }
+        //Ally.SiteDesignSettings.ApplySiteDesignSettingsDelayed( $rootScope.siteDesignSettings );
         // Populate the custom page list, setting to null if not valid
         $rootScope.populatePublicPageMenu = () => {
             $rootScope.publicMenuItems = null;
@@ -1696,9 +1705,6 @@ AppConfig.isPublicRoute = function (path) {
 };
 // Set the browser title
 document.title = AppConfig.appName;
-$(document).ready(function () {
-    $("header").css("background-image", "url(/assets/images/header-img-" + AppConfig.appShortName + ".jpg)");
-});
 
 var Ally;
 (function (Ally) {
@@ -2196,6 +2202,8 @@ var Ally;
                 this.payers = _.sortBy(paymentInfo.payers, payer => payer.name);
                 this.displayPaymentsForRange(this.startYearValue, this.startPeriodValue);
                 this.isLoading = false;
+                if (this.quickFilterText)
+                    this.onQuickFilterChange();
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to retrieve payment history: " + response.data.exceptionMessage);
@@ -2282,7 +2290,7 @@ var Ally;
         /**
          * Occurs when the user toggles whether or not to show payment info
          */
-        onshowPaymentInfo() {
+        onShowPaymentInfo() {
             window.localStorage[this.LocalStorageKey_ShowPaymentInfo] = this.showPaymentInfo;
             window.localStorage[this.LocalStorageKey_ShouldColorCodePayments] = this.shouldColorCodePayments;
         }
@@ -2398,7 +2406,7 @@ var Ally;
                 };
                 ++numPosts;
                 // Poor man's async for-loop
-                window.setTimeout(() => this.$http.post("/api/PaymentHistory", postData), numPosts * 350);
+                window.setTimeout(() => this.$http.post("/api/PaymentHistory/NewPaymentEntry", postData), numPosts * 350);
             }
             window.setTimeout(() => {
                 this.isLoading = false;
@@ -4289,12 +4297,13 @@ var Ally;
         /**
         * The constructor for the class
         */
-        constructor($http, siteInfo, appCacheService, uiGridConstants, $scope) {
+        constructor($http, siteInfo, appCacheService, uiGridConstants, $scope, $timeout) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
             this.$scope = $scope;
+            this.$timeout = $timeout;
             this.PaymentHistory = [];
             this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
@@ -4520,8 +4529,11 @@ var Ally;
             const mightHaveAutoPay = !this.paymentInfo.areOnlinePaymentsAllowed && (this.paymentInfo.usersWithAutoPay && this.paymentInfo.usersWithAutoPay.length > 0);
             if (mightHaveAutoPay) {
                 const residentsWithAutoPay = _.map(this.paymentInfo.usersWithAutoPay, u => u.fullName).join(",");
-                if (!confirm(`For any members (${residentsWithAutoPay}) using auto-pay, this will disable those automatic payments and will send them an email saying online payment has been disabled. Would you like to continue?`))
+                if (!confirm(`For any members (${residentsWithAutoPay}) using auto-pay, this will disable those automatic payments and will send them an email saying online payment has been disabled. Would you like to continue?`)) {
+                    // Need to delay just a bit to let this handler finish
+                    this.$timeout(() => this.paymentInfo.areOnlinePaymentsAllowed = true, 100);
                     return;
+                }
             }
             this.isLoading = true;
             this.$http.put("/api/OnlinePayment/SaveAllow?allowPayments=" + this.paymentInfo.areOnlinePaymentsAllowed, null).then(() => {
@@ -5040,7 +5052,7 @@ var Ally;
             });
         }
     }
-    ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope"];
+    ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope", "$timeout"];
     Ally.ManagePaymentsController = ManagePaymentsController;
     class ParagonPaymentDetails {
     }
@@ -5781,6 +5793,7 @@ var Ally;
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                         { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'lotNumberLabel', displayName: 'Lot#', width: 140, enableFiltering: true, visible: false },
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -6006,7 +6019,16 @@ var Ally;
                     else
                         return u.name;
                 }, "");
+                const lotNumberLabel = _.reduce(res.units, (memo, u) => {
+                    if (!u.lotNumber)
+                        return memo;
+                    if (memo.length > 0)
+                        return memo + "," + (u.lotNumber || "");
+                    else
+                        return (u.lotNumber || "");
+                }, "");
                 res.unitGridLabel = unitLabel;
+                res.lotNumberLabel = lotNumberLabel;
             });
         }
         /**
@@ -6159,7 +6181,7 @@ var Ally;
                 if (!this.editUser.singleUnitId)
                     this.editUser.units = [];
                 else
-                    this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false }];
+                    this.editUser.units = [{ unitId: this.editUser.singleUnitId, name: null, memberHomeId: null, userId: this.editUser.userId, isRenter: false, lotNumber: null }];
             }
             this.isSavingUser = true;
             const onSave = (response) => {
@@ -6252,6 +6274,10 @@ var Ally;
                 {
                     headerText: "Unit",
                     fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Lot#",
+                    fieldName: "lotNumberLabel"
                 },
                 {
                     headerText: "Is Renter",
@@ -7319,6 +7345,137 @@ CA.angularApp.component("settingsParent", {
 
 var Ally;
 (function (Ally) {
+    /**
+     * The controller for the site design settings page
+     */
+    class SiteDesignSettingsController {
+        /**
+         * The constructor for the class
+         */
+        constructor($http, siteInfo, $rootScope, $timeout, $scope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$rootScope = $rootScope;
+            this.$timeout = $timeout;
+            this.$scope = $scope;
+            this.isLoading = false;
+            this.siteDesignSettings = new Ally.SiteDesignSettings();
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        $onInit() {
+            console.log("In SiteDesignSettingsController.$onInit");
+            if (!this.siteInfo.publicSiteInfo.siteDesignSettingsJson)
+                this.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
+            else
+                this.siteDesignSettings = JSON.parse(this.siteInfo.publicSiteInfo.siteDesignSettingsJson);
+            this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
+            // Hook up the file upload control after everything is loaded and setup
+            this.$timeout(() => this.hookUpLoginImageUpload(), 200);
+        }
+        selectPreset(presetName) {
+            console.log("in selectPreset", presetName);
+            this.siteDesignSettings.presetTemplateName = presetName;
+            if (presetName !== "custom") {
+                this.siteDesignSettings = Ally.SiteDesignSettings.GetPreset(presetName);
+                this.$rootScope.siteDesignSettings = this.siteDesignSettings;
+            }
+            window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, JSON.stringify(this.siteDesignSettings));
+            Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
+            this.isLoading = true;
+            const updateInfo = {
+                siteDesignSettingsJson: JSON.stringify(this.siteDesignSettings)
+            };
+            this.$http.put("/api/Settings/UpdateSiteDesignSettings", updateInfo).then(() => {
+                this.isLoading = false;
+                this.siteInfo.publicSiteInfo.siteDesignSettingsJson = updateInfo.siteDesignSettingsJson;
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to save: " + response.data.exceptionMessage);
+            });
+        }
+        /**
+         * Clear the login image
+         */
+        removeLoginImage() {
+            analytics.track("clearLoginImage");
+            this.isLoading = true;
+            this.$http.get("/api/Settings/ClearLoginImage").then(() => {
+                this.isLoading = false;
+                this.siteInfo.publicSiteInfo.loginImageUrl = "";
+                this.loginImageUrl = "";
+            }, (httpResponse) => {
+                this.isLoading = false;
+                alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /**
+         * Initialize the login image JQuery upload control
+         */
+        hookUpLoginImageUpload() {
+            $(() => {
+                $('#JQLoginImageFileUploader').fileupload({
+                    dropZone: null,
+                    pasteZone: null,
+                    autoUpload: true,
+                    add: (e, data) => {
+                        this.$scope.$apply(() => {
+                            this.isLoading = true;
+                        });
+                        analytics.track("setLoginImage");
+                        $("#FileUploadProgressContainer").show();
+                        data.url = "api/DocumentUpload/LoginImage";
+                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
+                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
+                        const xhr = data.submit();
+                        xhr.done((result) => {
+                            this.$scope.$apply(() => {
+                                this.isLoading = false;
+                                this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
+                                this.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
+                            });
+                            $("#FileUploadProgressContainer").hide();
+                        });
+                        xhr.error((jqXHR) => {
+                            alert("Upload failed: " + jqXHR.responseJSON.exceptionMessage);
+                            //console.log( "fail", jqXHR, textStatus, errorThrown );
+                            this.$scope.$apply(() => this.isLoading = false);
+                        });
+                    },
+                    beforeSend: (xhr) => {
+                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
+                            xhr.setRequestHeader("Authorization", "Bearer " + this.$rootScope.authToken);
+                        else
+                            xhr.setRequestHeader("ApiAuthToken", this.$rootScope.authToken);
+                    },
+                    progressall: (e, data) => {
+                        const progress = Math.floor((data.loaded * 100) / data.total);
+                        $('#FileUploadProgressBar').css('width', progress + '%');
+                        if (progress === 100)
+                            $("#FileUploadProgressLabel").text("Finalizing Upload...");
+                        else
+                            $("#FileUploadProgressLabel").text(progress + "%");
+                    },
+                    fail: (e, xhr) => {
+                        //alert( "Failed to upload login image, please let support know if this continues: " + xhr.response().jqXHR.responseJSON.exceptionMessage );
+                        //console.log( "Failed to upload document", xhr );
+                        //this.$scope.$apply( () => this.isLoading = false );
+                    }
+                });
+            });
+        }
+    }
+    SiteDesignSettingsController.$inject = ["$http", "SiteInfo", "$rootScope", "$timeout", "$scope"];
+    Ally.SiteDesignSettingsController = SiteDesignSettingsController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("siteDesignSettings", {
+    templateUrl: "/ngApp/chtn/manager/settings/site-design-settings.html",
+    controller: Ally.SiteDesignSettingsController
+});
+
+var Ally;
+(function (Ally) {
     class BaseSiteSettings {
     }
     Ally.BaseSiteSettings = BaseSiteSettings;
@@ -7335,10 +7492,9 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo, $timeout, $scope, $rootScope) {
+        constructor($http, siteInfo, $scope, $rootScope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
-            this.$timeout = $timeout;
             this.$scope = $scope;
             this.$rootScope = $rootScope;
             this.settings = new ChtnSiteSettings();
@@ -7348,6 +7504,7 @@ var Ally;
             this.showLocalNewsSetting = false;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
+            this.shouldShowLoginMoved = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -7356,12 +7513,10 @@ var Ally;
             this.frontEndVersion = appVer.toString();
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
-            this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
-            // Hook up the file upload control after everything is loaded and setup
-            this.$timeout(() => this.hookUpLoginImageUpload(), 200);
+            this.shouldShowLoginMoved = this.siteInfo.privateSiteInfo.creationDate < ChtnSettingsController.MovedLoginImageDate;
             this.refreshData();
         }
         /**
@@ -7392,21 +7547,6 @@ var Ally;
                 }
             });
         }
-        /**
-         * Clear the login image
-         */
-        removeLoginImage() {
-            analytics.track("clearLoginImage");
-            this.isLoading = true;
-            this.$http.get("/api/Settings/ClearLoginImage").then(() => {
-                this.isLoading = false;
-                this.siteInfo.publicSiteInfo.loginImageUrl = "";
-                this.loginImageUrl = "";
-            }, (httpResponse) => {
-                this.isLoading = false;
-                alert("Failed to remove loading image: " + httpResponse.data.exceptionMessage);
-            });
-        }
         static isEmptyHtml(testHtml) {
             if (HtmlUtil.isNullOrWhitespace(testHtml))
                 return true;
@@ -7422,7 +7562,7 @@ var Ally;
             analytics.track("editSettings");
             this.settings.welcomeMessage = this.tinyMceEditor.getContent();
             this.isLoading = true;
-            this.$http.put("/api/Settings", this.settings).then(() => {
+            this.$http.put("/api/Settings/UpdateSiteSettings", this.settings).then(() => {
                 this.isLoading = false;
                 // Update the locally-stored values
                 this.siteInfo.privateSiteInfo.homeRightColumnType = this.settings.homeRightColumnType;
@@ -7445,7 +7585,7 @@ var Ally;
         onImageClick(bgImage) {
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
-            this.$http.put("/api/Settings", { BGImageFileName: this.settings.bgImageFileName }).then(() => {
+            this.$http.put("/api/Settings/NOTUSED", { BGImageFileName: this.settings.bgImageFileName }).then(() => {
                 $(".test-bg-image").removeClass("test-bg-image-selected");
                 //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
                 this.isLoading = false;
@@ -7471,51 +7611,6 @@ var Ally;
             });
         }
         /**
-         * Initialize the login image JQuery upload control
-         */
-        hookUpLoginImageUpload() {
-            $(() => {
-                $('#JQLoginImageFileUploader').fileupload({
-                    dropZone: null,
-                    pasteZone: null,
-                    autoUpload: true,
-                    add: (e, data) => {
-                        this.$scope.$apply(() => {
-                            this.isLoading = true;
-                        });
-                        analytics.track("setLoginImage");
-                        $("#FileUploadProgressContainer").show();
-                        data.url = "api/DocumentUpload/LoginImage";
-                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
-                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
-                        const xhr = data.submit();
-                        xhr.done((result) => {
-                            this.$scope.$apply(() => {
-                                this.isLoading = false;
-                                this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                this.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
-                            });
-                            $("#FileUploadProgressContainer").hide();
-                        });
-                    },
-                    beforeSend: (xhr) => {
-                        if (this.siteInfo.publicSiteInfo.baseApiUrl)
-                            xhr.setRequestHeader("Authorization", "Bearer " + this.$rootScope.authToken);
-                        else
-                            xhr.setRequestHeader("ApiAuthToken", this.$rootScope.authToken);
-                    },
-                    progressall: (e, data) => {
-                        const progress = Math.floor((data.loaded * 100) / data.total);
-                        $('#FileUploadProgressBar').css('width', progress + '%');
-                        if (progress === 100)
-                            $("#FileUploadProgressLabel").text("Finalizing Upload...");
-                        else
-                            $("#FileUploadProgressLabel").text(progress + "%");
-                    }
-                });
-            });
-        }
-        /**
          * Occurs when the user clicks the link to force refresh the page
          */
         forceRefresh() {
@@ -7527,7 +7622,8 @@ var Ally;
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
         }
     }
-    ChtnSettingsController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
+    ChtnSettingsController.$inject = ["$http", "SiteInfo", "$scope", "$rootScope"];
+    ChtnSettingsController.MovedLoginImageDate = new Date(2024, 3, 25); // Groups created after April 24, 2024 always have discussion enabled
     Ally.ChtnSettingsController = ChtnSettingsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnSiteSettings", {
@@ -7674,9 +7770,9 @@ var Ally;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
             this.allyAppName = AppConfig.appName;
-            let homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
-            if (HtmlUtil.isNullOrWhitespace(homeRightColumnType))
-                homeRightColumnType = "localnews";
+            const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
+            //if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
+            //    homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
                 this.showDiscussionThreads = true;
                 this.showLocalNews = homeRightColumnType.indexOf("localnews") > -1;
@@ -8538,6 +8634,9 @@ CA.angularApp.component("groupMembers", {
 var Ally;
 (function (Ally) {
     class HelpSendInfo {
+        constructor() {
+            this.emailAddress = "";
+        }
     }
     /**
      * The controller for the page that allows users to submit feedback
@@ -8546,14 +8645,17 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo) {
+        constructor($http, siteInfo, $sce) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.$sce = $sce;
             this.sendInfo = new HelpSendInfo();
             this.isLoading = false;
             this.wasMessageSent = false;
             this.isPageEnabled = null;
             this.shouldShowGroupNameField = false;
+            this.freshdeskFormUrl = null;
+            this.numZohoChecks = 0;
             /**
              * Occurs when the user clicks the log-in button
              */
@@ -8590,13 +8692,50 @@ var Ally;
                 this.isPageEnabled = true; // Default to true if we can't get the setting
                 console.log("Failed to get sign-up enabled status: " + httpResponse.data.exceptionMessage);
             });
-            if (this.siteInfo.isLoggedIn)
+            this.freshdeskFormUrl = "https://communityally.freshdesk.com/widgets/feedback_widget/new?&widgetType=embedded&submitTitle=Send+Message&submitThanks=Thank+you+for+your+message%2C+we'll+get+back+to+you+as+soon+as+possible.&searchArea=no";
+            if (this.siteInfo.isLoggedIn) {
                 this.sendInfo.emailAddress = this.siteInfo.userInfo.emailAddress;
+                //this.freshdeskFormUrl += `&helpdesk_ticket[requester]=${this.siteInfo.userInfo.emailAddress}&disable[requester]=true`;
+                //window.setTimeout( () => this.prePopulateZohoForm(), 300 );
+            }
+            this.freshdeskFormUrl = this.$sce.trustAsResourceUrl(this.freshdeskFormUrl);
             this.sendInfo.clientUrl = window.location.href;
             this.shouldShowGroupNameField = HtmlUtil.getSubdomain(window.location.host) === "login";
         }
+        prePopulateZohoForm() {
+            //let populateZohoForm: () => void;
+            //populateZohoForm = () =>
+            {
+                console.log("In populateZohoForm This is me writing good thinks about time.");
+                const firstNameField = document.getElementById("feedbNameTxtField");
+                if (!firstNameField) {
+                    // Just try 5 times, or for 1.25secs
+                    ++this.numZohoChecks;
+                    if (this.numZohoChecks > 5)
+                        return;
+                    setTimeout(() => this.prePopulateZohoForm(), 250);
+                    return;
+                }
+                if (!HtmlUtil.isNullOrWhitespace(this.siteInfo.userInfo.fullName)) {
+                    firstNameField.value = this.siteInfo.userInfo.fullName;
+                    firstNameField.readOnly = true;
+                    firstNameField.disabled = true;
+                    firstNameField.style.setProperty("background-color", "#eee", "important");
+                }
+                if (this.siteInfo.userInfo.emailAddress) {
+                    const emailField = document.getElementById("feedbEmailTxtField");
+                    emailField.value = this.siteInfo.userInfo.emailAddress;
+                    emailField.readOnly = true;
+                    emailField.disabled = true;
+                    emailField.style.setProperty("background-color", "#eee", "important");
+                }
+                //const changeEvent = new Event( 'change' );
+                //emailField.dispatchEvent( changeEvent );
+            }
+            ;
+        }
     }
-    HelpFormController.$inject = ["$http", "SiteInfo"];
+    HelpFormController.$inject = ["$http", "SiteInfo", "$sce"];
     Ally.HelpFormController = HelpFormController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("helpForm", {
@@ -10255,6 +10394,7 @@ var Ally;
                 alert("Please enter an email address");
                 return;
             }
+            this.signUpInfo.requestFromUrl = window.location.href;
             this.isLoading = true;
             this.$http.post("/api/NeighborSignUp/SignUpNewUser", this.signUpInfo).then(() => {
                 this.isLoading = false;
@@ -11002,6 +11142,7 @@ var Ally;
             this.hasStripeAchPendingMicroDeposits = false;
             this.shouldShowStripeAchMandate = false;
             this.shouldShowStripeAchRefresh = false;
+            this.isUpgradingStripePaymentForAutoPay = false;
             this.pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
         }
         /**
@@ -11041,7 +11182,7 @@ var Ally;
             this.usersStripeBankAccountHint = this.siteInfo.userInfo.stripeBankAccountHint;
             this.usersStripeBankAccountId = this.siteInfo.userInfo.stripeBankAccountId;
             this.usersStripeAchPaymentMethodId = this.siteInfo.userInfo.stripeAchPaymentMethodId;
-            this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPaySubscriptionId;
+            this.userHasStripeAutoPay = !!this.siteInfo.userInfo.stripeAutoPayAmount;
             this.stripeAutoPayAmount = this.siteInfo.userInfo.stripeAutoPayAmount;
             this.hasStripePlaidPendingMicroDeposits = this.siteInfo.userInfo.hasStripePlaidPendingMicroDeposits;
             this.hasStripeAchPendingMicroDeposits = this.siteInfo.userInfo.hasStripeAchPendingMicroDeposits;
@@ -11144,7 +11285,8 @@ var Ally;
                 || (typeof this.currentDwollaAutoPayAmount === "number" && !isNaN(this.currentDwollaAutoPayAmount) && this.currentDwollaAutoPayAmount > 1);
             // Temporarily disable while we figure out the contract
             this.shouldShowDwollaAutoPayArea = false;
-            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup && !!this.siteInfo.userInfo.stripeBankAccountId;
+            this.shouldShowStripeAutoPayArea = this.isStripeEnabledOnGroup
+                && (!!this.siteInfo.userInfo.stripeBankAccountId || !!this.siteInfo.userInfo.stripeAchPaymentMethodId);
             if (this.shouldShowDwollaAutoPayArea || this.shouldShowStripeAutoPayArea) {
                 this.assessmentFrequencyInfo = PeriodicPaymentFrequencies.find(ppf => ppf.id === this.siteInfo.privateSiteInfo.assessmentFrequency);
             }
@@ -11157,6 +11299,7 @@ var Ally;
                     paysFor: []
                 };
             this.onPaymentAmountChange();
+            this.stripeAutoPayFeeAmountString = this.stripeAchFeeAmountString;
             const MaxNumRecentPayments = 24;
             this.historicPayments = this.siteInfo.userInfo.recentPayments;
             if (this.historicPayments && this.historicPayments.length > 0) {
@@ -11896,10 +12039,30 @@ var Ally;
                 this.isLoading_Payment = false;
                 this.userHasStripeAutoPay = true;
                 alert("Auto-pay successfully enabled");
+                if (this.isUpgradingStripePaymentForAutoPay)
+                    window.location.reload();
             }, (httpResponse) => {
                 this.isLoading_Payment = false;
                 alert("Failed to setup auto-pay: " + httpResponse.data.exceptionMessage);
             });
+        }
+        startEnableStripeAutoPay() {
+            if (this.assessmentAmount < 10) {
+                alert("Your auto-pay amount cannot be less than $10");
+                return;
+            }
+            // If the user doesn't have a bank account
+            if (!this.usersStripeAchPaymentMethodId && !this.usersStripeBankAccountId) {
+                alert("You don't appear to have a connected checking account. Please connect your account or contact support.");
+                return;
+            }
+            // If the user has a bank account that has not yet been upgraded to a payment method
+            if (!this.usersStripeAchPaymentMethodId && this.usersStripeBankAccountId) {
+                this.isUpgradingStripePaymentForAutoPay = true;
+                this.upgradeBankAccountToPaymentMethod();
+            }
+            else
+                this.enableStripeAutoPay();
         }
         disableStripeAutoPay() {
             this.isLoading_Payment = true;
@@ -11997,6 +12160,7 @@ var Ally;
                             // manually-entered. Display payment method details and mandate text
                             // to the customer and confirm the intent once they accept
                             // the mandate.
+                            this.isUpgradingStripePaymentForAutoPay = false;
                             this.shouldShowStripeAchMandate = true;
                         }
                     });
@@ -12023,9 +12187,9 @@ var Ally;
                         if (result.error) {
                             this.isLoading_Payment = false;
                             this.shouldShowStripeAchMandate = false;
+                            // The payment failed for some reason.
                             console.error(result.error.message);
                             alert("Failed to confirm: " + result.error.message);
-                            // The payment failed for some reason.
                         }
                         else if (result.setupIntent.status === "requires_payment_method") {
                             // Confirmation failed. Attempt again with a different payment method.
@@ -12044,7 +12208,10 @@ var Ally;
                             this.$http.get("/api/StripePayments/CompleteUserBankSignUp").then(() => {
                                 this.isLoading_Payment = false;
                                 this.shouldShowStripeAchMandate = false;
-                                window.location.reload();
+                                if (this.isUpgradingStripePaymentForAutoPay)
+                                    this.enableStripeAutoPay();
+                                else
+                                    window.location.reload();
                             }, (httpResponse) => {
                                 this.isLoading_Payment = false;
                                 alert("Failed to cancel account addition: " + httpResponse.data.exceptionMessage);
@@ -12099,8 +12266,11 @@ var Ally;
             //    // Handle result.error or result.setupIntent
             //} );
         }
-        refreshPage() {
-            window.location.reload();
+        refreshPageAfterStripeVerify() {
+            this.$http.get("/api/StripePayments/RefreshStripeAchInfo").then(() => window.location.reload(), (httpResponse) => {
+                this.isLoading_Payment = false;
+                alert("Failed to refresh status: " + httpResponse.data.exceptionMessage);
+            });
         }
         upgradeBankAccountToPaymentMethod() {
             this.isLoading_Payment = true;
@@ -12680,10 +12850,9 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to create a directory within the current directory
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        CreateSubDirectory() {
+        createSubDirectory() {
+            //console.log( "In createSubDirectory", this.selectedDirectory.fullDirectoryPath );
             this.createUnderParentDirName = this.selectedDirectory.fullDirectoryPath;
-            if (this.committee)
-                this.createUnderParentDirName = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.createUnderParentDirName;
             this.shouldShowCreateFolderModal = true;
             setTimeout(() => $('#CreateDirectoryNameTextBox').focus(), 50);
         }
@@ -17311,6 +17480,7 @@ var Ally;
             this.canCreateThreads = false;
             this.isDiscussionEmailEnabled = true;
             this.isPremiumPlanActive = false;
+            this.toggle = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -17339,6 +17509,15 @@ var Ally;
             this.refreshCommentThreads(false);
         }
         setDisplayCreateModal(shouldShow) {
+            //const portletRule = HtmlUtil2.getCSSRule( ".portlet-box" );
+            //console.log( "getCSSRule returned", portletRule );
+            //if( this.toggle )
+            //    portletRule.style.boxShadow = "rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px";
+            //else
+            //    portletRule.style.boxShadow = null;
+            //console.log( "portletRule.style.boxShadow", portletRule.style.boxShadow );
+            //this.toggle=!this.toggle;
+            //return;
             this.showCreateNewModal = shouldShow;
             this.newThreadTitle = "";
             this.newThreadIsBoardOnly = false;
@@ -18156,6 +18335,44 @@ var Ally;
             //debugger;
             window.location.href = path;
         }
+        static getCssRule(ruleName) {
+            //console.log( "In getCssRule", ruleName );
+            ruleName = ruleName.toLowerCase();
+            let result = null;
+            const find = Array.prototype.find;
+            find.call(document.styleSheets, (styleSheet) => {
+                try {
+                    result = find.call(styleSheet.cssRules, (cssRule) => {
+                        return cssRule instanceof CSSStyleRule
+                            && cssRule.selectorText.toLowerCase() == ruleName;
+                    });
+                }
+                catch { } // Just suppress for now
+                return result != null;
+            });
+            return result;
+        }
+        static getAllCssRules(ruleName) {
+            //console.log( "In getAllCssRules", ruleName );
+            ruleName = ruleName.toLowerCase();
+            let foundRules = [];
+            const find = Array.prototype.forEach;
+            for (let i = 0; i < document.styleSheets.length; ++i) {
+                const curSheet = document.styleSheets[i];
+                let curSheetMatchingRules;
+                try {
+                    curSheetMatchingRules = Array.prototype.filter.call(curSheet.cssRules, (cssRule) => {
+                        return cssRule instanceof CSSStyleRule
+                            && cssRule.selectorText.toLowerCase() == ruleName;
+                    });
+                }
+                catch {
+                    curSheetMatchingRules = [];
+                }
+                foundRules.push(...curSheetMatchingRules);
+            }
+            return foundRules;
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"
@@ -18330,10 +18547,12 @@ angular.module("CondoAlly").directive("ngEnter", function () {
 angular.module("CondoAlly").directive("ngCtrlEnter", function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
+            console.log("In ngCtrlEnter", event.which, event.ctrlKey);
             const EnterKeyCode = 13;
             if (event.which === EnterKeyCode && event.ctrlKey) {
+                console.log("Detected ngCtrlEnter", attrs.ngCtrlEnter);
                 scope.$apply(function () {
-                    scope.$eval(attrs.ngEnter, { '$event': event });
+                    scope.$eval(attrs.ngCtrlEnter, { '$event': event });
                 });
                 event.preventDefault();
             }
@@ -18459,6 +18678,209 @@ CA.angularApp.filter("filesize", function () {
         return size.toFixed(2) + " TB";
     };
 });
+
+var Ally;
+(function (Ally) {
+    class SiteDesignSettings {
+        constructor() {
+            this.fontFamily = "'Open Sans', sans-serif";
+            this.bodyFontColor = "#212529";
+        }
+        static GetDefault() {
+            const defaultSettings = {
+                presetTemplateName: "default",
+                fontFamily: "'Open Sans', sans-serif",
+                bodyFontColor: "#212529",
+                iconColor: "#007bff",
+                headerBg: "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center",
+                footerBg: "#404040",
+                footerLinkColor: "#f7941d",
+                panelsHaveBoxShadow: true,
+                panelBorderRadius: "0",
+                background: "#f3f3f3",
+                buttonBgColor: "#0d6efd",
+                bodyLinkColor: "#007cbc",
+                navLinkColor: "white",
+                navBg: "#60a2c8",
+                headerBgSize: "auto 100%",
+                panelsHaveRoundedCorners: true
+            };
+            return defaultSettings;
+        }
+        static GetPreset(presetTemplateName) {
+            let designSettings = null;
+            switch (presetTemplateName) {
+                case "default":
+                    return SiteDesignSettings.GetDefault();
+                case "modern":
+                    {
+                        designSettings = {
+                            presetTemplateName: presetTemplateName,
+                            fontFamily: "'Open Sans', sans-serif",
+                            bodyFontColor: "#212529",
+                            iconColor: "#353535",
+                            headerBg: "#353535",
+                            footerBg: "#353535",
+                            footerLinkColor: "white",
+                            panelsHaveBoxShadow: false,
+                            panelBorderRadius: "0",
+                            background: "url(/assets/images/ui-style-settings/pinstripes.png)",
+                            buttonBgColor: "#353535",
+                            bodyLinkColor: "#212529",
+                            navLinkColor: "white",
+                            navBg: "#000",
+                            headerBgSize: "auto",
+                            panelsHaveRoundedCorners: false
+                        };
+                    }
+                    break;
+                case "peacefulPink":
+                    {
+                        designSettings = {
+                            presetTemplateName: presetTemplateName,
+                            fontFamily: "'Open Sans', sans-serif",
+                            bodyFontColor: "#212529",
+                            iconColor: "#007bff",
+                            headerBg: "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center",
+                            footerBg: "#404040",
+                            footerLinkColor: "white",
+                            panelsHaveBoxShadow: true,
+                            panelBorderRadius: "0",
+                            background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,171,171,1) 100%)",
+                            buttonBgColor: "black",
+                            bodyLinkColor: "#007cbc",
+                            navLinkColor: "white",
+                            navBg: "black",
+                            headerBgSize: "auto",
+                            panelsHaveRoundedCorners: true
+                        };
+                    }
+                    break;
+                case "gatedCommunity":
+                    {
+                        designSettings = {
+                            presetTemplateName: presetTemplateName,
+                            fontFamily: "serif",
+                            bodyFontColor: "#1e5168",
+                            iconColor: "#1e5168",
+                            headerBg: "#1e5168",
+                            footerBg: "#1e5168",
+                            footerLinkColor: "white",
+                            panelsHaveBoxShadow: true,
+                            panelBorderRadius: "0",
+                            background: "#DBE5E9 url(/assets/images/ui-style-settings/fancy-hexes.png)",
+                            buttonBgColor: "#1e5168",
+                            bodyLinkColor: "#1e5168",
+                            navLinkColor: "#F3F6F7",
+                            navBg: "#1e5168",
+                            headerBgSize: "auto",
+                            panelsHaveRoundedCorners: false
+                        };
+                    }
+                    break;
+            }
+            return designSettings;
+        }
+        /**
+         * Apply the site design settings from cached/server settings JSON
+         */
+        static ApplySiteDesignSettingsFromJson(rootScope, siteDesignSettingsJson) {
+            try {
+                const parsedSettings = JSON.parse(siteDesignSettingsJson);
+                // Ensure the most recent setting exists on this object to be used properly
+                if (parsedSettings.headerBgSize)
+                    rootScope.siteDesignSettings = parsedSettings;
+                // Othwerwise try to use the template name
+                else if (parsedSettings.presetTemplateName && parsedSettings.presetTemplateName !== "custom")
+                    rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetPreset(parsedSettings.presetTemplateName);
+            }
+            catch {
+                console.log("Failed to parse site design settings");
+                rootScope.siteDesignSettings = SiteDesignSettings.GetDefault();
+            }
+            SiteDesignSettings.ApplySiteDesignSettingsDelayed(rootScope.siteDesignSettings);
+        }
+        /**
+         * Apply the site design settings in a delayed, staggered manner so it gets applied as
+         * fast as possible so as to avoid a flash of the old design
+         */
+        static ApplySiteDesignSettingsDelayed(siteDesignSettings) {
+            // Apply the design four times, staggered, so as to apply the custom design settings as fast as
+            // possible to avoid the user seeing the default design
+            Ally.SiteDesignSettings.ApplySiteDesignSettings(siteDesignSettings);
+            window.setTimeout(() => Ally.SiteDesignSettings.ApplySiteDesignSettings(siteDesignSettings), 50);
+            window.setTimeout(() => Ally.SiteDesignSettings.ApplySiteDesignSettings(siteDesignSettings), 100);
+            window.setTimeout(() => Ally.SiteDesignSettings.ApplySiteDesignSettings(siteDesignSettings), 250);
+            window.setTimeout(() => Ally.SiteDesignSettings.ApplySiteDesignSettings(siteDesignSettings), 750);
+        }
+        /**
+         * Update the CSS rules and site settings based on the provided settings
+         */
+        static ApplySiteDesignSettings(siteDesignSettings) {
+            const BorderRadiusRuleValue = "12px";
+            const buttonCssRule = Ally.HtmlUtil2.getCssRule(".btn-primary");
+            if (buttonCssRule)
+                buttonCssRule.style.backgroundColor = siteDesignSettings.buttonBgColor;
+            const linkCssRules = Ally.HtmlUtil2.getAllCssRules("a");
+            for (const r of linkCssRules)
+                r.style.color = siteDesignSettings.bodyLinkColor;
+            const textLinkCssRule = Ally.HtmlUtil2.getCssRule(".text-button, .text-link");
+            if (textLinkCssRule)
+                textLinkCssRule.style.color = siteDesignSettings.bodyLinkColor;
+            const navLinkCssRule = Ally.HtmlUtil2.getCssRule("section.header-pill-menu-section nav a");
+            if (navLinkCssRule)
+                navLinkCssRule.style.color = siteDesignSettings.bodyLinkColor;
+            const activeNavLinkCssRule = Ally.HtmlUtil2.getCssRule(".ally-active-nav");
+            if (activeNavLinkCssRule)
+                activeNavLinkCssRule.style.setProperty("color", siteDesignSettings.navLinkColor, "important");
+            const inactiveNavLinkCssRule = Ally.HtmlUtil2.getCssRule(".ally-inactive-nav");
+            if (inactiveNavLinkCssRule)
+                inactiveNavLinkCssRule.style.setProperty("color", siteDesignSettings.navLinkColor, "important");
+            const footerLinkCssRule = Ally.HtmlUtil2.getCssRule("footer a");
+            if (footerLinkCssRule)
+                footerLinkCssRule.style.setProperty("color", siteDesignSettings.footerLinkColor, "important");
+            const navBgCssRule = Ally.HtmlUtil2.getCssRule("section.header-pill-menu-section");
+            if (navBgCssRule) {
+                navBgCssRule.style.background = siteDesignSettings.navBg;
+                navBgCssRule.style.borderRadius = siteDesignSettings.panelsHaveRoundedCorners ? BorderRadiusRuleValue : "0";
+            }
+            const shadowRuleValue = "0 10px 10px rgba(134, 134, 135, 0.3)";
+            const boxShadowRule = Ally.HtmlUtil2.getCssRule(".box-shadow");
+            if (boxShadowRule)
+                boxShadowRule.style.boxShadow = siteDesignSettings.panelsHaveBoxShadow ? shadowRuleValue : "";
+            const pageRule = Ally.HtmlUtil2.getCssRule(".page");
+            if (pageRule) {
+                pageRule.style.boxShadow = siteDesignSettings.panelsHaveBoxShadow ? shadowRuleValue : "";
+                pageRule.style.borderRadius = siteDesignSettings.panelsHaveRoundedCorners ? BorderRadiusRuleValue : "0";
+            }
+            const headerRule = Ally.HtmlUtil2.getCssRule("header");
+            if (headerRule)
+                headerRule.style.boxShadow = siteDesignSettings.panelsHaveBoxShadow ? "0 10px 10px #eaeaeb" : "inherit";
+            const radioCssRule = Ally.HtmlUtil2.getCssRule('input[type="radio"]'); // Need to use double-quotes inside, not sure why
+            if (radioCssRule)
+                radioCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
+            const checkboxCssRule = Ally.HtmlUtil2.getCssRule('input[type="checkbox"]');
+            if (checkboxCssRule) {
+                checkboxCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
+                checkboxCssRule.style.setProperty("background-color", siteDesignSettings.buttonBgColor, "important");
+            }
+            const headerBgCssRule = Ally.HtmlUtil2.getCssRule("header .logo-container");
+            if (headerBgCssRule) {
+                headerBgCssRule.style.background = siteDesignSettings.headerBg;
+                headerBgCssRule.style.backgroundSize = siteDesignSettings.headerBgSize;
+                if (siteDesignSettings.headerBg === "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center")
+                    headerBgCssRule.style.borderBottom = "12px solid #83c476"; // The default header looks better with a green grass bottom border
+                else
+                    headerBgCssRule.style.borderBottom = "inherit";
+            }
+            const portletBoxCssRule = Ally.HtmlUtil2.getCssRule(".portlet-box"); // Need to use double-quotes inside, not sure why
+            if (portletBoxCssRule)
+                portletBoxCssRule.style.borderRadius = siteDesignSettings.panelsHaveRoundedCorners ? BorderRadiusRuleValue : "0";
+        }
+    }
+    SiteDesignSettings.SettingsCacheKey = "cachedSiteDesignSettingsJson";
+    Ally.SiteDesignSettings = SiteDesignSettings;
+})(Ally || (Ally = {}));
 
 var Ally;
 (function (Ally) {
@@ -18630,8 +19052,8 @@ var Ally;
             const didLoginJustNow = this.isLoggedIn && !$rootScope.isLoggedIn;
             $rootScope.isLoggedIn = this.isLoggedIn;
             // Update the background
-            if (!HtmlUtil.isNullOrWhitespace(this.publicSiteInfo.bgImagePath))
-                $(document.documentElement).css("background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")");
+            //if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
+            //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
             if (this.isLoggedIn) {
                 const prepopulateZopim = () => {
                     // Prefill the contact form with details about a customer
@@ -18754,6 +19176,8 @@ var Ally;
                         analytics.track("updateSiteTitle");
                         $http.put("/api/Settings", { siteTitle: $rootScope.siteTitle.text });
                     };
+                    if ($rootScope.publicSiteInfo.siteDesignSettingsJson)
+                        Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson);
                     deferred.resolve(SiteInfoProvider.siteInfo);
                 }, (errorResult) => {
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here

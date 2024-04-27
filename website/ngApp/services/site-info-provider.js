@@ -168,8 +168,8 @@ var Ally;
             const didLoginJustNow = this.isLoggedIn && !$rootScope.isLoggedIn;
             $rootScope.isLoggedIn = this.isLoggedIn;
             // Update the background
-            if (!HtmlUtil.isNullOrWhitespace(this.publicSiteInfo.bgImagePath))
-                $(document.documentElement).css("background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")");
+            //if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
+            //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
             if (this.isLoggedIn) {
                 const prepopulateZopim = () => {
                     // Prefill the contact form with details about a customer
@@ -292,6 +292,8 @@ var Ally;
                         analytics.track("updateSiteTitle");
                         $http.put("/api/Settings", { siteTitle: $rootScope.siteTitle.text });
                     };
+                    if ($rootScope.publicSiteInfo.siteDesignSettingsJson)
+                        Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson);
                     deferred.resolve(SiteInfoProvider.siteInfo);
                 }, (errorResult) => {
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here

@@ -1,14 +1,21 @@
 <div class="page-documents">
     <section class="padding white-bg padding margin-vertical box-shadow header-pill-menu-section" data-ng-if="$ctrl.shouldShowPremiumPlanSection">
+        <h3>Settings</h3>
+
         <nav class="nav nav-pills justify-content-center">
             <a class="nav-item nav-link" data-ng-href="#!/Settings/SiteSettings"
-               data-ng-class="{'active':$ctrl.selectedView==='SiteSettings'}">
+               data-ng-class="{'active':$ctrl.selectedView==='SiteSettings','ally-active-nav':$ctrl.selectedView==='SiteSettings','ally-inactive-nav':$ctrl.selectedView!=='SiteSettings'}">
                 Site Settings
             </a>
 
             <a class="nav-item nav-link" href="#!/Settings/PremiumPlan"
-               data-ng-class="{'active':$ctrl.selectedView==='PremiumPlan'}">
+               data-ng-class="{'active':$ctrl.selectedView==='PremiumPlan','ally-active-nav':$ctrl.selectedView==='PremiumPlan','ally-inactive-nav':$ctrl.selectedView!=='PremiumPlan'}">
                 Premium Plan
+            </a>
+
+            <a class="nav-item nav-link" href="#!/Settings/SiteDesignSettings"
+               data-ng-class="{'active':$ctrl.selectedView==='SiteDesignSettings','ally-active-nav':$ctrl.selectedView==='SiteDesignSettings','ally-inactive-nav':$ctrl.selectedView!=='SiteDesignSettings'}">
+                Site Design
             </a>
         </nav>
     </section>
@@ -16,4 +23,6 @@
     <chtn-site-settings data-ng-if="$ctrl.selectedView === 'SiteSettings'"></chtn-site-settings>
 
     <premium-plan-settings data-ng-if="$ctrl.selectedView === 'PremiumPlan'"></premium-plan-settings>
+
+    <site-design-settings data-ng-if="$ctrl.selectedView === 'SiteDesignSettings'"></site-design-settings>
 </div>

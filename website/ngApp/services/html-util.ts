@@ -793,6 +793,66 @@ namespace Ally
             //debugger;
             window.location.href = path;
         }
+
+
+        static getCssRule( ruleName: string ): CSSStyleRule | null
+        {
+            //console.log( "In getCssRule", ruleName );
+
+            ruleName = ruleName.toLowerCase();
+            let result: CSSStyleRule = null;
+            const find = Array.prototype.find;
+
+            find.call( document.styleSheets, ( styleSheet: CSSStyleSheet ) =>
+            {
+                try
+                {
+                    result = find.call( styleSheet.cssRules, ( cssRule: CSSRule ) =>
+                    {
+                        return cssRule instanceof CSSStyleRule
+                            && cssRule.selectorText.toLowerCase() == ruleName;
+                    } );
+                }
+                catch { } // Just suppress for now
+                
+                return result != null;
+            } );
+
+            return result;
+        }
+
+
+        static getAllCssRules( ruleName: string ): CSSStyleRule[]
+        {
+            //console.log( "In getAllCssRules", ruleName );
+
+            ruleName = ruleName.toLowerCase();
+            let foundRules: CSSStyleRule[] = [];
+            const find = Array.prototype.forEach;
+
+            for( let i = 0; i < document.styleSheets.length; ++i )
+            {
+                const curSheet = document.styleSheets[i];
+                let curSheetMatchingRules: CSSStyleRule[];
+
+                try
+                {
+                    curSheetMatchingRules = Array.prototype.filter.call( curSheet.cssRules, ( cssRule: CSSRule ) =>
+                    {
+                        return cssRule instanceof CSSStyleRule
+                            && cssRule.selectorText.toLowerCase() == ruleName;
+                    } );
+                }
+                catch
+                {
+                    curSheetMatchingRules = [];
+                }
+
+                foundRules.push( ...curSheetMatchingRules );
+            }
+            
+            return foundRules;
+        }
     }
 
 

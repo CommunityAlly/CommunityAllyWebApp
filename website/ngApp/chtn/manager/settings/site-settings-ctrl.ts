@@ -41,13 +41,12 @@ namespace Ally
      */
     export class ChtnSettingsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$scope", "$rootScope"];
+        static $inject = ["$http", "SiteInfo", "$scope", "$rootScope"];
 
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         originalSettings: ChtnSiteSettings = new ChtnSiteSettings();
         defaultBGImage: string;
         shouldShowQaButton: boolean;
-        loginImageUrl: string;
         isLoading: boolean = false;
         showRightColumnSetting: boolean = true;
         showLocalNewsSetting: boolean = false;
@@ -56,6 +55,8 @@ namespace Ally
         welcomeRichEditorElem: JQuery;
         shouldShowWelcomeTooLongError: boolean = false;
         tinyMceEditor: ITinyMce;
+        shouldShowLoginMoved = false;
+        static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
 
 
         /**
@@ -63,7 +64,6 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService,
             private siteInfo: Ally.SiteInfoService,
-            private $timeout: ng.ITimeoutService,
             private $scope: ng.IScope,
             private $rootScope: ng.IRootScopeService )
         {
@@ -81,15 +81,12 @@ namespace Ally
 
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
 
-            this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
-
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             this.showLocalNewsSetting = !this.showRightColumnSetting;
 
             this.isPta = AppConfig.appShortName === "pta";
 
-            // Hook up the file upload control after everything is loaded and setup
-            this.$timeout( () => this.hookUpLoginImageUpload(), 200 );
+            this.shouldShowLoginMoved = this.siteInfo.privateSiteInfo.creationDate < ChtnSettingsController.MovedLoginImageDate;
 
             this.refreshData();
         }
@@ -134,32 +131,6 @@ namespace Ally
         }
 
 
-        /**
-         * Clear the login image
-         */
-        removeLoginImage()
-        {
-            analytics.track( "clearLoginImage" );
-
-            this.isLoading = true;
-
-            this.$http.get( "/api/Settings/ClearLoginImage" ).then(
-                () =>
-                {
-                    this.isLoading = false;
-                    this.siteInfo.publicSiteInfo.loginImageUrl = "";
-                    this.loginImageUrl = "";
-
-                },
-                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                {
-                    this.isLoading = false;
-                    alert( "Failed to remove loading image: " + httpResponse.data.exceptionMessage );
-                }
-            );
-        }
-
-
         static isEmptyHtml( testHtml: string )
         {
             if( HtmlUtil.isNullOrWhitespace( testHtml ) )
@@ -184,7 +155,7 @@ namespace Ally
             
             this.isLoading = true;
             
-            this.$http.put( "/api/Settings", this.settings ).then(
+            this.$http.put( "/api/Settings/UpdateSiteSettings", this.settings ).then(
                 () =>
                 {
                     this.isLoading = false;
@@ -220,7 +191,7 @@ namespace Ally
             this.settings.bgImageFileName = bgImage;
             //SettingsJS._defaultBG = bgImage;
 
-            this.$http.put( "/api/Settings", { BGImageFileName: this.settings.bgImageFileName } ).then( () =>
+            this.$http.put( "/api/Settings/NOTUSED", { BGImageFileName: this.settings.bgImageFileName } ).then( () =>
             {
                 $( ".test-bg-image" ).removeClass( "test-bg-image-selected" );
 
@@ -264,72 +235,13 @@ namespace Ally
 
 
         /**
-         * Initialize the login image JQuery upload control
-         */
-        hookUpLoginImageUpload()
-        {
-            $( () =>
-            {
-                $( '#JQLoginImageFileUploader' ).fileupload( {
-                    dropZone: null, // Disable dropping of files
-                    pasteZone: null, // Disable paste of data causing a file upload
-                    autoUpload: true,
-                    add: ( e: any, data: any ) =>
-                    {
-                        this.$scope.$apply( () =>
-                        {
-                            this.isLoading = true;
-                        } );
-
-                        analytics.track( "setLoginImage" );
-
-                        $( "#FileUploadProgressContainer" ).show();
-                        data.url = "api/DocumentUpload/LoginImage";
-                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
-                            data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/LoginImage";
-
-                        const xhr = data.submit();
-                        xhr.done( ( result: any ) =>
-                        {
-                            this.$scope.$apply( () =>
-                            {
-                                this.isLoading = false;
-                                this.loginImageUrl = result.newUrl + "?cacheBreaker=" + new Date().getTime();
-                                this.siteInfo.publicSiteInfo.loginImageUrl = this.loginImageUrl;
-                            } );
-
-                            $( "#FileUploadProgressContainer" ).hide();
-                        } );
-                    },
-                    beforeSend: ( xhr: any ) =>
-                    {
-                        if( this.siteInfo.publicSiteInfo.baseApiUrl )
-                            xhr.setRequestHeader( "Authorization", "Bearer " + this.$rootScope.authToken );
-                        else
-                            xhr.setRequestHeader( "ApiAuthToken", this.$rootScope.authToken );
-                    },
-                    progressall: ( e: any, data: any ) =>
-                    {
-                        const progress = Math.floor(( data.loaded * 100 ) / data.total );
-                        $( '#FileUploadProgressBar' ).css( 'width', progress + '%' );
-
-                        if( progress === 100 )
-                            $( "#FileUploadProgressLabel" ).text( "Finalizing Upload..." );
-                        else
-                            $( "#FileUploadProgressLabel" ).text( progress + "%" );
-                    }
-                } );
-            } );
-        }
-
-
-        /**
          * Occurs when the user clicks the link to force refresh the page
          */
         forceRefresh()
         {
             window.location.reload();
         }
+
 
         onWelcomeMessageEdit()
         {

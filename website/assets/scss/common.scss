@@ -33,9 +33,15 @@ a {
 .margin {
     margin: 30px;
 }
+
 .margin-vertical {
     margin: 30px 0px;
 }
+
+.margin-vertical-lg {
+    margin: 40px 0px;
+}
+
 .margin-top-50 {
     margin-top: 50px;
 }
@@ -95,7 +101,7 @@ a {
     padding-right: 30px;
 }
 .box-shadow {
-    box-shadow: 0 10px 10px #eaeaeb;
+    box-shadow: 0 10px 10px rgba(134, 134, 135, 0.3);
 }
 
 .spinner-effect {
@@ -185,6 +191,8 @@ a {
 /** portlet boxes */
 .portlet-box {
     padding: 21px 27px;
+    border-radius: 12px;
+
     .portlet-header {
         @extend .bb;
         margin-bottom: 18px;
@@ -195,6 +203,7 @@ a {
             color: #333;
         }
     }
+
     .portlet-body {
         &.min100vh {
             min-height: 100px;
@@ -338,6 +347,7 @@ section.header-pill-menu-section {
     border-radius: 10px;
     padding: 9px 17px;
     color: white;
+    border-radius: 12px;
 }
 
 section.header-pill-menu-section nav a {
@@ -484,6 +494,23 @@ a[data-edit="backColor #FFFFFF"]::before {
     border: 1px solid black;
     padding: 20px;
     margin: 1rem;
+}
+
+.ally-active-nav {
+    color: white !important;
+}
+
+.ally-inactive-nav {
+    color: white !important;
+}
+
+input[type="radio"] {
+    accent-color: auto;
+}
+
+input[type="checkbox"] {
+    accent-color: auto;
+    background-color: auto;
 }
 
 /* BS4-BS5 Updrade General CSS Change Start */

@@ -4,27 +4,27 @@
 
         <nav class="nav nav-pills justify-content-center">
             <a class="nav-item nav-link" href="#!/Financials/OnlinePayments"
-               data-ng-class="{'active':$ctrl.selectedView==='OnlinePayments'}">
+               data-ng-class="{'active':$ctrl.selectedView==='OnlinePayments','ally-active-nav':$ctrl.selectedView==='OnlinePayments','ally-inactive-nav':$ctrl.selectedView!=='OnlinePayments'}">
                 Online Payments
             </a>
 
             <a class="nav-item nav-link" href="#!/Financials/AssessmentHistory"
-               data-ng-class="{'active':$ctrl.selectedView==='AssessmentHistory'}">
+               data-ng-class="{'active':$ctrl.selectedView==='AssessmentHistory','ally-active-nav':$ctrl.selectedView==='AssessmentHistory','ally-inactive-nav':$ctrl.selectedView!=='AssessmentHistory'}">
                 Assessment History
             </a>
 
             <a class="nav-item nav-link" data-ng-href="#!/Financials/BankTransactions"
-               data-ng-class="{'active':$ctrl.selectedView==='BankTransactions'}">
+               data-ng-class="{'active':$ctrl.selectedView==='BankTransactions','ally-active-nav':$ctrl.selectedView==='BankTransactions','ally-inactive-nav':$ctrl.selectedView!=='BankTransactions'}">
                 Transactions
             </a>
 
             <a class="nav-item nav-link" href="#!/Financials/Reports"
-               data-ng-class="{'active':$ctrl.selectedView==='Reports'}">
+               data-ng-class="{'active':$ctrl.selectedView==='Reports','ally-active-nav':$ctrl.selectedView==='Reports','ally-inactive-nav':$ctrl.selectedView!=='Reports'}">
                 Reports
             </a>
 
             <a class="nav-item nav-link" href="#!/Financials/Budgets"
-               data-ng-class="{'active':$ctrl.selectedView==='Budgets'}">
+               data-ng-class="{'active':$ctrl.selectedView==='Budgets','ally-active-nav':$ctrl.selectedView==='Budgets','ally-inactive-nav':$ctrl.selectedView!=='Budgets'}">
                 Budgets
             </a>
         </nav>

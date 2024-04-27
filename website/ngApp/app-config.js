@@ -366,6 +366,3 @@ AppConfig.isPublicRoute = function (path) {
 };
 // Set the browser title
 document.title = AppConfig.appName;
-$(document).ready(function () {
-    $("header").css("background-image", "url(/assets/images/header-img-" + AppConfig.appShortName + ".jpg)");
-});

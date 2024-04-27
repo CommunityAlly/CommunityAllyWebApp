@@ -128,7 +128,6 @@ header {
         min-width: 160px;
 
         a, .text-button {
-            color: #007CBC;
             font-weight: 600;
 
             @media (max-width: 1200px) {
@@ -216,14 +215,14 @@ header {
         }
     }
 
-    .page
-    {
-        background: white;
-        position: relative;
-        @extend .padding;
-        @extend .box-shadow;
-        @extend .margin-vertical;
-    }
+.page {
+    background: white;
+    position: relative;
+    border-radius: 12px;
+    box-shadow: 0 10px 10px rgba(134, 134, 135, 0.3);
+    @extend .padding;
+    @extend .margin-vertical;
+}
 
     footer
     {

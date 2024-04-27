@@ -22,296 +22,295 @@ const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 
 CA.angularApp.config(
     ['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
-    function( $routeProvider: ng.route.IRouteProvider,
-        $httpProvider: ng.IHttpProvider,
-        $provide: ng.auto.IProvideService,
-        siteInfoProvider: Ally.SiteInfoProvider,
-        $locationProvider: ng.ILocationProvider )
-{
-    $locationProvider.hashPrefix( '!' );
-
-    const isLoginRequired = function( $location: ng.ILocationService, $q: ng.IQService, siteInfo: Ally.SiteInfoService, appCacheService: AppCacheService )
-    {
-        const deferred = $q.defer();
-
-        // We have no user information so they must login
-        const isPublicHash = $location.path() === "/Home" || $location.path() === "/Login" || AppConfig.isPublicRoute( $location.path() );
-        if( !siteInfo.userInfo && !isPublicHash )
+        function( $routeProvider: ng.route.IRouteProvider,
+            $httpProvider: ng.IHttpProvider,
+            $provide: ng.auto.IProvideService,
+            siteInfoProvider: Ally.SiteInfoProvider,
+            $locationProvider: ng.ILocationProvider )
         {
-            // Home, the default page, and login don't need special redirection or user messaging
-            if( $location.path() !== "/Home" || $location.path() !== "/Login" )
+            $locationProvider.hashPrefix( '!' );
+
+            const isLoginRequired = function( $location: ng.ILocationService, $q: ng.IQService, siteInfo: Ally.SiteInfoService, appCacheService: AppCacheService )
             {
-                appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
-                appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );
-            }
+                const deferred = $q.defer();
 
-            deferred.reject();
-            $location.path( '/Login' );
-        }
-        // The user does not need to login
-        else
-            deferred.resolve();
-
-        return deferred.promise;
-    };
-
-    const universalResolvesWithLogin = {
-        app: ["$q", "$http", "$rootScope", "$sce", "$location", "xdLocalStorage", "appCacheService",
-        function( $q: ng.IQService, $http: ng.IHttpService, $rootScope: ng.IRootScopeService, $sce: ng.ISCEService, $location: ng.ILocationService, xdLocalStorage: any, appCacheService: AppCacheService )
-        {
-            return Ally.SiteInfoHelper.loginInit( $q, $http, $rootScope, $sce, xdLocalStorage ).then(
-                ( siteInfo: Ally.SiteInfoService ) =>
+                // We have no user information so they must login
+                const isPublicHash = $location.path() === "/Home" || $location.path() === "/Login" || AppConfig.isPublicRoute( $location.path() );
+                if( !siteInfo.userInfo && !isPublicHash )
                 {
-                    return isLoginRequired( $location, $q, siteInfo, appCacheService );
-                },
-                ( errorResult: any ) =>
-                {
-                    // Something went wrong trying to load the site info so let's go to the generic login page
-                    console.log( "Failed to get site info, redirecting to generic login", errorResult );
-                    Ally.HtmlUtil2.globalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
-                }
-            );
-        }]
-    };
-
-    const universalResolves = {
-        app: ["$q", "$http", "$rootScope", "$sce", "xdLocalStorage", Ally.SiteInfoHelper.loginInit]
-    };
-
-    // This allows us to require SiteInfo to be retrieved before the app runs
-    const customRouteProvider = angular.extend( {}, $routeProvider,
-        {
-            when: function( path: string, route: any )
-            {
-                route.resolve = ( route.resolve ) ? route.resolve : {};
-
-                if( route.allyRole === Role_All )
-                    angular.extend( route.resolve, universalResolves );
-                else
-                    angular.extend( route.resolve, universalResolvesWithLogin );
-
-                $routeProvider.when( path, route );
-                return this;
-            }
-        }
-    );
-
-    // Build our Angular routes
-    for( let i = 0; i < AppConfig.menu.length; ++i )
-    {
-        const menuItem = AppConfig.menu[i];
-
-        const routeObject: any = {
-            controller: menuItem.controller,
-            allyRole: menuItem.role,
-            reloadOnSearch: menuItem.reloadOnSearch
-        };
-
-        if( menuItem.templateUrl )
-            routeObject.templateUrl = menuItem.templateUrl;
-        else
-            routeObject.template = menuItem.templateHtml;
-
-        if( menuItem.controllerAs )
-            routeObject.controllerAs = menuItem.controllerAs;
-
-        customRouteProvider.when( menuItem.path, routeObject );
-    }
-
-    $routeProvider.otherwise( { redirectTo: "/Home" } );
-        
-    // Create an interceptor to redirect to the login page when unauthorized
-    $provide.factory( "http403Interceptor", ["$q", "$location", "$rootScope", "appCacheService", "$injector", function( $q: ng.IQService, $location: ng.ILocationService, $rootScope: ng.IRootScopeService, appCacheService: AppCacheService, $injector: ng.auto.IInjectorService )
-    {
-        return {
-            response: function( response: any )
-            {
-                // Let success pass through
-                return response;
-            },
-
-            responseError: function( response: any )
-            {
-                const status = response.status;
-
-                // 401 - Unauthorized (not logged-in)
-                // 403 - Forbidden (Logged-in, but not allowed to perform the action
-                if( status === 401 || status === 403 )
-                {
-                    // If the user's action is forbidden and we should not auto-handle the response
-                    if( status === 403 && $rootScope.dontHandle403 )
-                        return $q.reject( response );
-
-                    // If the user's action is forbidden and is logged-in then set this flag so we
-                    // can display a helpful error message
-                    if( status === 403 && $rootScope.isLoggedIn )
-                        appCacheService.set( AppCacheService.Key_WasLoggedIn403, "true" );
-
-                    // If the user is unauthorized but has saved credentials, try to log-in then retry the request
-                    if( status === 401 && HtmlUtil.isValidString( window.localStorage["rememberMe_Email"] ) )
-                    {
-                        const $http = <ng.IHttpService>$injector.get( "$http" );
-
-                        // Multiple requests can come in at the same time with 401, so let's store
-                        // our login promise so subsequent calls can tie into the first login
-                        // request
-                        if( !$rootScope.retryLoginDeffered )
-                        {
-                            $rootScope.retryLoginDeffered = $q.defer();
-
-                            const loginInfo = {
-                                emailAddress: window.localStorage["rememberMe_Email"],
-                                password: atob( window.localStorage["rememberMe_Password"] )
-                            };
-
-                            const retryLogin = function()
-                            {
-                                $http.post( "/api/Login", loginInfo ).then( function( httpResponse )
-                                {
-                                    const loginData: any = httpResponse.data;
-
-                                    const siteInfo = <Ally.SiteInfoService>$injector.get( "SiteInfo" );
-
-                                    // Store the new auth token
-                                    siteInfo.setAuthToken( loginData.authToken );
-
-                                    const loginDeffered = $rootScope.retryLoginDeffered;
-
-                                    loginDeffered.resolve();
-
-                                }, function()
-                                {
-                                    // Login failed so bail out all the way
-                                    const loginDeffered = $rootScope.retryLoginDeffered;
-
-
-                                    $rootScope.onLogOut_ClearData();
-                                    loginDeffered.reject();
-
-                                } ).finally( function()
-                                {
-                                    $rootScope.retryLoginDeffered = null;
-                                } );
-                            };
-
-                            // Wait, just a bit, to let any other requests come in with a 401
-                            setTimeout( retryLogin, 1000 );
-                        }
-
-                        const retryRequestDeferred = $q.defer();
-
-                        $rootScope.retryLoginDeffered.promise.then( function()
-                        {
-                            // Retry the request
-                            retryRequestDeferred.resolve( $http( response.config ) );
-
-                            //$http( response.config ).then( function( newResponse )
-                            //{
-                            //    retryRequestDeferred.resolve( newResponse );
-                            //}, function()
-                            //{
-                            //    retryRequestDeferred.reject( response );
-                            //} );
-                        }, function()
-                            {
-                                retryRequestDeferred.reject( response );
-                            } );
-
-                        return retryRequestDeferred.promise;
-                    }
-
                     // Home, the default page, and login don't need special redirection or user messaging
-                    if( status === 401 && $location.path() !== "/Home" && $location.path() !== "/Login" )
+                    if( $location.path() !== "/Home" || $location.path() !== "/Login" )
                     {
                         appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
                         appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );
                     }
 
-                    // The use is not authorized so let's clear the session data
-                    $rootScope.onLogOut_ClearData();
+                    deferred.reject();
+                    $location.path( '/Login' );
                 }
+                // The user does not need to login
+                else
+                    deferred.resolve();
 
+                return deferred.promise;
+            };
 
-                // If we didn't handle the response up above then simply reject it
-                return $q.reject( response );
-            }
-        };
-    }] );
+            const universalResolvesWithLogin = {
+                app: ["$q", "$http", "$rootScope", "$sce", "$location", "xdLocalStorage", "appCacheService",
+                    function( $q: ng.IQService, $http: ng.IHttpService, $rootScope: ng.IRootScopeService, $sce: ng.ISCEService, $location: ng.ILocationService, xdLocalStorage: any, appCacheService: AppCacheService )
+                    {
+                        return Ally.SiteInfoHelper.loginInit( $q, $http, $rootScope, $sce, xdLocalStorage ).then(
+                            ( siteInfo: Ally.SiteInfoService ) =>
+                            {
+                                return isLoginRequired( $location, $q, siteInfo, appCacheService );
+                            },
+                            ( errorResult: any ) =>
+                            {
+                                // Something went wrong trying to load the site info so let's go to the generic login page
+                                console.log( "Failed to get site info, redirecting to generic login", errorResult );
+                                Ally.HtmlUtil2.globalRedirect( "https://login." + AppConfig.baseTld + "/#!/Login" );
+                            }
+                        );
+                    }]
+            };
 
-    $httpProvider.interceptors.push( 'http403Interceptor' );
+            const universalResolves = {
+                app: ["$q", "$http", "$rootScope", "$sce", "xdLocalStorage", Ally.SiteInfoHelper.loginInit]
+            };
 
-    // Make date strings convert to date objects
-    ( <any>$httpProvider.defaults.transformResponse ).push( function( responseData: any )
-    {
-        // Fast skip HTML templates
-        if( Ally.HtmlUtil2.isString( responseData ) && responseData.length > 30 )
-            return responseData;
-
-        Ally.HtmlUtil2.convertStringsToDates( responseData );
-
-        return responseData;
-    } );
-
-
-    // Create an interceptor so we can add our auth token header. Also, this allows us to set our
-    // own base URL for API calls so local testing can use the live API.
-        $provide.factory( "apiUriInterceptor", ["$rootScope", "SiteInfo", function( $rootScope: ng.IRootScopeService, siteInfo: Ally.SiteInfoService )
-    {
-        // If we're making a request because the Angular app's run block, then see if we have
-        // a cached auth token
-        if( typeof ( $rootScope.authToken ) !== "string" && window.localStorage )
-            $rootScope.authToken = window.localStorage.getItem( "ApiAuthToken" );
-        
-        return {
-            request: function( reqConfig: ng.IRequestConfig ): ng.IRequestConfig
-            {
-                const BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
-                const BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
-
-                const isMakingGenericApiRequest = HtmlUtil.startsWith( reqConfig.url, BaseGenericUri )
-                    || HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri );
-
-                // If we're talking to the Community Ally API server, then we need to complete the
-                // relative URL and add the auth token
-                const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" ) || isMakingGenericApiRequest;
-
-                if( isMakingApiRequest ) 
+            // This allows us to require SiteInfo to be retrieved before the app runs
+            const customRouteProvider = angular.extend( {}, $routeProvider,
                 {
-                    //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
-
-                    // If we have an overridden URL to use for API requests
-                    if( !HtmlUtil.startsWith( reqConfig.url, "http" ) )
+                    when: function( path: string, route: any )
                     {
-                        if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
-                            reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr( "/api/".length );
-                        else if( siteInfo.publicSiteInfo.baseApiUrl )
-                            reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substr( "/api/".length );
-                    }
-                    else if( isMakingGenericApiRequest && !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
-                    {
-                        if( HtmlUtil.startsWith( reqConfig.url, BaseGenericUri ) )
-                            reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr( BaseGenericUri.length );
-                        else if( HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri ) )
-                            reqConfig.url = OverrideBaseApiPath + reqConfig.url.substr( BaseLocalGenericUri.length );
-                    }
+                        route.resolve = ( route.resolve ) ? route.resolve : {};
 
-                    // Add the auth token
-                    reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
+                        if( route.allyRole === Role_All )
+                            angular.extend( route.resolve, universalResolves );
+                        else
+                            angular.extend( route.resolve, universalResolvesWithLogin );
 
-                    // Certain folks with ad-blockers or using private browsing mode will not send
-                    // the referrer up so we need to send it ourselves
-                    //if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
-                        reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl || window.location.href;
+                        $routeProvider.when( path, route );
+                        return this;
+                    }
                 }
+            );
 
-                return reqConfig;
+            // Build our Angular routes
+            for( let i = 0; i < AppConfig.menu.length; ++i )
+            {
+                const menuItem = AppConfig.menu[i];
+
+                const routeObject: any = {
+                    controller: menuItem.controller,
+                    allyRole: menuItem.role,
+                    reloadOnSearch: menuItem.reloadOnSearch
+                };
+
+                if( menuItem.templateUrl )
+                    routeObject.templateUrl = menuItem.templateUrl;
+                else
+                    routeObject.template = menuItem.templateHtml;
+
+                if( menuItem.controllerAs )
+                    routeObject.controllerAs = menuItem.controllerAs;
+
+                customRouteProvider.when( menuItem.path, routeObject );
             }
-        };
-    }] );
 
-    $httpProvider.interceptors.push( "apiUriInterceptor" );
-    
-}] );
+            $routeProvider.otherwise( { redirectTo: "/Home" } );
+
+            // Create an interceptor to redirect to the login page when unauthorized
+            $provide.factory( "http403Interceptor", ["$q", "$location", "$rootScope", "appCacheService", "$injector", function( $q: ng.IQService, $location: ng.ILocationService, $rootScope: ng.IRootScopeService, appCacheService: AppCacheService, $injector: ng.auto.IInjectorService )
+            {
+                return {
+                    response: function( response: any )
+                    {
+                        // Let success pass through
+                        return response;
+                    },
+
+                    responseError: function( response: any )
+                    {
+                        const status = response.status;
+
+                        // 401 - Unauthorized (not logged-in)
+                        // 403 - Forbidden (Logged-in, but not allowed to perform the action
+                        if( status === 401 || status === 403 )
+                        {
+                            // If the user's action is forbidden and we should not auto-handle the response
+                            if( status === 403 && $rootScope.dontHandle403 )
+                                return $q.reject( response );
+
+                            // If the user's action is forbidden and is logged-in then set this flag so we
+                            // can display a helpful error message
+                            if( status === 403 && $rootScope.isLoggedIn )
+                                appCacheService.set( AppCacheService.Key_WasLoggedIn403, "true" );
+
+                            // If the user is unauthorized but has saved credentials, try to log-in then retry the request
+                            if( status === 401 && HtmlUtil.isValidString( window.localStorage["rememberMe_Email"] ) )
+                            {
+                                const $http = <ng.IHttpService>$injector.get( "$http" );
+
+                                // Multiple requests can come in at the same time with 401, so let's store
+                                // our login promise so subsequent calls can tie into the first login
+                                // request
+                                if( !$rootScope.retryLoginDeffered )
+                                {
+                                    $rootScope.retryLoginDeffered = $q.defer();
+
+                                    const loginInfo = {
+                                        emailAddress: window.localStorage["rememberMe_Email"],
+                                        password: atob( window.localStorage["rememberMe_Password"] )
+                                    };
+
+                                    const retryLogin = function()
+                                    {
+                                        $http.post( "/api/Login", loginInfo ).then( function( httpResponse )
+                                        {
+                                            const loginData: any = httpResponse.data;
+
+                                            const siteInfo = <Ally.SiteInfoService>$injector.get( "SiteInfo" );
+
+                                            // Store the new auth token
+                                            siteInfo.setAuthToken( loginData.authToken );
+
+                                            const loginDeffered = $rootScope.retryLoginDeffered;
+
+                                            loginDeffered.resolve();
+
+                                        }, function()
+                                        {
+                                            // Login failed so bail out all the way
+                                            const loginDeffered = $rootScope.retryLoginDeffered;
+
+
+                                            $rootScope.onLogOut_ClearData();
+                                            loginDeffered.reject();
+
+                                        } ).finally( function()
+                                        {
+                                            $rootScope.retryLoginDeffered = null;
+                                        } );
+                                    };
+
+                                    // Wait, just a bit, to let any other requests come in with a 401
+                                    setTimeout( retryLogin, 1000 );
+                                }
+
+                                const retryRequestDeferred = $q.defer();
+
+                                $rootScope.retryLoginDeffered.promise.then( function()
+                                {
+                                    // Retry the request
+                                    retryRequestDeferred.resolve( $http( response.config ) );
+
+                                    //$http( response.config ).then( function( newResponse )
+                                    //{
+                                    //    retryRequestDeferred.resolve( newResponse );
+                                    //}, function()
+                                    //{
+                                    //    retryRequestDeferred.reject( response );
+                                    //} );
+                                }, function()
+                                {
+                                    retryRequestDeferred.reject( response );
+                                } );
+
+                                return retryRequestDeferred.promise;
+                            }
+
+                            // Home, the default page, and login don't need special redirection or user messaging
+                            if( status === 401 && $location.path() !== "/Home" && $location.path() !== "/Login" )
+                            {
+                                appCacheService.set( AppCacheService.Key_AfterLoginRedirect, $location.path() );
+                                appCacheService.set( AppCacheService.Key_WasLoggedIn401, "true" );
+                            }
+
+                            // The use is not authorized so let's clear the session data
+                            $rootScope.onLogOut_ClearData();
+                        }
+
+
+                        // If we didn't handle the response up above then simply reject it
+                        return $q.reject( response );
+                    }
+                };
+            }] );
+
+            $httpProvider.interceptors.push( 'http403Interceptor' );
+
+            // Make date strings convert to date objects
+            ( <any>$httpProvider.defaults.transformResponse ).push( function( responseData: any )
+            {
+                // Fast skip HTML templates
+                if( Ally.HtmlUtil2.isString( responseData ) && responseData.length > 30 )
+                    return responseData;
+
+                Ally.HtmlUtil2.convertStringsToDates( responseData );
+
+                return responseData;
+            } );
+
+
+            // Create an interceptor so we can add our auth token header. Also, this allows us to set our
+            // own base URL for API calls so local testing can use the live API.
+            $provide.factory( "apiUriInterceptor", ["$rootScope", "SiteInfo", function( $rootScope: ng.IRootScopeService, siteInfo: Ally.SiteInfoService )
+            {
+                // If we're making a request because the Angular app's run block, then see if we have
+                // a cached auth token
+                if( typeof ( $rootScope.authToken ) !== "string" && window.localStorage )
+                    $rootScope.authToken = window.localStorage.getItem( "ApiAuthToken" );
+
+                return {
+                    request: function( reqConfig: ng.IRequestConfig ): ng.IRequestConfig
+                    {
+                        const BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
+                        const BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
+
+                        const isMakingGenericApiRequest = HtmlUtil.startsWith( reqConfig.url, BaseGenericUri )
+                            || HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri );
+
+                        // If we're talking to the Community Ally API server, then we need to complete the
+                        // relative URL and add the auth token
+                        const isMakingApiRequest = HtmlUtil.startsWith( reqConfig.url, "/api/" ) || isMakingGenericApiRequest;
+
+                        if( isMakingApiRequest ) 
+                        {
+                            //console.log( `ApiBaseUrl: ${siteInfo.publicSiteInfo.baseApiUrl}, request URL: ${reqConfig.url}` );
+
+                            // If we have an overridden URL to use for API requests
+                            if( !HtmlUtil.startsWith( reqConfig.url, "http" ) )
+                            {
+                                if( !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring( "/api/".length );
+                                else if( siteInfo.publicSiteInfo.baseApiUrl )
+                                    reqConfig.url = siteInfo.publicSiteInfo.baseApiUrl + reqConfig.url.substring( "/api/".length );
+                            }
+                            else if( isMakingGenericApiRequest && !HtmlUtil.isNullOrWhitespace( OverrideBaseApiPath ) )
+                            {
+                                if( HtmlUtil.startsWith( reqConfig.url, BaseGenericUri ) )
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring( BaseGenericUri.length );
+                                else if( HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri ) )
+                                    reqConfig.url = OverrideBaseApiPath + reqConfig.url.substring( BaseLocalGenericUri.length );
+                            }
+
+                            // Add the auth token
+                            reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
+
+                            // Certain folks with ad-blockers or using private browsing mode will not send
+                            // the referrer up so we need to send it ourselves
+                            //if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
+                            reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl || window.location.href;
+                        }
+
+                        return reqConfig;
+                    }
+                };
+            }] );
+
+            $httpProvider.interceptors.push( "apiUriInterceptor" );
+        }] );
 
 
 CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage",
@@ -334,6 +333,18 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
         $rootScope.manageMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.MenuItem_v3 ) { return menuItem.role === Role_Manager; } );
         $rootScope.adminMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.MenuItem_v3 ) { return menuItem.role === Role_Admin; } );
         $rootScope.publicMenuItems = null;
+
+
+        // Load the site design
+        console.log( "Loading site design settings", $rootScope.publicSiteInfo );
+        $rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
+        if( window.localStorage && window.localStorage.getItem( Ally.SiteDesignSettings.SettingsCacheKey ) )
+        {
+            const settingsJson = window.localStorage.getItem( Ally.SiteDesignSettings.SettingsCacheKey );
+            Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson( $rootScope, settingsJson );
+        }
+
+        //Ally.SiteDesignSettings.ApplySiteDesignSettingsDelayed( $rootScope.siteDesignSettings );
 
         // Populate the custom page list, setting to null if not valid
         $rootScope.populatePublicPageMenu = () =>
@@ -384,7 +395,7 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
             {
                 console.log( 'Failed to initialize xdomain' );
             }
-        );        
+        );
 
         // Clear all local information about the logged-in user
         $rootScope.onLogOut_ClearData = function()
@@ -489,7 +500,7 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
     }
 ] );
 
- 
+
 //CA.angularApp.provider( '$exceptionHandler', {
 //    $get: function( errorLogService )
 //    {
@@ -518,4 +529,7 @@ namespace Ally
         menuTitle: string;
         role: string;
     }
+
+
+    
 }
