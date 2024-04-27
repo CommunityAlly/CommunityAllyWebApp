@@ -50,6 +50,7 @@ var Ally;
             this.stripePayoutAccounts = null;
             this.exampleFeeService = "stripe";
             this.isPremiumPlanActive = false;
+            this.customInstructionsText = "";
             this.HistoryPageSize = 50;
         }
         /**
@@ -731,21 +732,17 @@ var Ally;
             window.setTimeout(() => {
                 Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 220, { menubar: false }).then(e => {
                     this.pageContentTinyMce = e;
-                    this.pageContentTinyMce.setContent(this.paymentInfo.customFinancialInstructions || "");
-                    //this.pageContentTinyMce.on( "change", ( e: any ) =>
-                    //{
-                    //    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                    //    this.$scope.$apply( () =>
-                    //    {
-                    //    } );
-                    //} );
+                    if (this.pageContentTinyMce)
+                        this.pageContentTinyMce.setContent(this.paymentInfo.customFinancialInstructions || "");
+                    else
+                        this.customInstructionsText = this.paymentInfo.customFinancialInstructions || "";
                 });
             }, 25);
         }
         saveCustomInstructions() {
             this.isLoading = true;
             const putBody = {
-                newInstructions: this.pageContentTinyMce.getContent()
+                newInstructions: this.pageContentTinyMce ? this.pageContentTinyMce.getContent() : this.customInstructionsText
             };
             this.$http.put("/api/OnlinePayment/UpdateCustomFinancialInstructions", putBody).then(() => {
                 this.isLoading = false;

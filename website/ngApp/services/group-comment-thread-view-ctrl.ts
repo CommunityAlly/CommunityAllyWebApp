@@ -82,9 +82,9 @@
             else
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = undefined;
 
-            HtmlUtil2.initTinyMce( elemId, 200, GroupCommentThreadViewController.TinyMceSettings ).then( e =>
+            return HtmlUtil2.initTinyMce( elemId, 200, GroupCommentThreadViewController.TinyMceSettings ).then( e =>
             {
-                console.log( "TinyMCE initialized: " + elemId );
+                //console.log( "TinyMCE initialized: " + elemId, e );
 
                 if( elemId && elemId.indexOf( "reply-tiny-mce-editor-" ) === 0 )
                     this.replyTinyMceEditor = e;
@@ -92,6 +92,9 @@
                     this.editTinyMceEditor = e;
                 else
                     this.newCommentTinyMceEditor = e;
+
+                if( !e )
+                    return null;
 
                 // Hook up CTRL+enter to submit a comment
                 e.shortcuts.add( 'ctrl+13', 'CTRL ENTER to submit comment', () =>
@@ -106,6 +109,8 @@
                             this.submitNewComment();
                     } );                    
                 } );
+
+                return e;
             } );
         }
 
@@ -201,7 +206,14 @@
             this.editCommentId = -1;
 
             this.shouldShowAddComment = false;
-            this.initCommentTinyMce( "reply-tiny-mce-editor-" + comment.commentId );
+            const elemId = "reply-tiny-mce-editor-" + comment.commentId;
+            this.initCommentTinyMce( "reply-tiny-mce-editor-" + comment.commentId ).then( ( e: ITinyMce ) =>
+            {
+                console.log( "startReplyToComment", e );
+
+                if( !e )
+                    document.getElementById( elemId ).focus();
+            } );
         }
 
 
@@ -295,7 +307,7 @@
         {
             const editInfo = {
                 commentId: this.editCommentId,
-                newCommentText: this.editTinyMceEditor.getContent(),
+                newCommentText: this.editTinyMceEditor ? this.editTinyMceEditor.getContent() : this.editCommentText,
                 shouldRemoveAttachment: this.editCommentShouldRemoveAttachment
             };
 
@@ -313,7 +325,8 @@
                 this.editCommentId = -1;
                 this.editCommentText = "";
                 this.editCommentShouldRemoveAttachment = false;
-                this.editTinyMceEditor.setContent( "" );
+                if( this.editTinyMceEditor )
+                    this.editTinyMceEditor.setContent( "" );
                 this.removeAttachment();
                 this.retrieveComments();
 
@@ -331,7 +344,7 @@
          */
         submitReplyComment()
         {
-            const replyCommentText = this.replyTinyMceEditor.getContent();
+            const replyCommentText = this.replyTinyMceEditor ? this.replyTinyMceEditor.getContent() : this.replyCommentText;
 
             if( !replyCommentText )
             {
@@ -357,7 +370,8 @@
                     this.isLoading = false;
                     this.replyToCommentId = -1;
                     this.replyCommentText = "";
-                    this.replyTinyMceEditor.setContent( "" );
+                    if( this.replyTinyMceEditor )
+                        this.replyTinyMceEditor.setContent( "" );
                     this.removeAttachment();
                     this.retrieveComments();
                 },
@@ -375,7 +389,7 @@
          */
         submitNewComment()
         {
-            const newCommentText = this.newCommentTinyMceEditor.getContent();
+            const newCommentText = this.newCommentTinyMceEditor ? this.newCommentTinyMceEditor.getContent() : this.newCommentText;
 
             if( !newCommentText )
             {
@@ -400,7 +414,8 @@
                 {
                     this.isLoading = false;
                     this.newCommentText = "";
-                    this.newCommentTinyMceEditor.setContent( "" );
+                    if( this.newCommentTinyMceEditor )
+                        this.newCommentTinyMceEditor.setContent( "" );
                     this.removeAttachment();
                     this.retrieveComments();
                 },
@@ -438,6 +453,7 @@
         {
             this.shouldShowAddComment = true;
             this.removeAttachment();
+            this.editCommentId = -1;
             this.initCommentTinyMce( "new-comment-tiny-mce-editor" );
         }
 

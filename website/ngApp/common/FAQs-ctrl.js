@@ -19,6 +19,7 @@ var Ally;
             this.isBodyMissing = false;
             this.canManage = false;
             this.headerText = "Information and Frequently Asked Questions (FAQs)";
+            this.tinyMceDidNotLoad = false;
             this.editingInfoItem = new InfoItem();
             if (AppConfig.appShortName === "home")
                 this.headerText = "Home Notes";
@@ -35,7 +36,10 @@ var Ally;
             this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
-            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 500).then(e => this.tinyMceEditor = e);
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 500).then(e => {
+                this.tinyMceEditor = e;
+                this.tinyMceDidNotLoad = !e;
+            });
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Populate the info section
@@ -69,7 +73,8 @@ var Ally;
         onStartEditInfoItem(infoItem) {
             // Clone the object
             this.editingInfoItem = jQuery.extend({}, infoItem);
-            this.tinyMceEditor.setContent(this.editingInfoItem.body);
+            if (this.tinyMceEditor)
+                this.tinyMceEditor.setContent(this.editingInfoItem.body);
             // Scroll down to the editor
             window.scrollTo(0, document.body.scrollHeight);
         }
@@ -77,7 +82,8 @@ var Ally;
         // Occurs when the user wants to add a new info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onSubmitItem() {
-            this.editingInfoItem.body = this.tinyMceEditor.getContent();
+            if (this.tinyMceEditor)
+                this.editingInfoItem.body = this.tinyMceEditor.getContent();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
             const validateable = $("#info-item-edit-form");
             validateable.validate();
@@ -88,7 +94,8 @@ var Ally;
             this.isLoadingInfo = true;
             const onSave = () => {
                 this.isLoadingInfo = false;
-                this.tinyMceEditor.setContent("");
+                if (this.tinyMceEditor)
+                    this.tinyMceEditor.setContent("");
                 this.editingInfoItem = new InfoItem();
                 // Switched to removeAll because when we switched to the new back-end, the cache
                 // key is the full request URI, not just the "/api/InfoItem" form
@@ -121,7 +128,8 @@ var Ally;
                 const shouldClearEdit = typeof (this.editingInfoItem.infoItemId) == "number" && this.editingInfoItem.infoItemId === infoItem.infoItemId;
                 if (shouldClearEdit) {
                     this.editingInfoItem = new InfoItem();
-                    this.tinyMceEditor.setContent("");
+                    if (this.tinyMceEditor)
+                        this.tinyMceEditor.setContent("");
                 }
             });
         }
@@ -130,7 +138,8 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         cancelInfoItemEdit() {
             this.editingInfoItem = new InfoItem();
-            this.tinyMceEditor.setContent("");
+            if (this.tinyMceEditor)
+                this.tinyMceEditor.setContent("");
         }
     }
     FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];

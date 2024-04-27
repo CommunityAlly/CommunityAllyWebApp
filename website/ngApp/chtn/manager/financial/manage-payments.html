@@ -348,11 +348,9 @@
 
                 <!--Not sure why we need width 100% on this DIVs-->
                 <div data-ng-if="$ctrl.shouldShowCustomInstructions" style="width: 100%;">
-                    <textarea id="tiny-mce-editor"></textarea>
+                    <div><textarea id="tiny-mce-editor" data-ng-model="$ctrl.customInstructionsText"></textarea></div>
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveCustomInstructions()">Save Instructions</button>
                 </div>
-
-
 
                 <div data-ng-if="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.isStripeSetup">
                     <h3 class="margin-top-50" data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.isStripeSetup">WePay Fees</h3>

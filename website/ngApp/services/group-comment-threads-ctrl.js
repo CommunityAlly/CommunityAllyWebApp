@@ -25,6 +25,7 @@ var Ally;
             this.canCreateThreads = false;
             this.isDiscussionEmailEnabled = true;
             this.isPremiumPlanActive = false;
+            this.newThreadBodyText = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -98,7 +99,11 @@ var Ally;
             //};
             const newThreadFormData = new FormData();
             newThreadFormData.append("title", this.newThreadTitle);
-            newThreadFormData.append("body", this.newBodyMceEditor.getContent());
+            if (this.newBodyMceEditor)
+                newThreadFormData.append("body", this.newBodyMceEditor.getContent());
+            else {
+                newThreadFormData.append("body", this.newThreadBodyText);
+            }
             newThreadFormData.append("isBoardOnly", this.newThreadIsBoardOnly.toString());
             newThreadFormData.append("isReadOnly", this.newThreadIsReadOnly.toString());
             newThreadFormData.append("shouldSendNotice", this.shouldSendNoticeForNewThread.toString());

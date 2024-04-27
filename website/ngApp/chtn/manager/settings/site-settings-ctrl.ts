@@ -56,6 +56,7 @@ namespace Ally
         shouldShowWelcomeTooLongError: boolean = false;
         tinyMceEditor: ITinyMce;
         shouldShowLoginMoved = false;
+        tinyMceDidNotLoad = false;
         static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
 
 
@@ -115,16 +116,22 @@ namespace Ally
                     HtmlUtil2.initTinyMce( "tiny-mce-editor", 400, tinyMceOpts ).then( e =>
                     {
                         this.tinyMceEditor = e;
-                        if( this.settings.welcomeMessage )
-                            this.tinyMceEditor.setContent( this.settings.welcomeMessage );
-                        this.tinyMceEditor.on( "keyup", () =>
+
+                        if( this.tinyMceEditor )
                         {
-                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                            this.$scope.$apply( () =>
+                            if( this.settings.welcomeMessage )
+                                this.tinyMceEditor.setContent( this.settings.welcomeMessage );
+                            this.tinyMceEditor.on( "keyup", () =>
                             {
-                                this.onWelcomeMessageEdit();
+                                // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                                this.$scope.$apply( () =>
+                                {
+                                    this.onWelcomeMessageEdit();
+                                } );
                             } );
-                        } );
+                        }
+                        else
+                            this.tinyMceDidNotLoad = true;
                     } );
                 }
             } );

@@ -29,12 +29,16 @@ var Ally;
             this.retrievePages();
             Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(e => {
                 this.pageContentTinyMce = e;
-                this.pageContentTinyMce.on("change", (e) => {
-                    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                    this.$scope.$apply(() => {
-                        this.updatePageSizeLabel();
+                if (this.pageContentTinyMce) {
+                    this.pageContentTinyMce.on("change", (e) => {
+                        // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                        this.$scope.$apply(() => {
+                            this.updatePageSizeLabel();
+                        });
                     });
-                });
+                }
+                else
+                    alert(Ally.HtmlUtil2.NoTinyMceErrorMsg);
             });
             this.$http.get("/api/CustomPage/GroupLandingPage").then((response) => {
                 this.selectedLandingPageId = response.data ? response.data : null;

@@ -43,7 +43,7 @@
             </div>
 
             <p class="text-end">
-                <button class="btn btn-primary" data-ng-click="$ctrl.submitNewComment()">Add Comment</button>
+                <button class="btn btn-primary" data-ng-click="$ctrl.submitNewComment()" data-ng-if="!$ctrl.isLoading">Add Comment</button>
                 <br />
                 <span class="note-text" style="font-size: x-small;">Or CTRL+Enter</span>
             </p>
@@ -99,7 +99,7 @@
                         </div>
 
                         <div style="text-align: right;">
-                            <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()">Save Changes</button>
+                            <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()" data-ng-if="!$ctrl.isLoading">Save Changes</button>
                             <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentEdit()">Cancel</button>
                         </div>
                     </div>
@@ -130,7 +130,7 @@
                     <div data-ng-if="replyComment.commentId === $ctrl.editCommentId">
                         <textarea id="edit-tiny-mce-editor-{{replyComment.commentId}}" data-ng-ctrl-enter="$ctrl.submitCommentEdit()" class="form-control" data-ng-model="$ctrl.editCommentText" maxlength="4000"></textarea>
                         <div style="text-align: right;">
-                            <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()">Save Changes</button>
+                            <button class="btn btn-primary" data-ng-click="$ctrl.submitCommentEdit()" data-ng-if="!$ctrl.isLoading">Save Changes</button>
                             <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentEdit()">Cancel</button>
                         </div>
                     </div>
@@ -145,7 +145,7 @@
             <div data-ng-show="$ctrl.replyToCommentId === comment.commentId" class="mt-3">
                 <textarea id="reply-tiny-mce-editor-{{comment.commentId}}" data-ng-ctrl-enter="$ctrl.submitReplyComment()" class="form-control reply-to-textarea" data-ng-model="$ctrl.replyCommentText" maxlength="4000" placeholder="Enter your reply here"></textarea>
                 <div class="text-end">
-                    <button class="btn btn-primary" data-ng-click="$ctrl.submitReplyComment()">Add Comment</button>
+                    <button class="btn btn-primary" data-ng-click="$ctrl.submitReplyComment()" data-ng-if="!$ctrl.isLoading">Add Comment</button>
                     <button class="btn btn-primary" data-ng-click="$ctrl.cancelCommentReply()">Cancel</button>
                 </div>
             </div>

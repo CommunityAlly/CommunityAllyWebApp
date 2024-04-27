@@ -317,6 +317,11 @@ var Ally;
         static initTinyMce(elemId = "tiny-mce-editor", heightPixels = 400, overrideOptions = null) {
             const mcePromise = new Promise((resolve, reject) => {
                 const loadRtes = () => {
+                    // This can happen if TinyMCE is down
+                    if (typeof (tinymce) === "undefined") {
+                        resolve(null);
+                        return;
+                    }
                     tinymce.remove();
                     const menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
                     const toolbar = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.toolbar : "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table";
@@ -590,6 +595,7 @@ var Ally;
     // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
     // regex is needed for the dates that come down
     HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+    HtmlUtil2.NoTinyMceErrorMsg = "It appears the TinyMCE rich text editor failed to initialize. Please try refreshing the page. If the problem persists, TinyMCE may be down and you'll need to wait until it's up and running again.";
     Ally.HtmlUtil2 = HtmlUtil2;
     /**
      * Represents an exception returned from an API endpoint

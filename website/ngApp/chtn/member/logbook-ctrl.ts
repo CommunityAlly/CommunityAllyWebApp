@@ -23,6 +23,7 @@ namespace Ally
         groupTimeZoneAbbreviation: string;
         localTimeZoneDiffersFromGroup: boolean = false;
         tinyMceEditor: ITinyMce;
+        descriptionText = "";
         associatedGroups: AssociatedGroup[] = [];
         canEditEvents = false;
         readonly GroupShortNameIndividuals = "Individuals";
@@ -515,10 +516,13 @@ namespace Ally
                 {
                     this.tinyMceEditor = e;
 
-                    if( this.editEvent && this.editEvent.description )
-                        this.tinyMceEditor.setContent( this.editEvent.description );
-                    else
-                        this.tinyMceEditor.setContent( "" );
+                    if( this.tinyMceEditor )
+                    {
+                        if( this.editEvent && this.editEvent.description )
+                            this.tinyMceEditor.setContent( this.editEvent.description );
+                        else
+                            this.tinyMceEditor.setContent( "" );
+                    }
                 } );
             }, 100 );
         }

@@ -29,6 +29,7 @@ var Ally;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
             this.shouldShowLoginMoved = false;
+            this.tinyMceDidNotLoad = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -59,14 +60,18 @@ var Ally;
                     };
                     Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 400, tinyMceOpts).then(e => {
                         this.tinyMceEditor = e;
-                        if (this.settings.welcomeMessage)
-                            this.tinyMceEditor.setContent(this.settings.welcomeMessage);
-                        this.tinyMceEditor.on("keyup", () => {
-                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                            this.$scope.$apply(() => {
-                                this.onWelcomeMessageEdit();
+                        if (this.tinyMceEditor) {
+                            if (this.settings.welcomeMessage)
+                                this.tinyMceEditor.setContent(this.settings.welcomeMessage);
+                            this.tinyMceEditor.on("keyup", () => {
+                                // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                                this.$scope.$apply(() => {
+                                    this.onWelcomeMessageEdit();
+                                });
                             });
-                        });
+                        }
+                        else
+                            this.tinyMceDidNotLoad = true;
                     });
                 }
             });

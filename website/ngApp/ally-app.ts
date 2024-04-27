@@ -336,7 +336,7 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
 
 
         // Load the site design
-        console.log( "Loading site design settings", $rootScope.publicSiteInfo );
+        //console.log( "Loading site design settings", $rootScope.publicSiteInfo );
         $rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
         if( window.localStorage && window.localStorage.getItem( Ally.SiteDesignSettings.SettingsCacheKey ) )
         {

@@ -27,7 +27,7 @@ angular.module( "CondoAlly" ).directive( "ngCtrlEnter", function()
     {
         element.bind( "keydown keypress", function( event )
         {
-            console.log( "In ngCtrlEnter", event.which, event.ctrlKey );
+            //console.log( "In ngCtrlEnter", event.which, event.ctrlKey );
 
             const EnterKeyCode = 13;
             if( event.which === EnterKeyCode && event.ctrlKey )

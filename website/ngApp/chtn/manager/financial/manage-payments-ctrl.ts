@@ -128,6 +128,7 @@ namespace Ally
         stripePayoutAccounts: string[] = null;
         exampleFeeService = "stripe";
         isPremiumPlanActive = false;
+        customInstructionsText = "";
         readonly HistoryPageSize: number = 50;
         
 
@@ -1194,16 +1195,10 @@ namespace Ally
                 {
                     this.pageContentTinyMce = e;
 
-                    this.pageContentTinyMce.setContent( this.paymentInfo.customFinancialInstructions || "" );
-
-                    //this.pageContentTinyMce.on( "change", ( e: any ) =>
-                    //{
-                    //    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                    //    this.$scope.$apply( () =>
-                    //    {
-                            
-                    //    } );
-                    //} );
+                    if( this.pageContentTinyMce )
+                        this.pageContentTinyMce.setContent( this.paymentInfo.customFinancialInstructions || "" );
+                    else
+                        this.customInstructionsText = this.paymentInfo.customFinancialInstructions || "";
                 } );
             }, 25 );
         }
@@ -1214,7 +1209,7 @@ namespace Ally
             this.isLoading = true;
 
             const putBody = {
-                newInstructions: this.pageContentTinyMce.getContent()
+                newInstructions: this.pageContentTinyMce ? this.pageContentTinyMce.getContent() : this.customInstructionsText
             };
 
             this.$http.put( "/api/OnlinePayment/UpdateCustomFinancialInstructions", putBody ).then(

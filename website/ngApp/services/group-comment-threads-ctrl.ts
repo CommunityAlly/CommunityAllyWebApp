@@ -42,6 +42,7 @@
         isDiscussionEmailEnabled: boolean = true;
         isPremiumPlanActive: boolean = false;
         attachmentFile: File;
+        newThreadBodyText = "";
 
 
         /**
@@ -164,7 +165,14 @@
 
             const newThreadFormData = new FormData();
             newThreadFormData.append( "title", this.newThreadTitle );
-            newThreadFormData.append( "body", this.newBodyMceEditor.getContent() );
+
+            if( this.newBodyMceEditor )
+                newThreadFormData.append( "body", this.newBodyMceEditor.getContent() );
+            else
+            {
+                newThreadFormData.append( "body", this.newThreadBodyText );
+            }
+
             newThreadFormData.append( "isBoardOnly", this.newThreadIsBoardOnly.toString() );
             newThreadFormData.append( "isReadOnly", this.newThreadIsReadOnly.toString() );
             newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );

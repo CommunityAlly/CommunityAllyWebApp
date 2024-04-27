@@ -1200,7 +1200,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
         $rootScope.publicMenuItems = null;
         // Load the site design
-        console.log("Loading site design settings", $rootScope.publicSiteInfo);
+        //console.log( "Loading site design settings", $rootScope.publicSiteInfo );
         $rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
         if (window.localStorage && window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey)) {
             const settingsJson = window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey);
@@ -4331,6 +4331,7 @@ var Ally;
             this.stripePayoutAccounts = null;
             this.exampleFeeService = "stripe";
             this.isPremiumPlanActive = false;
+            this.customInstructionsText = "";
             this.HistoryPageSize = 50;
         }
         /**
@@ -5012,21 +5013,17 @@ var Ally;
             window.setTimeout(() => {
                 Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 220, { menubar: false }).then(e => {
                     this.pageContentTinyMce = e;
-                    this.pageContentTinyMce.setContent(this.paymentInfo.customFinancialInstructions || "");
-                    //this.pageContentTinyMce.on( "change", ( e: any ) =>
-                    //{
-                    //    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                    //    this.$scope.$apply( () =>
-                    //    {
-                    //    } );
-                    //} );
+                    if (this.pageContentTinyMce)
+                        this.pageContentTinyMce.setContent(this.paymentInfo.customFinancialInstructions || "");
+                    else
+                        this.customInstructionsText = this.paymentInfo.customFinancialInstructions || "";
                 });
             }, 25);
         }
         saveCustomInstructions() {
             this.isLoading = true;
             const putBody = {
-                newInstructions: this.pageContentTinyMce.getContent()
+                newInstructions: this.pageContentTinyMce ? this.pageContentTinyMce.getContent() : this.customInstructionsText
             };
             this.$http.put("/api/OnlinePayment/UpdateCustomFinancialInstructions", putBody).then(() => {
                 this.isLoading = false;
@@ -5258,12 +5255,16 @@ var Ally;
             this.retrievePages();
             Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(e => {
                 this.pageContentTinyMce = e;
-                this.pageContentTinyMce.on("change", (e) => {
-                    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                    this.$scope.$apply(() => {
-                        this.updatePageSizeLabel();
+                if (this.pageContentTinyMce) {
+                    this.pageContentTinyMce.on("change", (e) => {
+                        // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                        this.$scope.$apply(() => {
+                            this.updatePageSizeLabel();
+                        });
                     });
-                });
+                }
+                else
+                    alert(Ally.HtmlUtil2.NoTinyMceErrorMsg);
             });
             this.$http.get("/api/CustomPage/GroupLandingPage").then((response) => {
                 this.selectedLandingPageId = response.data ? response.data : null;
@@ -7505,6 +7506,7 @@ var Ally;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
             this.shouldShowLoginMoved = false;
+            this.tinyMceDidNotLoad = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -7535,14 +7537,18 @@ var Ally;
                     };
                     Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 400, tinyMceOpts).then(e => {
                         this.tinyMceEditor = e;
-                        if (this.settings.welcomeMessage)
-                            this.tinyMceEditor.setContent(this.settings.welcomeMessage);
-                        this.tinyMceEditor.on("keyup", () => {
-                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                            this.$scope.$apply(() => {
-                                this.onWelcomeMessageEdit();
+                        if (this.tinyMceEditor) {
+                            if (this.settings.welcomeMessage)
+                                this.tinyMceEditor.setContent(this.settings.welcomeMessage);
+                            this.tinyMceEditor.on("keyup", () => {
+                                // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                                this.$scope.$apply(() => {
+                                    this.onWelcomeMessageEdit();
+                                });
                             });
-                        });
+                        }
+                        else
+                            this.tinyMceDidNotLoad = true;
                     });
                 }
             });
@@ -8769,6 +8775,7 @@ var Ally;
             this.showExpandedCalendarEventModel = false;
             this.currentTimeZoneAbbreviation = "CT";
             this.localTimeZoneDiffersFromGroup = false;
+            this.descriptionText = "";
             this.associatedGroups = [];
             this.canEditEvents = false;
             this.GroupShortNameIndividuals = "Individuals";
@@ -9105,10 +9112,12 @@ var Ally;
             this.$timeout(() => {
                 Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 200, { menubar: false, toolbar: "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent link | code" }).then(e => {
                     this.tinyMceEditor = e;
-                    if (this.editEvent && this.editEvent.description)
-                        this.tinyMceEditor.setContent(this.editEvent.description);
-                    else
-                        this.tinyMceEditor.setContent("");
+                    if (this.tinyMceEditor) {
+                        if (this.editEvent && this.editEvent.description)
+                            this.tinyMceEditor.setContent(this.editEvent.description);
+                        else
+                            this.tinyMceEditor.setContent("");
+                    }
                 });
             }, 100);
         }
@@ -13133,6 +13142,7 @@ var Ally;
             this.isBodyMissing = false;
             this.canManage = false;
             this.headerText = "Information and Frequently Asked Questions (FAQs)";
+            this.tinyMceDidNotLoad = false;
             this.editingInfoItem = new InfoItem();
             if (AppConfig.appShortName === "home")
                 this.headerText = "Home Notes";
@@ -13149,7 +13159,10 @@ var Ally;
             this.faqsHttpCache = this.$cacheFactory.get("faqs-http-cache") || this.$cacheFactory("faqs-http-cache");
             this.retrieveInfo();
             // Hook up the rich text editor
-            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 500).then(e => this.tinyMceEditor = e);
+            Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 500).then(e => {
+                this.tinyMceEditor = e;
+                this.tinyMceDidNotLoad = !e;
+            });
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Populate the info section
@@ -13183,7 +13196,8 @@ var Ally;
         onStartEditInfoItem(infoItem) {
             // Clone the object
             this.editingInfoItem = jQuery.extend({}, infoItem);
-            this.tinyMceEditor.setContent(this.editingInfoItem.body);
+            if (this.tinyMceEditor)
+                this.tinyMceEditor.setContent(this.editingInfoItem.body);
             // Scroll down to the editor
             window.scrollTo(0, document.body.scrollHeight);
         }
@@ -13191,7 +13205,8 @@ var Ally;
         // Occurs when the user wants to add a new info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onSubmitItem() {
-            this.editingInfoItem.body = this.tinyMceEditor.getContent();
+            if (this.tinyMceEditor)
+                this.editingInfoItem.body = this.tinyMceEditor.getContent();
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace(this.editingInfoItem.body);
             const validateable = $("#info-item-edit-form");
             validateable.validate();
@@ -13202,7 +13217,8 @@ var Ally;
             this.isLoadingInfo = true;
             const onSave = () => {
                 this.isLoadingInfo = false;
-                this.tinyMceEditor.setContent("");
+                if (this.tinyMceEditor)
+                    this.tinyMceEditor.setContent("");
                 this.editingInfoItem = new InfoItem();
                 // Switched to removeAll because when we switched to the new back-end, the cache
                 // key is the full request URI, not just the "/api/InfoItem" form
@@ -13235,7 +13251,8 @@ var Ally;
                 const shouldClearEdit = typeof (this.editingInfoItem.infoItemId) == "number" && this.editingInfoItem.infoItemId === infoItem.infoItemId;
                 if (shouldClearEdit) {
                     this.editingInfoItem = new InfoItem();
-                    this.tinyMceEditor.setContent("");
+                    if (this.tinyMceEditor)
+                        this.tinyMceEditor.setContent("");
                 }
             });
         }
@@ -13244,7 +13261,8 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         cancelInfoItemEdit() {
             this.editingInfoItem = new InfoItem();
-            this.tinyMceEditor.setContent("");
+            if (this.tinyMceEditor)
+                this.tinyMceEditor.setContent("");
         }
     }
     FAQsController.$inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
@@ -17140,14 +17158,16 @@ var Ally;
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = elemId;
             else
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = undefined;
-            Ally.HtmlUtil2.initTinyMce(elemId, 200, GroupCommentThreadViewController.TinyMceSettings).then(e => {
-                console.log("TinyMCE initialized: " + elemId);
+            return Ally.HtmlUtil2.initTinyMce(elemId, 200, GroupCommentThreadViewController.TinyMceSettings).then(e => {
+                //console.log( "TinyMCE initialized: " + elemId, e );
                 if (elemId && elemId.indexOf("reply-tiny-mce-editor-") === 0)
                     this.replyTinyMceEditor = e;
                 else if (elemId && elemId.indexOf("edit-tiny-mce-editor") === 0)
                     this.editTinyMceEditor = e;
                 else
                     this.newCommentTinyMceEditor = e;
+                if (!e)
+                    return null;
                 // Hook up CTRL+enter to submit a comment
                 e.shortcuts.add('ctrl+13', 'CTRL ENTER to submit comment', () => {
                     this.$scope.$apply(() => {
@@ -17159,6 +17179,7 @@ var Ally;
                             this.submitNewComment();
                     });
                 });
+                return e;
             });
         }
         /**
@@ -17219,7 +17240,12 @@ var Ally;
             this.replyCommentText = "";
             this.editCommentId = -1;
             this.shouldShowAddComment = false;
-            this.initCommentTinyMce("reply-tiny-mce-editor-" + comment.commentId);
+            const elemId = "reply-tiny-mce-editor-" + comment.commentId;
+            this.initCommentTinyMce("reply-tiny-mce-editor-" + comment.commentId).then((e) => {
+                console.log("startReplyToComment", e);
+                if (!e)
+                    document.getElementById(elemId).focus();
+            });
         }
         /**
          * Edit an existing comment
@@ -17281,7 +17307,7 @@ var Ally;
         submitCommentEdit() {
             const editInfo = {
                 commentId: this.editCommentId,
-                newCommentText: this.editTinyMceEditor.getContent(),
+                newCommentText: this.editTinyMceEditor ? this.editTinyMceEditor.getContent() : this.editCommentText,
                 shouldRemoveAttachment: this.editCommentShouldRemoveAttachment
             };
             if (!editInfo.newCommentText) {
@@ -17294,7 +17320,8 @@ var Ally;
                 this.editCommentId = -1;
                 this.editCommentText = "";
                 this.editCommentShouldRemoveAttachment = false;
-                this.editTinyMceEditor.setContent("");
+                if (this.editTinyMceEditor)
+                    this.editTinyMceEditor.setContent("");
                 this.removeAttachment();
                 this.retrieveComments();
             }, (response) => {
@@ -17306,7 +17333,7 @@ var Ally;
          * Add a comment in reply to another
          */
         submitReplyComment() {
-            const replyCommentText = this.replyTinyMceEditor.getContent();
+            const replyCommentText = this.replyTinyMceEditor ? this.replyTinyMceEditor.getContent() : this.replyCommentText;
             if (!replyCommentText) {
                 alert("Please enter some text to add a reply");
                 return;
@@ -17324,7 +17351,8 @@ var Ally;
                 this.isLoading = false;
                 this.replyToCommentId = -1;
                 this.replyCommentText = "";
-                this.replyTinyMceEditor.setContent("");
+                if (this.replyTinyMceEditor)
+                    this.replyTinyMceEditor.setContent("");
                 this.removeAttachment();
                 this.retrieveComments();
             }, (response) => {
@@ -17336,7 +17364,7 @@ var Ally;
          * Add a new comment to this thread
          */
         submitNewComment() {
-            const newCommentText = this.newCommentTinyMceEditor.getContent();
+            const newCommentText = this.newCommentTinyMceEditor ? this.newCommentTinyMceEditor.getContent() : this.newCommentText;
             if (!newCommentText) {
                 alert("You must enter text to submit a comment");
                 return;
@@ -17353,7 +17381,8 @@ var Ally;
             this.$http.put(`/api/CommentThread/${this.thread.commentThreadId}/AddCommentFromForm`, newCommentFormData, putHeaders).then(() => {
                 this.isLoading = false;
                 this.newCommentText = "";
-                this.newCommentTinyMceEditor.setContent("");
+                if (this.newCommentTinyMceEditor)
+                    this.newCommentTinyMceEditor.setContent("");
                 this.removeAttachment();
                 this.retrieveComments();
             }, (response) => {
@@ -17377,6 +17406,7 @@ var Ally;
         showAddComment() {
             this.shouldShowAddComment = true;
             this.removeAttachment();
+            this.editCommentId = -1;
             this.initCommentTinyMce("new-comment-tiny-mce-editor");
         }
         cancelCommentEdit() {
@@ -17480,7 +17510,7 @@ var Ally;
             this.canCreateThreads = false;
             this.isDiscussionEmailEnabled = true;
             this.isPremiumPlanActive = false;
-            this.toggle = false;
+            this.newThreadBodyText = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -17509,15 +17539,6 @@ var Ally;
             this.refreshCommentThreads(false);
         }
         setDisplayCreateModal(shouldShow) {
-            //const portletRule = HtmlUtil2.getCSSRule( ".portlet-box" );
-            //console.log( "getCSSRule returned", portletRule );
-            //if( this.toggle )
-            //    portletRule.style.boxShadow = "rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px";
-            //else
-            //    portletRule.style.boxShadow = null;
-            //console.log( "portletRule.style.boxShadow", portletRule.style.boxShadow );
-            //this.toggle=!this.toggle;
-            //return;
             this.showCreateNewModal = shouldShow;
             this.newThreadTitle = "";
             this.newThreadIsBoardOnly = false;
@@ -17563,7 +17584,11 @@ var Ally;
             //};
             const newThreadFormData = new FormData();
             newThreadFormData.append("title", this.newThreadTitle);
-            newThreadFormData.append("body", this.newBodyMceEditor.getContent());
+            if (this.newBodyMceEditor)
+                newThreadFormData.append("body", this.newBodyMceEditor.getContent());
+            else {
+                newThreadFormData.append("body", this.newThreadBodyText);
+            }
             newThreadFormData.append("isBoardOnly", this.newThreadIsBoardOnly.toString());
             newThreadFormData.append("isReadOnly", this.newThreadIsReadOnly.toString());
             newThreadFormData.append("shouldSendNotice", this.shouldSendNoticeForNewThread.toString());
@@ -18108,6 +18133,11 @@ var Ally;
         static initTinyMce(elemId = "tiny-mce-editor", heightPixels = 400, overrideOptions = null) {
             const mcePromise = new Promise((resolve, reject) => {
                 const loadRtes = () => {
+                    // This can happen if TinyMCE is down
+                    if (typeof (tinymce) === "undefined") {
+                        resolve(null);
+                        return;
+                    }
                     tinymce.remove();
                     const menubar = (overrideOptions && overrideOptions.menubar !== undefined) ? overrideOptions.menubar : "edit insert format table";
                     const toolbar = (overrideOptions && overrideOptions.toolbar !== undefined) ? overrideOptions.toolbar : "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | checklist code formatpainter table";
@@ -18381,6 +18411,7 @@ var Ally;
     // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
     // regex is needed for the dates that come down
     HtmlUtil2.dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+    HtmlUtil2.NoTinyMceErrorMsg = "It appears the TinyMCE rich text editor failed to initialize. Please try refreshing the page. If the problem persists, TinyMCE may be down and you'll need to wait until it's up and running again.";
     Ally.HtmlUtil2 = HtmlUtil2;
     /**
      * Represents an exception returned from an API endpoint
@@ -18547,7 +18578,7 @@ angular.module("CondoAlly").directive("ngEnter", function () {
 angular.module("CondoAlly").directive("ngCtrlEnter", function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
-            console.log("In ngCtrlEnter", event.which, event.ctrlKey);
+            //console.log( "In ngCtrlEnter", event.which, event.ctrlKey );
             const EnterKeyCode = 13;
             if (event.which === EnterKeyCode && event.ctrlKey) {
                 console.log("Detected ngCtrlEnter", attrs.ngCtrlEnter);

@@ -24,6 +24,7 @@ var Ally;
             this.showExpandedCalendarEventModel = false;
             this.currentTimeZoneAbbreviation = "CT";
             this.localTimeZoneDiffersFromGroup = false;
+            this.descriptionText = "";
             this.associatedGroups = [];
             this.canEditEvents = false;
             this.GroupShortNameIndividuals = "Individuals";
@@ -360,10 +361,12 @@ var Ally;
             this.$timeout(() => {
                 Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 200, { menubar: false, toolbar: "styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent link | code" }).then(e => {
                     this.tinyMceEditor = e;
-                    if (this.editEvent && this.editEvent.description)
-                        this.tinyMceEditor.setContent(this.editEvent.description);
-                    else
-                        this.tinyMceEditor.setContent("");
+                    if (this.tinyMceEditor) {
+                        if (this.editEvent && this.editEvent.description)
+                            this.tinyMceEditor.setContent(this.editEvent.description);
+                        else
+                            this.tinyMceEditor.setContent("");
+                    }
                 });
             }, 100);
         }

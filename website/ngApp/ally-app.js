@@ -217,7 +217,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         $rootScope.adminMenuItems = _.where($rootScope.menuItems, function (menuItem) { return menuItem.role === Role_Admin; });
         $rootScope.publicMenuItems = null;
         // Load the site design
-        console.log("Loading site design settings", $rootScope.publicSiteInfo);
+        //console.log( "Loading site design settings", $rootScope.publicSiteInfo );
         $rootScope.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
         if (window.localStorage && window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey)) {
             const settingsJson = window.localStorage.getItem(Ally.SiteDesignSettings.SettingsCacheKey);

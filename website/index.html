@@ -27,7 +27,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob:; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';" />
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
-    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=61" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=63" crossorigin="anonymous" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=44"></script>
@@ -52,7 +52,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=925;
+        var appVer=927;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -60,17 +60,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=925" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=927" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=925" );
+                    localStorage.setItem( Key_JSVersion, "appVer=927" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=925"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=925"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=927"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=927"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -448,7 +448,7 @@
     <script src="https://js.stripe.com/v3/?advancedFraudSignals=false" defer></script>
     <!--<script src="https://cdn.dwolla.com/1/dwolla.js" defer></script>-->
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" defer></script>
-    <script src="https://cdn.tiny.cloud/1/9zacv8cnbzzsp7wl1vlv8f3a0rk735bvkn3aemat479m4s9m/tinymce/6/tinymce.min.js" referrerpolicy="origin" defer></script>
+    <script src="https://cdn.tiny.cloud/1/9zacv8cnbzzsp7wl1vlv8f3a0rk735bvkn3aemat479m4s9m/tinymce/7/tinymce.min.js" referrerpolicy="origin" defer></script>
     <script src="/js/lib/other/acctoolbar.min.js" async defer></script>
     <script>
         // Setup the accessibility widget

@@ -28,12 +28,15 @@ namespace Ally
     {
         // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
         //"2018-03-12T22:00:33"
-        static iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+        static readonly iso8601RegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
         //static dotNetTimeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
 
         // Not sure how the Community Ally server differs from other .Net WebAPI apps, but this
         // regex is needed for the dates that come down
-        static dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+        static readonly dotNetTimeRegEx2 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?$/;
+
+        static readonly NoTinyMceErrorMsg = "It appears the TinyMCE rich text editor failed to initialize. Please try refreshing the page. If the problem persists, TinyMCE may be down and you'll need to wait until it's up and running again.";
+
 
         static convertStringsToDates( obj: any ): void
         {
@@ -494,6 +497,13 @@ namespace Ally
             {
                 const loadRtes = () =>
                 {
+                    // This can happen if TinyMCE is down
+                    if( typeof ( tinymce ) === "undefined" )
+                    {
+                        resolve( null );
+                        return;
+                    }
+
                     tinymce.remove();
 
                     const menubar = ( overrideOptions && overrideOptions.menubar !== undefined ) ? overrideOptions.menubar : "edit insert format table";

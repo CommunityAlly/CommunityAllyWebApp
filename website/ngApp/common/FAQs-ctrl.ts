@@ -28,6 +28,7 @@
         headerText: string = "Information and Frequently Asked Questions (FAQs)";
         faqsHttpCache: ng.ICacheObject;
         tinyMceEditor: ITinyMce;
+        tinyMceDidNotLoad = false;
 
         
         /**
@@ -62,7 +63,11 @@
             this.retrieveInfo();
 
             // Hook up the rich text editor
-            HtmlUtil2.initTinyMce( "tiny-mce-editor", 500 ).then( e => this.tinyMceEditor = e );
+            HtmlUtil2.initTinyMce( "tiny-mce-editor", 500 ).then( e =>
+            {
+                this.tinyMceEditor = e;
+                this.tinyMceDidNotLoad = !e;
+            } );
         }
 
 
@@ -111,7 +116,8 @@
         {
             // Clone the object
             this.editingInfoItem = jQuery.extend( {}, infoItem ) as InfoItem;
-            this.tinyMceEditor.setContent( this.editingInfoItem.body );
+            if( this.tinyMceEditor )
+                this.tinyMceEditor.setContent( this.editingInfoItem.body );
 
             // Scroll down to the editor
             window.scrollTo( 0, document.body.scrollHeight );
@@ -123,7 +129,9 @@
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onSubmitItem()
         {
-            this.editingInfoItem.body = this.tinyMceEditor.getContent();
+            if( this.tinyMceEditor )
+                this.editingInfoItem.body = this.tinyMceEditor.getContent();
+
             this.isBodyMissing = HtmlUtil.isNullOrWhitespace( this.editingInfoItem.body );
 
             const validateable: any = $( "#info-item-edit-form" );
@@ -139,7 +147,8 @@
             const onSave = () =>
             {
                 this.isLoadingInfo = false;
-                this.tinyMceEditor.setContent( "" );
+                if( this.tinyMceEditor )
+                    this.tinyMceEditor.setContent( "" );
                 this.editingInfoItem = new InfoItem();
 
                 // Switched to removeAll because when we switched to the new back-end, the cache
@@ -185,7 +194,8 @@
                 if( shouldClearEdit )
                 {
                     this.editingInfoItem = new InfoItem();
-                    this.tinyMceEditor.setContent( "" );
+                    if( this.tinyMceEditor )
+                        this.tinyMceEditor.setContent( "" );
                 }
             });
         }
@@ -197,7 +207,8 @@
         cancelInfoItemEdit()
         {
             this.editingInfoItem = new InfoItem();
-            this.tinyMceEditor.setContent( "" );
+            if( this.tinyMceEditor )
+                this.tinyMceEditor.setContent( "" );
         }
     }
 

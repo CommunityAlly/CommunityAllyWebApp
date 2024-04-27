@@ -42,14 +42,19 @@ namespace Ally
             {
                 this.pageContentTinyMce = e;                
 
-                this.pageContentTinyMce.on( "change", ( e: any ) =>
+                if( this.pageContentTinyMce )
                 {
-                    // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
-                    this.$scope.$apply( () =>
+                    this.pageContentTinyMce.on( "change", ( e: any ) =>
                     {
-                        this.updatePageSizeLabel();
+                        // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                        this.$scope.$apply( () =>
+                        {
+                            this.updatePageSizeLabel();
+                        } );
                     } );
-                } );
+                }
+                else
+                    alert( HtmlUtil2.NoTinyMceErrorMsg );
             } );
             
             this.$http.get( "/api/CustomPage/GroupLandingPage" ).then(

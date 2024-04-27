@@ -43,14 +43,16 @@ var Ally;
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = elemId;
             else
                 GroupCommentThreadViewController.TinyMceSettings.autoFocusElemId = undefined;
-            Ally.HtmlUtil2.initTinyMce(elemId, 200, GroupCommentThreadViewController.TinyMceSettings).then(e => {
-                console.log("TinyMCE initialized: " + elemId);
+            return Ally.HtmlUtil2.initTinyMce(elemId, 200, GroupCommentThreadViewController.TinyMceSettings).then(e => {
+                //console.log( "TinyMCE initialized: " + elemId, e );
                 if (elemId && elemId.indexOf("reply-tiny-mce-editor-") === 0)
                     this.replyTinyMceEditor = e;
                 else if (elemId && elemId.indexOf("edit-tiny-mce-editor") === 0)
                     this.editTinyMceEditor = e;
                 else
                     this.newCommentTinyMceEditor = e;
+                if (!e)
+                    return null;
                 // Hook up CTRL+enter to submit a comment
                 e.shortcuts.add('ctrl+13', 'CTRL ENTER to submit comment', () => {
                     this.$scope.$apply(() => {
@@ -62,6 +64,7 @@ var Ally;
                             this.submitNewComment();
                     });
                 });
+                return e;
             });
         }
         /**
@@ -122,7 +125,12 @@ var Ally;
             this.replyCommentText = "";
             this.editCommentId = -1;
             this.shouldShowAddComment = false;
-            this.initCommentTinyMce("reply-tiny-mce-editor-" + comment.commentId);
+            const elemId = "reply-tiny-mce-editor-" + comment.commentId;
+            this.initCommentTinyMce("reply-tiny-mce-editor-" + comment.commentId).then((e) => {
+                console.log("startReplyToComment", e);
+                if (!e)
+                    document.getElementById(elemId).focus();
+            });
         }
         /**
          * Edit an existing comment
@@ -184,7 +192,7 @@ var Ally;
         submitCommentEdit() {
             const editInfo = {
                 commentId: this.editCommentId,
-                newCommentText: this.editTinyMceEditor.getContent(),
+                newCommentText: this.editTinyMceEditor ? this.editTinyMceEditor.getContent() : this.editCommentText,
                 shouldRemoveAttachment: this.editCommentShouldRemoveAttachment
             };
             if (!editInfo.newCommentText) {
@@ -197,7 +205,8 @@ var Ally;
                 this.editCommentId = -1;
                 this.editCommentText = "";
                 this.editCommentShouldRemoveAttachment = false;
-                this.editTinyMceEditor.setContent("");
+                if (this.editTinyMceEditor)
+                    this.editTinyMceEditor.setContent("");
                 this.removeAttachment();
                 this.retrieveComments();
             }, (response) => {
@@ -209,7 +218,7 @@ var Ally;
          * Add a comment in reply to another
          */
         submitReplyComment() {
-            const replyCommentText = this.replyTinyMceEditor.getContent();
+            const replyCommentText = this.replyTinyMceEditor ? this.replyTinyMceEditor.getContent() : this.replyCommentText;
             if (!replyCommentText) {
                 alert("Please enter some text to add a reply");
                 return;
@@ -227,7 +236,8 @@ var Ally;
                 this.isLoading = false;
                 this.replyToCommentId = -1;
                 this.replyCommentText = "";
-                this.replyTinyMceEditor.setContent("");
+                if (this.replyTinyMceEditor)
+                    this.replyTinyMceEditor.setContent("");
                 this.removeAttachment();
                 this.retrieveComments();
             }, (response) => {
@@ -239,7 +249,7 @@ var Ally;
          * Add a new comment to this thread
          */
         submitNewComment() {
-            const newCommentText = this.newCommentTinyMceEditor.getContent();
+            const newCommentText = this.newCommentTinyMceEditor ? this.newCommentTinyMceEditor.getContent() : this.newCommentText;
             if (!newCommentText) {
                 alert("You must enter text to submit a comment");
                 return;
@@ -256,7 +266,8 @@ var Ally;
             this.$http.put(`/api/CommentThread/${this.thread.commentThreadId}/AddCommentFromForm`, newCommentFormData, putHeaders).then(() => {
                 this.isLoading = false;
                 this.newCommentText = "";
-                this.newCommentTinyMceEditor.setContent("");
+                if (this.newCommentTinyMceEditor)
+                    this.newCommentTinyMceEditor.setContent("");
                 this.removeAttachment();
                 this.retrieveComments();
             }, (response) => {
@@ -280,6 +291,7 @@ var Ally;
         showAddComment() {
             this.shouldShowAddComment = true;
             this.removeAttachment();
+            this.editCommentId = -1;
             this.initCommentTinyMce("new-comment-tiny-mce-editor");
         }
         cancelCommentEdit() {
