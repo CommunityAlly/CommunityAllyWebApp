@@ -370,11 +370,14 @@ var Ally;
                 this.populateGridUnitLabels(this.allEntries);
             });
         }
-        updateLocalData() {
+        /**
+         * Get the filtered rows by account and split entries into multiple rows
+         */
+        getLocalFilteredRows(shouldSplitRows) {
             const enabledAccountIds = this.ledgerAccounts.filter(a => a.shouldShowInGrid).map(a => a.ledgerAccountId);
             let filteredList = this.allEntries.filter(e => enabledAccountIds.indexOf(e.ledgerAccountId) > -1);
             // If the user is filtering on a column, we need to break out split transactions
-            if (this.hasActiveTxGridColFilter) {
+            if (shouldSplitRows) {
                 // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
                 const newFilteredList = [];
                 for (let i = 0; i < filteredList.length; ++i) {
@@ -395,6 +398,10 @@ var Ally;
                 }
                 filteredList = newFilteredList;
             }
+            return filteredList;
+        }
+        updateLocalData() {
+            const filteredList = this.getLocalFilteredRows(this.hasActiveTxGridColFilter);
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
             this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
@@ -829,7 +836,8 @@ var Ally;
                     fieldName: "accountName"
                 }
             ];
-            const csvDataString = Ally.createCsvString(this.ledgerGridOptions.data, csvColumns);
+            const splitRows = this.getLocalFilteredRows(true);
+            const csvDataString = Ally.createCsvString(splitRows, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
         }
         /** Occurs when the user changes the setting to share transactions with owners */

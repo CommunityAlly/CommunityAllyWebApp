@@ -522,14 +522,17 @@ namespace Ally
         }
 
 
-        updateLocalData()
+        /**
+         * Get the filtered rows by account and split entries into multiple rows
+         */
+        getLocalFilteredRows( shouldSplitRows: boolean )
         {
             const enabledAccountIds = this.ledgerAccounts.filter( a => a.shouldShowInGrid ).map( a => a.ledgerAccountId );
 
             let filteredList = this.allEntries.filter( e => enabledAccountIds.indexOf( e.ledgerAccountId ) > -1 );
 
             // If the user is filtering on a column, we need to break out split transactions
-            if( this.hasActiveTxGridColFilter )
+            if( shouldSplitRows )
             {
                 // Go through all transactions and for splits, remove the parent, and add the child splits to the main list
                 const newFilteredList: LedgerEntry[] = [];
@@ -544,20 +547,28 @@ namespace Ally
 
                     // Remove the parent entry
                     const parentEntry = filteredList[i];
-                    
+
                     for( let splitIndex = 0; splitIndex < parentEntry.splitEntries.length; ++splitIndex )
                     {
                         // Clone the split so we can prefix the label with split
                         const curSplitCopy = _.clone( parentEntry.splitEntries[splitIndex] );
                         curSplitCopy.description = "[SPLIT] " + curSplitCopy.description;
                         curSplitCopy.accountName = parentEntry.accountName; // Account name doesn't get populated for split entries so copy it
-                        
+
                         newFilteredList.push( curSplitCopy );
                     }
                 }
 
                 filteredList = newFilteredList;
             }
+
+            return filteredList;
+        }
+
+
+        updateLocalData()
+        {
+            const filteredList = this.getLocalFilteredRows( this.hasActiveTxGridColFilter );
 
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
@@ -1223,7 +1234,9 @@ namespace Ally
                 }
             ];
 
-            const csvDataString = Ally.createCsvString( this.ledgerGridOptions.data as LedgerEntry[], csvColumns );
+            const splitRows = this.getLocalFilteredRows( true );
+
+            const csvDataString = Ally.createCsvString( splitRows as LedgerEntry[], csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Transactions.csv" );
         }
