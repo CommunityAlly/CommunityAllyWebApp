@@ -48,7 +48,7 @@
             </div>
             <br />
             
-            <button data-ng-if="!$ctrl.shouldShowHomeSetupNote" class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()" data-ng-if="!$ctrl.shouldShowPaymentForm">View Premium Plan Renewal Options</button>
+            <button data-ng-if="!$ctrl.shouldShowHomeSetupNote && !$ctrl.shouldShowPaymentForm" class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()">View Premium Plan Renewal Options</button>
             <div data-ng-if="$ctrl.shouldShowHomeSetupNote" class="mt-2 mb-2 alert alert-warning">
                 It looks like you have not yet setup your homes. Our pricing is based on number of homes so we need that information before you can sign-up for our premium plan.
                 <br />
