@@ -35,6 +35,8 @@
         testPay_Description: string;
         allySurvey: AllySurveyInfo;
         shouldShowOwnerFinanceTxn: boolean = false;
+        userFirstName = "";
+
 
         /**
          * The constructor for the class
@@ -64,6 +66,7 @@
                 this.testPay_UserLast = this.siteInfo.userInfo.lastName;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
+            this.userFirstName = this.siteInfo.userInfo.firstName;
 
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf( "<" ) > -1;
@@ -122,6 +125,8 @@
         */
         checkForSurveys()
         {
+            this.allySurvey = null;
+
             this.$http.get( "/api/AllySurvey/AnySurvey" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<AllySurveyInfo> ) =>
                 {
@@ -132,8 +137,6 @@
                     console.log( "Failed to load ally survey", errorResponse.data.exceptionMessage );
                 }
             );
-
-            this.allySurvey = null;
         }
 
 

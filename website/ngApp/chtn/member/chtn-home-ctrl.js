@@ -20,6 +20,7 @@ var Ally;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.userFirstName = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -33,6 +34,7 @@ var Ally;
                 this.testPay_UserLast = this.siteInfo.userInfo.lastName;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
+            this.userFirstName = this.siteInfo.userInfo.firstName;
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf("<") > -1;
             if (this.isWelcomeMessageHtml) {
@@ -73,12 +75,12 @@ var Ally;
         * See if there's any surveys waiting to be completed for the current group+user
         */
         checkForSurveys() {
+            this.allySurvey = null;
             this.$http.get("/api/AllySurvey/AnySurvey").then((response) => {
                 this.allySurvey = response.data;
             }, (errorResponse) => {
                 console.log("Failed to load ally survey", errorResponse.data.exceptionMessage);
             });
-            this.allySurvey = null;
         }
         onTestPayAmtChange() {
             this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
