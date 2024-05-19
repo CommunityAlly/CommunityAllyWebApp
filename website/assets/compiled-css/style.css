@@ -736,6 +736,7 @@ a[data-edit="backColor #FFFFFF"]::before {
 
 .ally-active-nav {
   color: white !important;
+  font-weight: bolder;
 }
 
 .ally-inactive-nav {
