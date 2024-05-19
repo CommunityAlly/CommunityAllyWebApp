@@ -117,20 +117,45 @@
             </div>
         </div>-->
 
-            <div class="row mt-5">
-                <div class="col-12">
+            <div class="row mt-4">
+                <!--<div class="col-12">
                     <label class="form-label" for="includeInDiscussionEmailTextBox">
                         Discussion Email:
                     </label>
                     <input id="includeInDiscussionEmailTextBox" class="form-check-input" data-ng-model="$ctrl.profileInfo.includeInDiscussionEmail" type="checkbox" />
                     <div class="form-text">Indicates if you want to receive emails sent to the discussion group email address.</div>
-                </div>
+                </div>-->
+                
+                <label class="form-label">What emails would you like to receive from your association?</label>
+                <ul style="margin-left: 20px;">
+                    <li style="margin-bottom: 14px;">
+                        <label style="font-weight: normal; margin-bottom: 0;">
+                            Board Emails:
+                            <input class="form-check-input" checked="checked" type="checkbox" readonly="readonly" disabled="disabled" />
+                        </label>                        
+                        <div class="form-text">This is required as part of membership. If you don't want to recieve any emails, ask a board member to remove you from the site.</div>
+                    </li>
+                    <li style="margin-bottom: 14px;">
+                        <label style="font-weight: normal; margin-bottom: 0;">
+                            Non-Board Group Emails:
+                            <input class="form-check-input" data-ng-model="$ctrl.emailFlagsNonBoard" data-ng-change="$ctrl.onEmailFlagsChanged()" type="checkbox" />
+                        </label>                        
+                        <div class="form-text">Group emails (Not individual) sent by non-board members.</div>
+                    </li>
+                    <li>
+                        <label style="font-weight: normal; margin-bottom: 0;">
+                            Discussion Group Emails:
+                            <input class="form-check-input" data-ng-model="$ctrl.emailFlagsDiscussion" data-ng-change="$ctrl.onEmailFlagsChanged()" type="checkbox" />
+                        </label>
+                        <div class="form-text">Indicates if you want to receive emails sent to the discussion group email address.</div>
+                    </li>
+                </ul>
             </div>
 
-            <div class="row mt-3">
+            <div class="row mt-4">
                 <div class="col-12">
-                    <label class="form-label" for="includeInDiscussionEmailTextBox">
-                        Discussion Thread Digest Frequency:
+                    <label class="form-label">
+                        Default Discussion Thread Digest Frequency:
                     </label>
                 </div>
             </div>
@@ -141,7 +166,7 @@
                 <div class="col-12 col-sm-6 col-md-3"><label style=""><input type="radio" data-ng-model="$ctrl.profileInfo.defaultDigestFrequency" value="nightly" name="digest-frequency" />Nightly</label></div>
                 <div class="col-12 col-sm-6 col-md-3"><label style=""><input type="radio" data-ng-model="$ctrl.profileInfo.defaultDigestFrequency" value="weekly" name="digest-frequency" />Weekly on Sunday</label></div>
                 <div>
-                    <span class="form-text">When new discussion threads get created, this is how often you'll receive updates on missed comments. Only sent when on the premium plan. <a href="https://help.communityally.org/discussion-threads/" target="_blank">Learn about discussion threads.</a>.</span>
+                    <span class="form-text">When new discussion threads get created, this is how often you'll receive updates on missed comments. You can customize this per thread. Only sent when on the premium plan. <a href="https://help.communityally.org/discussion-threads/" target="_blank">Learn about discussion threads.</a>.</span>
                 </div>
             </div>
         </form>

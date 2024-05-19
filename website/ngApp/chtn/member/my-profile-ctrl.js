@@ -30,6 +30,8 @@ var Ally;
             this.shouldShowPassword = false;
             this.selectedProfileView = "Primary";
             this.passwordComplexity = "short";
+            this.emailFlagsNonBoard = true;
+            this.emailFlagsDiscussion = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -124,6 +126,8 @@ var Ally;
                 this.needsToAcceptTerms = this.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
                 this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
                 this.$rootScope.shouldHideMenu = this.needsToAcceptTerms;
+                this.emailFlagsNonBoard = (this.profileInfo.enabledEmailsFlags & 2) === 2;
+                this.emailFlagsDiscussion = (this.profileInfo.enabledEmailsFlags & 4) === 4;
                 // Was used before, here for convenience
                 this.saveButtonStyle = {
                     width: "100px",
@@ -177,6 +181,17 @@ var Ally;
                 && hasNumber
                 && hasSymbol;
             this.passwordComplexity = isComplex ? "complex" : "simple";
+        }
+        onEmailFlagsChanged() {
+            //public enum EnabledEmailsFlags : byte
+            //{
+            //    None = 0,
+            //    BoardGroupEmails = 1,
+            //    NonBoardGroupEmails = 2,
+            //    Discussion = 4
+            //}
+            this.profileInfo.enabledEmailsFlags = 1 | (this.emailFlagsNonBoard ? 2 : 0) | (this.emailFlagsDiscussion ? 4 : 0);
+            //console.log( "this.profileInfo.enabledEmailsFlags", this.profileInfo.enabledEmailsFlags );
         }
     }
     MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
