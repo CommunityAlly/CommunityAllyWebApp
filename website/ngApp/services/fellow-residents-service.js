@@ -130,68 +130,6 @@ var Ally;
             //} );
         }
         /**
-         * Populate the lists of group emails
-         */
-        _setupGroupEmailObject(allResidents, unitList) {
-            let emailLists = {};
-            emailLists = {
-                everyone: [],
-                owners: [],
-                renters: [],
-                board: [],
-                residentOwners: [],
-                nonResidentOwners: [],
-                residentOwnersAndRenters: [],
-                propertyManagers: [],
-                discussion: []
-            };
-            // Go through each resident and add them to each email group they belong to
-            for (let i = 0; i < allResidents.length; ++i) {
-                const r = allResidents[i];
-                const displayName = r.fullName + (r.hasEmail ? "" : "*");
-                emailLists.everyone.push(displayName);
-                if (r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager)
-                    emailLists.board.push(displayName);
-                if (r.boardPosition === FellowResidentsService.BoardPos_PropertyManager)
-                    emailLists.propertyManagers.push(displayName);
-                if (r.includeInDiscussionEmail)
-                    emailLists.discussion.push(displayName);
-                let isOwner = false;
-                let isRenter = false;
-                let unitIsRented = false;
-                for (let unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
-                    const simpleHome = r.homes[unitIndex];
-                    if (!simpleHome.isRenter) {
-                        isOwner = true;
-                        const unit = _.find(unitList, function (u) { return u.unitId === simpleHome.unitId; });
-                        unitIsRented = unit.renters.length > 0;
-                    }
-                    if (simpleHome.isRenter)
-                        isRenter = true;
-                }
-                if (isOwner) {
-                    emailLists.owners.push(displayName);
-                    if (unitIsRented)
-                        emailLists.nonResidentOwners.push(displayName);
-                    else {
-                        emailLists.residentOwners.push(displayName);
-                        emailLists.residentOwnersAndRenters.push(displayName);
-                    }
-                }
-                if (isRenter) {
-                    emailLists.renters.push(displayName);
-                    emailLists.residentOwnersAndRenters.push(displayName);
-                }
-            }
-            // If there are no renters then there are no non-residents so hide those lists
-            if (emailLists.renters.length === 0) {
-                emailLists.residentOwners = [];
-                emailLists.residentOwnersAndRenters = [];
-                emailLists.nonResidentOwners = [];
-            }
-            return emailLists;
-        }
-        /**
          * Send an email message to another user
          */
         sendMessage(recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
