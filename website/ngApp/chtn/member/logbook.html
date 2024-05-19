@@ -17,6 +17,10 @@
             </fieldset>
         </div>
         <div id="log-calendar" ui-calendar="uiConfig.calendar" ng-model="$ctrl.calendarEvents"></div>
+        <div style="text-align: right;">
+            <input id="ics-file-input" type="file" style="display: none;" accept=".ics" data-on-file-change="$ctrl.onIcsFileSelected($event)" />
+            <span class="text-link note-text" onclick="$('#ics-file-input').click();">Import ICS File</span>
+        </div>
         <br />
 
         <div id="calendar-event-panel" class="modal-container" data-ng-show="$ctrl.editEvent != null">
@@ -257,8 +261,8 @@
                     </div>
                 </form>
 
-                <span class="text-link" data-ng-click="$ctrl.editViewingEvent()" style="position: absolute; bottom: 5px; left: 8px;" data-ng-if="$ctrl.canEditEvents">Edit Event</span>
-                <span class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="position: absolute; bottom: 5px; right: 8px;">Close</span>
+                <span id="edit-calendar-event-link" class="text-link" data-ng-click="$ctrl.editViewingEvent()" style="position: absolute; bottom: 5px; left: 8px;" data-ng-if="$ctrl.canEditEvents">Edit Event</span>
+                <span id="close-calendar-event-link" class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="position: absolute; bottom: 5px; right: 8px;">Close</span>
             </div>
         </div>
 

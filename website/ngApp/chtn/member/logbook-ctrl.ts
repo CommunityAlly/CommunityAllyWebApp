@@ -178,7 +178,6 @@ namespace Ally
                 }]
             };
 
-
             $( document ).ready( function()
             {
                 $( '.EditableEntry' ).editable( '<%= Request.Url %>',
@@ -729,8 +728,75 @@ namespace Ally
         {
             this.setEditEvent( this.viewEvent, true );
         }
+
+
+        onIcsFileSelected( icsFileEvent: any )
+        {
+            console.log( "In onIcsFileSelected", icsFileEvent.target.files[0] );
+
+            const formData = new FormData();
+            formData.append( "IcsFile", icsFileEvent.target.files[0] );
+
+            this.isLoadingCalendarEvents = true;
+
+            const postHeaders: ng.IRequestShortcutConfig = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+
+            // Reset the file input so the user can choose the file again, if needed
+            const clearFile = () => { ( document.getElementById( "ics-file-input" ) as HTMLInputElement ).value = null; };
+
+            const createEvents = () =>
+            {
+                this.isLoadingCalendarEvents = true;
+
+                this.$http.post( "/api/CalendarEvent/ImportIcs", formData, postHeaders ).then(
+                    ( response: ng.IHttpPromiseCallbackArg<PreviewIcsResult> ) =>
+                    {
+                        this.isLoadingCalendarEvents = false;
+                        clearFile();
+                        this.onlyRefreshCalendarEvents = true;
+                        $( '#log-calendar' ).fullCalendar( 'refetchEvents' );
+                    },
+                    ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                    {
+                        this.isLoadingCalendarEvents = false;
+                        alert( "Failed to import file: " + response.data.exceptionMessage );
+
+                        clearFile();
+                    }
+                );
+            };
+
+            this.$http.post( "/api/CalendarEvent/PreviewIcs", formData, postHeaders ).then(
+                ( response: ng.IHttpPromiseCallbackArg<PreviewIcsResult> ) =>
+                {
+                    this.isLoadingCalendarEvents = false;
+
+                    if( confirm( response.data.resultMessage ) )
+                    {
+                        createEvents();
+                    }
+                    else
+                        clearFile();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingCalendarEvents = false;
+                    alert( "Failed to parse file: " + response.data.exceptionMessage );
+
+                    clearFile();
+                }
+            );
+        }
     }
 
+
+    class PreviewIcsResult
+    {
+        resultMessage: string;
+        numEvents: number;
+    }
 
     class AssociatedGroup
     {

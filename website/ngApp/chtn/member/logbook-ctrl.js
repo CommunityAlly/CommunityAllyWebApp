@@ -499,12 +499,50 @@ var Ally;
         editViewingEvent() {
             this.setEditEvent(this.viewEvent, true);
         }
+        onIcsFileSelected(icsFileEvent) {
+            console.log("In onIcsFileSelected", icsFileEvent.target.files[0]);
+            const formData = new FormData();
+            formData.append("IcsFile", icsFileEvent.target.files[0]);
+            this.isLoadingCalendarEvents = true;
+            const postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            // Reset the file input so the user can choose the file again, if needed
+            const clearFile = () => { document.getElementById("ics-file-input").value = null; };
+            const createEvents = () => {
+                this.isLoadingCalendarEvents = true;
+                this.$http.post("/api/CalendarEvent/ImportIcs", formData, postHeaders).then((response) => {
+                    this.isLoadingCalendarEvents = false;
+                    clearFile();
+                    this.onlyRefreshCalendarEvents = true;
+                    $('#log-calendar').fullCalendar('refetchEvents');
+                }, (response) => {
+                    this.isLoadingCalendarEvents = false;
+                    alert("Failed to import file: " + response.data.exceptionMessage);
+                    clearFile();
+                });
+            };
+            this.$http.post("/api/CalendarEvent/PreviewIcs", formData, postHeaders).then((response) => {
+                this.isLoadingCalendarEvents = false;
+                if (confirm(response.data.resultMessage)) {
+                    createEvents();
+                }
+                else
+                    clearFile();
+            }, (response) => {
+                this.isLoadingCalendarEvents = false;
+                alert("Failed to parse file: " + response.data.exceptionMessage);
+                clearFile();
+            });
+        }
     }
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
     LogbookController.DateFormat = "YYYY-MM-DD";
     LogbookController.TimeFormat = "h:mma";
     LogbookController.NoTime = "12:37am";
     Ally.LogbookController = LogbookController;
+    class PreviewIcsResult {
+    }
     class AssociatedGroup {
     }
     class CalendarEvent {
