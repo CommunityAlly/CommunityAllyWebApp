@@ -892,7 +892,10 @@ var Ally;
             }
             // If we didn't warn about a recent payment, then confirm payment
             if (!didWarnAboutRecentPayment) {
-                if (!confirm(`Are you sure you want to submit payment for $${this.paymentInfo.amount}?`))
+                let message = `Are you sure you want to submit payment for $${this.paymentInfo.amount}?`;
+                if (this.userHasStripeAutoPay)
+                    message += " YOU HAVE AUTO-PAY ENABLED, PLEASE MAKE SURE TO NOT SUBMIT DUPLICATE PAYMENTS, REFUNDS ARE SLOW.";
+                if (!confirm(message))
                     return;
             }
             this.isLoading_Payment = true;
@@ -947,6 +950,18 @@ var Ally;
             });
         }
         enableStripeAutoPay() {
+            // If it's the first of the month
+            if (new Date().getDate() === 1) {
+                // If the user has made a payment in the last 30min, warn them
+                const lastPayment = this.historicPayments[0];
+                const lastPaymentDateMoment = moment(lastPayment.date);
+                const thirtyMinAgo = moment().subtract(30, "minutes");
+                const didMakePaymentWithin30min = lastPaymentDateMoment.isAfter(thirtyMinAgo);
+                if (didMakePaymentWithin30min) {
+                    if (!confirm(`It looks like you recently submitted a payment for $${lastPayment.amount.toFixed(2)}. Since it's the 1st of the month there's a chance enabling auto-pay will double charge you today. To avoid this simply wait until tomorrow to enable auto-pay. Would you still like to enable auto-pay right now?`))
+                        return;
+                }
+            }
             this.isLoading_Payment = true;
             this.$http.put("/api/StripePayments/SetupUserAutoPay", null).then(() => {
                 this.isLoading_Payment = false;
