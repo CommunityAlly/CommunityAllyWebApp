@@ -124,7 +124,8 @@
         <div class="portlet-body">
             <p class="margin-bottom-10">
                 {{ $ctrl.allyAppName }} provides custom email addresses that allow to easily send messages to certain groups within your association. Simply send
-                an email to one of the addresses below how you would normally send any old email, and it will be sent to the people listed.
+                an email to one of the addresses below how you would normally send any old email, and it will be sent to the people listed. <b>None of these
+                addresses accept incoming mail from external users. (i.e. folks that aren't members of your site)</b>
             </p>
 
             <div data-ng-repeat="g in $ctrl.emailLists">
@@ -146,7 +147,8 @@
                 </div>
                 <div data-ng-if="::g.recipientType ==='Treasurer'" class="note-text" style="color: blue;">
                     The "Treasurer" group will forward to the user or users that are marked as treasurer or secretary+treasurer. If no users are marked as treasurer then the whole
-                    board will receive messages sent to this group email address. Payment-related messages are automatically sent to this email address.
+                    board will receive messages sent to this group email address. Payment-related messages are automatically sent to this email address. <b>Like other group addresses,
+                    this does not accept mail from external users. For that, use a custom group email address and allow public incoming emails.</b>
                 </div>
                 <br />
             </div>
