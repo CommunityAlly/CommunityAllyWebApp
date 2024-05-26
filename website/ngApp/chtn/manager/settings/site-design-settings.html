@@ -30,13 +30,138 @@
             <div class="col-12 col-sm-3">
                 <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'gatedCommunity'}" data-ng-click="$ctrl.selectPreset('gatedCommunity')">Gated Community</div>
             </div>
-            <!--<div class="col-12 col-sm-3">
+            <div class="col-12 col-sm-3" data-ng-if="$ctrl.customSiteDesignSettingsJson">
                 <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'custom'}" data-ng-click="$ctrl.selectPreset('custom')">Custom</div>
-            </div>-->
+            </div>
+            <!--<div class="col-12 col-sm-3">
+        <div class="border p-4 text-center" role="button" data-ng-class="{'border-primary border-5': $ctrl.siteDesignSettings.presetTemplateName === 'custom'}" data-ng-click="$ctrl.selectPreset('custom')">Custom</div>
+    </div>-->
         </div>
     </div>
-    
 
-    <h2 class="mt-5">Custom Design Settings</h2>
-    <h5>Coming Soon</h5>
+    <div data-ng-if="!$ctrl.isCustomLoaded" style="position: relative; height: 150px;">
+        <div class="loading-overlay"></div>
+    </div>
+
+    <div data-ng-if="$ctrl.isCustomLoaded">
+        <span data-ng-if="$ctrl.isSaving" style="float: right;"><img src="/assets/images/Spinner_Large.gif" /></span>
+        <h2 class="mt-5">Custom Design Settings</h2>
+
+        <h4 class="mt-4">Font</h4>
+        <select data-ng-model="$ctrl.siteDesignSettings.fontFamily" data-ng-change="$ctrl.onCustomSettingChanged()">
+            <option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif;">Sans serif</option>
+            <option value="serif" style="font-family: serif;">Serif</option>
+        </select>
+
+        <h4 class="mt-4">Font Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.bodyFontColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="note-text">The color of the main text across the site.</div>
+
+        <h4 class="mt-4">Icon Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.iconColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <span class="ms-3" style="font-size: x-large;">
+            Example: <i class="fa-solid fa-icons ally-portlet-icon"></i>
+        </span>
+        <div class="note-text">The color of the icons, which are mainly on the home page and committee home page.</div>
+
+        <h4 class="mt-4">Header Background</h4>
+        <div>
+            <label><input type="radio" name="headerBg" value="color" data-ng-model="$ctrl.headerBgType" data-ng-change="$ctrl.onCustomHeaderBgChanged()" /> Color: <input type="color" data-ng-model="$ctrl.headerBgColor" data-ng-change="$ctrl.onCustomHeaderBgChanged()" /></label>
+            <br />
+            <label><input type="radio" name="headerBg" value="classic" data-ng-model="$ctrl.headerBgType" data-ng-change="$ctrl.onCustomHeaderBgChanged()" /> Classic Neighborhood</label>
+            <br />
+            <label><input type="radio" name="headerBg" value="pink" data-ng-model="$ctrl.headerBgType" data-ng-change="$ctrl.onCustomHeaderBgChanged()" /> Pink Image</label>
+        </div>
+        <div class="note-text">Shows up at the top of the site.</div>
+
+
+        <h4 class="mt-4">Footer Background</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.footerBg" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="note-text">The color of the footer background.</div>
+
+
+        <section class="info-welcome padding white-bg padding margin-vertical box-shadow header-pill-menu-section" style="flex-direction: row; flex-wrap: wrap;">
+            <div style="width: 100%; text-align: left;">
+                <h3>Example Navigation Header</h3>
+            </div>
+            <div>
+                <nav class="nav nav-pills justify-content-center">
+                    <a class="nav-item nav-link" data-ng-href="#!/Info/Docs" id="info-sub-view-link-docs"
+                       data-ng-show="!$ctrl.hideDocuments" data-ng-class="{'active':true,'ally-active-nav':true}">
+                        Example Link 1
+                    </a>
+
+                    <a class="nav-item nav-link" data-ng-href="#!/Info/Maintenance" id="info-sub-view-link-maintenance"
+                       data-ng-class="{'active':false,'ally-inactive-nav':true}">
+                        Example Link 2
+                    </a>
+
+                    <a class="nav-item nav-link" data-ng-href="#!/Info/Info" id="info-sub-view-link-info"
+                       data-ng-class="{'active':false,'ally-inactive-nav':true}">
+                        Example Link 3
+                    </a>
+                </nav>
+            </div>
+            <!--<div class="sub-view-menu-container">-->
+            <!--<span id="info-sub-view-link-docs" data-ng-show="!hideDocuments" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='docs'}" data-ng-click="selectedView='docs'">Documents</span>-->
+            <!--<span id="info-sub-view-link-info" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='info'}" data-ng-click="selectedView='info'">Info/FAQs</span>-->
+            <!--<span id="info-sub-view-link-vendor" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='vendor'}" data-ng-click="selectedView='vendor'">Vendors</span>-->
+            <!--&lt;!&ndash;<span id="info-sub-view-link-todo" class="sub-view-menu-link" data-ng-class="{'selected':selectedView=='todo'}" data-ng-click="selectedView='todo'">To-Dos</span>&ndash;&gt;-->
+            <!--</div>-->
+        </section>
+
+        <h4 class="mt-4">Nav Header Background</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.navBg" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="note-text">The color of the nav menu background like on the mailing, financial, info, and committee pages.</div>
+
+        <h4 class="mt-4">Nav Header Link Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.navLinkColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="note-text">The color of links in a nav header.</div>
+
+        <h4 class="mt-4">Body Link Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.bodyLinkColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <span><a href="/">Example Link</a></span>
+        <div class="note-text">The color of links on pages across the site.</div>
+
+        <h4 class="mt-4">Footer Link Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.footerLinkColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="note-text">The color of links in the footer.</div>
+
+        <div class="portlet-box payment_bl margin-vertical box-shadow" style="background-color: #f0f0f0;">
+            <div class="portlet-header">
+                <h2 class="title">Example Panel</h2>
+            </div>
+            <div class="portlet-body">
+                <h4 class="mt-4"><label for="panel-dropshadow-checkbox">Drop Shadows</label></h4>
+                <input id="panel-dropshadow-checkbox" type="checkbox" data-ng-model="$ctrl.siteDesignSettings.panelsHaveBoxShadow" data-ng-change="$ctrl.onCustomSettingChanged()" />
+                <div class="note-text">Controls if panels around the site have drop shadows.</div>
+
+
+                <h4 class="mt-4"><label for="panel-rounded-checkbox">Panels Rounded Corners</label></h4>
+                <input id="panel-rounded-checkbox" type="checkbox" data-ng-model="$ctrl.siteDesignSettings.panelsHaveRoundedCorners" data-ng-change="$ctrl.onCustomSettingChanged()" />
+                <div class="note-text">Controls if panels have rounded cornersshadows.</div>
+            </div>
+        </div>
+
+        <h4 class="mt-4">Site Background</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.background" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="note-text">The color of the background.</div>
+
+        <h4 class="mt-4">Button Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.buttonBgColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <button type="button" class="btn btn-primary">Example Button</button>
+        <div class="note-text">Button color.</div>
+
+
+        <h4 class="mt-4">List Item Shading Color</h4>
+        <input type="color" data-ng-model="$ctrl.siteDesignSettings.listItemShadeColor" data-ng-change="$ctrl.onCustomSettingChanged()" />
+        <div class="ally-shaded-item">
+            Example list item.
+        </div>
+        <div class="note-text">The color of shading behind a list item.</div>
+
+        <br />
+        <br />
+        Did you create a custom design that you think looks great? If you're interested in sharing, shoot us a quick email at <a href="mailto:hello@communityally.org">hello@CommunityAlly.org</a> and we'd love to see your design!
+    </div>
 </div>

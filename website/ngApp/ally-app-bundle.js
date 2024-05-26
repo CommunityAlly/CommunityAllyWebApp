@@ -3699,7 +3699,10 @@ var Ally;
                 this.populateGridUnitLabels(this.allEntries);
             });
         }
-        getCategorySplitRows(shouldSplitRows) {
+        /**
+         * Get the filtered rows by account and split entries into multiple rows
+         */
+        getLocalFilteredRows(shouldSplitRows) {
             const enabledAccountIds = this.ledgerAccounts.filter(a => a.shouldShowInGrid).map(a => a.ledgerAccountId);
             let filteredList = this.allEntries.filter(e => enabledAccountIds.indexOf(e.ledgerAccountId) > -1);
             // If the user is filtering on a column, we need to break out split transactions
@@ -3727,7 +3730,7 @@ var Ally;
             return filteredList;
         }
         updateLocalData() {
-            const filteredList = this.getCategorySplitRows(this.hasActiveTxGridColFilter);
+            const filteredList = this.getLocalFilteredRows(this.hasActiveTxGridColFilter);
             this.ledgerGridOptions.data = filteredList;
             this.ledgerGridOptions.enablePaginationControls = filteredList.length > this.HistoryPageSize;
             this.ledgerGridOptions.minRowsToShow = Math.min(filteredList.length, this.HistoryPageSize);
@@ -4162,7 +4165,7 @@ var Ally;
                     fieldName: "accountName"
                 }
             ];
-            const splitRows = this.getCategorySplitRows(true);
+            const splitRows = this.getLocalFilteredRows(true);
             const csvDataString = Ally.createCsvString(splitRows, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Transactions.csv");
         }
@@ -4619,16 +4622,17 @@ var Ally;
                 alert("Enter a valid assessment amount");
                 return;
             }
-            this.isLoadingUnits = true;
+            this.isLoading = true;
             const updateInfo = {
                 unitId: -1,
                 assessment: this.setAllAssessmentAmount,
                 assessmentNote: null
             };
             this.$http.put("/api/Unit/SetAllAssessments", updateInfo).then(() => {
-                this.isLoadingUnits = false;
+                this.isLoading = false;
                 this.refreshUnits();
             }, (response) => {
+                this.isLoading = false;
                 alert("Failed to update: " + response.data.exceptionMessage);
             });
         }
@@ -7366,38 +7370,68 @@ var Ally;
             this.$scope = $scope;
             this.isLoading = false;
             this.siteDesignSettings = new Ally.SiteDesignSettings();
+            this.isCustomLoaded = false;
+            this.headerBgType = "classic";
+            this.headerBgColor = "#eee";
+            this.isSaving = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            console.log("In SiteDesignSettingsController.$onInit");
+            //console.log( "In SiteDesignSettingsController.$onInit" );
             if (!this.siteInfo.publicSiteInfo.siteDesignSettingsJson)
                 this.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
             else
                 this.siteDesignSettings = JSON.parse(this.siteInfo.publicSiteInfo.siteDesignSettingsJson);
+            this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             // Hook up the file upload control after everything is loaded and setup
             this.$timeout(() => this.hookUpLoginImageUpload(), 200);
+            // Retrieve the custom site design settings
+            this.$http.get("/api/Settings/GetSiteDesignSettings").then((response) => {
+                this.isLoading = false;
+                this.isCustomLoaded = true;
+                this.customSiteDesignSettingsJson = response.data.customSiteDesignSettingsJson;
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to load custom settings: " + response.data.exceptionMessage);
+            });
         }
         selectPreset(presetName) {
-            console.log("in selectPreset", presetName);
+            //console.log( "in selectPreset", presetName );
             this.siteDesignSettings.presetTemplateName = presetName;
             if (presetName !== "custom") {
                 this.siteDesignSettings = Ally.SiteDesignSettings.GetPreset(presetName);
-                this.$rootScope.siteDesignSettings = this.siteDesignSettings;
             }
+            else {
+                this.siteDesignSettings = JSON.parse(this.customSiteDesignSettingsJson);
+            }
+            this.$rootScope.siteDesignSettings = this.siteDesignSettings;
             window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, JSON.stringify(this.siteDesignSettings));
+            if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgClassic)
+                this.headerBgType = "classic";
+            else if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgPink)
+                this.headerBgType = "pink";
+            else {
+                this.headerBgType = "color";
+                this.headerBgColor = this.siteDesignSettings.headerBg;
+            }
             Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
-            this.isLoading = true;
+            this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
+            this.saveSettings();
+        }
+        saveSettings() {
+            this.isSaving = true;
             const updateInfo = {
-                siteDesignSettingsJson: JSON.stringify(this.siteDesignSettings)
+                siteDesignSettingsJson: JSON.stringify(this.siteDesignSettings),
+                customSiteDesignSettingsJson: this.customSiteDesignSettingsJson
             };
             this.$http.put("/api/Settings/UpdateSiteDesignSettings", updateInfo).then(() => {
-                this.isLoading = false;
+                this.isSaving = false;
                 this.siteInfo.publicSiteInfo.siteDesignSettingsJson = updateInfo.siteDesignSettingsJson;
             }, (response) => {
-                this.isLoading = false;
+                this.isSaving = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
         }
@@ -7471,9 +7505,50 @@ var Ally;
                 });
             });
         }
+        /**
+         * Occurs when the user changes a set design setting in the custom area
+         */
+        onCustomSettingChanged() {
+            //console.log( "onCustomSettingChanged" );
+            // If the site is using a preset design and they're about to customize it and they have
+            // a saved custom design, then warn them
+            if (this.previousChangeSiteDesignSettings.presetTemplateName !== "custom") {
+                if (this.customSiteDesignSettingsJson) {
+                    if (!confirm("You're about to create a new custom design that will overwrite you're previous custom design. Are you sure you want to make this change?")) {
+                        this.siteDesignSettings = this.previousChangeSiteDesignSettings;
+                        this.$rootScope.siteDesignSettings = this.siteDesignSettings;
+                        return;
+                    }
+                }
+            }
+            this.siteDesignSettings.presetTemplateName = "custom";
+            console.log("In onCustomSettingChanged", this.siteDesignSettings);
+            Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
+            this.$rootScope.siteDesignSettings = this.siteDesignSettings;
+            this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
+            this.customSiteDesignSettingsJson = JSON.stringify(this.siteDesignSettings);
+            this.saveSettings();
+        }
+        onCustomHeaderBgChanged() {
+            if (this.headerBgType === "classic") {
+                this.siteDesignSettings.headerBg = Ally.SiteDesignSettings.HeaderBgClassic;
+                this.siteDesignSettings.headerBgSize = "auto 100%";
+            }
+            else if (this.headerBgType === "pink") {
+                this.siteDesignSettings.headerBg = Ally.SiteDesignSettings.HeaderBgPink;
+                this.siteDesignSettings.headerBgSize = "auto";
+            }
+            else {
+                this.siteDesignSettings.headerBg = this.headerBgColor;
+                this.siteDesignSettings.headerBgSize = "auto";
+            }
+            this.onCustomSettingChanged();
+        }
     }
     SiteDesignSettingsController.$inject = ["$http", "SiteInfo", "$rootScope", "$timeout", "$scope"];
     Ally.SiteDesignSettingsController = SiteDesignSettingsController;
+    class UpdateDesignSettings {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("siteDesignSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/site-design-settings.html",
@@ -7756,6 +7831,7 @@ var Ally;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.userFirstName = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -7769,6 +7845,7 @@ var Ally;
                 this.testPay_UserLast = this.siteInfo.userInfo.lastName;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
+            this.userFirstName = this.siteInfo.userInfo.firstName;
             this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
             this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf("<") > -1;
             if (this.isWelcomeMessageHtml) {
@@ -7809,12 +7886,12 @@ var Ally;
         * See if there's any surveys waiting to be completed for the current group+user
         */
         checkForSurveys() {
+            this.allySurvey = null;
             this.$http.get("/api/AllySurvey/AnySurvey").then((response) => {
                 this.allySurvey = response.data;
             }, (errorResponse) => {
                 console.log("Failed to load ally survey", errorResponse.data.exceptionMessage);
             });
-            this.allySurvey = null;
         }
         onTestPayAmtChange() {
             this.testPay_isValid = this.testPay_Amt > 5 && this.testPay_Amt < 5000;
@@ -9255,12 +9332,50 @@ var Ally;
         editViewingEvent() {
             this.setEditEvent(this.viewEvent, true);
         }
+        onIcsFileSelected(icsFileEvent) {
+            console.log("In onIcsFileSelected", icsFileEvent.target.files[0]);
+            const formData = new FormData();
+            formData.append("IcsFile", icsFileEvent.target.files[0]);
+            this.isLoadingCalendarEvents = true;
+            const postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            // Reset the file input so the user can choose the file again, if needed
+            const clearFile = () => { document.getElementById("ics-file-input").value = null; };
+            const createEvents = () => {
+                this.isLoadingCalendarEvents = true;
+                this.$http.post("/api/CalendarEvent/ImportIcs", formData, postHeaders).then((response) => {
+                    this.isLoadingCalendarEvents = false;
+                    clearFile();
+                    this.onlyRefreshCalendarEvents = true;
+                    $('#log-calendar').fullCalendar('refetchEvents');
+                }, (response) => {
+                    this.isLoadingCalendarEvents = false;
+                    alert("Failed to import file: " + response.data.exceptionMessage);
+                    clearFile();
+                });
+            };
+            this.$http.post("/api/CalendarEvent/PreviewIcs", formData, postHeaders).then((response) => {
+                this.isLoadingCalendarEvents = false;
+                if (confirm(response.data.resultMessage)) {
+                    createEvents();
+                }
+                else
+                    clearFile();
+            }, (response) => {
+                this.isLoadingCalendarEvents = false;
+                alert("Failed to parse file: " + response.data.exceptionMessage);
+                clearFile();
+            });
+        }
     }
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
     LogbookController.DateFormat = "YYYY-MM-DD";
     LogbookController.TimeFormat = "h:mma";
     LogbookController.NoTime = "12:37am";
     Ally.LogbookController = LogbookController;
+    class PreviewIcsResult {
+    }
     class AssociatedGroup {
     }
     class CalendarEvent {
@@ -9479,6 +9594,8 @@ var Ally;
             this.shouldShowPassword = false;
             this.selectedProfileView = "Primary";
             this.passwordComplexity = "short";
+            this.emailFlagsNonBoard = true;
+            this.emailFlagsDiscussion = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -9573,6 +9690,8 @@ var Ally;
                 this.needsToAcceptTerms = this.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
                 this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
                 this.$rootScope.shouldHideMenu = this.needsToAcceptTerms;
+                this.emailFlagsNonBoard = (this.profileInfo.enabledEmailsFlags & 2) === 2;
+                this.emailFlagsDiscussion = (this.profileInfo.enabledEmailsFlags & 4) === 4;
                 // Was used before, here for convenience
                 this.saveButtonStyle = {
                     width: "100px",
@@ -9626,6 +9745,17 @@ var Ally;
                 && hasNumber
                 && hasSymbol;
             this.passwordComplexity = isComplex ? "complex" : "simple";
+        }
+        onEmailFlagsChanged() {
+            //public enum EnabledEmailsFlags : byte
+            //{
+            //    None = 0,
+            //    BoardGroupEmails = 1,
+            //    NonBoardGroupEmails = 2,
+            //    Discussion = 4
+            //}
+            this.profileInfo.enabledEmailsFlags = 1 | (this.emailFlagsNonBoard ? 2 : 0) | (this.emailFlagsDiscussion ? 4 : 0);
+            //console.log( "this.profileInfo.enabledEmailsFlags", this.profileInfo.enabledEmailsFlags );
         }
     }
     MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
@@ -11993,7 +12123,10 @@ var Ally;
             }
             // If we didn't warn about a recent payment, then confirm payment
             if (!didWarnAboutRecentPayment) {
-                if (!confirm(`Are you sure you want to submit payment for $${this.paymentInfo.amount}?`))
+                let message = `Are you sure you want to submit payment for $${this.paymentInfo.amount}?`;
+                if (this.userHasStripeAutoPay)
+                    message += " YOU HAVE AUTO-PAY ENABLED, PLEASE MAKE SURE TO NOT SUBMIT DUPLICATE PAYMENTS, REFUNDS ARE SLOW.";
+                if (!confirm(message))
                     return;
             }
             this.isLoading_Payment = true;
@@ -12048,6 +12181,18 @@ var Ally;
             });
         }
         enableStripeAutoPay() {
+            // If it's the first of the month
+            if (new Date().getDate() === 1) {
+                // If the user has made a payment in the last 30min, warn them
+                const lastPayment = this.historicPayments[0];
+                const lastPaymentDateMoment = moment(lastPayment.date);
+                const thirtyMinAgo = moment().subtract(30, "minutes");
+                const didMakePaymentWithin30min = lastPaymentDateMoment.isAfter(thirtyMinAgo);
+                if (didMakePaymentWithin30min) {
+                    if (!confirm(`It looks like you recently submitted a payment for $${lastPayment.amount.toFixed(2)}. Since it's the 1st of the month there's a chance enabling auto-pay will double charge you today. To avoid this simply wait until tomorrow to enable auto-pay. Would you still like to enable auto-pay right now?`))
+                        return;
+                }
+            }
             this.isLoading_Payment = true;
             this.$http.put("/api/StripePayments/SetupUserAutoPay", null).then(() => {
                 this.isLoading_Payment = false;
@@ -16546,68 +16691,6 @@ var Ally;
             //} );
         }
         /**
-         * Populate the lists of group emails
-         */
-        _setupGroupEmailObject(allResidents, unitList) {
-            let emailLists = {};
-            emailLists = {
-                everyone: [],
-                owners: [],
-                renters: [],
-                board: [],
-                residentOwners: [],
-                nonResidentOwners: [],
-                residentOwnersAndRenters: [],
-                propertyManagers: [],
-                discussion: []
-            };
-            // Go through each resident and add them to each email group they belong to
-            for (let i = 0; i < allResidents.length; ++i) {
-                const r = allResidents[i];
-                const displayName = r.fullName + (r.hasEmail ? "" : "*");
-                emailLists.everyone.push(displayName);
-                if (r.boardPosition !== FellowResidentsService.BoardPos_None && r.boardPosition !== FellowResidentsService.BoardPos_PropertyManager)
-                    emailLists.board.push(displayName);
-                if (r.boardPosition === FellowResidentsService.BoardPos_PropertyManager)
-                    emailLists.propertyManagers.push(displayName);
-                if (r.includeInDiscussionEmail)
-                    emailLists.discussion.push(displayName);
-                let isOwner = false;
-                let isRenter = false;
-                let unitIsRented = false;
-                for (let unitIndex = 0; unitIndex < r.homes.length; ++unitIndex) {
-                    const simpleHome = r.homes[unitIndex];
-                    if (!simpleHome.isRenter) {
-                        isOwner = true;
-                        const unit = _.find(unitList, function (u) { return u.unitId === simpleHome.unitId; });
-                        unitIsRented = unit.renters.length > 0;
-                    }
-                    if (simpleHome.isRenter)
-                        isRenter = true;
-                }
-                if (isOwner) {
-                    emailLists.owners.push(displayName);
-                    if (unitIsRented)
-                        emailLists.nonResidentOwners.push(displayName);
-                    else {
-                        emailLists.residentOwners.push(displayName);
-                        emailLists.residentOwnersAndRenters.push(displayName);
-                    }
-                }
-                if (isRenter) {
-                    emailLists.renters.push(displayName);
-                    emailLists.residentOwnersAndRenters.push(displayName);
-                }
-            }
-            // If there are no renters then there are no non-residents so hide those lists
-            if (emailLists.renters.length === 0) {
-                emailLists.residentOwners = [];
-                emailLists.residentOwnersAndRenters = [];
-                emailLists.nonResidentOwners = [];
-            }
-            return emailLists;
-        }
-        /**
          * Send an email message to another user
          */
         sendMessage(recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
@@ -18728,18 +18811,18 @@ var Ally;
                 fontFamily: "'Open Sans', sans-serif",
                 bodyFontColor: "#212529",
                 iconColor: "#007bff",
-                headerBg: "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center",
+                headerBg: SiteDesignSettings.HeaderBgClassic,
                 footerBg: "#404040",
                 footerLinkColor: "#f7941d",
                 panelsHaveBoxShadow: true,
-                panelBorderRadius: "0",
                 background: "#f3f3f3",
                 buttonBgColor: "#0d6efd",
                 bodyLinkColor: "#007cbc",
                 navLinkColor: "white",
                 navBg: "#60a2c8",
                 headerBgSize: "auto 100%",
-                panelsHaveRoundedCorners: true
+                panelsHaveRoundedCorners: true,
+                listItemShadeColor: "#EBF3FE"
             };
             return defaultSettings;
         }
@@ -18759,14 +18842,14 @@ var Ally;
                             footerBg: "#353535",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: false,
-                            panelBorderRadius: "0",
                             background: "url(/assets/images/ui-style-settings/pinstripes.png)",
                             buttonBgColor: "#353535",
                             bodyLinkColor: "#212529",
                             navLinkColor: "white",
                             navBg: "#000",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: false
+                            panelsHaveRoundedCorners: false,
+                            listItemShadeColor: "#F5F5F5"
                         };
                     }
                     break;
@@ -18776,19 +18859,19 @@ var Ally;
                             presetTemplateName: presetTemplateName,
                             fontFamily: "'Open Sans', sans-serif",
                             bodyFontColor: "#212529",
-                            iconColor: "#007bff",
-                            headerBg: "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center",
+                            iconColor: "#EB5757",
+                            headerBg: SiteDesignSettings.HeaderBgPink,
                             footerBg: "#404040",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            panelBorderRadius: "0",
                             background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,171,171,1) 100%)",
                             buttonBgColor: "black",
                             bodyLinkColor: "#007cbc",
                             navLinkColor: "white",
                             navBg: "black",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: true
+                            panelsHaveRoundedCorners: true,
+                            listItemShadeColor: "#FDEFEF"
                         };
                     }
                     break;
@@ -18803,14 +18886,14 @@ var Ally;
                             footerBg: "#1e5168",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            panelBorderRadius: "0",
                             background: "#DBE5E9 url(/assets/images/ui-style-settings/fancy-hexes.png)",
                             buttonBgColor: "#1e5168",
                             bodyLinkColor: "#1e5168",
                             navLinkColor: "#F3F6F7",
                             navBg: "#1e5168",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: false
+                            panelsHaveRoundedCorners: false,
+                            listItemShadeColor: "#F2F6F7"
                         };
                     }
                     break;
@@ -18893,8 +18976,17 @@ var Ally;
             if (headerRule)
                 headerRule.style.boxShadow = siteDesignSettings.panelsHaveBoxShadow ? "0 10px 10px #eaeaeb" : "inherit";
             const radioCssRule = Ally.HtmlUtil2.getCssRule('input[type="radio"]'); // Need to use double-quotes inside, not sure why
-            if (radioCssRule)
+            if (radioCssRule) {
                 radioCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
+                //radioCssRule.style.backgroundColor = siteDesignSettings.buttonBgColor;
+                //radioCssRule.style.setProperty( "background-color", siteDesignSettings.buttonBgColor, "important" );
+                //radioCssRule.style.borderColor = siteDesignSettings.buttonBgColor;
+                radioCssRule.style.setProperty("border-color", siteDesignSettings.buttonBgColor, "important");
+            }
+            const checkedRadioCssRule = Ally.HtmlUtil2.getCssRule('input[type="radio"]:checked'); // Need to use double-quotes inside, not sure why
+            if (checkedRadioCssRule) {
+                checkedRadioCssRule.style.setProperty("background-color", siteDesignSettings.buttonBgColor, "important");
+            }
             const checkboxCssRule = Ally.HtmlUtil2.getCssRule('input[type="checkbox"]');
             if (checkboxCssRule) {
                 checkboxCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
@@ -18904,7 +18996,7 @@ var Ally;
             if (headerBgCssRule) {
                 headerBgCssRule.style.background = siteDesignSettings.headerBg;
                 headerBgCssRule.style.backgroundSize = siteDesignSettings.headerBgSize;
-                if (siteDesignSettings.headerBg === "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center")
+                if (siteDesignSettings.headerBg === SiteDesignSettings.HeaderBgClassic)
                     headerBgCssRule.style.borderBottom = "12px solid #83c476"; // The default header looks better with a green grass bottom border
                 else
                     headerBgCssRule.style.borderBottom = "inherit";
@@ -18912,9 +19004,17 @@ var Ally;
             const portletBoxCssRule = Ally.HtmlUtil2.getCssRule(".portlet-box"); // Need to use double-quotes inside, not sure why
             if (portletBoxCssRule)
                 portletBoxCssRule.style.borderRadius = siteDesignSettings.panelsHaveRoundedCorners ? BorderRadiusRuleValue : "0";
+            const portletIconCssRule = Ally.HtmlUtil2.getCssRule(".ally-portlet-icon");
+            if (portletIconCssRule)
+                portletIconCssRule.style.color = siteDesignSettings.iconColor;
+            const shadedItemCssRule = Ally.HtmlUtil2.getCssRule(".ally-shaded-item");
+            if (shadedItemCssRule)
+                shadedItemCssRule.style.backgroundColor = siteDesignSettings.listItemShadeColor;
         }
     }
     SiteDesignSettings.SettingsCacheKey = "cachedSiteDesignSettingsJson";
+    SiteDesignSettings.HeaderBgClassic = "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center";
+    SiteDesignSettings.HeaderBgPink = "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center";
     Ally.SiteDesignSettings = SiteDesignSettings;
 })(Ally || (Ally = {}));
 

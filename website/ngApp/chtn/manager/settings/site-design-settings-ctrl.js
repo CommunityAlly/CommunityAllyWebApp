@@ -15,38 +15,68 @@ var Ally;
             this.$scope = $scope;
             this.isLoading = false;
             this.siteDesignSettings = new Ally.SiteDesignSettings();
+            this.isCustomLoaded = false;
+            this.headerBgType = "classic";
+            this.headerBgColor = "#eee";
+            this.isSaving = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            console.log("In SiteDesignSettingsController.$onInit");
+            //console.log( "In SiteDesignSettingsController.$onInit" );
             if (!this.siteInfo.publicSiteInfo.siteDesignSettingsJson)
                 this.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
             else
                 this.siteDesignSettings = JSON.parse(this.siteInfo.publicSiteInfo.siteDesignSettingsJson);
+            this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             // Hook up the file upload control after everything is loaded and setup
             this.$timeout(() => this.hookUpLoginImageUpload(), 200);
+            // Retrieve the custom site design settings
+            this.$http.get("/api/Settings/GetSiteDesignSettings").then((response) => {
+                this.isLoading = false;
+                this.isCustomLoaded = true;
+                this.customSiteDesignSettingsJson = response.data.customSiteDesignSettingsJson;
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to load custom settings: " + response.data.exceptionMessage);
+            });
         }
         selectPreset(presetName) {
-            console.log("in selectPreset", presetName);
+            //console.log( "in selectPreset", presetName );
             this.siteDesignSettings.presetTemplateName = presetName;
             if (presetName !== "custom") {
                 this.siteDesignSettings = Ally.SiteDesignSettings.GetPreset(presetName);
-                this.$rootScope.siteDesignSettings = this.siteDesignSettings;
             }
+            else {
+                this.siteDesignSettings = JSON.parse(this.customSiteDesignSettingsJson);
+            }
+            this.$rootScope.siteDesignSettings = this.siteDesignSettings;
             window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, JSON.stringify(this.siteDesignSettings));
+            if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgClassic)
+                this.headerBgType = "classic";
+            else if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgPink)
+                this.headerBgType = "pink";
+            else {
+                this.headerBgType = "color";
+                this.headerBgColor = this.siteDesignSettings.headerBg;
+            }
             Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
-            this.isLoading = true;
+            this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
+            this.saveSettings();
+        }
+        saveSettings() {
+            this.isSaving = true;
             const updateInfo = {
-                siteDesignSettingsJson: JSON.stringify(this.siteDesignSettings)
+                siteDesignSettingsJson: JSON.stringify(this.siteDesignSettings),
+                customSiteDesignSettingsJson: this.customSiteDesignSettingsJson
             };
             this.$http.put("/api/Settings/UpdateSiteDesignSettings", updateInfo).then(() => {
-                this.isLoading = false;
+                this.isSaving = false;
                 this.siteInfo.publicSiteInfo.siteDesignSettingsJson = updateInfo.siteDesignSettingsJson;
             }, (response) => {
-                this.isLoading = false;
+                this.isSaving = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
         }
@@ -120,9 +150,50 @@ var Ally;
                 });
             });
         }
+        /**
+         * Occurs when the user changes a set design setting in the custom area
+         */
+        onCustomSettingChanged() {
+            //console.log( "onCustomSettingChanged" );
+            // If the site is using a preset design and they're about to customize it and they have
+            // a saved custom design, then warn them
+            if (this.previousChangeSiteDesignSettings.presetTemplateName !== "custom") {
+                if (this.customSiteDesignSettingsJson) {
+                    if (!confirm("You're about to create a new custom design that will overwrite you're previous custom design. Are you sure you want to make this change?")) {
+                        this.siteDesignSettings = this.previousChangeSiteDesignSettings;
+                        this.$rootScope.siteDesignSettings = this.siteDesignSettings;
+                        return;
+                    }
+                }
+            }
+            this.siteDesignSettings.presetTemplateName = "custom";
+            console.log("In onCustomSettingChanged", this.siteDesignSettings);
+            Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
+            this.$rootScope.siteDesignSettings = this.siteDesignSettings;
+            this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
+            this.customSiteDesignSettingsJson = JSON.stringify(this.siteDesignSettings);
+            this.saveSettings();
+        }
+        onCustomHeaderBgChanged() {
+            if (this.headerBgType === "classic") {
+                this.siteDesignSettings.headerBg = Ally.SiteDesignSettings.HeaderBgClassic;
+                this.siteDesignSettings.headerBgSize = "auto 100%";
+            }
+            else if (this.headerBgType === "pink") {
+                this.siteDesignSettings.headerBg = Ally.SiteDesignSettings.HeaderBgPink;
+                this.siteDesignSettings.headerBgSize = "auto";
+            }
+            else {
+                this.siteDesignSettings.headerBg = this.headerBgColor;
+                this.siteDesignSettings.headerBgSize = "auto";
+            }
+            this.onCustomSettingChanged();
+        }
     }
     SiteDesignSettingsController.$inject = ["$http", "SiteInfo", "$rootScope", "$timeout", "$scope"];
     Ally.SiteDesignSettingsController = SiteDesignSettingsController;
+    class UpdateDesignSettings {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("siteDesignSettings", {
     templateUrl: "/ngApp/chtn/manager/settings/site-design-settings.html",

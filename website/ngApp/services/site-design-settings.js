@@ -11,18 +11,18 @@ var Ally;
                 fontFamily: "'Open Sans', sans-serif",
                 bodyFontColor: "#212529",
                 iconColor: "#007bff",
-                headerBg: "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center",
+                headerBg: SiteDesignSettings.HeaderBgClassic,
                 footerBg: "#404040",
                 footerLinkColor: "#f7941d",
                 panelsHaveBoxShadow: true,
-                panelBorderRadius: "0",
                 background: "#f3f3f3",
                 buttonBgColor: "#0d6efd",
                 bodyLinkColor: "#007cbc",
                 navLinkColor: "white",
                 navBg: "#60a2c8",
                 headerBgSize: "auto 100%",
-                panelsHaveRoundedCorners: true
+                panelsHaveRoundedCorners: true,
+                listItemShadeColor: "#EBF3FE"
             };
             return defaultSettings;
         }
@@ -42,14 +42,14 @@ var Ally;
                             footerBg: "#353535",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: false,
-                            panelBorderRadius: "0",
                             background: "url(/assets/images/ui-style-settings/pinstripes.png)",
                             buttonBgColor: "#353535",
                             bodyLinkColor: "#212529",
                             navLinkColor: "white",
                             navBg: "#000",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: false
+                            panelsHaveRoundedCorners: false,
+                            listItemShadeColor: "#F5F5F5"
                         };
                     }
                     break;
@@ -59,19 +59,19 @@ var Ally;
                             presetTemplateName: presetTemplateName,
                             fontFamily: "'Open Sans', sans-serif",
                             bodyFontColor: "#212529",
-                            iconColor: "#007bff",
-                            headerBg: "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center",
+                            iconColor: "#EB5757",
+                            headerBg: SiteDesignSettings.HeaderBgPink,
                             footerBg: "#404040",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            panelBorderRadius: "0",
                             background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,171,171,1) 100%)",
                             buttonBgColor: "black",
                             bodyLinkColor: "#007cbc",
                             navLinkColor: "white",
                             navBg: "black",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: true
+                            panelsHaveRoundedCorners: true,
+                            listItemShadeColor: "#FDEFEF"
                         };
                     }
                     break;
@@ -86,14 +86,14 @@ var Ally;
                             footerBg: "#1e5168",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            panelBorderRadius: "0",
                             background: "#DBE5E9 url(/assets/images/ui-style-settings/fancy-hexes.png)",
                             buttonBgColor: "#1e5168",
                             bodyLinkColor: "#1e5168",
                             navLinkColor: "#F3F6F7",
                             navBg: "#1e5168",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: false
+                            panelsHaveRoundedCorners: false,
+                            listItemShadeColor: "#F2F6F7"
                         };
                     }
                     break;
@@ -176,8 +176,17 @@ var Ally;
             if (headerRule)
                 headerRule.style.boxShadow = siteDesignSettings.panelsHaveBoxShadow ? "0 10px 10px #eaeaeb" : "inherit";
             const radioCssRule = Ally.HtmlUtil2.getCssRule('input[type="radio"]'); // Need to use double-quotes inside, not sure why
-            if (radioCssRule)
+            if (radioCssRule) {
                 radioCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
+                //radioCssRule.style.backgroundColor = siteDesignSettings.buttonBgColor;
+                //radioCssRule.style.setProperty( "background-color", siteDesignSettings.buttonBgColor, "important" );
+                //radioCssRule.style.borderColor = siteDesignSettings.buttonBgColor;
+                radioCssRule.style.setProperty("border-color", siteDesignSettings.buttonBgColor, "important");
+            }
+            const checkedRadioCssRule = Ally.HtmlUtil2.getCssRule('input[type="radio"]:checked'); // Need to use double-quotes inside, not sure why
+            if (checkedRadioCssRule) {
+                checkedRadioCssRule.style.setProperty("background-color", siteDesignSettings.buttonBgColor, "important");
+            }
             const checkboxCssRule = Ally.HtmlUtil2.getCssRule('input[type="checkbox"]');
             if (checkboxCssRule) {
                 checkboxCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
@@ -187,7 +196,7 @@ var Ally;
             if (headerBgCssRule) {
                 headerBgCssRule.style.background = siteDesignSettings.headerBg;
                 headerBgCssRule.style.backgroundSize = siteDesignSettings.headerBgSize;
-                if (siteDesignSettings.headerBg === "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center")
+                if (siteDesignSettings.headerBg === SiteDesignSettings.HeaderBgClassic)
                     headerBgCssRule.style.borderBottom = "12px solid #83c476"; // The default header looks better with a green grass bottom border
                 else
                     headerBgCssRule.style.borderBottom = "inherit";
@@ -195,8 +204,16 @@ var Ally;
             const portletBoxCssRule = Ally.HtmlUtil2.getCssRule(".portlet-box"); // Need to use double-quotes inside, not sure why
             if (portletBoxCssRule)
                 portletBoxCssRule.style.borderRadius = siteDesignSettings.panelsHaveRoundedCorners ? BorderRadiusRuleValue : "0";
+            const portletIconCssRule = Ally.HtmlUtil2.getCssRule(".ally-portlet-icon");
+            if (portletIconCssRule)
+                portletIconCssRule.style.color = siteDesignSettings.iconColor;
+            const shadedItemCssRule = Ally.HtmlUtil2.getCssRule(".ally-shaded-item");
+            if (shadedItemCssRule)
+                shadedItemCssRule.style.backgroundColor = siteDesignSettings.listItemShadeColor;
         }
     }
     SiteDesignSettings.SettingsCacheKey = "cachedSiteDesignSettingsJson";
+    SiteDesignSettings.HeaderBgClassic = "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center";
+    SiteDesignSettings.HeaderBgPink = "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center";
     Ally.SiteDesignSettings = SiteDesignSettings;
 })(Ally || (Ally = {}));

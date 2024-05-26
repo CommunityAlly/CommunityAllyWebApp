@@ -3,7 +3,8 @@ namespace Ally
     export class SiteDesignSettings
     {
         static readonly SettingsCacheKey = "cachedSiteDesignSettingsJson";
-
+        static readonly HeaderBgClassic = "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center";
+        static readonly HeaderBgPink = "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center";
 
         presetTemplateName: "default" | "modern" | "peacefulPink" | "gatedCommunity" | "custom";
         fontFamily: string = "'Open Sans', sans-serif";
@@ -13,7 +14,6 @@ namespace Ally
         footerBg: string; // Just match text color? button color?
         footerLinkColor: string;
         panelsHaveBoxShadow: boolean;
-        panelBorderRadius: string;
         background: string;
         buttonBgColor: string;
         bodyLinkColor: string;
@@ -21,6 +21,7 @@ namespace Ally
         navBg: string;
         headerBgSize: string;
         panelsHaveRoundedCorners: boolean;
+        listItemShadeColor: string;
 
 
         static GetDefault(): SiteDesignSettings
@@ -31,18 +32,18 @@ namespace Ally
                 fontFamily: "'Open Sans', sans-serif",
                 bodyFontColor: "#212529",
                 iconColor: "#007bff",
-                headerBg: "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center",
+                headerBg: SiteDesignSettings.HeaderBgClassic,
                 footerBg: "#404040",
                 footerLinkColor: "#f7941d",
                 panelsHaveBoxShadow: true,
-                panelBorderRadius: "0",
                 background: "#f3f3f3",
                 buttonBgColor: "#0d6efd",
                 bodyLinkColor: "#007cbc",
                 navLinkColor: "white",
                 navBg: "#60a2c8",
                 headerBgSize: "auto 100%",
-                panelsHaveRoundedCorners: true
+                panelsHaveRoundedCorners: true,
+                listItemShadeColor: "#EBF3FE"
             };
 
             return defaultSettings;
@@ -69,14 +70,14 @@ namespace Ally
                             footerBg: "#353535",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: false,
-                            panelBorderRadius: "0",
                             background: "url(/assets/images/ui-style-settings/pinstripes.png)",
                             buttonBgColor: "#353535",
                             bodyLinkColor: "#212529",
                             navLinkColor: "white",
                             navBg: "#000",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: false
+                            panelsHaveRoundedCorners: false,
+                            listItemShadeColor: "#F5F5F5"
                         };
                     }
                     break;
@@ -87,19 +88,19 @@ namespace Ally
                             presetTemplateName: presetTemplateName,
                             fontFamily: "'Open Sans', sans-serif",
                             bodyFontColor: "#212529",
-                            iconColor: "#007bff",
-                            headerBg: "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center",
+                            iconColor: "#EB5757",
+                            headerBg: SiteDesignSettings.HeaderBgPink,
                             footerBg: "#404040",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            panelBorderRadius: "0",
                             background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,171,171,1) 100%)",
                             buttonBgColor: "black",
                             bodyLinkColor: "#007cbc",
                             navLinkColor: "white",
                             navBg: "black",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: true
+                            panelsHaveRoundedCorners: true,
+                            listItemShadeColor: "#FDEFEF"
                         };
                     }
                     break;
@@ -115,14 +116,14 @@ namespace Ally
                             footerBg: "#1e5168",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            panelBorderRadius: "0",
                             background: "#DBE5E9 url(/assets/images/ui-style-settings/fancy-hexes.png)",
                             buttonBgColor: "#1e5168",
                             bodyLinkColor: "#1e5168",
                             navLinkColor: "#F3F6F7",
                             navBg: "#1e5168",
                             headerBgSize: "auto",
-                            panelsHaveRoundedCorners: false
+                            panelsHaveRoundedCorners: false,
+                            listItemShadeColor: "#F2F6F7"
                         };
                     }
                     break;
@@ -234,7 +235,19 @@ namespace Ally
 
             const radioCssRule = HtmlUtil2.getCssRule( 'input[type="radio"]' ); // Need to use double-quotes inside, not sure why
             if( radioCssRule )
+            {
                 radioCssRule.style.accentColor = siteDesignSettings.buttonBgColor;
+                //radioCssRule.style.backgroundColor = siteDesignSettings.buttonBgColor;
+                //radioCssRule.style.setProperty( "background-color", siteDesignSettings.buttonBgColor, "important" );
+                //radioCssRule.style.borderColor = siteDesignSettings.buttonBgColor;
+                radioCssRule.style.setProperty( "border-color", siteDesignSettings.buttonBgColor, "important" );
+            }
+            
+            const checkedRadioCssRule = HtmlUtil2.getCssRule( 'input[type="radio"]:checked' ); // Need to use double-quotes inside, not sure why
+            if( checkedRadioCssRule )
+            {
+                checkedRadioCssRule.style.setProperty( "background-color", siteDesignSettings.buttonBgColor, "important" );
+            }
 
             const checkboxCssRule = HtmlUtil2.getCssRule( 'input[type="checkbox"]' );
             if( checkboxCssRule )
@@ -249,7 +262,7 @@ namespace Ally
                 headerBgCssRule.style.background = siteDesignSettings.headerBg;
                 headerBgCssRule.style.backgroundSize = siteDesignSettings.headerBgSize;
 
-                if( siteDesignSettings.headerBg === "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center" )
+                if( siteDesignSettings.headerBg === SiteDesignSettings.HeaderBgClassic )
                     headerBgCssRule.style.borderBottom = "12px solid #83c476"; // The default header looks better with a green grass bottom border
                 else
                     headerBgCssRule.style.borderBottom = "inherit";
@@ -258,6 +271,14 @@ namespace Ally
             const portletBoxCssRule = HtmlUtil2.getCssRule( ".portlet-box" ); // Need to use double-quotes inside, not sure why
             if( portletBoxCssRule )
                 portletBoxCssRule.style.borderRadius = siteDesignSettings.panelsHaveRoundedCorners ? BorderRadiusRuleValue : "0";
+
+            const portletIconCssRule = HtmlUtil2.getCssRule( ".ally-portlet-icon" );
+            if( portletIconCssRule )
+                portletIconCssRule.style.color = siteDesignSettings.iconColor;
+
+            const shadedItemCssRule = HtmlUtil2.getCssRule( ".ally-shaded-item" );
+            if( shadedItemCssRule )
+                shadedItemCssRule.style.backgroundColor = siteDesignSettings.listItemShadeColor;
         }
     }
 }

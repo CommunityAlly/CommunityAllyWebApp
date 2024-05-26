@@ -392,100 +392,6 @@ section.header-pill-menu-section nav a.nav-link.active {
     height: auto !important;
 }
 
-/* Font Color for the Rich Text Editor */
-
-/* Black */
-a[data-edit="foreColor #000000"]::before,
-a[data-edit="backColor #000000"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #000000;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
-/* Blue */
-a[data-edit="foreColor #0000FF"]::before,
-a[data-edit="backColor #00FFFF"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #0000FF;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
-/* Green */
-a[data-edit="foreColor #30AD23"]::before,
-a[data-edit="backColor #00FF00"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #30AD23;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
-
-/* Orange */
-a[data-edit="foreColor #FF7F00"]::before,
-a[data-edit="backColor #FF7F00"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #FF7F00;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
-/* Red */
-a[data-edit="foreColor #FF0000"]::before,
-a[data-edit="backColor #FF0000"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #FF0000;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
-/* Yellow */
-a[data-edit="foreColor #FFFF00"]::before,
-a[data-edit="backColor #FFFF00"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #FFFF00;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
-/* White */
-a[data-edit="foreColor #FFFFFF"]::before,
-a[data-edit="backColor #FFFFFF"]::before {
-    content: "\f0c8  ";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    color: #FFFFFF;
-    font-size: 18px;
-    top: 10px;
-    left: 0;
-}
-
 #custom-page-content img, .rich-text-editor img {
     max-width: 100%;
 }
@@ -509,9 +415,24 @@ input[type="radio"] {
     accent-color: auto;
 }
 
+input[type="radio"]:checked {
+    accent-color: auto;
+}
+
 input[type="checkbox"] {
     accent-color: auto;
     background-color: auto;
+}
+
+.ally-portlet-icon {
+    color: inherit;
+}
+
+.ally-shaded-item {
+    background-color: #EBF3FE;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: 0.375rem;
 }
 
 /* BS4-BS5 Updrade General CSS Change Start */

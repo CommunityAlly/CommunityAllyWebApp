@@ -1,15 +1,15 @@
 ﻿<div class="portlet-box white margin-vertical-lg box-shadow">
     <div class="portlet-header">
-        <h3 class="title" id="local-news-header">Local News</h3>
+        <div class="title" id="local-news-header"><i class="fa-solid fa-newspaper ally-portlet-icon me-2"></i> Local News</div>
     </div>
 
     <div class="portlet-body spinner-effect min100vh">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
-        <article data-ng-repeat="news in $ctrl.localNewStories">
+        <article data-ng-repeat="news in $ctrl.localNewStories" class="ally-shaded-item">
             <h5><a data-ng-href='{{ ::news.fullStoryUri }}' target="_blank">{{ ::news.title }}</a></h5>
             <p class="date note-text">{{ ::news.date | date:'short' }}</p>
             <p><photo photo-src="news.bodySnippet" /> {{ ::news.bodySnippetText }}</p>
-            <p><a data-ng-href='{{ ::news.fullStoryUri }}' target="_blank" class="more">Read more </a></p>
+            <p class="m-0"><a data-ng-href='{{ ::news.fullStoryUri }}' target="_blank" class="more">Read more </a></p>
         </article>
     </div>
 </div>
