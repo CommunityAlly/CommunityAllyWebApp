@@ -543,7 +543,7 @@ namespace Ally
                 return;
             }
 
-            this.isLoadingUnits = true;
+            this.isLoading = true;
 
             const updateInfo: UpdateAssessmentInfo =
             {
@@ -555,12 +555,12 @@ namespace Ally
             this.$http.put( "/api/Unit/SetAllAssessments", updateInfo ).then(
                 () =>
                 {
-                    this.isLoadingUnits = false;
-
+                    this.isLoading = false;
                     this.refreshUnits();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
+                    this.isLoading = false;
                     alert( "Failed to update: " + response.data.exceptionMessage );
                 }
             );

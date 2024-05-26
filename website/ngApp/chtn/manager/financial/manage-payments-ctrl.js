@@ -333,16 +333,17 @@ var Ally;
                 alert("Enter a valid assessment amount");
                 return;
             }
-            this.isLoadingUnits = true;
+            this.isLoading = true;
             const updateInfo = {
                 unitId: -1,
                 assessment: this.setAllAssessmentAmount,
                 assessmentNote: null
             };
             this.$http.put("/api/Unit/SetAllAssessments", updateInfo).then(() => {
-                this.isLoadingUnits = false;
+                this.isLoading = false;
                 this.refreshUnits();
             }, (response) => {
+                this.isLoading = false;
                 alert("Failed to update: " + response.data.exceptionMessage);
             });
         }
