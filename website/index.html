@@ -52,7 +52,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=937;
+        var appVer=938;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -60,17 +60,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=937" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=938" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=937" );
+                    localStorage.setItem( Key_JSVersion, "appVer=938" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=937"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=937"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=938"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=938"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -132,21 +132,33 @@
             fdScript.src = "https://widget.freshworks.com/widgets/154000001283.js";
             document.head.appendChild( fdScript );
         };
-        
-        var subdomain = HtmlUtil.getSubdomain( window.location.host );
-        var shouldNotLoadZopim = subdomain === "qa" || subdomain === "localtest" || subdomain === "login";
-        if( !shouldNotLoadZopim )
+
+        var setupZendesk = function()
         {
-            const startZopimDelayed = function()
+            var zendeskScript = document.createElement( "script" );
+            zendeskScript.id = "ze-snippet";
+            zendeskScript.type = "text/javascript";
+            zendeskScript.async = true;
+            zendeskScript.defer = true;
+            zendeskScript.src = "https://static.zdassets.com/ekr/snippet.js?key=a9ddf046-d5f3-4d45-9d32-b23a3d71a622";
+            document.head.appendChild( zendeskScript );
+        };
+
+        var subdomain = HtmlUtil.getSubdomain( window.location.host );
+        var shouldLoadHelpWidget = !(subdomain === "localtest" || subdomain === "login");
+        if( shouldLoadHelpWidget )
+        {
+            const startHelpWidgetDelayed = function()
             {
                 // Delay loading a bit for sites that get spam via Zopim
                 var isSpammedSite = subdomain === "themaples";
-                var zopimDelay = isSpammedSite ? 20000 : 4000;
+                var helpWidgetDelay = isSpammedSite ? 20000 : 4000;
                 setTimeout( function()
                 {
                     //setupFreshdesk();
-                    setupZopim();
-                }, zopimDelay );
+                    //setupZopim();
+                    setupZendesk();
+                }, helpWidgetDelay );
             };
 
             const checkUrl = "https://0.webappapi.communityally.org/api/PublicAllyAppSettings/IsSupportChatEnabled";
@@ -157,21 +169,26 @@
                         function( responseText )
                         {
                             if( responseText === "true" )
-                                startZopimDelayed();
+                                startHelpWidgetDelayed();
                         },
                         function()
                         {
-                            startZopimDelayed();
+                            startHelpWidgetDelayed();
                         }
                     );
                 },
                 function()
                 {
-                    startZopimDelayed();
+                    startHelpWidgetDelayed();
                 }
             );
         }
     </script>
+
+    <!-- Start of communityally Zendesk Widget script -->
+    <!--<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=a9ddf046-d5f3-4d45-9d32-b23a3d71a622"></script>-->
+    <!-- End of communityally Zendesk Widget script -->
+
     <script src="https://cdn.usefathom.com/script.js" data-site="SHLEWGEJ" defer></script>
 
     <script>
@@ -209,11 +226,11 @@
                     gtag( 'config', 'UA-32323638-5', { 'page_path': pageInfo.path } );
                     gtag( 'event', 'page_view' );
                 };
-                    //,track: function( actionName )
-                    //{
-                    //    gtag( 'event', actionName );
-                    //}
-            }            
+                //,track: function( actionName )
+                //{
+                //    gtag( 'event', actionName );
+                //}
+            }
         }
 
         analytics.page = function( pageInfo )

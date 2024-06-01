@@ -1,5 +1,6 @@
 ﻿declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 declare var $zopim: any;
+declare var zE: any;
 declare var analytics: any;
 declare var OverrideBaseApiPath: string;
 
@@ -360,19 +361,39 @@ namespace Ally
 
             if( this.isLoggedIn )
             {
-                const prepopulateZopim = () =>
+                const prepopulateHelpWidgetFields = () =>
                 {
+                    console.log( "In prepopulateHelpWidgetFields" );
+
+                    let effectiveName = $rootScope.userInfo.firstName ?? "";
+                    if( $rootScope.userInfo.lastName )
+                        effectiveName += " " + $rootScope.userInfo.lastName;
+
+                    let effectiveEmail: string = null;
+                    if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                        effectiveEmail = $rootScope.userInfo.emailAddress;
+
+                    if( typeof zE !== "undefined" )
+                    {
+                        zE( 'webWidget', 'prefill', {
+                            name: {
+                                value: effectiveName,
+                                readOnly: true // optional
+                            },
+                            email: {
+                                value: effectiveEmail,
+                                readOnly: true // optional
+                            }
+                            //phone: {
+                            //    value: '61431909749',
+                            //    readOnly: true // optional
+                            //}
+                        } );
+                    }
+
                     // Prefill the contact form with details about a customer
                     if( typeof ( ( window as any ).FreshworksWidget ) !== "undefined" )
                     {
-                        let effectiveName = $rootScope.userInfo.firstName ?? "";
-                        if( $rootScope.userInfo.lastName )
-                            effectiveName += " " + $rootScope.userInfo.lastName;
-
-                        let effectiveEmail: string = null;
-                        if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
-                            effectiveEmail = $rootScope.userInfo.emailAddress;
-
                         ( window as any ).FreshworksWidget( 'identify', 'ticketForm', { name: effectiveName, email: effectiveEmail } );
                         
                         // Prefill the subject so it shows up nicely in Freshdesk...
@@ -401,7 +422,7 @@ namespace Ally
                 const isSpammedSite = subdomain === "themaples";
                 const prepopDelayMs = isSpammedSite ? 24000 : 8000; // Zopim delays 4sec before setup so wait longer than than
 
-                setTimeout( prepopulateZopim, prepopDelayMs );
+                setTimeout( prepopulateHelpWidgetFields, prepopDelayMs );
 
                 $rootScope.isAdmin = $rootScope.userInfo.isAdmin;
                 $rootScope.isSiteManager = $rootScope.userInfo.isSiteManager;

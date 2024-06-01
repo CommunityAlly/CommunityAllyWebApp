@@ -171,15 +171,32 @@ var Ally;
             //if( !HtmlUtil.isNullOrWhitespace( this.publicSiteInfo.bgImagePath ) )
             //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
             if (this.isLoggedIn) {
-                const prepopulateZopim = () => {
+                const prepopulateHelpWidgetFields = () => {
+                    console.log("In prepopulateHelpWidgetFields");
+                    let effectiveName = $rootScope.userInfo.firstName ?? "";
+                    if ($rootScope.userInfo.lastName)
+                        effectiveName += " " + $rootScope.userInfo.lastName;
+                    let effectiveEmail = null;
+                    if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
+                        effectiveEmail = $rootScope.userInfo.emailAddress;
+                    if (typeof zE !== "undefined") {
+                        zE('webWidget', 'prefill', {
+                            name: {
+                                value: effectiveName,
+                                readOnly: true // optional
+                            },
+                            email: {
+                                value: effectiveEmail,
+                                readOnly: true // optional
+                            }
+                            //phone: {
+                            //    value: '61431909749',
+                            //    readOnly: true // optional
+                            //}
+                        });
+                    }
                     // Prefill the contact form with details about a customer
                     if (typeof (window.FreshworksWidget) !== "undefined") {
-                        let effectiveName = $rootScope.userInfo.firstName ?? "";
-                        if ($rootScope.userInfo.lastName)
-                            effectiveName += " " + $rootScope.userInfo.lastName;
-                        let effectiveEmail = null;
-                        if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
-                            effectiveEmail = $rootScope.userInfo.emailAddress;
                         window.FreshworksWidget('identify', 'ticketForm', { name: effectiveName, email: effectiveEmail });
                         // Prefill the subject so it shows up nicely in Freshdesk...
                         window.FreshworksWidget('prefill', 'ticketForm', { subject: AppConfig.appName + ' Support Request ' + new Date().toLocaleDateString() });
@@ -199,7 +216,7 @@ var Ally;
                 const subdomain = HtmlUtil.getSubdomain(window.location.host);
                 const isSpammedSite = subdomain === "themaples";
                 const prepopDelayMs = isSpammedSite ? 24000 : 8000; // Zopim delays 4sec before setup so wait longer than than
-                setTimeout(prepopulateZopim, prepopDelayMs);
+                setTimeout(prepopulateHelpWidgetFields, prepopDelayMs);
                 $rootScope.isAdmin = $rootScope.userInfo.isAdmin;
                 $rootScope.isSiteManager = $rootScope.userInfo.isSiteManager;
                 // Tell Segment we know who the user is
