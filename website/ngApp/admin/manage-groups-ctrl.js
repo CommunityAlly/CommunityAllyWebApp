@@ -23,6 +23,7 @@ var Ally;
                 subject: "",
                 body: ""
             };
+            this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
             /**
              * Retrieve the active group list
              */
@@ -390,6 +391,18 @@ var Ally;
                 alert("Reactivate Failed: " + response.data.exceptionMessage);
             });
         }
+        onAddChangeLogEntry() {
+            this.isLoading = true;
+            const postUri = `/api/AllyAppChangeLog/AddNewEntry`;
+            this.$http.post(postUri, this.newAllyAppChangeLogEntry).then((response) => {
+                this.isLoading = false;
+                this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
+                alert("Successfully added new entry");
+            }, (response) => {
+                this.isLoading = false;
+                alert("Added Failed: " + response.data.exceptionMessage);
+            });
+        }
     }
     ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.ManageGroupsController = ManageGroupsController;
@@ -398,6 +411,13 @@ var Ally;
     class AllyAppSetting {
     }
     Ally.AllyAppSetting = AllyAppSetting;
+    class AllyAppChangeLogEntry {
+        constructor() {
+            this.addedDateUtc = new Date();
+            this.featureSize = 50;
+        }
+    }
+    Ally.AllyAppChangeLogEntry = AllyAppChangeLogEntry;
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageGroups", {
     templateUrl: "/ngApp/admin/manage-groups.html",

@@ -64,6 +64,7 @@
         allAllyAppSettings: AllyAppSetting[];
         editAllyAppSetting: AllyAppSetting;
         reactivateEmail: string;
+        newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
 
 
         /**
@@ -674,6 +675,27 @@
                 }
             );
         }
+
+
+        onAddChangeLogEntry()
+        {
+            this.isLoading = true;
+
+            const postUri = `/api/AllyAppChangeLog/AddNewEntry`;
+            this.$http.post( postUri, this.newAllyAppChangeLogEntry ).then(
+                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
+                    alert( "Successfully added new entry" );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Added Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
     }
 
 
@@ -699,6 +721,16 @@
         settingValue: string;
         settingType: string;
         note: string;
+    }
+
+
+    export class AllyAppChangeLogEntry
+    {
+        changeLogId: number;
+        title: string;
+        description: string;
+        addedDateUtc: Date = new Date();
+        featureSize: number = 50;
     }
 }
 

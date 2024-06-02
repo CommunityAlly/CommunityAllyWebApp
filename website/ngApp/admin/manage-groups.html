@@ -318,6 +318,7 @@
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddAllyPayment()">Add Payment</button>
         </fieldset>
 
+
         <fieldset class="my-5">
             <legend>Ally App Settings</legend>
             <table class="table" data-ng-if="$ctrl.allAllyAppSettings.length > 0">
@@ -347,6 +348,40 @@
                 <h5>{{$ctrl.editAllyAppSetting.settingId ? 'Edit' : 'Add'}} Setting</h5>
                 <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveAllyAppSetting()">Save Setting</button>
             </div>
+        </fieldset>
+
+
+        <fieldset class="my-5">
+            <legend>Ally App Change Log</legend>
+
+            <table style="width: 70%;">
+                <tbody>
+                    <tr>
+                        <td class="text-end" style="width: 90px;">Title:</td>
+                        <td><input type="text" style="width: 100%;" maxlength="128" data-ng-model="$ctrl.newAllyAppChangeLogEntry.title" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="text-end">Description:</td>
+                        <td><textarea type="text" style="width: 100%;" maxlength="2048" rows="4" data-ng-model="$ctrl.newAllyAppChangeLogEntry.description" data-rule-required="true"></textarea></td>
+                    </tr>
+                    <tr>
+                        <td class="text-end">Added Date:</td>
+                        <td><input type="text" data-ui-date data-ng-model="$ctrl.newAllyAppChangeLogEntry.addedDateUtc" data-rule-required="true" /></td>
+                    </tr>
+                    <tr>
+                        <td class="text-end">Feature Size:</td>
+                        <td>
+                            <select data-ng-model="$ctrl.newAllyAppChangeLogEntry.featureSize" data-rule-required="true">
+                                <option data-ng-value="100">Major</option>
+                                <option data-ng-value="50">Medium</option>
+                                <option data-ng-value="1">Minor</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddChangeLogEntry()">Add Change Log Entry</button>
         </fieldset>
     </div>
 

@@ -36,6 +36,8 @@
         allySurvey: AllySurveyInfo;
         shouldShowOwnerFinanceTxn: boolean = false;
         userFirstName = "";
+        shouldShowAppChangeModal = false;
+        appChanges: AllyAppChangeLogEntry[] = null;
 
 
         /**
@@ -150,6 +152,26 @@
         {
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
+        }
+
+
+        showAppChanges()
+        {
+            this.shouldShowAppChangeModal = true;
+
+            if( !this.appChanges )
+            {
+                this.$http.get( "/api/AllyAppChangeLog/FullLog" ).then(
+                    ( response: ng.IHttpPromiseCallbackArg<AllyAppChangeLogEntry[]> ) =>
+                    {
+                        this.appChanges = response.data;
+                    },
+                    ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                    {
+                        alert( "Failed to load changes: " + errorResponse.data.exceptionMessage );
+                    }
+                );
+            }
         }
     }
 

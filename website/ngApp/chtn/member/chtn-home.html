@@ -1,6 +1,7 @@
 <div class="page-home">
     <div class="portlet-box white box-shadow margin-vertical" style="margin-bottom: 0;" data-ng-if="$ctrl.welcomeMessage.length > 0 || $ctrl.isWelcomeMessageHtml">
         <div class="portlet-header">
+            <span style="float: right;" class="note-text text-link" data-ng-click="$ctrl.showAppChanges()">App Changes</span>
             <div class="title">
                 Welcome!
             </div>
@@ -10,8 +11,8 @@
             <div id="welcome-message-panel" data-ng-if="$ctrl.isWelcomeMessageHtml" style="font-family: inherit; font-size: 1rem;" data-ng-bind-html="$ctrl.welcomeMessage"></div>
         </div>
     </div>
-    
-    <div class="alert-box white-bg spinner-effect" data-ng-show="$ctrl.shouldShowAlertSection">        
+
+    <div class="alert-box white-bg spinner-effect" data-ng-show="$ctrl.shouldShowAlertSection">
         <div class="news_polls" id="news-panel" style="min-height: 100px;">
             <article data-ng-repeat="news in $ctrl.buildingAlerts">
                 <div class="text-12 text-bold" id="news-and-polls-header">NOTICES:</div>
@@ -90,7 +91,6 @@
 
             <group-send-email></group-send-email>
         </div><!--end/left side bar-->
-
         <!-- right sidebar -->
         <div class="col-md-6">
             <div class="portlet-box white margin-vertical" style="background-color: gold;" data-ng-if="$ctrl.allySurvey">
@@ -142,6 +142,29 @@
             <p class="text-end margin-right-10">
                 <span class="note-text">(Click anywhere outside this window to close)</span>
             </p>
+        </div>
+    </div>
+
+    <div data-ng-if="$ctrl.shouldShowAppChangeModal">
+        <div id="new-welcome-overlay-background" class="modal-overlay" data-ng-click="$ctrl.shouldShowAppChangeModal = false"></div>
+        <div class="ca-modal-dialog modal-md" style="width: 700px; height: 80vh !important;">
+            <h1>Community Ally App Changes</h1>
+            <div class="margin-top-10" style="margin-bottom: 10px;">Here you can see a log of recent changes to our application.</div>
+            <div style="overflow-y: scroll; padding: 0 10px; height: 85%;">
+                <div data-ng-if="$ctrl.appChanges === null">Loading...</div>
+
+                <div data-ng-repeat="curChange in $ctrl.appChanges" class="ally-shaded-item" style="margin: 1rem 0;">
+                    <span style="float: right;">{{curChange.addedDateUtc | date:'shortDate'}}</span>
+                    <span data-ng-style="{'font-weight':curChange.featureSize > 70 ? 'bold': 'default'}">{{curChange.title}}</span>
+                    <span data-ng-if="curChange.featureSize > 70" class="badge bg-secondary">Major</span>
+                    <hr />
+                    <div>{{curChange.description}}</div>
+                </div>
+
+                <div data-ng-if="$ctrl.appChanges && $ctrl.appChanges.length > 0" class="text-center ally-shaded-item fw-bold">
+                    We recently added this change log feature and will back fill past features as time goes on.
+                </div>
+            </div>
         </div>
     </div>
 </div>

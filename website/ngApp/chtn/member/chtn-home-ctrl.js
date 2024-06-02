@@ -21,6 +21,8 @@ var Ally;
             this.testPay_isValid = false;
             this.shouldShowOwnerFinanceTxn = false;
             this.userFirstName = "";
+            this.shouldShowAppChangeModal = false;
+            this.appChanges = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -88,6 +90,16 @@ var Ally;
         hideFirstVisit() {
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
+        }
+        showAppChanges() {
+            this.shouldShowAppChangeModal = true;
+            if (!this.appChanges) {
+                this.$http.get("/api/AllyAppChangeLog/FullLog").then((response) => {
+                    this.appChanges = response.data;
+                }, (errorResponse) => {
+                    alert("Failed to load changes: " + errorResponse.data.exceptionMessage);
+                });
+            }
         }
     }
     ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
