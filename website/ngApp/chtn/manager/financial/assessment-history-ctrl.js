@@ -751,6 +751,8 @@ var Ally;
                 const unitContainsFilter = (unit) => {
                     if (unit.name.toLowerCase().indexOf(lowerFilter) !== -1)
                         return true;
+                    if (unit.lotNumber && unit.lotNumber.toLowerCase().indexOf(lowerFilter) !== -1)
+                        return true;
                     // Use displayOwners instead of owners because it's confusing to show results
                     // that don't match the filter
                     //if( unit.owners && unit.owners.length > 0 )

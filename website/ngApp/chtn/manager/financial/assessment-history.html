@@ -67,6 +67,7 @@
                     <tr data-ng-repeat="unit in $ctrl.filteredUnitRows" ng-init="unitIndex = $index">
                         <td class="text-bold text-end">
                             <span title="{{ ::unit.unitId }}">{{ ::unit.name }}</span>
+                            <div data-ng-if="unit.lotNumber" class="note-text" title="{{ ::unit.lotNumber }}">Lot: {{ ::unit.lotNumber }}</div>
                             <div class="unit-owner-names ellipsis" title="{{ ::owner.name }}" ng-repeat="owner in unit.displayOwners">{{ ::owner.name ? owner.name : "&nbsp;" }}</div>
                         </td>
                         <td data-ng-if="$ctrl.shouldShowBalanceCol">

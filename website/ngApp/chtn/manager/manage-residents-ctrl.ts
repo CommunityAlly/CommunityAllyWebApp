@@ -12,6 +12,7 @@ namespace Ally
         notes: string;
         addedByDateUtc: Date;
         addedByUserId: string;
+        lotNumber: string;
 
         fullAddress: FullAddress;
         nameWithUnit: string;
