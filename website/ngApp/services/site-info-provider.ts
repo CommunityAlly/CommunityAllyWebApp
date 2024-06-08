@@ -129,6 +129,7 @@ namespace Ally
         shouldShowOwnerFinanceTxn: boolean;
         numMembers: number;
         stripeConnectAccountId: string;
+        nonAdminCanAddVendors: boolean;
 
         // Only on PTAs
         ptaUnitId: number;
@@ -559,7 +560,7 @@ namespace Ally
                         {
                             analytics.track( "updateSiteTitle" );
 
-                            $http.put( "/api/Settings", { siteTitle: $rootScope.siteTitle.text } );
+                            $http.put( "/api/Settings/UpdateSiteSettings", { siteTitle: $rootScope.siteTitle.text } );
                         };
 
                         if( $rootScope.publicSiteInfo.siteDesignSettingsJson )

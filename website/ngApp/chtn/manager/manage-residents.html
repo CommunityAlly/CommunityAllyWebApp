@@ -361,7 +361,14 @@
         <div class="mt-4">
             <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.whoCanCreateDiscussionThreads" data-ng-change="$ctrl.saveResidentSettings()" data-ng-true-value="'everyone'" data-ng-false-value="'board'" />Non-Admin can create discussion threads</label><br />
             <span class="note-text">
-                When enabled, anyone can start new discussion threads on the home page. If disabled, only board members and/or site admin can create discussion threads
+                When enabled, anyone can start new discussion threads on the home page. If disabled, only board members and/or site admin can create discussion threads.
+            </span>
+        </div>
+
+        <div class="mt-4">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.nonAdminCanAddVendors" data-ng-change="$ctrl.saveResidentSettings()" />Non-Admin can add/edit vendors</label><br />
+            <span class="note-text">
+                When enabled, any user can add and edit vendor information on <a href="/#!/Info/Vendor">the vendor page</a>. If disabled, only board members and/or site admin can add/edit vendor information.
             </span>
         </div>
 

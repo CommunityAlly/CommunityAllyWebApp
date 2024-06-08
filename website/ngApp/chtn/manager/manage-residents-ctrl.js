@@ -611,12 +611,13 @@ var Ally;
          */
         loadSettings() {
             this.isLoadingSettings = true;
-            this.$http.get("/api/Settings").then((response) => {
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
                 this.isLoadingSettings = false;
                 this.residentSettings = response.data;
                 // Update the SiteInfoService so the privateSiteInfo properties reflects changes
                 this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
                 this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
+                this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
             }, (response) => {
                 this.isLoadingSettings = false;
                 console.log("Failed to retrieve settings: " + response.data.exceptionMessage);
@@ -843,13 +844,14 @@ var Ally;
         saveResidentSettings() {
             analytics.track("editResidentSettings");
             this.isLoadingSettings = true;
-            this.$http.put("/api/Settings", this.residentSettings).then(() => {
+            this.$http.put("/api/Settings/UpdateSiteSettings", this.residentSettings).then(() => {
                 this.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
                 this.fellowResidents.clearResidentCache();
                 // Update the locally cached settings to match the saved values
                 this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
                 this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
+                this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
             }, () => {
                 this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");

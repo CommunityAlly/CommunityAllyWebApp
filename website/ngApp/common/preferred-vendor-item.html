@@ -4,7 +4,7 @@
     <div data-ng-if="!$ctrl.isInEditMode">
         <h4 class="d-inline-block text-bold">{{ $ctrl.vendorItem.companyName }}</h4>
 
-        <div data-ng-if="$ctrl.isSiteManager" class="d-inline-block margin-left-10">
+        <div data-ng-if="$ctrl.canManageVendors" class="d-inline-block margin-left-10">
             <span class="text-link" data-ng-click="$ctrl.onEditItem()">Edit</span>
             <span class="text-link margin-left-10" data-ng-click="$ctrl.deleteItem()">Delete</span>
         </div>

@@ -20,7 +20,7 @@ var Ally;
             this.filteredVendors = [];
             this.editVendor = new PreferredVendor();
             this.isLoading = false;
-            this.isSiteManager = false;
+            this.canAddVendor = false;
             this.usedServiceTags = [];
             this.filterTags = [];
             this.entriesSortAscending = true;
@@ -29,7 +29,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
-            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.canAddVendor = this.siteInfo.userInfo.isSiteManager || this.siteInfo.privateSiteInfo.nonAdminCanAddVendors;
             this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
             if (!this.entriesSortField) {
                 this.entriesSortField = "name";
@@ -45,8 +45,8 @@ var Ally;
         retrieveVendors() {
             this.isLoading = true;
             this.$http.get("/api/PreferredVendors").then((response) => {
-                const vendors = response.data;
                 this.isLoading = false;
+                const vendors = response.data;
                 this.allVendors = vendors;
                 this.filteredVendors = vendors;
                 this.sortEntries();
@@ -63,6 +63,9 @@ var Ally;
                 // Remove any duplicate tags
                 this.usedServiceTags = _.uniq(this.usedServiceTags);
                 this.usedServiceTags.sort();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to retrieve vendors: " + response.data.exceptionMessage);
             });
         }
         /**

@@ -168,7 +168,7 @@ var Ally;
                 console.log(err);
             }
             // This will be needed for ACH payments
-            //this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
+            //this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
         }
         static getCurrentPayPeriod(assessmentFrequency) {
             const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);

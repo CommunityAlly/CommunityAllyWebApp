@@ -523,7 +523,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
+            this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
             {
                 this.isLoading = false;
                 this.settings = response.data;

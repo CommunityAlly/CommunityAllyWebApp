@@ -10,7 +10,7 @@
         vendorItem: PreferredVendor;
         editVendorItem: PreferredVendor;
         isLoading = false;
-        isSiteManager = false;
+        canManageVendors = false;
         onDelete: any;
         onAddNewVendor: () => void;
         onParentDataNeedsRefresh: () => void;
@@ -60,7 +60,7 @@
          */
         $onInit()
         {
-            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.canManageVendors = this.siteInfo.userInfo.isSiteManager || this.siteInfo.privateSiteInfo.nonAdminCanAddVendors;
             this.isAddForm = this.vendorItem == null;
 
             if( this.isAddForm )
@@ -146,7 +146,7 @@
             }
 
             const saveMethod = this.editVendorItem.preferredVendorId == null ? this.$http.post : this.$http.put;
-
+            const saveUriPart = this.editVendorItem.preferredVendorId == null ? "SaveNewVendor" : "UpdateVendor";
             this.isLoading = true;
 
             // Process ng-tag-input model into a pipe-separated string for the server
@@ -158,7 +158,7 @@
             servicesProvidedString += "|";
             this.editVendorItem.servicesProvided = servicesProvidedString;
 
-            saveMethod( "/api/PreferredVendors", this.editVendorItem ).then(
+            saveMethod( "/api/PreferredVendors/" + saveUriPart, this.editVendorItem ).then(
                 () =>
                 {
                     this.isLoading = false;
@@ -177,10 +177,10 @@
                         this.onParentDataNeedsRefresh();
 
                 },
-                ( exception: ExceptionResult ) =>
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to save the vendor information: " + exception.exceptionMessage );
+                    alert( "Failed to save the vendor information: " + response.data.exceptionMessage );
                 }
             );
         }
@@ -209,7 +209,7 @@
 
             this.isLoading = true;
 
-            this.$http.delete( "/api/PreferredVendors/" + this.vendorItem.preferredVendorId ).then(
+            this.$http.delete( "/api/PreferredVendors/DeleteVendor/" + this.vendorItem.preferredVendorId ).then(
                 () =>
                 {
                     this.isLoading = false;

@@ -993,7 +993,7 @@ namespace Ally
         {
             this.isLoadingSettings = true;
 
-            this.$http.get( "/api/Settings" ).then(
+            this.$http.get( "/api/Settings/GetSiteSettings" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
                 {
                     this.isLoadingSettings = false;
@@ -1002,7 +1002,7 @@ namespace Ally
                     // Update the SiteInfoService so the privateSiteInfo properties reflects changes
                     this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
                     this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
-
+                    this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -1263,7 +1263,7 @@ namespace Ally
 
             this.isLoadingSettings = true;
 
-            this.$http.put( "/api/Settings", this.residentSettings ).then(
+            this.$http.put( "/api/Settings/UpdateSiteSettings", this.residentSettings ).then(
                 () => 
                 {
                     this.isLoadingSettings = false;
@@ -1274,7 +1274,7 @@ namespace Ally
                     // Update the locally cached settings to match the saved values
                     this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
                     this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
-
+                    this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
                 },
                 () =>
                 {

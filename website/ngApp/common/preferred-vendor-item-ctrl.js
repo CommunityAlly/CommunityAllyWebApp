@@ -11,14 +11,14 @@ var Ally;
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.isLoading = false;
-            this.isSiteManager = false;
+            this.canManageVendors = false;
             this.isInEditMode = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
-            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.canManageVendors = this.siteInfo.userInfo.isSiteManager || this.siteInfo.privateSiteInfo.nonAdminCanAddVendors;
             this.isAddForm = this.vendorItem == null;
             if (this.isAddForm) {
                 this.isInEditMode = true;
@@ -76,6 +76,7 @@ var Ally;
                     this.editVendorItem.companyWeb = "http://" + this.editVendorItem.companyWeb;
             }
             const saveMethod = this.editVendorItem.preferredVendorId == null ? this.$http.post : this.$http.put;
+            const saveUriPart = this.editVendorItem.preferredVendorId == null ? "SaveNewVendor" : "UpdateVendor";
             this.isLoading = true;
             // Process ng-tag-input model into a pipe-separated string for the server
             let servicesProvidedString = "";
@@ -84,7 +85,7 @@ var Ally;
             });
             servicesProvidedString += "|";
             this.editVendorItem.servicesProvided = servicesProvidedString;
-            saveMethod("/api/PreferredVendors", this.editVendorItem).then(() => {
+            saveMethod("/api/PreferredVendors/" + saveUriPart, this.editVendorItem).then(() => {
                 this.isLoading = false;
                 if (this.isAddForm) {
                     this.editVendorItem = new Ally.PreferredVendor();
@@ -95,9 +96,9 @@ var Ally;
                     this.isInEditMode = false;
                 if (this.onParentDataNeedsRefresh)
                     this.onParentDataNeedsRefresh();
-            }, (exception) => {
+            }, (response) => {
                 this.isLoading = false;
-                alert("Failed to save the vendor information: " + exception.exceptionMessage);
+                alert("Failed to save the vendor information: " + response.data.exceptionMessage);
             });
         }
         onCancelEdit() {
@@ -113,7 +114,7 @@ var Ally;
             if (!confirm("Are you sure you want to remove this vendor?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/PreferredVendors/" + this.vendorItem.preferredVendorId).then(() => {
+            this.$http.delete("/api/PreferredVendors/DeleteVendor/" + this.vendorItem.preferredVendorId).then(() => {
                 this.isLoading = false;
                 if (this.onParentDataNeedsRefresh)
                     this.onParentDataNeedsRefresh();

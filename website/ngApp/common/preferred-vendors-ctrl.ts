@@ -39,7 +39,7 @@
         filteredVendors: PreferredVendor[] = [];
         editVendor = new PreferredVendor();
         isLoading = false;
-        isSiteManager = false;
+        canAddVendor = false;
         usedServiceTags: string[] = [];
         filterTags: string[] = [];
         entriesSortField: string;
@@ -61,7 +61,7 @@
          */
         $onInit()
         {
-            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.canAddVendor = this.siteInfo.userInfo.isSiteManager || this.siteInfo.privateSiteInfo.nonAdminCanAddVendors;
 
             this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
             if( !this.entriesSortField )
@@ -86,9 +86,9 @@
             this.$http.get( "/api/PreferredVendors" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<PreferredVendor[]> ) =>
                 {
+                    this.isLoading = false;
                     const vendors = response.data;
 
-                    this.isLoading = false;
                     this.allVendors = vendors;
                     this.filteredVendors = vendors;
                     this.sortEntries();
@@ -110,6 +110,11 @@
                     // Remove any duplicate tags
                     this.usedServiceTags = _.uniq( this.usedServiceTags );
                     this.usedServiceTags.sort();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve vendors: " + response.data.exceptionMessage );
                 }
             );
         }

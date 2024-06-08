@@ -307,7 +307,7 @@ var Ally;
                     // Occurs when the user saves changes to the site title
                     $rootScope.onUpdateSiteTitleText = () => {
                         analytics.track("updateSiteTitle");
-                        $http.put("/api/Settings", { siteTitle: $rootScope.siteTitle.text });
+                        $http.put("/api/Settings/UpdateSiteSettings", { siteTitle: $rootScope.siteTitle.text });
                     };
                     if ($rootScope.publicSiteInfo.siteDesignSettingsJson)
                         Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson);
