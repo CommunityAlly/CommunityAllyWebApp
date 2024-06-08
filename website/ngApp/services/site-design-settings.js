@@ -42,7 +42,7 @@ var Ally;
                             footerBg: "#353535",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: false,
-                            background: "url(/assets/images/ui-style-settings/pinstripes.png)",
+                            background: "#f5f5f5 " + SiteDesignSettings.SiteBgImgPinstripes,
                             buttonBgColor: "#353535",
                             bodyLinkColor: "#212529",
                             navLinkColor: "white",
@@ -64,7 +64,7 @@ var Ally;
                             footerBg: "#404040",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,171,171,1) 100%)",
+                            background: "linear-gradient(0deg, #ffffff 0%, #f5abab 100%)",
                             buttonBgColor: "black",
                             bodyLinkColor: "#007cbc",
                             navLinkColor: "white",
@@ -86,7 +86,7 @@ var Ally;
                             footerBg: "#1e5168",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            background: "#DBE5E9 url(/assets/images/ui-style-settings/fancy-hexes.png)",
+                            background: "#DBE5E9 " + SiteDesignSettings.SiteBgImgHexagons,
                             buttonBgColor: "#1e5168",
                             bodyLinkColor: "#1e5168",
                             navLinkColor: "#F3F6F7",
@@ -215,5 +215,7 @@ var Ally;
     SiteDesignSettings.SettingsCacheKey = "cachedSiteDesignSettingsJson";
     SiteDesignSettings.HeaderBgClassic = "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center";
     SiteDesignSettings.HeaderBgPink = "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center";
+    SiteDesignSettings.SiteBgImgHexagons = "url(/assets/images/ui-style-settings/fancy-hexes.png)";
+    SiteDesignSettings.SiteBgImgPinstripes = "url(/assets/images/ui-style-settings/pinstripes-trans.png)";
     Ally.SiteDesignSettings = SiteDesignSettings;
 })(Ally || (Ally = {}));

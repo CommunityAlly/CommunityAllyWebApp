@@ -17,6 +17,9 @@ var Ally;
             this.siteDesignSettings = new Ally.SiteDesignSettings();
             this.isCustomLoaded = false;
             this.headerBgType = "classic";
+            this.siteBgType = "color";
+            this.siteBgColor = "#ffffff";
+            this.siteBgColor2 = "#ffffff";
             this.headerBgColor = "#eee";
             this.isSaving = false;
         }
@@ -29,6 +32,7 @@ var Ally;
                 this.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
             else
                 this.siteDesignSettings = JSON.parse(this.siteInfo.publicSiteInfo.siteDesignSettingsJson);
+            this.populateBgColorFromPreset();
             this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             // Hook up the file upload control after everything is loaded and setup
@@ -54,6 +58,7 @@ var Ally;
             }
             this.$rootScope.siteDesignSettings = this.siteDesignSettings;
             window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, JSON.stringify(this.siteDesignSettings));
+            // Populate the header BG setting
             if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgClassic)
                 this.headerBgType = "classic";
             else if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgPink)
@@ -62,9 +67,45 @@ var Ally;
                 this.headerBgType = "color";
                 this.headerBgColor = this.siteDesignSettings.headerBg;
             }
+            // Populate the site BG setting
+            this.populateBgColorFromPreset();
             Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
             this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
             this.saveSettings();
+        }
+        populateBgColorFromPreset() {
+            if (this.siteDesignSettings.background && this.siteDesignSettings.background.endsWith(Ally.SiteDesignSettings.SiteBgImgHexagons)) {
+                if (this.siteDesignSettings.background.indexOf(" ") > 1)
+                    this.siteBgColor = this.siteDesignSettings.background.split(" ")[0];
+                this.siteBgType = "hexagons";
+            }
+            else if (this.siteDesignSettings.background && this.siteDesignSettings.background.endsWith(Ally.SiteDesignSettings.SiteBgImgPinstripes)) {
+                if (this.siteDesignSettings.background.indexOf(" ") > 1)
+                    this.siteBgColor = this.siteDesignSettings.background.split(" ")[0];
+                this.siteBgType = "pinstripes";
+            }
+            else if (this.siteDesignSettings.background && this.siteDesignSettings.background.startsWith(SiteDesignSettingsController.LinearGradientPrefix)) {
+                this.splitLinearGradientString(this.siteDesignSettings.background);
+                this.siteBgType = "linearGradient";
+            }
+            else {
+                this.siteBgType = "color";
+                this.siteBgColor = this.siteDesignSettings.background;
+            }
+        }
+        splitLinearGradientString(linearGradient) {
+            if (!linearGradient || !linearGradient.startsWith(SiteDesignSettingsController.LinearGradientPrefix))
+                return;
+            const trimmed = linearGradient.substring(SiteDesignSettingsController.LinearGradientPrefix.length);
+            const splitParts = trimmed.split(" 0%, #");
+            if (splitParts.length !== 2)
+                return;
+            this.siteBgColor2 = "#" + splitParts[0];
+            const endIndex = splitParts[1].indexOf(" ");
+            if (endIndex === -1)
+                return;
+            this.siteBgColor = "#" + splitParts[1].substring(0, endIndex);
+            //console.log( "splitLinearGradientString", this.siteBgColor, this.siteBgColor2 );
         }
         saveSettings() {
             this.isSaving = true;
@@ -189,8 +230,24 @@ var Ally;
             }
             this.onCustomSettingChanged();
         }
+        onCustomSiteBgChanged() {
+            if (this.siteBgType === "hexagons") {
+                this.siteDesignSettings.background = this.siteBgColor + " " + Ally.SiteDesignSettings.SiteBgImgHexagons;
+            }
+            else if (this.siteBgType === "pinstripes") {
+                this.siteDesignSettings.background = this.siteBgColor + " " + Ally.SiteDesignSettings.SiteBgImgPinstripes;
+            }
+            else if (this.siteBgType === "linearGradient") {
+                this.siteDesignSettings.background = `linear-gradient(0deg, ${this.siteBgColor2} 0%, ${this.siteBgColor} 100%)`;
+            }
+            else {
+                this.siteDesignSettings.background = this.siteBgColor;
+            }
+            this.onCustomSettingChanged();
+        }
     }
     SiteDesignSettingsController.$inject = ["$http", "SiteInfo", "$rootScope", "$timeout", "$scope"];
+    SiteDesignSettingsController.LinearGradientPrefix = "linear-gradient(0deg, #";
     Ally.SiteDesignSettingsController = SiteDesignSettingsController;
     class UpdateDesignSettings {
     }

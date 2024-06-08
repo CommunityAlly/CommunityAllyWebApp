@@ -147,8 +147,19 @@
         </div>
 
         <h4 class="mt-4">Site Background</h4>
-        <input type="color" data-ng-model="$ctrl.siteDesignSettings.background" data-ng-change="$ctrl.onCustomSettingChanged()" />
-        <div class="note-text">The color of the background.</div>
+        <!--<input type="color" data-ng-model="$ctrl.siteDesignSettings.background" data-ng-change="$ctrl.onCustomSettingChanged()" />-->
+        
+        <div>
+            <label><input type="radio" name="siteBgType" value="color" data-ng-model="$ctrl.siteBgType" data-ng-change="$ctrl.onCustomSiteBgChanged()" /> Color: <input type="color" data-ng-model="$ctrl.siteBgColor" data-ng-change="$ctrl.onCustomSiteBgChanged()" /></label>
+            <br />
+            <label><input type="radio" name="siteBgType" value="linearGradient" data-ng-model="$ctrl.siteBgType" data-ng-change="$ctrl.onCustomSiteBgChanged()" /> Linear Gradient | Bottom Color: <input type="color" data-ng-model="$ctrl.siteBgColor2" data-ng-change="$ctrl.onCustomSiteBgChanged()" /></label>
+            <br />
+            <label><input type="radio" name="siteBgType" value="hexagons" data-ng-model="$ctrl.siteBgType" data-ng-change="$ctrl.onCustomSiteBgChanged()" /> Hexagons</label>
+            <br />
+            <label><input type="radio" name="siteBgType" value="pinstripes" data-ng-model="$ctrl.siteBgType" data-ng-change="$ctrl.onCustomSiteBgChanged()" /> Pinstripes</label>
+        </div>
+
+        <div class="note-text">The color and design of the background. You can still choose a color with a background image.</div>
 
         <h4 class="mt-4">Button Color</h4>
         <input type="color" data-ng-model="$ctrl.siteDesignSettings.buttonBgColor" data-ng-change="$ctrl.onCustomSettingChanged()" />

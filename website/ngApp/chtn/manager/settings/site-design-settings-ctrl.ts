@@ -14,8 +14,12 @@ namespace Ally
         customSiteDesignSettingsJson: string;
         isCustomLoaded = false;
         headerBgType: "color" | "classic" | "pink" = "classic";
+        siteBgType: "color" | "hexagons" | "pinstripes" | "linearGradient" = "color";
+        siteBgColor = "#ffffff";
+        siteBgColor2 = "#ffffff";
         headerBgColor: string = "#eee";
         isSaving = false;
+        static readonly LinearGradientPrefix = "linear-gradient(0deg, #";
 
 
         /**
@@ -41,6 +45,8 @@ namespace Ally
                 this.siteDesignSettings = SiteDesignSettings.GetDefault();
             else
                 this.siteDesignSettings = JSON.parse( this.siteInfo.publicSiteInfo.siteDesignSettingsJson );
+
+            this.populateBgColorFromPreset();
 
             this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
 
@@ -85,6 +91,7 @@ namespace Ally
 
             window.localStorage.setItem( SiteDesignSettings.SettingsCacheKey, JSON.stringify( this.siteDesignSettings ) );
 
+            // Populate the header BG setting
             if( this.siteDesignSettings.headerBg === SiteDesignSettings.HeaderBgClassic )
                 this.headerBgType = "classic";
             else if( this.siteDesignSettings.headerBg === SiteDesignSettings.HeaderBgPink )
@@ -93,12 +100,66 @@ namespace Ally
             {
                 this.headerBgType = "color";
                 this.headerBgColor = this.siteDesignSettings.headerBg;
-            }   
+            }
+
+            // Populate the site BG setting
+            this.populateBgColorFromPreset();
 
             SiteDesignSettings.ApplySiteDesignSettings( this.siteDesignSettings );
             this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
 
             this.saveSettings();
+        }
+
+
+        populateBgColorFromPreset()
+        {
+            if( this.siteDesignSettings.background && this.siteDesignSettings.background.endsWith( SiteDesignSettings.SiteBgImgHexagons ) )
+            {
+                if( this.siteDesignSettings.background.indexOf( " " ) > 1 )
+                    this.siteBgColor = this.siteDesignSettings.background.split( " " )[0];
+
+                this.siteBgType = "hexagons";
+            }
+            else if( this.siteDesignSettings.background && this.siteDesignSettings.background.endsWith( SiteDesignSettings.SiteBgImgPinstripes ) )
+            {
+                if( this.siteDesignSettings.background.indexOf( " " ) > 1 )
+                    this.siteBgColor = this.siteDesignSettings.background.split( " " )[0];
+
+                this.siteBgType = "pinstripes";
+            }
+            else if( this.siteDesignSettings.background && this.siteDesignSettings.background.startsWith( SiteDesignSettingsController.LinearGradientPrefix ) )
+            {
+                this.splitLinearGradientString( this.siteDesignSettings.background );
+
+                this.siteBgType = "linearGradient";
+            }
+            else
+            {
+                this.siteBgType = "color";
+                this.siteBgColor = this.siteDesignSettings.background;
+            }
+        }
+
+
+        splitLinearGradientString( linearGradient: string )
+        {
+            if( !linearGradient || !linearGradient.startsWith( SiteDesignSettingsController.LinearGradientPrefix ) )
+                return;
+
+            const trimmed = linearGradient.substring( SiteDesignSettingsController.LinearGradientPrefix.length );
+            const splitParts = trimmed.split( " 0%, #" );
+            if( splitParts.length !== 2 )
+                return;
+
+            this.siteBgColor2 = "#" + splitParts[0];
+
+            const endIndex = splitParts[1].indexOf( " " );
+            if( endIndex === -1 )
+                return;
+
+            this.siteBgColor = "#" + splitParts[1].substring( 0, endIndex );
+            //console.log( "splitLinearGradientString", this.siteBgColor, this.siteBgColor2 );
         }
 
 
@@ -280,6 +341,29 @@ namespace Ally
                 this.siteDesignSettings.headerBgSize = "auto";
             }
             
+            this.onCustomSettingChanged();
+        }
+
+
+        onCustomSiteBgChanged()
+        {
+            if( this.siteBgType === "hexagons" )
+            {
+                this.siteDesignSettings.background = this.siteBgColor + " " + SiteDesignSettings.SiteBgImgHexagons;
+            }
+            else if( this.siteBgType === "pinstripes" )
+            {
+                this.siteDesignSettings.background = this.siteBgColor + " " + SiteDesignSettings.SiteBgImgPinstripes;
+            }
+            else if( this.siteBgType === "linearGradient" )
+            {
+                this.siteDesignSettings.background = `linear-gradient(0deg, ${this.siteBgColor2} 0%, ${this.siteBgColor} 100%)`;
+            }
+            else
+            {
+                this.siteDesignSettings.background = this.siteBgColor;
+            }
+
             this.onCustomSettingChanged();
         }
     }

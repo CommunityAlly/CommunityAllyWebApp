@@ -49,7 +49,7 @@ var Ally;
          */
         refreshData() {
             this.isLoading = true;
-            this.$http.get("/api/Settings").then((response) => {
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
                 this.isLoading = false;
                 this.settings = response.data;
                 this.originalSettings = _.clone(response.data);
