@@ -25,7 +25,6 @@ namespace Ally
     {
         /** Not sent down, used when PUTing to update */
         password: string;
-        //includeInDiscussionEmail: boolean;
         alternatePhoneNumber: string;
         mailingAddressObject: FullAddress;
         defaultDigestFrequency: string;

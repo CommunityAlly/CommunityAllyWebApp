@@ -63,7 +63,6 @@
         homes: HomeEntry[];
         boardPosition: number;
         wePayAutoPayIsActive: boolean;
-        includeInDiscussionEmail: boolean;
         isSiteManager: boolean;
 
         // Not from the server, used locally
