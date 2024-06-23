@@ -28,15 +28,13 @@
                 <div class="text-16 font-600">I am paying for</div>
 
                 <div style="display: inline-block;">
-                    <label class="custom-control custom-radio">
-                        <input id="radioStacked1" name="payment" type="radio" value="periodic" class="custom-control-input" data-ng-click="$ctrl.onSelectPaymentType('periodic')" ng-model="$ctrl.paymentInfo.paymentType">
-                        <span class="custom-control-indicator"></span>
-                        <span class="custom-control-description">Assessment</span>
+                    <label>
+                        <input id="radioStacked1" name="payment" type="radio" value="periodic" data-ng-click="$ctrl.onSelectPaymentType('periodic')" ng-model="$ctrl.paymentInfo.paymentType">
+                        <span>Assessment</span>
                     </label>
-                    <label class="custom-control custom-radio">
-                        <input id="other" name="payment" type="radio" data-ng-click="$ctrl.onSelectPaymentType('other')" value="other" ng-model="$ctrl.paymentInfo.paymentType" class="custom-control-input">
-                        <span class="custom-control-indicator"></span>
-                        <span class="custom-control-description">Other</span>
+                    <label>
+                        <input id="other" name="payment" type="radio" data-ng-click="$ctrl.onSelectPaymentType('other')" value="other" ng-model="$ctrl.paymentInfo.paymentType">
+                        <span>Other</span>
                     </label>
                 </div>
             </div>

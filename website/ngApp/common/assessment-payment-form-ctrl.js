@@ -57,6 +57,7 @@ var Ally;
             this.shouldShowStripeAchRefresh = false;
             this.isUpgradingStripePaymentForAutoPay = false;
             this.pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
+            this.activeSpecialAssessments = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -209,19 +210,11 @@ var Ally;
                     amount: this.assessmentAmount,
                     note: "",
                     fundingType: null,
-                    paysFor: []
+                    paysFor: [],
+                    specialAssessmentId: null
                 };
             this.onPaymentAmountChange();
             this.stripeAutoPayFeeAmountString = this.stripeAchFeeAmountString;
-            const MaxNumRecentPayments = 24;
-            this.historicPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.historicPayments && this.historicPayments.length > 0) {
-                if (this.historicPayments.length > MaxNumRecentPayments)
-                    this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
-                // Fill up the list so there's always MaxNumRecentPayments
-                //while( this.historicPayments.length < MaxNumRecentPayments )
-                //    this.historicPayments.push( {} );
-            }
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.siteInfo.userInfo.usersUnits != null
@@ -231,7 +224,7 @@ var Ally;
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
                     this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
-                    this.updatePaymentText();
+                    this.updatePaymentText(null);
                 }
             }
             //if( this.isStripeEnabledOnGroup )
@@ -253,6 +246,20 @@ var Ally;
             //        $( this ).parent().hide( '' );
             //    } );
             //}, 400 );
+            this.$http.get("/api/MemberOnlinePayment/MyPaymentAreaInfo").then((response) => {
+                const MaxNumRecentPayments = 24;
+                this.historicPayments = response.data.recentPayments;
+                if (this.historicPayments && this.historicPayments.length > 0) {
+                    if (this.historicPayments.length > MaxNumRecentPayments)
+                        this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
+                    // Fill up the list so there's always MaxNumRecentPayments
+                    //while( this.historicPayments.length < MaxNumRecentPayments )
+                    //    this.historicPayments.push( {} );
+                }
+                this.activeSpecialAssessments = response.data.specialAssessments || [];
+            }, (errorResponse) => {
+                console.log("Failed to load user's payment info: " + errorResponse.data.exceptionMessage);
+            });
         }
         /**
          * Display the Paragon payment sign-up modal, with pre-population of data
@@ -415,7 +422,7 @@ var Ally;
         /**
          * Refresh the note text for the payment field
          */
-        updatePaymentText() {
+        updatePaymentText(specialAssessment) {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                 // If we have a next payment string
                 if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
@@ -426,6 +433,9 @@ var Ally;
                     this.paymentInfo.note += this.nextPaymentText;
                 }
             }
+            else if (this.paymentInfo.paymentType === "special" && specialAssessment) {
+                this.paymentInfo.note = `Special assessment payment for '${specialAssessment.assessmentName}'`;
+            }
             else {
                 this.paymentInfo.note = "";
             }
@@ -433,10 +443,14 @@ var Ally;
         /**
          * Occurs when the user selects a payment type radio button
          */
-        onSelectPaymentType(paymentType) {
+        onSelectPaymentType(paymentType, specialAssessment = null) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
-            this.updatePaymentText();
+            if (specialAssessment) {
+                this.paymentInfo.specialAssessmentId = specialAssessment.specialAssessmentId;
+                this.paymentInfo.amount = specialAssessment.amount || 0;
+            }
+            this.updatePaymentText(specialAssessment);
             this.onPaymentAmountChange();
         }
         /**
@@ -1214,6 +1228,8 @@ var Ally;
     }
     AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q", "$scope"];
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
+    class MyPaymentAreaInfo {
+    }
     class StripeAchStartResult {
     }
     class CheckoutRequest {

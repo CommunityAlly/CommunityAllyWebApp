@@ -35,7 +35,7 @@ var Ally;
                     paysFor: null
                 };
             var MaxNumRecentPayments = 6;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
+            this.recentPayments = []; // this.siteInfo.userInfo.recentPayments;
             if (this.recentPayments && this.recentPayments.length > 0) {
                 if (this.recentPayments.length > MaxNumRecentPayments)
                     this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);

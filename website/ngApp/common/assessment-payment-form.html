@@ -175,16 +175,20 @@
             <div class="pay_for mb-3" data-ng-if="!$ctrl.stripePaymentSucceeded">
                 <div class="text-16 font-600">I am paying for</div>
 
-                <div class="custom-controls-stacked">
-                    <label class="custom-control custom-radio">
+                <div>
+                    <label style="display: block;">
                         <input id="radioStacked1" name="payment" type="radio" value="periodic" class="form-check-input" data-ng-click="$ctrl.onSelectPaymentType('periodic')" ng-model="$ctrl.paymentInfo.paymentType">
-                        <span class="custom-control-indicator"></span>
-                        <span class="custom-control-description">Assessment</span>
+                        <span>Assessment</span>
                     </label>
-                    <label class="ms-3 custom-control custom-radio">
-                        <input id="other" name="payment" type="radio" data-ng-click="$ctrl.onSelectPaymentType('other')" value="other" ng-model="$ctrl.paymentInfo.paymentType" class="form-check-input">
-                        <span class="custom-control-indicator"></span>
-                        <span class="custom-control-description">Other</span>
+
+                    <label style="display: block;" data-ng-repeat="curSpecialAssessment in $ctrl.activeSpecialAssessments">
+                        <input id="pay-type-special" name="payment" type="radio" data-ng-click="$ctrl.onSelectPaymentType('special', curSpecialAssessment)" value="special" ng-model="$ctrl.paymentInfo.paymentType" class="form-check-input">
+                        <span>Special Assessment: {{curSpecialAssessment.assessmentName}}</span>
+                    </label>
+
+                    <label style="display: block;">
+                        <input id="pay-type-other" name="payment" type="radio" data-ng-click="$ctrl.onSelectPaymentType('other')" value="other" ng-model="$ctrl.paymentInfo.paymentType" class="form-check-input">
+                        <span>Other</span>
                     </label>
                 </div>
             </div>

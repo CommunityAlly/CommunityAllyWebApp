@@ -170,24 +170,6 @@ a {
     font-size: 15px;
 }
 
-/** radio buttons **/
-.custom-control-indicator {
-    background: url(/assets/images/radio.png) no-repeat 0 -20px;
-    top: -2px;
-    width: 20px;
-    height: 24px;
-}
-.custom-control-input:checked ~ .custom-control-indicator {
-    background-color: white;
-    box-shadow: none !important;
-}
-.custom-radio .custom-control-input:checked ~ .custom-control-indicator {
-    background: url(/assets/images/radio.png) no-repeat 1px 4px;
-}
-.custom-control-input:active ~ .custom-control-indicator {
-    background-color: transparent !important;
-}
-
 /** portlet boxes */
 .portlet-box {
     padding: 21px 27px;

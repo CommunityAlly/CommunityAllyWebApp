@@ -68,7 +68,7 @@ namespace Ally
         assessmentAmount: number;
         isRenter: boolean;
         usersUnits: UsersHome[];
-        recentPayments: RecentPayment[];
+        //recentPayments: RecentPayment[];
         isAutoPayActive: boolean;
         nextAutoPayText: string;
     }
@@ -99,7 +99,7 @@ namespace Ally
     export class RecentPayment
     {
         electronic: any;
-        periodic: any;
+        //periodic: any;
         date: Date;
         amount: number;
     }

@@ -99,6 +99,7 @@ namespace Ally
         shouldShowStripeAchRefresh = false;
         isUpgradingStripePaymentForAutoPay = false;
         pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
+        activeSpecialAssessments: SpecialAssessmentEntry[] = [];
 
 
         /**
@@ -312,23 +313,12 @@ namespace Ally
                 amount: this.assessmentAmount,
                 note: "",
                 fundingType: null,
-                paysFor: []
+                paysFor: [],
+                specialAssessmentId: null
             };
 
             this.onPaymentAmountChange();
             this.stripeAutoPayFeeAmountString = this.stripeAchFeeAmountString;
-
-            const MaxNumRecentPayments: number = 24;
-            this.historicPayments = this.siteInfo.userInfo.recentPayments;
-            if( this.historicPayments && this.historicPayments.length > 0 )
-            {
-                if( this.historicPayments.length > MaxNumRecentPayments )
-                    this.historicPayments = this.historicPayments.slice( 0, MaxNumRecentPayments );
-
-                // Fill up the list so there's always MaxNumRecentPayments
-                //while( this.historicPayments.length < MaxNumRecentPayments )
-                //    this.historicPayments.push( {} );
-            }
 
             // If the user lives in a unit and assessments are enabled
             if( this.siteInfo.privateSiteInfo.assessmentFrequency != null
@@ -345,7 +335,7 @@ namespace Ally
                     this.nextPaymentText = this.getNextPaymentText( this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue,
                         this.siteInfo.privateSiteInfo.assessmentFrequency );
 
-                    this.updatePaymentText();
+                    this.updatePaymentText(null);
                 }
             }
 
@@ -372,6 +362,30 @@ namespace Ally
             //    } );
 
             //}, 400 );
+
+            this.$http.get( "/api/MemberOnlinePayment/MyPaymentAreaInfo" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<MyPaymentAreaInfo> ) =>
+                {
+                    const MaxNumRecentPayments: number = 24;
+
+                    this.historicPayments = response.data.recentPayments;
+                    if( this.historicPayments && this.historicPayments.length > 0 )
+                    {
+                        if( this.historicPayments.length > MaxNumRecentPayments )
+                            this.historicPayments = this.historicPayments.slice( 0, MaxNumRecentPayments );
+
+                        // Fill up the list so there's always MaxNumRecentPayments
+                        //while( this.historicPayments.length < MaxNumRecentPayments )
+                        //    this.historicPayments.push( {} );
+                    }
+
+                    this.activeSpecialAssessments = response.data.specialAssessments || [];
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    console.log( "Failed to load user's payment info: " + errorResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -627,7 +641,7 @@ namespace Ally
         /**
          * Refresh the note text for the payment field
          */
-        updatePaymentText()
+        updatePaymentText(specialAssessment:SpecialAssessmentEntry)
         {
             if( this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled )
             {
@@ -642,6 +656,10 @@ namespace Ally
                     this.paymentInfo.note += this.nextPaymentText;
                 }
             }
+            else if( this.paymentInfo.paymentType === "special" && specialAssessment )
+            {
+                this.paymentInfo.note = `Special assessment payment for '${specialAssessment.assessmentName}'`;
+            }
             else
             {
                 this.paymentInfo.note = "";
@@ -652,12 +670,17 @@ namespace Ally
         /**
          * Occurs when the user selects a payment type radio button
          */
-        onSelectPaymentType( paymentType: string )
+        onSelectPaymentType( paymentType: string, specialAssessment: SpecialAssessmentEntry = null )
         {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
+            if( specialAssessment )
+            {
+                this.paymentInfo.specialAssessmentId = specialAssessment.specialAssessmentId;
+                this.paymentInfo.amount = specialAssessment.amount || 0;
+            }
 
-            this.updatePaymentText();
+            this.updatePaymentText( specialAssessment );
             this.onPaymentAmountChange();
         }
 
@@ -1845,6 +1868,14 @@ namespace Ally
         }
     }
 
+
+    class MyPaymentAreaInfo
+    {
+        recentPayments: RecentPayment[];
+        specialAssessments: SpecialAssessmentEntry[];
+    }
+
+
     class StripeAchStartResult
     {
         setupIntent: any;
@@ -1871,6 +1902,7 @@ namespace Ally
         note: string;
         fundingType: string;
         paysFor: PayPeriod[];
+        specialAssessmentId: number | null;
     }
 }
 
