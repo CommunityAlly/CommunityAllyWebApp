@@ -60,11 +60,9 @@
                 <a href="/assets/files/AllyResidentsImport.csv" download="AllyResidentsImport.csv">Download Bulk Import Spreadsheet</a>
             </div>
         </div>
-        <br />
-        <br />
 
-        <div class="row">
-            <div class="card-deck col-sm-12 col-md-6 mx-auto premium-plan-card" data-ng-if="$ctrl.shouldShowPaymentForm">
+        <div class="row mt-3" data-ng-if="$ctrl.shouldShowPaymentForm">
+            <div class="card-deck col-sm-12 col-md-6 mx-auto premium-plan-card">
                 <div class="card">
                     <div class="card-body">
                         <h3 class="card-title">Pay Monthly</h3>
@@ -88,19 +86,20 @@
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div data-ng-if="$ctrl.shouldShowPaymentForm" class="card col-sm-12 col-md-6" style="margin: 0 auto;">
+        <div class="row mt-3 mb-5" data-ng-if="$ctrl.shouldShowPaymentForm">
+            <div class="card col-sm-12 col-md-6" style="margin: 0 auto;">
                 <div class="card-body">
                     <h5 class="card-title">Payment Options</h5>
                     <p class="card-text">
                         You can pay via a credit card below. We also accept just about any other methods such as check, wire transfer, Chase Quick Pay, etc. If
                         you'd prefer this, let us know using the chat box in the lower right of the page. Also, we can send an invoice
                         for your records with any payment method.
-                        <div class="mt-3 text-center" style="font-size: large;">
-                            <label><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="ach" data-ng-change="$ctrl.onPaymentTypeChange()" />Checking Account</label>
-                            <label class="ms-4"><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="creditCard" data-ng-change="$ctrl.onPaymentTypeChange()" />Credit Card</label>
-                        </div>
                     </p>
+                    <div class="mt-3 mb-4 text-center" style="font-size: large;">
+                        <label><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="ach" data-ng-change="$ctrl.onPaymentTypeChange()" />Checking Account</label>
+                        <label class="ms-4"><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="creditCard" data-ng-change="$ctrl.onPaymentTypeChange()" />Credit Card</label>
+                        <label class="ms-4"><input type="radio" name="paymentType" ng-model="$ctrl.paymentType" value="invoice" data-ng-change="$ctrl.onPaymentTypeChange()" />Invoice</label>
+                    </div>
                     <div data-ng-if="$ctrl.paymentType === 'ach'">
                         <h5 class="card-title">Checking Account Payment</h5>
                         <div class="card-text">
@@ -130,6 +129,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div data-ng-if="$ctrl.paymentType === 'creditCard'">
                         <h5 class="card-title">Enter Credit Card Info</h5>
                         <p class="card-text">
@@ -142,6 +142,16 @@
                         </p>
                         <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
                         <p>{{$ctrl.checkoutDescription}}</p>
+                    </div>
+
+                    <div data-ng-if="$ctrl.paymentType === 'invoice'">
+                        <h5 class="card-title">Request an Invoice</h5>
+                        <p class="card-text">
+                            You can generate an <b>annual</b> invoice PDF that you can use to pay via paper check. If you need wire instructions, a different term, or any other information, email us at <a href="mailto:hello@communityally.org">hello@CommunityAlly.org</a>.
+                            <div style="text-align: center;">
+                                <button class="btn btn-primary" type="button" data-ng-click="$ctrl.generateStripeInvoice(12, false)">Download Invoice PDF</button>
+                            </div>
+                        </p>
                     </div>
 
                     <div data-ng-if="$ctrl.showInvoiceSection" class="mt-5">
@@ -160,7 +170,7 @@
             </div>
         </div>
 
-        <div class="container" style="position: relative;">
+        <div class="container mt-4" style="position: relative;">
             <div class="loading-overlay" data-ng-if="$ctrl.isLoadingUsage"></div>
             <div class="row">
                 <div class="col-6">

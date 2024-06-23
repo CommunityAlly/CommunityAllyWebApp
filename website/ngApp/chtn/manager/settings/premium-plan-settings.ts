@@ -39,7 +39,7 @@ namespace Ally
         meteredUsage: MeteredFeaturesUsage;
         viewPremiumInvoiceViewId: string;
         showInvoiceSection: boolean = false;
-        paymentType: string = "ach";
+        paymentType: "ach" | "creditCard" | "invoice" = "ach";
         shouldShowTrialNote = false;
         shouldShowHomeSetupNote = false;
 
@@ -668,6 +668,9 @@ namespace Ally
             // Tell Stripe to populate the card info area
             if( this.paymentType === "creditCard" )
                 this.$timeout( () => this.initStripePayment(), 250 );
+            // If they want to pay via invoice, prep a doc view token to open the PDF
+            else if( this.paymentType === "invoice" )
+                this.$timeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewPremiumInvoiceViewId = response.data.vid ), 1 );
         }
 
 

@@ -475,6 +475,9 @@ var Ally;
             // Tell Stripe to populate the card info area
             if (this.paymentType === "creditCard")
                 this.$timeout(() => this.initStripePayment(), 250);
+            // If they want to pay via invoice, prep a doc view token to open the PDF
+            else if (this.paymentType === "invoice")
+                this.$timeout(() => this.$http.get("/api/DocumentLink/0").then((response) => this.viewPremiumInvoiceViewId = response.data.vid), 1);
         }
         disconnectBankAccount() {
             this.isLoading = true;
