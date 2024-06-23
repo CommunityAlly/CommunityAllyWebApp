@@ -278,6 +278,10 @@ namespace Ally
             if( portletIconCssRule )
                 portletIconCssRule.style.color = siteDesignSettings.iconColor;
 
+            const themeColorMeta = document.querySelector( 'meta[name="theme-color"]' );
+            if( themeColorMeta )
+                themeColorMeta.setAttribute( "content", siteDesignSettings.iconColor );
+
             const shadedItemCssRule = HtmlUtil2.getCssRule( ".ally-shaded-item" );
             if( shadedItemCssRule )
                 shadedItemCssRule.style.backgroundColor = siteDesignSettings.listItemShadeColor;
