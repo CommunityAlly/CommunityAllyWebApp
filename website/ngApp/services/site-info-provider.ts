@@ -564,7 +564,10 @@ namespace Ally
                         };
 
                         if( $rootScope.publicSiteInfo.siteDesignSettingsJson )
+                        {
+                            window.localStorage.setItem( Ally.SiteDesignSettings.SettingsCacheKey, $rootScope.publicSiteInfo.siteDesignSettingsJson );
                             Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson( $rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson );
+                        }
 
                         deferred.resolve( SiteInfoProvider.siteInfo );
                     },

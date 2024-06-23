@@ -309,8 +309,10 @@ var Ally;
                         analytics.track("updateSiteTitle");
                         $http.put("/api/Settings/UpdateSiteSettings", { siteTitle: $rootScope.siteTitle.text });
                     };
-                    if ($rootScope.publicSiteInfo.siteDesignSettingsJson)
+                    if ($rootScope.publicSiteInfo.siteDesignSettingsJson) {
+                        window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, $rootScope.publicSiteInfo.siteDesignSettingsJson);
                         Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson);
+                    }
                     deferred.resolve(SiteInfoProvider.siteInfo);
                 }, (errorResult) => {
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here
