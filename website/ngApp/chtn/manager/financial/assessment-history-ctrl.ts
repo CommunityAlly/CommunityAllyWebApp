@@ -60,7 +60,7 @@
     }
 
 
-    class SpecialAssessmentEntry
+    export class SpecialAssessmentEntry
     {
         specialAssessmentId: number;
         groupId: number;
@@ -564,7 +564,14 @@
                 didSwapDates = true;
             }
 
-            const entries = this.specialAssessments.filter( e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime() );
+            const sortEntry = ( a: SpecialAssessmentEntry, b: SpecialAssessmentEntry ) =>
+            {
+                return a.assessmentDate < b.assessmentDate ? -1 : 1;
+            };
+
+            const entries = this.specialAssessments
+                .filter( e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime() )
+                .sort( sortEntry );
 
             if( didSwapDates )
                 entries.reverse();

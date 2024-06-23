@@ -22,6 +22,7 @@ var Ally;
     }
     class SpecialAssessmentEntry {
     }
+    Ally.SpecialAssessmentEntry = SpecialAssessmentEntry;
     /**
      * The controller for the page to view resident assessment payment history
      */
@@ -361,7 +362,12 @@ var Ally;
                 startDate = temp;
                 didSwapDates = true;
             }
-            const entries = this.specialAssessments.filter(e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime());
+            const sortEntry = (a, b) => {
+                return a.assessmentDate < b.assessmentDate ? -1 : 1;
+            };
+            const entries = this.specialAssessments
+                .filter(e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime())
+                .sort(sortEntry);
             if (didSwapDates)
                 entries.reverse();
             return entries;
