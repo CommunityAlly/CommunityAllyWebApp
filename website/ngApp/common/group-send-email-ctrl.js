@@ -162,9 +162,9 @@ var Ally;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
             this.filteredSendAsOptions = this.allSendAsOptions;
             if (isSendingToBoard) {
-                this.filteredSendAsOptions = this.filteredSendAsOptions.filter(o => !o.isBoardOption);
-                if (this.selectedSendAs.isBoardOption)
-                    this.selectedSendAs = this.filteredSendAsOptions[0];
+                // Users can only send to the board as themselves
+                this.filteredSendAsOptions = [this.allSendAsOptions[0]];
+                this.selectedSendAs = this.filteredSendAsOptions[0];
             }
         }
     }

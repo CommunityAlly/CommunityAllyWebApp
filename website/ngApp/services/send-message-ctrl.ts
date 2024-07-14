@@ -1,11 +1,11 @@
 ﻿namespace Ally
 {
     /**
-     * The controller for the committee home page
+     * The controller for the send message widget
      */
     export class SendMessageController implements ng.IController
     {
-        static $inject = ["$rootScope", "fellowResidents", "SiteInfo", "$http"];
+        static $inject = ["fellowResidents", "SiteInfo"];
         shouldShowSendModal: boolean = false;
         shouldShowButtons: boolean = false;
         sendResultMessage: string;
@@ -24,7 +24,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private $rootScope: ng.IRootScopeService, private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService, private $http: ng.IHttpService )
+        constructor( private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService )
         {
             this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }

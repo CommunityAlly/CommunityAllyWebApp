@@ -1,17 +1,15 @@
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the committee home page
+     * The controller for the send message widget
      */
     class SendMessageController {
         /**
          * The constructor for the class
          */
-        constructor($rootScope, fellowResidents, siteInfo, $http) {
-            this.$rootScope = $rootScope;
+        constructor(fellowResidents, siteInfo) {
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
-            this.$http = $http;
             this.shouldShowSendModal = false;
             this.shouldShowButtons = false;
             this.isSending = false;
@@ -80,7 +78,7 @@ var Ally;
                 this.messageSubject = `${this.siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }
     }
-    SendMessageController.$inject = ["$rootScope", "fellowResidents", "SiteInfo", "$http"];
+    SendMessageController.$inject = ["fellowResidents", "SiteInfo"];
     Ally.SendMessageController = SendMessageController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("sendMessage", {
