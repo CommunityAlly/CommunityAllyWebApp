@@ -5,7 +5,7 @@
      */
     export class SendMessageController implements ng.IController
     {
-        static $inject = ["$rootScope", "fellowResidents", "SiteInfo"];
+        static $inject = ["$rootScope", "fellowResidents", "SiteInfo", "$http"];
         shouldShowSendModal: boolean = false;
         shouldShowButtons: boolean = false;
         sendResultMessage: string;
@@ -16,14 +16,15 @@
         recipientInfo: SimpleUserEntry;
         isPremiumPlanActive: boolean = false;
         isSendingToSelf: boolean = false;
-        shouldShowSendAsBoard: boolean = false;
-        shouldSendAsBoard: boolean = false;
-
+        sendAsOptions: EmailSendAsOption[] = [];
+        selectedSendAs: EmailSendAsOption;
+        hasCustomizedSubject: boolean = false;
+        
 
         /**
          * The constructor for the class
          */
-        constructor( private $rootScope: ng.IRootScopeService, private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService )
+        constructor( private $rootScope: ng.IRootScopeService, private fellowResidents: FellowResidentsService, private siteInfo: SiteInfoService, private $http: ng.IHttpService )
         {
             this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }
@@ -34,9 +35,17 @@
         {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
+            
+            this.fellowResidents.getEmailSendAsOptions( this.siteInfo.userInfo ).then( sendAsOptions =>
+            {
+                this.sendAsOptions = sendAsOptions;
+                this.selectedSendAs = sendAsOptions[0]; // getEmailSendAsOptions is guaranteed to return at least one option
 
-            const isRecipientWholeBoard = this.recipientInfo.userId === GroupMembersController.AllBoardUserId;
-            this.shouldShowSendAsBoard = FellowResidentsService.isNonPropMgrBoardPosition( this.siteInfo.userInfo.boardPosition ) && !isRecipientWholeBoard;
+                // If we're sending to the board then don't allow the user to send as anyone else
+                const isRecipientWholeBoard = this.recipientInfo.userId === GroupMembersController.AllBoardUserId;
+                if( isRecipientWholeBoard )
+                    this.sendAsOptions = [ this.sendAsOptions[0] ];
+            } );
         }
 
 
@@ -67,8 +76,8 @@
             this.shouldShowButtons = false;
             this.isSending = true;
             this.sendResultMessage = "";
-
-            this.fellowResidents.sendMessage( this.recipientInfo.userId, this.messageBody, this.messageSubject, this.shouldSendAsBoard ).then(
+            
+            this.fellowResidents.sendMessage( this.recipientInfo.userId, this.messageBody, this.messageSubject, this.selectedSendAs.isBoardOption, this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null ).then(
                 ( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isSending = false;
@@ -90,10 +99,15 @@
 
 
         /// Occurs when the user clicks the checkbox to toggle if they're sending as the board
-        onSendAsBoardChanged()
+        onSendAsChanged()
         {
-            if( this.shouldSendAsBoard )
+            if( this.hasCustomizedSubject )
+                return;
+
+            if( this.selectedSendAs.isBoardOption )
                 this.messageSubject = `Your ${this.siteInfo.publicSiteInfo.fullName} board has sent you a message via your ${AppConfig.appName} site`;
+            else if( this.selectedSendAs.committee )
+                this.messageSubject = `Your ${this.selectedSendAs.committee.name} has sent you a message via your ${AppConfig.appName} site`;
             else
                 this.messageSubject = `${this.siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }

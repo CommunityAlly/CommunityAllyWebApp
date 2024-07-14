@@ -30,7 +30,8 @@ var Ally;
             this.defaultSubject = "A message from your neighbor";
             this.memberLabel = "resident";
             this.memberPageName = "Residents";
-            this.shouldShowSendAsBoard = false;
+            this.allSendAsOptions = [];
+            this.filteredSendAsOptions = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -57,6 +58,11 @@ var Ally;
                     this.defaultSubject = "A message from your neighbor";
             }
             this.messageObject.subject = this.defaultSubject;
+            this.fellowResidents.getEmailSendAsOptions(this.siteInfo.userInfo).then(sendAsOptions => {
+                this.allSendAsOptions = sendAsOptions;
+                this.filteredSendAsOptions = sendAsOptions;
+                this.selectedSendAs = sendAsOptions[0]; // getEmailSendAsOptions is guaranteed to return at least one option
+            });
         }
         /**
          * Populate the group email options
@@ -94,13 +100,15 @@ var Ally;
         /**
          * Occurs when the user presses the button to send an email to members of the building
          */
-        onSendEmail() {
+        onSendEmailClicked() {
             $("#message-form").validate();
             if (!$("#message-form").valid())
                 return;
             this.isLoadingEmail = true;
             // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
+            this.messageObject.shouldSendAsBoard = this.selectedSendAs.isBoardOption;
+            this.messageObject.shouldSendAsCommitteeId = this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null;
             analytics.track("sendEmail", {
                 recipientId: this.messageObject.recipientType
             });
@@ -152,7 +160,12 @@ var Ally;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
-            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
+            this.filteredSendAsOptions = this.allSendAsOptions;
+            if (isSendingToBoard) {
+                this.filteredSendAsOptions = this.filteredSendAsOptions.filter(o => !o.isBoardOption);
+                if (this.selectedSendAs.isBoardOption)
+                    this.selectedSendAs = this.filteredSendAsOptions[0];
+            }
         }
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];

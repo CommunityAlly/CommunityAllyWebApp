@@ -15,6 +15,7 @@
         customRecipientShortName: string;
         committeeId: number;
         shouldSendAsBoard: boolean;
+        shouldSendAsCommitteeId: number;
     }
 
 
@@ -43,7 +44,9 @@
         memberLabel: string = "resident";
         memberPageName: string = "Residents";
         groupEmailDomain: string;
-        shouldShowSendAsBoard: boolean = false;
+        allSendAsOptions: EmailSendAsOption[] = [];
+        filteredSendAsOptions: EmailSendAsOption[] = [];
+        selectedSendAs: EmailSendAsOption;
 
 
         /**
@@ -92,6 +95,13 @@
             }
 
             this.messageObject.subject = this.defaultSubject;
+
+            this.fellowResidents.getEmailSendAsOptions( this.siteInfo.userInfo ).then( sendAsOptions =>
+            {
+                this.allSendAsOptions = sendAsOptions;
+                this.filteredSendAsOptions = sendAsOptions;
+                this.selectedSendAs = sendAsOptions[0]; // getEmailSendAsOptions is guaranteed to return at least one option
+            } );
         }
 
 
@@ -146,7 +156,7 @@
         /**
          * Occurs when the user presses the button to send an email to members of the building
          */
-        onSendEmail()
+        onSendEmailClicked()
         {
             $( "#message-form" ).validate();
             if( !$( "#message-form" ).valid() )
@@ -156,6 +166,9 @@
 
             // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
+
+            this.messageObject.shouldSendAsBoard = this.selectedSendAs.isBoardOption;
+            this.messageObject.shouldSendAsCommitteeId = this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null;
 
             analytics.track( "sendEmail", {
                 recipientId: this.messageObject.recipientType
@@ -232,8 +245,14 @@
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
 
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
-            
-            this.shouldShowSendAsBoard = FellowResidentsService.isNonPropMgrBoardPosition( this.siteInfo.userInfo.boardPosition ) && !isSendingToBoard;
+
+            this.filteredSendAsOptions = this.allSendAsOptions;
+            if( isSendingToBoard )
+            {
+                this.filteredSendAsOptions = this.filteredSendAsOptions.filter( o => !o.isBoardOption );
+                if( this.selectedSendAs.isBoardOption )
+                    this.selectedSendAs = this.filteredSendAsOptions[0];
+            }
         }
     }
 }

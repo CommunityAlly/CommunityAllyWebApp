@@ -132,12 +132,13 @@ var Ally;
         /**
          * Send an email message to another user
          */
-        sendMessage(recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
+        sendMessage(recipientUserId, messageBody, messageSubject, shouldSendAsBoard, shouldSendAsCommitteeId) {
             const postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
                 messageSubject: messageSubject,
-                shouldSendAsBoard: shouldSendAsBoard
+                shouldSendAsBoard,
+                shouldSendAsCommitteeId
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         }
@@ -206,6 +207,28 @@ var Ally;
             }
             return results;
         }
+        /**
+         * Retrieve the possible "send as" options for email sending. Guaranteed to return at least
+         * one option, the "self" option.
+         */
+        getEmailSendAsOptions(userInfo) {
+            const sendAsOptions = [];
+            sendAsOptions.push({ displayLabel: `Yourself (${userInfo.fullName})`, noteText: "The default to send a message as yourself", isBoardOption: false, committee: null });
+            const isBoard = FellowResidentsService.isNonPropMgrBoardPosition(userInfo.boardPosition);
+            if (isBoard)
+                sendAsOptions.push({ displayLabel: `The Board`, noteText: "This will set the 'from' address to the board's group email address", isBoardOption: true, committee: null });
+            return this.$http.get("/api/Committee/MyCommittees", { cache: true }).then((response) => {
+                if (response.data && response.data.length > 0) {
+                    const usersCommittees = _.sortBy(response.data, c => c.name.toLowerCase());
+                    for (const c of usersCommittees) {
+                        sendAsOptions.push({ displayLabel: c.name, noteText: "This will set the 'from' address to the committee's group email address", isBoardOption: false, committee: c });
+                    }
+                }
+                return sendAsOptions;
+            }, () => {
+                return sendAsOptions;
+            });
+        }
     }
     FellowResidentsService.BoardPos_None = 0;
     FellowResidentsService.BoardPos_PropertyManager = 32;
@@ -227,5 +250,8 @@ var Ally;
             this.answerId = answerId;
         }
     }
+    class EmailSendAsOption {
+    }
+    Ally.EmailSendAsOption = EmailSendAsOption;
 })(Ally || (Ally = {}));
 angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);

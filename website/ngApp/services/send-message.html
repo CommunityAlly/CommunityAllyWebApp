@@ -7,6 +7,7 @@
         <div class="ca-modal-dialog modal-md container">
             <span style="float: right;" class="close-x" data-ng-click="$ctrl.hideModal()">&times;</span>
             <h2>Send Message</h2>
+            <div class="note-text mb-3">This will send {{ $ctrl.recipientInfo.firstName }} an email to which they will be able to reply to reach you.</div>
 
             <div data-ng-if="$ctrl.isPremiumPlanActive && !$ctrl.isSendingToSelf">
                 <div data-ng-hide="$ctrl.sendResultMessage && !$ctrl.sendResultIsError">
@@ -18,18 +19,10 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3" data-ng-if="$ctrl.shouldShowSendAsBoard">
-                        <label class="col-sm-3 col-12 text-sm-end text-start form-label-popup" for="send-as-board-checkbox">Send As Board:</label>
-                        <div class="col-sm-9 col-12">
-                            <input type="checkbox" id="send-as-board-checkbox" style="height: 20px; width: 20px;" data-ng-model="$ctrl.shouldSendAsBoard" data-ng-change="$ctrl.onSendAsBoardChanged()" />
-                            <div class="note-text">This will set the 'from' address to the board's group email address.</div>
-                        </div>
-                    </div>
-
                     <div class="row mb-3">
                         <label class="col-sm-3 col-12 text-sm-end text-start form-label-popup">Subject:</label>
                         <div class="col-sm-9 col-12">
-                            <input type="text" id="subject-text-box" class="form-control" data-ng-model="$ctrl.messageSubject" />
+                            <input type="text" id="subject-text-box" class="form-control" data-ng-model="$ctrl.messageSubject" data-ng-keyup="$ctrl.hasCustomizedSubject = true" />
                         </div>
                     </div>
 
@@ -40,7 +33,19 @@
                         </div>
                     </div>
 
-                    <div class="note-text">This will send {{ $ctrl.recipientInfo.firstName }} an email to which they will be able to reply to reach you.</div>
+                    <div class="row mb-3" data-ng-if="$ctrl.sendAsOptions.length > 1">
+                        <label class="col-sm-3 col-12 text-sm-end text-start form-label-popup">Send As:</label>
+                        <div class="col-sm-9 col-12">
+
+                            <div data-ng-repeat="curSendAs in $ctrl.sendAsOptions">
+                                <label>
+                                    <input type="radio" id="send-as-board-radio-{{$index}}" style="height: 20px; width: 20px;" data-ng-model="$ctrl.selectedSendAs" data-ng-value="curSendAs" data-ng-change="$ctrl.onSendAsChanged()" />
+                                    {{curSendAs.displayLabel}}
+                                </label>
+                                <div class="note-text">{{curSendAs.noteText}}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="text-end">

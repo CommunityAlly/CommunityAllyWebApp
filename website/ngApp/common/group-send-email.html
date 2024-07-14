@@ -1,6 +1,6 @@
 ﻿<div class="send-email portlet-box white margin-vertical-lg box-shadow" id="send-email-panel" data-ng-if="$ctrl.availableEmailGroups.length > 0 || $ctrl.committee">
     <div class="portlet-header">
-        <h2 class="title"><i class="fa-solid fa-envelope ally-portlet-icon me-2"></i> Send Email</h2>
+        <h2 class="title"><i class="fa-solid fa-envelope ally-portlet-icon me-2"></i> Send Email</h2>        
     </div>
 
     <div class="portlet-body" style="position: relative;">
@@ -9,7 +9,7 @@
         <div data-ng-show="$ctrl.showSendEmail">
             <form id="message-form">
                 <div class="row mb-3 px-3" data-ng-if="!$ctrl.committee">
-                    <label class="form-label">Choose Recipient Group</label>
+                    <label class="form-label">Recipient Group:</label>
                     <select class="form-control form-select"
                             data-ng-model="$ctrl.selectedRecipient"
                             data-ng-change="$ctrl.onSelectEmailGroup()"
@@ -17,9 +17,11 @@
                             data-ng-options="e as e.displayName for e in $ctrl.availableEmailGroups">
                     </select>
 
-                    <div data-ng-if="$ctrl.showUseDiscussSuggestion" style="color: blue; font-size: large;" class="ps-0"> 
-                        Primary use of this group is for announcements, questions, and requests for vendor recommendations. <span style="font-weight: bold;">For matters of discussion
-                        and opinions, please use the discussion group.</span>
+                    <div data-ng-if="$ctrl.showUseDiscussSuggestion" style="color: blue; font-size: large;" class="ps-0">
+                        Primary use of this group is for announcements, questions, and requests for vendor recommendations. <span style="font-weight: bold;">
+                            For matters of discussion
+                            and opinions, please use the discussion group.
+                        </span>
                     </div>
 
                     <div data-ng-if="$ctrl.showRestrictedGroupWarning" style="color: blue; font-weight: bold;" class="ps-0">
@@ -59,13 +61,23 @@
                     <label for="message-body-text" class="form-label">Email Contents:</label>
                     <textarea id="message-body-text" class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
                 </div>
-                <div class="mb-4" data-ng-if="$ctrl.shouldShowSendAsBoard">
-                    <label><input type="checkbox" data-ng-model="$ctrl.messageObject.shouldSendAsBoard" />Send from the board group email address</label>
-                    <div class="note-text">This will set the "from" address as the board's address rather than your personal, anonymized email address.</div>
+
+                <div class="row mb-3 px-3" data-ng-if="$ctrl.filteredSendAsOptions.length > 1">
+                    <label for="message-subject-text" class="form-label">Send As:</label>
+                    <div>
+                        <div data-ng-repeat="curSendAs in $ctrl.filteredSendAsOptions">
+                            <label>
+                                <input type="radio" id="email-send-as-radio-{{$index}}" style="height: 20px; width: 20px;" data-ng-model="$ctrl.selectedSendAs" data-ng-value="curSendAs" data-ng-change="$ctrl.onSendAsChanged()" />
+                                {{curSendAs.displayLabel}}
+                            </label>
+                            <div class="note-text">{{curSendAs.noteText}}</div>
+                        </div>
+                    </div>
                 </div>
+
                 <a class="note-text" target="_blank" href="https://help.communityally.org/how-to-send-an-e-mail-with-an-attachment/">Want to add an attachment or use advanced formatting?</a>
                 <p class="text-end">
-                    <input class="btn btn-primary" value="Send Email" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmail()" data-ng-if="!$ctrl.isLoadingEmail" />
+                    <input class="btn btn-primary" value="Send Email" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmailClicked()" data-ng-if="!$ctrl.isLoadingEmail" />
                 </p>
             </form>
         </div>
