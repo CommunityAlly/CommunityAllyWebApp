@@ -205,6 +205,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All } ),
         new Ally.RoutePath_v3( { path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All } ),
         new Ally.RoutePath_v3( { path: "Page/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All } ),
+        new Ally.RoutePath_v3( { path: "CollectiveCounponTest", templateHtml: "<collective-coupon-detail></collective-coupon-detail>", menuTitle: null, role: Role_All } ),
 
         // Manager pages
         new Ally.RoutePath_v3( { path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager } ),
