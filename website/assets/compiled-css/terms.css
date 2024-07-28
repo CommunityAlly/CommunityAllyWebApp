@@ -1,0 +1,26 @@
+.terms-page
+{
+	width: 900px;
+	padding: 2em;
+	margin: 0 auto;
+	font-family: "Open Sans", sans-serif;
+}
+
+.simply-put-panel
+{
+	border-radius: 12px;
+	background-color: rgb(235, 243, 254);
+    padding: 1.5rem;
+    margin-bottom: 60px;
+}
+
+.simply-put-panel p
+{
+	margin-block-end: 0.3em;
+}
+
+h2
+{
+	font-size: 1em;
+	text-decoration: underline;
+}

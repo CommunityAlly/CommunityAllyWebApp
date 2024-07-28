@@ -243,6 +243,7 @@ grunt.initConfig({
                         "js/AllyLibTop.min.js",
                         "js/AllyLibBottom.min.js",
                         "assets/compiled.min.css",
+                        "assets/compiled-css/terms.css",
                         "assets/images/**",
                         "assets/files/**",
                         "ngApp/ally-app-bundle.js",
