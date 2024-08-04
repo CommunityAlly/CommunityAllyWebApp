@@ -41,6 +41,7 @@ namespace Ally
      */
     export class FullAddress
     {
+        addressId: number;
         street1: string;
         street2: string;
         city: string;

@@ -19,6 +19,7 @@ var Ally;
             this.hoaHomes = [];
             this.tips = [];
             this.isLoading = false;
+            this.isMovingHomes = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -43,10 +44,9 @@ var Ally;
             }
             var addressInput = document.getElementById("edit-location-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
-            google.maps.event.addListener(this.addressAutocomplete, 'place_changed', function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                innerThis.editingTip.address = place.formatted_address;
+            google.maps.event.addListener(this.addressAutocomplete, 'place_changed', () => {
+                var place = this.addressAutocomplete.getPlace();
+                this.editingTip.address = place.formatted_address;
             });
             this.retrieveHoaHomes();
             var innerThis = this;
@@ -60,16 +60,24 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/WelcomeTip").then((httpResponse) => {
                 this.tips = httpResponse.data;
-                MapCtrlMapMgr.ClearAllMarkers();
-                if (AppConfig.appShortName === "condo")
-                    MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
+                this.populateAllMarkers();
+                this.isLoading = false;
+            });
+        }
+        populateAllMarkers() {
+            MapCtrlMapMgr.ClearAllMarkers();
+            if (AppConfig.appShortName === "condo")
+                MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, ChtnMapController.HomeMarkerUnitId);
+            if (!this.isMovingHomes) {
                 for (var locationIndex = 0; locationIndex < this.tips.length; ++locationIndex) {
                     var curLocation = this.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
                     curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
-                // Add HOA homes
+            }
+            // Add HOA homes
+            if (this.hoaHomes && this.hoaHomes.length > 0 && AppConfig.appShortName === "hoa") {
                 _.each(this.hoaHomes, (home) => {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
                         var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
@@ -81,9 +89,12 @@ var Ally;
                         MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, markerText, markerIcon, home.unitId);
                     }
                 });
-                MapCtrlMapMgr.OnMarkersReady();
-                this.isLoading = false;
-            });
+            }
+            MapCtrlMapMgr.OnMarkersReady();
+            if (this.isMovingHomes) {
+                for (let i = 0; i < MapCtrlMapMgr._markers.length; ++i)
+                    MapCtrlMapMgr.SetMarkerDraggable(i, true);
+            }
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to edit a tip
@@ -169,17 +180,48 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Move a marker's position
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        updateItemGpsLocation(markerIndex, lat, lon) {
-            var tip = _.find(this.tips, function (t) { return t.markerIndex === markerIndex; });
-            var updateInfo = {
-                itemId: tip.itemId,
-                newLat: lat,
-                newLon: lon
-            };
+        updateItemGpsLocation(marker, lat, lon) {
+            const markerIndex = marker.markerIndex;
+            let updateInfo;
+            let putUri;
+            if (this.isMovingHomes) {
+                const unitId = marker.unitId;
+                if (unitId) {
+                    let fullAddressId;
+                    // If the user moved the home marker, update the group address
+                    if (unitId === ChtnMapController.HomeMarkerUnitId)
+                        fullAddressId = this.siteInfo.privateSiteInfo.groupAddress.addressId;
+                    else {
+                        const home = this.hoaHomes.find(h => h.unitId === unitId);
+                        if (home)
+                            fullAddressId = home.addressId;
+                    }
+                    if (fullAddressId) {
+                        putUri = "/api/WelcomeTip/UpdateHomeGpsLocation";
+                        updateInfo = {
+                            itemId: fullAddressId,
+                            newLat: lat,
+                            newLon: lon
+                        };
+                    }
+                }
+            }
+            else {
+                const tip = _.find(this.tips, function (t) { return t.markerIndex === markerIndex; });
+                if (tip) {
+                    putUri = "/api/WelcomeTip/UpdateGpsLocation";
+                    updateInfo = {
+                        itemId: tip.itemId,
+                        newLat: lat,
+                        newLon: lon
+                    };
+                }
+            }
+            if (!putUri)
+                return;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.put("/api/WelcomeTip/UpdateGpsLocation", updateInfo).then(function () {
-                innerThis.isLoading = false;
+            this.$http.put(putUri, updateInfo).then(() => {
+                this.isLoading = false;
             });
         }
         /**
@@ -217,8 +259,17 @@ var Ally;
                 this.refresh();
             });
         }
+        enableMovingHomes(shouldEnable) {
+            if (!shouldEnable) {
+                window.location.reload();
+                return;
+            }
+            this.isMovingHomes = shouldEnable;
+            this.populateAllMarkers();
+        }
     }
     ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
+    ChtnMapController.HomeMarkerUnitId = -5;
     Ally.ChtnMapController = ChtnMapController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnMap", {
@@ -238,12 +289,12 @@ class MapCtrlMapMgr {
         MapCtrlMapMgr._homeGpsPos = siteInfo.privateSiteInfo.googleGpsPosition;
         MapCtrlMapMgr._groupGpsBounds = siteInfo.privateSiteInfo.gpsBounds;
         // Create the map centered at our home
-        var myOptions = {
+        const mapOptions = {
             center: MapCtrlMapMgr._homeGpsPos,
             zoom: 25,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        MapCtrlMapMgr._mainMap = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        MapCtrlMapMgr._mainMap = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
         // Add our home marker
         if (AppConfig.appShortName === "condo")
             MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
@@ -266,9 +317,10 @@ class MapCtrlMapMgr {
             MapCtrlMapMgr.OnMapAndMarkersReady();
     }
     static OnMapAndMarkersReady() {
+        MapCtrlMapMgr.ClearAllMarkers();
         for (var markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex) {
-            var tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
-            var markerImageUrl = null;
+            const tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
+            let markerImageUrl = null;
             if (tempMarker.markerNumber >= 1 && tempMarker.markerNumber <= 10)
                 markerImageUrl = "/assets/images/MapMarkers/green_" + tempMarker.markerNumber + ".png";
             else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_Home)
@@ -293,17 +345,20 @@ class MapCtrlMapMgr {
                 var marker = this;
                 var gpsPos = marker.getPosition();
                 MapCtrlMapMgr.ngScope.$apply(function () {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker.markerIndex, gpsPos.lat(), gpsPos.lng());
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker, gpsPos.lat(), gpsPos.lng());
                 });
             });
             if (tempMarker.unitId) {
                 marker.unitId = tempMarker.unitId;
-                marker.addListener('click', function (innerMarker) {
-                    return function () {
-                        MapCtrlMapMgr.mapCtrl.appCacheService.set("scrollToUnitId", innerMarker.unitId.toString());
-                        window.location.hash = "#!/BuildingResidents";
-                    };
-                }(marker));
+                // If we're not moving home markers then add a click handler to navigate to the building residents page
+                if (MapCtrlMapMgr.mapCtrl && !MapCtrlMapMgr.mapCtrl.isMovingHomes) {
+                    marker.addListener('click', function (innerMarker) {
+                        return function () {
+                            MapCtrlMapMgr.mapCtrl.appCacheService.set("scrollToUnitId", innerMarker.unitId.toString());
+                            window.location.hash = "#!/BuildingResidents";
+                        };
+                    }(marker));
+                }
             }
             MapCtrlMapMgr._markers.push(marker);
         }
