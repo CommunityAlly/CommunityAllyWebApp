@@ -530,11 +530,12 @@ var Ally;
                 totalAmountPaid = paymentAmount;
                 payerFee = 0;
                 feeAmount = paymentAmount * StripeAchFeePercent;
-                if (feeAmount > StripeMaxFee)
-                    feeAmount = StripeMaxFee;
                 // On the free plan, add 0.8% app fee and track total 1.6% fee
                 if (!isPremiumPlanActive)
                     feeAmount *= 2;
+                const maxFee = isPremiumPlanActive ? StripeMaxFee : (StripeMaxFee * 2);
+                if (feeAmount > maxFee)
+                    feeAmount = maxFee;
                 groupReceives = paymentAmount - feeAmount;
             }
             return {
