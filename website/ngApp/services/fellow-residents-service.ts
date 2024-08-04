@@ -333,19 +333,27 @@
 
             const logVote = function( answerId: number )
             {
-                let count = talliedVotes.find( tv => tv.answerId === answerId );
-                if( !count )
+                let curAnswerCount = talliedVotes.find( tv => tv.answerId === answerId );
+                if( !curAnswerCount )
                 {
-                    count = new PollAnswerCount( answerId );
-                    talliedVotes.push( count );
+                    curAnswerCount = new PollAnswerCount( answerId );
+                    talliedVotes.push( curAnswerCount );
                 }
 
-                ++count.numVotes;
+                ++curAnswerCount.numVotes;
             };
-
-            const logVotes = ( answerIds: number[] ) => answerIds.forEach( aid => logVote( aid ) );
-
-            poll.responses.forEach( r => logVotes( r.answerIds ) );
+            
+            poll.responses.forEach( r =>
+            {
+                if( r.answerIds && r.answerIds.length > 0 )
+                    r.answerIds.forEach( aid => logVote( aid ) );
+                else if( r.writeInAnswer )
+                {
+                    const newWriteIn = new PollAnswerCount( 0, r.writeInAnswer );
+                    ++newWriteIn.numVotes;
+                    talliedVotes.push( newWriteIn );
+                }
+            } );
 
             const results = {
                 chartData: [] as number[],
@@ -360,6 +368,11 @@
                 if( pollAnswer )
                 {
                     results.chartLabels.push( pollAnswer.answerText );
+                    results.chartData.push( curTalliedVote.numVotes );
+                }
+                else if( curTalliedVote.writeInAnswer )
+                {
+                    results.chartLabels.push( "Write In: " + curTalliedVote.writeInAnswer );
                     results.chartData.push( curTalliedVote.numVotes );
                 }
                 else
@@ -418,13 +431,15 @@
 
     class PollAnswerCount
     {
-        constructor( answerId: number )
+        constructor( answerId: number, writeInAnswer: string = null )
         {
             this.answerId = answerId;
+            this.writeInAnswer = writeInAnswer;
         }
 
         answerId: number;
         numVotes: number = 0;
+        writeInAnswer: string;
     }
 
 

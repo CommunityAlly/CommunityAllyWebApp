@@ -174,15 +174,22 @@ var Ally;
         static pollReponsesToChart(poll, siteInfo) {
             const talliedVotes = [];
             const logVote = function (answerId) {
-                let count = talliedVotes.find(tv => tv.answerId === answerId);
-                if (!count) {
-                    count = new PollAnswerCount(answerId);
-                    talliedVotes.push(count);
+                let curAnswerCount = talliedVotes.find(tv => tv.answerId === answerId);
+                if (!curAnswerCount) {
+                    curAnswerCount = new PollAnswerCount(answerId);
+                    talliedVotes.push(curAnswerCount);
                 }
-                ++count.numVotes;
+                ++curAnswerCount.numVotes;
             };
-            const logVotes = (answerIds) => answerIds.forEach(aid => logVote(aid));
-            poll.responses.forEach(r => logVotes(r.answerIds));
+            poll.responses.forEach(r => {
+                if (r.answerIds && r.answerIds.length > 0)
+                    r.answerIds.forEach(aid => logVote(aid));
+                else if (r.writeInAnswer) {
+                    const newWriteIn = new PollAnswerCount(0, r.writeInAnswer);
+                    ++newWriteIn.numVotes;
+                    talliedVotes.push(newWriteIn);
+                }
+            });
             const results = {
                 chartData: [],
                 chartLabels: []
@@ -192,6 +199,10 @@ var Ally;
                 const pollAnswer = _.find(poll.answers, (a) => a.pollAnswerId === curTalliedVote.answerId);
                 if (pollAnswer) {
                     results.chartLabels.push(pollAnswer.answerText);
+                    results.chartData.push(curTalliedVote.numVotes);
+                }
+                else if (curTalliedVote.writeInAnswer) {
+                    results.chartLabels.push("Write In: " + curTalliedVote.writeInAnswer);
                     results.chartData.push(curTalliedVote.numVotes);
                 }
                 else
@@ -245,9 +256,10 @@ var Ally;
     ];
     Ally.FellowResidentsService = FellowResidentsService;
     class PollAnswerCount {
-        constructor(answerId) {
+        constructor(answerId, writeInAnswer = null) {
             this.numVotes = 0;
             this.answerId = answerId;
+            this.writeInAnswer = writeInAnswer;
         }
     }
     class EmailSendAsOption {
