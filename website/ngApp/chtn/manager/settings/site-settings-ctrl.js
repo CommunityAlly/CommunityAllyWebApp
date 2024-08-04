@@ -13,6 +13,7 @@ var Ally;
      * The controller for the page to view group site settings
      */
     class ChtnSettingsController {
+        //static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
         /**
          * The constructor for the class
          */
@@ -28,7 +29,6 @@ var Ally;
             this.showLocalNewsSetting = false;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
-            this.shouldShowLoginMoved = false;
             this.tinyMceDidNotLoad = false;
         }
         /**
@@ -41,7 +41,6 @@ var Ally;
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
             this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
-            this.shouldShowLoginMoved = this.siteInfo.privateSiteInfo.creationDate < ChtnSettingsController.MovedLoginImageDate;
             this.refreshData();
         }
         /**
@@ -152,7 +151,6 @@ var Ally;
         }
     }
     ChtnSettingsController.$inject = ["$http", "SiteInfo", "$scope", "$rootScope"];
-    ChtnSettingsController.MovedLoginImageDate = new Date(2024, 3, 25); // Groups created after April 24, 2024 always have discussion enabled
     Ally.ChtnSettingsController = ChtnSettingsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnSiteSettings", {

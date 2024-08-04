@@ -56,9 +56,8 @@ namespace Ally
         welcomeRichEditorElem: JQuery;
         shouldShowWelcomeTooLongError: boolean = false;
         tinyMceEditor: ITinyMce;
-        shouldShowLoginMoved = false;
         tinyMceDidNotLoad = false;
-        static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
+        //static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
 
 
         /**
@@ -87,8 +86,6 @@ namespace Ally
             this.showLocalNewsSetting = !this.showRightColumnSetting;
 
             this.isPta = AppConfig.appShortName === "pta";
-
-            this.shouldShowLoginMoved = this.siteInfo.privateSiteInfo.creationDate < ChtnSettingsController.MovedLoginImageDate;
 
             this.refreshData();
         }
