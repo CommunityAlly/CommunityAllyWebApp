@@ -477,3 +477,14 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     margin: 0;
 }
+
+.end-of-life-banner {
+    position: fixed;
+    left: 40%;
+    top: 1%;
+    right: 10%;
+    padding: 15px;
+    background-color: #f80;
+    border: 5px solid red;
+    font-size: large;
+}

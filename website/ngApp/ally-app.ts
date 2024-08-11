@@ -324,8 +324,8 @@ CA.angularApp.config(
         }] );
 
 
-CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage",
-    function( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $sce: ng.ISCEService, $location: ng.ILocationService, $templateCache: ng.ITemplateCacheService, $cacheFactory: ng.ICacheFactoryService, xdLocalStorage: any )
+CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage", "$timeout",
+    function( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $sce: ng.ISCEService, $location: ng.ILocationService, $templateCache: ng.ITemplateCacheService, $cacheFactory: ng.ICacheFactoryService, xdLocalStorage: any, $timeout: ng.ITimeoutService )
     {
         $rootScope.bgImagePath = "/assets/images/Backgrounds/";
         $rootScope.appConfig = AppConfig;
@@ -508,6 +508,29 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
                 }
             }
         } );
+
+
+        // Check if the site is shutting down
+        $timeout( () =>
+        {
+            $http.get( "/api/PublicAllyAppSettings/IsEndOfLifeEnabled" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    if( response.data.isEndOfLife )
+                    {
+                        console.log( "IsEndOfLifeEnabled", response.data.isEndOfLife );
+                        $rootScope.isEndOfLifeEnabled = true;
+                        $rootScope.isEndOfLifeEnabled2 = true; // Just an extra safeguard before we show the banner because it's very serious if the banner is shown by mistake
+                        $rootScope.endOfLifeMessageHtml = response.data.messageHtml;
+                    }
+                }
+            );
+        }, 500 );
+
+        $rootScope.closeEndOfLife = function()
+        {
+            $rootScope.isEndOfLifeEnabled = false;
+        };
     }
 ] );
 

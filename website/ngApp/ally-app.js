@@ -144,6 +144,15 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             // The use is not authorized so let's clear the session data
                             $rootScope.onLogOut_ClearData();
                         }
+                        if (response.data && response.data && response.data.title && response.data.title === "One or more validation errors occurred.") {
+                            //console.log( "Retrieved model binding error" );
+                            response.data.exceptionMessage = "Invalid input data";
+                            if (response.data.errors && Object.keys(response.data.errors).length > 0) {
+                                const invalidFields = Object.keys(response.data.errors);
+                                response.data.exceptionMessage += ", fields: " + invalidFields.join(", ");
+                            }
+                            ;
+                        }
                         // If we didn't handle the response up above then simply reject it
                         return $q.reject(response);
                     }
@@ -202,8 +211,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
             }]);
         $httpProvider.interceptors.push("apiUriInterceptor");
     }]);
-CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage",
-    function ($rootScope, $http, $sce, $location, $templateCache, $cacheFactory, xdLocalStorage) {
+CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage", "$timeout",
+    function ($rootScope, $http, $sce, $location, $templateCache, $cacheFactory, xdLocalStorage, $timeout) {
         $rootScope.bgImagePath = "/assets/images/Backgrounds/";
         $rootScope.appConfig = AppConfig;
         $rootScope.isLoggedIn = false;
@@ -330,6 +339,20 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                 }
             }
         });
+        // Check if the site is shutting down
+        $timeout(() => {
+            $http.get("/api/PublicAllyAppSettings/IsEndOfLifeEnabled").then((response) => {
+                if (response.data.isEndOfLife) {
+                    console.log("IsEndOfLifeEnabled", response.data.isEndOfLife);
+                    $rootScope.isEndOfLifeEnabled = true;
+                    $rootScope.isEndOfLifeEnabled2 = true; // Just an extra safeguard before we show the banner because it's very serious if the banner is shown by mistake
+                    $rootScope.endOfLifeMessageHtml = response.data.messageHtml;
+                }
+            });
+        }, 500);
+        $rootScope.closeEndOfLife = function () {
+            $rootScope.isEndOfLifeEnabled = false;
+        };
     }
 ]);
 //CA.angularApp.provider( '$exceptionHandler', {
