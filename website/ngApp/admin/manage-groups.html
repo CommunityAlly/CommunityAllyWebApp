@@ -327,6 +327,7 @@
                     <li>IsSignUpDisabled - Set to True to disable new group sign-ups</li>
                     <li>IsSupportChatDisabled - Set to True to disable the support chat widget</li>
                     <li>IsHelpPageDisabled - Set to True to disable the help page</li>
+                    <li>IsEndOfLife - Set to True to show yellow banner across site to instruct people to backup their data and leave. Pair this will the above three settings</li>
                 </ul>
             </div>
             <table class="table" data-ng-if="$ctrl.allAllyAppSettings.length > 0">
@@ -340,12 +341,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr data-ng-repeat="curSetting in $ctrl.allAllyAppSettings">
                         <td>{{curSetting.settingId}}</td>
                         <td>{{curSetting.settingName}}</td>
                         <td>{{curSetting.settingValue}}</td>
                         <td>{{curSetting.note}}</td>
-                        <td><span class="text-link">Edit</span> - <span class="text-link">Delete</span></td>
+                        <td><span class="text-link" data-ng-click="$ctrl.editAppSettingValue(curSetting)">Edit Value</span> - <span class="text-link" data-ng-click="$ctrl.deleteAppSetting(curSetting)">Delete</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -353,8 +354,7 @@
                 There are no active app settings.
             </div>
             <div>
-                <h5>{{$ctrl.editAllyAppSetting.settingId ? 'Edit' : 'Add'}} Setting</h5>
-                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveAllyAppSetting()">Save Setting</button>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewAppSetting()">Add New App Settings</button>
             </div>
         </fieldset>
 

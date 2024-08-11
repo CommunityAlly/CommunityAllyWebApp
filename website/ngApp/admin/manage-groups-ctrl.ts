@@ -656,12 +656,6 @@
         }
 
 
-        saveAllyAppSetting()
-        {
-            this.$http.post( "", this.editAllyAppSetting );
-        }
-
-
         onReactivateEmail()
         {
             this.isLoading = true;
@@ -699,6 +693,88 @@
                 {
                     this.isLoading = false;
                     alert( "Added Failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        editAppSettingValue( curSetting: AllyAppSetting )
+        {
+            const newValue = prompt( "Enter the setting's new value", curSetting.settingValue );
+            if( !newValue )
+                return;
+
+            curSetting.settingValue = newValue;
+
+            this.isLoading = true;
+
+            this.$http.put( `/api/AllyAppSettings/UpdateSetting`, curSetting ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.loadAllyAppSettings();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to update: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        onAddNewAppSetting()
+        {
+            const newName = prompt( "Enter the new setting name" );
+            if( !newName )
+                return;
+
+            const settingValue = prompt( "Enter the new setting's value" );
+            if( !settingValue )
+                return;
+
+            const newSetting: AllyAppSetting = {
+                settingId: 0,
+                settingName: newName,
+                settingValue: settingValue,
+                settingType: "String",
+                note: null
+            };
+
+            this.isLoading = true;
+
+            this.$http.post( `/api/AllyAppSettings/AddSetting`, newSetting ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.loadAllyAppSettings();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Adding setting failed: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        deleteAppSetting( curSetting: AllyAppSetting )
+        {
+            if( !confirm( `Are you sure you want to delete the '${curSetting.settingName}' setting? This cannot be undone.` ) )
+                return;
+
+            this.isLoading = true;
+
+            this.$http.delete( `/api/AllyAppSettings/DeleteSetting/${curSetting.settingId}` ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.loadAllyAppSettings();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Adding setting failed: " + response.data.exceptionMessage );
                 }
             );
         }
