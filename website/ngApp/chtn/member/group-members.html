@@ -38,7 +38,13 @@
                 <div class="portlet-body">
                     <p style="margin-bottom: 7px; display: none;" class="note-text">Contact the residents below if you'd like to learn more about a certain committee</p>
                     <div data-ng-repeat="committee in $ctrl.committees">
-                        <span id="committee-name-{{::$index}}" style="font-weight: bold;">{{ ::committee.committeeName }}</span>&nbsp;(<a data-ng-if="::!committee.isPrivate" data-ng-href="#!/Committee/{{ ::committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)<span data-ng-if="::committee.contactUser">&nbsp;-&nbsp;<span id="committee-contact-name-{{::$index}}">{{ ::committee.contactUser.fullName }}</span><span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="committee-send-msg-{{$index}}" data-recipient-info="committee.contactUser"></send-message></span></span><br />
+                        <span id="committee-name-{{::$index}}" style="font-weight: bold;">{{ ::committee.committeeName }}</span>&nbsp;(<a data-ng-if="::!committee.isPrivate" data-ng-href="#!/Committee/{{ ::committee.committeeId }}/Home">view</a><span data-ng-if="committee.isPrivate">private</span>)
+                        <span data-ng-if="::committee.contactUser">&nbsp;-&nbsp;<span id="committee-contact-name-{{::$index}}">{{ ::committee.contactUser.fullName }}</span>
+                        <span data-ng-if="!committee.contactUser.hasEmail">*</span><span data-ng-if="committee.contactUser.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="committee-send-msg-{{$index}}" data-recipient-info="committee.contactUser"></send-message></span></span>
+                        <span data-ng-if="!committee.isPrivate && committee.members && committee.members.length > 0"> - <span class="text-link note-text" data-ng-click="committee.shouldShowMembers = !committee.shouldShowMembers">{{committee.shouldShowMembers ? 'hide' : 'show'}} members</span></span>
+                        <ul data-ng-if="committee.shouldShowMembers" style="padding-left: 40px;">
+                            <li data-ng-repeat="curMember in committee.members" class="note-text">{{curMember.fullName}}</li>
+                        </ul>
                     </div>
                     <br />
                 </div>

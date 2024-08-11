@@ -77,6 +77,12 @@
         committeeName: string;
         contactUser: SimpleUserEntry;
         isPrivate: boolean;
+        members: BasicCommitteeMember[];
+    }
+
+    export class BasicCommitteeMember
+    {
+        fullName: string;
     }
 
     export class UnitListing
