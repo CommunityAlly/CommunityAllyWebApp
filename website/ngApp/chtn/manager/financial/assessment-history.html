@@ -125,7 +125,7 @@
                     <label data-ng-if="$ctrl.hasUnitsWithoutOwners || $ctrl.shouldShowAllUnits"><input type="checkbox" data-ng-model="$ctrl.shouldShowAllUnits" data-ng-change="$ctrl.retrievePaymentHistory()" /> Include homes without owners</label>
                 </div>
                 <div class="col-6 text-end">
-                    Export To: <a data-ng-href="{{::$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{::$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
+                    Export To: <a data-ng-href="{{::$ctrl.baseApiUri}}PublicPaymentHistory/Xlsx?vid={{ $ctrl.viewExportViewId }}&includeAllUnits={{ $ctrl.shouldShowAllUnits }}" data-ng-click="$ctrl.onExportClick('Xlsx')" download="AssessmentHistory.xlsx">Excel (xslx)</a> or <a data-ng-href="{{::$ctrl.baseApiUri}}PublicPaymentHistory/Csv?vid={{ $ctrl.viewExportViewId }}&includeAllUnits={{ $ctrl.shouldShowAllUnits }}" data-ng-click="$ctrl.onExportClick('Csv')" download="AssessmentHistory.csv">CSV</a>
                 </div>
               </div>
             </div>
