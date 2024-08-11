@@ -231,6 +231,17 @@ CA.angularApp.config(
                             $rootScope.onLogOut_ClearData();
                         }
 
+                        if( response.data && response.data && response.data.title && response.data.title === "One or more validation errors occurred." )
+                        {
+                            //console.log( "Retrieved model binding error" );
+                            response.data.exceptionMessage = "Invalid input data";
+
+                            if( response.data.errors && Object.keys( response.data.errors ).length > 0 )
+                            {
+                                const invalidFields = Object.keys( response.data.errors );
+                                response.data.exceptionMessage += ", fields: " + invalidFields.join( ", " );
+                            };
+                        }
 
                         // If we didn't handle the response up above then simply reject it
                         return $q.reject( response );
