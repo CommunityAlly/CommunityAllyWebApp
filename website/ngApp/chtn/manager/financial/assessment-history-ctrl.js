@@ -30,11 +30,12 @@ var Ally;
         /**
         * The constructor for the class
         */
-        constructor($http, $location, siteInfo, appCacheService) {
+        constructor($http, $location, siteInfo, appCacheService, $timeout) {
             this.$http = $http;
             this.$location = $location;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.$timeout = $timeout;
             this.LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
             this.LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
             this.LocalStorageKey_ShowBalanceCol = "AssessmentHistory_ShowBalanceCol";
@@ -714,6 +715,12 @@ var Ally;
         onExportClick(type) {
             // Get a new view token in case the user clicks export again
             window.setTimeout(() => this.$http.get("/api/DocumentLink/0").then((response) => this.viewExportViewId = response.data.vid), 500);
+            const numRows = this.showRowType === 'member' ? this.payers.length : this.nameSortedUnitPayments.length;
+            const isCsv = type === "csv";
+            const estimatedDelaySecs = Math.max((isCsv ? 0.015 : 0.088) * numRows, isCsv ? 2 : 5);
+            // Show a loading overlay to indicate we're running
+            this.isLoading = true;
+            this.$timeout(() => this.isLoading = false, estimatedDelaySecs * 1000);
             analytics.track('exportAssessment' + type);
             return true;
         }
@@ -772,7 +779,7 @@ var Ally;
             }
         }
     }
-    AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
+    AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService", "$timeout"];
     AssessmentHistoryController.PeriodicPaymentFrequency_Monthly = 50;
     AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly = 51;
     AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually = 52;

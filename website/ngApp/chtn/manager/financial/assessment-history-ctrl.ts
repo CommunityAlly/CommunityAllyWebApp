@@ -81,7 +81,7 @@
      */
     export class AssessmentHistoryController implements ng.IController
     {
-        static $inject = ["$http", "$location", "SiteInfo", "appCacheService"];
+        static $inject = ["$http", "$location", "SiteInfo", "appCacheService", "$timeout"];
 
         LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
         LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
@@ -143,7 +143,11 @@
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private $location: ng.ILocationService, private siteInfo: Ally.SiteInfoService, private appCacheService: AppCacheService )
+        constructor( private $http: ng.IHttpService,
+            private $location: ng.ILocationService,
+            private siteInfo: Ally.SiteInfoService,
+            private appCacheService: AppCacheService,
+            private $timeout: ng.ITimeoutService )
         {
             if( window.localStorage["assessmentHistory_showAllUnits"] )
                 this.shouldShowAllUnits = window.localStorage["assessmentHistory_showAllUnits"] === "true";
@@ -1066,6 +1070,14 @@
         {
             // Get a new view token in case the user clicks export again
             window.setTimeout( () => this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) => this.viewExportViewId = response.data.vid ), 500 );
+
+            const numRows = this.showRowType === 'member' ? this.payers.length : this.nameSortedUnitPayments.length;
+            const isCsv = type === "csv";
+            const estimatedDelaySecs = Math.max( ( isCsv ? 0.015 : 0.088 ) * numRows, isCsv ? 2 : 5 );
+
+            // Show a loading overlay to indicate we're running
+            this.isLoading = true;
+            this.$timeout( () => this.isLoading = false, estimatedDelaySecs * 1000 );
 
             analytics.track( 'exportAssessment' + type );
             return true;
