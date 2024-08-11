@@ -65,6 +65,7 @@
         editAllyAppSetting: AllyAppSetting;
         reactivateEmail: string;
         newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
+        premiumPlanExpiration: Date;
 
 
         /**
@@ -103,6 +104,11 @@
                 paymentMethodId: "",
                 status: "Complete"
             };
+
+            this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
+            {
+                this.premiumPlanExpiration = response.data.premiumPlanExpirationDate;
+            } );
 
             this.$timeout( () => this.loadAllyAppSettings(), 100 );
         }

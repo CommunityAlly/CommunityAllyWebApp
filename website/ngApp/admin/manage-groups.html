@@ -270,6 +270,7 @@
                     <td>
                         <input type="text" data-ui-date data-ng-model="$ctrl.premiumNewExpiration" />
                         <button class="btn btn-primary" type="button" data-ng-click="$ctrl.updatePremiumExpiration()">Update Expiration Date</button>
+                        <span class="note-text">Current Expiration: {{$ctrl.premiumPlanExpiration |  date:'shortDate'}}</span>
                     </td>
                 </tr>
             </table>

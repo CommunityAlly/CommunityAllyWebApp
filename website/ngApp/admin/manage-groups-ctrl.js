@@ -94,6 +94,9 @@ var Ally;
                 paymentMethodId: "",
                 status: "Complete"
             };
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
+                this.premiumPlanExpiration = response.data.premiumPlanExpirationDate;
+            });
             this.$timeout(() => this.loadAllyAppSettings(), 100);
         }
         /**
