@@ -173,7 +173,7 @@
         <div class="container mt-4" style="position: relative;">
             <div class="loading-overlay" data-ng-if="$ctrl.isLoadingUsage"></div>
             <div class="row">
-                <div class="col-6">
+                <div class="col-md-6 col-sm-12 mb-4">
                     <h4>Email Usage</h4>
 
                     <div data-ng-if="$ctrl.emailUsageAverageNumMonths > 1" class="mb-4">
@@ -203,7 +203,7 @@
                     <div>You can <span data-ng-click="$ctrl.goToEmailHistory()" class="text-link">view your email history</span> below the residents grid.</div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-md-6 col-sm-12">
                     <h4>Document Storage Usage</h4>
                     <div data-ng-if="$ctrl.meteredUsage.totalNumDocuments > 0">
                         Your association is storing <span class="fw-bold">{{$ctrl.meteredUsage.totalDocumentsBytesUsed / (1024 * 1024) | number : 2}}</span> MB across <span class="fw-bold">{{$ctrl.meteredUsage.totalNumDocuments}}</span> file{{$ctrl.meteredUsage.totalNumDocuments === 1 ? '' : 's'}}.
