@@ -26,6 +26,9 @@ var Ally;
     class CommitteeListingInfo {
     }
     Ally.CommitteeListingInfo = CommitteeListingInfo;
+    class BasicCommitteeMember {
+    }
+    Ally.BasicCommitteeMember = BasicCommitteeMember;
     class UnitListing {
     }
     Ally.UnitListing = UnitListing;

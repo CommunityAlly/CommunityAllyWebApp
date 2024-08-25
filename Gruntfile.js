@@ -109,6 +109,7 @@ grunt.initConfig({
                     'website/js/lib/jquery/jquery.csv.min.js',
                     'website/js/lib/jquery/livestamp.min.js',
                     'website/js/lib/calendar/fullcalendar.js',
+                    'website/js/lib/calendar/rrule.min.js',
                     'website/js/lib/other/diQuery-collapsiblePanel.js',
                     'website/js/lib/other/jquery.qtip.min.js',
                     'website/js/lib/other/xeditable.min.js',

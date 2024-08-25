@@ -16,7 +16,9 @@
                 Resident Additions?
             </fieldset>
         </div>
-        <div id="log-calendar" ui-calendar="uiConfig.calendar" ng-model="$ctrl.calendarEvents"></div>
+
+        <div id="full-calendar-elem" ui-calendar="uiConfig.calendar" ng-model="$ctrl.calendarEvents"></div>
+
         <div style="text-align: right;">
             <input id="ics-file-input" type="file" style="display: none;" accept=".ics" data-on-file-change="$ctrl.onIcsFileSelected($event)" />
             <span class="text-link note-text" onclick="$('#ics-file-input').click();">Import ICS File</span>
@@ -32,17 +34,17 @@
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCalendarEvents"></div>
 
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.setEditEvent( null )">&times;</span>
-                <h2>{{ $ctrl.editEvent.eventId ? "Edit Event" : "Add Event" }}</h2>
+                <h2>{{ $ctrl.editEvent.eventId ? "Edit Event" : "Add New Event" }}</h2>
 
                 <div>
-                    <div class="row mb-3">
+                    <div class="row mb-4">
                         <label class="col-sm-2 col-12 text-end form-label-popup" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
                         <div class="col-sm-10 col-12">
                             <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" data-ng-model="$ctrl.editEvent.dateOnly" />
                         </div>
                     </div>
 
-                    <div class="row mb-3" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
+                    <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
                         <label class="col-sm-2 col-12 text-end form-label-popup">Time:</label>
                         <div class="col-sm-3 col-12">
                             <input id="calendar-event-time" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editEvent.timeOnly">
@@ -50,23 +52,67 @@
                         <div class="col-sm-3 col-11 note-text" style="vertical-align: middle; line-height: 31px;">
                             Time Zone: {{ $ctrl.currentTimeZoneAbbreviation }}
                         </div>
-                    </div>
-
-                    <div class="row mb-3" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.localTimeZoneDiffersFromGroup">
-                        <label class="col-sm-2 hidden-xs"></label>
-                        <div class="col-10 note-text">
+                        <div class="col-2" data-ng-if="$ctrl.showExpandedCalendarEventModel && $ctrl.localTimeZoneDiffersFromGroup">
+                        </div>
+                        <div class="col-10 offset-2 note-text" data-ng-if="$ctrl.showExpandedCalendarEventModel && $ctrl.localTimeZoneDiffersFromGroup">
                             Note: Your local time is currently in {{ $ctrl.currentTimeZoneAbbreviation }}, but your association is in the {{ $ctrl.groupTimeZoneAbbreviation }} time zone
                         </div>
                     </div>
+                    
+                    <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel">
+                        <label class="col-sm-2 col-12 text-end form-label-popup">Repeats:</label>
+                        <div class="col-sm-10 col-12 note-text" data-ng-if="!$ctrl.editEvent.timeOnly">Select a time to enable repeating</div>
+                        <div class="col-sm-10 col-12" data-ng-if="$ctrl.editEvent.timeOnly">
+                            <div>
+                                <select data-ng-model="$ctrl.editEvent.repeatType" data-ng-change="$ctrl.onRepeatSettingChange()">
+                                    <option data-ng-value="null">Doesn't repeat</option>
+                                    <option data-ng-value="3">Daily</option>
+                                    <option data-ng-value="2">Weekly</option>
+                                    <option data-ng-value="1">Monthly</option>
+                                    <option data-ng-value="0">Yearly</option>
+                                    <!--<option value="daily">Daily</option>
+    <option value="weekly">Weekly</option>
+    <option value="monthly">Monthly</option>
+    <option value="yearly">Yearly</option>-->
+                                </select>
+                                <span data-ng-if="$ctrl.editEvent.repeatType === 3">
+                                    Every
+                                    <select data-ng-model="$ctrl.editEvent.repeatFrequency" data-ng-change="$ctrl.onRepeatSettingChange()"><option data-ng-value="1">1</option><option data-ng-value="2">2</option><option data-ng-value="3">3</option><option data-ng-value="4">4</option><option data-ng-value="5">5</option><option data-ng-value="6">6</option><option data-ng-value="7">7</option><option data-ng-value="8">8</option><option data-ng-value="9">9</option><option data-ng-value="10">10</option><option data-ng-value="11">11</option><option data-ng-value="12">12</option><option data-ng-value="13">13</option><option data-ng-value="14">14</option><option data-ng-value="15">15</option><option data-ng-value="16">16</option><option data-ng-value="17">17</option><option data-ng-value="18">18</option><option data-ng-value="19">19</option><option data-ng-value="20">20</option><option data-ng-value="21">21</option><option data-ng-value="22">22</option><option data-ng-value="23">23</option><option data-ng-value="24">24</option><option data-ng-value="25">25</option><option data-ng-value="26">26</option><option data-ng-value="27">27</option><option data-ng-value="28">28</option><option data-ng-value="29">29</option><option data-ng-value="30">30</option><option data-ng-value="31">31</option></select>
+                                    day{{$ctrl.editEvent.repeatFrequency===1?'':'s'}}
+                                </span>
+                                <span data-ng-if="$ctrl.editEvent.repeatType === 2">
+                                    Every
+                                    <select data-ng-model="$ctrl.editEvent.repeatFrequency" data-ng-change="$ctrl.onRepeatSettingChange()"><option data-ng-value="1">1</option><option data-ng-value="2">2</option><option data-ng-value="3">3</option><option data-ng-value="4">4</option><option data-ng-value="5">5</option><option data-ng-value="6">6</option><option data-ng-value="7">7</option><option data-ng-value="8">8</option><option data-ng-value="9">9</option><option data-ng-value="10">10</option><option data-ng-value="11">11</option><option data-ng-value="12">12</option></select>
+                                    week{{$ctrl.editEvent.repeatFrequency===1?'':'s'}} on {{$ctrl.editEvent.dateOnly | date:'EEEE'}}
+                                </span>
+                                <span data-ng-if="$ctrl.editEvent.repeatType === 1">
+                                    Every
+                                    <select data-ng-model="$ctrl.editEvent.repeatFrequency" data-ng-change="$ctrl.onRepeatSettingChange()"><option data-ng-value="1">1</option><option data-ng-value="2">2</option><option data-ng-value="3">3</option><option data-ng-value="4">4</option><option data-ng-value="5">5</option><option data-ng-value="6">6</option><option data-ng-value="7">7</option><option data-ng-value="8">8</option><option data-ng-value="9">9</option><option data-ng-value="10">10</option><option data-ng-value="11">11</option></select>
+                                    month{{$ctrl.editEvent.repeatFrequency===1?'':'s'}} on day {{$ctrl.editEvent.dateOnly | date:'d'}}
+                                </span>
+                                <span data-ng-if="$ctrl.editEvent.repeatType === 0">
+                                    Every
+                                    <select data-ng-model="$ctrl.editEvent.repeatFrequency" data-ng-change="$ctrl.onRepeatSettingChange()"><option data-ng-value="1">1</option><option data-ng-value="2">2</option><option data-ng-value="3">3</option><option data-ng-value="4">4</option><option data-ng-value="5">5</option><option data-ng-value="6">6</option><option data-ng-value="7">7</option><option data-ng-value="8">8</option><option data-ng-value="9">9</option><option data-ng-value="10">10</option></select>
+                                    year{{$ctrl.editEvent.repeatFrequency===1?'':'s'}} on {{$ctrl.editEvent.dateOnly | date:'MMM d'}}
+                                </span>
+                            </div>
+                            <div data-ng-if="$ctrl.editEvent.repeatType !== null">
+                                Repeat until <input type="text" data-ui-date="{ dateFormat: 'MM d, yy' }" data-ng-model="$ctrl.editEvent.repeatUntilDate" data-ng-change="$ctrl.onRepeatSettingChange()" />
+                                <span class="note-text">Leave empty to repeat forever</span>
+                                <span title="{{$ctrl.getRepeatDatePreview()}}" style="text-decoration: underline;" data-toggle="tooltip">Hover here to preview dates</span>
+                                <div data-ng-if="false">{{$ctrl.editEvent.repeatRule.toString()}}</div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div class="row mb-3">
+                    <div class="row mb-4">
                         <label class="col-sm-2 col-12 text-end  form-label-popup">What:</label>
                         <div class="col-sm-10 col-12">
                             <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()" autocomplete="off" data-lpignore="true" data-form-type="other">
                         </div>
                     </div>
 
-                    <div class="row mb-3" data-ng-if="$ctrl.showExpandedCalendarEventModel">
+                    <div class="row mb-4" data-ng-if="$ctrl.showExpandedCalendarEventModel">
                         <label class="col-sm-2 col-12 pt-5 text-end form-label-popup">Description:</label>
                         <div class="col-sm-10 col-12">
                             <textarea id="tiny-mce-editor" data-ng-model="$ctrl.editEvent.description" style="width: 100%; height: 120px;" data-ng-ctrl-enter="$ctrl.saveCalendarEvent()"></textarea>
@@ -74,15 +120,15 @@
                     </div>
 
                     <div data-ng-show="$ctrl.showExpandedCalendarEventModel">
-                        <div data-ng-show="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )" class="text-center text-warning">
+                        <div data-ng-show="$ctrl.isDateInPast( $ctrl.editEvent )" class="text-center text-warning">
                             You cannot add reminder emails because this event date is in the past.
                         </div>
 
                         <p class="text-center">
                             <label>
-                                <input type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )"
+                                <input type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent )"
                                        data-ng-change="$ctrl.onShouldSendChange()"
-                                       data-ng-disabled="$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )"
+                                       data-ng-disabled="$ctrl.isDateInPast( $ctrl.editEvent )"
                                        data-ng-model="$ctrl.editEvent.shouldSendNotification" />
                                 Send a reminder email
 
@@ -103,16 +149,16 @@
                         </p>
 
                         <div data-ng-if="$ctrl.editEvent.shouldSendNotification">
-                            <!--<div class="text-center" data-ng-show="!$ctrl.isDateInPast( $ctrl.editEvent.dateOnly )">
-                                <p data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                    <input class="form-control form-control-sm d-inline-block" style="width: 40px;" type="text" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
-                                           data-ng-disabled="!$ctrl.editEvent.shouldSendNotification" data-ng-change="$ctrl.onChangeEmailDaysBefore()"
-                                           data-ng-model="$ctrl.editEvent.notificationEmailDaysBefore" autocomplete="off" > {{ $ctrl.editEvent.notificationEmailDaysBefore == 1 ? 'day' : 'days' }} before event
-                                </p>
-                                <p data-ng-show="$ctrl.showBadNotificationDateWarning" class="text-warning">
-                                    You can only go back {{ $ctrl.maxDaysBack }} {{ $ctrl.maxDaysBack == 1 ? 'day' : 'days' }} for the reminder to be sent.
-                                </p>
-                            </div>-->
+                            <!--<div class="text-center" data-ng-show="!$ctrl.isDateInPast( $ctrl.editEvent )">
+                <p data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                    <input class="form-control form-control-sm d-inline-block" style="width: 40px;" type="text" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
+                           data-ng-disabled="!$ctrl.editEvent.shouldSendNotification" data-ng-change="$ctrl.onChangeEmailDaysBefore()"
+                           data-ng-model="$ctrl.editEvent.notificationEmailDaysBefore" autocomplete="off" > {{ $ctrl.editEvent.notificationEmailDaysBefore == 1 ? 'day' : 'days' }} before event
+                </p>
+                <p data-ng-show="$ctrl.showBadNotificationDateWarning" class="text-warning">
+                    You can only go back {{ $ctrl.maxDaysBack }} {{ $ctrl.maxDaysBack == 1 ? 'day' : 'days' }} for the reminder to be sent.
+                </p>
+            </div>-->
 
                             <div class="row mb-3" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
                                 <label class="col-sm-2 col-12  form-label-popup">Send To:</label>
@@ -120,71 +166,70 @@
                                     <select class="form-control form-select" data-ng-model="$ctrl.editEvent.emailGroupShortName" data-ng-options="g.groupShortName as g.displayLabel for g in $ctrl.associatedGroups">
                                         <option></option>
                                     </select>
-                                <!--</div>
-                            </div>
+                                    <!--</div>
+                    </div>
 
-                            <div class="row" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                <label class="col-sm-2 col-12">Send To2:</label>
-                                <div class="col-sm-10 col-12">-->
+                    <div class="row" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
+                        <label class="col-sm-2 col-12">Send To2:</label>
+                        <div class="col-sm-10 col-12">-->
                                     <div class="resident-list-box" data-ng-if="$ctrl.residents && $ctrl.editEvent.emailGroupShortName === 'Individuals'">
 
                                         <!--<div id="accordion">
-        <div class="card">
-            <div class="card-header" style="padding: 0;" id="headingGroups">
-                <h5 class="mb-0">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseGroups" aria-expanded="true" aria-controls="collapseGroups">
-                        Groups
-                    </button>
-                </h5>
-            </div>
+                            <div class="card">
+                                <div class="card-header" style="padding: 0;" id="headingGroups">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseGroups" aria-expanded="true" aria-controls="collapseGroups">
+                                            Groups
+                                        </button>
+                                    </h5>
+                                </div>
 
-            <div id="collapseGroups" class="collapse" aria-labelledby="headingGroups" data-parent="#accordion">
-                <div class="card-body">
-                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header" style="padding: 0;" id="headingIndividuals">
-                <h5 class="mb-0">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseIndividuals" aria-expanded="false" aria-controls="collapseIndividuals">
-                        Individuals <span class="note-text">({{$ctrl.residents.filter(r=>r.isAssociated).length}} selected)</span>
-                    </button>
-                </h5>
-            </div>
-            <div id="collapseIndividuals" class="collapse" aria-labelledby="headingIndividuals" data-parent="#accordion">
-                <div class="card-body">
+                                <div id="collapseGroups" class="collapse" aria-labelledby="headingGroups" data-parent="#accordion">
+                                    <div class="card-body">
+                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header" style="padding: 0;" id="headingIndividuals">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseIndividuals" aria-expanded="false" aria-controls="collapseIndividuals">
+                                            Individuals <span class="note-text">({{$ctrl.residents.filter(r=>r.isAssociated).length}} selected)</span>
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div id="collapseIndividuals" class="collapse" aria-labelledby="headingIndividuals" data-parent="#accordion">
+                                    <div class="card-body">
 
-                    <div data-ng-repeat="resident in $ctrl.residents">
-                        <label data-ng-class="{'grayed':!resident.hasEmail}">
-                            <input type="checkbox" data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
-                                   data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onResidentClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No email on file)" }}
-                        </label>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>-->
-
-                                        <!--<div class="mb-1">
-                                            <h5 style="display:inline; text-decoration: underline;">Groups</h5>
-                                            <span class="note-text ms-2">({{$ctrl.getNumSelectedGroups()}} selected)</span>
-                                        </div>
-                                        <div data-ng-repeat="curGroup in $ctrl.associatedGroups">
-                                            <label>
-                                                <input type="checkbox"
-                                                       data-ng-disabled="!$ctrl.editEvent.shouldSendNotification"
-                                                       data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
-                                                       data-ng-model="curGroup.isAssociated">
-                                                {{curGroup.displayLabel}}
+                                        <div data-ng-repeat="resident in $ctrl.residents">
+                                            <label data-ng-class="{'grayed':!resident.hasEmail}">
+                                                <input type="checkbox" data-ng-disabled="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail" data-ng-readonly="!$ctrl.editEvent.shouldSendNotification || !resident.hasEmail"
+                                                       data-ng-model="resident.isAssociated" data-ng-click="$ctrl.onResidentClicked( resident )"> {{resident.fullName}} {{ resident.hasEmail ? "" : "(No email on file)" }}
                                             </label>
                                         </div>
 
-                                        <div class="mb-1 mt-2">
-                                            <h5 style="display: inline; text-decoration: underline;">Individuals</h5>
-                                            <span class="note-text ms-2">({{$ctrl.getNumSelectedIndividuals()}} selected)</span>
-                                        </div>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>-->
+                                        <!--<div class="mb-1">
+                            <h5 style="display:inline; text-decoration: underline;">Groups</h5>
+                            <span class="note-text ms-2">({{$ctrl.getNumSelectedGroups()}} selected)</span>
+                        </div>
+                        <div data-ng-repeat="curGroup in $ctrl.associatedGroups">
+                            <label>
+                                <input type="checkbox"
+                                       data-ng-disabled="!$ctrl.editEvent.shouldSendNotification"
+                                       data-ng-readonly="!$ctrl.editEvent.shouldSendNotification"
+                                       data-ng-model="curGroup.isAssociated">
+                                {{curGroup.displayLabel}}
+                            </label>
+                        </div>
+
+                        <div class="mb-1 mt-2">
+                            <h5 style="display: inline; text-decoration: underline;">Individuals</h5>
+                            <span class="note-text ms-2">({{$ctrl.getNumSelectedIndividuals()}} selected)</span>
+                        </div>-->
                                         <div data-ng-repeat="resident in $ctrl.residents">
                                             <label data-ng-class="{'grayed':!resident.hasEmail}">
                                                 <input type="checkbox"
@@ -217,10 +262,10 @@
                     <div class="padding-top-10 clearfix">
                         <span class="text-button" data-ng-hide="$ctrl.showExpandedCalendarEventModel" data-ng-click="$ctrl.expandCalendarEventModel()">More Details</span>
                         <button type="button" data-ng-if="$ctrl.editEvent.eventId" class="btn btn-danger" style="margin-right: 10px;" data-ng-click="$ctrl.deleteCalendarEvent($ctrl.editEvent.eventId)">Delete This Event</button>
-                        <span class="pull-right">
-                            <span class="btn btn-primary margin-right-10" data-ng-click="$ctrl.saveCalendarEvent()">{{$ctrl.editEvent.eventId | iif : "Save" : "Create"}}</span>
+                        <div class="text-end">
+                            <span class="btn btn-primary margin-right-10" data-ng-click="$ctrl.saveCalendarEvent()">{{$ctrl.editEvent.eventId | iif : "Save" : "Save"}}</span>
                             <!--<span class="text-button" data-ng-click="$ctrl.setEditEvent( null )">Cancel</span>-->
-                        </span>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -233,7 +278,7 @@
                 <h4>Event Details</h4>
                 <form>
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup">Date:</label>
+                        <label class="col-sm-4 col-12 form-label-popup" title="Event ID: {{$ctrl.viewEvent.eventId}}">Date:</label>
                         <div class="col-sm-8 col-12">
                             <span>{{ $ctrl.viewEvent.dateOnly | date:'EEEE, MMMM d, yyyy' }}</span>
                         </div>
@@ -243,6 +288,13 @@
                         <label class="col-sm-4 col-12 form-label-popup">Time:</label>
                         <div class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.timeOnly || "All Day" }} <span data-ng-if="$ctrl.viewEvent.timeOnly">{{ $ctrl.currentTimeZoneAbbreviation }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3" data-ng-if="$ctrl.viewEvent.repeatViewLabel">
+                        <label class="col-sm-4 col-12 form-label-popup">Repeats:</label>
+                        <div class="col-sm-8 col-12">
+                            {{ $ctrl.viewEvent.repeatViewLabel }}
                         </div>
                     </div>
 

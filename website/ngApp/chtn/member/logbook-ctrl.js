@@ -92,12 +92,12 @@ var Ally;
                         const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
                         //    maxDaysBack = moment( clickedDate ).diff( moment(), 'day' );
-                        const eventDetails = {
-                            date: clickedDate,
-                            dateOnly: clickedDate,
-                            associatedUserIds: [],
-                            notificationEmailDaysBefore: maxDaysBack
-                        };
+                        const eventDetails = new CalendarEvent();
+                        eventDetails.dateOnly = clickedDate;
+                        eventDetails.associatedUserIds = [];
+                        eventDetails.notificationEmailDaysBefore = maxDaysBack;
+                        eventDetails.repeatType = null;
+                        eventDetails.repeatFrequency = 1;
                         this.setEditEvent(eventDetails, false);
                     });
                 },
@@ -105,6 +105,26 @@ var Ally;
                     this.$scope.$apply(() => {
                         if (event.calendarEventObject) {
                             this.viewEvent = event.calendarEventObject;
+                            if (this.viewEvent.repeatRule) {
+                                const parsedRule = new rrule.rrulestr(this.viewEvent.repeatRule);
+                                this.viewEvent.repeatViewLabel = "Every ";
+                                if (parsedRule.options.interval > 1)
+                                    this.viewEvent.repeatViewLabel += parsedRule.options.interval + " ";
+                                if (parsedRule.options.freq === rrule.RRule.DAILY)
+                                    this.viewEvent.repeatViewLabel += "day";
+                                else if (parsedRule.options.freq === rrule.RRule.WEEKLY)
+                                    this.viewEvent.repeatViewLabel += "week";
+                                else if (parsedRule.options.freq === rrule.RRule.MONTHLY)
+                                    this.viewEvent.repeatViewLabel += "month";
+                                else if (parsedRule.options.freq === rrule.RRule.YEARLY)
+                                    this.viewEvent.repeatViewLabel += "year";
+                                if (parsedRule.options.interval > 1)
+                                    this.viewEvent.repeatViewLabel += "s";
+                                if (this.viewEvent.repeatUntilDate)
+                                    this.viewEvent.repeatViewLabel += " until " + moment(this.viewEvent.repeatUntilDate).format("MMM D, YYYY");
+                            }
+                            else
+                                this.viewEvent.repeatViewLabel = null;
                             //if( this.$rootScope.isSiteManager )
                             //    this.setEditEvent( event.calendarEventObject, true );
                             //else
@@ -130,7 +150,8 @@ var Ally;
                         }
                     });
                 },
-                eventSources: [{
+                eventSources: [
+                    {
                         events: (start, end, timezone, callback) => {
                             this.getAssociationEvents(start, end, timezone, callback);
                         }
@@ -139,7 +160,8 @@ var Ally;
                         events: (start, end, timezone, callback) => {
                             this.getCalendarEvents(start, end, timezone, callback);
                         }
-                    }]
+                    }
+                ]
             };
             $(document).ready(function () {
                 $('.EditableEntry').editable('<%= Request.Url %>', {
@@ -149,7 +171,7 @@ var Ally;
                     submit: 'Ok'
                 });
                 //$( ".collapsibleContainer" ).collapsiblePanel();
-                $('#log-calendar').fullCalendar(uiConfig);
+                $('#full-calendar-elem').fullCalendar(uiConfig);
                 $('#calendar-event-time').timepicker({ 'scrollDefault': '10:00am' });
                 $(".fc-bg td.fc-today").append("<div class='today-note'>Today</div>");
             });
@@ -281,7 +303,7 @@ var Ally;
                     if (isAllDay) {
                         entry.timeOnly = "";
                         entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
-                        dateEntry = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
+                        dateEntry = entry.dateOnly;
                     }
                     else {
                         const localDate = moment.utc(entry.eventDateUtc).local();
@@ -322,14 +344,27 @@ var Ally;
             else
                 this.editEvent.associatedUserIds.push(resident.userId);
         }
-        isDateInPast(date) {
-            const momentDate = moment(date);
+        /**
+         * Used to determine if the given event is in the past and if allow notifications to be
+         * sent. Events in the past can't have notifications sent since there's no point.
+         */
+        isDateInPast(calendarEvent) {
+            if (!calendarEvent)
+                return false;
+            let testDate = calendarEvent.dateOnly;
+            if (calendarEvent.repeatRule) {
+                // If this event never ends then we can always enable notifications
+                if (!calendarEvent.repeatUntilDate)
+                    return false;
+                testDate = calendarEvent.repeatUntilDate;
+            }
+            const momentDate = moment(testDate);
             const today = moment();
             return momentDate.isBefore(today, 'day') || momentDate.isSame(today, 'day');
         }
         onShouldSendChange() {
             // Don't allow the user to send remdiner emails for past dates
-            if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent.dateOnly))
+            if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent))
                 this.editEvent.shouldSendNotification = false;
             else if (!this.editEvent.notificationEmailDaysBefore)
                 this.editEvent.notificationEmailDaysBefore = 1;
@@ -397,6 +432,21 @@ var Ally;
                     this.associatedGroups.forEach(ag => ag.isAssociated = false);
                 this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(ag => ag.isAssociated).map(ag => ag.groupShortName);
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
+                // Ensure a valid repeat frequency
+                if (this.editEvent.repeatRule) {
+                    const parsedRule = new rrule.rrulestr(this.editEvent.repeatRule);
+                    this.editEvent.repeatType = parsedRule.options.freq;
+                    this.editEvent.repeatFrequency = parsedRule.options.interval;
+                    // If we're edting a repeat instance of an event, use the original date
+                    if (this.editEvent.repeatOriginalDate) {
+                        this.editEvent.eventDateUtc = this.editEvent.repeatOriginalDate;
+                        this.editEvent.dateOnly = moment(this.editEvent.eventDateUtc).clone().startOf('day').toDate();
+                    }
+                }
+                else {
+                    this.editEvent.repeatType = null;
+                    this.editEvent.repeatFrequency = 1;
+                }
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
                 setTimeout(function () { $("#calendar-event-title").focus(); }, 10);
@@ -415,7 +465,7 @@ var Ally;
                 this.isLoadingCalendarEvents = false;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
-                $('#log-calendar').fullCalendar('refetchEvents');
+                $('#full-calendar-elem').fullCalendar('refetchEvents');
             }, () => {
                 this.isLoadingCalendarEvents = false;
                 alert("Failed to delete the calendar event.");
@@ -483,7 +533,7 @@ var Ally;
                 this.isLoadingCalendarEvents = false;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
-                $('#log-calendar').fullCalendar('refetchEvents');
+                $('#full-calendar-elem').fullCalendar('refetchEvents');
             }, (httpResponse) => {
                 this.isLoadingCalendarEvents = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
@@ -515,7 +565,7 @@ var Ally;
                     this.isLoadingCalendarEvents = false;
                     clearFile();
                     this.onlyRefreshCalendarEvents = true;
-                    $('#log-calendar').fullCalendar('refetchEvents');
+                    $('#full-calendar-elem').fullCalendar('refetchEvents');
                 }, (response) => {
                     this.isLoadingCalendarEvents = false;
                     alert("Failed to import file: " + response.data.exceptionMessage);
@@ -534,6 +584,47 @@ var Ally;
                 alert("Failed to parse file: " + response.data.exceptionMessage);
                 clearFile();
             });
+        }
+        onRepeatSettingChange() {
+            const repeatRule = this.getRepeatRule();
+            if (repeatRule)
+                this.editEvent.repeatRule = repeatRule.toString();
+            else
+                this.editEvent.repeatRule = null;
+        }
+        getRepeatRule() {
+            if (!this.editEvent || this.editEvent.repeatType === null)
+                return null;
+            let rruleRepeatType;
+            rruleRepeatType = this.editEvent.repeatType;
+            //if( this.editEvent.repeatType === "daily" )
+            //    rruleRepeatType = rrule.RRule.DAILY; // 3
+            //else if( this.editEvent.repeatType === "weekly" )
+            //    rruleRepeatType = rrule.RRule.WEEKLY; // 2
+            //else if( this.editEvent.repeatType === "monthly" )
+            //    rruleRepeatType = rrule.RRule.MONTHLY; // 1
+            //else if( this.editEvent.repeatType === "yearly" )
+            //    rruleRepeatType = rrule.RRule.YEARLY;
+            //else
+            //    return null;
+            const dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;
+            this.editEvent.eventDateUtc = moment(dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat).utc().toDate();
+            const rule = new rrule.RRule({
+                freq: rruleRepeatType,
+                interval: this.editEvent.repeatFrequency || 1,
+                //byweekday: [RRule.MO, RRule.FR],
+                dtstart: this.editEvent.eventDateUtc,
+                until: this.editEvent.repeatUntilDate
+            });
+            //const result = new rrule.rrulestr( "FREQ=YEARLY;UNTIL=99991231T235959;BYDAY=4TH;BYMONTH=11" );
+            return rule;
+        }
+        getRepeatDatePreview() {
+            const repeatRule = this.getRepeatRule();
+            repeatRule.options.count = 10;
+            const occuranceDates = repeatRule.all();
+            const dateStrings = occuranceDates.map(od => moment(od).format("ddd, MMM D YYYY, h:mm:ssa"));
+            return dateStrings.join("\n");
         }
     }
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
