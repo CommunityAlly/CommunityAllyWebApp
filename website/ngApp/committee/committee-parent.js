@@ -17,6 +17,7 @@ var Ally;
             this.initialView = "Home";
             this.selectedView = null;
             this.isLoading = false;
+            this.hideDocuments = false;
             this.committeeId = this.$routeParams.committeeId;
             this.initialView = this.$routeParams.viewName || "Home";
         }
@@ -25,6 +26,7 @@ var Ally;
         */
         $onInit() {
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.retrieveCommittee();
         }
         /*

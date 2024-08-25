@@ -15,7 +15,7 @@
                 Home
             </a>
 
-            <a class="nav-item nav-link" href="#!/Committee/{{$ctrl.committeeId}}/Docs" id="info-sub-view-link-docs"
+            <a class="nav-item nav-link" href="#!/Committee/{{$ctrl.committeeId}}/Docs" id="info-sub-view-link-docs" data-ng-show="!$ctrl.hideDocuments"
                data-ng-class="{'active':$ctrl.selectedView==='Docs','ally-active-nav':$ctrl.selectedView==='Docs','ally-inactive-nav':$ctrl.selectedView!=='Docs'}">
                 Documents
             </a>

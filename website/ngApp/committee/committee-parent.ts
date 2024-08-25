@@ -20,6 +20,7 @@
         committeeId: number;
         committee: Ally.Committee;
         isLoading: boolean = false;
+        hideDocuments = false;
 
 
         /**
@@ -38,7 +39,8 @@
         $onInit()
         {
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
-
+            this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
+            
             this.retrieveCommittee();
         }
 
