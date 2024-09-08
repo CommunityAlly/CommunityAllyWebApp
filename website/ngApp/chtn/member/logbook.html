@@ -38,6 +38,13 @@
 
                 <div>
                     <div class="row mb-4">
+                        <label class="col-sm-2 col-12 text-end  form-label-popup">What:</label>
+                        <div class="col-sm-10 col-12">
+                            <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()" autocomplete="off" data-lpignore="true" data-form-type="other">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
                         <label class="col-sm-2 col-12 text-end form-label-popup" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
                         <div class="col-sm-10 col-12">
                             <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" data-ng-model="$ctrl.editEvent.dateOnly" />
@@ -58,7 +65,7 @@
                             Note: Your local time is currently in {{ $ctrl.currentTimeZoneAbbreviation }}, but your association is in the {{ $ctrl.groupTimeZoneAbbreviation }} time zone
                         </div>
                     </div>
-                    
+
                     <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel">
                         <label class="col-sm-2 col-12 text-end form-label-popup">Repeats:</label>
                         <div class="col-sm-10 col-12 note-text" data-ng-if="!$ctrl.editEvent.timeOnly">Select a time to enable repeating</div>
@@ -70,10 +77,6 @@
                                     <option data-ng-value="2">Weekly</option>
                                     <option data-ng-value="1">Monthly</option>
                                     <option data-ng-value="0">Yearly</option>
-                                    <!--<option value="daily">Daily</option>
-    <option value="weekly">Weekly</option>
-    <option value="monthly">Monthly</option>
-    <option value="yearly">Yearly</option>-->
                                 </select>
                                 <span data-ng-if="$ctrl.editEvent.repeatType === 3">
                                     Every
@@ -102,13 +105,6 @@
                                 <span title="{{$ctrl.getRepeatDatePreview()}}" style="text-decoration: underline;" data-toggle="tooltip">Hover here to preview dates</span>
                                 <div data-ng-if="false">{{$ctrl.editEvent.repeatRule.toString()}}</div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <label class="col-sm-2 col-12 text-end  form-label-popup">What:</label>
-                        <div class="col-sm-10 col-12">
-                            <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()" autocomplete="off" data-lpignore="true" data-form-type="other">
                         </div>
                     </div>
 
