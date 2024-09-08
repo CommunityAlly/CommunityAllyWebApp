@@ -21,6 +21,7 @@
         showFirstVisitModal: boolean;
         allyAppName: string;
         showDiscussionThreads: boolean = false;
+        shouldShowBulletinBoard: boolean = false;
         autoOpenDiscussionThreadId: number;
         showLocalNews: boolean = false;
         shouldShowAlertSection: boolean;
@@ -105,6 +106,8 @@
             if( this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
                 this.autoOpenDiscussionThreadId = parseInt( this.$routeParams.discussionThreadId );
 
+            this.shouldShowBulletinBoard = homeRightColumnType.indexOf( "bulletinboard" ) > -1;
+            
             var innerThis = this;
             this.$scope.$on( "homeHasActivePolls", () => innerThis.shouldShowAlertSection = true );
             

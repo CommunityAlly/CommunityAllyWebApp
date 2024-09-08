@@ -1,8 +1,14 @@
 var Ally;
 (function (Ally) {
+    class Comment {
+    }
+    Ally.Comment = Comment;
     class CommentThread {
     }
     Ally.CommentThread = CommentThread;
+    class CommentThreadBBoard extends CommentThread {
+    }
+    Ally.CommentThreadBBoard = CommentThreadBBoard;
     /**
      * The controller for the discussion threads directive
      */
@@ -154,6 +160,7 @@ var Ally;
                 }
             }, (response) => {
                 this.isLoading = false;
+                console.log("Failed to load threads: " + response.data.exceptionMessage);
             });
         }
         onFileAttached(event) {

@@ -468,6 +468,45 @@ input[type="checkbox"] {
     }
 }
 /* BS4-BS5 Updrade General CSS Change End */
+
+.bboard-post-poster-name {
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.bboard-post-reply-name {
+    font-weight: bold;
+    font-size: 80%;
+}
+
+.bboard-post-date {
+    font-size: 75%;
+}
+
+.bboard-post-container {
+    width: 100%;
+    border: 1px solid #ddd;
+    margin-bottom: 40px !important;
+    position: relative;
+}
+
+.bboard-post-reply-container {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background-color: white;
+    position: relative;
+}
+
+.bboard-post-comment-field {
+    width: 100%;
+    border: none;
+    height: auto;
+    field-sizing: content;
+    resize: none;
+    outline: none;
+    margin-top: 4px;
+}
+
 .no-spinners {
     -moz-appearance: textfield;
 }
@@ -487,4 +526,20 @@ input[type="checkbox"] {
     background-color: #f80;
     border: 5px solid red;
     font-size: large;
+}
+
+.bboard-post-full-attachment {
+    position: absolute;
+    z-index: 623;
+    left: 50%;
+    max-height: 95%;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-left: -310px;
+    width: 646px;
+    height: auto !important;
+    max-width: 94%;
+    text-align: center;
 }

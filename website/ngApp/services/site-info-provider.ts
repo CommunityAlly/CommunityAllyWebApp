@@ -52,6 +52,7 @@ namespace Ally
         dwollaFundingSourceName: string;
         dwollaFundingSourceIsVerified: boolean;
         defaultDigestFrequency: string;
+        avatarUrl: string;
         dwollaAutoPayAmount: number | null;
         stripeCustomerId: string;
         stripeBankAccountId: string;

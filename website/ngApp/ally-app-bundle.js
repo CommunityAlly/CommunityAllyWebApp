@@ -142,6 +142,7 @@ var Ally;
                 subject: "",
                 body: ""
             };
+            this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
             /**
              * Retrieve the active group list
              */
@@ -212,6 +213,9 @@ var Ally;
                 paymentMethodId: "",
                 status: "Complete"
             };
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
+                this.premiumPlanExpiration = response.data.premiumPlanExpirationDate;
+            });
             this.$timeout(() => this.loadAllyAppSettings(), 100);
         }
         /**
@@ -494,9 +498,6 @@ var Ally;
                 alert("Failed to retrieve settings: " + response.data.exceptionMessage);
             });
         }
-        saveAllyAppSetting() {
-            this.$http.post("", this.editAllyAppSetting);
-        }
         onReactivateEmail() {
             this.isLoading = true;
             const getUri = `/api/AdminHelper/ClearBadEmailStatus?emailAddress=${this.reactivateEmail}`;
@@ -509,6 +510,67 @@ var Ally;
                 alert("Reactivate Failed: " + response.data.exceptionMessage);
             });
         }
+        onAddChangeLogEntry() {
+            this.isLoading = true;
+            const postUri = `/api/AllyAppChangeLog/AddNewEntry`;
+            this.$http.post(postUri, this.newAllyAppChangeLogEntry).then((response) => {
+                this.isLoading = false;
+                this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
+                alert("Successfully added new entry");
+            }, (response) => {
+                this.isLoading = false;
+                alert("Added Failed: " + response.data.exceptionMessage);
+            });
+        }
+        editAppSettingValue(curSetting) {
+            const newValue = prompt("Enter the setting's new value", curSetting.settingValue);
+            if (!newValue)
+                return;
+            curSetting.settingValue = newValue;
+            this.isLoading = true;
+            this.$http.put(`/api/AllyAppSettings/UpdateSetting`, curSetting).then(() => {
+                this.isLoading = false;
+                this.loadAllyAppSettings();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to update: " + response.data.exceptionMessage);
+            });
+        }
+        onAddNewAppSetting() {
+            const newName = prompt("Enter the new setting name");
+            if (!newName)
+                return;
+            const settingValue = prompt("Enter the new setting's value");
+            if (!settingValue)
+                return;
+            const newSetting = {
+                settingId: 0,
+                settingName: newName,
+                settingValue: settingValue,
+                settingType: "String",
+                note: null
+            };
+            this.isLoading = true;
+            this.$http.post(`/api/AllyAppSettings/AddSetting`, newSetting).then(() => {
+                this.isLoading = false;
+                this.loadAllyAppSettings();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Adding setting failed: " + response.data.exceptionMessage);
+            });
+        }
+        deleteAppSetting(curSetting) {
+            if (!confirm(`Are you sure you want to delete the '${curSetting.settingName}' setting? This cannot be undone.`))
+                return;
+            this.isLoading = true;
+            this.$http.delete(`/api/AllyAppSettings/DeleteSetting/${curSetting.settingId}`).then(() => {
+                this.isLoading = false;
+                this.loadAllyAppSettings();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Adding setting failed: " + response.data.exceptionMessage);
+            });
+        }
     }
     ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.ManageGroupsController = ManageGroupsController;
@@ -517,6 +579,13 @@ var Ally;
     class AllyAppSetting {
     }
     Ally.AllyAppSetting = AllyAppSetting;
+    class AllyAppChangeLogEntry {
+        constructor() {
+            this.addedDateUtc = new Date();
+            this.featureSize = 50;
+        }
+    }
+    Ally.AllyAppChangeLogEntry = AllyAppChangeLogEntry;
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageGroups", {
     templateUrl: "/ngApp/admin/manage-groups.html",
@@ -985,6 +1054,9 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
+//OverrideBaseApiPath = "https://7478.webappapi.mycommunityally.org/api/";
+OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -1060,6 +1132,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                         return response;
                     },
                     responseError: function (response) {
+                        //console.log( "In responseError", response );
                         const status = response.status;
                         // 401 - Unauthorized (not logged-in)
                         // 403 - Forbidden (Logged-in, but not allowed to perform the action
@@ -1127,6 +1200,15 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                             // The use is not authorized so let's clear the session data
                             $rootScope.onLogOut_ClearData();
                         }
+                        if (response.data && response.data && response.data.title && response.data.title === "One or more validation errors occurred.") {
+                            //console.log( "Retrieved model binding error" );
+                            response.data.exceptionMessage = "Invalid input data";
+                            if (response.data.errors && Object.keys(response.data.errors).length > 0) {
+                                const invalidFields = Object.keys(response.data.errors);
+                                response.data.exceptionMessage += ", fields: " + invalidFields.join(", ");
+                            }
+                            ;
+                        }
                         // If we didn't handle the response up above then simply reject it
                         return $q.reject(response);
                     }
@@ -1185,8 +1267,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
             }]);
         $httpProvider.interceptors.push("apiUriInterceptor");
     }]);
-CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage",
-    function ($rootScope, $http, $sce, $location, $templateCache, $cacheFactory, xdLocalStorage) {
+CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache", "$cacheFactory", "xdLocalStorage", "$timeout",
+    function ($rootScope, $http, $sce, $location, $templateCache, $cacheFactory, xdLocalStorage, $timeout) {
         $rootScope.bgImagePath = "/assets/images/Backgrounds/";
         $rootScope.appConfig = AppConfig;
         $rootScope.isLoggedIn = false;
@@ -1313,6 +1395,20 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                 }
             }
         });
+        // Check if the site is shutting down
+        $timeout(() => {
+            $http.get("/api/PublicAllyAppSettings/IsEndOfLifeEnabled").then((response) => {
+                if (response.data.isEndOfLife) {
+                    console.log("IsEndOfLifeEnabled", response.data.isEndOfLife);
+                    $rootScope.isEndOfLifeEnabled = true;
+                    $rootScope.isEndOfLifeEnabled2 = true; // Just an extra safeguard before we show the banner because it's very serious if the banner is shown by mistake
+                    $rootScope.endOfLifeMessageHtml = response.data.messageHtml;
+                }
+            });
+        }, 500);
+        $rootScope.closeEndOfLife = function () {
+            $rootScope.isEndOfLifeEnabled = false;
+        };
     }
 ]);
 //CA.angularApp.provider( '$exceptionHandler', {
@@ -1466,6 +1562,7 @@ const CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "GroupRedirect/:appName/:shortName", templateHtml: "<group-redirect></group-redirect>", role: Role_All }),
         new Ally.RoutePath_v3({ path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", menuTitle: null, role: Role_All }),
         new Ally.RoutePath_v3({ path: "Page/:slug", templateHtml: "<custom-page-view></custom-page-view>", menuTitle: null, role: Role_All }),
+        new Ally.RoutePath_v3({ path: "CollectiveCounponTest", templateHtml: "<collective-coupon-detail></collective-coupon-detail>", menuTitle: null, role: Role_All }),
         // Manager pages
         new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
@@ -1730,6 +1827,7 @@ var Ally;
     }
     class SpecialAssessmentEntry {
     }
+    Ally.SpecialAssessmentEntry = SpecialAssessmentEntry;
     /**
      * The controller for the page to view resident assessment payment history
      */
@@ -1737,11 +1835,12 @@ var Ally;
         /**
         * The constructor for the class
         */
-        constructor($http, $location, siteInfo, appCacheService) {
+        constructor($http, $location, siteInfo, appCacheService, $timeout) {
             this.$http = $http;
             this.$location = $location;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
+            this.$timeout = $timeout;
             this.LocalStorageKey_ShowPaymentInfo = "AssessmentHistory_ShowPaymentInfo";
             this.LocalStorageKey_ShouldColorCodePayments = "AssessmentHistory_ColorCodePayment";
             this.LocalStorageKey_ShowBalanceCol = "AssessmentHistory_ShowBalanceCol";
@@ -2069,7 +2168,12 @@ var Ally;
                 startDate = temp;
                 didSwapDates = true;
             }
-            const entries = this.specialAssessments.filter(e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime());
+            const sortEntry = (a, b) => {
+                return a.assessmentDate < b.assessmentDate ? -1 : 1;
+            };
+            const entries = this.specialAssessments
+                .filter(e => e.assessmentDate.getTime() >= startDate.getTime() && e.assessmentDate.getTime() < endDate.getTime())
+                .sort(sortEntry);
             if (didSwapDates)
                 entries.reverse();
             return entries;
@@ -2416,6 +2520,12 @@ var Ally;
         onExportClick(type) {
             // Get a new view token in case the user clicks export again
             window.setTimeout(() => this.$http.get("/api/DocumentLink/0").then((response) => this.viewExportViewId = response.data.vid), 500);
+            const numRows = this.showRowType === 'member' ? this.payers.length : this.nameSortedUnitPayments.length;
+            const isCsv = type === "csv";
+            const estimatedDelaySecs = Math.max((isCsv ? 0.015 : 0.088) * numRows, isCsv ? 2 : 5);
+            // Show a loading overlay to indicate we're running
+            this.isLoading = true;
+            this.$timeout(() => this.isLoading = false, estimatedDelaySecs * 1000);
             analytics.track('exportAssessment' + type);
             return true;
         }
@@ -2459,6 +2569,8 @@ var Ally;
                 const unitContainsFilter = (unit) => {
                     if (unit.name.toLowerCase().indexOf(lowerFilter) !== -1)
                         return true;
+                    if (unit.lotNumber && unit.lotNumber.toLowerCase().indexOf(lowerFilter) !== -1)
+                        return true;
                     // Use displayOwners instead of owners because it's confusing to show results
                     // that don't match the filter
                     //if( unit.owners && unit.owners.length > 0 )
@@ -2472,7 +2584,7 @@ var Ally;
             }
         }
     }
-    AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService"];
+    AssessmentHistoryController.$inject = ["$http", "$location", "SiteInfo", "appCacheService", "$timeout"];
     AssessmentHistoryController.PeriodicPaymentFrequency_Monthly = 50;
     AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly = 51;
     AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually = 52;
@@ -6247,12 +6359,13 @@ var Ally;
          */
         loadSettings() {
             this.isLoadingSettings = true;
-            this.$http.get("/api/Settings").then((response) => {
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
                 this.isLoadingSettings = false;
                 this.residentSettings = response.data;
                 // Update the SiteInfoService so the privateSiteInfo properties reflects changes
                 this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
                 this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
+                this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
             }, (response) => {
                 this.isLoadingSettings = false;
                 console.log("Failed to retrieve settings: " + response.data.exceptionMessage);
@@ -6479,13 +6592,14 @@ var Ally;
         saveResidentSettings() {
             analytics.track("editResidentSettings");
             this.isLoadingSettings = true;
-            this.$http.put("/api/Settings", this.residentSettings).then(() => {
+            this.$http.put("/api/Settings/UpdateSiteSettings", this.residentSettings).then(() => {
                 this.isLoadingSettings = false;
                 // Update the fellow residents page next time we're there
                 this.fellowResidents.clearResidentCache();
                 // Update the locally cached settings to match the saved values
                 this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
                 this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
+                this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
             }, () => {
                 this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");
@@ -7171,7 +7285,7 @@ var Ally;
          */
         refreshData() {
             this.isLoading = true;
-            this.$http.get("/api/Settings").then((response) => {
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
                 this.isLoading = false;
                 this.settings = response.data;
                 this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
@@ -7269,6 +7383,9 @@ var Ally;
             // Tell Stripe to populate the card info area
             if (this.paymentType === "creditCard")
                 this.$timeout(() => this.initStripePayment(), 250);
+            // If they want to pay via invoice, prep a doc view token to open the PDF
+            else if (this.paymentType === "invoice")
+                this.$timeout(() => this.$http.get("/api/DocumentLink/0").then((response) => this.viewPremiumInvoiceViewId = response.data.vid), 1);
         }
         disconnectBankAccount() {
             this.isLoading = true;
@@ -7372,6 +7489,9 @@ var Ally;
             this.siteDesignSettings = new Ally.SiteDesignSettings();
             this.isCustomLoaded = false;
             this.headerBgType = "classic";
+            this.siteBgType = "color";
+            this.siteBgColor = "#ffffff";
+            this.siteBgColor2 = "#ffffff";
             this.headerBgColor = "#eee";
             this.isSaving = false;
         }
@@ -7384,6 +7504,7 @@ var Ally;
                 this.siteDesignSettings = Ally.SiteDesignSettings.GetDefault();
             else
                 this.siteDesignSettings = JSON.parse(this.siteInfo.publicSiteInfo.siteDesignSettingsJson);
+            this.populateBgColorFromPreset();
             this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             // Hook up the file upload control after everything is loaded and setup
@@ -7409,6 +7530,7 @@ var Ally;
             }
             this.$rootScope.siteDesignSettings = this.siteDesignSettings;
             window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, JSON.stringify(this.siteDesignSettings));
+            // Populate the header BG setting
             if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgClassic)
                 this.headerBgType = "classic";
             else if (this.siteDesignSettings.headerBg === Ally.SiteDesignSettings.HeaderBgPink)
@@ -7417,9 +7539,45 @@ var Ally;
                 this.headerBgType = "color";
                 this.headerBgColor = this.siteDesignSettings.headerBg;
             }
+            // Populate the site BG setting
+            this.populateBgColorFromPreset();
             Ally.SiteDesignSettings.ApplySiteDesignSettings(this.siteDesignSettings);
             this.previousChangeSiteDesignSettings = { ...this.siteDesignSettings };
             this.saveSettings();
+        }
+        populateBgColorFromPreset() {
+            if (this.siteDesignSettings.background && this.siteDesignSettings.background.endsWith(Ally.SiteDesignSettings.SiteBgImgHexagons)) {
+                if (this.siteDesignSettings.background.indexOf(" ") > 1)
+                    this.siteBgColor = this.siteDesignSettings.background.split(" ")[0];
+                this.siteBgType = "hexagons";
+            }
+            else if (this.siteDesignSettings.background && this.siteDesignSettings.background.endsWith(Ally.SiteDesignSettings.SiteBgImgPinstripes)) {
+                if (this.siteDesignSettings.background.indexOf(" ") > 1)
+                    this.siteBgColor = this.siteDesignSettings.background.split(" ")[0];
+                this.siteBgType = "pinstripes";
+            }
+            else if (this.siteDesignSettings.background && this.siteDesignSettings.background.startsWith(SiteDesignSettingsController.LinearGradientPrefix)) {
+                this.splitLinearGradientString(this.siteDesignSettings.background);
+                this.siteBgType = "linearGradient";
+            }
+            else {
+                this.siteBgType = "color";
+                this.siteBgColor = this.siteDesignSettings.background;
+            }
+        }
+        splitLinearGradientString(linearGradient) {
+            if (!linearGradient || !linearGradient.startsWith(SiteDesignSettingsController.LinearGradientPrefix))
+                return;
+            const trimmed = linearGradient.substring(SiteDesignSettingsController.LinearGradientPrefix.length);
+            const splitParts = trimmed.split(" 0%, #");
+            if (splitParts.length !== 2)
+                return;
+            this.siteBgColor2 = "#" + splitParts[0];
+            const endIndex = splitParts[1].indexOf(" ");
+            if (endIndex === -1)
+                return;
+            this.siteBgColor = "#" + splitParts[1].substring(0, endIndex);
+            //console.log( "splitLinearGradientString", this.siteBgColor, this.siteBgColor2 );
         }
         saveSettings() {
             this.isSaving = true;
@@ -7544,8 +7702,24 @@ var Ally;
             }
             this.onCustomSettingChanged();
         }
+        onCustomSiteBgChanged() {
+            if (this.siteBgType === "hexagons") {
+                this.siteDesignSettings.background = this.siteBgColor + " " + Ally.SiteDesignSettings.SiteBgImgHexagons;
+            }
+            else if (this.siteBgType === "pinstripes") {
+                this.siteDesignSettings.background = this.siteBgColor + " " + Ally.SiteDesignSettings.SiteBgImgPinstripes;
+            }
+            else if (this.siteBgType === "linearGradient") {
+                this.siteDesignSettings.background = `linear-gradient(0deg, ${this.siteBgColor2} 0%, ${this.siteBgColor} 100%)`;
+            }
+            else {
+                this.siteDesignSettings.background = this.siteBgColor;
+            }
+            this.onCustomSettingChanged();
+        }
     }
     SiteDesignSettingsController.$inject = ["$http", "SiteInfo", "$rootScope", "$timeout", "$scope"];
+    SiteDesignSettingsController.LinearGradientPrefix = "linear-gradient(0deg, #";
     Ally.SiteDesignSettingsController = SiteDesignSettingsController;
     class UpdateDesignSettings {
     }
@@ -7570,6 +7744,7 @@ var Ally;
      * The controller for the page to view group site settings
      */
     class ChtnSettingsController {
+        //static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
         /**
          * The constructor for the class
          */
@@ -7582,11 +7757,10 @@ var Ally;
             this.originalSettings = new ChtnSiteSettings();
             this.isLoading = false;
             this.showRightColumnSetting = true;
-            this.showLocalNewsSetting = false;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
-            this.shouldShowLoginMoved = false;
             this.tinyMceDidNotLoad = false;
+            this.shouldShowBulletinBoardOptions = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -7596,9 +7770,8 @@ var Ally;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
-            this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
-            this.shouldShowLoginMoved = this.siteInfo.privateSiteInfo.creationDate < ChtnSettingsController.MovedLoginImageDate;
+            this.shouldShowBulletinBoardOptions = this.siteInfo.publicSiteInfo.shortName === "qa";
             this.refreshData();
         }
         /**
@@ -7606,7 +7779,7 @@ var Ally;
          */
         refreshData() {
             this.isLoading = true;
-            this.$http.get("/api/Settings").then((response) => {
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
                 this.isLoading = false;
                 this.settings = response.data;
                 this.originalSettings = _.clone(response.data);
@@ -7709,7 +7882,6 @@ var Ally;
         }
     }
     ChtnSettingsController.$inject = ["$http", "SiteInfo", "$scope", "$rootScope"];
-    ChtnSettingsController.MovedLoginImageDate = new Date(2024, 3, 25); // Groups created after April 24, 2024 always have discussion enabled
     Ally.ChtnSettingsController = ChtnSettingsController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnSiteSettings", {
@@ -7827,11 +7999,14 @@ var Ally;
             this.$routeParams = $routeParams;
             this.$sce = $sce;
             this.showDiscussionThreads = false;
+            this.shouldShowBulletinBoard = false;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
             this.shouldShowOwnerFinanceTxn = false;
             this.userFirstName = "";
+            this.shouldShowAppChangeModal = false;
+            this.appChanges = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -7871,6 +8046,7 @@ var Ally;
             }
             if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
+            this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", () => innerThis.shouldShowAlertSection = true);
             this.$http.get("/api/Committee/MyCommittees", { cache: true }).then((response) => {
@@ -7899,6 +8075,16 @@ var Ally;
         hideFirstVisit() {
             this.$rootScope.hasClosedFirstVisitModal = true;
             this.showFirstVisitModal = false;
+        }
+        showAppChanges() {
+            this.shouldShowAppChangeModal = true;
+            if (!this.appChanges) {
+                this.$http.get("/api/AllyAppChangeLog/FullLog").then((response) => {
+                    this.appChanges = response.data;
+                }, (errorResponse) => {
+                    alert("Failed to load changes: " + errorResponse.data.exceptionMessage);
+                });
+            }
         }
     }
     ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
@@ -7932,6 +8118,7 @@ var Ally;
             this.hoaHomes = [];
             this.tips = [];
             this.isLoading = false;
+            this.isMovingHomes = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -7956,10 +8143,9 @@ var Ally;
             }
             var addressInput = document.getElementById("edit-location-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
-            google.maps.event.addListener(this.addressAutocomplete, 'place_changed', function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                innerThis.editingTip.address = place.formatted_address;
+            google.maps.event.addListener(this.addressAutocomplete, 'place_changed', () => {
+                var place = this.addressAutocomplete.getPlace();
+                this.editingTip.address = place.formatted_address;
             });
             this.retrieveHoaHomes();
             var innerThis = this;
@@ -7973,16 +8159,24 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/WelcomeTip").then((httpResponse) => {
                 this.tips = httpResponse.data;
-                MapCtrlMapMgr.ClearAllMarkers();
-                if (AppConfig.appShortName === "condo")
-                    MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
+                this.populateAllMarkers();
+                this.isLoading = false;
+            });
+        }
+        populateAllMarkers() {
+            MapCtrlMapMgr.ClearAllMarkers();
+            if (AppConfig.appShortName === "condo")
+                MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, ChtnMapController.HomeMarkerUnitId);
+            if (!this.isMovingHomes) {
                 for (var locationIndex = 0; locationIndex < this.tips.length; ++locationIndex) {
                     var curLocation = this.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
                     curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
                 }
-                // Add HOA homes
+            }
+            // Add HOA homes
+            if (this.hoaHomes && this.hoaHomes.length > 0 && AppConfig.appShortName === "hoa") {
                 _.each(this.hoaHomes, (home) => {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
                         var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
@@ -7994,9 +8188,12 @@ var Ally;
                         MapCtrlMapMgr.AddMarker(home.fullAddress.gpsPos.lat, home.fullAddress.gpsPos.lon, markerText, markerIcon, home.unitId);
                     }
                 });
-                MapCtrlMapMgr.OnMarkersReady();
-                this.isLoading = false;
-            });
+            }
+            MapCtrlMapMgr.OnMarkersReady();
+            if (this.isMovingHomes) {
+                for (let i = 0; i < MapCtrlMapMgr._markers.length; ++i)
+                    MapCtrlMapMgr.SetMarkerDraggable(i, true);
+            }
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the button to edit a tip
@@ -8082,17 +8279,48 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Move a marker's position
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        updateItemGpsLocation(markerIndex, lat, lon) {
-            var tip = _.find(this.tips, function (t) { return t.markerIndex === markerIndex; });
-            var updateInfo = {
-                itemId: tip.itemId,
-                newLat: lat,
-                newLon: lon
-            };
+        updateItemGpsLocation(marker, lat, lon) {
+            const markerIndex = marker.markerIndex;
+            let updateInfo;
+            let putUri;
+            if (this.isMovingHomes) {
+                const unitId = marker.unitId;
+                if (unitId) {
+                    let fullAddressId;
+                    // If the user moved the home marker, update the group address
+                    if (unitId === ChtnMapController.HomeMarkerUnitId)
+                        fullAddressId = this.siteInfo.privateSiteInfo.groupAddress.addressId;
+                    else {
+                        const home = this.hoaHomes.find(h => h.unitId === unitId);
+                        if (home)
+                            fullAddressId = home.addressId;
+                    }
+                    if (fullAddressId) {
+                        putUri = "/api/WelcomeTip/UpdateHomeGpsLocation";
+                        updateInfo = {
+                            itemId: fullAddressId,
+                            newLat: lat,
+                            newLon: lon
+                        };
+                    }
+                }
+            }
+            else {
+                const tip = _.find(this.tips, function (t) { return t.markerIndex === markerIndex; });
+                if (tip) {
+                    putUri = "/api/WelcomeTip/UpdateGpsLocation";
+                    updateInfo = {
+                        itemId: tip.itemId,
+                        newLat: lat,
+                        newLon: lon
+                    };
+                }
+            }
+            if (!putUri)
+                return;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.put("/api/WelcomeTip/UpdateGpsLocation", updateInfo).then(function () {
-                innerThis.isLoading = false;
+            this.$http.put(putUri, updateInfo).then(() => {
+                this.isLoading = false;
             });
         }
         /**
@@ -8130,8 +8358,17 @@ var Ally;
                 this.refresh();
             });
         }
+        enableMovingHomes(shouldEnable) {
+            if (!shouldEnable) {
+                window.location.reload();
+                return;
+            }
+            this.isMovingHomes = shouldEnable;
+            this.populateAllMarkers();
+        }
     }
     ChtnMapController.$inject = ["$scope", "$timeout", "$http", "SiteInfo", "appCacheService"];
+    ChtnMapController.HomeMarkerUnitId = -5;
     Ally.ChtnMapController = ChtnMapController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("chtnMap", {
@@ -8151,12 +8388,12 @@ class MapCtrlMapMgr {
         MapCtrlMapMgr._homeGpsPos = siteInfo.privateSiteInfo.googleGpsPosition;
         MapCtrlMapMgr._groupGpsBounds = siteInfo.privateSiteInfo.gpsBounds;
         // Create the map centered at our home
-        var myOptions = {
+        const mapOptions = {
             center: MapCtrlMapMgr._homeGpsPos,
             zoom: 25,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        MapCtrlMapMgr._mainMap = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        MapCtrlMapMgr._mainMap = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
         // Add our home marker
         if (AppConfig.appShortName === "condo")
             MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
@@ -8179,9 +8416,10 @@ class MapCtrlMapMgr {
             MapCtrlMapMgr.OnMapAndMarkersReady();
     }
     static OnMapAndMarkersReady() {
+        MapCtrlMapMgr.ClearAllMarkers();
         for (var markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex) {
-            var tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
-            var markerImageUrl = null;
+            const tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
+            let markerImageUrl = null;
             if (tempMarker.markerNumber >= 1 && tempMarker.markerNumber <= 10)
                 markerImageUrl = "/assets/images/MapMarkers/green_" + tempMarker.markerNumber + ".png";
             else if (tempMarker.markerNumber === MapCtrlMapMgr.MarkerNumber_Home)
@@ -8206,17 +8444,20 @@ class MapCtrlMapMgr {
                 var marker = this;
                 var gpsPos = marker.getPosition();
                 MapCtrlMapMgr.ngScope.$apply(function () {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker.markerIndex, gpsPos.lat(), gpsPos.lng());
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker, gpsPos.lat(), gpsPos.lng());
                 });
             });
             if (tempMarker.unitId) {
                 marker.unitId = tempMarker.unitId;
-                marker.addListener('click', function (innerMarker) {
-                    return function () {
-                        MapCtrlMapMgr.mapCtrl.appCacheService.set("scrollToUnitId", innerMarker.unitId.toString());
-                        window.location.hash = "#!/BuildingResidents";
-                    };
-                }(marker));
+                // If we're not moving home markers then add a click handler to navigate to the building residents page
+                if (MapCtrlMapMgr.mapCtrl && !MapCtrlMapMgr.mapCtrl.isMovingHomes) {
+                    marker.addListener('click', function (innerMarker) {
+                        return function () {
+                            MapCtrlMapMgr.mapCtrl.appCacheService.set("scrollToUnitId", innerMarker.unitId.toString());
+                            window.location.hash = "#!/BuildingResidents";
+                        };
+                    }(marker));
+                }
             }
             MapCtrlMapMgr._markers.push(marker);
         }
@@ -8925,12 +9166,12 @@ var Ally;
                         const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
                         //    maxDaysBack = moment( clickedDate ).diff( moment(), 'day' );
-                        const eventDetails = {
-                            date: clickedDate,
-                            dateOnly: clickedDate,
-                            associatedUserIds: [],
-                            notificationEmailDaysBefore: maxDaysBack
-                        };
+                        const eventDetails = new CalendarEvent();
+                        eventDetails.dateOnly = clickedDate;
+                        eventDetails.associatedUserIds = [];
+                        eventDetails.notificationEmailDaysBefore = maxDaysBack;
+                        eventDetails.repeatType = null;
+                        eventDetails.repeatFrequency = 1;
                         this.setEditEvent(eventDetails, false);
                     });
                 },
@@ -8938,6 +9179,26 @@ var Ally;
                     this.$scope.$apply(() => {
                         if (event.calendarEventObject) {
                             this.viewEvent = event.calendarEventObject;
+                            if (this.viewEvent.repeatRule) {
+                                const parsedRule = new rrule.rrulestr(this.viewEvent.repeatRule);
+                                this.viewEvent.repeatViewLabel = "Every ";
+                                if (parsedRule.options.interval > 1)
+                                    this.viewEvent.repeatViewLabel += parsedRule.options.interval + " ";
+                                if (parsedRule.options.freq === rrule.RRule.DAILY)
+                                    this.viewEvent.repeatViewLabel += "day";
+                                else if (parsedRule.options.freq === rrule.RRule.WEEKLY)
+                                    this.viewEvent.repeatViewLabel += "week";
+                                else if (parsedRule.options.freq === rrule.RRule.MONTHLY)
+                                    this.viewEvent.repeatViewLabel += "month";
+                                else if (parsedRule.options.freq === rrule.RRule.YEARLY)
+                                    this.viewEvent.repeatViewLabel += "year";
+                                if (parsedRule.options.interval > 1)
+                                    this.viewEvent.repeatViewLabel += "s";
+                                if (this.viewEvent.repeatUntilDate)
+                                    this.viewEvent.repeatViewLabel += " until " + moment(this.viewEvent.repeatUntilDate).format("MMM D, YYYY");
+                            }
+                            else
+                                this.viewEvent.repeatViewLabel = null;
                             //if( this.$rootScope.isSiteManager )
                             //    this.setEditEvent( event.calendarEventObject, true );
                             //else
@@ -8963,7 +9224,8 @@ var Ally;
                         }
                     });
                 },
-                eventSources: [{
+                eventSources: [
+                    {
                         events: (start, end, timezone, callback) => {
                             this.getAssociationEvents(start, end, timezone, callback);
                         }
@@ -8972,7 +9234,8 @@ var Ally;
                         events: (start, end, timezone, callback) => {
                             this.getCalendarEvents(start, end, timezone, callback);
                         }
-                    }]
+                    }
+                ]
             };
             $(document).ready(function () {
                 $('.EditableEntry').editable('<%= Request.Url %>', {
@@ -8982,7 +9245,7 @@ var Ally;
                     submit: 'Ok'
                 });
                 //$( ".collapsibleContainer" ).collapsiblePanel();
-                $('#log-calendar').fullCalendar(uiConfig);
+                $('#full-calendar-elem').fullCalendar(uiConfig);
                 $('#calendar-event-time').timepicker({ 'scrollDefault': '10:00am' });
                 $(".fc-bg td.fc-today").append("<div class='today-note'>Today</div>");
             });
@@ -9114,7 +9377,7 @@ var Ally;
                     if (isAllDay) {
                         entry.timeOnly = "";
                         entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
-                        dateEntry = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
+                        dateEntry = entry.dateOnly;
                     }
                     else {
                         const localDate = moment.utc(entry.eventDateUtc).local();
@@ -9155,14 +9418,27 @@ var Ally;
             else
                 this.editEvent.associatedUserIds.push(resident.userId);
         }
-        isDateInPast(date) {
-            const momentDate = moment(date);
+        /**
+         * Used to determine if the given event is in the past and if allow notifications to be
+         * sent. Events in the past can't have notifications sent since there's no point.
+         */
+        isDateInPast(calendarEvent) {
+            if (!calendarEvent)
+                return false;
+            let testDate = calendarEvent.dateOnly;
+            if (calendarEvent.repeatRule) {
+                // If this event never ends then we can always enable notifications
+                if (!calendarEvent.repeatUntilDate)
+                    return false;
+                testDate = calendarEvent.repeatUntilDate;
+            }
+            const momentDate = moment(testDate);
             const today = moment();
             return momentDate.isBefore(today, 'day') || momentDate.isSame(today, 'day');
         }
         onShouldSendChange() {
             // Don't allow the user to send remdiner emails for past dates
-            if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent.dateOnly))
+            if (this.editEvent.shouldSendNotification && this.isDateInPast(this.editEvent))
                 this.editEvent.shouldSendNotification = false;
             else if (!this.editEvent.notificationEmailDaysBefore)
                 this.editEvent.notificationEmailDaysBefore = 1;
@@ -9230,6 +9506,21 @@ var Ally;
                     this.associatedGroups.forEach(ag => ag.isAssociated = false);
                 this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(ag => ag.isAssociated).map(ag => ag.groupShortName);
                 this.editEvent.shouldSendNotification = this.editEvent.notificationEmailDaysBefore !== null;
+                // Ensure a valid repeat frequency
+                if (this.editEvent.repeatRule) {
+                    const parsedRule = new rrule.rrulestr(this.editEvent.repeatRule);
+                    this.editEvent.repeatType = parsedRule.options.freq;
+                    this.editEvent.repeatFrequency = parsedRule.options.interval;
+                    // If we're edting a repeat instance of an event, use the original date
+                    if (this.editEvent.repeatOriginalDate) {
+                        this.editEvent.eventDateUtc = this.editEvent.repeatOriginalDate;
+                        this.editEvent.dateOnly = moment(this.editEvent.eventDateUtc).clone().startOf('day').toDate();
+                    }
+                }
+                else {
+                    this.editEvent.repeatType = null;
+                    this.editEvent.repeatFrequency = 1;
+                }
                 // Set focus on the title so it's user friendly and ng-escape needs an input focused
                 // to work
                 setTimeout(function () { $("#calendar-event-title").focus(); }, 10);
@@ -9248,7 +9539,7 @@ var Ally;
                 this.isLoadingCalendarEvents = false;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
-                $('#log-calendar').fullCalendar('refetchEvents');
+                $('#full-calendar-elem').fullCalendar('refetchEvents');
             }, () => {
                 this.isLoadingCalendarEvents = false;
                 alert("Failed to delete the calendar event.");
@@ -9316,7 +9607,7 @@ var Ally;
                 this.isLoadingCalendarEvents = false;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
-                $('#log-calendar').fullCalendar('refetchEvents');
+                $('#full-calendar-elem').fullCalendar('refetchEvents');
             }, (httpResponse) => {
                 this.isLoadingCalendarEvents = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
@@ -9348,7 +9639,7 @@ var Ally;
                     this.isLoadingCalendarEvents = false;
                     clearFile();
                     this.onlyRefreshCalendarEvents = true;
-                    $('#log-calendar').fullCalendar('refetchEvents');
+                    $('#full-calendar-elem').fullCalendar('refetchEvents');
                 }, (response) => {
                     this.isLoadingCalendarEvents = false;
                     alert("Failed to import file: " + response.data.exceptionMessage);
@@ -9367,6 +9658,47 @@ var Ally;
                 alert("Failed to parse file: " + response.data.exceptionMessage);
                 clearFile();
             });
+        }
+        onRepeatSettingChange() {
+            const repeatRule = this.getRepeatRule();
+            if (repeatRule)
+                this.editEvent.repeatRule = repeatRule.toString();
+            else
+                this.editEvent.repeatRule = null;
+        }
+        getRepeatRule() {
+            if (!this.editEvent || this.editEvent.repeatType === null)
+                return null;
+            let rruleRepeatType;
+            rruleRepeatType = this.editEvent.repeatType;
+            //if( this.editEvent.repeatType === "daily" )
+            //    rruleRepeatType = rrule.RRule.DAILY; // 3
+            //else if( this.editEvent.repeatType === "weekly" )
+            //    rruleRepeatType = rrule.RRule.WEEKLY; // 2
+            //else if( this.editEvent.repeatType === "monthly" )
+            //    rruleRepeatType = rrule.RRule.MONTHLY; // 1
+            //else if( this.editEvent.repeatType === "yearly" )
+            //    rruleRepeatType = rrule.RRule.YEARLY;
+            //else
+            //    return null;
+            const dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;
+            this.editEvent.eventDateUtc = moment(dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat).utc().toDate();
+            const rule = new rrule.RRule({
+                freq: rruleRepeatType,
+                interval: this.editEvent.repeatFrequency || 1,
+                //byweekday: [RRule.MO, RRule.FR],
+                dtstart: this.editEvent.eventDateUtc,
+                until: this.editEvent.repeatUntilDate
+            });
+            //const result = new rrule.rrulestr( "FREQ=YEARLY;UNTIL=99991231T235959;BYDAY=4TH;BYMONTH=11" );
+            return rule;
+        }
+        getRepeatDatePreview() {
+            const repeatRule = this.getRepeatRule();
+            repeatRule.options.count = 10;
+            const occuranceDates = repeatRule.all();
+            const dateStrings = occuranceDates.map(od => moment(od).format("ddd, MMM D YYYY, h:mm:ssa"));
+            return dateStrings.join("\n");
         }
     }
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
@@ -9766,6 +10098,63 @@ var Ally;
 CA.angularApp.component("myProfile", {
     templateUrl: "/ngApp/chtn/member/my-profile.html",
     controller: Ally.MyProfileController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the page to view a collective coupon
+     */
+    class CollectiveCouponDetailController {
+        /**
+         * The constructor for the class
+         */
+        constructor($http) {
+            this.$http = $http;
+            this.isLoading = false;
+            this.collectiveCouponId = "123";
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        $onInit() {
+            const mapOptions = {
+                center: new google.maps.LatLng(39.883, -104.7848),
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.SATELLITE
+            };
+            const mapElem = document.getElementById("google-map-panel");
+            this.whereMap = new google.maps.Map(mapElem, mapOptions);
+            const communityCoords = [
+                { lat: 39.9000325, lng: -104.7805823 },
+                { lat: 39.8999667, lng: -104.8014391 },
+                { lat: 39.8954231, lng: -104.8052157 },
+                { lat: 39.895489, lng: -104.8095072 },
+                { lat: 39.8916037, lng: -104.8091639 },
+                { lat: 39.8856765, lng: -104.7981776 },
+                { lat: 39.8797489, lng: -104.7968043 },
+                { lat: 39.8711199, lng: -104.7849596 },
+                { lat: 39.8705929, lng: -104.7732867 },
+                { lat: 39.8927891, lng: -104.7738017 },
+                { lat: 39.9000325, lng: -104.7805823 }
+            ];
+            const communityPoly = new google.maps.Polygon({
+                paths: communityCoords,
+                strokeColor: "#0000FF",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#0000FF",
+                fillOpacity: 0.25,
+            });
+            communityPoly.setMap(this.whereMap);
+        }
+    }
+    CollectiveCouponDetailController.$inject = ["$http", "SiteInfo", "$cacheFactory"];
+    Ally.CollectiveCouponDetailController = CollectiveCouponDetailController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("collectiveCouponDetail", {
+    templateUrl: "/ngApp/chtn/public/collective-coupon-detail.html",
+    controller: Ally.CollectiveCouponDetailController
 });
 
 /// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
@@ -11049,6 +11438,7 @@ var Ally;
             this.initialView = "Home";
             this.selectedView = null;
             this.isLoading = false;
+            this.hideDocuments = false;
             this.committeeId = this.$routeParams.committeeId;
             this.initialView = this.$routeParams.viewName || "Home";
         }
@@ -11057,6 +11447,7 @@ var Ally;
         */
         $onInit() {
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            this.hideDocuments = this.siteInfo.userInfo.isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.retrieveCommittee();
         }
         /*
@@ -11288,6 +11679,7 @@ var Ally;
             this.shouldShowStripeAchRefresh = false;
             this.isUpgradingStripePaymentForAutoPay = false;
             this.pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
+            this.activeSpecialAssessments = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -11440,19 +11832,11 @@ var Ally;
                     amount: this.assessmentAmount,
                     note: "",
                     fundingType: null,
-                    paysFor: []
+                    paysFor: [],
+                    specialAssessmentId: null
                 };
             this.onPaymentAmountChange();
             this.stripeAutoPayFeeAmountString = this.stripeAchFeeAmountString;
-            const MaxNumRecentPayments = 24;
-            this.historicPayments = this.siteInfo.userInfo.recentPayments;
-            if (this.historicPayments && this.historicPayments.length > 0) {
-                if (this.historicPayments.length > MaxNumRecentPayments)
-                    this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
-                // Fill up the list so there's always MaxNumRecentPayments
-                //while( this.historicPayments.length < MaxNumRecentPayments )
-                //    this.historicPayments.push( {} );
-            }
             // If the user lives in a unit and assessments are enabled
             if (this.siteInfo.privateSiteInfo.assessmentFrequency != null
                 && this.siteInfo.userInfo.usersUnits != null
@@ -11462,7 +11846,7 @@ var Ally;
                     this.knowsNextPayment = true;
                     this.errorPayInfoText = "Is the amount or date incorrect?";
                     this.nextPaymentText = this.getNextPaymentText(this.siteInfo.userInfo.usersUnits[0].nextAssessmentDue, this.siteInfo.privateSiteInfo.assessmentFrequency);
-                    this.updatePaymentText();
+                    this.updatePaymentText(null);
                 }
             }
             //if( this.isStripeEnabledOnGroup )
@@ -11484,6 +11868,20 @@ var Ally;
             //        $( this ).parent().hide( '' );
             //    } );
             //}, 400 );
+            this.$http.get("/api/MemberOnlinePayment/MyPaymentAreaInfo").then((response) => {
+                const MaxNumRecentPayments = 24;
+                this.historicPayments = response.data.recentPayments;
+                if (this.historicPayments && this.historicPayments.length > 0) {
+                    if (this.historicPayments.length > MaxNumRecentPayments)
+                        this.historicPayments = this.historicPayments.slice(0, MaxNumRecentPayments);
+                    // Fill up the list so there's always MaxNumRecentPayments
+                    //while( this.historicPayments.length < MaxNumRecentPayments )
+                    //    this.historicPayments.push( {} );
+                }
+                this.activeSpecialAssessments = response.data.specialAssessments || [];
+            }, (errorResponse) => {
+                console.log("Failed to load user's payment info: " + errorResponse.data.exceptionMessage);
+            });
         }
         /**
          * Display the Paragon payment sign-up modal, with pre-population of data
@@ -11646,7 +12044,7 @@ var Ally;
         /**
          * Refresh the note text for the payment field
          */
-        updatePaymentText() {
+        updatePaymentText(specialAssessment) {
             if (this.paymentInfo.paymentType === "periodic" && this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled) {
                 // If we have a next payment string
                 if (!HtmlUtil.isNullOrWhitespace(this.nextPaymentText)) {
@@ -11657,6 +12055,9 @@ var Ally;
                     this.paymentInfo.note += this.nextPaymentText;
                 }
             }
+            else if (this.paymentInfo.paymentType === "special" && specialAssessment) {
+                this.paymentInfo.note = `Special assessment payment for '${specialAssessment.assessmentName}'`;
+            }
             else {
                 this.paymentInfo.note = "";
             }
@@ -11664,10 +12065,14 @@ var Ally;
         /**
          * Occurs when the user selects a payment type radio button
          */
-        onSelectPaymentType(paymentType) {
+        onSelectPaymentType(paymentType, specialAssessment = null) {
             this.paymentInfo.paymentType = paymentType;
             this.paymentInfo.amount = paymentType == "periodic" ? this.assessmentAmount : 0;
-            this.updatePaymentText();
+            if (specialAssessment) {
+                this.paymentInfo.specialAssessmentId = specialAssessment.specialAssessmentId;
+                this.paymentInfo.amount = specialAssessment.amount || 0;
+            }
+            this.updatePaymentText(specialAssessment);
             this.onPaymentAmountChange();
         }
         /**
@@ -12445,6 +12850,8 @@ var Ally;
     }
     AssessmentPaymentFormController.$inject = ["$http", "SiteInfo", "$rootScope", "$sce", "$timeout", "$q", "$scope"];
     Ally.AssessmentPaymentFormController = AssessmentPaymentFormController;
+    class MyPaymentAreaInfo {
+    }
     class StripeAchStartResult {
     }
     class CheckoutRequest {
@@ -13705,7 +14112,8 @@ var Ally;
             this.defaultSubject = "A message from your neighbor";
             this.memberLabel = "resident";
             this.memberPageName = "Residents";
-            this.shouldShowSendAsBoard = false;
+            this.allSendAsOptions = [];
+            this.filteredSendAsOptions = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -13732,6 +14140,11 @@ var Ally;
                     this.defaultSubject = "A message from your neighbor";
             }
             this.messageObject.subject = this.defaultSubject;
+            this.fellowResidents.getEmailSendAsOptions(this.siteInfo.userInfo).then(sendAsOptions => {
+                this.allSendAsOptions = sendAsOptions;
+                this.filteredSendAsOptions = sendAsOptions;
+                this.selectedSendAs = sendAsOptions[0]; // getEmailSendAsOptions is guaranteed to return at least one option
+            });
         }
         /**
          * Populate the group email options
@@ -13769,13 +14182,15 @@ var Ally;
         /**
          * Occurs when the user presses the button to send an email to members of the building
          */
-        onSendEmail() {
+        onSendEmailClicked() {
             $("#message-form").validate();
             if (!$("#message-form").valid())
                 return;
             this.isLoadingEmail = true;
             // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
+            this.messageObject.shouldSendAsBoard = this.selectedSendAs.isBoardOption;
+            this.messageObject.shouldSendAsCommitteeId = this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null;
             analytics.track("sendEmail", {
                 recipientId: this.messageObject.recipientType
             });
@@ -13827,7 +14242,12 @@ var Ally;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
-            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isSendingToBoard;
+            this.filteredSendAsOptions = this.allSendAsOptions;
+            if (isSendingToBoard) {
+                // Users can only send to the board as themselves
+                this.filteredSendAsOptions = [this.allSendAsOptions[0]];
+                this.selectedSendAs = this.filteredSendAsOptions[0];
+            }
         }
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
@@ -14275,7 +14695,7 @@ var Ally;
                 console.log(err);
             }
             // This will be needed for ACH payments
-            //this.$http.get( "/api/Settings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
+            //this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
         }
         static getCurrentPayPeriod(assessmentFrequency) {
             const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
@@ -15303,7 +15723,7 @@ var Ally;
                     paysFor: null
                 };
             var MaxNumRecentPayments = 6;
-            this.recentPayments = this.siteInfo.userInfo.recentPayments;
+            this.recentPayments = []; // this.siteInfo.userInfo.recentPayments;
             if (this.recentPayments && this.recentPayments.length > 0) {
                 if (this.recentPayments.length > MaxNumRecentPayments)
                     this.recentPayments = this.recentPayments.slice(0, MaxNumRecentPayments);
@@ -15492,14 +15912,14 @@ var Ally;
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.isLoading = false;
-            this.isSiteManager = false;
+            this.canManageVendors = false;
             this.isInEditMode = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
-            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.canManageVendors = this.siteInfo.userInfo.isSiteManager || this.siteInfo.privateSiteInfo.nonAdminCanAddVendors;
             this.isAddForm = this.vendorItem == null;
             if (this.isAddForm) {
                 this.isInEditMode = true;
@@ -15557,6 +15977,7 @@ var Ally;
                     this.editVendorItem.companyWeb = "http://" + this.editVendorItem.companyWeb;
             }
             const saveMethod = this.editVendorItem.preferredVendorId == null ? this.$http.post : this.$http.put;
+            const saveUriPart = this.editVendorItem.preferredVendorId == null ? "SaveNewVendor" : "UpdateVendor";
             this.isLoading = true;
             // Process ng-tag-input model into a pipe-separated string for the server
             let servicesProvidedString = "";
@@ -15565,7 +15986,7 @@ var Ally;
             });
             servicesProvidedString += "|";
             this.editVendorItem.servicesProvided = servicesProvidedString;
-            saveMethod("/api/PreferredVendors", this.editVendorItem).then(() => {
+            saveMethod("/api/PreferredVendors/" + saveUriPart, this.editVendorItem).then(() => {
                 this.isLoading = false;
                 if (this.isAddForm) {
                     this.editVendorItem = new Ally.PreferredVendor();
@@ -15576,9 +15997,9 @@ var Ally;
                     this.isInEditMode = false;
                 if (this.onParentDataNeedsRefresh)
                     this.onParentDataNeedsRefresh();
-            }, (exception) => {
+            }, (response) => {
                 this.isLoading = false;
-                alert("Failed to save the vendor information: " + exception.exceptionMessage);
+                alert("Failed to save the vendor information: " + response.data.exceptionMessage);
             });
         }
         onCancelEdit() {
@@ -15594,7 +16015,7 @@ var Ally;
             if (!confirm("Are you sure you want to remove this vendor?"))
                 return;
             this.isLoading = true;
-            this.$http.delete("/api/PreferredVendors/" + this.vendorItem.preferredVendorId).then(() => {
+            this.$http.delete("/api/PreferredVendors/DeleteVendor/" + this.vendorItem.preferredVendorId).then(() => {
                 this.isLoading = false;
                 if (this.onParentDataNeedsRefresh)
                     this.onParentDataNeedsRefresh();
@@ -15667,7 +16088,7 @@ var Ally;
             this.filteredVendors = [];
             this.editVendor = new PreferredVendor();
             this.isLoading = false;
-            this.isSiteManager = false;
+            this.canAddVendor = false;
             this.usedServiceTags = [];
             this.filterTags = [];
             this.entriesSortAscending = true;
@@ -15676,7 +16097,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
-            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.canAddVendor = this.siteInfo.userInfo.isSiteManager || this.siteInfo.privateSiteInfo.nonAdminCanAddVendors;
             this.entriesSortField = window.localStorage[PreferredVendorsController.StorageKey_SortField];
             if (!this.entriesSortField) {
                 this.entriesSortField = "name";
@@ -15692,8 +16113,8 @@ var Ally;
         retrieveVendors() {
             this.isLoading = true;
             this.$http.get("/api/PreferredVendors").then((response) => {
-                const vendors = response.data;
                 this.isLoading = false;
+                const vendors = response.data;
                 this.allVendors = vendors;
                 this.filteredVendors = vendors;
                 this.sortEntries();
@@ -15710,6 +16131,9 @@ var Ally;
                 // Remove any duplicate tags
                 this.usedServiceTags = _.uniq(this.usedServiceTags);
                 this.usedServiceTags.sort();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to retrieve vendors: " + response.data.exceptionMessage);
             });
         }
         /**
@@ -16502,6 +16926,529 @@ angular.module("CondoAlly").service("appCacheService", [AppCacheService]);
 var Ally;
 (function (Ally) {
     /**
+     * The controller for the bulletin board comment reply directive
+     */
+    class BBoardPostReplyController {
+        /**
+         * The constructor for the class
+         */
+        constructor($http, siteInfo, $rootScope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$rootScope = $rootScope;
+            this.isLoading = false;
+            this.shouldShowAttachmentFullScreen = false;
+            this.shouldShowEditButton = false;
+            this.isUserTheAuthor = false;
+            this.isInEditMode = false;
+            this.shouldRemoveAttachment = false;
+            this.shouldShowReplyField = false;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        $onInit() {
+            this.isUserTheAuthor = this.reply.authorUserId === this.siteInfo.userInfo.userId;
+            this.shouldShowEditButton = !this.reply.deletedDateUtc && this.isUserTheAuthor; // ( this.isUserTheAuthor || this.siteInfo.userInfo.isSiteManager );
+            this.usersAvatarUrl = this.siteInfo.userInfo.avatarUrl;
+            this.displayDepth = Math.min(2, this.depth);
+        }
+        getFileIcon(fileName) {
+            return Ally.HtmlUtil2.getFileIcon(fileName);
+        }
+        editComment() {
+            this.isInEditMode = true;
+            this.updatedCommentText = this.reply.commentText;
+            this.shouldRemoveAttachment = false;
+            window.setTimeout(() => document.getElementById("bboard-post-reply-field-" + this.reply.commentId).focus(), 50);
+        }
+        submitCommentEdit() {
+            const updateInfo = {
+                commentId: this.reply.commentId,
+                newCommentText: this.updatedCommentText,
+                shouldRemoveAttachment: this.shouldRemoveAttachment
+            };
+            this.isLoading = true;
+            this.$http.put(`/api/CommentThread/${this.thread.commentThreadId}/EditComment`, updateInfo).then(() => {
+                this.isLoading = false;
+                this.$rootScope.$broadcast("refreshSingleBBoardPost", this.thread.commentThreadId);
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to edit comment: " + response.data.exceptionMessage);
+            });
+        }
+        removeComment() {
+            if (!confirm("Are you sure you want to delete this comment?"))
+                return;
+            this.isLoading = true;
+            this.$http.delete(`/api/CommentThread/${this.thread.commentThreadId}/${this.reply.commentId}`).then(() => {
+                this.isLoading = false;
+                //this.reply.commentText = "[removed]";
+                //this.reply.attachedDocDisplayName = null;
+                //this.reply.attachedDocPath = null;
+                //this.reply.attachedDocPreviewUrl = null;
+                this.$rootScope.$broadcast("refreshSingleBBoardPost", this.thread.commentThreadId);
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to remove comment: " + response.data.exceptionMessage);
+            });
+        }
+        showReply() {
+            this.shouldShowReplyField = true;
+            this.newReplyText = "";
+            this.newReplyAttachmentFile = null;
+            this.newReplyAttachmentPreviewUrl = null;
+            this.replyDepth = this.displayDepth + 1;
+            if (this.replyDepth > 2)
+                this.replyDepth = this.displayDepth;
+            window.setTimeout(() => document.getElementById("bboard-post-reply-reply-" + this.reply.commentId).focus(), 50);
+        }
+        submitReply() {
+            if (!this.newReplyText) {
+                alert("You must enter text to submit a comment");
+                return;
+            }
+            const newCommentFormData = new FormData();
+            newCommentFormData.append("commentText", this.newReplyText);
+            newCommentFormData.append("replyToCommentId", this.reply.commentId.toString());
+            if (this.newReplyAttachmentFile) // && this.attachmentFiles.length > 0 )
+             {
+                newCommentFormData.append("attachedFile", this.newReplyAttachmentFile);
+                //for( let i = 0; i < this.attachmentFiles.length; ++i )
+                //    newCommentFormData.append( "attachedFile" + i, this.attachmentFiles[i] );
+            }
+            const putHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            this.thread.isLoading = true;
+            this.$http.put(`/api/CommentThread/${this.thread.commentThreadId}/AddCommentFromForm`, newCommentFormData, putHeaders).then(() => {
+                this.shouldShowReplyField = false;
+                this.thread.isLoading = false;
+                this.newReplyText = "";
+                this.removeReplyAttachment();
+                //this.removeAttachment( curThread );
+                this.$rootScope.$broadcast("refreshSingleBBoardPost", this.thread.commentThreadId);
+            }, (response) => {
+                this.thread.isLoading = false;
+                alert("Failed to add reply comment: " + response.data.exceptionMessage);
+            });
+        }
+        removeReplyAttachment() {
+            this.newReplyAttachmentFile = null;
+            this.newReplyAttachmentPreviewUrl = null;
+        }
+        openReplyAttachmentFilePicker() {
+            const fileElemId = "file-attacher-reply-" + this.reply.commentId;
+            document.getElementById(fileElemId).click();
+        }
+        onAttachmentFileSelected(event) {
+            this.newReplyAttachmentFile = event.target.files[0];
+            if (this.newReplyAttachmentFile)
+                this.newReplyAttachmentPreviewUrl = URL.createObjectURL(this.newReplyAttachmentFile);
+            else
+                this.newReplyAttachmentPreviewUrl = null;
+        }
+        onViewAttachedDoc(comment) {
+            Ally.BulletinBoardController.sharedViewAttachedDoc(comment, this.$http, this.siteInfo);
+        }
+    }
+    BBoardPostReplyController.$inject = ["$http", "SiteInfo", "$rootScope"];
+    Ally.BBoardPostReplyController = BBoardPostReplyController;
+})(Ally || (Ally = {}));
+class EditCommentInfo {
+}
+CA.angularApp.component("bboardPostReply", {
+    bindings: {
+        reply: "<",
+        thread: "<",
+        depth: "<"
+    },
+    templateUrl: "/ngApp/services/bboard-post-reply.html",
+    controller: Ally.BBoardPostReplyController
+});
+
+var Ally;
+(function (Ally) {
+    /**
+     * The controller for the discussion threads directive
+     */
+    class BulletinBoardController {
+        /**
+         * The constructor for the class
+         */
+        constructor($http, siteInfo, $timeout, $scope) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.$scope = $scope;
+            this.isLoading = false;
+            this.isSiteManager = false;
+            this.shouldShowEditPostModal = false;
+            this.shouldIncludeArchived = false;
+            this.couldBeMorePosts = true;
+        }
+        /**
+        * Called on each controller after all the controllers on an element have been constructed
+        */
+        $onInit() {
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.usersFullName = this.siteInfo.userInfo.fullName;
+            this.usersAvatarUrl = this.siteInfo.userInfo.avatarUrl;
+            // Just a little delay to help the home page layout faster
+            this.$timeout(() => this.refreshCommentThreads(), 5);
+            this.$scope.$on("refreshBBoardPosts", (event, data) => this.refreshCommentThreads());
+            this.$scope.$on("refreshSingleBBoardPost", (event, commentThreadId) => this.refreshSingleCommentThread(commentThreadId));
+        }
+        //loadPosts()
+        //{
+        //    const getUri = `/api/WallPost/ActivePostsForGroup`;
+        //    this.$http.get( getUri ).then(
+        //        ( response: ng.IHttpPromiseCallbackArg<WallPost[]> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            this.allPosts = response.data;
+        //        },
+        //        ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            console.log( "Failed to load posts: " + response.data.exceptionMessage );
+        //        }
+        //    );
+        //}
+        showEditPostModal(editItem) {
+            if (editItem) {
+                this.editPostItem = editItem;
+                this.editPostBody = editItem.firstComment ? editItem.firstComment.commentText : "";
+                if (editItem.eventDateUtc) {
+                    this.editPostDateOnly = moment(editItem.eventDateUtc).toDate();
+                    this.editPostTimeOnly = moment(editItem.eventDateUtc).format("h:mma");
+                }
+            }
+            else {
+                this.editPostItem = new Ally.CommentThreadBBoard();
+                this.editPostItem.postType = "normal";
+                this.editPostBody = "";
+                this.editPostDateOnly = new Date();
+                this.editPostTimeOnly = "9:00am";
+                window.setTimeout(() => document.getElementById("new-thread-body-rte").focus(), 50);
+            }
+            this.shouldShowEditPostModal = true;
+            this.onNewPostTypeChanged();
+        }
+        onNewPostTypeChanged() {
+            if (this.editPostItem && this.editPostItem.postType === "event")
+                window.setTimeout(() => { console.log("time", $("#new-post-event-time")); $("#new-post-event-time").timepicker({ scrollDefault: "9:00am" }); }, 100);
+        }
+        /**
+         * Retrieve the comments from the server for the current thread
+         */
+        refreshCommentThreads(isLoadMore = false) {
+            this.isLoading = true;
+            let getUri = "/api/CommentThread/BulletinBoard?a=1";
+            if (this.shouldIncludeArchived)
+                getUri += "&includeArchived=true";
+            if (isLoadMore && this.commentThreads.length > 0)
+                getUri += "&lookBackDateUtc=" + this.commentThreads[this.commentThreads.length - 1].lastCommentDateUtc.toISOString();
+            this.$http.get(getUri).then((response) => {
+                this.isLoading = false;
+                response.data.forEach((ct) => this.prepThreadForDisplay(ct));
+                if (isLoadMore) {
+                    this.commentThreads.push(...response.data);
+                }
+                // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
+                else {
+                    response.data = _.sortBy(response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
+                    this.commentThreads = response.data;
+                    //this.commentThreads.forEach( ( ct ) => this.prepThreadForDisplay( ct ) );
+                }
+                this.couldBeMorePosts = response.data.length > 0;
+            }, (response) => {
+                this.isLoading = false;
+                console.log("Failed to load post threads: " + response.data.exceptionMessage);
+            });
+        }
+        /**
+         * Retrieve the comments from the server for the current thread
+         */
+        refreshSingleCommentThread(commentThreadId) {
+            const commentThread = this.commentThreads.find(ct => ct.commentThreadId === commentThreadId);
+            let getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
+            commentThread.isLoading = true;
+            this.$http.get(getUri).then((response) => {
+                commentThread.isLoading = false;
+                const existingThreadIndex = this.commentThreads.findIndex(ct => ct.commentThreadId === commentThread.commentThreadId);
+                if (existingThreadIndex > -1)
+                    this.commentThreads.splice(existingThreadIndex, 1, response.data);
+                else {
+                    this.commentThreads.push(response.data);
+                    // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
+                    this.commentThreads = _.sortBy(this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
+                }
+                this.prepThreadForDisplay(response.data);
+            }, (response) => {
+                commentThread.isLoading = false;
+                console.log("Failed to load post threads: " + response.data.exceptionMessage);
+            });
+        }
+        loadPreviewImagesForThread(curThread) {
+            const commentsToProcess = [];
+            const processComment = (curComment) => {
+                if (curComment.attachedDocPath && !curComment.attachedDocPreviewUrl)
+                    commentsToProcess.push({ curThread, curComment });
+                for (const curReply of curComment.replies)
+                    processComment(curReply);
+            };
+            //for( const curThread of this.commentThreads )
+            //{
+            //    if( curThread.firstComment && curThread.firstComment.attachedDocPath && !curThread.firstComment.attachedDocPreviewUrl )
+            //        commentsToProcess.push( { curThread, curComment: curThread.firstComment } );
+            //    for( const curComment of curThread.comments )
+            //        processComment( curThread, curComment );
+            //}
+            if (curThread.firstComment && curThread.firstComment.attachedDocPath && !curThread.firstComment.attachedDocPreviewUrl)
+                commentsToProcess.push({ curThread, curComment: curThread.firstComment });
+            for (const curComment of curThread.comments)
+                processComment(curComment);
+            const getImagePreviewUrl = (thread, comment) => {
+                // If we already have the preview URL, skip
+                if (comment.attachedDocPreviewUrl)
+                    return;
+                const getUri = `/api/CommentThread/${thread.commentThreadId}/AttachmentPreview/${comment.commentId}/0`;
+                this.$http.get(getUri).then((response) => comment.attachedDocPreviewUrl = response.data, (response) => console.log("Failed to retrieve comment image attachment preview: " + response.data.exceptionMessage));
+            };
+            for (let i = 0; i < commentsToProcess.length; ++i) {
+                const curEntry = commentsToProcess[i];
+                this.$timeout(() => getImagePreviewUrl(curEntry.curThread, curEntry.curComment), i * 50);
+            }
+        }
+        /**
+         * Prepare a thread for display on the UI
+         */
+        prepThreadForDisplay(thread) {
+            thread.isLoggedInUserAuthor = thread.authorUserId === this.siteInfo.userInfo.userId;
+            thread.shouldShowEditButton = thread.isLoggedInUserAuthor || this.siteInfo.userInfo.isSiteManager;
+            // Hook up the first comment
+            const firstCommentIndex = thread.comments.findIndex(cct => cct.postDateUtc.getTime() === thread.createDateUtc.getTime());
+            if (firstCommentIndex > -1) {
+                thread.firstComment = thread.comments[firstCommentIndex];
+                // Remove the comment since it's shown up top
+                thread.comments.splice(firstCommentIndex, 1);
+                // If the root comment has a reply, add it as a root comment. This can
+                // happen if the thread is from the old discussion-style posts where you
+                // could comment on the first post
+                if (thread.firstComment.replies && thread.firstComment.replies.length > 0) {
+                    thread.comments.push(...thread.firstComment.replies);
+                }
+            }
+            this.loadPreviewImagesForThread(thread);
+            const MaxInitialCommentsToDisplay = 3;
+            if (thread.comments.length > MaxInitialCommentsToDisplay) {
+                thread.visibleComments = thread.comments.slice(0, MaxInitialCommentsToDisplay);
+            }
+            else
+                thread.visibleComments = thread.comments;
+        }
+        //createNewPost()
+        //{
+        //    this.isLoading = true;
+        //    this.$http.post( "/api/WallPost/CreateNewPost", this.editPostItem ).then(
+        //        () =>
+        //        {
+        //            this.shouldShowEditPostModal = false;
+        //            this.loadPosts();
+        //        },
+        //        ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+        //        {
+        //            this.isLoading = false;
+        //            alert( "Failed to create post: " + response.data.exceptionMessage );
+        //        }
+        //    );
+        //}
+        saveCommentThread() {
+            const newThreadFormData = new FormData();
+            if (this.editPostItem.title)
+                newThreadFormData.append("title", this.editPostItem.title);
+            newThreadFormData.append("postType", this.editPostItem.postType);
+            if (this.editPostItem.sellItemPrice)
+                newThreadFormData.append("sellItemPrice", this.editPostItem.sellItemPrice);
+            if (this.editPostItem.eventLocationText)
+                newThreadFormData.append("eventLocationText", this.editPostItem.eventLocationText);
+            // Combine the event date and time
+            var eventDateUtcString = null;
+            if (this.editPostItem.postType && this.editPostDateOnly && this.editPostTimeOnly && typeof (this.editPostTimeOnly) === "string" && this.editPostTimeOnly.length > 1) {
+                const dateTimeString = moment(this.editPostDateOnly).format(Ally.LogbookController.DateFormat) + " " + this.editPostTimeOnly;
+                eventDateUtcString = moment(dateTimeString, Ally.LogbookController.DateFormat + " " + Ally.LogbookController.TimeFormat).utc().toISOString(); // .toDate();
+            }
+            if (eventDateUtcString)
+                newThreadFormData.append("eventDateUtc", eventDateUtcString);
+            if (this.newBodyMceEditor)
+                newThreadFormData.append("body", this.newBodyMceEditor.getContent());
+            else {
+                newThreadFormData.append("body", this.editPostBody);
+            }
+            //newThreadFormData.append( "isBoardOnly", this.newThreadIsBoardOnly.toString() );
+            //newThreadFormData.append( "isReadOnly", this.newThreadIsReadOnly.toString() );
+            //newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );
+            if (this.editPostAttachmentFile)
+                newThreadFormData.append("attachedFile", this.editPostAttachmentFile);
+            const postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            let postUri = "/api/CommentThread/CreateThreadFromForm";
+            if (this.editPostItem.commentThreadId) {
+                postUri = `/api/CommentThread/EditThreadFromForm/${this.editPostItem.commentThreadId}`;
+                if (this.editPostItem.editShouldRemoveAttachment)
+                    newThreadFormData.append("editShouldRemoveAttachment", "true");
+            }
+            this.isLoading = true;
+            this.$http.post(postUri, newThreadFormData, postHeaders).then(() => {
+                this.isLoading = false;
+                this.shouldShowEditPostModal = false;
+                this.removeNewPostAttachment();
+                this.refreshCommentThreads();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to create post: " + response.data.exceptionMessage);
+            });
+        }
+        addComment(curThread, parentComment) {
+            const newCommentText = this.newBodyMceEditor ? this.newBodyMceEditor.getContent() : curThread.newRootCommentText;
+            if (!newCommentText) {
+                alert("You must enter text to submit a comment");
+                return;
+            }
+            const newCommentFormData = new FormData();
+            newCommentFormData.append("commentText", newCommentText);
+            if (curThread.attachmentFile) // && this.attachmentFiles.length > 0 )
+             {
+                newCommentFormData.append("attachedFile", curThread.attachmentFile);
+                //for( let i = 0; i < this.attachmentFiles.length; ++i )
+                //    newCommentFormData.append( "attachedFile" + i, this.attachmentFiles[i] );
+            }
+            //newCommentFormData.append( "attachedGroupDocId", null );
+            const putHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+            };
+            curThread.isLoading = true;
+            this.$http.put(`/api/CommentThread/${curThread.commentThreadId}/AddCommentFromForm`, newCommentFormData, putHeaders).then(() => {
+                curThread.isLoading = false;
+                this.newCommentText = "";
+                if (this.newBodyMceEditor)
+                    this.newBodyMceEditor.setContent("");
+                this.removeAttachment(curThread);
+                this.refreshSingleCommentThread(curThread.commentThreadId);
+            }, (response) => {
+                curThread.isLoading = false;
+                alert("Failed to add comment: " + response.data.exceptionMessage);
+            });
+        }
+        onAttachmentFileSelected(curThread, parentComment, event) {
+            curThread.attachmentFile = event.target.files[0];
+            if (curThread.attachmentFile)
+                curThread.attachmentPreviewUrl = URL.createObjectURL(curThread.attachmentFile);
+            else
+                curThread.attachmentPreviewUrl = null;
+        }
+        openAttachmentFilePicker(curThread, parentComment) {
+            const fileElemId = "file-attacher-root-" + curThread.commentThreadId;
+            document.getElementById(fileElemId).click();
+        }
+        removeAttachment(curThread) {
+            const fileElemId = "file-attacher-root-" + curThread.commentThreadId;
+            curThread.attachmentFile = null;
+            curThread.attachmentPreviewUrl = null;
+            const fileInput = document.getElementById(fileElemId);
+            if (fileInput)
+                fileInput.value = null;
+        }
+        onNewPostFileAttached(event) {
+            this.editPostAttachmentFile = event.target.files[0];
+            this.newPostAttachmentPreviewUrl = null;
+            if (this.editPostAttachmentFile) {
+                const fileType = this.editPostAttachmentFile['type'];
+                const validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+                if (validImageTypes.includes(fileType)) {
+                    this.newPostAttachmentPreviewUrl = URL.createObjectURL(this.editPostAttachmentFile);
+                }
+            }
+        }
+        removeNewPostAttachment() {
+            this.editPostAttachmentFile = null;
+            this.newPostAttachmentPreviewUrl = null;
+            const fileInput = document.getElementById("new-post-attachment-input");
+            if (fileInput)
+                fileInput.value = null;
+        }
+        getFileIcon(fileName) {
+            return Ally.HtmlUtil2.getFileIcon(fileName);
+        }
+        onViewAttachedDoc(comment) {
+            BulletinBoardController.sharedViewAttachedDoc(comment, this.$http, this.siteInfo);
+        }
+        static sharedViewAttachedDoc(comment, $http, siteInfo) {
+            const viewDocWindow = window.open('', '_blank');
+            const wasPopUpBlocked = !viewDocWindow || viewDocWindow.closed || typeof viewDocWindow.closed === "undefined";
+            if (wasPopUpBlocked) {
+                alert(`Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.`);
+                //this.showPopUpWarning = true;
+            }
+            else
+                viewDocWindow.document.write('Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)');
+            //this.isLoading = true;
+            const viewUri = "/api/DocumentLink/DiscussionAttachment/" + comment.commentId;
+            $http.get(viewUri).then((response) => {
+                //this.isLoading = false;
+                const s3Path = comment.attachedDocPath.substring("s3:".length);
+                let fileUri = `Documents/${s3Path}?vid=${encodeURIComponent(response.data.vid)}`;
+                fileUri = siteInfo.publicSiteInfo.baseApiUrl + fileUri;
+                viewDocWindow.location.href = fileUri;
+            }, (response) => {
+                //this.isLoading = false;
+                alert("Failed to open document: " + response.data.exceptionMessage);
+            });
+        }
+        /**
+         * Archive this thread
+         */
+        archiveThread(thread, shouldArchive = true) {
+            if (shouldArchive) {
+                let message = "Are you sure you want to remove this post? This will remove the post from the bulletin board, but can be recovered by site admin.";
+                if (!thread.isLoggedInUserAuthor)
+                    message += "\n\nIf you proceed, since you're removing someone else's post, it would be good to notify them why you took down their post.";
+                if (!confirm(message))
+                    return;
+            }
+            thread.isLoading = true;
+            let putUri = `/api/CommentThread/Archive/${thread.commentThreadId}`;
+            if (!shouldArchive)
+                putUri = `/api/CommentThread/Unarchive/${thread.commentThreadId}`;
+            this.$http.put(putUri, null).then(() => {
+                thread.isLoading = false;
+                // No need to refresh everything, just remove this thread entry
+                if (this.shouldIncludeArchived)
+                    this.refreshCommentThreads();
+                else if (shouldArchive)
+                    this.commentThreads = this.commentThreads.filter(ct => ct.commentThreadId !== thread.commentThreadId);
+                else
+                    this.refreshSingleCommentThread(thread.commentThreadId);
+            }, (response) => {
+                thread.isLoading = false;
+                alert("Failed to remove post: " + response.data.exceptionMessage);
+            });
+        }
+    }
+    BulletinBoardController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+    Ally.BulletinBoardController = BulletinBoardController;
+})(Ally || (Ally = {}));
+CA.angularApp.component("bulletinBoard", {
+    bindings: {},
+    templateUrl: "/ngApp/services/bulletin-board.html",
+    controller: Ally.BulletinBoardController
+});
+
+var Ally;
+(function (Ally) {
+    /**
      * Represents a column in a CSV spreadsheet
      */
     class CsvColumnDescriptor {
@@ -16587,6 +17534,9 @@ var Ally;
     class CommitteeListingInfo {
     }
     Ally.CommitteeListingInfo = CommitteeListingInfo;
+    class BasicCommitteeMember {
+    }
+    Ally.BasicCommitteeMember = BasicCommitteeMember;
     class UnitListing {
     }
     Ally.UnitListing = UnitListing;
@@ -16693,12 +17643,13 @@ var Ally;
         /**
          * Send an email message to another user
          */
-        sendMessage(recipientUserId, messageBody, messageSubject, shouldSendAsBoard) {
+        sendMessage(recipientUserId, messageBody, messageSubject, shouldSendAsBoard, shouldSendAsCommitteeId) {
             const postData = {
                 recipientUserId: recipientUserId,
                 messageBody: messageBody,
                 messageSubject: messageSubject,
-                shouldSendAsBoard: shouldSendAsBoard
+                shouldSendAsBoard,
+                shouldSendAsCommitteeId
             };
             return this.$http.post("/api/BuildingResidents/SendMessage", postData);
         }
@@ -16734,15 +17685,22 @@ var Ally;
         static pollReponsesToChart(poll, siteInfo) {
             const talliedVotes = [];
             const logVote = function (answerId) {
-                let count = talliedVotes.find(tv => tv.answerId === answerId);
-                if (!count) {
-                    count = new PollAnswerCount(answerId);
-                    talliedVotes.push(count);
+                let curAnswerCount = talliedVotes.find(tv => tv.answerId === answerId);
+                if (!curAnswerCount) {
+                    curAnswerCount = new PollAnswerCount(answerId);
+                    talliedVotes.push(curAnswerCount);
                 }
-                ++count.numVotes;
+                ++curAnswerCount.numVotes;
             };
-            const logVotes = (answerIds) => answerIds.forEach(aid => logVote(aid));
-            poll.responses.forEach(r => logVotes(r.answerIds));
+            poll.responses.forEach(r => {
+                if (r.answerIds && r.answerIds.length > 0)
+                    r.answerIds.forEach(aid => logVote(aid));
+                else if (r.writeInAnswer) {
+                    const newWriteIn = new PollAnswerCount(0, r.writeInAnswer);
+                    ++newWriteIn.numVotes;
+                    talliedVotes.push(newWriteIn);
+                }
+            });
             const results = {
                 chartData: [],
                 chartLabels: []
@@ -16752,6 +17710,10 @@ var Ally;
                 const pollAnswer = _.find(poll.answers, (a) => a.pollAnswerId === curTalliedVote.answerId);
                 if (pollAnswer) {
                     results.chartLabels.push(pollAnswer.answerText);
+                    results.chartData.push(curTalliedVote.numVotes);
+                }
+                else if (curTalliedVote.writeInAnswer) {
+                    results.chartLabels.push("Write In: " + curTalliedVote.writeInAnswer);
                     results.chartData.push(curTalliedVote.numVotes);
                 }
                 else
@@ -16766,6 +17728,28 @@ var Ally;
                     results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
             }
             return results;
+        }
+        /**
+         * Retrieve the possible "send as" options for email sending. Guaranteed to return at least
+         * one option, the "self" option.
+         */
+        getEmailSendAsOptions(userInfo) {
+            const sendAsOptions = [];
+            sendAsOptions.push({ displayLabel: `Yourself (${userInfo.fullName})`, noteText: "The default to send a message as yourself", isBoardOption: false, committee: null });
+            const isBoard = FellowResidentsService.isNonPropMgrBoardPosition(userInfo.boardPosition);
+            if (isBoard)
+                sendAsOptions.push({ displayLabel: `The Board`, noteText: "This will set the 'from' address to the board's group email address", isBoardOption: true, committee: null });
+            return this.$http.get("/api/Committee/MyCommittees", { cache: true }).then((response) => {
+                if (response.data && response.data.length > 0) {
+                    const usersCommittees = _.sortBy(response.data, c => c.name.toLowerCase());
+                    for (const c of usersCommittees) {
+                        sendAsOptions.push({ displayLabel: c.name, noteText: "This will set the 'from' address to the committee's group email address", isBoardOption: false, committee: c });
+                    }
+                }
+                return sendAsOptions;
+            }, () => {
+                return sendAsOptions;
+            });
         }
     }
     FellowResidentsService.BoardPos_None = 0;
@@ -16783,11 +17767,15 @@ var Ally;
     ];
     Ally.FellowResidentsService = FellowResidentsService;
     class PollAnswerCount {
-        constructor(answerId) {
+        constructor(answerId, writeInAnswer = null) {
             this.numVotes = 0;
             this.answerId = answerId;
+            this.writeInAnswer = writeInAnswer;
         }
     }
+    class EmailSendAsOption {
+    }
+    Ally.EmailSendAsOption = EmailSendAsOption;
 })(Ally || (Ally = {}));
 angular.module("CondoAlly").service("fellowResidents", ["$http", "$q", "$cacheFactory", Ally.FellowResidentsService]);
 
@@ -17368,7 +18356,7 @@ var Ally;
                     this.retrieveComments();
             }, (response) => {
                 this.isLoading = false;
-                alert("Failed to post comment: " + response.data.exceptionMessage);
+                alert("Failed to delete comment: " + response.data.exceptionMessage);
             });
         }
         /**
@@ -17573,9 +18561,15 @@ CA.angularApp.component("groupCommentThreadView", {
 
 var Ally;
 (function (Ally) {
+    class Comment {
+    }
+    Ally.Comment = Comment;
     class CommentThread {
     }
     Ally.CommentThread = CommentThread;
+    class CommentThreadBBoard extends CommentThread {
+    }
+    Ally.CommentThreadBBoard = CommentThreadBBoard;
     /**
      * The controller for the discussion threads directive
      */
@@ -17727,6 +18721,7 @@ var Ally;
                 }
             }, (response) => {
                 this.isLoading = false;
+                console.log("Failed to load threads: " + response.data.exceptionMessage);
             });
         }
         onFileAttached(event) {
@@ -17753,9 +18748,6 @@ CA.angularApp.component("groupCommentThreads", {
 
 var Ally;
 (function (Ally) {
-    class Comment {
-    }
-    Ally.Comment = Comment;
     /**
      * The controller for the committee home page
      */
@@ -18434,11 +19426,12 @@ var Ally;
                 totalAmountPaid = paymentAmount;
                 payerFee = 0;
                 feeAmount = paymentAmount * StripeAchFeePercent;
-                if (feeAmount > StripeMaxFee)
-                    feeAmount = StripeMaxFee;
                 // On the free plan, add 0.8% app fee and track total 1.6% fee
                 if (!isPremiumPlanActive)
                     feeAmount *= 2;
+                const maxFee = isPremiumPlanActive ? StripeMaxFee : (StripeMaxFee * 2);
+                if (feeAmount > maxFee)
+                    feeAmount = maxFee;
                 groupReceives = paymentAmount - feeAmount;
             }
             return {
@@ -18568,14 +19561,13 @@ angular.module("CondoAlly").service("maintenance", ["$http", "$q", "$cacheFactor
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the committee home page
+     * The controller for the send message widget
      */
     class SendMessageController {
         /**
          * The constructor for the class
          */
-        constructor($rootScope, fellowResidents, siteInfo) {
-            this.$rootScope = $rootScope;
+        constructor(fellowResidents, siteInfo) {
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
             this.shouldShowSendModal = false;
@@ -18586,16 +19578,22 @@ var Ally;
             this.sendResultIsError = false;
             this.isPremiumPlanActive = false;
             this.isSendingToSelf = false;
-            this.shouldShowSendAsBoard = false;
-            this.shouldSendAsBoard = false;
+            this.sendAsOptions = [];
+            this.hasCustomizedSubject = false;
             this.messageSubject = `${siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }
         /// Called on each controller after all the controllers on an element have been constructed
         $onInit() {
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.isSendingToSelf = this.recipientInfo.userId === this.siteInfo.userInfo.userId;
-            const isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
-            this.shouldShowSendAsBoard = Ally.FellowResidentsService.isNonPropMgrBoardPosition(this.siteInfo.userInfo.boardPosition) && !isRecipientWholeBoard;
+            this.fellowResidents.getEmailSendAsOptions(this.siteInfo.userInfo).then(sendAsOptions => {
+                this.sendAsOptions = sendAsOptions;
+                this.selectedSendAs = sendAsOptions[0]; // getEmailSendAsOptions is guaranteed to return at least one option
+                // If we're sending to the board then don't allow the user to send as anyone else
+                const isRecipientWholeBoard = this.recipientInfo.userId === Ally.GroupMembersController.AllBoardUserId;
+                if (isRecipientWholeBoard)
+                    this.sendAsOptions = [this.sendAsOptions[0]];
+            });
         }
         /// Display the send modal
         showSendModal() {
@@ -18616,7 +19614,7 @@ var Ally;
             this.shouldShowButtons = false;
             this.isSending = true;
             this.sendResultMessage = "";
-            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.shouldSendAsBoard).then((response) => {
+            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.selectedSendAs.isBoardOption, this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null).then((response) => {
                 this.isSending = false;
                 this.sendResultIsError = false;
                 this.messageBody = "";
@@ -18629,14 +19627,18 @@ var Ally;
             });
         }
         /// Occurs when the user clicks the checkbox to toggle if they're sending as the board
-        onSendAsBoardChanged() {
-            if (this.shouldSendAsBoard)
+        onSendAsChanged() {
+            if (this.hasCustomizedSubject)
+                return;
+            if (this.selectedSendAs.isBoardOption)
                 this.messageSubject = `Your ${this.siteInfo.publicSiteInfo.fullName} board has sent you a message via your ${AppConfig.appName} site`;
+            else if (this.selectedSendAs.committee)
+                this.messageSubject = `Your ${this.selectedSendAs.committee.name} has sent you a message via your ${AppConfig.appName} site`;
             else
                 this.messageSubject = `${this.siteInfo.userInfo.fullName} has sent you a message via your ${AppConfig.appName} site`;
         }
     }
-    SendMessageController.$inject = ["$rootScope", "fellowResidents", "SiteInfo"];
+    SendMessageController.$inject = ["fellowResidents", "SiteInfo"];
     Ally.SendMessageController = SendMessageController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("sendMessage", {
@@ -18842,7 +19844,7 @@ var Ally;
                             footerBg: "#353535",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: false,
-                            background: "url(/assets/images/ui-style-settings/pinstripes.png)",
+                            background: "#f5f5f5 " + SiteDesignSettings.SiteBgImgPinstripes,
                             buttonBgColor: "#353535",
                             bodyLinkColor: "#212529",
                             navLinkColor: "white",
@@ -18864,7 +19866,7 @@ var Ally;
                             footerBg: "#404040",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,171,171,1) 100%)",
+                            background: "linear-gradient(0deg, #ffffff 0%, #f5abab 100%)",
                             buttonBgColor: "black",
                             bodyLinkColor: "#007cbc",
                             navLinkColor: "white",
@@ -18886,7 +19888,7 @@ var Ally;
                             footerBg: "#1e5168",
                             footerLinkColor: "white",
                             panelsHaveBoxShadow: true,
-                            background: "#DBE5E9 url(/assets/images/ui-style-settings/fancy-hexes.png)",
+                            background: "#DBE5E9 " + SiteDesignSettings.SiteBgImgHexagons,
                             buttonBgColor: "#1e5168",
                             bodyLinkColor: "#1e5168",
                             navLinkColor: "#F3F6F7",
@@ -19007,6 +20009,9 @@ var Ally;
             const portletIconCssRule = Ally.HtmlUtil2.getCssRule(".ally-portlet-icon");
             if (portletIconCssRule)
                 portletIconCssRule.style.color = siteDesignSettings.iconColor;
+            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeColorMeta)
+                themeColorMeta.setAttribute("content", siteDesignSettings.iconColor);
             const shadedItemCssRule = Ally.HtmlUtil2.getCssRule(".ally-shaded-item");
             if (shadedItemCssRule)
                 shadedItemCssRule.style.backgroundColor = siteDesignSettings.listItemShadeColor;
@@ -19015,6 +20020,8 @@ var Ally;
     SiteDesignSettings.SettingsCacheKey = "cachedSiteDesignSettingsJson";
     SiteDesignSettings.HeaderBgClassic = "#60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center";
     SiteDesignSettings.HeaderBgPink = "#eb5757 url(/assets/images/ui-style-settings/pink-neighborhood.jpg) no-repeat center center";
+    SiteDesignSettings.SiteBgImgHexagons = "url(/assets/images/ui-style-settings/fancy-hexes.png)";
+    SiteDesignSettings.SiteBgImgPinstripes = "url(/assets/images/ui-style-settings/pinstripes-trans.png)";
     Ally.SiteDesignSettings = SiteDesignSettings;
 })(Ally || (Ally = {}));
 
@@ -19327,10 +20334,12 @@ var Ally;
                     // Occurs when the user saves changes to the site title
                     $rootScope.onUpdateSiteTitleText = () => {
                         analytics.track("updateSiteTitle");
-                        $http.put("/api/Settings", { siteTitle: $rootScope.siteTitle.text });
+                        $http.put("/api/Settings/UpdateSiteSettings", { siteTitle: $rootScope.siteTitle.text });
                     };
-                    if ($rootScope.publicSiteInfo.siteDesignSettingsJson)
+                    if ($rootScope.publicSiteInfo.siteDesignSettingsJson) {
+                        window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, $rootScope.publicSiteInfo.siteDesignSettingsJson);
                         Ally.SiteDesignSettings.ApplySiteDesignSettingsFromJson($rootScope, $rootScope.publicSiteInfo.siteDesignSettingsJson);
+                    }
                     deferred.resolve(SiteInfoProvider.siteInfo);
                 }, (errorResult) => {
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here

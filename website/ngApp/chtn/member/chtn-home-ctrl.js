@@ -16,6 +16,7 @@ var Ally;
             this.$routeParams = $routeParams;
             this.$sce = $sce;
             this.showDiscussionThreads = false;
+            this.shouldShowBulletinBoard = false;
             this.showLocalNews = false;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
@@ -62,6 +63,7 @@ var Ally;
             }
             if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
+            this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
             var innerThis = this;
             this.$scope.$on("homeHasActivePolls", () => innerThis.shouldShowAlertSection = true);
             this.$http.get("/api/Committee/MyCommittees", { cache: true }).then((response) => {

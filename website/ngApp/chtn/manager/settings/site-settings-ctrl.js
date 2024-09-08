@@ -26,10 +26,10 @@ var Ally;
             this.originalSettings = new ChtnSiteSettings();
             this.isLoading = false;
             this.showRightColumnSetting = true;
-            this.showLocalNewsSetting = false;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
             this.tinyMceDidNotLoad = false;
+            this.shouldShowBulletinBoardOptions = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -39,8 +39,8 @@ var Ally;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
-            this.showLocalNewsSetting = !this.showRightColumnSetting;
             this.isPta = AppConfig.appShortName === "pta";
+            this.shouldShowBulletinBoardOptions = this.siteInfo.publicSiteInfo.shortName === "qa";
             this.refreshData();
         }
         /**

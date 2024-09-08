@@ -1,28 +1,5 @@
 ﻿namespace Ally
 {
-    export class Comment
-    {
-        commentId: number;
-        groupId: number;
-        threadId: string;
-        commentText: string;
-        replyToCommentId: number;
-        authorUserId: string;
-        postDateUtc: Date;
-        lastEditDateUtc: Date;
-        deletedDateUtc: Date;
-        authorFullName: string;
-        authorEmailAddress: string;
-        authorAvatarUrl: string;
-        attachedDocPath: string;
-        attachedDocDisplayName: string;
-        replies: Comment[];
-
-        // Not from server
-        isMyComment: boolean;
-    }
-
-
     /**
      * The controller for the committee home page
      */

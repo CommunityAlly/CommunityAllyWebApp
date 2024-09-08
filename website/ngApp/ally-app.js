@@ -77,6 +77,7 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                         return response;
                     },
                     responseError: function (response) {
+                        //console.log( "In responseError", response );
                         const status = response.status;
                         // 401 - Unauthorized (not logged-in)
                         // 403 - Forbidden (Logged-in, but not allowed to perform the action

@@ -45,24 +45,39 @@
             <div class="note-text">Show various local news stories.</div>
         </div>
 
+        <div class="mb-2" data-ng-if="$ctrl.shouldShowBulletinBoardOptions">
+            <label class="mb-0">
+                <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="bulletinboard">
+                Bulletin Board
+            </label>
+            <div class="note-text">A light-weight chat similar to Facebook's "wall".</div>
+        </div>
+
         <div class="mb-2">
             <label class="mb-0">
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="chatwall">
                 Discussion
             </label>
-            <div class="note-text">An open chat similar to Facebook's "wall".</div>
+            <div class="note-text">An forum-style chat with threads.</div>
         </div>
 
-        <div>
+        <div class="mb-2">
             <label class="mb-0">
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="localnews,chatwall">
                 Show Both Local News and Discussion
             </label>
         </div>
+
+        <div data-ng-if="$ctrl.shouldShowBulletinBoardOptions">
+            <label class="mb-0">
+                <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="localnews,bulletinboard">
+                Show Both Local News and Bulletin Board
+            </label>
+        </div>
     </div>
 
 
-    <div data-ng-if="$ctrl.showLocalNewsSetting">
+    <div data-ng-if="!$ctrl.showRightColumnSetting">
         <h2 class="mt-5">
             Home Page
         </h2>

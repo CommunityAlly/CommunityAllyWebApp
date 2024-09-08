@@ -1,0 +1,83 @@
+<div class="mt-3">
+    <div class="row" data-ng-style="{'margin-left': '{{::($ctrl.depth * 40) + 'px'}}'}">
+        <div class="col-1 p-0">
+            <img data-ng-src="{{::$ctrl.reply.authorAvatarUrl}}" style="width: 32px; border-radius: 16px; position: relative;" />
+        </div>
+        <div id="bboard-post-reply-container-{{::$ctrl.reply.commentId}}" class="col-10 bboard-post-reply-container">
+            <div class="bboard-post-reply-name">{{::$ctrl.reply.authorFullName}}</div>
+
+            <div data-ng-if="!$ctrl.isInEditMode">
+                <!--Discussion style posts allow HTML formatting-->
+                <div style="margin-top: 4px;" data-ng-if="!$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText"></div>
+                <!--Wall posts are normal text-->
+                <div style="margin-top: 4px; margin-bottom: 6px;" data-ng-if="$ctrl.thread.postType">
+                    {{$ctrl.reply.commentText}}
+                </div>
+            </div>
+
+            <div data-ng-if="$ctrl.isInEditMode">
+                <textarea id="bboard-post-reply-field-{{::$ctrl.reply.commentId}}" class="bboard-post-comment-field" data-ng-model="$ctrl.updatedCommentText" data-ng-ctrl-enter="$ctrl.addComment(curThread, null)" placeholder="Comment as {{$ctrl.usersFullName}}"></textarea>
+                <div style="height: 26px;">
+                    <div role="button" title="Remove attachment" data-ng-if="$ctrl.reply.attachedDocPath && !$ctrl.shouldRemoveAttachment" style="display:inline-block; cursor: pointer; position: absolute; left: 10px; bottom: 5px;" data-ng-click="$ctrl.shouldRemoveAttachment = true">Remove Attachment</div>
+                    <div title="Remove attachment" class="note-text" data-ng-if="$ctrl.reply.attachedDocPath && $ctrl.shouldRemoveAttachment" style="position: absolute; left: 10px; bottom: 5px;">Attachment will be removed</div>
+
+                    <div role="button" title="Complete edit" style="display:inline-block; cursor: pointer; position: absolute; right: 30px; bottom: 5px;" data-ng-click="$ctrl.submitCommentEdit()"><i class="fa-solid fa-check ally-portlet-icon me-2 fa-lg"></i></div>
+                    <div role="button" title="Cancel edit" style="display:inline-block; cursor: pointer; position: absolute; right: 5px; bottom: 5px;" data-ng-click="$ctrl.isInEditMode = false"><i class="fa-solid fa-xmark ally-portlet-icon me-2 fa-lg"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-1 p-0">
+            <div class="dropdown" data-ng-if="$ctrl.shouldShowEditButton">
+                <button class="btn btn-sm btn-light" type="button" id="wallPostCommentMenuButton{{::$ctrl.reply.commentId}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
+                <ul class="dropdown-menu" aria-labelledby="wallPostCommentMenuButton{{::$ctrl.reply.commentId}}">
+                    <li>{{$ctrl.isUserTheAuthor}}, {{$ctrl.reply.deletedDateUtc}}, {{$ctrl.thread.postType}}</li>
+                    <li data-ng-if="$ctrl.isUserTheAuthor && $ctrl.thread.postType"><span class="dropdown-item" data-ng-click="$ctrl.editComment()">Edit</span></li>
+                    <li><span class="dropdown-item" data-ng-click="$ctrl.removeComment()">Remove Comment</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-ng-if="$ctrl.reply.attachedDocPath && $ctrl.reply.attachedDocDisplayName" data-ng-style="{'margin-left': '{{($ctrl.depth * 36 + 40) + 'px'}}'}">
+
+        <div data-ng-if="!$ctrl.reply.attachedDocPreviewUrl" style="padding: 8px; border: 1px solid black; display: inline-block; border-radius: 5px; cursor: pointer" data-ng-click="$ctrl.onViewAttachedDoc(comment)" title="Open attachment '{{$ctrl.reply.attachedDocDisplayName}}'">
+            <img id="File_{{::$ctrl.reply.commentId}}" class="file-thumbnail" ng-src="{{::$ctrl.getFileIcon($ctrl.reply.attachedDocDisplayName)}}" />
+            {{::$ctrl.reply.attachedDocDisplayName}}
+        </div>
+
+        <div data-ng-if="$ctrl.reply.attachedDocPreviewUrl">
+            <img data-ng-src="{{::$ctrl.reply.attachedDocPreviewUrl}}" title="{{::$ctrl.reply.attachedDocDisplayName}}" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = true" style="width: 35%; cursor: pointer;" />
+            <div data-ng-if="$ctrl.shouldShowAttachmentFullScreen" class="modal-container" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false">
+                <div class="modal-overlay" style="background-color: black;" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false"></div>
+                <div class="bboard-post-full-attachment">
+                    <img data-ng-src="{{::$ctrl.reply.attachedDocPreviewUrl}}" title="{{::$ctrl.reply.attachedDocDisplayName}}" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false" style="margin: 0 auto;" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-ng-style="{'margin-left': '{{::($ctrl.depth * 36 + 40) + 'px'}}'}">
+        <span class="bboard-post-date" data-livestamp="{{ ::$ctrl.reply.postDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{::$ctrl.reply.postDateUtc | date:'short'}}"></span>
+        <span style="margin-left: 12px; font-size: 75%; font-weight: bold; cursor: pointer" role="button" data-ng-click="$ctrl.showReply()">Reply</span>
+    </div>
+
+    <div data-ng-if="$ctrl.shouldShowReplyField" class="row" data-ng-style="{'margin-left': '{{::($ctrl.replyDepth * 40) + 'px'}}'}">
+        <div class="col-1 p-0">
+            <img data-ng-src="{{::$ctrl.usersAvatarUrl}}" style="width: 32px; border-radius: 16px; position: relative;" />
+        </div>
+        <div class="col-11 bboard-post-reply-container">
+            <textarea id="bboard-post-reply-reply-{{::$ctrl.reply.commentId}}" class="bboard-post-comment-field" data-ng-model="$ctrl.newReplyText" data-ng-ctrl-enter="$ctrl.submitReply()" data-ng-escape="$ctrl.shouldShowReplyField = false" placeholder="Comment as {{$ctrl.usersFullName}}"></textarea>
+            <div style="height: 26px;">
+                <div role="button" data-ng-if="!curThread.attachmentFile" title="Attach a photo" style="display:inline-block; cursor: pointer; position: absolute; left: 10px; bottom: 5px;" data-ng-click="$ctrl.openReplyAttachmentFilePicker()"><i class="fa-solid fa-camera ally-portlet-icon me-2 fa-lg"></i></div>
+                <div role="button" title="Comment" style="display:inline-block; cursor: pointer; position: absolute; right: 5px; bottom: 5px;" data-ng-click="$ctrl.submitReply()"><i class="fa-solid fa-paper-plane ally-portlet-icon me-2 fa-lg"></i></div>
+            </div>
+            <input id="file-attacher-reply-{{::$ctrl.reply.commentId}}" style="display: none;" type="file" on-file-change="$ctrl.onAttachmentFileSelected($event)" />
+        </div>
+        <div class="col-12 mt-2" style="margin-left: 30px;" data-ng-if="$ctrl.newReplyAttachmentPreviewUrl">
+            <img data-ng-src="{{$ctrl.newReplyAttachmentPreviewUrl}}" style="width: 35%;" />
+            <span class="close-x" style="margin-left: 0px;" data-ng-click="$ctrl.removeReplyAttachment()">&times;</span>
+        </div>
+    </div>
+
+    <bboard-post-reply data-ng-repeat="curReply in $ctrl.reply.replies" data-reply="::curReply" data-thread="::$ctrl.thread" data-depth="$ctrl.depth + 1"></bboard-post-reply>
+</div>

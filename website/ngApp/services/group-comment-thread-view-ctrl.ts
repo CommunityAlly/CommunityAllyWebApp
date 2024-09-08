@@ -265,7 +265,7 @@
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to post comment: " + response.data.exceptionMessage );
+                    alert( "Failed to delete comment: " + response.data.exceptionMessage );
                 }
             );
         }

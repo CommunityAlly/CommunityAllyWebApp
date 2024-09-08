@@ -1,4 +1,4 @@
-﻿<div class="group-comment-container portlet-box white spinner-effect margin-vertical" data-ng-cloak>
+﻿<div class="group-comments-container portlet-box white spinner-effect margin-vertical" data-ng-cloak>
     <div class="portlet-header">
         <div class="title"><i class="fa-solid fa-comments ally-portlet-icon me-2"></i> Discussion</div>
     </div>
@@ -38,7 +38,7 @@
                     <p data-ng-if="comment.deletedDateUtc" class="note-text">
                         Deleted <span data-livestamp="{{ comment.deletedDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ comment.deletedDateUtc | date:'medium' }}"></span>
                     </p>
-                    <p ng-bind-html="comment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
+                    <p data-ng-bind-html="comment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></p>
                 </div>
             </div>
 

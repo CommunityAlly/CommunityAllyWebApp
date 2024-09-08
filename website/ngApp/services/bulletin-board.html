@@ -1,0 +1,225 @@
+<div class="wall-posts-container portlet-box white spinner-effect margin-vertical-lg box-shadow" data-ng-cloak>
+    <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
+
+    <div class="portlet-header">
+        <button class="btn btn-primary" data-ng-if="::$ctrl.isSiteManager" data-ng-click="$ctrl.showEditPostModal(null)" style="float: right;">Create New Post</button>
+        <span data-ng-if="!$ctrl.isSiteManager" class="note-text" style="float: right;">Only board can<br />create posts</span>
+        <div style="display: inline-block;" class="title"><i class="fa-solid fa-thumbtack ally-portlet-icon me-2"></i> Bulletin Board</div>
+        <div class="note-text">Adjust notification settings on <a href="#!/MyProfile">your profile</a></div>
+    </div>
+
+    <div class="portlet-body">
+        <div data-ng-if="$ctrl.isLoading">Loading posts...</div>
+        <div data-ng-if="$ctrl.commentThreads.length === 0">No posts found. <span data-ng-if="::$ctrl.isSiteManager">Create the first one using the button above!</span></div>
+
+        <div data-ng-repeat="curThread in $ctrl.commentThreads" class="bboard-post-container container ally-shaded-item">
+            <div data-ng-if="curThread.isLoading" class="loading-overlay"></div>
+
+            <div class="row ms-1">
+                <div class="col-1 p-0">
+                    <img data-ng-src="{{::curThread.firstComment.authorAvatarUrl}}" style="width: 32px; border-radius: 16px;" />
+                </div>
+                <div class="col-10">
+                    <div class="bboard-post-poster-name">{{::curThread.firstComment.authorFullName}}</div>
+                    <span class="bboard-post-date" data-livestamp="{{ ::curThread.createDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{::curThread.createDateUtc | date:'short'}}"></span>
+                    <span data-ng-if="::curThread.postType === 'sellItem'" class="badge bg-primary ms-2">For Sale</span>
+                    <span data-ng-if="::curThread.postType === 'event'" class="badge bg-primary ms-2">Event</span>
+                    <span data-ng-if="::curThread.archiveDateUtc" class="badge bg-danger ms-2">Archived</span>
+                </div>
+                <div class="col-1">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light" type="button" id="threadMenuButton{{::$ctrl.reply.commentId}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
+                        <ul class="dropdown-menu" aria-labelledby="threadMenuButton{{curThread.commentThreadId}}">
+                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item"  data-ng-click="$ctrl.showEditPostModal(curThread)">Edit Post</span></li>
+                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item" data-ng-click="$ctrl.archiveThread(curThread)">Archive</span></li>
+                            <li data-ng-if="curThread.archiveDateUtc"><span class="dropdown-item" data-ng-click="$ctrl.archiveThread(curThread, false)">Unarchive</span></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+            <div class="row mt-2 ms-1" data-ng-if="::curThread.title">
+                <div class="col-12 p-0">
+                    <h5>{{::curThread.title }}</h5>
+                </div>
+            </div>
+            <div class="row mt-2 ms-1" data-ng-if="::curThread.postType === 'sellItem' && curThread.sellItemPrice">
+                <div class="col-12 p-0">
+                    <h6>Price: <span class="fw-bold">{{::curThread.sellItemPrice }}</span></h6>
+                </div>
+            </div>
+            <div class="row mt-2 ms-1" data-ng-if="::curThread.postType === 'event' && curThread.eventLocationText">
+                <div class="col-12 p-0">
+                    <h6>Event Location: <span class="fw-bold">{{::curThread.eventLocationText }}</span></h6>
+                </div>
+            </div>
+            <div class="row mt-2 ms-1" data-ng-if="::curThread.postType === 'event' && curThread.eventDateUtc">
+                <div class="col-12 p-0">
+                    <h6>Event Date: <span class="fw-bold">{{::curThread.eventDateUtc | date:'h:mma EEEE, MMMM d, yyyy' }}</span></h6>
+                </div>
+            </div>
+            <div class="row mt-2 ms-1">
+                <div class="col-12 p-0">
+                    <div data-ng-bind-html="curThread.firstComment.commentText"></div>
+                </div>
+            </div>
+            <div class="row mt-2" data-ng-if="::curThread.postType === 'sellItem' && curThread.isLoggedInUserAuthor && !curThread.archiveDateUtc">
+                <div class="col-12 text-end">
+                    <button class="btn btn-warning btn-sm" data-ng-click="$ctrl.archiveThread(curThread)">Mark as Sold</button>
+                    <div class="note-text">This will archive/remove the post</div>
+                </div>
+            </div>
+
+            <div class="row" data-ng-if="curThread.firstComment.attachedDocPath && curThread.firstComment.attachedDocDisplayName">
+                <div class="col-12">
+                    <hr />
+                    <div data-ng-if="!curThread.firstComment.attachedDocPreviewUrl" style="padding: 8px; border: 1px solid black; display: inline-block; border-radius: 5px; cursor: pointer" data-ng-click="$ctrl.onViewAttachedDoc(curThread.firstComment)" title="Open attachment '{{curThread.firstComment.attachedDocDisplayName}}'">
+                        <img id="File_{{ curThread.firstComment.commentId }}" class="file-thumbnail" ng-src="{{$ctrl.getFileIcon(curThread.firstComment.attachedDocDisplayName)}}" />
+                        {{curThread.firstComment.attachedDocDisplayName}}
+                    </div>
+
+                    <div data-ng-if="curThread.firstComment.attachedDocPreviewUrl">
+                        <img data-ng-src="{{curThread.firstComment.attachedDocPreviewUrl}}" title="{{curThread.firstComment.attachedDocDisplayName}}" data-ng-click="curThread.shouldShowAttachmentFullScreen = true" style="width: 35%; cursor: pointer;" />
+                        <div data-ng-if="curThread.shouldShowAttachmentFullScreen" class="modal-container" data-ng-click="curThread.shouldShowAttachmentFullScreen = false">
+                            <div class="modal-overlay" style="background-color: black;" data-ng-click="curThread.shouldShowAttachmentFullScreen = false"></div>
+                            <div class="bboard-post-full-attachment">
+                                <img data-ng-src="{{curThread.firstComment.attachedDocPreviewUrl}}" title="{{curThread.firstComment.attachedDocDisplayName}}" data-ng-click="curThread.shouldShowAttachmentFullScreen = false" style="margin: 0 auto;" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" data-ng-if="curThread.comments.length > 0 && !curThread.archiveDateUtc">
+                <div class="col-12">
+                    <hr />
+                    <bboard-post-reply data-ng-repeat="curReply in curThread.visibleComments" data-reply="curReply" data-thread="curThread" data-depth="0"></bboard-post-reply>
+                    <div class="text-link text-center" data-ng-if="curThread.visibleComments.length !== curThread.comments.length" data-ng-click="curThread.visibleComments = curThread.comments">Show all {{curThread.comments.length}} comments</div>
+                </div>
+            </div>
+
+            <div class="row" data-ng-if="curThread.archiveDateUtc">
+                <div class="col-12 note-text">
+                    <hr />
+                    Comments not included in archived posts, unarchive to view
+                </div>
+            </div>
+
+            <div class="row mt-4" data-ng-if="!curThread.archiveDateUtc">
+                <div class="col-1 p-0">
+                    <img data-ng-src="{{::$ctrl.usersAvatarUrl}}" style="width: 32px; border-radius: 16px; position: relative;" />
+                </div>
+                <div class="col-11 bboard-post-reply-container">
+                    <textarea class="bboard-post-comment-field" data-ng-model="curThread.newRootCommentText" data-ng-ctrl-enter="$ctrl.addComment(curThread, null)" placeholder="Comment as {{$ctrl.usersFullName}}"></textarea>
+                    <div style="height: 26px;">
+                        <div role="button" data-ng-if="!curThread.attachmentFile" title="Attach a photo" style="display:inline-block; cursor: pointer; position: absolute; left: 10px; bottom: 5px;" data-ng-click="$ctrl.openAttachmentFilePicker(curThread, null)"><i class="fa-solid fa-camera ally-portlet-icon me-2 fa-lg"></i></div>
+                        <div role="button" title="Comment" style="display:inline-block; cursor: pointer; position: absolute; right: 5px; bottom: 5px;" data-ng-click="$ctrl.addComment(curThread, null)"><i class="fa-solid fa-paper-plane ally-portlet-icon me-2 fa-lg"></i></div>
+                    </div>
+                    <input id="file-attacher-root-{{curThread.commentThreadId}}" style="display: none;" type="file" on-file-change="$ctrl.onAttachmentFileSelected(curThread, null, $event)" />
+                </div>
+                <div class="col-12 mt-2" style="margin-left: 30px;" data-ng-if="curThread.attachmentPreviewUrl">
+                    <img data-ng-src="{{curThread.attachmentPreviewUrl}}" style="width: 35%;" />
+                    <span class="close-x" style="margin-left: 0px;" data-ng-click="$ctrl.removeAttachment(curThread)">&times;</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-3" data-ng-if="$ctrl.commentThreads.length > 0">
+            <button data-ng-if="$ctrl.couldBeMorePosts" type="button" class="btn btn-primary" data-ng-click="$ctrl.refreshCommentThreads(true)">Load More Posts</button>
+            <span data-ng-if="!$ctrl.couldBeMorePosts">There are no more posts to load</span>
+        </div>
+
+        <div data-ng-if="$ctrl.isSiteManager && $ctrl.commentThreads.length > 0" class="text-center note-text">
+            <label><input type="checkbox" data-ng-model="$ctrl.shouldIncludeArchived" data-ng-change="$ctrl.refreshCommentThreads()" />Include Archived Posts</label>
+        </div>
+    </div>
+
+    <div data-ng-if="$ctrl.shouldShowEditPostModal" class="modal-container">
+        <div class="modal-overlay" data-ng-click="$ctrl.shouldShowEditPostModal = false"></div>
+        <div class="ca-modal-dialog">
+
+            <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowEditPostModal = false">&times;</span>
+
+            <div class="row mb-3 width100 px-3">
+                <label class="form-label">Post Type:</label>
+                <label style="display: block; width: auto;"><input type="radio" data-ng-model="$ctrl.editPostItem.postType" value="normal" name="postType" data-ng-change="$ctrl.onNewPostTypeChanged()" /> Normal - A normal discussion post</label><br />
+                <label style="display: block; width: auto;"><input type="radio" data-ng-model="$ctrl.editPostItem.postType" value="sellItem" name="postType" data-ng-change="$ctrl.onNewPostTypeChanged()" /> Classifieds - Sell a good or offer a service</label>
+                <label style="display: block; width: auto;"><input type="radio" data-ng-model="$ctrl.editPostItem.postType" value="event" name="postType" data-ng-change="$ctrl.onNewPostTypeChanged()" /> Event - Share an upcoming community event</label>
+            </div>
+
+            <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.editPostItem.postType !== 'normal'">
+                <label class="form-label" data-ng-if="$ctrl.editPostItem.postType === 'sellItem'">Product/Service Name:</label>
+                <label class="form-label" data-ng-if="$ctrl.editPostItem.postType === 'event'">Event Name:</label>
+                <input type="text" class="form-control" maxlength="256" data-ng-model="$ctrl.editPostItem.title" autocomplete="off" data-lpignore="true" data-form-type="other" />
+            </div>
+
+            <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.editPostItem.postType === 'event'">
+                <label class="form-label">Event Location:</label>
+                <input type="text" class="form-control" maxlength="256" data-ng-model="$ctrl.editPostItem.eventLocationText" autocomplete="off" data-lpignore="true" data-form-type="other" />
+                <!--<span class="note-text">This should be a street address. Enter local information like "at the south lawn" or "inside club house room 2" in the details area.</span>-->
+            </div>
+
+            <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.editPostItem.postType === 'event'">
+                <label class="form-label">Event Date:</label>
+                <input id="new-post-event-date" type="text" class="form-control" style="width:40%;" data-ui-date="{ dateFormat: 'MM d, yy' }" data-ng-model="$ctrl.editPostDateOnly" autocomplete="off" data-lpignore="true" data-form-type="other" />
+
+                <input id="new-post-event-time" type="text" class="form-control" style="width: 20%; margin-left: 15px;" data-ng-model="$ctrl.editPostTimeOnly" autocomplete="off" data-lpignore="true" data-form-type="other">
+                
+                <!--<span class="note-text">This should be a street address. Enter local information like "at the south lawn" or "inside club house room 2" in the details area.</span>-->
+            </div>
+
+            <div class="row mb-3 width100 px-3">
+                <label class="form-label">{{$ctrl.editPostItem.postType === 'normal' ? "Content:" : "Details:"}}</label>
+                <textarea id="new-thread-body-rte" type="text" rows="4" class="form-control" maxlength="4000" data-ng-model="$ctrl.editPostBody"></textarea>
+            </div>
+
+            <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.editPostItem.postType === 'sellItem'">
+                <label class="form-label">Price:</label>
+                <input type="text" class="form-control" data-ng-model="$ctrl.editPostItem.sellItemPrice" />
+            </div>
+
+            <div class="row mb-3 width100 px-3">
+                <label class="form-label">Optional Attachment:</label>
+                <div data-ng-if="$ctrl.editPostItem.commentThreadId && $ctrl.editPostItem && $ctrl.editPostItem.firstComment.attachedDocPath" class="mb-2">
+                    <div data-ng-if="!$ctrl.editPostAttachmentFile">
+                        <span data-ng-if="!$ctrl.editPostItem.editShouldRemoveAttachment" class="text-link" data-ng-click="$ctrl.editPostItem.editShouldRemoveAttachment = true">Remove existing attachment</span>
+                        <span data-ng-if="$ctrl.editPostItem.editShouldRemoveAttachment" class="note-text" data-ng-click="$ctrl.editPostItem.editShouldRemoveAttachment = false">Attachment will be removed</span>
+                    </div>
+                    <div class="note-text" data-ng-if="$ctrl.editPostAttachmentFile">
+                        Existing attachment will be replaced with the new attachment
+                    </div>
+                </div>
+                <input id="new-post-attachment-input" type="file" on-file-change="$ctrl.onNewPostFileAttached($event)" />
+                <!--<span data-ng-if="$ctrl.editPostAttachmentFile" class="text-link note-text" data-ng-click="$ctrl.removeAttachment()">Remove Attachment</span>-->
+                <div data-ng-if="$ctrl.newPostAttachmentPreviewUrl">
+                    <img data-ng-src="{{$ctrl.newPostAttachmentPreviewUrl}}" style="width: 35%;" />
+                    <span class="close-x" style="margin-left: 0px;" data-ng-click="$ctrl.removeNewPostAttachment()">&times;</span>
+                </div>
+            </div>
+            <!--<div class="row mb-3 width100 px-3" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
+        <label for="is-board-only-thread-check-box" class="form-label" style="width: auto;">Is Board Only:</label>
+        <input id="is-board-only-thread-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.newThreadIsBoardOnly" />
+        <br />
+        <span class="note-text ps-0">Indicates this discussion thread will only be visible to board members and site admin.</span>
+    </div>-->
+            <!--<div class="row mb-3 width100 px-3" data-ng-if="$ctrl.showBoardOnly && !$ctrl.committeeId">
+        <label for="is-read-only-thread-check-box" class="form-label" style="width: auto;">Is Read-Only:</label>
+        <input id="is-read-only-thread-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.newThreadIsReadOnly" />
+        <br />
+        <span class="note-text ps-0">Enable this to create threads that act more like notices and do not allow discussion.</span>
+    </div>-->
+
+
+
+            <div class="row mb-3 note-text width100 px-3" data-ng-if="!$ctrl.isPremiumPlanActive">
+                You can send out email notifications on our premium plan.
+            </div>
+
+            <div style="text-align: center;">
+                <div class="text-error" data-ng-if="$ctrl.newPostErrorMessage">{{$ctrl.newPostErrorMessage}}</div>
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveCommentThread()">{{$ctrl.editPostItem.commentThreadId ? 'Update' : 'Create'}} Post</button>
+            </div>
+        </div>
+    </div>
+</div>

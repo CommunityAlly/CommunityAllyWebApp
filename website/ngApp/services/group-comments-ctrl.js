@@ -1,8 +1,5 @@
 var Ally;
 (function (Ally) {
-    class Comment {
-    }
-    Ally.Comment = Comment;
     /**
      * The controller for the committee home page
      */

@@ -1,5 +1,29 @@
 ﻿namespace Ally
 {
+    export class Comment
+    {
+        commentId: number;
+        groupId: number;
+        threadId: string;
+        commentText: string;
+        replyToCommentId: number;
+        authorUserId: string;
+        postDateUtc: Date;
+        lastEditDateUtc: Date;
+        deletedDateUtc: Date;
+        authorFullName: string;
+        authorEmailAddress: string;
+        authorAvatarUrl: string;
+        attachedDocPath: string;
+        attachedDocDisplayName: string;
+        replies: Comment[];
+
+        // Not from server
+        isMyComment: boolean;
+        attachedDocPreviewUrl: string;
+    }
+
+
     export class CommentThread
     {
         commentThreadId: number;
@@ -10,9 +34,35 @@
         authorUserId: string;
         pinnedDateUtc: Date;
         isReadOnly: boolean;
+        postType: string | null;
+        sellItemPrice: string | null;
+        eventLocationText: string | null;
+        eventDateUtc: Date | null;
+
         authorFullName: string;
         lastCommentDateUtc: Date;
         lastCommentAuthorName: string;
+
+        // Populated locally
+        firstComment: Comment;
+    }
+
+
+    export class CommentThreadBBoard extends CommentThread
+    {
+        comments: Comment[];
+
+        // Populated locally
+        visibleComments: Comment[];
+        firstComment: Comment;
+        newRootCommentText: string;
+        attachmentFile: File;
+        attachmentPreviewUrl: string;
+        shouldShowAttachmentFullScreen: boolean;
+        isLoggedInUserAuthor: boolean;
+        shouldShowEditButton: boolean;
+        isLoading: boolean;
+        editShouldRemoveAttachment: boolean;
     }
 
 
@@ -198,7 +248,7 @@
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    this.newThreadErrorMessage = response.data.exceptionMessage
+                    this.newThreadErrorMessage = response.data.exceptionMessage;
                 }
             );
         }
@@ -219,36 +269,39 @@
             if( this.committeeId )
                 getUri += "?committeeId=" + this.committeeId;
 
-            this.$http.get( getUri ).then( ( response: ng.IHttpPromiseCallbackArg<CommentThread[]> ) =>
-            {
-                this.isLoading = false;
-
-                // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
-
-                if( retrieveArchived )
-                    this.archivedThreads = response.data;
-                else
+            this.$http.get( getUri ).then(
+                ( response: ng.IHttpPromiseCallbackArg<CommentThread[]> ) =>
                 {
-                    this.commentThreads = response.data;
-                    this.archivedThreads = null;
+                    this.isLoading = false;
 
-                    // If we should automatically open a discussion thread
-                    if( this.autoOpenThreadId )
+                    // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
+                    response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
+
+                    if( retrieveArchived )
+                        this.archivedThreads = response.data;
+                    else
                     {
-                        const autoOpenThread = _.find( this.commentThreads, t => t.commentThreadId === this.autoOpenThreadId );
-                        if( autoOpenThread )
-                            this.$timeout( () => this.displayDiscussModal( autoOpenThread ), 125 );
+                        this.commentThreads = response.data;
+                        this.archivedThreads = null;
 
-                        // Don't open again
-                        this.autoOpenThreadId = null;
+                        // If we should automatically open a discussion thread
+                        if( this.autoOpenThreadId )
+                        {
+                            const autoOpenThread = _.find( this.commentThreads, t => t.commentThreadId === this.autoOpenThreadId );
+                            if( autoOpenThread )
+                                this.$timeout( () => this.displayDiscussModal( autoOpenThread ), 125 );
+
+                            // Don't open again
+                            this.autoOpenThreadId = null;
+                        }
                     }
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    console.log( "Failed to load threads: " + response.data.exceptionMessage );
                 }
-                
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-            } );
+            );
         }
 
 

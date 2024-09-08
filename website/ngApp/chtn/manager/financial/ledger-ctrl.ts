@@ -1083,6 +1083,7 @@ namespace Ally
             this.previewImportGridOptions.data = null
         }
 
+
         onImportFileSelected( event: any )
         {
             const importTransactionsFile = event.target.files[0];

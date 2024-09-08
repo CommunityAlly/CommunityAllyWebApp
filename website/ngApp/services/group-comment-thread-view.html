@@ -72,8 +72,8 @@
                             (Deleted <span data-livestamp="{{ comment.deletedDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ comment.deletedDateUtc | date:'medium' }}"></span>)
                         </span>
                         <span data-ng-if="comment.isMyComment && !comment.deletedDateUtc && !$ctrl.thread.archiveDateUtc">
-                            - <span class="text-link" data-ng-click="$ctrl.startEditComment( comment )">Edit</span>
-                            - <span class="text-link" data-ng-click="$ctrl.deleteComment( comment )">Delete</span>
+                            - <span class="text-link note-text" data-ng-click="$ctrl.startEditComment( comment )">Edit</span>
+                            - <span class="text-link note-text" data-ng-click="$ctrl.deleteComment( comment )">Delete</span>
                         </span>
                     </p>
                     <p data-ng-if="comment.commentId !== $ctrl.editCommentId" ng-bind-html="comment.commentText"></p>
@@ -121,8 +121,8 @@
                             (Deleted <span data-livestamp="{{ replyComment.deletedDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{ replyComment.deletedDateUtc | date:'medium' }}"></span>)
                         </span>
                         <span data-ng-if="replyComment.isMyComment && !replyComment.deletedDateUtc && !$ctrl.thread.archiveDateUtc">
-                            - <span class="text-link" data-ng-click="$ctrl.startEditComment( replyComment )">Edit</span>
-                            - <span class="text-link" data-ng-click="$ctrl.deleteComment( replyComment )">Delete</span>
+                            - <span class="text-link note-text" data-ng-click="$ctrl.startEditComment( replyComment )">Edit</span>
+                            - <span class="text-link note-text" data-ng-click="$ctrl.deleteComment( replyComment )">Delete</span>
                         </span>
                     </p>
 

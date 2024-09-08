@@ -165,7 +165,7 @@ var Ally;
                     this.retrieveComments();
             }, (response) => {
                 this.isLoading = false;
-                alert("Failed to post comment: " + response.data.exceptionMessage);
+                alert("Failed to delete comment: " + response.data.exceptionMessage);
             });
         }
         /**
