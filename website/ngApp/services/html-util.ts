@@ -519,7 +519,7 @@ namespace Ally
                         resize: true,
                         menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
-                        plugins: 'image link autolink lists media table code emoticons',
+                        plugins: 'image link autolink lists media table code',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
                         toolbar,
                         //toolbar_mode: 'floating',
@@ -527,6 +527,8 @@ namespace Ally
                         //tinycomments_author: 'Author name',
                         height: heightPixels,
                         file_picker_types: 'image',
+                        promotion: false,
+                        branding: true,
                         image_description: false,
                         file_picker_callback: function( cb: any, value: any, meta: any )
                         {

@@ -355,7 +355,7 @@ var Ally;
     GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "$sce"];
     GroupCommentThreadViewController.TinyMceSettings = {
         menubar: false,
-        toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link emoticons"
+        toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link"
     };
     Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;
 })(Ally || (Ally = {}));

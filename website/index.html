@@ -53,7 +53,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=960;
+        var appVer=968;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -61,17 +61,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=960" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=968" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=960" );
+                    localStorage.setItem( Key_JSVersion, "appVer=968" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=960"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=960"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=968"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=968"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -393,6 +393,7 @@
     </footer>
 
     <script type="text/javascript" src="/js/AllyLibBottom.min.js?libVer=44"></script>
+    <script type="text/javascript" src="/js/lib/tinymce/tinymce.min.js?tmceLibVer=1" async defer></script>
 
     <script>
         // Remove the need for iOS users to double-tap links
@@ -470,7 +471,7 @@
     <script src="https://js.stripe.com/v3/?advancedFraudSignals=false" defer></script>
     <!--<script src="https://cdn.dwolla.com/1/dwolla.js" defer></script>-->
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" defer></script>
-    <script src="https://cdn.tiny.cloud/1/9zacv8cnbzzsp7wl1vlv8f3a0rk735bvkn3aemat479m4s9m/tinymce/7/tinymce.min.js" referrerpolicy="origin" defer></script>
+    <!--<script src="https://cdn.tiny.cloud/1/9zacv8cnbzzsp7wl1vlv8f3a0rk735bvkn3aemat479m4s9m/tinymce/7/tinymce.min.js" referrerpolicy="origin" defer></script>-->
     <script src="/js/lib/other/acctoolbar.min.js" async defer></script>
     <script>
         // Setup the accessibility widget
