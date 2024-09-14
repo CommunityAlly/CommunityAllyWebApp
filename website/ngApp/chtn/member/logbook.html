@@ -268,9 +268,9 @@
         </div>
 
 
-        <div id="calendar-readonly-event-panel" class="modal-container" data-ng-if="$ctrl.viewEvent != null">
+        <div id="calendar-readonly-event-panel" class="modal-container ng-cloak" data-ng-if="$ctrl.viewEvent">
             <div class="modal-overlay" data-ng-click="$ctrl.clearViewEvent()"></div>
-            <div class="ca-modal-dialog modal-sm">
+            <div class="ca-modal-dialog modal-sm" style="overflow: visible;">
                 <h4>Event Details</h4>
                 <form>
                     <div class="row mb-3">
@@ -284,6 +284,9 @@
                         <label class="col-sm-4 col-12 form-label-popup">Time:</label>
                         <div class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.timeOnly || "All Day" }} <span data-ng-if="$ctrl.viewEvent.timeOnly">{{ $ctrl.currentTimeZoneAbbreviation }}</span>
+                            <div class="note-text" data-ng-if="$ctrl.localTimeZoneDiffersFromGroup">
+                                Note: Your local time is currently in {{ $ctrl.currentTimeZoneAbbreviation }}, but your association is in the {{ $ctrl.groupTimeZoneAbbreviation }} time zone
+                            </div>
                         </div>
                     </div>
 
@@ -309,8 +312,27 @@
                     </div>
                 </form>
 
-                <span id="edit-calendar-event-link" class="text-link" data-ng-click="$ctrl.editViewingEvent()" style="position: absolute; bottom: 5px; left: 8px;" data-ng-if="$ctrl.canEditEvents">Edit Event</span>
-                <span id="close-calendar-event-link" class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="position: absolute; bottom: 5px; right: 8px;">Close</span>
+                <div style="height: 50px;">
+                    <add-to-calendar-button name="{{$ctrl.viewEvent.title}}"
+                                            description="{{$ctrl.viewEvent.description}}"
+                                            options="['Apple','Google','iCal','Microsoft365','Outlook.com','Yahoo']"
+                                            location=""
+                                            startDate="{{ $ctrl.viewEvent.dateOnly | date:'yyyy-MM-dd' }}"
+                                            endDate="{{ $ctrl.viewEvent.dateOnly | date:'yyyy-MM-dd' }}"
+                                            startTime="{{$ctrl.viewEvent.calLinkStartTimeOnly}}"
+                                            endTime="{{$ctrl.viewEvent.calLinkEndTimeOnly}}"
+                                            label="Copy to your Calendar"
+                                            timeZone="currentBrowser"
+                                            forceOverlay="true"
+                                            hideBackground="true"
+                                            data-ng-if="$ctrl.viewEvent.calLinkStartTimeOnly"></add-to-calendar-button>
+
+                </div>
+
+                <div style="text-align: right;">
+                    <span id="edit-calendar-event-link" class="text-link" data-ng-click="$ctrl.editViewingEvent()" style="" data-ng-if="$ctrl.canEditEvents">Edit Event</span>
+                    <span id="close-calendar-event-link" class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="margin-left: 16px;">Close</span>
+                </div>
             </div>
         </div>
 

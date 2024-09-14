@@ -15,6 +15,7 @@ var Ally;
             this.$q = $q;
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
+            this.viewEvent = null;
             this.showBadNotificationDateWarning = false;
             this.isLoadingNews = false;
             this.isLoadingLogbookForCalendar = false;
@@ -87,7 +88,7 @@ var Ally;
                     if (!this.$rootScope.isSiteManager)
                         return;
                     // The date is wrong if time zone is considered
-                    var clickedDate = moment(moment.utc(date).format(LogbookController.DateFormat)).toDate();
+                    var clickedDate = moment(date.format(LogbookController.DateFormat)).toDate();
                     this.$scope.$apply(() => {
                         const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
@@ -226,9 +227,9 @@ var Ally;
             if (loadLogbookToCalendar) {
                 this.isLoadingLogbookForCalendar = true;
                 this.$http.get("/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                    var data = httpResponse.data;
+                    const calendarEvents = httpResponse.data;
                     this.isLoadingLogbookForCalendar = false;
-                    _.each(data, function (entry) {
+                    _.each(calendarEvents, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
@@ -296,18 +297,24 @@ var Ally;
                 var associationEvents = [];
                 this.isLoadingCalendarEvents = false;
                 _.each(httpResponse.data, (entry) => {
-                    const utcEventDate = moment.utc(entry.eventDateUtc);
+                    const utcEventDate = moment(entry.eventDateUtc);
                     const utcTimeOnly = utcEventDate.format(LogbookController.TimeFormat);
                     const isAllDay = utcTimeOnly == LogbookController.NoTime;
                     let dateEntry;
                     if (isAllDay) {
                         entry.timeOnly = "";
+                        entry.calLinkStartTimeOnly = "00:01";
+                        entry.calLinkEndTimeOnly = "23:59";
                         entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
                         dateEntry = entry.dateOnly;
                     }
                     else {
-                        const localDate = moment.utc(entry.eventDateUtc).local();
+                        const localDate = moment(entry.eventDateUtc).local();
                         entry.timeOnly = localDate.format(LogbookController.TimeFormat);
+                        entry.calLinkStartTimeOnly = localDate.format("HH:mm");
+                        ;
+                        entry.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
+                        ;
                         entry.dateOnly = localDate.clone().startOf('day').toDate();
                         dateEntry = localDate.toDate();
                     }

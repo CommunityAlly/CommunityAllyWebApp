@@ -1054,9 +1054,6 @@ CA.angularApp.component("viewResearch", {
 // of the local URL. This is useful when developing locally.
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
-//OverrideBaseApiPath = "https://7478.webappapi.mycommunityally.org/api/";
-OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
@@ -6379,6 +6376,14 @@ var Ally;
                 analytics.track('exportResidentCsv');
             const csvColumns = [
                 {
+                    headerText: "Unit",
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Email",
+                    fieldName: "email"
+                },
+                {
                     headerText: "First Name",
                     fieldName: "firstName"
                 },
@@ -6387,20 +6392,8 @@ var Ally;
                     fieldName: "lastName"
                 },
                 {
-                    headerText: "CellPhone",
+                    headerText: "Phone",
                     fieldName: "phoneNumber"
-                },
-                {
-                    headerText: "Email",
-                    fieldName: "email"
-                },
-                {
-                    headerText: "Unit",
-                    fieldName: "unitGridLabel"
-                },
-                {
-                    headerText: "Lot#",
-                    fieldName: "lotNumberLabel"
                 },
                 {
                     headerText: "Is Renter",
@@ -6409,11 +6402,6 @@ var Ally;
                 {
                     headerText: "Is Admin",
                     fieldName: "isSiteManager"
-                },
-                {
-                    headerText: "Board Position",
-                    fieldName: "boardPosition",
-                    dataMapper: (value) => this.getBoardPositionName(value)
                 },
                 {
                     headerText: "Alternate Mailing",
@@ -6433,6 +6421,15 @@ var Ally;
                 {
                     headerText: "Manager Notes",
                     fieldName: "managerNotes"
+                },
+                {
+                    headerText: "Board Position",
+                    fieldName: "boardPosition",
+                    dataMapper: (value) => this.getBoardPositionName(value)
+                },
+                {
+                    headerText: "Lot#",
+                    fieldName: "lotNumberLabel"
                 },
                 {
                     headerText: "Last Login Date",
@@ -7760,7 +7757,9 @@ var Ally;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
             this.tinyMceDidNotLoad = false;
-            this.shouldShowBulletinBoardOptions = false;
+            this.newRightShouldShowBulletinOption = false;
+            this.newRightIsLocalNewsEnabled = false;
+            this.newRightIsBulletinBoardEnabled = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -7770,8 +7769,11 @@ var Ally;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.newRightShouldShowBulletinOption = this.siteInfo.privateSiteInfo.creationDate >= Ally.SiteInfoService.AlwaysDiscussDate
+                && this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysBulletinBoardDate;
+            this.newRightIsLocalNewsEnabled = this.siteInfo.privateSiteInfo.homeRightColumnType && this.siteInfo.privateSiteInfo.homeRightColumnType.includes("localnews");
+            this.newRightIsBulletinBoardEnabled = this.siteInfo.privateSiteInfo.homeRightColumnType && this.siteInfo.privateSiteInfo.homeRightColumnType.includes("bulletinboard");
             this.isPta = AppConfig.appShortName === "pta";
-            this.shouldShowBulletinBoardOptions = this.siteInfo.publicSiteInfo.shortName === "qa";
             this.refreshData();
         }
         /**
@@ -7879,6 +7881,17 @@ var Ally;
             const MaxWelcomeLength = 10000;
             const welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
+        }
+        onRightSettingChange() {
+            this.settings.homeRightColumnType = "";
+            if (this.newRightIsLocalNewsEnabled)
+                this.settings.homeRightColumnType = "localnews";
+            if (this.newRightIsBulletinBoardEnabled) {
+                if (this.settings.homeRightColumnType)
+                    this.settings.homeRightColumnType += ",";
+                this.settings.homeRightColumnType += "bulletinboard";
+            }
+            console.log("homeRightColumnType", this.settings.homeRightColumnType);
         }
     }
     ChtnSettingsController.$inject = ["$http", "SiteInfo", "$scope", "$rootScope"];
@@ -8007,6 +8020,8 @@ var Ally;
             this.userFirstName = "";
             this.shouldShowAppChangeModal = false;
             this.appChanges = null;
+            this.shouldShowEditWelcomeModal = false;
+            this.isLoadingWelcome = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -8021,12 +8036,7 @@ var Ally;
                 this.testPay_Description = "Assessment for " + this.siteInfo.publicSiteInfo.fullName;
             }
             this.userFirstName = this.siteInfo.userInfo.firstName;
-            this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
-            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf("<") > -1;
-            if (this.isWelcomeMessageHtml) {
-                this.welcomeMessage = this.$sce.trustAsHtml(this.welcomeMessage);
-                Ally.RichTextHelper.makeLinksOpenNewTab("welcome-message-panel");
-            }
+            this.handleWelcomeMessage();
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
@@ -8037,18 +8047,22 @@ var Ally;
             //if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
             //    homeRightColumnType = "localnews";
             if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
-                this.showDiscussionThreads = true;
+                if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysBulletinBoardDate)
+                    this.shouldShowBulletinBoard = true;
+                else {
+                    this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
+                    this.showDiscussionThreads = !this.shouldShowBulletinBoard;
+                }
                 this.showLocalNews = homeRightColumnType.indexOf("localnews") > -1;
             }
             else {
                 this.showDiscussionThreads = homeRightColumnType.indexOf("chatwall") > -1;
                 this.showLocalNews = homeRightColumnType.indexOf("localnews") > -1;
+                this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
             }
             if (this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
-            this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
-            var innerThis = this;
-            this.$scope.$on("homeHasActivePolls", () => innerThis.shouldShowAlertSection = true);
+            this.$scope.$on("homeHasActivePolls", () => this.shouldShowAlertSection = true);
             this.$http.get("/api/Committee/MyCommittees", { cache: true }).then((response) => {
                 this.usersCommittees = response.data;
                 if (this.usersCommittees)
@@ -8085,6 +8099,48 @@ var Ally;
                     alert("Failed to load changes: " + errorResponse.data.exceptionMessage);
                 });
             }
+        }
+        showEditWelcomeModal() {
+            this.shouldShowEditWelcomeModal = true;
+            Ally.HtmlUtil2.initTinyMce("welcome-tiny-mce-editor", 400).then(e => {
+                this.welcomeTinyMceEditor = e;
+                if (this.welcomeTinyMceEditor) {
+                    if (this.siteInfo.privateSiteInfo.welcomeMessage)
+                        this.welcomeTinyMceEditor.setContent(this.siteInfo.privateSiteInfo.welcomeMessage);
+                    this.welcomeTinyMceEditor.on("keyup", () => {
+                        // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                        //this.$scope.$apply( () =>
+                        //{
+                        //    this.onWelcomeMessageEdit();
+                        //} );
+                    });
+                }
+                //else
+                //    this.tinyMceDidNotLoad = true;
+            });
+        }
+        handleWelcomeMessage() {
+            this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
+            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf("<") > -1;
+            if (this.isWelcomeMessageHtml) {
+                this.welcomeMessage = this.$sce.trustAsHtml(this.welcomeMessage);
+                Ally.RichTextHelper.makeLinksOpenNewTab("welcome-message-panel");
+            }
+        }
+        updateWelcomeMessage() {
+            const updateInfo = {
+                WelcomeMessage: this.welcomeTinyMceEditor.getContent()
+            };
+            this.isLoadingWelcome = true;
+            this.$http.put("/api/Settings/UpdateSiteSettings", updateInfo).then(() => {
+                this.isLoadingWelcome = false;
+                this.siteInfo.privateSiteInfo.welcomeMessage = this.welcomeTinyMceEditor.getContent();
+                this.handleWelcomeMessage();
+                this.shouldShowEditWelcomeModal = false;
+            }, (response) => {
+                this.isLoadingWelcome = false;
+                alert("Failed to save: " + response.data.exceptionMessage);
+            });
         }
     }
     ChtnHomeController.$inject = ["$http", "$rootScope", "SiteInfo", "$timeout", "$scope", "$routeParams", "$sce"];
@@ -9089,6 +9145,7 @@ var Ally;
             this.$q = $q;
             this.fellowResidents = fellowResidents;
             this.siteInfo = siteInfo;
+            this.viewEvent = null;
             this.showBadNotificationDateWarning = false;
             this.isLoadingNews = false;
             this.isLoadingLogbookForCalendar = false;
@@ -9161,7 +9218,7 @@ var Ally;
                     if (!this.$rootScope.isSiteManager)
                         return;
                     // The date is wrong if time zone is considered
-                    var clickedDate = moment(moment.utc(date).format(LogbookController.DateFormat)).toDate();
+                    var clickedDate = moment(date.format(LogbookController.DateFormat)).toDate();
                     this.$scope.$apply(() => {
                         const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
@@ -9300,9 +9357,9 @@ var Ally;
             if (loadLogbookToCalendar) {
                 this.isLoadingLogbookForCalendar = true;
                 this.$http.get("/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                    var data = httpResponse.data;
+                    const calendarEvents = httpResponse.data;
                     this.isLoadingLogbookForCalendar = false;
-                    _.each(data, function (entry) {
+                    _.each(calendarEvents, function (entry) {
                         var shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
@@ -9370,18 +9427,24 @@ var Ally;
                 var associationEvents = [];
                 this.isLoadingCalendarEvents = false;
                 _.each(httpResponse.data, (entry) => {
-                    const utcEventDate = moment.utc(entry.eventDateUtc);
+                    const utcEventDate = moment(entry.eventDateUtc);
                     const utcTimeOnly = utcEventDate.format(LogbookController.TimeFormat);
                     const isAllDay = utcTimeOnly == LogbookController.NoTime;
                     let dateEntry;
                     if (isAllDay) {
                         entry.timeOnly = "";
+                        entry.calLinkStartTimeOnly = "00:01";
+                        entry.calLinkEndTimeOnly = "23:59";
                         entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
                         dateEntry = entry.dateOnly;
                     }
                     else {
-                        const localDate = moment.utc(entry.eventDateUtc).local();
+                        const localDate = moment(entry.eventDateUtc).local();
                         entry.timeOnly = localDate.format(LogbookController.TimeFormat);
+                        entry.calLinkStartTimeOnly = localDate.format("HH:mm");
+                        ;
+                        entry.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
+                        ;
                         entry.dateOnly = localDate.clone().startOf('day').toDate();
                         dateEntry = localDate.toDate();
                     }
@@ -18546,7 +18609,7 @@ var Ally;
     GroupCommentThreadViewController.$inject = ["$http", "$rootScope", "SiteInfo", "$scope", "$sce"];
     GroupCommentThreadViewController.TinyMceSettings = {
         menubar: false,
-        toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link emoticons"
+        toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link"
     };
     Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;
 })(Ally || (Ally = {}));
@@ -19231,7 +19294,7 @@ var Ally;
                         resize: true,
                         menubar,
                         //plugins: 'a11ychecker advcode casechange export formatpainter image editimage linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tableofcontents tinycomments tinymcespellchecker',
-                        plugins: 'image link autolink lists media table code emoticons',
+                        plugins: 'image link autolink lists media table code',
                         //toolbar: 'a11ycheck addcomment showcomments casechange checklist code export formatpainter image editimage pageembed permanentpen table tableofcontents',
                         toolbar,
                         //toolbar_mode: 'floating',
@@ -19239,6 +19302,8 @@ var Ally;
                         //tinycomments_author: 'Author name',
                         height: heightPixels,
                         file_picker_types: 'image',
+                        promotion: false,
+                        branding: true,
                         image_description: false,
                         file_picker_callback: function (cb, value, meta) {
                             const input = document.createElement('input');
@@ -20199,7 +20264,7 @@ var Ally;
             //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
             if (this.isLoggedIn) {
                 const prepopulateHelpWidgetFields = () => {
-                    console.log("In prepopulateHelpWidgetFields");
+                    //console.log( "In prepopulateHelpWidgetFields" );
                     let effectiveName = $rootScope.userInfo.firstName ?? "";
                     if ($rootScope.userInfo.lastName)
                         effectiveName += " " + $rootScope.userInfo.lastName;
@@ -20302,7 +20367,7 @@ var Ally;
                 window.localStorage.setItem("ApiAuthToken", authToken);
             this._rootScope.authToken = authToken;
             this.xdLocalStorage.setItem("allyApiAuthToken", authToken).then(() => {
-                console.log("Set cross domain auth token");
+                //console.log( "Set cross domain auth token" );
             }, (response) => {
                 console.log("Failed to set cross domain auth token", response);
             });
@@ -20310,7 +20375,8 @@ var Ally;
             //appCacheService.clear( appCacheService.Key_AfterLoginRedirect );
         }
     }
-    SiteInfoService.AlwaysDiscussDate = new Date(2018, 7, 1); // Groups created after August 1, 2018 always have discussion enabled
+    SiteInfoService.AlwaysDiscussDate = new Date(2018, 7, 1); // Groups created after August (note the 0-index month) 1, 2018 always have discussion enabled
+    SiteInfoService.AlwaysBulletinBoardDate = new Date(2024, 8, 8); // Groups created after September 8, 2024 always have the bulleting board enabled
     Ally.SiteInfoService = SiteInfoService;
     class SiteInfoHelper {
         static loginInit($q, $http, $rootScope, $sce, xdLocalStorage) {

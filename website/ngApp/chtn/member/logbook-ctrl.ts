@@ -11,7 +11,7 @@ namespace Ally
 
         calendarEvents: uiCalendarEntry[];
         residents: FellowChtnResident[];
-        viewEvent: CalendarEvent;
+        viewEvent: CalendarEvent = null;
         editEvent: CalendarEvent;
         maxDaysBack: number;
         showBadNotificationDateWarning: boolean = false;
@@ -113,7 +113,7 @@ namespace Ally
                         return;
 
                     // The date is wrong if time zone is considered
-                    var clickedDate = moment( moment.utc( date ).format( LogbookController.DateFormat ) ).toDate();
+                    var clickedDate = moment( date.format( LogbookController.DateFormat ) ).toDate();
 
                     this.$scope.$apply( () =>
                     {
@@ -308,11 +308,10 @@ namespace Ally
                 this.$http.get( "/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay ).then(
                     ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                     {
-                        var data = httpResponse.data;
+                        const calendarEvents = httpResponse.data;
 
                         this.isLoadingLogbookForCalendar = false;
-
-                        _.each( data, function( entry: any )
+                        _.each( calendarEvents, function( entry: any )
                         {
                             var shortText = entry.text;
                             if( shortText.length > 10 )
@@ -421,7 +420,7 @@ namespace Ally
 
                     _.each( httpResponse.data, ( entry: CalendarEvent ) =>
                     {
-                        const utcEventDate = moment.utc( entry.eventDateUtc );
+                        const utcEventDate = moment( entry.eventDateUtc );
                         const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
                         const isAllDay = utcTimeOnly == LogbookController.NoTime;
 
@@ -429,17 +428,21 @@ namespace Ally
                         if( isAllDay )
                         {
                             entry.timeOnly = "";
+                            entry.calLinkStartTimeOnly = "00:01";
+                            entry.calLinkEndTimeOnly = "23:59";
                             entry.dateOnly = new Date( utcEventDate.year(), utcEventDate.month(), utcEventDate.date() );
                             dateEntry = entry.dateOnly;
                         }
                         else
                         {
-                            const localDate = moment.utc( entry.eventDateUtc ).local();
+                            const localDate = moment( entry.eventDateUtc ).local();
                             entry.timeOnly = localDate.format( LogbookController.TimeFormat );
+                            entry.calLinkStartTimeOnly = localDate.format( "HH:mm" );;
+                            entry.calLinkEndTimeOnly = localDate.clone().add( 1, 'hours' ).format( "HH:mm" );;
                             entry.dateOnly = localDate.clone().startOf( 'day' ).toDate();
                             dateEntry = localDate.toDate();
                         }
-
+                        
                         var shortText = entry.title;
                         if( shortText && shortText.length > 10 )
                             shortText = shortText.substring( 0, 10 ) + "...";
@@ -970,6 +973,8 @@ namespace Ally
         repeatType: 0 | 1 | 2 | 3 | null;
         repeatFrequency: number;
         repeatViewLabel: string;
+        calLinkStartTimeOnly: string;
+        calLinkEndTimeOnly: string;
     }
 }
 
