@@ -1,7 +1,10 @@
 <div class="page-home">
     <div class="portlet-box white box-shadow margin-vertical" style="margin-bottom: 0;" data-ng-if="$ctrl.welcomeMessage.length > 0 || $ctrl.isWelcomeMessageHtml">
         <div class="portlet-header">
-            <span style="float: right;" class="note-text text-link" data-ng-click="$ctrl.showAppChanges()">App Changes</span>
+            <div style="float: right; display: inline-block;">
+                <div data-ng-if="$ctrl.isSiteManager" class="note-text text-link" data-ng-click="$ctrl.showEditWelcomeModal()">Edit Welcome</div>
+                <div class="note-text text-link" data-ng-click="$ctrl.showAppChanges()">App Changes</div>
+            </div>
             <div class="title">
                 Welcome!
             </div>
@@ -30,7 +33,7 @@
     <div class="row">
 
         <!-- left sidebar -->
-        <div class="col-md-6">
+        <div class="col-lg-6">
             <div data-ng-if="$ctrl.usersCommittees.length > 0" class="portlet-box white margin-vertical">
                 <div class="portlet-header">
                     <h2 class="title"><i class="fa-solid fa-people-group ally-portlet-icon me-2"></i> Your Committees</h2>
@@ -92,7 +95,7 @@
             <group-send-email></group-send-email>
         </div><!--end/left side bar-->
         <!-- right sidebar -->
-        <div class="col-md-6">
+        <div class="col-lg-6">
             <div class="portlet-box white margin-vertical" style="background-color: gold;" data-ng-if="$ctrl.allySurvey">
                 <div class="portlet-header pulse animated infinite" style="border-bottom-color: black; animation-duration: 2s;">
                     <div class="title"><i class="fa-regular fa-face-smile me-2"></i> <span data-ng-if="$ctrl.userFirstName">{{$ctrl.userFirstName}}, </span>Please Help Us</div>
@@ -147,7 +150,7 @@
     </div>
 
     <div data-ng-if="$ctrl.shouldShowAppChangeModal">
-        <div id="new-welcome-overlay-background" class="modal-overlay" data-ng-click="$ctrl.shouldShowAppChangeModal = false"></div>
+        <div class="modal-overlay" data-ng-click="$ctrl.shouldShowAppChangeModal = false"></div>
         <div class="ca-modal-dialog modal-md" style="width: 700px; height: 80vh !important;">
             <h1>Community Ally Web App Change Log</h1>
             <div class="margin-top-10" style="margin-bottom: 10px;">Here you can see a log of notable improvements to our application.</div>
@@ -168,23 +171,18 @@
             </div>
         </div>
     </div>
+
+    <div data-ng-if="$ctrl.shouldShowEditWelcomeModal">
+        <div class="modal-overlay" data-ng-click="$ctrl.shouldShowEditWelcomeModal = false"></div>
+        <div class="ca-modal-dialog modal-lg">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoadingWelcome"></div>
+            <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowEditWelcomeModal = false">&times;</span>
+            <h1>Edit Welcome Message</h1>
+            <textarea id="welcome-tiny-mce-editor"></textarea>
+            <div class="mt-3" style="text-align: right;">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.updateWelcomeMessage()">Save</button>
+                <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.shouldShowEditWelcomeModal = false">Cancel</button>
+            </div>
+        </div>
+    </div>
 </div>
-
-<script type="text/javascript">
-    $( function ()
-    {
-        $( "#tabs" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
-        $( "#tabs li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
-    } );
-    $( '.contact_support h3' ).click( function ()
-    {
-        $( this ).parent().toggleClass( 'opened' );
-    } );    
-    $( '.file_item' ).click( function ()
-    {
-        $( '.file_item' ).removeClass( 'select' );
-        $( this ).toggleClass( 'select' );
-
-    } );
-    $( ".collapsibleContainer" ).collapsiblePanel();
-</script>

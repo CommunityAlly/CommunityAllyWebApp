@@ -39,6 +39,9 @@
         userFirstName = "";
         shouldShowAppChangeModal = false;
         appChanges: AllyAppChangeLogEntry[] = null;
+        shouldShowEditWelcomeModal = false;
+        welcomeTinyMceEditor: ITinyMce;
+        isLoadingWelcome = false;
 
 
         /**
@@ -71,13 +74,7 @@
             }
             this.userFirstName = this.siteInfo.userInfo.firstName;
 
-            this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
-            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf( "<" ) > -1;
-            if( this.isWelcomeMessageHtml )
-            {
-                this.welcomeMessage = this.$sce.trustAsHtml( this.welcomeMessage );
-                RichTextHelper.makeLinksOpenNewTab( "welcome-message-panel" );
-            }
+            this.handleWelcomeMessage();
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
@@ -94,22 +91,27 @@
 
             if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate )
             {
-                this.showDiscussionThreads = true;
+                if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysBulletinBoardDate )
+                    this.shouldShowBulletinBoard = true;
+                else
+                {
+                    this.shouldShowBulletinBoard = homeRightColumnType.indexOf( "bulletinboard" ) > -1;
+                    this.showDiscussionThreads = !this.shouldShowBulletinBoard;
+                }
+
                 this.showLocalNews = homeRightColumnType.indexOf( "localnews" ) > -1;
             }
             else
             {
                 this.showDiscussionThreads = homeRightColumnType.indexOf( "chatwall" ) > -1;
                 this.showLocalNews = homeRightColumnType.indexOf( "localnews" ) > -1;
+                this.shouldShowBulletinBoard = homeRightColumnType.indexOf( "bulletinboard" ) > -1;
             }
 
             if( this.showDiscussionThreads && this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
                 this.autoOpenDiscussionThreadId = parseInt( this.$routeParams.discussionThreadId );
 
-            this.shouldShowBulletinBoard = homeRightColumnType.indexOf( "bulletinboard" ) > -1;
-            
-            var innerThis = this;
-            this.$scope.$on( "homeHasActivePolls", () => innerThis.shouldShowAlertSection = true );
+            this.$scope.$on( "homeHasActivePolls", () => this.shouldShowAlertSection = true );
             
             this.$http.get( "/api/Committee/MyCommittees", { cache: true } ).then( ( response: ng.IHttpPromiseCallbackArg<Committee[]> ) =>
             {
@@ -175,6 +177,71 @@
                     }
                 );
             }
+        }
+
+
+        showEditWelcomeModal()
+        {
+            this.shouldShowEditWelcomeModal = true;
+
+            HtmlUtil2.initTinyMce( "welcome-tiny-mce-editor", 400 ).then( e =>
+            {
+                this.welcomeTinyMceEditor = e;
+
+                if( this.welcomeTinyMceEditor )
+                {
+                    if( this.siteInfo.privateSiteInfo.welcomeMessage )
+                        this.welcomeTinyMceEditor.setContent( this.siteInfo.privateSiteInfo.welcomeMessage );
+
+                    this.welcomeTinyMceEditor.on( "keyup", () =>
+                    {
+                        // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                        //this.$scope.$apply( () =>
+                        //{
+                        //    this.onWelcomeMessageEdit();
+                        //} );
+                    } );
+                }
+                //else
+                //    this.tinyMceDidNotLoad = true;
+            } );
+        }
+
+
+        handleWelcomeMessage()
+        {
+            this.welcomeMessage = this.siteInfo.privateSiteInfo.welcomeMessage;
+            this.isWelcomeMessageHtml = this.welcomeMessage && this.welcomeMessage.indexOf( "<" ) > -1;
+            if( this.isWelcomeMessageHtml )
+            {
+                this.welcomeMessage = this.$sce.trustAsHtml( this.welcomeMessage );
+                RichTextHelper.makeLinksOpenNewTab( "welcome-message-panel" );
+            }
+        }
+
+
+        updateWelcomeMessage()
+        {
+            const updateInfo = {
+                WelcomeMessage: this.welcomeTinyMceEditor.getContent()
+            };
+
+            this.isLoadingWelcome = true;
+
+            this.$http.put( "/api/Settings/UpdateSiteSettings", updateInfo ).then(
+                () =>
+                {
+                    this.isLoadingWelcome = false;
+                    this.siteInfo.privateSiteInfo.welcomeMessage = this.welcomeTinyMceEditor.getContent();
+                    this.handleWelcomeMessage();
+                    this.shouldShowEditWelcomeModal = false;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingWelcome = false;
+                    alert( "Failed to save: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 
