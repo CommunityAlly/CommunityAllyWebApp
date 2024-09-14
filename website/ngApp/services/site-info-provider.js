@@ -172,7 +172,7 @@ var Ally;
             //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.publicSiteInfo.bgImagePath + ")" );
             if (this.isLoggedIn) {
                 const prepopulateHelpWidgetFields = () => {
-                    console.log("In prepopulateHelpWidgetFields");
+                    //console.log( "In prepopulateHelpWidgetFields" );
                     let effectiveName = $rootScope.userInfo.firstName ?? "";
                     if ($rootScope.userInfo.lastName)
                         effectiveName += " " + $rootScope.userInfo.lastName;
@@ -275,7 +275,7 @@ var Ally;
                 window.localStorage.setItem("ApiAuthToken", authToken);
             this._rootScope.authToken = authToken;
             this.xdLocalStorage.setItem("allyApiAuthToken", authToken).then(() => {
-                console.log("Set cross domain auth token");
+                //console.log( "Set cross domain auth token" );
             }, (response) => {
                 console.log("Failed to set cross domain auth token", response);
             });
@@ -283,7 +283,8 @@ var Ally;
             //appCacheService.clear( appCacheService.Key_AfterLoginRedirect );
         }
     }
-    SiteInfoService.AlwaysDiscussDate = new Date(2018, 7, 1); // Groups created after August 1, 2018 always have discussion enabled
+    SiteInfoService.AlwaysDiscussDate = new Date(2018, 7, 1); // Groups created after August (note the 0-index month) 1, 2018 always have discussion enabled
+    SiteInfoService.AlwaysBulletinBoardDate = new Date(2024, 8, 8); // Groups created after September 8, 2024 always have the bulleting board enabled
     Ally.SiteInfoService = SiteInfoService;
     class SiteInfoHelper {
         static loginInit($q, $http, $rootScope, $sce, xdLocalStorage) {

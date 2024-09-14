@@ -176,7 +176,8 @@ namespace Ally
         xdLocalStorage: any;
         _rootScope: ng.IRootScopeService;
         authToken: string;
-        static readonly AlwaysDiscussDate = new Date( 2018, 7, 1 ); // Groups created after August 1, 2018 always have discussion enabled
+        static readonly AlwaysDiscussDate = new Date( 2018, 7, 1 ); // Groups created after August (note the 0-index month) 1, 2018 always have discussion enabled
+        static readonly AlwaysBulletinBoardDate = new Date( 2024, 8, 8 ); // Groups created after September 8, 2024 always have the bulleting board enabled
 
         // Retrieve the basic information for the current site
         refreshSiteInfo( $rootScope: ng.IRootScopeService, $http: ng.IHttpService, $q: ng.IQService ) : ng.IPromise<any>
@@ -365,7 +366,7 @@ namespace Ally
             {
                 const prepopulateHelpWidgetFields = () =>
                 {
-                    console.log( "In prepopulateHelpWidgetFields" );
+                    //console.log( "In prepopulateHelpWidgetFields" );
 
                     let effectiveName = $rootScope.userInfo.firstName ?? "";
                     if( $rootScope.userInfo.lastName )
@@ -509,7 +510,7 @@ namespace Ally
             this.xdLocalStorage.setItem( "allyApiAuthToken", authToken ).then(
                 () =>
                 {
-                    console.log( "Set cross domain auth token" );
+                    //console.log( "Set cross domain auth token" );
                 },
                 ( response: any ) =>
                 {

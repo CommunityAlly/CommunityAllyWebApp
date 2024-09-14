@@ -49,14 +49,16 @@ namespace Ally
         defaultBGImage: string;
         shouldShowQaButton: boolean;
         isLoading: boolean = false;
-        showRightColumnSetting: boolean = true;
+        showRightColumnSetting = true;
         isPta: boolean = false;
         frontEndVersion: string;
         welcomeRichEditorElem: JQuery;
         shouldShowWelcomeTooLongError: boolean = false;
         tinyMceEditor: ITinyMce;
         tinyMceDidNotLoad = false;
-        shouldShowBulletinBoardOptions = false;
+        newRightShouldShowBulletinOption = false;
+        newRightIsLocalNewsEnabled = false;
+        newRightIsBulletinBoardEnabled = false;
         //static readonly MovedLoginImageDate = new Date( 2024, 3, 25 ); // Groups created after April 24, 2024 always have discussion enabled
 
 
@@ -83,10 +85,11 @@ namespace Ally
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
 
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
-            
+            this.newRightShouldShowBulletinOption =  this.siteInfo.privateSiteInfo.creationDate >= Ally.SiteInfoService.AlwaysDiscussDate
+                && this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysBulletinBoardDate;
+            this.newRightIsLocalNewsEnabled = this.siteInfo.privateSiteInfo.homeRightColumnType && this.siteInfo.privateSiteInfo.homeRightColumnType.includes( "localnews" );
+            this.newRightIsBulletinBoardEnabled = this.siteInfo.privateSiteInfo.homeRightColumnType && this.siteInfo.privateSiteInfo.homeRightColumnType.includes( "bulletinboard" );
             this.isPta = AppConfig.appShortName === "pta";
-
-            this.shouldShowBulletinBoardOptions = this.siteInfo.publicSiteInfo.shortName === "qa";
 
             this.refreshData();
         }
@@ -254,6 +257,24 @@ namespace Ally
             const MaxWelcomeLength = 10000;
             const welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
+        }
+
+
+        onRightSettingChange()
+        {
+            this.settings.homeRightColumnType = "";
+
+            if( this.newRightIsLocalNewsEnabled )
+                this.settings.homeRightColumnType = "localnews";
+
+            if( this.newRightIsBulletinBoardEnabled )
+            {
+                if( this.settings.homeRightColumnType )
+                    this.settings.homeRightColumnType += ",";
+
+                this.settings.homeRightColumnType += "bulletinboard";
+            }
+            console.log( "homeRightColumnType", this.settings.homeRightColumnType );
         }
     }
 }

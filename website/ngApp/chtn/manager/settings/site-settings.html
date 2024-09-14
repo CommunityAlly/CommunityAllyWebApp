@@ -45,12 +45,12 @@
             <div class="note-text">Show various local news stories.</div>
         </div>
 
-        <div class="mb-2" data-ng-if="$ctrl.shouldShowBulletinBoardOptions">
+        <div class="mb-2">
             <label class="mb-0">
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="bulletinboard">
                 Bulletin Board
             </label>
-            <div class="note-text">A light-weight chat similar to Facebook's "wall".</div>
+            <div class="note-text">A light-weight social-media-style chat.</div>
         </div>
 
         <div class="mb-2">
@@ -58,7 +58,7 @@
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="chatwall">
                 Discussion
             </label>
-            <div class="note-text">An forum-style chat with threads.</div>
+            <div class="note-text">A forum-style chat with threads.</div>
         </div>
 
         <div class="mb-2">
@@ -68,7 +68,7 @@
             </label>
         </div>
 
-        <div data-ng-if="$ctrl.shouldShowBulletinBoardOptions">
+        <div>
             <label class="mb-0">
                 <input type="radio" data-ng-model="$ctrl.settings.homeRightColumnType" value="localnews,bulletinboard">
                 Show Both Local News and Bulletin Board
@@ -84,12 +84,21 @@
 
         <div>
             <label>
-                <input type="checkbox" data-ng-model="$ctrl.settings.homeRightColumnType" ng-true-value="'localnews'" ng-false-value="''">
+                <input type="checkbox" data-ng-model="$ctrl.newRightIsLocalNewsEnabled" data-ng-change="$ctrl.onRightSettingChange()">
                 Show Local News
             </label>
+            <div class="note-text">Show various local news stories.</div>
         </div>
 
-        <div class="note-text">Show various local news stories.</div>
+        <div data-ng-if="$ctrl.newRightShouldShowBulletinOption" class="mt-3">
+            <label>
+                <input type="checkbox" data-ng-model="$ctrl.newRightIsBulletinBoardEnabled" data-ng-change="$ctrl.onRightSettingChange()">
+                Use Bulletin Board instead of Discussion Threads
+            </label>
+            <div class="note-text">A social-media-style discussion widget that helps engage more residents due to its more inviting design than the older, forum-style discussion threads.</div>
+        </div>
+
+        
     </div>
 
 

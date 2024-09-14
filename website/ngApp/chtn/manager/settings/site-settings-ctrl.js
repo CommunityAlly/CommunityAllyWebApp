@@ -29,7 +29,9 @@ var Ally;
             this.isPta = false;
             this.shouldShowWelcomeTooLongError = false;
             this.tinyMceDidNotLoad = false;
-            this.shouldShowBulletinBoardOptions = false;
+            this.newRightShouldShowBulletinOption = false;
+            this.newRightIsLocalNewsEnabled = false;
+            this.newRightIsBulletinBoardEnabled = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -39,8 +41,11 @@ var Ally;
             this.defaultBGImage = $(document.documentElement).css("background-image");
             this.shouldShowQaButton = this.siteInfo.userInfo.emailAddress === "president@mycondoally.com" || this.siteInfo.userInfo.userId === "219eb985-613b-4fc0-a523-7474adb706bd";
             this.showRightColumnSetting = this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysDiscussDate;
+            this.newRightShouldShowBulletinOption = this.siteInfo.privateSiteInfo.creationDate >= Ally.SiteInfoService.AlwaysDiscussDate
+                && this.siteInfo.privateSiteInfo.creationDate < Ally.SiteInfoService.AlwaysBulletinBoardDate;
+            this.newRightIsLocalNewsEnabled = this.siteInfo.privateSiteInfo.homeRightColumnType && this.siteInfo.privateSiteInfo.homeRightColumnType.includes("localnews");
+            this.newRightIsBulletinBoardEnabled = this.siteInfo.privateSiteInfo.homeRightColumnType && this.siteInfo.privateSiteInfo.homeRightColumnType.includes("bulletinboard");
             this.isPta = AppConfig.appShortName === "pta";
-            this.shouldShowBulletinBoardOptions = this.siteInfo.publicSiteInfo.shortName === "qa";
             this.refreshData();
         }
         /**
@@ -148,6 +153,17 @@ var Ally;
             const MaxWelcomeLength = 10000;
             const welcomeHtml = this.tinyMceEditor.getContent();
             this.shouldShowWelcomeTooLongError = welcomeHtml.length > MaxWelcomeLength;
+        }
+        onRightSettingChange() {
+            this.settings.homeRightColumnType = "";
+            if (this.newRightIsLocalNewsEnabled)
+                this.settings.homeRightColumnType = "localnews";
+            if (this.newRightIsBulletinBoardEnabled) {
+                if (this.settings.homeRightColumnType)
+                    this.settings.homeRightColumnType += ",";
+                this.settings.homeRightColumnType += "bulletinboard";
+            }
+            console.log("homeRightColumnType", this.settings.homeRightColumnType);
         }
     }
     ChtnSettingsController.$inject = ["$http", "SiteInfo", "$scope", "$rootScope"];

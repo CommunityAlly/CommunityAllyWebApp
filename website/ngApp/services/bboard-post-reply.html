@@ -30,7 +30,7 @@
             <div class="dropdown" data-ng-if="$ctrl.shouldShowEditButton">
                 <button class="btn btn-sm btn-light" type="button" id="wallPostCommentMenuButton{{::$ctrl.reply.commentId}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
                 <ul class="dropdown-menu" aria-labelledby="wallPostCommentMenuButton{{::$ctrl.reply.commentId}}">
-                    <li>{{$ctrl.isUserTheAuthor}}, {{$ctrl.reply.deletedDateUtc}}, {{$ctrl.thread.postType}}</li>
+                    <!--<li>{{$ctrl.isUserTheAuthor}}, {{$ctrl.reply.deletedDateUtc}}, {{$ctrl.thread.postType}}</li>-->
                     <li data-ng-if="$ctrl.isUserTheAuthor && $ctrl.thread.postType"><span class="dropdown-item" data-ng-click="$ctrl.editComment()">Edit</span></li>
                     <li><span class="dropdown-item" data-ng-click="$ctrl.removeComment()">Remove Comment</span></li>
                 </ul>
