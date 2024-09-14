@@ -1023,6 +1023,14 @@ namespace Ally
 
             const csvColumns = [
                 {
+                    headerText: "Unit",
+                    fieldName: "unitGridLabel"
+                },
+                {
+                    headerText: "Email",
+                    fieldName: "email"
+                },
+                {
                     headerText: "First Name",
                     fieldName: "firstName"
                 },
@@ -1031,20 +1039,8 @@ namespace Ally
                     fieldName: "lastName"
                 },
                 {
-                    headerText: "CellPhone",
+                    headerText: "Phone",
                     fieldName: "phoneNumber"
-                },
-                {
-                    headerText: "Email",
-                    fieldName: "email"
-                },
-                {
-                    headerText: "Unit",
-                    fieldName: "unitGridLabel"
-                },
-                {
-                    headerText: "Lot#",
-                    fieldName: "lotNumberLabel"
                 },
                 {
                     headerText: "Is Renter",
@@ -1053,11 +1049,6 @@ namespace Ally
                 {
                     headerText: "Is Admin",
                     fieldName: "isSiteManager"
-                },
-                {
-                    headerText: "Board Position",
-                    fieldName: "boardPosition",
-                    dataMapper: ( value: number ) => this.getBoardPositionName( value )
                 },
                 {
                     headerText: "Alternate Mailing",
@@ -1080,6 +1071,15 @@ namespace Ally
                 {
                     headerText: "Manager Notes",
                     fieldName: "managerNotes"
+                },
+                {
+                    headerText: "Board Position",
+                    fieldName: "boardPosition",
+                    dataMapper: ( value: number ) => this.getBoardPositionName( value )
+                },
+                {
+                    headerText: "Lot#",
+                    fieldName: "lotNumberLabel"
                 },
                 {
                     headerText: "Last Login Date",
