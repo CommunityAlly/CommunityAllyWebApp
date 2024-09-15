@@ -2,8 +2,8 @@
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
 
     <div class="portlet-header">
-        <button class="btn btn-primary" data-ng-if="::$ctrl.isSiteManager" data-ng-click="$ctrl.showEditPostModal(null)" style="float: right;">Create New Post</button>
-        <span data-ng-if="!$ctrl.isSiteManager" class="note-text" style="float: right;">Only board can<br />create posts</span>
+        <button class="btn btn-primary" data-ng-if="::$ctrl.canCreateThreads" data-ng-click="$ctrl.showEditPostModal(null)" style="float: right;">Create New Post</button>
+        <span data-ng-if="!$ctrl.canCreateThreads" class="note-text" style="float: right;">Only board can<br />create posts</span>
         <div style="display: inline-block;" class="title"><i class="fa-solid fa-thumbtack ally-portlet-icon me-2"></i> Bulletin Board</div>
         <div class="note-text">Adjust notification settings on <a href="#!/MyProfile">your profile</a></div>
     </div>

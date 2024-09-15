@@ -24,6 +24,7 @@ namespace Ally
         newPostAttachmentPreviewUrl: string;
         shouldIncludeArchived = false;
         couldBeMorePosts = true;
+        canCreateThreads: boolean = false;
 
 
         /**
@@ -51,6 +52,15 @@ namespace Ally
             
             this.$scope.$on( "refreshBBoardPosts", ( event, data ) => this.refreshCommentThreads() );
             this.$scope.$on( "refreshSingleBBoardPost", ( event, commentThreadId: number ) => this.refreshSingleCommentThread( commentThreadId ) );
+
+            this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            if( !this.canCreateThreads )
+            {
+                if( !this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone" )
+                    this.canCreateThreads = true;
+                else if( this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board" )
+                    this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            }
         }
 
 

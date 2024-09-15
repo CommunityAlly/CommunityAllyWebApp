@@ -17,6 +17,7 @@ var Ally;
             this.shouldShowEditPostModal = false;
             this.shouldIncludeArchived = false;
             this.couldBeMorePosts = true;
+            this.canCreateThreads = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -29,6 +30,13 @@ var Ally;
             this.$timeout(() => this.refreshCommentThreads(), 5);
             this.$scope.$on("refreshBBoardPosts", (event, data) => this.refreshCommentThreads());
             this.$scope.$on("refreshSingleBBoardPost", (event, commentThreadId) => this.refreshSingleCommentThread(commentThreadId));
+            this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
+            if (!this.canCreateThreads) {
+                if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
+                    this.canCreateThreads = true;
+                else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
+                    this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+            }
         }
         //loadPosts()
         //{
