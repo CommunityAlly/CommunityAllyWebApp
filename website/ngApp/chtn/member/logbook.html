@@ -274,14 +274,21 @@
                 <h4>Event Details</h4>
                 <form>
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup" title="Event ID: {{$ctrl.viewEvent.eventId}}">Date:</label>
+                        <label class="col-sm-4 col-12 form-label-popup text-end">What:</label>
+                        <div class="col-sm-8 col-12">
+                            {{ $ctrl.viewEvent.title }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup text-end" title="Event ID: {{$ctrl.viewEvent.eventId}}">Date:</label>
                         <div class="col-sm-8 col-12">
                             <span>{{ $ctrl.viewEvent.dateOnly | date:'EEEE, MMMM d, yyyy' }}</span>
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup">Time:</label>
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Time:</label>
                         <div class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.timeOnly || "All Day" }} <span data-ng-if="$ctrl.viewEvent.timeOnly">{{ $ctrl.currentTimeZoneAbbreviation }}</span>
                             <div class="note-text" data-ng-if="$ctrl.localTimeZoneDiffersFromGroup">
@@ -291,21 +298,14 @@
                     </div>
 
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.repeatViewLabel">
-                        <label class="col-sm-4 col-12 form-label-popup">Repeats:</label>
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Repeats:</label>
                         <div class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.repeatViewLabel }}
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup">What:</label>
-                        <div class="col-sm-8 col-12">
-                            {{ $ctrl.viewEvent.title }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup">Description:</label>
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Description:</label>
                         <div class="col-sm-8 col-12">
                             <div id="view-event-desc" data-ng-bind-html="$ctrl.viewEvent.description"></div>
                         </div>
