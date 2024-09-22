@@ -50,7 +50,7 @@
             <div data-ng-if="$ctrl.shouldShowAttachmentFullScreen" class="modal-container" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false">
                 <div class="modal-overlay" style="background-color: black;" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false"></div>
                 <div class="bboard-post-full-attachment">
-                    <img data-ng-src="{{::$ctrl.reply.attachedDocPreviewUrl}}" title="{{::$ctrl.reply.attachedDocDisplayName}}" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false" style="margin: 0 auto;" />
+                    <img data-ng-src="{{::$ctrl.reply.attachedDocPreviewUrl}}" title="{{::$ctrl.reply.attachedDocDisplayName}}" data-ng-click="$ctrl.shouldShowAttachmentFullScreen = false" style="margin: 0 auto; max-width: 100%;" />
                 </div>
             </div>
         </div>

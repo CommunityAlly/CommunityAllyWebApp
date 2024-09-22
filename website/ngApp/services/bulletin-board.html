@@ -83,7 +83,7 @@
                         <div data-ng-if="curThread.shouldShowAttachmentFullScreen" class="modal-container" data-ng-click="curThread.shouldShowAttachmentFullScreen = false">
                             <div class="modal-overlay" style="background-color: black;" data-ng-click="curThread.shouldShowAttachmentFullScreen = false"></div>
                             <div class="bboard-post-full-attachment">
-                                <img data-ng-src="{{curThread.firstComment.attachedDocPreviewUrl}}" title="{{curThread.firstComment.attachedDocDisplayName}}" data-ng-click="curThread.shouldShowAttachmentFullScreen = false" style="margin: 0 auto;" />
+                                <img data-ng-src="{{curThread.firstComment.attachedDocPreviewUrl}}" title="{{curThread.firstComment.attachedDocDisplayName}}" data-ng-click="curThread.shouldShowAttachmentFullScreen = false" style="margin: 0 auto; max-width: 100%;" />
                             </div>
                         </div>
                     </div>

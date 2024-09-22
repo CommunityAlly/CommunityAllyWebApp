@@ -529,17 +529,15 @@ input[type="checkbox"] {
 }
 
 .bboard-post-full-attachment {
-    position: absolute;
+    position: fixed;
     z-index: 623;
-    left: 50%;
+    left: 0;
+    width: 100%;
     max-height: 95%;
     top: 50%;
     transform: translateY(-50%);
     overflow-y: auto;
     overflow-x: hidden;
-    margin-left: -310px;
-    width: 646px;
     height: auto !important;
-    max-width: 94%;
     text-align: center;
 }
