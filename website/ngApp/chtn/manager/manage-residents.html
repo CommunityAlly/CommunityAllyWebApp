@@ -380,13 +380,79 @@
             <br />
         </div>
 
-        <div id="view-email-body-container" class="modal-container" data-ng-if="$ctrl.viewingRecentEmailBody" data-ng-escape="$ctrl.closeViewingEmail()">
+        <div id="view-email-body-container" class="modal-container" data-ng-if="$ctrl.viewingRecentEmail" data-ng-escape="$ctrl.closeViewingEmail()">
             <div class="modal-overlay" data-ng-click="$ctrl.closeViewingEmail()"></div>
             <div class="ca-modal-dialog modal-lg">
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeViewingEmail()">&times;</span>
                 <h3>Email Message</h3>
-                <p style="white-space: pre-wrap;">
-                    {{ $ctrl.viewingRecentEmailBody }}
+                <table style="width: 100%;">
+                    <tbody>
+                        <tr>
+                            <td class="text-end" style="width: 120px;"><span style="font-weight: bold;">Subject:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentEmail.subject}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Sent On:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentEmail.sendDateUtc | date:'medium'}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Sent By:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentEmail.senderName}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Group Sent To:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentEmail.recipientGroup}} ({{$ctrl.viewingRecentEmail.numRecipients}} recipient{{$ctrl.viewingRecentEmail.numRecipients === 1 ? '' : 's'}})</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Delivered/Opened:</span></td>
+                            <td data-ng-if="!$ctrl.siteInfo.privateSiteInfo.isPremiumPlanActive" class="ps-1">View email deliverability stats on our premium plan, <a href="https://help.communityally.org/why-go-premium/" target="_blank">learn more</a></td>
+                            <td data-ng-if="$ctrl.siteInfo.privateSiteInfo.isPremiumPlanActive" class="ps-1">
+                                <span data-ng-if="$ctrl.isLoadingEmailOpenStats"><img src="/assets/images/Spinner_Small.gif" /> Loading deliverability stats...</span>
+                                <span data-ng-if="!$ctrl.isLoadingEmailOpenStats && !$ctrl.viewingRecentEmailOpenStats">No stats to show</span>
+                                <div data-ng-if="!$ctrl.isLoadingEmailOpenStats && $ctrl.viewingRecentEmailOpenStats">
+                                    Delivered to {{$ctrl.viewingRecentEmailNumDelivered}}, opened by {{$ctrl.viewingRecentEmailNumOpened}}
+                                    <span class="text-link" data-ng-if="!$ctrl.viewingRecentEmailShouldShowStats" data-ng-click="$ctrl.viewingRecentEmailShouldShowStats = true">Show Stats</span>
+                                    <span class="text-link" data-ng-if="$ctrl.viewingRecentEmailShouldShowStats" data-ng-click="$ctrl.viewingRecentEmailShouldShowStats = false">Hide Stats</span>
+                                    <div data-ng-if="$ctrl.viewingRecentEmailShouldShowStats" class="mt-2">
+                                        <div class="note-text">Email delivered/open statistics are not 100% accurate due to the way email tracking differs per email client</div>
+                                        <table class="table table-bordered" style="width: 90%;">
+                                            <thead>
+                                                <tr style="font-weight: bold;">
+                                                    <td>Recipient</td>
+                                                    <td>Delivered On</td>
+                                                    <td>Opened On</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr data-ng-repeat="curRecipient in $ctrl.viewingRecentEmailOpenStats.recipientDetails">
+                                                    <td>{{curRecipient.recipientFirstName}} {{curRecipient.recipientLastName}}</td>
+                                                    <td>{{curRecipient.deliveredOnDateUtc|date:'medium'}}</td>
+                                                    <td>{{curRecipient.firstOpenedDateUtc|date:'medium'}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Sent Via:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentEmail.messageSource}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;"># Files Attached:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentEmail.numAttachments}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br />
+                <span style="font-weight: bold;">Email Body</span>
+                <br />
+                <p style="white-space: pre-wrap;" data-ng-if="$ctrl.viewingRecentEmail.messageBody">
+                    {{ $ctrl.viewingRecentEmail.messageBody }}
+                </p>
+                <p data-ng-if="!$ctrl.viewingRecentEmail.messageBody">
+                    <i>Email body was empty</i>
                 </p>
             </div>
         </div>

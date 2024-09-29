@@ -61,6 +61,8 @@ var Ally;
             this.showKansasPtaExport = false;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
+            this.viewingRecentEmailShouldShowStats = false;
+            this.isLoadingEmailOpenStats = false;
             this.isLoading = false;
             this.isLoadingSettings = false;
             this.shouldSortUnitsNumerically = false;
@@ -246,7 +248,28 @@ var Ally;
                     onRegisterApi: (gridApi) => {
                         this.emailHistoryGridApi = gridApi;
                         gridApi.selection.on.rowSelectionChanged(this.$rootScope, (row) => {
-                            this.viewingRecentEmailBody = row.entity.messageBody;
+                            this.viewingRecentEmail = row.entity;
+                            this.viewingRecentEmailOpenStats = null;
+                            this.viewingRecentEmailShouldShowStats = false;
+                            this.viewingRecentEmailNumDelivered = 0;
+                            this.viewingRecentEmailNumOpened = 0;
+                            if (this.siteInfo.privateSiteInfo.isPremiumPlanActive) {
+                                this.isLoadingEmailOpenStats = true;
+                                this.$http.get("/api/Email/GroupEmailStats/" + this.viewingRecentEmail.groupEmailId).then((response) => {
+                                    this.isLoadingEmailOpenStats = false;
+                                    this.viewingRecentEmailOpenStats = response.data;
+                                    // Normalize empty data to no data
+                                    if (this.viewingRecentEmailOpenStats.recipientDetails === null || this.viewingRecentEmailOpenStats.recipientDetails.length === 0)
+                                        this.viewingRecentEmailOpenStats = null;
+                                    else {
+                                        this.viewingRecentEmailNumDelivered = this.viewingRecentEmailOpenStats.recipientDetails.reduce((total, curRow) => total + (curRow.deliveredOnDateUtc ? 1 : 0), 0);
+                                        this.viewingRecentEmailNumOpened = this.viewingRecentEmailOpenStats.recipientDetails.reduce((total, curRow) => total + (curRow.firstOpenedDateUtc ? 1 : 0), 0);
+                                    }
+                                }, (response) => {
+                                    this.isLoadingEmailOpenStats = false;
+                                    console.log("Failed to load email stats: " + response.data.exceptionMessage);
+                                });
+                            }
                         });
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
@@ -308,7 +331,9 @@ var Ally;
             this.setEdit(newUserInfo);
         }
         closeViewingEmail() {
-            this.viewingRecentEmailBody = null;
+            this.viewingRecentEmail = null;
+            this.viewingRecentEmailOpenStats = null;
+            this.viewingRecentEmailShouldShowStats = false;
             this.emailHistoryGridApi.selection.clearSelectedRows();
         }
         /**
@@ -1055,7 +1080,9 @@ var Ally;
          */
         toggleEmailHistoryVisible() {
             this.showEmailHistory = !this.showEmailHistory;
-            this.viewingRecentEmailBody = null;
+            this.viewingRecentEmail = null;
+            this.viewingRecentEmailOpenStats = null;
+            this.viewingRecentEmailShouldShowStats = false;
             if (this.showEmailHistory && !this.emailHistoryGridOptions.data) {
                 this.isLoadingSettings = true;
                 this.$http.get("/api/Email/RecentGroupEmails").then((response) => {
@@ -1100,6 +1127,8 @@ var Ally;
     ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
     ManageResidentsController.StoreKeyResidentGridState = "AllyResGridState";
     Ally.ManageResidentsController = ManageResidentsController;
+    class EmailOpenStats {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageResidents", {
     templateUrl: "/ngApp/chtn/manager/manage-residents.html",

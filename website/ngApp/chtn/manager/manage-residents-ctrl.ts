@@ -204,7 +204,12 @@ namespace Ally
         residentGridOptions: uiGrid.IGridOptionsOf<Ally.UpdateResident>;
         pendingMemberGridOptions: uiGrid.IGridOptionsOf<PendingMember>;
         emailHistoryGridOptions: uiGrid.IGridOptionsOf<RecentEmail>;
-        viewingRecentEmailBody: string;
+        viewingRecentEmail: RecentEmail;
+        viewingRecentEmailOpenStats: EmailOpenStats;
+        viewingRecentEmailShouldShowStats = false;
+        viewingRecentEmailNumDelivered: number;
+        viewingRecentEmailNumOpened: number;
+        isLoadingEmailOpenStats = false;
         editUserForm: ng.IFormController;
         isLoading: boolean = false;
         adminSetPass_Username: string;
@@ -459,7 +464,37 @@ namespace Ally
 
                         gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row: uiGrid.IGridRowOf<RecentEmail> ) =>
                         {
-                            this.viewingRecentEmailBody = row.entity.messageBody;
+                            this.viewingRecentEmail = row.entity;
+                            this.viewingRecentEmailOpenStats = null;
+                            this.viewingRecentEmailShouldShowStats = false;
+                            this.viewingRecentEmailNumDelivered = 0;
+                            this.viewingRecentEmailNumOpened = 0;
+
+                            if( this.siteInfo.privateSiteInfo.isPremiumPlanActive )
+                            {
+                                this.isLoadingEmailOpenStats = true;
+                                this.$http.get( "/api/Email/GroupEmailStats/" + this.viewingRecentEmail.groupEmailId ).then(
+                                    ( response: ng.IHttpPromiseCallbackArg<EmailOpenStats> ) =>
+                                    {
+                                        this.isLoadingEmailOpenStats = false;
+                                        this.viewingRecentEmailOpenStats = response.data;
+
+                                        // Normalize empty data to no data
+                                        if( this.viewingRecentEmailOpenStats.recipientDetails === null || this.viewingRecentEmailOpenStats.recipientDetails.length === 0 )
+                                            this.viewingRecentEmailOpenStats = null;
+                                        else
+                                        {
+                                            this.viewingRecentEmailNumDelivered = this.viewingRecentEmailOpenStats.recipientDetails.reduce( ( total, curRow ) => total + (curRow.deliveredOnDateUtc ? 1 : 0), 0 );
+                                            this.viewingRecentEmailNumOpened = this.viewingRecentEmailOpenStats.recipientDetails.reduce( ( total, curRow ) => total + ( curRow.firstOpenedDateUtc ? 1 : 0 ), 0 );
+                                        }
+                                    },
+                                    ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                                    {
+                                        this.isLoadingEmailOpenStats = false;
+                                        console.log( "Failed to load email stats: " + response.data.exceptionMessage );
+                                    }
+                                );
+                            }
                         } );
 
                         // Fix dumb scrolling
@@ -548,7 +583,9 @@ namespace Ally
 
         closeViewingEmail()
         {
-            this.viewingRecentEmailBody = null;
+            this.viewingRecentEmail = null;
+            this.viewingRecentEmailOpenStats = null;
+            this.viewingRecentEmailShouldShowStats = false;
             this.emailHistoryGridApi.selection.clearSelectedRows();
         }
 
@@ -1569,7 +1606,9 @@ namespace Ally
         toggleEmailHistoryVisible()
         {
             this.showEmailHistory = !this.showEmailHistory;
-            this.viewingRecentEmailBody = null;
+            this.viewingRecentEmail = null;
+            this.viewingRecentEmailOpenStats = null;
+            this.viewingRecentEmailShouldShowStats = false;
 
             if( this.showEmailHistory && !this.emailHistoryGridOptions.data )
             {
@@ -1637,6 +1676,33 @@ namespace Ally
 
             this.setEdit( newUserInfo );
         }
+    }
+
+
+    interface EmailOpenStatRow
+    {
+        groupEmailOpenLogId: number;
+        groupEmailId: string;
+        userId: string;
+        postmarkMessageId: string;
+        sentOnDateUtc: string;
+        deliveredOnDateUtc: string | null;
+        firstOpenedDateUtc: string | null;
+        emailClientName: string;
+        openGeoCityLocation: string;
+        openGeoGps: GpsPoint | null;
+        openIP: string;
+        openPlatform: string;
+        openUserAgent: string;
+        recipientFirstName: string;
+        recipientLastName: string;
+        recipientEmail: string;
+    }
+
+
+    class EmailOpenStats
+    {
+        recipientDetails: EmailOpenStatRow[];
     }
 }
 
