@@ -2,7 +2,9 @@
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <div style="border:1px solid #000;">
-        Find associations for user by email: <input data-ng-model="$ctrl.findUserAssociationsEmail" data-ng-enter="$ctrl.findAssociationsForUser()" type="text" /><button data-ng-click="$ctrl.findAssociationsForUser()">Find</button>
+        Find associations for user by email:
+        <input data-ng-model="$ctrl.findUserAssociationsEmail" data-ng-enter="$ctrl.findAssociationsForUser()" type="text" autocomplete="off" data-lpignore="true" data-form-type="other" />
+        <button data-ng-click="$ctrl.findAssociationsForUser()">Find</button>
         <div>
             <p data-ng-repeat="group in $ctrl.foundUserAssociations">
                 <a data-ng-href="{{ group.viewUrl }}">{{ group.shortName }} ({{ group.appName }})</a> (Group ID: {{group.groupId}})<span data-ng-if="group.deactivationDateUtc"> (Deactivated {{group.deactivationDateUtc | date}})</span>
