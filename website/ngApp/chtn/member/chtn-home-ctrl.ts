@@ -42,6 +42,7 @@
         shouldShowEditWelcomeModal = false;
         welcomeTinyMceEditor: ITinyMce;
         isLoadingWelcome = false;
+        shouldShowGoodNeighbor2024 = false;
 
 
         /**
@@ -82,7 +83,17 @@
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
-            
+
+            // Maybe reactivate in 2025
+            //this.shouldShowGoodNeighbor2024 = this.isSiteManager && moment().isBefore( moment( new Date( 2024, 8, 29 ) ) );
+            //if( this.shouldShowGoodNeighbor2024 && window.localStorage && window.localStorage["chtnHome_disableShowGoodNeighbor2024"] )
+            //{
+            //    if( window.localStorage["chtnHome_disableShowGoodNeighbor2024"] === "true" )
+            //        this.shouldShowGoodNeighbor2024 = false;
+            //}
+            if( window.localStorage )
+                window.localStorage.removeItem( "chtnHome_disableShowGoodNeighbor2024" );
+
             this.allyAppName = AppConfig.appName;
 
             const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
@@ -242,6 +253,14 @@
                     alert( "Failed to save: " + response.data.exceptionMessage );
                 }
             );
+        }
+
+
+        dismissGoodNeighbor2024()
+        {
+            this.shouldShowGoodNeighbor2024 = false;
+            if( window.localStorage )
+                window.localStorage["chtnHome_disableShowGoodNeighbor2024"] = "true";
         }
     }
 
