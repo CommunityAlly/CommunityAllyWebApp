@@ -25,6 +25,8 @@ namespace Ally
         shouldIncludeArchived = false;
         couldBeMorePosts = true;
         canCreateThreads: boolean = false;
+        isPremiumPlanActive = false;
+        shouldSendNoticeForNewThread = false;
 
 
         /**
@@ -46,6 +48,7 @@ namespace Ally
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.usersFullName = this.siteInfo.userInfo.fullName;
             this.usersAvatarUrl = this.siteInfo.userInfo.avatarUrl;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             // Just a little delay to help the home page layout faster
             this.$timeout( () => this.refreshCommentThreads(), 5 );
@@ -103,6 +106,7 @@ namespace Ally
                 this.editPostBody = "";
                 this.editPostDateOnly = new Date();
                 this.editPostTimeOnly = "9:00am";
+                this.shouldSendNoticeForNewThread = false;
 
                 window.setTimeout( () => document.getElementById( "new-thread-body-rte" ).focus(), 50 );
             }
@@ -127,7 +131,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            let getUri = "/api/CommentThread/BulletinBoard?a=1";
+            let getUri = "/api/CommentThread/BulletinBoard/PostsOnly?a=1";
             if( this.shouldIncludeArchived )
                 getUri += "&includeArchived=true";
 
@@ -151,8 +155,6 @@ namespace Ally
                         response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
 
                         this.commentThreads = response.data;
-
-                        //this.commentThreads.forEach( ( ct ) => this.prepThreadForDisplay( ct ) );
                     }
 
                     this.couldBeMorePosts = response.data.length > 0;
@@ -177,7 +179,7 @@ namespace Ally
 
             commentThread.isLoading = true;
 
-            this.$http.get( getUri ).then(
+            return this.$http.get( getUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<CommentThreadBBoard> ) =>
                 {
                     commentThread.isLoading = false;
@@ -191,15 +193,17 @@ namespace Ally
 
                         // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
                         this.commentThreads = _.sortBy( this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
-
                     }
 
                     this.prepThreadForDisplay( response.data );
+
+                    return response.data;
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     commentThread.isLoading = false;
                     console.log( "Failed to load post threads: " + response.data.exceptionMessage );
+                    return null;
                 }
             );
         }
@@ -230,8 +234,11 @@ namespace Ally
             if( curThread.firstComment && curThread.firstComment.attachedDocPath && !curThread.firstComment.attachedDocPreviewUrl )
                 commentsToProcess.push( { curThread, curComment: curThread.firstComment } );
 
-            for( const curComment of curThread.comments )
-                processComment( curComment );
+            if( curThread.comments )
+            {
+                for( const curComment of curThread.comments )
+                    processComment( curComment );
+            }
 
             const getImagePreviewUrl = ( thread: CommentThreadBBoard, comment: Comment ) =>
             {
@@ -262,34 +269,45 @@ namespace Ally
         {
             thread.isLoggedInUserAuthor = thread.authorUserId === this.siteInfo.userInfo.userId;
             thread.shouldShowEditButton = thread.isLoggedInUserAuthor || this.siteInfo.userInfo.isSiteManager;
-            
+
             // Hook up the first comment
-            const firstCommentIndex = thread.comments.findIndex( cct => cct.postDateUtc.getTime() === thread.createDateUtc.getTime() );
-            if( firstCommentIndex > -1 )
+            //const firstCommentIndex = thread.comments.findIndex( cct => cct.postDateUtc.getTime() === thread.createDateUtc.getTime() );
+            //if( firstCommentIndex > -1 )
+            //{
+            //    thread.firstComment = thread.comments[firstCommentIndex];
+
+            //    // Remove the comment since it's shown up top
+            //    thread.comments.splice( firstCommentIndex, 1 );
+
+            //    // If the root comment has a reply, add it as a root comment. This can
+            //    // happen if the thread is from the old discussion-style posts where you
+            //    // could comment on the first post
+            //    if( thread.firstComment.replies && thread.firstComment.replies.length > 0 )
+            //    {
+            //        thread.comments.push( ...thread.firstComment.replies );
+            //    }
+            //}
+
+            // If the root comment has a reply, add it as a root comment. This can
+            // happen if the thread is from the old discussion-style posts where you
+            // could comment on the first post
+            if( thread.comments && thread.firstComment && thread.firstComment.replies && thread.firstComment.replies.length > 0 )
             {
-                thread.firstComment = thread.comments[firstCommentIndex];
-
-                // Remove the comment since it's shown up top
-                thread.comments.splice( firstCommentIndex, 1 );
-
-                // If the root comment has a reply, add it as a root comment. This can
-                // happen if the thread is from the old discussion-style posts where you
-                // could comment on the first post
-                if( thread.firstComment.replies && thread.firstComment.replies.length > 0 )
-                {
-                    thread.comments.push( ...thread.firstComment.replies );
-                }
+                thread.comments.push( ...thread.firstComment.replies );
             }
 
             this.loadPreviewImagesForThread( thread );
 
-            const MaxInitialCommentsToDisplay = 3;
-            if( thread.comments.length > MaxInitialCommentsToDisplay )
-            {
-                thread.visibleComments = thread.comments.slice( 0, MaxInitialCommentsToDisplay );
-            }
-            else
-                thread.visibleComments = thread.comments;
+            // View all comments now that we hide comments on view
+            thread.visibleComments = thread.comments;
+
+            //const MaxInitialCommentsToDisplay = 3;
+            //if( thread.comments && thread.comments.length > MaxInitialCommentsToDisplay )
+            //{
+            //    thread.visibleComments = thread.comments.slice( 0, MaxInitialCommentsToDisplay );
+            //}
+            //else
+            //    thread.visibleComments = thread.comments;
         }
 
         
@@ -321,6 +339,7 @@ namespace Ally
                 newThreadFormData.append( "sellItemPrice", this.editPostItem.sellItemPrice );
             if( this.editPostItem.eventLocationText )
                 newThreadFormData.append( "eventLocationText", this.editPostItem.eventLocationText );
+            newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );
 
             // Combine the event date and time
             var eventDateUtcString: string = null;
@@ -343,8 +362,7 @@ namespace Ally
 
             //newThreadFormData.append( "isBoardOnly", this.newThreadIsBoardOnly.toString() );
             //newThreadFormData.append( "isReadOnly", this.newThreadIsReadOnly.toString() );
-            //newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );
-
+            
             if( this.editPostAttachmentFile )
                 newThreadFormData.append( "attachedFile", this.editPostAttachmentFile );
 
@@ -415,7 +433,7 @@ namespace Ally
                         this.newBodyMceEditor.setContent( "" );
                     this.removeAttachment( curThread );
 
-                    this.refreshSingleCommentThread( curThread.commentThreadId );
+                    this.refreshSingleCommentThread( curThread.commentThreadId ).then( newThread => newThread.commentsAreVisible = true );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -572,6 +590,19 @@ namespace Ally
                     alert( "Failed to remove post: " + response.data.exceptionMessage );
                 }
             );
+        }
+
+
+        showCommentsForThread( commentThread: CommentThreadBBoard )
+        {
+            // If we've already loaded the comments, just toggle the visibility
+            if( commentThread.comments )
+            {
+                commentThread.commentsAreVisible = true;
+                return;
+            }
+
+            this.refreshSingleCommentThread( commentThread.commentThreadId ).then( ( newThread: CommentThreadBBoard ) => newThread.commentsAreVisible = true );
         }
     }
 }

@@ -18,6 +18,8 @@ var Ally;
             this.shouldIncludeArchived = false;
             this.couldBeMorePosts = true;
             this.canCreateThreads = false;
+            this.isPremiumPlanActive = false;
+            this.shouldSendNoticeForNewThread = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -26,6 +28,7 @@ var Ally;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.usersFullName = this.siteInfo.userInfo.fullName;
             this.usersAvatarUrl = this.siteInfo.userInfo.avatarUrl;
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             // Just a little delay to help the home page layout faster
             this.$timeout(() => this.refreshCommentThreads(), 5);
             this.$scope.$on("refreshBBoardPosts", (event, data) => this.refreshCommentThreads());
@@ -69,6 +72,7 @@ var Ally;
                 this.editPostBody = "";
                 this.editPostDateOnly = new Date();
                 this.editPostTimeOnly = "9:00am";
+                this.shouldSendNoticeForNewThread = false;
                 window.setTimeout(() => document.getElementById("new-thread-body-rte").focus(), 50);
             }
             this.shouldShowEditPostModal = true;
@@ -83,7 +87,7 @@ var Ally;
          */
         refreshCommentThreads(isLoadMore = false) {
             this.isLoading = true;
-            let getUri = "/api/CommentThread/BulletinBoard?a=1";
+            let getUri = "/api/CommentThread/BulletinBoard/PostsOnly?a=1";
             if (this.shouldIncludeArchived)
                 getUri += "&includeArchived=true";
             if (isLoadMore && this.commentThreads.length > 0)
@@ -98,7 +102,6 @@ var Ally;
                 else {
                     response.data = _.sortBy(response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
                     this.commentThreads = response.data;
-                    //this.commentThreads.forEach( ( ct ) => this.prepThreadForDisplay( ct ) );
                 }
                 this.couldBeMorePosts = response.data.length > 0;
             }, (response) => {
@@ -113,7 +116,7 @@ var Ally;
             const commentThread = this.commentThreads.find(ct => ct.commentThreadId === commentThreadId);
             let getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
             commentThread.isLoading = true;
-            this.$http.get(getUri).then((response) => {
+            return this.$http.get(getUri).then((response) => {
                 commentThread.isLoading = false;
                 const existingThreadIndex = this.commentThreads.findIndex(ct => ct.commentThreadId === commentThread.commentThreadId);
                 if (existingThreadIndex > -1)
@@ -124,9 +127,11 @@ var Ally;
                     this.commentThreads = _.sortBy(this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
                 }
                 this.prepThreadForDisplay(response.data);
+                return response.data;
             }, (response) => {
                 commentThread.isLoading = false;
                 console.log("Failed to load post threads: " + response.data.exceptionMessage);
+                return null;
             });
         }
         loadPreviewImagesForThread(curThread) {
@@ -146,8 +151,10 @@ var Ally;
             //}
             if (curThread.firstComment && curThread.firstComment.attachedDocPath && !curThread.firstComment.attachedDocPreviewUrl)
                 commentsToProcess.push({ curThread, curComment: curThread.firstComment });
-            for (const curComment of curThread.comments)
-                processComment(curComment);
+            if (curThread.comments) {
+                for (const curComment of curThread.comments)
+                    processComment(curComment);
+            }
             const getImagePreviewUrl = (thread, comment) => {
                 // If we already have the preview URL, skip
                 if (comment.attachedDocPreviewUrl)
@@ -167,25 +174,36 @@ var Ally;
             thread.isLoggedInUserAuthor = thread.authorUserId === this.siteInfo.userInfo.userId;
             thread.shouldShowEditButton = thread.isLoggedInUserAuthor || this.siteInfo.userInfo.isSiteManager;
             // Hook up the first comment
-            const firstCommentIndex = thread.comments.findIndex(cct => cct.postDateUtc.getTime() === thread.createDateUtc.getTime());
-            if (firstCommentIndex > -1) {
-                thread.firstComment = thread.comments[firstCommentIndex];
-                // Remove the comment since it's shown up top
-                thread.comments.splice(firstCommentIndex, 1);
-                // If the root comment has a reply, add it as a root comment. This can
-                // happen if the thread is from the old discussion-style posts where you
-                // could comment on the first post
-                if (thread.firstComment.replies && thread.firstComment.replies.length > 0) {
-                    thread.comments.push(...thread.firstComment.replies);
-                }
+            //const firstCommentIndex = thread.comments.findIndex( cct => cct.postDateUtc.getTime() === thread.createDateUtc.getTime() );
+            //if( firstCommentIndex > -1 )
+            //{
+            //    thread.firstComment = thread.comments[firstCommentIndex];
+            //    // Remove the comment since it's shown up top
+            //    thread.comments.splice( firstCommentIndex, 1 );
+            //    // If the root comment has a reply, add it as a root comment. This can
+            //    // happen if the thread is from the old discussion-style posts where you
+            //    // could comment on the first post
+            //    if( thread.firstComment.replies && thread.firstComment.replies.length > 0 )
+            //    {
+            //        thread.comments.push( ...thread.firstComment.replies );
+            //    }
+            //}
+            // If the root comment has a reply, add it as a root comment. This can
+            // happen if the thread is from the old discussion-style posts where you
+            // could comment on the first post
+            if (thread.comments && thread.firstComment && thread.firstComment.replies && thread.firstComment.replies.length > 0) {
+                thread.comments.push(...thread.firstComment.replies);
             }
             this.loadPreviewImagesForThread(thread);
-            const MaxInitialCommentsToDisplay = 3;
-            if (thread.comments.length > MaxInitialCommentsToDisplay) {
-                thread.visibleComments = thread.comments.slice(0, MaxInitialCommentsToDisplay);
-            }
-            else
-                thread.visibleComments = thread.comments;
+            // View all comments now that we hide comments on view
+            thread.visibleComments = thread.comments;
+            //const MaxInitialCommentsToDisplay = 3;
+            //if( thread.comments && thread.comments.length > MaxInitialCommentsToDisplay )
+            //{
+            //    thread.visibleComments = thread.comments.slice( 0, MaxInitialCommentsToDisplay );
+            //}
+            //else
+            //    thread.visibleComments = thread.comments;
         }
         //createNewPost()
         //{
@@ -212,6 +230,7 @@ var Ally;
                 newThreadFormData.append("sellItemPrice", this.editPostItem.sellItemPrice);
             if (this.editPostItem.eventLocationText)
                 newThreadFormData.append("eventLocationText", this.editPostItem.eventLocationText);
+            newThreadFormData.append("shouldSendNotice", this.shouldSendNoticeForNewThread.toString());
             // Combine the event date and time
             var eventDateUtcString = null;
             if (this.editPostItem.postType && this.editPostDateOnly && this.editPostTimeOnly && typeof (this.editPostTimeOnly) === "string" && this.editPostTimeOnly.length > 1) {
@@ -227,7 +246,6 @@ var Ally;
             }
             //newThreadFormData.append( "isBoardOnly", this.newThreadIsBoardOnly.toString() );
             //newThreadFormData.append( "isReadOnly", this.newThreadIsReadOnly.toString() );
-            //newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );
             if (this.editPostAttachmentFile)
                 newThreadFormData.append("attachedFile", this.editPostAttachmentFile);
             const postHeaders = {
@@ -275,7 +293,7 @@ var Ally;
                 if (this.newBodyMceEditor)
                     this.newBodyMceEditor.setContent("");
                 this.removeAttachment(curThread);
-                this.refreshSingleCommentThread(curThread.commentThreadId);
+                this.refreshSingleCommentThread(curThread.commentThreadId).then(newThread => newThread.commentsAreVisible = true);
             }, (response) => {
                 curThread.isLoading = false;
                 alert("Failed to add comment: " + response.data.exceptionMessage);
@@ -374,6 +392,14 @@ var Ally;
                 thread.isLoading = false;
                 alert("Failed to remove post: " + response.data.exceptionMessage);
             });
+        }
+        showCommentsForThread(commentThread) {
+            // If we've already loaded the comments, just toggle the visibility
+            if (commentThread.comments) {
+                commentThread.commentsAreVisible = true;
+                return;
+            }
+            this.refreshSingleCommentThread(commentThread.commentThreadId).then((newThread) => newThread.commentsAreVisible = true);
         }
     }
     BulletinBoardController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];

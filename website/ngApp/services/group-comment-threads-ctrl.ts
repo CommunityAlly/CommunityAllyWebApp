@@ -42,19 +42,21 @@
         authorFullName: string;
         lastCommentDateUtc: Date;
         lastCommentAuthorName: string;
+        numComments: number;
 
         // Populated locally
         firstComment: Comment;
+        commentsAreVisible: boolean;
     }
 
 
     export class CommentThreadBBoard extends CommentThread
     {
         comments: Comment[];
+        firstComment: Comment;
 
         // Populated locally
         visibleComments: Comment[];
-        firstComment: Comment;
         newRootCommentText: string;
         attachmentFile: File;
         attachmentPreviewUrl: string;

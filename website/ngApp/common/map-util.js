@@ -9,13 +9,13 @@ var Ally;
     }
     Ally.SplitAddress = SplitAddress;
     /**
-     * Represents a GPS position, analgolous to TCCommonWeb.GpsPoint
+     * Represents a GPS position, analogous to TCCommonWeb.GpsPoint
      */
     class GpsPoint {
     }
     Ally.GpsPoint = GpsPoint;
     /**
-     * Represents a polygon with GPS coordinates for vertices, analgolous to TCCommonWeb.GpsPolygon
+     * Represents a polygon with GPS coordinates for vertices, analogous to TCCommonWeb.GpsPolygon
      */
     class GpsPolygon {
     }

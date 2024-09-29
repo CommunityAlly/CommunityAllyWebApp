@@ -18,7 +18,7 @@ namespace Ally
 
 
     /**
-     * Represents a GPS position, analgolous to TCCommonWeb.GpsPoint
+     * Represents a GPS position, analogous to TCCommonWeb.GpsPoint
      */
     export class GpsPoint
     {
@@ -28,7 +28,7 @@ namespace Ally
 
 
     /**
-     * Represents a polygon with GPS coordinates for vertices, analgolous to TCCommonWeb.GpsPolygon
+     * Represents a polygon with GPS coordinates for vertices, analogous to TCCommonWeb.GpsPolygon
      */
     export class GpsPolygon
     {
