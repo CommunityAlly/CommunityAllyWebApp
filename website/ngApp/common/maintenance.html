@@ -292,9 +292,17 @@
                 </div>
             </div>
 
-            <div class="text-end">
-                <span data-ng-if="$ctrl.editingEquipment.equipmentId" data-ng-click="$ctrl.deleteEquipment()" class="text-link" style="float: left;">Delete</span>
+            <div class="row mb-3" data-ng-if="$ctrl.editingEquipment.modelNumber && $ctrl.editingEquipment.modelNumber.length > 1">
+                <div class="col-12 text-center">
+                    <a href="https://www.manualslib.com/{{$ctrl.editingEquipment.modelNumber[0]}}/{{$ctrl.editingEquipment.modelNumber}}.html" target="_blank">Search for Manual</a>
+                </div>
+            </div>
+
+            <div class="text-end mt-4">
+                <button data-ng-if="$ctrl.editingEquipment.equipmentId" type="button" class="btn btn-danger btn-sm" data-ng-click="$ctrl.deleteEquipment()" style="float: left;">Delete</button>
+
                 <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveEquipment()">Save</button>
+                <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.shouldShowEditEquipmentModal = false">Cancel</button>
             </div>
 
         </form>
