@@ -222,6 +222,7 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            // Show less columns on mobile view
             if (window.innerWidth < 769) {
                 for (let i = 2; i < this.residentGridOptions.columnDefs.length; ++i)
                     this.residentGridOptions.columnDefs[i].visible = false;
