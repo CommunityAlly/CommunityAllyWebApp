@@ -154,6 +154,13 @@
                     }
                 };
 
+            // Show less columns on mobile view
+            if( window.innerWidth < 769 )
+            {
+                for( let i = 1; i < this.equipmentGridOptions.columnDefs.length; ++i )
+                    this.equipmentGridOptions.columnDefs[i].visible = false;
+            }
+
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
 
             this.fellowResidents.getResidents().then( residents => this.assigneeOptions = _.clone( residents ) ); // Cloned so we can edit locally
