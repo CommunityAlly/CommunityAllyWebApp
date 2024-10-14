@@ -61,9 +61,14 @@
             </div>
         </div>
 
-        <div class="row mt-3" data-ng-if="$ctrl.shouldShowPaymentForm">
+        <div class="row" data-ng-if="$ctrl.shouldShowPaymentForm">
+            <hr class="mt-5 mb-5" />
+            <div class="text-center">
+                <h4>Premium Renewal Options</h4>
+            </div>
+            <h5>Step 1: Choose Payment Frequency</h5>
             <div class="card-deck col-sm-12 col-md-6 mx-auto premium-plan-card">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h3 class="card-title">Pay Monthly</h3>
                         <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars}}</h2>
@@ -73,20 +78,21 @@
                         <p data-ng-if="$ctrl.monthlyDisabled" style="color: red;">Due to your association having 10 or fewer homes, you must pay annually. Sorry! You can <a href="https://help.communityally.org/why-go-premium/" target="_blank">learn more here</a>.</p>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h3 class="card-title">Pay Annually</h3>
                         <h2 class="card-text" style="color: green;">${{$ctrl.settings.premiumPlanCostDollars * 11}}</h2>
                         <p>
                             <button data-ng-class="{'btn-outline-primary':!$ctrl.isActivatingAnnual,'btn-primary':$ctrl.isActivatingAnnual}" data-ng-click="$ctrl.isActivatingAnnual = true; $ctrl.updateCheckoutDescription();" class="btn stretched-link">{{$ctrl.isActivatingAnnual ? "Selected" : "Select"}}</button>
                         </p>
-                        <p class="card-text">Get 1 month free! Comes out to ${{$ctrl.settings.premiumPlanCostDollars * 0.92 | number:2}}/mo.</p>
+                        <p class="card-text" style="font-size: large; color: blue;">Get 1 month free! Comes out to ${{$ctrl.settings.premiumPlanCostDollars * 0.92 | number:2}}/mo.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row mt-3 mb-5" data-ng-if="$ctrl.shouldShowPaymentForm">
+        <div class="row mt-3" data-ng-if="$ctrl.shouldShowPaymentForm">
+            <h5>Step 2: Choose Payment Method</h5>
             <div class="card col-sm-12 col-md-6" style="margin: 0 auto;">
                 <div class="card-body">
                     <h5 class="card-title">Payment Options</h5>
@@ -140,8 +146,10 @@
                         <p>
                             <div id="card-errors" class="text-error" role="alert"></div>
                         </p>
-                        <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
-                        <p>{{$ctrl.checkoutDescription}}</p>
+                        <div class="text-center">
+                            <button class="btn btn-primary" type="button" data-ng-click="$ctrl.submitCardToStripe()">{{$ctrl.payButtonText}}</button>
+                            <p>{{$ctrl.checkoutDescription}}</p>
+                        </div>
                     </div>
 
                     <div data-ng-if="$ctrl.paymentType === 'invoice'">
@@ -168,6 +176,7 @@
                     </div>
                 </div>
             </div>
+            <hr class="mt-5 mb-5" />
         </div>
 
         <div class="container mt-4" style="position: relative;">
