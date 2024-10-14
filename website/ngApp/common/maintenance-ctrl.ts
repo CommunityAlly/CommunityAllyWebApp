@@ -20,6 +20,11 @@
         vendorCompanyName: string;
         equipmentName: string;
         creatorFullName: string;
+
+        // Populated locally
+        vendorWeb: string;
+        vendorPhone: string;
+        vendorEmail: string;
     }
 
 
@@ -57,6 +62,9 @@
     {
         preferredVendorId: number;
         companyName: string;
+        phoneNumber: string;
+        companyWeb: string;
+        contactEmail: string;
     }
 
 
@@ -65,7 +73,7 @@
         static $inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
         isLoading: boolean;
         equipmentOptions: Equipment[];
-        vendorOptions: VendorListItem[];
+        vendorListItems: VendorListItem[];
         projects: MaintenanceProject[];
         maintenanceTodos: TodoList;
         isSiteManager: boolean = false;
@@ -175,7 +183,7 @@
                 this.entriesSortAscending = window.localStorage[MaintenanceController.StorageKey_SortDir] === "true";
 
             this.loadEquipment()
-                .then( () => this.loadVendors() )
+                .then( () => this.loadVendorListItems() )
                 .then( () => this.loadProjects() )
                 .then( () => this.loadMaintenanceTodos() )
                 .then( () => this.rebuildMaintenanceEntries() );
@@ -193,6 +201,19 @@
             {
                 var newEntry = new MaintenanceEntry();
                 newEntry.project = p;
+
+                if( this.vendorListItems && p.vendorId )
+                {
+                    const vendorInfo = this.vendorListItems.find( v => v.preferredVendorId === p.vendorId );
+                    if( vendorInfo )
+                    {
+                        // Hook up the contact info for convenience
+                        p.vendorWeb = vendorInfo.companyWeb;
+                        p.vendorPhone = vendorInfo.phoneNumber;
+                        p.vendorEmail = vendorInfo.contactEmail;
+                    }
+                }
+
                 this.maintenanceEntries.push( newEntry );
             } );
 
@@ -280,20 +301,22 @@
         /**
         * Retrieve the equipment available for this group
         */
-        loadVendors()
+        loadVendorListItems()
         {
             this.isLoading = true;
 
-            return this.$http.get( "/api/PreferredVendors/ListItems" ).then( ( response: ng.IHttpPromiseCallbackArg<VendorListItem[]> ) =>
-            {
-                this.isLoading = false;
-                this.vendorOptions = response.data;
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to retrieve vendors: " + response.data.exceptionMessage );
-            } );
+            return this.$http.get( "/api/PreferredVendors/ListItems" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<VendorListItem[]> ) =>
+                {
+                    this.isLoading = false;
+                    this.vendorListItems = response.data;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve vendors: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 

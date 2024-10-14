@@ -56,7 +56,14 @@
                     <div data-ng-if="entry.project">
                         <div data-ng-if="entry.project.startDate"><label style="font-weight:bold;" class="mb-2">Project Date:</label>&nbsp;{{ entry.project.startDate | date:'shortDate' }}<span data-ng-if="entry.project.endDate && entry.project.endDate.getTime() !== entry.project.startDate.getTime()">&nbsp;- {{ entry.project.endDate | date:'shortDate' }}</span></div>
                         <div data-ng-if="entry.project.cost"><label style="font-weight:bold;" class="mb-2">Cost:</label>&nbsp;{{ entry.project.cost | currency }}</div>
-                        <div data-ng-if="entry.project.vendorCompanyName"><label style="font-weight:bold;" class="mb-2">Vendor:</label>&nbsp;{{ entry.project.vendorCompanyName }}</div>
+                        <div data-ng-if="entry.project.vendorCompanyName" class="mb-2">
+                            <label style="font-weight:bold;">Vendor:</label>&nbsp;{{ entry.project.vendorCompanyName }}
+                            <div data-ng-if="entry.project.vendorWeb||entry.project.vendorPhone||entry.project.vendorEmail" class="ms-4 note-text">
+                                <a data-ng-if="entry.project.vendorPhone" data-ng-href="tel:{{entry.project.vendorPhone}}" class="ms-3">{{entry.project.vendorPhone}}</a>
+                                <a data-ng-if="entry.project.vendorEmail" data-ng-href="mailto:{{entry.project.vendorEmail}}" target="_blank" class="ms-3">{{entry.project.vendorEmail}}</a>
+                                <a data-ng-if="entry.project.vendorWeb" data-ng-href="{{entry.project.vendorWeb}}" target="_blank" class="ms-3">{{entry.project.vendorWeb}}</a>
+                            </div>
+                        </div>
                         <div data-ng-if="entry.project.equipmentName"><label style="font-weight:bold;" class="mb-2">Equipment:</label>&nbsp;{{ entry.project.equipmentName }}</div>
                         <div data-ng-if="entry.project.status"><label style="font-weight:bold;" class="mb-2">Status:</label>&nbsp;{{ entry.project.status }}</div>
                         <div data-ng-if="entry.project.assignedTo"><label style="font-weight:bold;" class="mb-2">Assigned To:</label>&nbsp;{{ entry.project.assignedTo }}</div>
@@ -78,12 +85,12 @@
         <form class="ca-modal-dialog modal-md">
             <div data-ng-show="$ctrl.isLoading" class="loading-overlay"></div>
 
-            <div data-ng-if="($ctrl.editingProject && $ctrl.editingProject.maintenanceProjectId) || ($ctrl.editingTodo && $ctrl.editingTodo.todoItemId)">
+            <div data-ng-if="($ctrl.editingProject && $ctrl.editingProject.maintenanceProjectId) || ($ctrl.editingTodo && $ctrl.editingTodo.todoItemId)" class="mb-4">
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.editingProject = $ctrl.editingTodo = null">&times;</span>
                 <h2>{{ $ctrl.editingProject ? "Edit Maintenance Entry" : "Edit To-Do" }}</h2>
             </div>
 
-            <div data-ng-if="($ctrl.editingProject && !$ctrl.editingProject.maintenanceProjectId) || ($ctrl.editingTodo && !$ctrl.editingTodo.todoItemId)">
+            <div data-ng-if="($ctrl.editingProject && !$ctrl.editingProject.maintenanceProjectId) || ($ctrl.editingTodo && !$ctrl.editingTodo.todoItemId)" class="mb-4">
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.editingProject = $ctrl.editingTodo = null">&times;</span>
                 <h2>Add New Entry</h2>
 
@@ -109,10 +116,10 @@
                     </div>
                 </div>
 
-                <div class="mb-3 row" data-ng-if="$ctrl.vendorOptions.length > 0">
+                <div class="mb-3 row" data-ng-if="$ctrl.vendorListItems.length > 0">
                     <label class="col-sm-3 col-12 form-label-popup">Vendor:</label>
                     <div class="col-sm-9 col-12">
-                        <select data-ng-model="$ctrl.editingProject.vendorId" class="form-control form-select" data-ng-options="v.preferredVendorId as v.companyName for v in $ctrl.vendorOptions">
+                        <select data-ng-model="$ctrl.editingProject.vendorId" class="form-control form-select" data-ng-options="v.preferredVendorId as v.companyName for v in $ctrl.vendorListItems">
                             <option></option>
                         </select>
                     </div>
@@ -168,6 +175,7 @@
 
                 <div class="text-end">
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveProject()">Save</button>
+                    <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.editingProject = $ctrl.editingTodo = null">Cancel</button>
                 </div>
             </div>
 
@@ -214,6 +222,7 @@
 
                 <div class="text-end">
                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.saveTodo()">Save</button>
+                    <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.editingProject = $ctrl.editingTodo = null">Cancel</button>
                 </div>
             </div>
         </form>

@@ -75,7 +75,7 @@ var Ally;
             else
                 this.entriesSortAscending = window.localStorage[MaintenanceController.StorageKey_SortDir] === "true";
             this.loadEquipment()
-                .then(() => this.loadVendors())
+                .then(() => this.loadVendorListItems())
                 .then(() => this.loadProjects())
                 .then(() => this.loadMaintenanceTodos())
                 .then(() => this.rebuildMaintenanceEntries());
@@ -88,6 +88,15 @@ var Ally;
             _.forEach(this.projects, p => {
                 var newEntry = new Ally.MaintenanceEntry();
                 newEntry.project = p;
+                if (this.vendorListItems && p.vendorId) {
+                    const vendorInfo = this.vendorListItems.find(v => v.preferredVendorId === p.vendorId);
+                    if (vendorInfo) {
+                        // Hook up the contact info for convenience
+                        p.vendorWeb = vendorInfo.companyWeb;
+                        p.vendorPhone = vendorInfo.phoneNumber;
+                        p.vendorEmail = vendorInfo.contactEmail;
+                    }
+                }
                 this.maintenanceEntries.push(newEntry);
             });
             _.forEach(this.maintenanceTodos.todoItems, t => {
@@ -148,11 +157,11 @@ var Ally;
         /**
         * Retrieve the equipment available for this group
         */
-        loadVendors() {
+        loadVendorListItems() {
             this.isLoading = true;
             return this.$http.get("/api/PreferredVendors/ListItems").then((response) => {
                 this.isLoading = false;
-                this.vendorOptions = response.data;
+                this.vendorListItems = response.data;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to retrieve vendors: " + response.data.exceptionMessage);
