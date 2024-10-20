@@ -15,7 +15,7 @@
      */
     export class FAQsController implements ng.IController
     {
-        static $inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents"];
+        static $inject = ["$http", "$rootScope", "SiteInfo", "$cacheFactory", "fellowResidents", "$scope", "$timeout"];
         
         editingInfoItem: InfoItem;
         hideDocuments: boolean;
@@ -29,6 +29,9 @@
         faqsHttpCache: ng.ICacheObject;
         tinyMceEditor: ITinyMce;
         tinyMceDidNotLoad = false;
+        editNewInfoDebounceTimerId: number;
+        shouldShowUnsavedEntry = false;
+        static readonly StoreKeyInfoItemNewText = "InfoItemNewText";
 
         
         /**
@@ -38,7 +41,9 @@
             private $rootScope: ng.IRootScopeService,
             private siteInfo: SiteInfoService,
             private $cacheFactory: ng.ICacheFactoryService,
-            private fellowResidents: Ally.FellowResidentsService )
+            private fellowResidents: Ally.FellowResidentsService,
+            private $scope: ng.IScope,
+            private $timeout: ng.ITimeoutService )
         {
             this.editingInfoItem = new InfoItem();
             if( AppConfig.appShortName === "home" )
@@ -54,6 +59,8 @@
             this.hideDocuments = this.$rootScope["userInfo"].isRenter && !this.siteInfo.privateSiteInfo.rentersCanViewDocs;
             this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
 
+            this.shouldShowUnsavedEntry = window.localStorage && window.localStorage[FAQsController.StoreKeyInfoItemNewText] && ( window.localStorage[FAQsController.StoreKeyInfoItemNewText] as string ).length > 0;
+
             // Make sure committee members can manage their data
             if( this.committee && !this.canManage )
                 this.fellowResidents.isCommitteeMember( this.committee.committeeId ).then( isCommitteeMember => this.canManage = isCommitteeMember );
@@ -66,9 +73,61 @@
             HtmlUtil2.initTinyMce( "tiny-mce-editor", 500 ).then( e =>
             {
                 this.tinyMceEditor = e;
+
+                // Only hook up the change event if we have access to localStorage
+                if( window.localStorage )
+                {
+                    this.tinyMceEditor.on( "keyup", () =>
+                    {
+                        this.shouldShowUnsavedEntry = false;
+
+                        // Only cache if we're editing a new info item
+                        const isEditingExisting = this.editingInfoItem && typeof ( this.editingInfoItem.infoItemId ) === "number" && this.editingInfoItem.infoItemId > 0;
+                        if( isEditingExisting )
+                            return;
+
+                        const DebounceTimeMs = 500;
+                        this.debounceEditNewInfo( () =>
+                        {
+                            //console.log( "In editNewInfo debounce", this.tinyMceEditor.getContent() );
+
+                            // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
+                            this.$scope.$apply( () =>
+                            {   
+                                const newContent = this.tinyMceEditor.getContent();
+
+                                // Don't cache if the content is too large
+                                const MaxSizeBytes = 100 * 1024; // 100kb
+                                if( newContent && newContent.length < MaxSizeBytes )
+                                    window.localStorage[FAQsController.StoreKeyInfoItemNewText] = newContent;
+                                else
+                                    window.localStorage.removeItem( FAQsController.StoreKeyInfoItemNewText );
+                            } );
+
+                        }, DebounceTimeMs );
+                    } );
+                }
+
                 this.tinyMceDidNotLoad = !e;
+
+                if( this.tinyMceEditor && this.shouldShowUnsavedEntry )
+                    this.tinyMceEditor.setContent( window.localStorage[FAQsController.StoreKeyInfoItemNewText] );
             } );
         }
+
+        
+        debounceEditNewInfo( callback: () => void, delay: number )
+        {
+            // Clear the previous timer to prevent the execution of 'mainFunction'
+            if( this.editNewInfoDebounceTimerId )
+                clearTimeout( this.editNewInfoDebounceTimerId );
+
+            // Set a new timer that will execute 'mainFunction' after the specified delay
+            this.editNewInfoDebounceTimerId = window.setTimeout( () =>
+            {
+                callback();
+            }, delay );
+        };
 
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,6 +168,13 @@
         }
 
 
+        scrollToSave()
+        {
+            document.getElementById( "AddNewInfoButton" ).scrollIntoView();
+            this.shouldShowUnsavedEntry = false;
+        }
+
+
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user edits an info item
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,6 +184,11 @@
             this.editingInfoItem = jQuery.extend( {}, infoItem ) as InfoItem;
             if( this.tinyMceEditor )
                 this.tinyMceEditor.setContent( this.editingInfoItem.body );
+
+            // Clear any cached value
+            if( window.localStorage )
+                window.localStorage.removeItem( FAQsController.StoreKeyInfoItemNewText );
+            this.shouldShowUnsavedEntry = false;
 
             // Scroll down to the editor
             window.scrollTo( 0, document.body.scrollHeight );
@@ -137,7 +208,10 @@
             const validateable: any = $( "#info-item-edit-form" );
             validateable.validate();
             if( !validateable.valid() || this.isBodyMissing )
+            {
+                alert( "Failed to save, correct the errors above and try again." );
                 return;
+            }
 
             if( this.committee )
                 this.editingInfoItem.committeeId = this.committee.committeeId;
@@ -149,6 +223,12 @@
                 this.isLoadingInfo = false;
                 if( this.tinyMceEditor )
                     this.tinyMceEditor.setContent( "" );
+
+                // Clear any cached new entry text
+                if( window.localStorage )
+                    window.localStorage.removeItem( FAQsController.StoreKeyInfoItemNewText );
+                this.shouldShowUnsavedEntry = false;
+
                 this.editingInfoItem = new InfoItem();
 
                 // Switched to removeAll because when we switched to the new back-end, the cache
@@ -166,11 +246,11 @@
             };
 
             // If we're editing an existing info item
-            if( typeof ( this.editingInfoItem.infoItemId ) == "number" )
-                this.$http.put( "/api/InfoItem", this.editingInfoItem ).then( onSave );
+            if( typeof ( this.editingInfoItem.infoItemId ) === "number" )
+                this.$http.put( "/api/InfoItem", this.editingInfoItem ).then( onSave, onError );
             // Otherwise create a new one
             else
-                this.$http.post( "/api/InfoItem", this.editingInfoItem ).then( onSave );
+                this.$http.post( "/api/InfoItem", this.editingInfoItem ).then( onSave, onError );
         }
 
 
@@ -209,6 +289,13 @@
             this.editingInfoItem = new InfoItem();
             if( this.tinyMceEditor )
                 this.tinyMceEditor.setContent( "" );
+
+            // Warn the user if they have unsaved changes?
+
+            // Clear any cached new entry text
+            if( window.localStorage )
+                window.localStorage.removeItem( FAQsController.StoreKeyInfoItemNewText );
+            this.shouldShowUnsavedEntry = false;
         }
     }
 

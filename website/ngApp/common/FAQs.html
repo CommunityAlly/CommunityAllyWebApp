@@ -1,6 +1,10 @@
 ﻿<div class="page-subpage page-document-info info spinner-effect" data-ng-cloak>
     <h1>{{ $ctrl.headerText }}</h1>
     <br />
+    <div data-ng-if="$ctrl.shouldShowUnsavedEntry" class="alert alert-warning">
+        You have unsaved text in the "Add New Information" area at the bottom of this page. <span class="text-link" data-ng-click="$ctrl.scrollToSave()">Take me there</span>
+    </div>
+
     <div data-ng-if="$ctrl.infoItems.length > 5" style="margin-bottom: 30px;">
         <span data-ng-repeat="info in $ctrl.infoItems"><span class="text-link" id="info-item-link-{{ $index }}" data-ng-click="$ctrl.scrollToInfo( $index )">{{ info.title }}</span><br /></span>
         <hr />
@@ -24,7 +28,7 @@
         <h4>Add New Information</h4>
         <form action="" id="info-item-edit-form">
             <p><label>Title</label></p>
-            <p><input type="text" class="input_field " id="AddInfoItemTitleTextBox" data-ng-model="$ctrl.editingInfoItem.title" maxlength="128" data-rule-required="true" /></p>
+            <p><input type="text" class="input_field" id="AddInfoItemTitleTextBox" data-ng-model="$ctrl.editingInfoItem.title" maxlength="128" data-rule-required="true" /></p>
             <p><label>Message:</label></p>
             <div><textarea id="tiny-mce-editor" data-ng-model="$ctrl.editingInfoItem.body" style="width: 100%; height: 250px;"></textarea></div>
             <div class="text-error" data-ng-if="$ctrl.tinyMceDidNotLoad">Our rich-text editor failed to load. You can try to reload the page or you may need to wait a few hours if you want rich-text editing capabilities.</div>
@@ -32,7 +36,7 @@
             <p class="text-end margin-top-10">
                 <span data-ng-show="$ctrl.isBodyMissing" class="error">The body is required.</span>
                 <button id="AddNewInfoButton" class="btn btn-primary" type="button" data-ng-click="$ctrl.onSubmitItem();">Submit</button>&nbsp;
-                <button id="CancelEditInfoButton" class="btn btn-primary margin-left-10" type="button" data-ng-show="$ctrl.editingInfoItem.infoItemId != null" data-ng-click="$ctrl.cancelInfoItemEdit()">
+                <button id="CancelEditInfoButton" class="btn btn-secondary margin-left-10" type="button" data-ng-show="$ctrl.editingInfoItem.infoItemId != null" data-ng-click="$ctrl.cancelInfoItemEdit()">
                     Cancel Edit
                 </button>
             </p>
