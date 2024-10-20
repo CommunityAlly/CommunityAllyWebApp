@@ -16,7 +16,12 @@
                         No board members have been assigned
                     </div>
                     <div data-ng-repeat="member in $ctrl.boardMembers">
-                        <span id="board-member-title-{{::$index}}" style="font-weight: bold;">{{ ::member.boardPositionName }}</span>&nbsp;-&nbsp;<span id="board-member-name-{{::$index}}">{{ ::member.fullName }}</span><span data-ng-if="::!member.hasEmail">*</span><span data-ng-if="::member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="board-member-send-msg-{{::$index}}" data-recipient-info="member"></send-message></span><br />
+                        <span id="board-member-title-{{::$index}}" style="font-weight: bold;">{{ ::member.boardPositionName }}</span>
+                        &nbsp;-&nbsp;
+                        <span id="board-member-name-{{::$index}}">{{ ::member.fullName }}</span>
+                        <span data-ng-if="::!member.hasEmail">*</span>
+                        <span data-ng-if="::member.hasEmail && $ctrl.isPremiumPlanActive">&nbsp;-&nbsp;<send-message id="board-member-send-msg-{{::$index}}" data-recipient-info="member"></send-message></span>
+                        <span data-ng-if="::member.hasEmail && member.email && !$ctrl.isPremiumPlanActive">&nbsp;(<a id="board-email-{{ ::$index }}" href="mailto:{{ ::member.email }}">{{ ::member.email }}</a>)</span>
                     </div>
                     <br />
                 </div>
