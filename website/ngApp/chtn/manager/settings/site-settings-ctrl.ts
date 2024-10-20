@@ -123,6 +123,7 @@ namespace Ally
                         {
                             if( this.settings.welcomeMessage )
                                 this.tinyMceEditor.setContent( this.settings.welcomeMessage );
+
                             this.tinyMceEditor.on( "keyup", () =>
                             {
                                 // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular

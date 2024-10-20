@@ -13,8 +13,8 @@
     {
         static $inject = ["$http", "SiteInfo", "$routeParams"];
 
-        selectedView: string;
-        shouldShowPremiumPlanSection: boolean = true;
+        selectedView: string;// | "SiteSettings" | "PremiumPlan" | "SiteDesignSettings";
+        shouldShowPremiumPlanSection = true;
 
 
         /**
@@ -24,7 +24,7 @@
         {
             this.selectedView = this.$routeParams.viewName || "SiteSettings";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            if( !this.shouldShowPremiumPlanSection )
+            if( !this.shouldShowPremiumPlanSection && this.selectedView === "PremiumPlan" )
                 this.selectedView = "SiteSettings";
         }
 

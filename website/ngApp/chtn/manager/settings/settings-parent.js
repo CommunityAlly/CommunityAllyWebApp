@@ -14,7 +14,7 @@ var Ally;
             this.shouldShowPremiumPlanSection = true;
             this.selectedView = this.$routeParams.viewName || "SiteSettings";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            if (!this.shouldShowPremiumPlanSection)
+            if (!this.shouldShowPremiumPlanSection && this.selectedView === "PremiumPlan")
                 this.selectedView = "SiteSettings";
         }
         /**
