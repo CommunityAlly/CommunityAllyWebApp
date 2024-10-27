@@ -590,6 +590,11 @@ var Ally;
             }
             return foundRules;
         }
+        static stripNonAlphanumeric(input) {
+            input = (input || "").trim();
+            input = input.replace(/[^0-9a-zA-Z]/gi, ''); // Remove non-alphanumeric+dash
+            return input;
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"

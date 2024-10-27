@@ -867,6 +867,15 @@ namespace Ally
             
             return foundRules;
         }
+
+
+        static stripNonAlphanumeric( input: string )
+        {
+            input = ( input || "" ).trim();
+            input = input.replace( /[^0-9a-zA-Z]/gi, '' ); // Remove non-alphanumeric+dash
+
+            return input;
+        }
     }
 
 

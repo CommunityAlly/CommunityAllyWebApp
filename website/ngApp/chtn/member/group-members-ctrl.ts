@@ -34,6 +34,7 @@ namespace Ally
         groupEmailDomain: string = "";
         shouldShowNewCustomEmailModal: boolean = false;
         editGroupEmailInfo: SaveEmailGroupInfo;
+        editGroupEmailInfoInputShortName: string;
         groupEmailsLoadError: string;
         groupEmailSaveError: string;
         isSiteManager: boolean;
@@ -406,6 +407,12 @@ namespace Ally
 
                 this.filteredUnitList = this.allUnitList.filter( u => unitContainsFilter( u ) );
             }
+        }
+
+
+        updateEditGroupEmailShortName()
+        {
+            this.editGroupEmailInfo.shortName = HtmlUtil2.stripNonAlphanumeric( (this.editGroupEmailInfoInputShortName || "").toLocaleLowerCase() );
         }
     }
 

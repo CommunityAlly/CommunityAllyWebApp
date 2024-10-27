@@ -216,8 +216,8 @@
 
             <div class="row mb-4 px-3">
                 <label class="form-label">Short Name:</label>
-                <input id="custom-group-email-short-name-text" type="text" data-ng-model="$ctrl.editGroupEmailInfo.shortName" data-ng-enter="$ctrl.saveCustomGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control form-control-sm" maxlength="30" required />
-                <div class="note-text ps-0">An alphanumeric identifier that will make up the email address. Must be 3-30 characters and start with a letter.</div>
+                <input id="custom-group-email-short-name-text" type="text" data-ng-model="$ctrl.editGroupEmailInfoInputShortName" data-ng-change="$ctrl.updateEditGroupEmailShortName()" data-ng-keyup="$ctrl.updateEditGroupEmailShortName()" data-ng-enter="$ctrl.saveCustomGroupEmailInfo()" data-ng-escape="$ctrl.shouldShowNewCustomEmailModal = false" class="form-control form-control-sm" maxlength="30" required />
+                <div class="note-text ps-0">An alphanumeric identifier that will make up the email address (non-alphanumerics are automatically stripped). Must be 3-30 characters and start with a letter.</div>
                 <div data-ng-if="$ctrl.editGroupEmailInfo.shortName" class="ps-0">Email address will be: <b>{{ $ctrl.editGroupEmailInfo.shortName }}.{{ $ctrl.groupShortName }}@{{ $ctrl.groupEmailDomain }}</b></div>
             </div>
 

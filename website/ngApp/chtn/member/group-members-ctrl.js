@@ -268,6 +268,9 @@ var Ally;
                 this.filteredUnitList = this.allUnitList.filter(u => unitContainsFilter(u));
             }
         }
+        updateEditGroupEmailShortName() {
+            this.editGroupEmailInfo.shortName = Ally.HtmlUtil2.stripNonAlphanumeric((this.editGroupEmailInfoInputShortName || "").toLocaleLowerCase());
+        }
     }
     GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
     GroupMembersController.AllBoardUserId = "af615460-d92f-4878-9dfa-d5e4a9b1f488";
