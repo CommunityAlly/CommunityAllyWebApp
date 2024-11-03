@@ -91,8 +91,8 @@
             //    if( window.localStorage["chtnHome_disableShowGoodNeighbor2024"] === "true" )
             //        this.shouldShowGoodNeighbor2024 = false;
             //}
-            if( window.localStorage )
-                window.localStorage.removeItem( "chtnHome_disableShowGoodNeighbor2024" );
+            //if( window.localStorage )
+            //    window.localStorage.removeItem( "chtnHome_disableShowGoodNeighbor2024" );
 
             this.allyAppName = AppConfig.appName;
 
