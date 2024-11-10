@@ -1235,7 +1235,7 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/StripePayments/StartSignUp" ).then(
+            this.$http.get( "/api/StripePayments/StartConnectSignUp" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     // Don't stop the loading indicator, just redirect to Stripe

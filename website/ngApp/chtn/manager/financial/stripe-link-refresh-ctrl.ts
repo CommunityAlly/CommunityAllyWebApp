@@ -1,7 +1,7 @@
 namespace Ally
 {
     /**
-     * The controller for the page to track group spending
+     * The controller for the page to refresh the Stripe Link process
      */
     export class StripeLinkRefreshController implements ng.IController
     {
@@ -31,13 +31,13 @@ namespace Ally
 
 
         /**
-        * Retrieve the report data
+        * Restart the Stripe sign-up process
         */
         refreshLink()
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/StripePayments/StartSignUp" ).then(
+            this.$http.get( "/api/StripePayments/StartConnectSignUp" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.statusMessage = `Refreshed, redirecting to Stripe now...`;

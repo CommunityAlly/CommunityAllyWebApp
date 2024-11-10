@@ -758,7 +758,7 @@ var Ally;
         }
         signUpForStripe() {
             this.isLoading = true;
-            this.$http.get("/api/StripePayments/StartSignUp").then((response) => {
+            this.$http.get("/api/StripePayments/StartConnectSignUp").then((response) => {
                 // Don't stop the loading indicator, just redirect to Stripe
                 //this.isLoading = false;
                 //window.open( response.data, "_self" );

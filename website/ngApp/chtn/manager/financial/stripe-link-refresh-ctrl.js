@@ -1,7 +1,7 @@
 var Ally;
 (function (Ally) {
     /**
-     * The controller for the page to track group spending
+     * The controller for the page to refresh the Stripe Link process
      */
     class StripeLinkRefreshController {
         /**
@@ -22,11 +22,11 @@ var Ally;
             this.refreshLink();
         }
         /**
-        * Retrieve the report data
+        * Restart the Stripe sign-up process
         */
         refreshLink() {
             this.isLoading = true;
-            this.$http.get("/api/StripePayments/StartSignUp").then((response) => {
+            this.$http.get("/api/StripePayments/StartConnectSignUp").then((response) => {
                 this.statusMessage = `Refreshed, redirecting to Stripe now...`;
                 window.location.href = response.data;
             }, (response) => {
