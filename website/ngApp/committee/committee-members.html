@@ -1,33 +1,41 @@
 ﻿<div>
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
 
-    <h2>Contact Member</h2>
-    <p>Select the member that should be contacted for questions about the committee.</p>
-    <select data-ng-if="$ctrl.canManage" data-ng-model="$ctrl.contactUser" data-ng-change="$ctrl.setContactMember()" data-ng-options="user as user.fullName for user in $ctrl.members"></select>
-    <span data-ng-if="!$ctrl.canManage">{{ $ctrl.contactUser.fullName }}</span>
-    <br />
-    <span data-ng-if="!$ctrl.contactUser" class="text-error">Please select a member.<br /></span>
-    <br />
-    <br />
+    <div class="mb-5">
+        <h2>All Members</h2>
 
-    <h2>All Members</h2>
-
-    <div class="container">
-        <div class="row">
-            <div class="col-12 col-sm-6 col-md-4 text-large" data-ng-repeat="member in $ctrl.members">
-                <span style="font-weight: bold;">{{ $index + 1 }}.</span> <span>{{ member.fullName }}</span> <span class="note-text text-link" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.removeMember( member )">Remove</span>
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-4 text-large" data-ng-repeat="member in $ctrl.members">
+                    <span style="font-weight: bold;">{{ $index + 1 }}.</span> <span>{{ member.fullName }}</span> <span class="note-text text-link" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.removeMember( member )">Remove</span>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <br />
-    <br />
 
-    <div data-ng-if="$ctrl.canManage">
-        <h2>Add Member</h2>
-        <div>
-            <select data-ng-model="$ctrl.userForAdd" data-ng-options="user as user.fullName for user in $ctrl.filteredGroupMembers"></select>
-            <button type="button" style="margin-left: 10px;" class="btn btn-primary" data-ng-click="$ctrl.addSelectedMember()">Add Member</button>
+        <div class="mt-3" data-ng-if="$ctrl.canManage && $ctrl.filteredGroupMembers.length > 0">
+            Add Resident to Committee:
+            <select data-ng-model="$ctrl.userForAdd" data-ng-options="user as user.fullName for user in $ctrl.filteredGroupMembers" data-ng-change="$ctrl.addSelectedMember()"></select>
+        </div>
+    </div>
+
+    <div>
+        <h2>Contact Members</h2>
+        <p>Select the members that should be contacted for questions about the committee.</p>
+        <div data-ng-if="$ctrl.contactUsers.length === 0" class="note-text text-error">
+            No contact members have been set yet.
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-4 text-large" data-ng-repeat="curContactMember in $ctrl.contactUsers">
+                    <span>{{ curContactMember.fullName }}</span> <span class="note-text text-link" data-ng-if="$ctrl.canManage" data-ng-click="$ctrl.setContactMember(curContactMember, false)">Remove</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3" data-ng-if="$ctrl.canManage && $ctrl.newContactMemberOptions.length > 0">
+            Add Contact Member:
+            <select data-ng-model="$ctrl.contactUserForAdd" data-ng-change="$ctrl.setContactMember($ctrl.contactUserForAdd, true)" data-ng-options="user as user.fullName for user in $ctrl.newContactMemberOptions"></select>
         </div>
     </div>
 </div>

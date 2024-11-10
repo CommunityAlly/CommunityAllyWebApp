@@ -71,6 +71,12 @@
     }
 
 
+    export class FellowResidentCommittee extends FellowChtnResident
+    {
+        isContactMember: boolean;
+    }
+
+
     export class CommitteeListingInfo
     {
         committeeId: number;
@@ -156,14 +162,16 @@
          */
         getCommitteeMembers(committeeId: number)
         {
-            return this.$http.get( `/api/Committee/${committeeId}/Members` ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<FellowChtnResident[]> ) =>
-            {
-                return httpResponse.data;
-
-            }, function ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                return this.$q.reject( httpResponse );
-            } );
+            return this.$http.get( `/api/Committee/${committeeId}/Members` ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidentCommittee[]> ) =>
+                {
+                    return httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
         }
 
 

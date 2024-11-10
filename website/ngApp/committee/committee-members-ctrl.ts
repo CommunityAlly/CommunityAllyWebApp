@@ -9,10 +9,12 @@
 
         isLoading: boolean = false;
         committee: Ally.Committee;
-        members: FellowChtnResident[];
+        members: FellowResidentCommittee[];
         userForAdd: FellowChtnResident;
         allGroupMembers: FellowChtnResident[];
-        contactUser: FellowChtnResident;
+        contactUserForAdd: FellowResidentCommittee;
+        newContactMemberOptions: FellowResidentCommittee[] = [];
+        contactUsers: FellowResidentCommittee[] = [];
         canManage: boolean = false;
 
 
@@ -48,7 +50,7 @@
             {
                 this.allGroupMembers = residents;
 
-                this.getMembers();
+                this.getCommitteeMembers();
             } );
         }
 
@@ -56,59 +58,76 @@
         /**
          * Set the contact user for this committee
          */
-        setContactMember()
+        setContactMember( member: FellowResidentCommittee, isContactMember: boolean )
         {
+            console.log( "In setContactMember", member, isContactMember );
+
+            if( !member )
+                return;
+
             this.isLoading = true;
 
-            this.$http.put( `/api/Committee/${this.committee.committeeId}/SetContactMember?userId=` + this.contactUser.userId, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
+            const putUri = `/api/Committee/${this.committee.committeeId}/SetMemberIsContact/${member.userId}/${isContactMember}`;
 
-                this.committee.contactMemberUserId = this.contactUser.userId;
+            this.$http.put( putUri, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
 
-                // Since we changed the committee data, clear the cache so we show the up-to-date info
-                this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committee.committeeId );
+                    member.isContactMember = isContactMember;
 
-                // Update the fellow residents page next time we're there
-                this.fellowResidents.clearResidentCache();
+                    this.contactUserForAdd = null;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to set contact member: " + response.data.exceptionMessage );
-            } );
+                    this.contactUsers = _.filter( this.members, m => m.isContactMember );
+                    this.newContactMemberOptions = _.filter( this.members, m => !m.isContactMember );
+
+                    // Since we changed the committee data, clear the cache so we show the up-to-date info
+                    this.$cacheFactory.get( '$http' ).remove( "/api/Committee/" + this.committee.committeeId );
+
+                    // Update the fellow residents page next time we're there
+                    this.fellowResidents.clearResidentCache();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to set contact member: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
         /**
          * Retrieve the full list of committee members from the server
          */
-        getMembers()
+        getCommitteeMembers()
         {
             this.isLoading = true;
 
-            this.fellowResidents.getCommitteeMembers( this.committee.committeeId ).then( ( committeeMembers: FellowChtnResident[] ) =>
-            {
-                this.isLoading = false;
-                this.members = committeeMembers;
+            this.fellowResidents.getCommitteeMembers( this.committee.committeeId ).then(
+                ( committeeMembers: FellowResidentCommittee[] ) =>
+                {
+                    this.isLoading = false;
+                    this.members = committeeMembers;
 
-                this.members = _.sortBy( this.members, m => ( m.fullName || "" ).toLowerCase() );
+                    this.members = _.sortBy( this.members, m => ( m.fullName || "" ).toLowerCase() );
 
-                var isMember = ( u: FellowChtnResident ) => _.some( this.members, ( m: FellowChtnResident ) => m.userId === u.userId );
+                    var isMember = ( u: FellowChtnResident ) => _.some( this.members, ( m: FellowChtnResident ) => m.userId === u.userId );
 
-                this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember( m ) );
-                this.filteredGroupMembers = _.sortBy( this.filteredGroupMembers, m => ( m.fullName || "" ).toLowerCase() );
+                    this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember( m ) );
+                    this.filteredGroupMembers = _.sortBy( this.filteredGroupMembers, m => ( m.fullName || "" ).toLowerCase() );
 
-                this.contactUser = _.find( this.members, m => m.userId == this.committee.contactMemberUserId );
+                    this.contactUsers = _.filter( this.members, m => m.isContactMember );
+                    this.newContactMemberOptions = _.filter( this.members, m => !m.isContactMember );
 
-                // Admin or committee members can manage the committee
-                this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager || _.any( this.members, m => m.userId === this.siteInfo.userInfo.userId );
-
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to retrieve committee members, please refresh the page to try again" );
-            } );
+                    // Admin or committee members can manage the committee
+                    this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager || _.any( this.members, m => m.userId === this.siteInfo.userInfo.userId );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve committee members, please refresh the page to try again" );
+                }
+            );
         }
 
 
@@ -122,16 +141,18 @@
 
             this.isLoading = true;
 
-            this.$http.put( `/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.getMembers();
-
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to add member, please refresh the page to try again: " + response.data.exceptionMessage );
-            } );
+            this.$http.put( `/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.getCommitteeMembers();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to add member, please refresh the page to try again: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -148,7 +169,7 @@
             this.$http.put( `/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 this.isLoading = false;
-                this.getMembers();
+                this.getCommitteeMembers();
 
             }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {

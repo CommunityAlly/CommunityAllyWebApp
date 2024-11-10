@@ -23,6 +23,9 @@ var Ally;
     class FellowChtnResident extends Ally.SimpleUserEntry {
     }
     Ally.FellowChtnResident = FellowChtnResident;
+    class FellowResidentCommittee extends FellowChtnResident {
+    }
+    Ally.FellowResidentCommittee = FellowResidentCommittee;
     class CommitteeListingInfo {
     }
     Ally.CommitteeListingInfo = CommitteeListingInfo;
@@ -64,7 +67,7 @@ var Ally;
         getCommitteeMembers(committeeId) {
             return this.$http.get(`/api/Committee/${committeeId}/Members`).then((httpResponse) => {
                 return httpResponse.data;
-            }, function (httpResponse) {
+            }, (httpResponse) => {
                 return this.$q.reject(httpResponse);
             });
         }

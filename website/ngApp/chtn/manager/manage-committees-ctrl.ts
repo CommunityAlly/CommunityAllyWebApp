@@ -7,7 +7,6 @@
         committeeType: string;
         creationDateUtc: Date;
         deactivationDateUtc: Date;
-        contactMemberUserId: string;
         isPrivate: boolean = false;
     }
 
