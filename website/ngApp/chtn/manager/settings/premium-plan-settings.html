@@ -11,6 +11,13 @@
             <a href="https://help.communityally.org/why-go-premium/" target="_blank">Learn more about free versus premium</a>
         </div>
 
+        <div data-ng-if="$ctrl.settings.premiumPlanCostDollars === 1" class="mt-2 mb-2 alert alert-danger">
+            It looks like you haven't loaded your homes addresses yet so the price below is inaccurate. We're happy to help
+            you bulk load your homes if you reach out to <a href="mailto:hello@communityally.org">hello@CommunityAlly.org</a>.
+            Alternatively, <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">you can add
+            homes yourself</a>.
+        </div>
+
         <div data-ng-if="$ctrl.isPremiumPlanActive && !$ctrl.shouldShowTrialNote">
             Thank you and your association for being premium plan members!
         </div>
@@ -22,7 +29,7 @@
         <br />
 
         <div data-ng-if="$ctrl.settings.premiumPlanIsAutoRenewed">
-            Your premium plan will auto-renew on <span style="font-weight: bold; color: green;">{{$ctrl.premiumPlanRenewDate | date:'shortDate'}}</span>.            
+            Your premium plan will auto-renew on <span style="font-weight: bold; color: green;">{{$ctrl.premiumPlanRenewDate | date:'shortDate'}}</span>.
             <div style="text-align: center;">
                 <div class="me-3 p-2" style="display: inline-block; vertical-align: top;">
                     <button class="btn btn-danger" type="button" data-ng-click="$ctrl.cancelPremiumAutoRenew()">Disable Auto-Renew</button>
@@ -47,7 +54,7 @@
                 You're currently on the free plan. <a href="https://help.communityally.org/why-go-premium/" target="_blank">Why go premium?</a>
             </div>
             <br />
-            
+
             <button data-ng-if="!$ctrl.shouldShowHomeSetupNote && !$ctrl.shouldShowPaymentForm" class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()">View Premium Plan Renewal Options</button>
             <div data-ng-if="$ctrl.shouldShowHomeSetupNote" class="mt-2 mb-2 alert alert-warning">
                 It looks like you have not yet setup your homes. Our pricing is based on number of homes so we need that information before you can sign-up for our premium plan.
@@ -118,7 +125,7 @@
                             </div>
 
                             <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && $ctrl.settings.hasStripePremiumPendingAchAccount">
-                                You have a pending account setup with Plaid. Please click the button below to complete the verification process.
+                                You have a pending account setup with Plaid. Please click the button below to complete the verification process. (<span class="text-link note-text" data-ng-click="$ctrl.cancelPendingAch()">cancel</span>)
                                 <div class="text-center mt-2">
                                     <button type="button" class="btn btn-primary" data-ng-click="$ctrl.completeStripeMicroDeposits()">Complete Account Verification</button>
                                 </div>
