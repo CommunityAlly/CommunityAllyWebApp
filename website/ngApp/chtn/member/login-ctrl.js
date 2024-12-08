@@ -148,7 +148,7 @@ var Ally;
                     window.localStorage["rememberMe_Password"] = null;
                 }
                 // handleSiteInfo returns true if we redirect the user so stop processing if we did
-                if (this.siteInfo.handleSiteInfo(data.siteInfo, this.$rootScope))
+                if (this.siteInfo.handleSiteInfo(data.siteInfo, this.$rootScope, this.$http))
                     return;
                 // If the user hasn't accepted the terms yet then make them go to the profile
                 // page. But no need if this is a demo site.

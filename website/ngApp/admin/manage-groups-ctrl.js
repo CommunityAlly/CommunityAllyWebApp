@@ -4,6 +4,7 @@ var Ally;
     }
     class FoundGroup {
     }
+    Ally.FoundGroup = FoundGroup;
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */

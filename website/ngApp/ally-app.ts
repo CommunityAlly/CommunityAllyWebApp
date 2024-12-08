@@ -278,8 +278,8 @@ CA.angularApp.config(
                 return {
                     request: function( reqConfig: ng.IRequestConfig ): ng.IRequestConfig
                     {
-                        const BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
-                        const BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
+                        const BaseGenericUri = "https://0.webappapi.communityally.org/api/";
+                        const BaseLocalGenericUri = "https://0.webappapi.mycommunityally.org/api/";
 
                         const isMakingGenericApiRequest = HtmlUtil.startsWith( reqConfig.url, BaseGenericUri )
                             || HtmlUtil.startsWith( reqConfig.url, BaseLocalGenericUri );
@@ -418,6 +418,8 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
             $rootScope.isAdmin = false;
             $rootScope.isSiteManager = false;
             $rootScope.authToken = "";
+            $rootScope.allUsersGroups = null;
+
             if( window.localStorage )
             {
                 window.localStorage.removeItem( "rememberMe_Email" );
@@ -515,7 +517,7 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
         // Check if the site is shutting down
         $timeout( () =>
         {
-            $http.get( "/api/PublicAllyAppSettings/IsEndOfLifeEnabled" ).then(
+            $http.get( "https://0.webappapi.communityally.org/api/PublicAllyAppSettings/IsEndOfLifeEnabled" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     if( response.data.isEndOfLife )
@@ -527,11 +529,25 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
                     }
                 }
             );
-        }, 500 );
+        }, 1000 );
 
-        $rootScope.closeEndOfLife = function()
+        $rootScope.closeEndOfLife = () =>
         {
             $rootScope.isEndOfLifeEnabled = false;
+        };
+
+        $rootScope.expandSwitchGroup = ( shouldExpand: boolean ) =>
+        {
+            $rootScope.shouldExpandSwitchGroups = shouldExpand;
+        } 
+
+        $rootScope.onSwitchGroupSelected = () =>
+        {
+            //console.log( "newGroupId", $rootScope.selectedSwitchGroupId );
+            const selectedGroup = $rootScope.allUsersGroups.find( ( g: any ) => g.groupId === $rootScope.selectedSwitchGroupId );
+            //console.log( "selectedGroup", selectedGroup );
+            if( selectedGroup && selectedGroup.groupId !== $rootScope.publicSiteInfo.groupId )
+                window.location.href = selectedGroup.groupUrl;
         };
     }
 ] );

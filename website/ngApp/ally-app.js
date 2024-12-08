@@ -177,8 +177,8 @@ CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoPr
                     $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 return {
                     request: function (reqConfig) {
-                        const BaseGenericUri = "https://0.webappapi.mycommunityally.org/api/";
-                        const BaseLocalGenericUri = "https://0.webappapi.communityally.org/api/";
+                        const BaseGenericUri = "https://0.webappapi.communityally.org/api/";
+                        const BaseLocalGenericUri = "https://0.webappapi.mycommunityally.org/api/";
                         const isMakingGenericApiRequest = HtmlUtil.startsWith(reqConfig.url, BaseGenericUri)
                             || HtmlUtil.startsWith(reqConfig.url, BaseLocalGenericUri);
                         // If we're talking to the Community Ally API server, then we need to complete the
@@ -274,6 +274,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             $rootScope.isAdmin = false;
             $rootScope.isSiteManager = false;
             $rootScope.authToken = "";
+            $rootScope.allUsersGroups = null;
             if (window.localStorage) {
                 window.localStorage.removeItem("rememberMe_Email");
                 window.localStorage.removeItem("rememberMe_Password");
@@ -342,7 +343,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         });
         // Check if the site is shutting down
         $timeout(() => {
-            $http.get("/api/PublicAllyAppSettings/IsEndOfLifeEnabled").then((response) => {
+            $http.get("https://0.webappapi.communityally.org/api/PublicAllyAppSettings/IsEndOfLifeEnabled").then((response) => {
                 if (response.data.isEndOfLife) {
                     console.log("IsEndOfLifeEnabled", response.data.isEndOfLife);
                     $rootScope.isEndOfLifeEnabled = true;
@@ -350,9 +351,19 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
                     $rootScope.endOfLifeMessageHtml = response.data.messageHtml;
                 }
             });
-        }, 500);
-        $rootScope.closeEndOfLife = function () {
+        }, 1000);
+        $rootScope.closeEndOfLife = () => {
             $rootScope.isEndOfLifeEnabled = false;
+        };
+        $rootScope.expandSwitchGroup = (shouldExpand) => {
+            $rootScope.shouldExpandSwitchGroups = shouldExpand;
+        };
+        $rootScope.onSwitchGroupSelected = () => {
+            //console.log( "newGroupId", $rootScope.selectedSwitchGroupId );
+            const selectedGroup = $rootScope.allUsersGroups.find((g) => g.groupId === $rootScope.selectedSwitchGroupId);
+            //console.log( "selectedGroup", selectedGroup );
+            if (selectedGroup && selectedGroup.groupId !== $rootScope.publicSiteInfo.groupId)
+                window.location.href = selectedGroup.groupUrl;
         };
     }
 ]);

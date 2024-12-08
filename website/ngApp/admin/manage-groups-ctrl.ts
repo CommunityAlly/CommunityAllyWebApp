@@ -10,15 +10,19 @@
     }
 
 
-    class FoundGroup
+    export class FoundGroup
     {
         groupId: number;
         appName: number;
+        friendlyAppName: string;
         shortName: string;
+        fullName: string;
+        groupUrl: string;
         deactivationDateUtc: Date;
 
         // Not from the server
         viewUrl: string;
+        dropDownLabel: string;
     }
 
 

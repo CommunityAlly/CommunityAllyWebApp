@@ -192,7 +192,7 @@ namespace Ally
             {
                 $rootScope.isLoadingSite = false;
 
-                this.handleSiteInfo( null, $rootScope );
+                this.handleSiteInfo( null, $rootScope, $http );
 
                 deferred.resolve();
                 return deferred.promise;
@@ -202,7 +202,7 @@ namespace Ally
             {
                 $rootScope.isLoadingSite = false;
 
-                this.handleSiteInfo( siteInfo, $rootScope );
+                this.handleSiteInfo( siteInfo, $rootScope, $http );
 
                 deferred.resolve( siteInfo );
             };
@@ -218,23 +218,24 @@ namespace Ally
             const GetInfoUri = "https://0.webappapi.communityally.org/api/GroupSite";
             //const GetInfoUri = "https://0.webappapi.mycommunityally.org/api/GroupSite";
             $http.get( GetInfoUri ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                ( httpResponse: ng.IHttpPromiseCallbackArg<AllySiteInfo> ) =>
                 {
                     // If we received data but the user isn't logged-in
                     if( httpResponse.data && !httpResponse.data.userInfo )
                     {
                         // Check the cross-domain localStorage for an auth token
+                        //console.log( "User not logged-in, checking for cross domain auth token..." );
                         this.xdLocalStorage.getItem( "allyApiAuthToken" ).then(
                             ( xdResponse: any ) =>
                             {
                                 // If we received an auth token then retry accessing the group data
                                 if( xdResponse && HtmlUtil.isValidString( xdResponse.value ) )
                                 {
-                                    //console.log( "Received cross domain token:" + response.value );
+                                    //console.log( "Received cross domain token:" + xdResponse.value );
                                     this.setAuthToken( xdResponse.value );
 
                                     $http.get( GetInfoUri ).then(
-                                        ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                                        ( httpResponse: ng.IHttpPromiseCallbackArg<AllySiteInfo> ) =>
                                         {
                                             onSiteInfoReceived( httpResponse.data );
                                         },
@@ -287,7 +288,7 @@ namespace Ally
         // Log-in and application start both retrieve information about the current association's site.
         // This function should be used to properly populate the scope with the information.
         // Returns true if we redirected the user, otherwise false
-        handleSiteInfo( siteInfo: AllySiteInfo, $rootScope: ng.IRootScopeService )
+        handleSiteInfo( siteInfo: AllySiteInfo, $rootScope: ng.IRootScopeService, $http: ng.IHttpService )
         {
             //console.log( "In handleSiteInfo" );
             //debugger;
@@ -437,6 +438,33 @@ namespace Ally
                         name: $rootScope.userInfo.fullName
                     } );
                 }
+
+                // Get all of the user's groups
+                setTimeout( () =>
+                {
+                    // Since this is in a native setTimeout (not $timeout) we'd usually have to
+                    // wrap this in an $apply, but since this is low priority and the root scope
+                    // will change at some other time, we can let the natural digest cycle pick
+
+                    // Get all of the user's groups for the swtich group widget
+                    $rootScope.selectedSwitchGroupId = this.publicSiteInfo.groupId;
+                    $rootScope.shouldExpandSwitchGroups = false;
+                    console.log( "$rootScope.selectedSwitchGroupId", $rootScope.selectedSwitchGroupId );
+                    $http.get( "/api/MyProfile/GetMyGroups" ).then(
+                        ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
+                        {
+                            $rootScope.allUsersGroups = response.data;
+                            console.log( "Found user groups", $rootScope.allUsersGroups );
+
+                            if( response.data )
+                            {
+                                for( const curGroup of response.data )
+                                    curGroup.dropDownLabel = `${curGroup.fullName} (${curGroup.friendlyAppName})`;
+                            }
+                        },
+                        ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) => console.log( "Failed to get user's groups", httpResponse.data.exceptionMessage )
+                    );
+                }, 1000 );                
             }
             // Otherwise the user is not logged-in
             else
@@ -598,8 +626,10 @@ namespace Ally
         
         public $get() : SiteInfoService
         {
-            if( !SiteInfoProvider.isSiteInfoLoaded )
-                console.log( "Not yet loaded!" );
+            // This used to be a warning if we tried to access data before we had it, but it's
+            // normal since our switch to certain loading logic
+            //if( !SiteInfoProvider.isSiteInfoLoaded )
+            //    console.log( "Not yet loaded!" );
 
             return SiteInfoProvider.siteInfo;
         }
