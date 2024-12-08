@@ -21,6 +21,8 @@
     </div>
 
     <div class="col-md-6">
-        <group-comment-threads committee-id="$ctrl.committee.committeeId" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
+        <group-comment-threads data-ng-if="!$ctrl.shouldShowBulletinBoard" committee-id="$ctrl.committee.committeeId" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
+
+        <bulletin-board data-ng-if="$ctrl.shouldShowBulletinBoard" committee-id="$ctrl.committee.committeeId"></bulletin-board>
     </div>
 </div>

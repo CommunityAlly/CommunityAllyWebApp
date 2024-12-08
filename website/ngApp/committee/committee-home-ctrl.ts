@@ -16,6 +16,7 @@
         committee: Ally.Committee;
         canManage: boolean = false;
         autoOpenDiscussionThreadId: number;
+        shouldShowBulletinBoard = true;
 
 
         /**
@@ -39,6 +40,18 @@
 
             if( this.$routeParams && HtmlUtil.isNumericString( this.$routeParams.discussionThreadId ) )
                 this.autoOpenDiscussionThreadId = parseInt( this.$routeParams.discussionThreadId );
+
+            const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
+            
+            if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate )
+            {
+                if( this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysBulletinBoardDate )
+                    this.shouldShowBulletinBoard = true;
+                else
+                    this.shouldShowBulletinBoard = homeRightColumnType.indexOf( "bulletinboard" ) > -1;
+            }
+            else
+                this.shouldShowBulletinBoard = homeRightColumnType.indexOf( "bulletinboard" ) > -1;
         }
     }
 }

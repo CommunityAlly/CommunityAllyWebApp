@@ -12,6 +12,7 @@ var Ally;
             this.fellowResidents = fellowResidents;
             this.$routeParams = $routeParams;
             this.canManage = false;
+            this.shouldShowBulletinBoard = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -23,6 +24,15 @@ var Ally;
                 this.fellowResidents.isCommitteeMember(this.committee.committeeId).then(isCommitteeMember => this.canManage = isCommitteeMember);
             if (this.$routeParams && HtmlUtil.isNumericString(this.$routeParams.discussionThreadId))
                 this.autoOpenDiscussionThreadId = parseInt(this.$routeParams.discussionThreadId);
+            const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
+            if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysDiscussDate) {
+                if (this.siteInfo.privateSiteInfo.creationDate > Ally.SiteInfoService.AlwaysBulletinBoardDate)
+                    this.shouldShowBulletinBoard = true;
+                else
+                    this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
+            }
+            else
+                this.shouldShowBulletinBoard = homeRightColumnType.indexOf("bulletinboard") > -1;
         }
     }
     CommitteeHomeController.$inject = ["SiteInfo", "fellowResidents", "$routeParams"];
