@@ -7,11 +7,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo, $timeout, $scope) {
+        constructor($http, siteInfo, $timeout, $scope, fellowResidents) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
             this.$scope = $scope;
+            this.fellowResidents = fellowResidents;
             this.isLoading = false;
             this.isSiteManager = false;
             this.shouldShowEditPostModal = false;
@@ -35,10 +36,16 @@ var Ally;
             this.$scope.$on("refreshSingleBBoardPost", (event, commentThreadId) => this.refreshSingleCommentThread(commentThreadId));
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if (!this.canCreateThreads) {
-                if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
-                    this.canCreateThreads = true;
-                else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
-                    this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                if (this.committeeId) {
+                    // Make sure committee members can manage their data
+                    this.fellowResidents.isCommitteeMember(this.committeeId).then(isCommitteeMember => this.canCreateThreads = isCommitteeMember);
+                }
+                else {
+                    if (!this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone")
+                        this.canCreateThreads = true;
+                    else if (this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board")
+                        this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                }
             }
         }
         //loadPosts()
@@ -92,6 +99,8 @@ var Ally;
                 getUri += "&includeArchived=true";
             if (isLoadMore && this.commentThreads.length > 0)
                 getUri += "&lookBackDateUtc=" + this.commentThreads[this.commentThreads.length - 1].lastCommentDateUtc.toISOString();
+            if (this.committeeId)
+                getUri += "&committeeId=" + this.committeeId;
             this.$http.get(getUri).then((response) => {
                 this.isLoading = false;
                 response.data.forEach((ct) => this.prepThreadForDisplay(ct));
@@ -231,6 +240,8 @@ var Ally;
             if (this.editPostItem.eventLocationText)
                 newThreadFormData.append("eventLocationText", this.editPostItem.eventLocationText);
             newThreadFormData.append("shouldSendNotice", this.shouldSendNoticeForNewThread.toString());
+            if (this.committeeId)
+                newThreadFormData.append("committeeId", this.committeeId.toString());
             // Combine the event date and time
             var eventDateUtcString = null;
             if (this.editPostItem.postType && this.editPostDateOnly && this.editPostTimeOnly && typeof (this.editPostTimeOnly) === "string" && this.editPostTimeOnly.length > 1) {
@@ -402,11 +413,13 @@ var Ally;
             this.refreshSingleCommentThread(commentThread.commentThreadId).then((newThread) => newThread.commentsAreVisible = true);
         }
     }
-    BulletinBoardController.$inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+    BulletinBoardController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "fellowResidents"];
     Ally.BulletinBoardController = BulletinBoardController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("bulletinBoard", {
-    bindings: {},
+    bindings: {
+        committeeId: "<?"
+    },
     templateUrl: "/ngApp/services/bulletin-board.html",
     controller: Ally.BulletinBoardController
 });

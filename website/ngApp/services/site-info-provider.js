@@ -234,10 +234,10 @@ var Ally;
                     // Get all of the user's groups for the swtich group widget
                     $rootScope.selectedSwitchGroupId = this.publicSiteInfo.groupId;
                     $rootScope.shouldExpandSwitchGroups = false;
-                    console.log("$rootScope.selectedSwitchGroupId", $rootScope.selectedSwitchGroupId);
+                    //console.log( "$rootScope.selectedSwitchGroupId", $rootScope.selectedSwitchGroupId );
                     $http.get("/api/MyProfile/GetMyGroups").then((response) => {
                         $rootScope.allUsersGroups = response.data;
-                        console.log("Found user groups", $rootScope.allUsersGroups);
+                        //console.log( "Found user groups", $rootScope.allUsersGroups );
                         if (response.data) {
                             for (const curGroup of response.data)
                                 curGroup.dropDownLabel = `${curGroup.fullName} (${curGroup.friendlyAppName})`;

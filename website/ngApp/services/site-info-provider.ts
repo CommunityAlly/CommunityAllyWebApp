@@ -449,12 +449,12 @@ namespace Ally
                     // Get all of the user's groups for the swtich group widget
                     $rootScope.selectedSwitchGroupId = this.publicSiteInfo.groupId;
                     $rootScope.shouldExpandSwitchGroups = false;
-                    console.log( "$rootScope.selectedSwitchGroupId", $rootScope.selectedSwitchGroupId );
+                    //console.log( "$rootScope.selectedSwitchGroupId", $rootScope.selectedSwitchGroupId );
                     $http.get( "/api/MyProfile/GetMyGroups" ).then(
                         ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
                         {
                             $rootScope.allUsersGroups = response.data;
-                            console.log( "Found user groups", $rootScope.allUsersGroups );
+                            //console.log( "Found user groups", $rootScope.allUsersGroups );
 
                             if( response.data )
                             {

@@ -5,7 +5,7 @@ namespace Ally
      */
     export class BulletinBoardController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "$timeout", "$scope"];
+        static $inject = ["$http", "SiteInfo", "$timeout", "$scope", "fellowResidents"];
 
         isLoading: boolean = false;
         isSiteManager = false;
@@ -27,6 +27,7 @@ namespace Ally
         canCreateThreads: boolean = false;
         isPremiumPlanActive = false;
         shouldSendNoticeForNewThread = false;
+        committeeId: number;
 
 
         /**
@@ -35,7 +36,8 @@ namespace Ally
         constructor( private $http: ng.IHttpService,
             private siteInfo: SiteInfoService,
             private $timeout: ng.ITimeoutService,
-            private $scope: ng.IScope )
+            private $scope: ng.IScope,
+            private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -59,10 +61,18 @@ namespace Ally
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if( !this.canCreateThreads )
             {
-                if( !this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone" )
-                    this.canCreateThreads = true;
-                else if( this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board" )
-                    this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                if( this.committeeId )
+                {
+                    // Make sure committee members can manage their data
+                    this.fellowResidents.isCommitteeMember( this.committeeId ).then( isCommitteeMember => this.canCreateThreads = isCommitteeMember );
+                }
+                else
+                {
+                    if( !this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads || this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "everyone" )
+                        this.canCreateThreads = true;
+                    else if( this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads === "board" )
+                        this.canCreateThreads = this.siteInfo.userInfo.isSiteManager || this.siteInfo.userInfo.boardPosition !== 0;
+                }
             }
         }
 
@@ -137,6 +147,9 @@ namespace Ally
 
             if( isLoadMore && this.commentThreads.length > 0 )
                 getUri += "&lookBackDateUtc=" + this.commentThreads[this.commentThreads.length - 1].lastCommentDateUtc.toISOString();
+
+            if( this.committeeId )
+                getUri += "&committeeId=" + this.committeeId;
 
             this.$http.get( getUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<CommentThreadBBoard[]> ) =>
@@ -340,6 +353,9 @@ namespace Ally
             if( this.editPostItem.eventLocationText )
                 newThreadFormData.append( "eventLocationText", this.editPostItem.eventLocationText );
             newThreadFormData.append( "shouldSendNotice", this.shouldSendNoticeForNewThread.toString() );
+
+            if( this.committeeId )
+                newThreadFormData.append( "committeeId", this.committeeId.toString() );
 
             // Combine the event date and time
             var eventDateUtcString: string = null;
@@ -609,6 +625,7 @@ namespace Ally
 
 CA.angularApp.component( "bulletinBoard", {
     bindings: {
+        committeeId: "<?"
     },
     templateUrl: "/ngApp/services/bulletin-board.html",
     controller: Ally.BulletinBoardController
