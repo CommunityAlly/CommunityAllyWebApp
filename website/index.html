@@ -268,10 +268,11 @@
 
 <body data-ng-app="CondoAlly" ng-strict-di data-ng-style="{'font-family': siteDesignSettings.fontFamily, 'color': siteDesignSettings.bodyFontColor, 'background': siteDesignSettings.background}">
     <header id="app-header">
-        <div data-ng-if="$root.allUsersGroups.length > 1" style="float: right; margin: 7px;">
+        <div data-ng-if="$root.allUsersGroups.length > 1" data-ng-cloak style="float: right; margin: 7px;">
             <span data-ng-if="!$root.shouldExpandSwitchGroups" data-ng-click="expandSwitchGroup(true)" class="text-link" style="text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);">Switch Groups</span>
-            <select data-ng-if="$root.shouldExpandSwitchGroups" data-ng-options="g.groupId as g.dropDownLabel for g in $root.allUsersGroups" data-ng-model="$root.selectedSwitchGroupId" data-ng-change="$root.onSwitchGroupSelected(g.groupId)"></select>
-            <span data-ng-if="$root.shouldExpandSwitchGroups" class="close-x" style="margin: 0;" data-ng-click="$root.expandSwitchGroup(false)">&times;</span>
+            <select data-ng-if="$root.shouldExpandSwitchGroups && !$root.isSwitchingGroups" data-ng-options="g.groupId as g.dropDownLabel for g in $root.allUsersGroups" data-ng-model="$root.selectedSwitchGroupId" data-ng-change="$root.onSwitchGroupSelected(g.groupId)"></select>
+            <span data-ng-if="$root.shouldExpandSwitchGroups && !$root.isSwitchingGroups" class="close-x" style="margin: 0;" data-ng-click="$root.expandSwitchGroup(false)">&times;</span>
+            <img data-ng-if="$root.isSwitchingGroups" src="/assets/images/spinner-large.gif" style="width: 20px;" />
         </div>
         <div class="container-fluid logo-container">
             <div class="container">

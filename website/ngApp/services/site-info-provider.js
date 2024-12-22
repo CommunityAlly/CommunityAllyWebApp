@@ -234,6 +234,7 @@ var Ally;
                     // Get all of the user's groups for the swtich group widget
                     $rootScope.selectedSwitchGroupId = this.publicSiteInfo.groupId;
                     $rootScope.shouldExpandSwitchGroups = false;
+                    $rootScope.isSwitchingGroups = false;
                     //console.log( "$rootScope.selectedSwitchGroupId", $rootScope.selectedSwitchGroupId );
                     $http.get("/api/MyProfile/GetMyGroups").then((response) => {
                         $rootScope.allUsersGroups = response.data;
