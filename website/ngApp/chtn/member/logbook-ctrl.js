@@ -36,7 +36,7 @@ var Ally;
                 this.viewEvent = null;
             };
         }
-        getTimezoneAbbreviation(timeZoneIana = null) {
+        static getTimezoneAbbreviation(timeZoneIana = null) {
             // Need to cast moment to any because we don't have the tz typedef file
             const tempMoment = moment();
             if (!timeZoneIana)
@@ -58,10 +58,10 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            this.currentTimeZoneAbbreviation = this.getTimezoneAbbreviation();
+            this.currentTimeZoneAbbreviation = LogbookController.getTimezoneAbbreviation();
             this.canEditEvents = this.siteInfo.userInfo.isSiteManager;
             if (this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana) {
-                this.groupTimeZoneAbbreviation = this.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
+                this.groupTimeZoneAbbreviation = LogbookController.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
                 if (this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation)
                     this.localTimeZoneDiffersFromGroup = true;
             }

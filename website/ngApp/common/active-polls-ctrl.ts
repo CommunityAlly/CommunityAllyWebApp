@@ -10,6 +10,7 @@
         polls: Poll[];        
         isLoading: boolean = false;
         multiSelectWriteInPlaceholder: PollAnswer = new PollAnswer( "write-in" );
+        timezoneAbbreviation = "";
 
 
         /**
@@ -29,6 +30,8 @@
         $onInit()
         {
             this.refreshPolls();
+
+            this.timezoneAbbreviation = LogbookController.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
         }
 
 

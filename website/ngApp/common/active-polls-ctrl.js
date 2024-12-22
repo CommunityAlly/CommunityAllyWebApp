@@ -14,12 +14,14 @@ var Ally;
             this.$rootScope = $rootScope;
             this.isLoading = false;
             this.multiSelectWriteInPlaceholder = new Ally.PollAnswer("write-in");
+            this.timezoneAbbreviation = "";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
             this.refreshPolls();
+            this.timezoneAbbreviation = Ally.LogbookController.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
         }
         /**
          * Retrieve any active polls from the server

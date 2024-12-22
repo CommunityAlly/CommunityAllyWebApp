@@ -42,7 +42,7 @@
             threeDaysLater.setDate( new Date().getDate() + 3 );
 
             this.defaultPoll = new Poll();
-            this.defaultPoll.expirationDate = threeDaysLater;
+            this.defaultPoll.pollExpirationDateUtc = threeDaysLater;
             this.defaultPoll.votingGroupShortName = "everyone";
             this.defaultPoll.answers = [
                 new PollAnswer( "Yes" ),
@@ -82,7 +82,7 @@
                 for( let i = 0; i < this.pollHistory.length; ++i )
                 {
                     // The date comes down as a string so we need to convert it
-                    this.pollHistory[i].expirationDate = new Date( ( this.pollHistory[i] as any ).expirationDate );
+                    this.pollHistory[i].pollExpirationDateUtc = new Date( ( this.pollHistory[i] as any ).pollExpirationDateUtc );
 
                     // Remove the abstain answer since it can't be edited, but save the full answer
                     // list for displaying results
@@ -253,6 +253,12 @@
             else
                 this.editingItem.maxNumResponses = 1;
         }
+
+
+        removeAnswer(index: number)
+        {
+            this.editingItem.answers.splice( index, 1 )
+        }
     }
 
     export class Poll
@@ -260,7 +266,7 @@
         pollId: number;
         allowOtherAnswer: boolean;
         isAnonymous: boolean = true;
-        expirationDate: Date;
+        pollExpirationDateUtc: Date;
         postDate: Date;
         postDateUtc: Date;
         authorUserId: string;

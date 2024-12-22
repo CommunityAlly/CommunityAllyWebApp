@@ -27,7 +27,7 @@ var Ally;
             const threeDaysLater = new Date();
             threeDaysLater.setDate(new Date().getDate() + 3);
             this.defaultPoll = new Poll();
-            this.defaultPoll.expirationDate = threeDaysLater;
+            this.defaultPoll.pollExpirationDateUtc = threeDaysLater;
             this.defaultPoll.votingGroupShortName = "everyone";
             this.defaultPoll.answers = [
                 new PollAnswer("Yes"),
@@ -53,7 +53,7 @@ var Ally;
                 // Convert the date strings to objects
                 for (let i = 0; i < this.pollHistory.length; ++i) {
                     // The date comes down as a string so we need to convert it
-                    this.pollHistory[i].expirationDate = new Date(this.pollHistory[i].expirationDate);
+                    this.pollHistory[i].pollExpirationDateUtc = new Date(this.pollHistory[i].pollExpirationDateUtc);
                     // Remove the abstain answer since it can't be edited, but save the full answer
                     // list for displaying results
                     this.pollHistory[i].fullResultAnswers = this.pollHistory[i].answers;
@@ -169,6 +169,9 @@ var Ally;
                 this.editingItem.maxNumResponses = 2;
             else
                 this.editingItem.maxNumResponses = 1;
+        }
+        removeAnswer(index) {
+            this.editingItem.answers.splice(index, 1);
         }
     }
     ManagePollsController.$inject = ["$http", "SiteInfo", "fellowResidents"];

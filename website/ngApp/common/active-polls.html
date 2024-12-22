@@ -9,7 +9,7 @@
         <div class="text-12 text-bold">POLL<span data-ng-if="poll.hasUsersUnitVoted && poll.canViewResults"> RESULTS</span>:</div>
         <p id="poll-question-text-{{ $index }}" class="no-margin text-large text-bold">{{ poll.questionText }}</p>
         <p class="no-margin note-text">
-            <span>Posted by {{ poll.authorName }} on {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm CT {{ poll.expirationDate | date:'M/d/yyyy' }}</span>
+            <span>Posted by {{ poll.authorName }} on {{ poll.postDate | date:'M/d/yyyy' }} - Poll {{ poll.canViewResults ? "closed" : "closes" }} 12pm {{$ctrl.timezoneAbbreviation}} {{ poll.pollExpirationDateUtc | date:'M/d/yyyy' }}</span>
              - 
             <span data-ng-if="poll.isAnonymous">This is an anonymous poll. Your identity will not be shown with your response.</span>
             <span data-ng-if="!poll.isAnonymous">This is NOT an anonymous poll. Your identity will be shown with your response.</span>
@@ -90,7 +90,7 @@
                 <div>
                     Your unit has voted:<br>
                     <span id="selected-vote-text" style="font-weight:bold;">{{ poll.unitVoteText }}</span><br>
-                    You must wait until the poll closes 12pm CT on {{ poll.expirationDate | date:'fullDate' }} to view the results.<br>
+                    You must wait until the poll closes 12pm on {{ poll.pollExpirationDateUtc | date:'fullDate' }} to view the results.<br>
                     <span id="change-vote-button" class="text-link" ng-click="poll.hasUsersUnitVoted = false">Change vote.</span><br>
                     <span style="font-size: small;">You can change your vote as much as you want until the poll closes.</span>
                 </div>
