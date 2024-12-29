@@ -51,7 +51,7 @@
 
             if( this.siteInfo.privateSiteInfo.country === "US" )
             {
-                localNewsUri = "https://localnewsally.azurewebsites.net/api/LocalNews";
+                localNewsUri = AppConfigInfo.localNewsAllyDomain + "api/LocalNews";
 
                 queryParams = {
                     clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",
@@ -64,7 +64,7 @@
             }
             else
             {
-                localNewsUri = "https://localnewsally.azurewebsites.net/api/LocalNews/International/MajorCity";
+                localNewsUri = AppConfigInfo.localNewsAllyDomain + "api/LocalNews/International/MajorCity";
 
                 queryParams = {
                     clientId: "1001A194-B686-4C45-80BC-ECC0BB4916B4",

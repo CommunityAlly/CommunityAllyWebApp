@@ -45,6 +45,7 @@ var Ally;
     }
     AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
     AppConfigInfo.dwollaEnvironmentName = "prod";
+    AppConfigInfo.localNewsAllyDomain = "https://localnewsally2-h7fccdagf6cmdub8.northcentralus-01.azurewebsites.net/";
     Ally.AppConfigInfo = AppConfigInfo;
     class PeriodicPaymentFrequency {
     }

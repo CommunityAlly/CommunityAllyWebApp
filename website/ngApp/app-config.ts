@@ -92,6 +92,7 @@ namespace Ally
 
         static dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
         static dwollaEnvironmentName = "prod";
+        static localNewsAllyDomain = "https://localnewsally2-h7fccdagf6cmdub8.northcentralus-01.azurewebsites.net/";
     }
 
 
