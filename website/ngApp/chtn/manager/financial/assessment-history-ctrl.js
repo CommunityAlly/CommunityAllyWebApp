@@ -180,14 +180,16 @@ var Ally;
             let periodValue = new Date().getMonth() + 1;
             let yearValue = new Date().getFullYear();
             if (this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Quarterly) {
-                periodValue = Math.floor(new Date().getMonth() / 4) + 1;
+                // 1 = Jan-Mar (1-3), 2 = Apr-Jun (4-6), 3 = Jul-Sep (7-9), 4 = Oct-Dec (10-12)
+                periodValue = Math.floor((periodValue - 1) / 3) + 1;
             }
             else if (this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Semiannually) {
-                periodValue = Math.floor(new Date().getMonth() / 6) + 1;
+                // 1 = Jan-Jun (1-6), 2 = Jul (7-12)
+                periodValue = Math.floor((periodValue - 1) / 6) + 1;
             }
             else if (this.assessmentFrequency === AssessmentHistoryController.PeriodicPaymentFrequency_Annually) {
                 periodValue = 1; // Years only have one pay period
-                yearValue = new Date().getFullYear();
+                yearValue = yearValue;
             }
             return {
                 periodValue,
