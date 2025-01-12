@@ -4,6 +4,7 @@ var Ally;
      * The controller for the page that lets users view a calender of events
      */
     class LogbookController {
+        //static NoTime = "12:37am";
         /**
          * The constructor for the class
          */
@@ -298,8 +299,8 @@ var Ally;
                 this.isLoadingCalendarEvents = false;
                 _.each(httpResponse.data, (entry) => {
                     const utcEventDate = moment(entry.eventDateUtc);
-                    const utcTimeOnly = utcEventDate.format(LogbookController.TimeFormat);
-                    const isAllDay = utcTimeOnly == LogbookController.NoTime;
+                    //const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
+                    const isAllDay = !entry.hasTimeComponent; // utcTimeOnly == LogbookController.NoTime;
                     let dateEntry;
                     if (isAllDay) {
                         entry.timeOnly = "";
@@ -521,10 +522,12 @@ var Ally;
             if (typeof (this.editEvent.timeOnly) === "string" && this.editEvent.timeOnly.length > 1) {
                 dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;
                 this.editEvent.eventDateUtc = moment(dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat).utc().toDate();
+                this.editEvent.hasTimeComponent = true;
             }
             else {
-                dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + LogbookController.NoTime;
+                dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " 12:00pm"; // Use 12pm so it's on the correct day no matter the time zone, LogbookController.NoTime
                 this.editEvent.eventDateUtc = moment.utc(dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat).toDate();
+                this.editEvent.hasTimeComponent = false;
             }
             if (!this.editEvent.shouldSendNotification)
                 this.editEvent.notificationEmailDaysBefore = null;
@@ -637,7 +640,6 @@ var Ally;
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
     LogbookController.DateFormat = "YYYY-MM-DD";
     LogbookController.TimeFormat = "h:mma";
-    LogbookController.NoTime = "12:37am";
     Ally.LogbookController = LogbookController;
     class PreviewIcsResult {
     }

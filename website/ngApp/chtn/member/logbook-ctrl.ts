@@ -32,7 +32,7 @@ namespace Ally
 
         static DateFormat = "YYYY-MM-DD";
         static TimeFormat = "h:mma";
-        static NoTime = "12:37am";
+        //static NoTime = "12:37am";
 
 
         /**
@@ -421,8 +421,8 @@ namespace Ally
                     _.each( httpResponse.data, ( entry: CalendarEvent ) =>
                     {
                         const utcEventDate = moment( entry.eventDateUtc );
-                        const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
-                        const isAllDay = utcTimeOnly == LogbookController.NoTime;
+                        //const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
+                        const isAllDay = !entry.hasTimeComponent;// utcTimeOnly == LogbookController.NoTime;
 
                         let dateEntry: Date;
                         if( isAllDay )
@@ -743,11 +743,13 @@ namespace Ally
             {
                 dateTimeString = moment( this.editEvent.dateOnly ).format( LogbookController.DateFormat ) + " " + this.editEvent.timeOnly;
                 this.editEvent.eventDateUtc = moment( dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat ).utc().toDate();
+                this.editEvent.hasTimeComponent = true;
             }
             else
             {
-                dateTimeString = moment( this.editEvent.dateOnly ).format( LogbookController.DateFormat ) + " " + LogbookController.NoTime;
+                dateTimeString = moment( this.editEvent.dateOnly ).format( LogbookController.DateFormat ) + " 12:00pm"; // Use 12pm so it's on the correct day no matter the time zone, LogbookController.NoTime
                 this.editEvent.eventDateUtc = moment.utc( dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat ).toDate();
+                this.editEvent.hasTimeComponent = false;
             }
 
             if( !this.editEvent.shouldSendNotification )
@@ -964,6 +966,7 @@ namespace Ally
         repeatRule: string;
         repeatUntilDate: Date | null;
         repeatOriginalDate: Date | null;
+        hasTimeComponent: boolean | null;
 
         // Not from server, used locally
         timeOnly: string;
