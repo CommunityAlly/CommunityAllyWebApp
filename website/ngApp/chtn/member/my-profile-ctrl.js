@@ -158,6 +158,9 @@ var Ally;
                     this.$rootScope.shouldHideMenu = false;
                     this.$location.path("/Home");
                 }
+                // Make sure our local data matches
+                this.siteInfo.userInfo.firstName = this.profileInfo.firstName;
+                this.siteInfo.userInfo.lastName = this.profileInfo.lastName;
             }, (httpResponse) => {
                 this.isLoading = false;
                 this.resultMessage = httpResponse.data.exceptionMessage;

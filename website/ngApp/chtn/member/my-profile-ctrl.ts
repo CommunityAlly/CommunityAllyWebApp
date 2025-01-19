@@ -79,7 +79,7 @@ namespace Ally
         $onInit()
         {
             this.isDemoSite = HtmlUtil.getSubdomain() === "demosite";
-            
+
             if( this.siteInfo.privateSiteInfo )
                 this.canHideContactInfo = this.siteInfo.privateSiteInfo.canHideContactInfo;
 
@@ -148,17 +148,19 @@ namespace Ally
 
             this.isLoading = true;
             
-            this.$http.put( "/api/MyProfile/ProfileImage?type=" + type, null ).then( () =>
-            {
-                this.isLoading = false;
-                this.initialProfileImageType = this.profileImageType;
+            this.$http.put( "/api/MyProfile/ProfileImage?type=" + type, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.initialProfileImageType = this.profileImageType;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
 
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-
-                alert( "Failed to save: " + httpResponse.data.exceptionMessage );
-            } );
+                    alert( "Failed to save: " + httpResponse.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -251,6 +253,10 @@ namespace Ally
                         this.$rootScope.shouldHideMenu = false;
                         this.$location.path( "/Home" );
                     }
+
+                    // Make sure our local data matches
+                    this.siteInfo.userInfo.firstName = this.profileInfo.firstName;
+                    this.siteInfo.userInfo.lastName = this.profileInfo.lastName;
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {

@@ -963,8 +963,15 @@ namespace Ally
                 if( this.editUser.pendingMemberId )
                     this.loadPendingMembers();
 
-                this.editUser = null;
-                this.refreshResidents();
+                // If the user is editing their own profile then we should reload the page after
+                // save so the UI refreshes any changes
+                if( this.editUser.userId === this.$rootScope.userInfo.userId )
+                    window.location.reload();
+                else
+                {
+                    this.editUser = null;
+                    this.refreshResidents();
+                }
             };
 
             let isAddingNew = false;
