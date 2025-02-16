@@ -117,7 +117,7 @@ var Ally;
         // This function should be used to properly populate the scope with the information.
         // Returns true if we redirected the user, otherwise false
         handleSiteInfo(siteInfo, $rootScope, $http) {
-            //console.log( "In handleSiteInfo" );
+            //console.log( "In handleSiteInfo", siteInfo );
             //debugger;
             const subdomain = HtmlUtil.getSubdomain(window.location.host);
             if (!this.authToken && $rootScope.authToken)
@@ -328,7 +328,7 @@ var Ally;
                     // Occurs when the user saves changes to the site title
                     $rootScope.onUpdateSiteTitleText = () => {
                         analytics.track("updateSiteTitle");
-                        $http.put("/api/Settings/UpdateSiteSettings", { siteTitle: $rootScope.siteTitle.text });
+                        $http.put("/api/Settings/UpdateSiteTitle?newTitle=" + encodeURIComponent($rootScope.siteTitle.text), null);
                     };
                     if ($rootScope.publicSiteInfo.siteDesignSettingsJson) {
                         window.localStorage.setItem(Ally.SiteDesignSettings.SettingsCacheKey, $rootScope.publicSiteInfo.siteDesignSettingsJson);

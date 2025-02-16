@@ -143,10 +143,10 @@ var Ally;
         }
         updateWelcomeMessage() {
             const updateInfo = {
-                WelcomeMessage: this.welcomeTinyMceEditor.getContent()
+                welcomeMessage: this.welcomeTinyMceEditor.getContent()
             };
             this.isLoadingWelcome = true;
-            this.$http.put("/api/Settings/UpdateSiteSettings", updateInfo).then(() => {
+            this.$http.put("/api/Settings/UpdateWelcomeMessage", updateInfo).then(() => {
                 this.isLoadingWelcome = false;
                 this.siteInfo.privateSiteInfo.welcomeMessage = this.welcomeTinyMceEditor.getContent();
                 this.handleWelcomeMessage();

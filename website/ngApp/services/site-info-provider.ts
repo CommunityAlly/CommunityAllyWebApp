@@ -290,7 +290,7 @@ namespace Ally
         // Returns true if we redirected the user, otherwise false
         handleSiteInfo( siteInfo: AllySiteInfo, $rootScope: ng.IRootScopeService, $http: ng.IHttpService )
         {
-            //console.log( "In handleSiteInfo" );
+            //console.log( "In handleSiteInfo", siteInfo );
             //debugger;
 
             const subdomain = HtmlUtil.getSubdomain( window.location.host );
@@ -591,7 +591,7 @@ namespace Ally
                         {
                             analytics.track( "updateSiteTitle" );
 
-                            $http.put( "/api/Settings/UpdateSiteSettings", { siteTitle: $rootScope.siteTitle.text } );
+                            $http.put( "/api/Settings/UpdateSiteTitle?newTitle=" + encodeURIComponent( $rootScope.siteTitle.text ), null );
                         };
 
                         if( $rootScope.publicSiteInfo.siteDesignSettingsJson )
