@@ -522,7 +522,7 @@ var Ally;
                 alert("You can not delete a folder that contains files. Please delete or move all files from the folder.");
                 return;
             }
-            if (confirm("Are you sure you want to delete this folder?")) {
+            if (confirm(`Are you sure you want to delete this folder? (${this.selectedDirectory.name})`)) {
                 // Display the loading image
                 this.isLoading = true;
                 const dirPath = this.getSelectedDirectoryPath();

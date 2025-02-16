@@ -809,7 +809,7 @@
                 return;
             }
 
-            if( confirm( "Are you sure you want to delete this folder?" ) )
+            if( confirm( `Are you sure you want to delete this folder? (${this.selectedDirectory.name})` ) )
             {
                 // Display the loading image
                 this.isLoading = true;
