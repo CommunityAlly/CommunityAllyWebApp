@@ -893,7 +893,7 @@ var Ally;
          * Occurs when the user presses the button to delete a resident
          */
         onDeleteResident() {
-            if (!confirm("Are you sure you want to remove this person from your building?"))
+            if (!confirm("Are you sure you want to remove this person from your site?"))
                 return;
             if (this.siteInfo.userInfo.userId === this.editUser.userId) {
                 if (!confirm("If you remove your own account you won't be able to login anymore. Are you still sure?"))

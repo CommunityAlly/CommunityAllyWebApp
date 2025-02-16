@@ -362,8 +362,10 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             //console.log( "newGroupId", $rootScope.selectedSwitchGroupId );
             const selectedGroup = $rootScope.allUsersGroups.find((g) => g.groupId === $rootScope.selectedSwitchGroupId);
             //console.log( "selectedGroup", selectedGroup );
-            if (selectedGroup && selectedGroup.groupId !== $rootScope.publicSiteInfo.groupId)
+            if (selectedGroup && selectedGroup.groupId !== $rootScope.publicSiteInfo.groupId) {
                 window.location.href = selectedGroup.groupUrl;
+                $rootScope.isSwitchingGroups = true;
+            }
         };
     }
 ]);

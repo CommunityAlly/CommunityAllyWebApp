@@ -1335,7 +1335,7 @@ namespace Ally
          */
         onDeleteResident()
         {
-            if( !confirm( "Are you sure you want to remove this person from your building?" ) )
+            if( !confirm( "Are you sure you want to remove this person from your site?" ) )
                 return;
 
             if( this.siteInfo.userInfo.userId === this.editUser.userId )
