@@ -27,7 +27,9 @@
 
         <div data-ng-if="$ctrl.canEditEvents || $ctrl.reservableAmenities.length > 0" class="mt-4" style="position: relative;">
             <div class="loading-overlay" data-ng-show="$ctrl.isLoadingAmenities"></div>
-            <h5 style="text-decoration: underline;">Reservable Amenities</h5>
+            <h5 style="text-decoration: underline; display: inline-block;">Reservable Amenities</h5>
+            <a class="ms-4" href="https://help.communityally.org/reservable-amenities/" target="_blank">Learn More</a>
+
             <ol>
                 <li data-ng-repeat="curAmenity in $ctrl.reservableAmenities" class="mb-5">
                     {{curAmenity.amenityName}} <span class="note-text text-link ms-3" data-ng-click="$ctrl.showAddReservableAmenityModal( curAmenity )">Edit</span> <span class="note-text text-link ms-2" data-ng-click="$ctrl.deleteReservableAmenity( curAmenity )">Delete</span>
@@ -210,14 +212,9 @@
             </div>-->
 
                             <div class="row mb-3" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                l.
-                                <label class="col-sm-2 col-12  form-label-popup">Send To:
-                                -1</label>
-                                o:
-                                -1
+                                <label class="col-sm-2 col-12  form-label-popup">Send To:</label>
                                 <div class="col-sm-10 col-12">
                                     <select class="form-control form-select" data-ng-model="$ctrl.editEvent.emailGroupShortName" data-ng-options="g.groupShortName as g.displayLabel for g in $ctrl.associatedGroups">
-                                        ct
                                         <option></option>
                                     </select>
                                     <!--</div>
@@ -413,7 +410,6 @@
             <div class="modal-overlay" data-ng-click="$ctrl.editReservableAmenity = null"></div>
             <div class="ca-modal-dialog modal-sm" style="overflow: visible;">
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoadingAmenities"></div>
-
                 <h4>{{$ctrl.editReservableAmenity.reservableAmenityId ? 'Edit' : 'Add'}} Reservable Amenity</h4>
                 <form>
                     <div class="row mb-3">
@@ -426,7 +422,7 @@
                     <div class="row mb-3">
                         <label class="col-sm-4 col-12 form-label-popup text-end">Description:</label>
                         <div class="col-sm-8 col-12">
-                            <textarea type="text" data-ng-model="$ctrl.editReservableAmenity.amenityDescription" class="form-control form-control-sm" rows="3" maxlength="1000"></textarea>
+                            <textarea type="text" data-ng-model="$ctrl.editReservableAmenity.amenityDescription" class="form-control form-control-sm" rows="6" maxlength="1000"></textarea>
                         </div>
                     </div>
                 </form>

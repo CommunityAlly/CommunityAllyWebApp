@@ -71,8 +71,7 @@ var Ally;
             if (AppConfig.isChtnSite) {
                 this.fellowResidents.getResidents().then((residents) => {
                     this.residents = residents;
-                    this.residents = _.sortBy(this.residents, (r) => r.lastName);
-                    123;
+                    this.residents = _.sortBy(this.residents, r => r.fullName.toUpperCase());
                     this.residents.forEach(r => {
                         // TODO include the home address in the drop down to distinguish between residents with the same name
                         //if( r.homes && r.homes.length > 0 )
@@ -104,7 +103,7 @@ var Ally;
                     if (!this.$rootScope.isSiteManager)
                         return;
                     // The date is wrong if time zone is considered
-                    var clickedDate = moment(date.format(LogbookController.DateFormat)).toDate();
+                    const clickedDate = moment(date.format(LogbookController.DateFormat)).toDate();
                     this.$scope.$apply(() => {
                         const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
@@ -210,8 +209,6 @@ var Ally;
             const loadNewsToCalendar = false;
             const loadLogbookToCalendar = false;
             const loadPollsToCalendar = AppConfig.isChtnSite;
-            //var firstDay = moment().startOf( "month" ).format( DateFormat );
-            //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
             const firstDay = startDate.format(LogbookController.DateFormat);
             const lastDay = endDate.format(LogbookController.DateFormat);
             const newsDeferred = this.$q.defer();
@@ -220,13 +217,13 @@ var Ally;
             if (loadNewsToCalendar) {
                 this.isLoadingNews = true;
                 this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                    var data = httpResponse.data;
+                    const newsData = httpResponse.data;
                     this.isLoadingNews = false;
-                    _.each(data, function (entry) {
-                        var shortText = entry.text;
+                    _.each(newsData, function (entry) {
+                        let shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         this.calendarEvents.push({
                             title: "Notice: " + shortText,
                             start: moment(entry.postDate).toDate(),
@@ -248,10 +245,10 @@ var Ally;
                     const calendarEvents = httpResponse.data;
                     this.isLoadingLogbookForCalendar = false;
                     _.each(calendarEvents, function (entry) {
-                        var shortText = entry.text;
+                        let shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         this.calendarEvents.push({
                             title: "Logbook: " + shortText,
                             start: moment(entry.postDate).format("YYYY-MM-DD"),
@@ -270,13 +267,13 @@ var Ally;
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
                 this.$http.get("/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                    var data = httpResponse.data;
+                    const pollData = httpResponse.data;
                     this.isLoadingPolls = false;
-                    _.each(data, (entry) => {
-                        var shortText = entry.text;
+                    _.each(pollData, (entry) => {
+                        let shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         this.calendarEvents.push({
                             title: "Poll: " + shortText,
                             start: moment(entry.postDate).toDate(),
@@ -312,47 +309,51 @@ var Ally;
             const firstDay = start.format(LogbookController.DateFormat);
             const lastDay = end.format(LogbookController.DateFormat);
             this.$http.get("/api/CalendarEvent?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                var associationEvents = [];
                 this.isLoadingCalendarEvents = false;
-                _.each(httpResponse.data, (entry) => {
-                    const utcEventDate = moment(entry.eventDateUtc);
-                    //const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
-                    const isAllDay = !entry.hasTimeComponent; // utcTimeOnly == LogbookController.NoTime;
-                    let dateEntry;
-                    if (isAllDay) {
-                        entry.timeOnly = "";
-                        entry.calLinkStartTimeOnly = "00:01";
-                        entry.calLinkEndTimeOnly = "23:59";
-                        entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
-                        dateEntry = entry.dateOnly;
-                    }
-                    else {
-                        const localDate = moment(entry.eventDateUtc).local();
-                        entry.timeOnly = localDate.format(LogbookController.TimeFormat);
-                        entry.calLinkStartTimeOnly = localDate.format("HH:mm");
-                        ;
-                        entry.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
-                        ;
-                        entry.dateOnly = localDate.clone().startOf('day').toDate();
-                        dateEntry = localDate.toDate();
-                    }
-                    var shortText = entry.title;
-                    if (shortText && shortText.length > 10)
-                        shortText = shortText.substring(0, 10) + "...";
-                    var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
-                    associationEvents.push({
-                        title: shortText,
-                        start: dateEntry,
-                        toolTipTitle: "Event",
-                        fullDescription: fullDescription,
-                        calendarEventObject: entry,
-                        allDay: isAllDay
-                    });
-                });
+                const associationEvents = this.prepEventObjectData(httpResponse.data);
                 callback(associationEvents);
             }, () => {
                 this.isLoadingCalendarEvents = false;
             });
+        }
+        prepEventObjectData(calendarEvents) {
+            const associationEvents = [];
+            _.each(calendarEvents, (entry) => {
+                const utcEventDate = moment(entry.eventDateUtc);
+                //const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
+                const isAllDay = !entry.hasTimeComponent; // utcTimeOnly == LogbookController.NoTime;
+                let dateEntry;
+                if (isAllDay) {
+                    entry.timeOnly = "";
+                    entry.calLinkStartTimeOnly = "00:01";
+                    entry.calLinkEndTimeOnly = "23:59";
+                    entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
+                    dateEntry = entry.dateOnly;
+                }
+                else {
+                    const localDate = moment(entry.eventDateUtc).local();
+                    entry.timeOnly = localDate.format(LogbookController.TimeFormat);
+                    entry.calLinkStartTimeOnly = localDate.format("HH:mm");
+                    ;
+                    entry.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
+                    ;
+                    entry.dateOnly = localDate.clone().startOf('day').toDate();
+                    dateEntry = localDate.toDate();
+                }
+                let shortText = entry.title;
+                if (shortText && shortText.length > 10)
+                    shortText = shortText.substring(0, 10) + "...";
+                const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
+                associationEvents.push({
+                    title: shortText,
+                    start: dateEntry,
+                    toolTipTitle: "Event",
+                    fullDescription: fullDescription,
+                    calendarEventObject: entry,
+                    allDay: isAllDay
+                });
+            });
+            return associationEvents;
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks a user in the calendar event modal
@@ -491,6 +492,8 @@ var Ally;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
                 $('#full-calendar-elem').fullCalendar('refetchEvents');
+                // Delay a little to speed up the UI
+                this.$timeout(() => this.getUpcomingAmenityEvents(), 100);
             }, () => {
                 this.isLoadingCalendarEvents = false;
                 alert("Failed to delete the calendar event.");
@@ -532,10 +535,10 @@ var Ally;
             }
             // Build the list of the associated users
             if (this.residents) {
-                var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
+                const associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
                 this.editEvent.associatedUserIds = _.map(associatedUsers, function (r) { return r.userId; });
             }
-            var dateTimeString = "";
+            let dateTimeString = "";
             if (typeof (this.editEvent.timeOnly) === "string" && this.editEvent.timeOnly.length > 1) {
                 dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;
                 this.editEvent.eventDateUtc = moment(dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat).utc().toDate();
@@ -555,11 +558,7 @@ var Ally;
             }
             // Build the list of group emails to notify
             this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(ag => ag.isAssociated).map(ag => ag.groupShortName);
-            let httpFunc;
-            if (this.editEvent.eventId)
-                httpFunc = this.$http.put;
-            else
-                httpFunc = this.$http.post;
+            const httpFunc = this.editEvent.eventId ? this.$http.put : this.$http.post;
             analytics.track("addCalendarEvent");
             this.isLoadingCalendarEvents = true;
             httpFunc("/api/CalendarEvent", this.editEvent).then(() => {
@@ -571,7 +570,7 @@ var Ally;
                 this.$timeout(() => this.getUpcomingAmenityEvents(), 100);
             }, (httpResponse) => {
                 this.isLoadingCalendarEvents = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                const errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to save the calendar event: " + errorMessage);
             });
         }
