@@ -25,12 +25,37 @@
         </div>
         <br />
 
+        <div data-ng-if="$ctrl.canEditEvents || $ctrl.reservableAmenities.length > 0" class="mt-4" style="position: relative;">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoadingAmenities"></div>
+            <h5 style="text-decoration: underline;">Reservable Amenities</h5>
+            <ol>
+                <li data-ng-repeat="curAmenity in $ctrl.reservableAmenities" class="mb-5">
+                    {{curAmenity.amenityName}} <span class="note-text text-link ms-3" data-ng-click="$ctrl.showAddReservableAmenityModal( curAmenity )">Edit</span> <span class="note-text text-link ms-2" data-ng-click="$ctrl.deleteReservableAmenity( curAmenity )">Delete</span>
+                    <div class="note-text">
+                        {{curAmenity.amenityDescription}}
+                    </div>
+                    <div data-ng-if="curAmenity.upcomingEvents.length > 0" class="mt-2">
+                        <b>Upcoming Reservations</b>
+                        <ul>
+                            <li data-ng-repeat="curEvent in curAmenity.upcomingEvents">{{curEvent.eventDateUtc | date:'EEEE, MMMM d, y h:mm a'}}<span data-ng-if="curEvent.amenityReservedForName">, Reserved for {{curEvent.amenityReservedForName}}</span></li>
+                        </ul>
+                    </div>
+                </li>
+            </ol>
+            <div class="note-text" data-ng-if="$ctrl.reservableAmenities.length === 0">
+                There are no reservable amenities yet.
+            </div>
+            <div data-ng-if="$ctrl.canEditEvents">
+                <button type="button" class="btn btn-link btn-sm" data-ng-click="$ctrl.showAddReservableAmenityModal()">Add New Amenity</button>
+            </div>
+        </div>
+
         <div id="calendar-event-panel" class="modal-container" data-ng-show="$ctrl.editEvent != null">
             <div class="modal-overlay" data-ng-click="$ctrl.setEditEvent( null )"></div>
             <form id="calendarEditEvent" data-ng-class="{'expanded': $ctrl.showExpandedCalendarEventModel, 'modal-lg': $ctrl.showExpandedCalendarEventModel}"
                   name="calendarEditEvent" novalidate class="ca-modal-dialog p-4" action="javascript:(void)"
                   data-ng-escape="$ctrl.setEditEvent( null )">
-
+                
                 <div class="loading-overlay" data-ng-show="$ctrl.isLoadingCalendarEvents"></div>
 
                 <span style="float: right;" class="close-x" data-ng-click="$ctrl.setEditEvent( null )">&times;</span>
@@ -71,7 +96,7 @@
                         <div class="col-sm-10 col-12 note-text" data-ng-if="!$ctrl.editEvent.timeOnly">Select a time to enable repeating</div>
                         <div class="col-sm-10 col-12" data-ng-if="$ctrl.editEvent.timeOnly">
                             <div>
-                                <select data-ng-model="$ctrl.editEvent.repeatType" data-ng-change="$ctrl.onRepeatSettingChange()">
+                                <select data-ng-model="$ctrl.editEvent.repeatType" data-ng-change="$ctrl.onRepeatSettingChange()" class="form-control-sm">
                                     <option data-ng-value="null">Doesn't repeat</option>
                                     <option data-ng-value="3">Daily</option>
                                     <option data-ng-value="2">Weekly</option>
@@ -105,6 +130,34 @@
                                 <span title="{{$ctrl.getRepeatDatePreview()}}" style="text-decoration: underline;" data-toggle="tooltip">Hover here to preview dates</span>
                                 <div data-ng-if="false">{{$ctrl.editEvent.repeatRule.toString()}}</div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.reservableAmenities.length > 0">
+                        <label class="col-sm-2 col-12 text-end form-label-popup">Reserve:</label>
+                        <div class="col-sm-10 col-12">
+                            <div class="note-text" data-ng-if="!$ctrl.editEvent.timeOnly && !$ctrl.editEvent.repeatType">
+                                Select a time to select an amenity
+                            </div>
+                            <div class="note-text" data-ng-if="$ctrl.editEvent.repeatType">
+                                Amenities cannot be reserved for repeating events
+                            </div>
+                            <div data-ng-if="$ctrl.editEvent.timeOnly && !$ctrl.editEvent.repeatType">
+                                <select class="form-control form-select" data-ng-model="$ctrl.editEvent.reservableAmenityId" data-ng-options="ra.reservableAmenityId as ra.amenityName for ra in $ctrl.reservableAmenities">
+                                    <option></option>
+                                </select>
+                                <div class="note-text">You can mark an amenity as reserved by selecting it here</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.editEvent.reservableAmenityId">
+                        <label class="col-sm-2 col-12 text-end form-label-popup">Reserve For:</label>
+                        <div class="col-sm-10 col-12">
+                            <select class="form-control form-select" data-ng-model="$ctrl.editEvent.amenityReservedForUserId" data-ng-options="r.userId as (r.fullName + r.dropDownAdditionalLabel) for r in $ctrl.residents">
+                                <option></option>
+                            </select>
+                            <div class="note-text">Who the amenity reservation is for</div>
                         </div>
                     </div>
 
@@ -157,9 +210,14 @@
             </div>-->
 
                             <div class="row mb-3" data-ng-if="$ctrl.residents" data-ng-class="{'grayed':!$ctrl.editEvent.shouldSendNotification}">
-                                <label class="col-sm-2 col-12  form-label-popup">Send To:</label>
+                                l.
+                                <label class="col-sm-2 col-12  form-label-popup">Send To:
+                                -1</label>
+                                o:
+                                -1
                                 <div class="col-sm-10 col-12">
                                     <select class="form-control form-select" data-ng-model="$ctrl.editEvent.emailGroupShortName" data-ng-options="g.groupShortName as g.displayLabel for g in $ctrl.associatedGroups">
+                                        ct
                                         <option></option>
                                     </select>
                                     <!--</div>
@@ -304,6 +362,20 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3" data-ng-if="$ctrl.viewEvent.reservableAmenityName">
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Reserves:</label>
+                        <div class="col-sm-8 col-12">
+                            {{ $ctrl.viewEvent.reservableAmenityName }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3" data-ng-if="$ctrl.viewEvent.amenityReservedForName">
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Reserved For:</label>
+                        <div class="col-sm-8 col-12">
+                            {{ $ctrl.viewEvent.amenityReservedForName }}
+                        </div>
+                    </div>
+
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.description">
                         <label class="col-sm-4 col-12 form-label-popup text-end">Description:</label>
                         <div class="col-sm-8 col-12">
@@ -332,6 +404,36 @@
                 <div style="text-align: right;">
                     <span id="edit-calendar-event-link" class="text-link" data-ng-click="$ctrl.editViewingEvent()" style="" data-ng-if="$ctrl.canEditEvents">Edit Event</span>
                     <span id="close-calendar-event-link" class="text-link" data-ng-click="$ctrl.clearViewEvent()" style="margin-left: 16px;">Close</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="edit-amenity-panel" class="modal-container ng-cloak" data-ng-if="$ctrl.editReservableAmenity">
+            <div class="modal-overlay" data-ng-click="$ctrl.editReservableAmenity = null"></div>
+            <div class="ca-modal-dialog modal-sm" style="overflow: visible;">
+                <div class="loading-overlay" data-ng-show="$ctrl.isLoadingAmenities"></div>
+
+                <h4>{{$ctrl.editReservableAmenity.reservableAmenityId ? 'Edit' : 'Add'}} Reservable Amenity</h4>
+                <form>
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Name:</label>
+                        <div class="col-sm-8 col-12">
+                            <input id="edit-amenity-name-input" type="text" data-ng-model="$ctrl.editReservableAmenity.amenityName" maxlength="256" class="form-control form-control-sm" required data-ng-enter="$ctrl.saveReservableAmenity()" autocomplete="off" data-lpignore="true" data-form-type="other" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label class="col-sm-4 col-12 form-label-popup text-end">Description:</label>
+                        <div class="col-sm-8 col-12">
+                            <textarea type="text" data-ng-model="$ctrl.editReservableAmenity.amenityDescription" class="form-control form-control-sm" rows="3" maxlength="1000"></textarea>
+                        </div>
+                    </div>
+                </form>
+
+                <div style="text-align: right;">
+                    <button id="edit-amenity-button" type="button" class="btn btn-primary" data-ng-click="$ctrl.saveReservableAmenity()">Save</button>
+                    <button id="close-edit-amenity-button" type="button" class="btn btn-secondary" data-ng-click="$ctrl.editReservableAmenity = null" style="margin-left: 16px;">Close</button>
                 </div>
             </div>
         </div>

@@ -68,6 +68,7 @@
         // Not from the server, used locally
         boardPositionName: string;
         isAssociated: boolean;
+        dropDownAdditionalLabel: string;
     }
 
 

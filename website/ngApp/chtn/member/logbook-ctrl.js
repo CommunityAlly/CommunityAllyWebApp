@@ -22,6 +22,7 @@ var Ally;
             this.isLoadingLogbookForCalendar = false;
             this.isLoadingPolls = false;
             this.isLoadingCalendarEvents = false;
+            this.isLoadingAmenities = false;
             this.onlyRefreshCalendarEvents = false;
             this.showExpandedCalendarEventModel = false;
             this.currentTimeZoneAbbreviation = "CT";
@@ -29,6 +30,7 @@ var Ally;
             this.descriptionText = "";
             this.associatedGroups = [];
             this.canEditEvents = false;
+            this.reservableAmenities = [];
             this.GroupShortNameIndividuals = "Individuals";
             ///////////////////////////////////////////////////////////////////////////////////////////////
             // Hide the read-only calendar event view
@@ -70,6 +72,19 @@ var Ally;
                 this.fellowResidents.getResidents().then((residents) => {
                     this.residents = residents;
                     this.residents = _.sortBy(this.residents, (r) => r.lastName);
+                    123;
+                    this.residents.forEach(r => {
+                        // TODO include the home address in the drop down to distinguish between residents with the same name
+                        //if( r.homes && r.homes.length > 0 )
+                        //{
+                        //    //const home = residents.h
+                        //    r.dropDownAdditionalLabel = ` (${r.homes[0].})`;
+                        //}
+                        if (r.email) {
+                            //const home = residents.h
+                            r.dropDownAdditionalLabel = ` (${r.email})`;
+                        }
+                    });
                 });
             }
             /* config object */
@@ -188,6 +203,8 @@ var Ally;
                 });
                 this.associatedGroups.push({ displayLabel: this.GroupShortNameIndividuals, groupShortName: this.GroupShortNameIndividuals, isAssociated: false });
             });
+            // Delay a little to speed up the UI
+            this.$timeout(() => this.loadReservableAmenities(), 100);
         }
         getAllEvents(startDate, endDate) {
             const loadNewsToCalendar = false;
@@ -531,6 +548,12 @@ var Ally;
             }
             if (!this.editEvent.shouldSendNotification)
                 this.editEvent.notificationEmailDaysBefore = null;
+            // Ensure we're not allowing amenity reservations with repeating events
+            if (this.editEvent.repeatType) {
+                this.editEvent.reservableAmenityId = null;
+                this.editEvent.amenityReservedForUserId = null;
+            }
+            // Build the list of group emails to notify
             this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(ag => ag.isAssociated).map(ag => ag.groupShortName);
             let httpFunc;
             if (this.editEvent.eventId)
@@ -544,6 +567,8 @@ var Ally;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
                 $('#full-calendar-elem').fullCalendar('refetchEvents');
+                // Refresh the upcoming events, delay a little to speed up the UI
+                this.$timeout(() => this.getUpcomingAmenityEvents(), 100);
             }, (httpResponse) => {
                 this.isLoadingCalendarEvents = false;
                 var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
@@ -636,6 +661,66 @@ var Ally;
             const dateStrings = occuranceDates.map(od => moment(od).format("ddd, MMM D YYYY, h:mm:ssa"));
             return dateStrings.join("\n");
         }
+        loadReservableAmenities() {
+            this.$http.get("/api/CalendarEvent/GetReservableAmenities").then((httpResponse) => {
+                this.reservableAmenities = httpResponse.data;
+                // Delay a little to speed up the UI
+                this.$timeout(() => this.getUpcomingAmenityEvents(), 100);
+            }, (response) => {
+                console.log("Failed to load reservable amenities", response.data.exceptionMessage);
+            });
+        }
+        getUpcomingAmenityEvents() {
+            if (!this.reservableAmenities || this.reservableAmenities.length === 0)
+                return;
+            this.$http.get("/api/CalendarEvent/UpcomingAmenityEvents").then((httpResponse) => {
+                for (const curAmenity of this.reservableAmenities) {
+                    curAmenity.upcomingEvents = httpResponse.data.filter(e => e.reservableAmenityId === curAmenity.reservableAmenityId);
+                    //if( !curAmenity.upcomingEvents || curAmenity.upcomingEvents.length === 0 )
+                    //    return;
+                }
+            }, (response) => {
+                console.log("Failed to load reservable amenities", response.data.exceptionMessage);
+            });
+        }
+        showAddReservableAmenityModal(selection = null) {
+            if (selection)
+                this.editReservableAmenity = _.clone(selection);
+            else
+                this.editReservableAmenity = new ReservableAmenity();
+            window.setTimeout(() => document.getElementById("edit-amenity-name-input").focus(), 100);
+        }
+        deleteReservableAmenity(selection) {
+            if (!selection || !confirm(`Are you sure you want to delete '${selection.amenityName}'?`))
+                return;
+            const onSaved = () => {
+                this.editReservableAmenity = null;
+                this.isLoadingAmenities = false;
+                this.loadReservableAmenities();
+            };
+            const onError = (response) => {
+                this.isLoadingAmenities = false;
+                alert("Failed to delete amenity: " + response.data.exceptionMessage);
+            };
+            this.isLoadingAmenities = true;
+            this.$http.delete("/api/CalendarEvent/DeleteReservableAmenity/" + selection.reservableAmenityId).then(onSaved, onError);
+        }
+        saveReservableAmenity() {
+            const onSaved = () => {
+                this.editReservableAmenity = null;
+                this.isLoadingAmenities = false;
+                this.loadReservableAmenities();
+            };
+            const onError = (response) => {
+                this.isLoadingAmenities = false;
+                alert("Failed to save amenity: " + response.data.exceptionMessage);
+            };
+            this.isLoadingAmenities = true;
+            if (this.editReservableAmenity.reservableAmenityId)
+                this.$http.put("/api/CalendarEvent/UpdateReservableAmenity", this.editReservableAmenity).then(onSaved, onError);
+            else
+                this.$http.post("/api/CalendarEvent/CreateReservableAmenity", this.editReservableAmenity).then(onSaved, onError);
+        }
     }
     LogbookController.$inject = ["$scope", "$timeout", "$http", "$rootScope", "$q", "fellowResidents", "SiteInfo"];
     LogbookController.DateFormat = "YYYY-MM-DD";
@@ -646,6 +731,8 @@ var Ally;
     class AssociatedGroup {
     }
     class CalendarEvent {
+    }
+    class ReservableAmenity {
     }
 })(Ally || (Ally = {}));
 CA.angularApp.component("logbookPage", {
