@@ -11,6 +11,7 @@
         isLoading: boolean = false;
         multiSelectWriteInPlaceholder: PollAnswer = new PollAnswer( "write-in" );
         timezoneAbbreviation = "";
+        homeName = "unit";
 
 
         /**
@@ -29,6 +30,8 @@
          */
         $onInit()
         {
+            this.homeName = AppConfig.homeName.toLocaleLowerCase();
+
             this.refreshPolls();
 
             this.timezoneAbbreviation = LogbookController.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
@@ -48,16 +51,24 @@
 
             for( let pollIndex = 0; pollIndex < this.polls.length; ++pollIndex )
             {
-                const poll = this.polls[pollIndex];
+                const curPoll = this.polls[pollIndex];
 
-                if( poll.hasUsersUnitVoted )
+                // We only show results to users that have voted (Not sure we still want this in Q1 2025)
+                if( curPoll.hasUsersUnitVoted )
                 {
-                    if( poll.canViewResults )
+                    // If the results are ready, populate the chart and result tallies
+                    if( curPoll.canViewResults )
                     {
-                        const chartInfo = FellowResidentsService.pollReponsesToChart( poll, this.siteInfo );
+                        const chartInfo = FellowResidentsService.pollReponsesToChart( curPoll, this.siteInfo );
 
-                        poll.chartData = chartInfo.chartData;
-                        poll.chartLabels = chartInfo.chartLabels;
+                        curPoll.chartData = chartInfo.chartData;
+                        curPoll.chartLabels = chartInfo.chartLabels;
+                        curPoll.pollResultEntries = [];
+
+                        for( let i = 0; i < curPoll.chartData.length; ++i )
+                        {
+                            curPoll.pollResultEntries.push( { label: curPoll.chartLabels[i], numVotes: curPoll.chartData[i] } );
+                        }
                     }
                 }
             }

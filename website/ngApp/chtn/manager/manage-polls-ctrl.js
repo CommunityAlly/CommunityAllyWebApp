@@ -17,6 +17,8 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldAllowMultipleAnswers = false;
             this.isPremiumPlanActive = false;
+            this.editPollHasAbstain = false;
+            this.whoGroupNumMembers = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -39,6 +41,7 @@ var Ally;
             this.isLoading = true;
             this.fellowResidents.getGroupEmailObject().then((groupEmails) => {
                 this.groupEmails = _.sortBy(groupEmails, e => e.displayName.toUpperCase());
+                this.onWhoGroupChange();
                 this.retrievePolls();
             }, () => this.retrievePolls());
         }
@@ -58,6 +61,10 @@ var Ally;
                     // list for displaying results
                     this.pollHistory[i].fullResultAnswers = this.pollHistory[i].answers;
                     this.pollHistory[i].answers = _.reject(this.pollHistory[i].answers, function (pa) { return pa.sortOrder === AbstainAnswerSortOrder; });
+                    if (this.isPollClosed(this.pollHistory[i]))
+                        this.pollHistory[i].activeState = "closed";
+                    else if (this.pollHistory[i].responses != null && this.pollHistory[i].responses.length > 0)
+                        this.pollHistory[i].activeState = "inprogress";
                 }
                 this.isLoading = false;
             });
@@ -73,6 +80,7 @@ var Ally;
                 return;
             }
             this.editingItem.answers.push(new PollAnswer(""));
+            this.onAnswersChange();
             window.setTimeout(() => document.getElementById("poll-answer-textbox-" + (this.editingItem.answers.length - 1)).focus(), 100);
         }
         /**
@@ -81,6 +89,7 @@ var Ally;
         cancelEdit() {
             this.editingItem = angular.copy(this.defaultPoll);
             this.shouldAllowMultipleAnswers = false;
+            this.onAnswersChange();
         }
         /**
          * Occurs when the user presses the button to save a poll
@@ -92,6 +101,7 @@ var Ally;
             const onSave = () => {
                 this.isLoading = false;
                 this.editingItem = angular.copy(this.defaultPoll);
+                this.onAnswersChange();
                 this.shouldAllowMultipleAnswers = false;
                 this.retrievePolls();
             };
@@ -117,6 +127,7 @@ var Ally;
             this.editingItem = angular.copy(item);
             window.scrollTo(0, 0);
             this.shouldAllowMultipleAnswers = this.editingItem.maxNumResponses > 1;
+            this.onAnswersChange();
         }
         /**
          * Occurs when the user wants to delete a poll
@@ -172,6 +183,28 @@ var Ally;
         }
         removeAnswer(index) {
             this.editingItem.answers.splice(index, 1);
+            this.onAnswersChange();
+        }
+        addAbstain() {
+            this.editingItem.answers.push(new PollAnswer("Abstain"));
+            this.editPollHasAbstain = true;
+            this.onAnswersChange();
+        }
+        onAnswersChange() {
+            if (!this.editingItem || !this.editingItem.answers)
+                return;
+            this.editPollHasAbstain = this.editingItem.answers.some(a => a.answerText && a.answerText.toUpperCase() === "ABSTAIN");
+        }
+        isPollClosed(pollItem) {
+            if (!pollItem || !pollItem.pollExpirationDateUtc)
+                return false;
+            return moment(pollItem.pollExpirationDateUtc).isBefore(moment());
+        }
+        onWhoGroupChange() {
+            if (!this.editingItem || !this.editingItem.votingGroupShortName)
+                return;
+            const emailGroup = this.groupEmails.find(g => g.recipientTypeName === this.editingItem.votingGroupShortName);
+            this.whoGroupNumMembers = emailGroup ? emailGroup.usersFullNames.length : null;
         }
     }
     ManagePollsController.$inject = ["$http", "SiteInfo", "fellowResidents"];
@@ -182,6 +215,9 @@ var Ally;
         }
     }
     Ally.Poll = Poll;
+    class PollResultEntry {
+    }
+    Ally.PollResultEntry = PollResultEntry;
     class PollAnswer {
         constructor(answerText) {
             this.answerText = answerText;

@@ -1,17 +1,16 @@
 <div class="page page-manage-polls">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-    <h1>Create a Poll</h1>
+    <h1>Create a Vote</h1>
 
     <p>
-        Here you can add and edit polls that can be used to gather votes for issues that come up in your association.
+        Here you can add and edit votes that can be used to gather feedback for issues that come up in your association.
     </p>
 
     <ul>
-        <li>Poll votes are anonymous but completely audited and trackable should the need arise.</li>
-        <li>Each unit can only cast one vote, regardless of the number of residents living in the unit.</li>
-        <li>Users can vote and change their vote any number of times until the poll's expiration date at which point the results will be shown.</li>
-        <li>Users can actively choose to abstain from a poll and that will be recorded separately from a user simply not voting.</li>
+        <li>Votes are anonymous but completely audited and trackable should the need arise.</li>
+        <li>Each unit/home can only cast one vote, regardless of the number of residents living in that unit/home.</li>
+        <li>Users can vote and change their vote any number of times until the vote's expiration date at which point the results will be shown.</li>
     </ul>
 
     <form id="edit-item-form" name="editItemForm" class="spinner-effect margin-top" novalidate>
@@ -21,7 +20,7 @@
         </div>
 
         <div class="row mb-3 px-3">
-            <label class="form-label">Question Details: (optional)</label>
+            <label class="form-label">Question Details: <span class="note-text">(optional)</span></label>
             <textarea id="poll-details-textbox" data-ng-model="$ctrl.editingItem.detailText" maxlength="1000" rows="4" class="form-control"></textarea>
         </div>
 
@@ -31,15 +30,12 @@
             <li ng-repeat="answer in $ctrl.editingItem.answers" class="margin-top-10">
                 <div class="mb-3 ms-4">
                     <!--<label>{{ $index + 1 }}</label>-->
-                    <input id="poll-answer-textbox-{{ $index }}" type="text" class="form-control form-control-sm" data-ng-model="answer.answerText" maxlength="60" required />
+                    <input id="poll-answer-textbox-{{ $index }}" type="text" class="form-control form-control-sm" data-ng-model="answer.answerText" maxlength="60" data-ng-change="$ctrl.onAnswersChange()" required />
                 </div>
 
                 <div class="row mb-3 ms-4">
                     <div class="ps-0">
-                        <label class="form-label">
-                            <!--<span class="poll-answer-number"></span>-->
-                            Details: (optional)
-                        </label>
+                        <label class="form-label">Details: <span class="note-text">(optional)</span></label>
                     </div>
                     <textarea id="poll-answer-detail-textbox-{{ $index }}" class="form-control" data-ng-model="answer.detailText" rows="3" maxlength="1000"></textarea>
                 </div>
@@ -50,29 +46,35 @@
             </li>
         </ol>
 
+        <div data-ng-if="!$ctrl.editPollHasAbstain" class="mb-2">
+            <span class="text-link note-text" data-ng-click="$ctrl.addAbstain()">Quick Add Abstain Answer</span>
+        </div>
 
         <p class="text-center">
             <button id="add-poll-answer-button" class="btn btn-primary" data-ng-click="$ctrl.addAnswer();">Add Another Possible Answer</button>
         </p>
 
         <p class="margin-top-20">
-            Enter the date at which this poll will close:<input class="form-control form-control-sm d-inline-block" style="width: 100px" id="poll-expiration-textbox" name="PollExpirationDateTextBox" type="text" data-ui-date data-ng-model="$ctrl.editingItem.pollExpirationDateUtc" required />
+            Enter the date at which this vote will close:<input class="form-control form-control-sm d-inline-block" style="width: 100px" id="poll-expiration-textbox" name="PollExpirationDateTextBox" type="text" data-ui-date data-ng-model="$ctrl.editingItem.pollExpirationDateUtc" required />
             <span class="validation-label" data-ng-show="$ctrl.editItemForm.PollExpirationDateTextBox.$error.required">Required</span><br />
             <span class="note-text">
-                On noon of this date the poll will close, regardless of the number of units that have voted. Polls will stay on the home page 3 days after this date to allow residents to view the results.
+                On noon of this date the vote will close, regardless of the number of units that have voted. Votes will stay on the home page 3 days after this date to allow residents to view the results.
             </span>
         </p>
 
-        <p>
-            Who can vote on this poll?
-            <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.groupEmails">
+        <div class="mb-4">
+            Who can take part in this vote?
+            <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-change="$ctrl.onWhoGroupChange()" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.groupEmails">
             </select>
-        </p>
+            <div class="note-text" data-ng-if="$ctrl.whoGroupNumMembers">
+                This group has {{$ctrl.whoGroupNumMembers}} member{{$ctrl.whoGroupNumMembers===1 ? '' : 's'}}
+            </div>
+        </div>
 
         <p>
             <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.allowOtherAnswer"> Allow users to type in their own responses</label><br />
             <span class="note-text">
-                If selected, users will be able to enter their own text as a reponse from the poll. If not selected, users
+                If selected, users will be able to enter their own text as a reponse. If not selected, users
                 can only select from the list of answers specified here.
             </span>
         </p>
@@ -88,7 +90,7 @@
         <p data-ng-if="!$ctrl.editingItem.postDateUtc">
             <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.isAnonymous"> Responses are anonymous</label><br />
             <span class="note-text">
-                If selected, you will not be able to see how units voted, only total response counts. Anonymous polls can help to provide
+                If selected, you will not be able to see how units voted, only total response counts. Anonymous votes can help to provide
                 more votes and/or more honest feedback.
             </span>
         </p>
@@ -102,7 +104,7 @@
                 </span>
             </div>
             <div class="note-text" data-ng-if="!$ctrl.isPremiumPlanActive">
-                You can send out poll email notifications on our premium plan.
+                You can send out vote email notifications on our premium plan.
             </div>
         </p>
 
@@ -115,13 +117,13 @@
         </p>
 
         <p class="text-end">
-            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDateUtc != null | iif: 'Save Changes' : 'Add Poll' }}" data-ng-click="$ctrl.onSavePoll();" />
+            <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDateUtc != null | iif: 'Save Changes' : 'Add Vote' }}" data-ng-click="$ctrl.onSavePoll();" />
             <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDateUtc != null" data-ng-click="$ctrl.cancelEdit()" />
         </p>
     </form>
 
 
-    <h1 class="margin-top">Manage Polls</h1>
+    <h1 class="margin-top">Vote History</h1>
 
     <div>
         <table id="poll-table" class="table table-bordered table-responsive">
@@ -140,8 +142,16 @@
             <tbody>
                 <tr data-ng-repeat="pollItem in $ctrl.pollHistory">
                     <td>
-                        <span id="edit-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onEditItem( pollItem );">Edit</span>
-                        <span id="delete-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onDeleteItem( pollItem );">Delete</span>
+                        <div data-ng-if="pollItem.activeState === 'inprogress'" class="note-text" title="The vote has responses and can no longer be changed">
+                            In progress
+                        </div>
+                        <div data-ng-if="pollItem.activeState === 'closed'" class="note-text" title="The expiration date has passed">
+                            Closed
+                        </div>
+                        <div data-ng-if="!pollItem.activeState">
+                            <span id="edit-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onEditItem( pollItem );">Edit</span>
+                            <span id="delete-poll-{{ $index }}" class="text-button" data-ng-click="$ctrl.onDeleteItem( pollItem );">Delete</span>
+                        </div>
                     </td>
                     <!--<td class="poll-entry-{{ $index }}-status"></td>-->
                     <td class="poll-entry-{{ $index }}-question-text">{{::pollItem.questionText}}<span class="note-text ms-2" data-ng-if="$ctrl.isSuperAdmin">(Poll ID: {{pollItem.pollId}})</span></td>

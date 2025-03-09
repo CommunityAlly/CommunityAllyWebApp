@@ -391,19 +391,31 @@
                     results.chartData.push( curTalliedVote.numVotes );
                 }
                 else
+                {
+                    results.chartLabels.push( "Removed answer ID " + curTalliedVote.answerId );
+                    results.chartData.push( curTalliedVote.numVotes );
                     console.log( "Unknown answer ID found: " + curTalliedVote.answerId );
+                }
             }
 
-            if( poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits )
+            const isMemberBasedGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+
+            let numTotalResponses: number;
+            if( poll.expectedNumVoters )
+                numTotalResponses = poll.expectedNumVoters;
+            else if( isMemberBasedGroup )
+                numTotalResponses = siteInfo.privateSiteInfo.numMembers;
+            else
+                numTotalResponses = siteInfo.privateSiteInfo.numUnits;
+
+            if( poll.responses.length > numTotalResponses )
+                numTotalResponses = poll.responses.length;
+
+            if( poll.responses && poll.responses.length < numTotalResponses )
             {
                 results.chartLabels.push( "No Response" );
 
-                const isMemberBasedGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
-
-                if( isMemberBasedGroup )
-                    results.chartData.push( siteInfo.privateSiteInfo.numMembers - poll.responses.length );
-                else
-                    results.chartData.push( siteInfo.privateSiteInfo.numUnits - poll.responses.length );
+                results.chartData.push( numTotalResponses - poll.responses.length );
             }
 
             return results;

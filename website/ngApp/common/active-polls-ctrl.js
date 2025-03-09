@@ -15,11 +15,13 @@ var Ally;
             this.isLoading = false;
             this.multiSelectWriteInPlaceholder = new Ally.PollAnswer("write-in");
             this.timezoneAbbreviation = "";
+            this.homeName = "unit";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
+            this.homeName = AppConfig.homeName.toLocaleLowerCase();
             this.refreshPolls();
             this.timezoneAbbreviation = Ally.LogbookController.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
         }
@@ -32,12 +34,18 @@ var Ally;
             if (pollData && pollData.length > 0)
                 this.$rootScope.$broadcast("homeHasActivePolls");
             for (let pollIndex = 0; pollIndex < this.polls.length; ++pollIndex) {
-                const poll = this.polls[pollIndex];
-                if (poll.hasUsersUnitVoted) {
-                    if (poll.canViewResults) {
-                        const chartInfo = Ally.FellowResidentsService.pollReponsesToChart(poll, this.siteInfo);
-                        poll.chartData = chartInfo.chartData;
-                        poll.chartLabels = chartInfo.chartLabels;
+                const curPoll = this.polls[pollIndex];
+                // We only show results to users that have voted (Not sure we still want this in Q1 2025)
+                if (curPoll.hasUsersUnitVoted) {
+                    // If the results are ready, populate the chart and result tallies
+                    if (curPoll.canViewResults) {
+                        const chartInfo = Ally.FellowResidentsService.pollReponsesToChart(curPoll, this.siteInfo);
+                        curPoll.chartData = chartInfo.chartData;
+                        curPoll.chartLabels = chartInfo.chartLabels;
+                        curPoll.pollResultEntries = [];
+                        for (let i = 0; i < curPoll.chartData.length; ++i) {
+                            curPoll.pollResultEntries.push({ label: curPoll.chartLabels[i], numVotes: curPoll.chartData[i] });
+                        }
                     }
                 }
             }

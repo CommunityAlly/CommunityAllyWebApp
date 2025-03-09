@@ -79,8 +79,16 @@
                             data-chart-labels="poll.chartLabels"></canvas>
                 </div>
                 <div style="width:50%; float:left;">
-                    Your unit voted:<br>
-                    <span style="font-weight:bold;">{{ poll.unitVoteText }}</span>
+                    <div>
+                        Your {{$ctrl.homeName}} voted:
+                        <span style="font-weight:bold;">{{ poll.unitVoteText }}</span>
+                    </div>
+                    <div class="mt-4" data-ng-if="poll.pollResultEntries">
+                        Vote Results:
+                        <div data-ng-repeat="curResponse in poll.pollResultEntries">
+                            <span class="text-bold">{{curResponse.label}}</span>: {{curResponse.numVotes}}
+                        </div>
+                    </div>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -88,7 +96,7 @@
             <!-- Make the user wait -->
             <div data-ng-hide="poll.canViewResults">
                 <div>
-                    Your unit has voted:<br>
+                    Your {{$ctrl.homeName}} has voted:<br>
                     <span id="selected-vote-text" style="font-weight:bold;">{{ poll.unitVoteText }}</span><br>
                     You must wait until the poll closes 12pm on {{ poll.pollExpirationDateUtc | date:'fullDate' }} to view the results.<br>
                     <span id="change-vote-button" class="text-link" ng-click="poll.hasUsersUnitVoted = false">Change vote.</span><br>
