@@ -393,6 +393,35 @@
 
             <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddChangeLogEntry()">Add Change Log Entry</button>
         </fieldset>
+
+
+        <fieldset class="my-5">
+            <legend>Allies of Ally</legend>
+
+            <table style="width: 70%;" data-ng-if="$ctrl.alliesOfAllyUsers" border="1" class="table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Ally Level</th>
+                        <th>Notes</th>
+                        <th>Last Login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-ng-repeat="curUser in $ctrl.alliesOfAllyUsers">
+                        <td>{{curUser.fullName}}</td>
+                        <td>{{curUser.emailAddress}}</td>
+                        <td>{{curUser.allyOfAllyLevel}}</td>
+                        <td>{{curUser.allyOfAllyNotes}}</td>
+                        <td>{{curUser.globalLastLoginDateUtc | date:'short'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <br />
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.loadAlliesOfAlly()">Load Allies of Ally</button>
+        </fieldset>
     </div>
 
 </div>

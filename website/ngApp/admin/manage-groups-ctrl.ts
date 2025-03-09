@@ -70,6 +70,7 @@
         reactivateEmail: string;
         newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
         premiumPlanExpiration: Date;
+        alliesOfAllyUsers: AllyOfAllyUser[];
 
 
         /**
@@ -782,6 +783,37 @@
                 }
             );
         }
+
+
+        loadAlliesOfAlly()
+        {
+            this.isLoading = true;
+
+            this.$http.get( `/api/AdminHelper/AlliesOfAlly` ).then(
+                (response:ng.IHttpPromiseCallbackArg<AllyOfAllyUser[]>) =>
+                {
+                    this.isLoading = false;
+                    this.alliesOfAllyUsers = response.data;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retreive allies: " + response.data.exceptionMessage );
+                }
+            );
+        }
+    }
+
+
+    class AllyOfAllyUser
+    {
+        firstName: string;
+        lastName: string;
+        fullName: string;
+        emailAddress: string;
+        allyOfAllyLevel: number;
+        allyOfAllyNotes: string;
+        globalLastLoginDateUtc: string | null;
     }
 
 

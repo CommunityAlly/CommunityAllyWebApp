@@ -453,9 +453,21 @@ var Ally;
                 alert("Adding setting failed: " + response.data.exceptionMessage);
             });
         }
+        loadAlliesOfAlly() {
+            this.isLoading = true;
+            this.$http.get(`/api/AdminHelper/AlliesOfAlly`).then((response) => {
+                this.isLoading = false;
+                this.alliesOfAllyUsers = response.data;
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to retreive allies: " + response.data.exceptionMessage);
+            });
+        }
     }
     ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.ManageGroupsController = ManageGroupsController;
+    class AllyOfAllyUser {
+    }
     class AllyPaymentEntry {
     }
     class AllyAppSetting {
