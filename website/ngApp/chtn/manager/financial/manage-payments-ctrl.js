@@ -192,11 +192,9 @@ var Ally;
             this.isLoadingUnits = true;
             this.$http.get("/api/Unit").then((httpResponse) => {
                 this.units = httpResponse.data;
-                _.each(this.units, function (u) { if (u.adjustedAssessment === null) {
-                    u.adjustedAssessment = u.assessment;
-                } });
+                //_.each( this.units, ( u: Unit ) => { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
                 this.assessmentSum = _.reduce(this.units, function (memo, u) { return memo + u.assessment; }, 0);
-                this.adjustedAssessmentSum = _.reduce(this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                //this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
                 this.isLoadingUnits = false;
             }, (httpResponse) => {
                 this.isLoading = false;
@@ -310,17 +308,17 @@ var Ally;
          */
         onUnitAssessmentChanged(unit) {
             this.isLoadingUnits = true;
-            if (typeof (unit.adjustedAssessment) === "string")
-                unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
+            if (typeof (unit.assessment) === "string")
+                unit.assessment = parseFloat(unit.assessment);
             const updateInfo = {
                 unitId: unit.unitId,
-                assessment: unit.adjustedAssessment,
+                assessment: unit.assessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
             this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(() => {
                 this.isLoadingUnits = false;
                 this.assessmentSum = _.reduce(this.units, function (memo, u) { return memo + u.assessment; }, 0);
-                this.adjustedAssessmentSum = _.reduce(this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                //this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
             }, (response) => {
                 alert("Failed to update: " + response.data.exceptionMessage);
             });

@@ -93,7 +93,7 @@ namespace Ally
         isLoadingCheckoutDetails: boolean = false;
         units: Unit[];
         assessmentSum: number;
-        adjustedAssessmentSum: number;
+        //adjustedAssessmentSum: number;
         signUpStep: number;
         signUpInfo: PaymentBasicInfo;
         viewingWePayCheckoutId: number;
@@ -325,10 +325,10 @@ namespace Ally
                 {
                     this.units = httpResponse.data;
 
-                    _.each( this.units, function( u: any ) { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
+                    //_.each( this.units, ( u: Unit ) => { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
 
                     this.assessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
-                    this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
+                    //this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
 
                     this.isLoadingUnits = false;
                 },
@@ -506,13 +506,13 @@ namespace Ally
         {
             this.isLoadingUnits = true;
 
-            if( typeof ( unit.adjustedAssessment ) === "string" )
-                unit.adjustedAssessment = parseFloat( unit.adjustedAssessment )
+            if( typeof ( unit.assessment ) === "string" )
+                unit.assessment = parseFloat( unit.assessment )
 
             const updateInfo: UpdateAssessmentInfo =
             {
                 unitId: unit.unitId,
-                assessment: unit.adjustedAssessment,
+                assessment: unit.assessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
 
@@ -522,7 +522,7 @@ namespace Ally
                     this.isLoadingUnits = false;
 
                     this.assessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + u.assessment; }, 0 );
-                    this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
+                    //this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
                 },
                 (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
                 {

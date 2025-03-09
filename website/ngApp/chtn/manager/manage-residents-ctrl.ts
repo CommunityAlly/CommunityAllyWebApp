@@ -6,7 +6,7 @@ namespace Ally
         name: string;
         percentageInterest: number;
         assessment: number;
-        adjustedAssessment: number;
+        //adjustedAssessment: number;
         adjustedAssessmentReason: string;
         addressId: number;
         notes: string;
