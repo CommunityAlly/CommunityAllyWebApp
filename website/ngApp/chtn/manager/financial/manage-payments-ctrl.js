@@ -32,10 +32,12 @@ var Ally;
             this.lateFeeInfo = {};
             this.hasLoadedPage = false;
             this.isLoading = false;
+            this.hasAssessments = null;
             this.isLoadingUnits = false;
             this.isLoadingPayment = false;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
+            this.units = [];
             this.allowNewWePaySignUp = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
@@ -57,7 +59,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            this.homeName = AppConfig.homeName;
+            this.homeNameLabel = AppConfig.homeName;
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
             const tempPayId = this.appCacheService.getAndClear("onpayid");
             if (HtmlUtil.isNumericString(tempPayId))
@@ -94,7 +96,7 @@ var Ally;
                 {
                     columnDefs: [
                         { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'unitName', displayName: this.homeName, width: 80 },
+                        { field: 'unitName', displayName: this.homeNameLabel, width: 80 },
                         { field: 'resident', displayName: 'Resident', width: 160 },
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },

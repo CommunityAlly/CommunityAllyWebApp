@@ -83,15 +83,15 @@ namespace Ally
         isAssessmentTrackingEnabled: boolean;
         payments: any[];
         testFee: any;
-        hasLoadedPage: boolean = false;
+        hasLoadedPage = false;
         isLoading: boolean = false;
-        hasAssessments: boolean;
+        hasAssessments: boolean | null = null;
         paymentInfo: PaymentPageInfo;
         isLoadingUnits: boolean = false;
         isLoadingPayment: boolean = false;
         isLoadingLateFee: boolean = false;
         isLoadingCheckoutDetails: boolean = false;
-        units: Unit[];
+        units: Unit[] = [];
         assessmentSum: number;
         //adjustedAssessmentSum: number;
         signUpStep: number;
@@ -119,7 +119,7 @@ namespace Ally
         dwollaMicroDepositAmount1String: string;
         dwollaMicroDepositAmount2String: string;
         dwollaIavToken: string;
-        homeName: string;
+        homeNameLabel: string;
         setAllAssessmentAmount: number;
         assessmentFrequencyLabel: string;
         shouldShowCustomInstructions: boolean = false;
@@ -150,7 +150,8 @@ namespace Ally
         */
         $onInit()
         {
-            this.homeName = AppConfig.homeName;
+            this.homeNameLabel = AppConfig.homeName;
+            
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear( "hwpid" );
             const tempPayId = this.appCacheService.getAndClear( "onpayid" );
             if( HtmlUtil.isNumericString( tempPayId ) )
@@ -195,7 +196,7 @@ namespace Ally
                 columnDefs:
                     [
                         { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'unitName', displayName: this.homeName, width: 80 },
+                        { field: 'unitName', displayName: this.homeNameLabel, width: 80 },
                         { field: 'resident', displayName: 'Resident', width: 160 },
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
