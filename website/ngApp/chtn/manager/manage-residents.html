@@ -156,7 +156,9 @@
                                  tick-property="isSelectedForEditUser">
                             </div>
 
-                            <span data-ng-if="$ctrl.multiselectMulti === 'single'" class="text-link note-text" data-ng-click="$ctrl.enableMultiHomePicker()">Click here to select multiple {{ $ctrl.homeName.toLowerCase() }}s</span>
+                            <span data-ng-if="$ctrl.multiselectMulti === 'single' && $ctrl.allUnits.length > 1" class="text-link note-text" data-ng-click="$ctrl.enableMultiHomePicker()">Click here to select multiple {{ $ctrl.homeName.toLowerCase() }}s</span>
+
+                            <a data-ng-if="$ctrl.multiselectMulti === 'single' && $ctrl.allUnits.length <= 1" class="note-text" href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">Need to load in more homes?</a>
                         </div>
                     </div>
                 </div>

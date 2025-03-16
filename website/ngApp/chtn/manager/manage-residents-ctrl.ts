@@ -1482,7 +1482,7 @@ namespace Ally
                 // If this row contains two people
                 let spouseRow = null;
                 if( newRow.firstName && newRow.firstName.toLowerCase().indexOf( " & " ) !== -1 )
-                    newRow.firstName = newRow.firstName.replace( " & ", " and  " );
+                    newRow.firstName = newRow.firstName.replace( " & ", " and " ); // Normalize "&" to "and"
                 if( newRow.firstName && newRow.firstName.toLowerCase().indexOf( " and " ) !== -1 )
                 {
                     spouseRow = _.clone( newRow );
