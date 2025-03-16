@@ -94,31 +94,39 @@
             <wz-step title="Your Info">
 
                 <h2 class="StepTitle">Your Info</h2>
-                <span style="font-weight: bold;">First Name:</span><br />
-                <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.firstName" /><br />
-                <span style="font-weight: bold;">Last Name:</span><br />
-                <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.lastName" /><br />
-                <span style="font-weight: bold;">Email Address:</span><br />
-                <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.email" /><br />
-                <span style="font-weight: bold;">Your Unit:</span><br />
-                <select id="signer-up-unit-select"
-                        cssclass="RegularDDl"
-                        style="width: 100%; height: 31px;"
-                        ng-model="$ctrl.signUpInfo.signerUpInfo.unitIndex"
-                        ng-options="index as unit.name for (index, unit) in $ctrl.signUpInfo.buildings[0].units">
-                    <option value=""></option>
-                </select>
-                <br />
-                <span style="font-weight: bold;">Board Position:</span><br />
-                <select id="signer-up-board-select" data-ng-model="$ctrl.signUpInfo.signerUpInfo.boardPositionValue" style="width: 100%;">
-                    <option value="1">President</option>
-                    <option value="4">Secretary</option>
-                    <option value="2">Treasurer</option>
-                    <option value="8">Director/Trustee</option>
-                    <option value="16">Vice President</option>
-                    <option value="0">Resident</option>
-                    <option value="32">Property Manager</option>
-                </select>
+                <div style="max-width: 500px; margin: 0 auto;">
+                    <span style="font-weight: bold;">First Name:</span><br />
+                    <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.firstName" /><br />
+                    <br />
+                    <span style="font-weight: bold;">Last Name:</span><br />
+                    <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.lastName" /><br />
+                    <br />
+                    <span style="font-weight: bold;">Email Address:</span><br />
+                    <input type="text" style="width: 100%;" data-ng-model="$ctrl.signUpInfo.signerUpInfo.email" /><br />
+                    <div class="note-text">
+                        We <a href="https://login.condoally.com/PrivacyPolicy.html#neversell" target="_blank">never sell your information</a>!
+                    </div>
+                    <br />
+                    <span style="font-weight: bold;">Your Unit:</span><br />
+                    <select id="signer-up-unit-select"
+                            cssclass="RegularDDl"
+                            style="width: 100%; height: 31px;"
+                            ng-model="$ctrl.signUpInfo.signerUpInfo.unitIndex"
+                            ng-options="index as unit.name for (index, unit) in $ctrl.signUpInfo.buildings[0].units">
+                        <option value=""></option>
+                    </select><br />
+                    <br />
+                    <span style="font-weight: bold;">Board Position:</span><br />
+                    <select id="signer-up-board-select" data-ng-model="$ctrl.signUpInfo.signerUpInfo.boardPositionValue" style="width: 100%;">
+                        <option value="1">President</option>
+                        <option value="4">Secretary</option>
+                        <option value="2">Treasurer</option>
+                        <option value="8">Director/Trustee</option>
+                        <option value="16">Vice President</option>
+                        <option value="0">Resident</option>
+                        <option value="32">Property Manager</option>
+                    </select>
+                </div>
                 <br />
                 <br />
                 <div class="row mb-1 text-center">
