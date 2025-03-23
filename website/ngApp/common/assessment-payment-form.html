@@ -491,7 +491,7 @@
             <fieldset class="mt-5" data-ng-if="$ctrl.shouldShowStripeAutoPayArea">
                 <legend style="font-size: large;">Stripe Auto-Pay</legend>
                 <div data-ng-if="$ctrl.userHasStripeAutoPay">
-                    Auto-pay is enabled for <b>{{$ctrl.stripeAutoPayAmount | currency}}</b> (<span class="note-text">plus Stripe fees</span>). {{ $ctrl.nextAutoPayText }}
+                    Auto-pay is enabled for <b>{{$ctrl.stripeAutoPayAmount | currency}}</b> (<span class="note-text">plus Stripe fees</span>) to pay {{$ctrl.assessmentFrequencyInfo.name.toLowerCase()}}. {{ $ctrl.nextAutoPayText }}
                     <br />
                     <br />
                     <div class="text-center"><button class="btn btn-warning" data-ng-click="$ctrl.disableStripeAutoPay()">Disable Auto-Pay</button></div>
@@ -510,7 +510,8 @@
                         <cite>
                             Unfortunately, we cannot make any guarantees regarding the automatic payment system as that is handled by our
                             secure third-party payment provider. You are responsible for making sure your payments are made on time to
-                            avoid any late penalties that your association may enforce.
+                            avoid any late penalties that your association may enforce. Auto-pay will not process if you've already manually
+                            paid for the next pay period.
                         </cite>
                     </p>
                 </div>
