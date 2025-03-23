@@ -42,6 +42,9 @@ namespace Ally
         paymentType: "ach" | "creditCard" | "invoice" = "ach";
         shouldShowTrialNote = false;
         shouldShowHomeSetupNote = false;
+        pendingStripeAchClientSecret: string;
+        shouldShowStripeAchMandate = false;
+
 
         /**
          * The constructor for the class
@@ -527,7 +530,7 @@ namespace Ally
             {
                 this.isLoading = false;
                 this.settings = response.data;
-                
+
                 this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 this.premiumPlanRenewDate = new Date();
                 this.premiumPlanRenewDate = moment( this.settings.premiumPlanExpirationDate ).add( 1, "days" ).toDate();
@@ -635,6 +638,156 @@ namespace Ally
 
 
         /**
+         * Start the Stripe-only ACH-linking flow
+         */
+        startStripeAchConnection()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/StripePayments/StartGroupBankSignUp" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    if( !httpResponse.data )
+                    {
+                        this.isLoading = false;
+                        alert( "Failed to start Stripe connection. Please contact support." );
+                        return;
+                    }
+
+                    this.pendingStripeAchClientSecret = httpResponse.data;
+
+                    const stripeSetupData = {
+                        clientSecret: this.pendingStripeAchClientSecret,
+                        params: {
+                            payment_method_type: 'us_bank_account',
+                            payment_method_data: {
+                                billing_details: {
+                                    name: this.siteInfo.userInfo.fullName,
+                                    email: this.siteInfo.userInfo.emailAddress
+                                },
+                            },
+                        },
+                        expand: ['payment_method']
+                    };
+
+                    console.log( "Starting Stripe ACH/bank verification" );
+
+                    // Calling this method will open the instant verification dialog
+                    this.stripeApi.collectBankAccountForSetup( stripeSetupData )
+                        .then( ( result: StripeAchStartResult ) =>
+                        {
+                            console.log( "In stripeApi.collectBankAccountForSetup.then", result );
+
+                            // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                            this.$scope.$apply( () =>
+                            {
+                                this.isLoading = false;
+
+                                if( result.error )
+                                {
+                                    console.error( result.error.message );
+                                    // PaymentMethod collection failed for some reason.
+                                }
+                                else if( result.setupIntent.status === "requires_payment_method" )
+                                {
+                                    // Customer canceled the hosted verification modal. Present them with other
+                                    // payment method type options.
+                                }
+                                else if( result.setupIntent.status === "requires_confirmation" )
+                                {
+                                    // We collected an account - possibly instantly verified, but possibly
+                                    // manually-entered. Display payment method details and mandate text
+                                    // to the customer and confirm the intent once they accept
+                                    // the mandate.
+
+                                    this.shouldShowStripeAchMandate = true;
+                                }
+                            } );
+                        } );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to start Stripe connection: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
+         * Occurs when the user accepts or denies the mandate for a Stripe ACH payment method
+         */
+        acceptStripeAchMandate( didAccept: boolean )
+        {
+            console.log( "In acceptStripeAchMandate", didAccept );
+
+            if( !didAccept )
+                this.shouldShowStripeAchMandate = false;
+            else
+            {
+                this.isLoading = true;
+
+                this.stripeApi.confirmUsBankAccountSetup( this.pendingStripeAchClientSecret )
+                    .then( ( result: StripeAchStartResult ) =>
+                    {
+                        console.log( "In acceptStripeAchMandate then", result );
+
+                        // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                        this.$scope.$apply( () =>
+                        {
+                            if( result.error )
+                            {
+                                this.isLoading = false;
+                                this.shouldShowStripeAchMandate = false;
+
+                                // The payment failed for some reason.
+                                console.error( result.error.message );
+                                alert( "Failed to confirm: " + result.error.message );
+                            }
+                            else if( result.setupIntent.status === "requires_payment_method" )
+                            {
+                                // Confirmation failed. Attempt again with a different payment method.
+                                this.isLoading = false;
+                                this.shouldShowStripeAchMandate = false;
+                            }
+                            else if( result.setupIntent.next_action?.type === "verify_with_microdeposits" )
+                            {
+                                // The account needs to be verified via microdeposits.
+                                // Display a message to consumer with next steps (consumer waits for
+                                // microdeposits, then enters a statement descriptor code on a page sent to them via email).
+                                //this.isLoading_Payment = false;
+                                this.shouldShowStripeAchMandate = false;
+                                window.location.reload();
+                            }
+                            else
+                            {
+                                this.$http.get( "/api/StripePayments/CompleteGroupBankSignUp" ).then(
+                                    () =>
+                                    {
+                                        this.isLoading = false;
+                                        this.shouldShowStripeAchMandate = false;
+
+                                        window.location.reload();
+                                    },
+                                    ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                                    {
+                                        this.isLoading = false;
+                                        alert( "Failed to cancel account addition: " + httpResponse.data.exceptionMessage );
+                                    }
+                                );
+                            }
+                        } );
+                        //else if( result.setupIntent.status === "succeeded" )
+                        //{
+                        //    // Confirmation succeeded! The account is now saved.
+                        //    // Display a message to customer.
+                        //}
+                    } );
+            }
+        }
+
+
+        /**
          * Complete the Stripe-Plaid ACH-linking flow
          */
         makeAchStripePayment()
@@ -728,6 +881,25 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to start verification: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        cancelPendingAch()
+        {
+            this.isLoading = true;
+
+            this.$http.put( "/api/Settings/ClearGroupPendingAch", null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.settings.hasStripePremiumPendingAchAccount = false;
+                },
+                ( errorResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to disconnect bank account: " + errorResponse.data.exceptionMessage );
                 }
             );
         }

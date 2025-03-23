@@ -56,7 +56,6 @@ var Ally;
             this.shouldShowStripeAchMandate = false;
             this.shouldShowStripeAchRefresh = false;
             this.isUpgradingStripePaymentForAutoPay = false;
-            this.pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
             this.activeSpecialAssessments = [];
         }
         /**
@@ -1085,7 +1084,7 @@ var Ally;
                 // Calling this method will open the instant verification dialog
                 this.stripeApi.collectBankAccountForSetup(stripeSetupData)
                     .then((result) => {
-                    console.log("In Stripe connect then", result);
+                    //console.log( "In Stripe connect then", result );
                     // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
                     this.$scope.$apply(() => {
                         this.isLoading_Payment = false;
@@ -1232,6 +1231,7 @@ var Ally;
     }
     class StripeAchStartResult {
     }
+    Ally.StripeAchStartResult = StripeAchStartResult;
     class CheckoutRequest {
     }
     class DwollaAccountStatusInfo {

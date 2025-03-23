@@ -98,7 +98,7 @@ namespace Ally
         shouldShowStripeAchMandate = false;
         shouldShowStripeAchRefresh = false;
         isUpgradingStripePaymentForAutoPay = false;
-        pendingStripeAchClientSecret = "seti_1Oju5yQZjs457rtswAZUdYR2_secret_PZ2A2ZWo6r5bFPc1yS4pRvVONjEP5Bg";
+        pendingStripeAchClientSecret: string;
         activeSpecialAssessments: SpecialAssessmentEntry[] = [];
 
 
@@ -1658,7 +1658,7 @@ namespace Ally
                     this.stripeApi.collectBankAccountForSetup( stripeSetupData )
                         .then( ( result: StripeAchStartResult ) =>
                         {
-                            console.log( "In Stripe connect then", result );
+                            //console.log( "In Stripe connect then", result );
 
                             // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
                             this.$scope.$apply( () =>
@@ -1876,7 +1876,7 @@ namespace Ally
     }
 
 
-    class StripeAchStartResult
+    export class StripeAchStartResult
     {
         setupIntent: any;
         error: any;

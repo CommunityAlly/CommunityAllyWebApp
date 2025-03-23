@@ -117,9 +117,10 @@
                         <h5 class="card-title">Checking Account Payment</h5>
                         <div class="card-text">
                             <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && !$ctrl.settings.hasStripePremiumPendingAchAccount">
-                                We use Plaid to connect to bank accounts for security and simplicity.
+                                We use Stripe to connect to bank accounts for security and simplicity.
                                 <div class="text-center">
-                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account</button>
+                                    <!--<button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account (via Plaid)</button>-->
+                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.startStripeAchConnection()">Connect Checking Account</button>
                                 </div>
                                 <span class="note-text">Once you connect a bank account you'll be able to make payment via ACH.</span>
                             </div>
@@ -231,6 +232,21 @@
                 </div>
             </div>
         </div>
+    </div>
 
+    <div data-ng-if="$ctrl.shouldShowStripeAchMandate" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="ca-modal-dialog modal-lg">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
+            Per Stripe's requirements, you must accept the following mandate to use ACH payments through Community Ally:
+            <br />
+            <br />
+            If you use Community Ally's services or purchase additional products periodically pursuant to Community Ally's terms, you authorize Community Ally to debit your bank account periodically for auto-pay and on demand for manual payments. Payments that fall outside of the regular debits authorized above will only be debited after your authorization is obtained.
+            <br />
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.acceptStripeAchMandate(true)">Accept</button>
+                <button type="button" class="btn btn-secondary ms-3" data-ng-click="$ctrl.acceptStripeAchMandate(false)">Cancel</button>
+            </div>
+        </div>
     </div>
 </div>
