@@ -203,10 +203,15 @@
 
         function getPageViewFunction()
         {
+            // If we're using Fathom
             if( typeof ( fathom ) === "object" )
             {
                 return function( pageInfo )
                 {
+                    // Don't track running locally
+                    if( pageInfo && pageInfo.url && pageInfo.url.startsWith( "http://localhost" ) )
+                        return;
+
                     // Fathom doesn't like hashbangs
                     //const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/#!/Home"
                     const postValue = pageInfo.url.replace( "#!/", "" ); // Looks like "https://qa.condoally.com/Home"
@@ -220,6 +225,7 @@
                     fathom.trackPageview( { url: genericPostValue } );
                 };
             }
+            // Of if we're using Google Analytics
             else if( typeof ( gtag ) === "function" )
             {
                 return function( pageInfo )
