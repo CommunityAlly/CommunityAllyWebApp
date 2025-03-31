@@ -119,6 +119,7 @@
         <p class="text-end">
             <input id="poll-submit" class="btn btn-primary" type="button" ng-disabled="$ctrl.editItemForm.$invalid" value="{{ $ctrl.editingItem.postDateUtc != null | iif: 'Save Changes' : 'Add Vote' }}" data-ng-click="$ctrl.onSavePoll();" />
             <input id="poll-cancel-edit" class="btn btn-primary" type="button" value="Cancel Edit" data-ng-show="$ctrl.editingItem.postDateUtc != null" data-ng-click="$ctrl.cancelEdit()" />
+            <div class="note-text">Votes can be edited until the first vote is received, then they are locked from any changes.</div>
         </p>
     </form>
 
