@@ -5,6 +5,9 @@ var Ally;
     class FoundGroup {
     }
     Ally.FoundGroup = FoundGroup;
+    class FoundGroupResults {
+    }
+    Ally.FoundGroupResults = FoundGroupResults;
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -134,7 +137,7 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail).then((response) => {
                 this.isLoading = false;
-                this.foundUserAssociations = response.data;
+                this.foundUserAssociations = response.data.groups;
                 _.forEach(this.foundUserAssociations, g => {
                     g.viewUrl = `https://${g.shortName}.condoally.com/`;
                     if (g.appName === 2)

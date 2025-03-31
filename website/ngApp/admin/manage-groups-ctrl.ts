@@ -26,6 +26,13 @@
     }
 
 
+    export class FoundGroupResults
+    {
+        userId: string;
+        groups: FoundGroup[];
+    }
+
+
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -229,10 +236,10 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroup[]> ) =>
+            this.$http.get( "/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroupResults> ) =>
             {
                 this.isLoading = false;
-                this.foundUserAssociations = response.data;
+                this.foundUserAssociations = response.data.groups;
 
                 _.forEach( this.foundUserAssociations, g =>
                 {
