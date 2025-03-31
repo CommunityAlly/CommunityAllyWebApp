@@ -48,16 +48,16 @@ namespace Ally
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             
             // If we know our group's position, let's tighten the 
-            var autocompleteOptions = undefined;
+            let autocompleteOptions = undefined;
             if( this.siteInfo.privateSiteInfo.googleGpsPosition )
             {
-                var TwentyFiveMilesInMeters = 40234;
+                const TwentyFiveMilesInMeters = 40234;
 
-                var latLon = {
+                const latLon = {
                     lat: 41.142248,
                     lng: -73.633228
                 };
-                var circle = new google.maps.Circle( {
+                const circle = new google.maps.Circle( {
                     center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 } );
@@ -67,20 +67,19 @@ namespace Ally
                 };
             }
 
-            var addressInput = <HTMLInputElement>document.getElementById( "edit-location-address-text-box" );
+            const addressInput = <HTMLInputElement>document.getElementById( "edit-location-address-text-box" );
             this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput, autocompleteOptions );
 
             google.maps.event.addListener( this.addressAutocomplete, 'place_changed', () =>
             {
-                var place = this.addressAutocomplete.getPlace();
+                const place = this.addressAutocomplete.getPlace();
                 this.editingTip.address = place.formatted_address;
             } );
 
 
             this.retrieveHoaHomes();
 
-            var innerThis = this;
-            this.$timeout( () => innerThis.getWalkScore(), 1000 );
+            //this.$timeout( () => this.getWalkScore(), 1000 );
             MapCtrlMapMgr.Init( this.siteInfo, this.$scope, this );
         }
 
@@ -112,9 +111,9 @@ namespace Ally
 
             if( !this.isMovingHomes )
             {
-                for( var locationIndex = 0; locationIndex < this.tips.length; ++locationIndex )
+                for( let locationIndex = 0; locationIndex < this.tips.length; ++locationIndex )
                 {
-                    var curLocation = this.tips[locationIndex];
+                    const curLocation = this.tips[locationIndex];
 
                     if( curLocation.gpsPos === null )
                         continue;
@@ -130,8 +129,8 @@ namespace Ally
                 {
                     if( home.fullAddress && home.fullAddress.gpsPos )
                     {
-                        var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
-                        var markerText = home.name;
+                        let markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
+                        let markerText = home.name;
 
                         if( _.any( this.siteInfo.userInfo.usersUnits, u => u.unitId === home.unitId ) )
                         {
@@ -203,14 +202,14 @@ namespace Ally
             //if ( !$( "#new-item-form" ).valid() )
             //    return;
             
-            var onSave = () =>
+            const onSave = () =>
             {
                 this.isLoading = false;
                 this.editingTip = new WelcomeTip();
                 this.refresh();
             };
 
-            var onFailure = ( response:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+            const onFailure = ( response:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
             {
                 this.isLoading = false;
                 alert( "Failed to save item: " + response.data.exceptionMessage );
@@ -247,11 +246,11 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         getMarkerIconUrl( markerNumber: number )
         {
-            var MarkerNumber_Home = -2;
-            var MarkerNumber_Hospital = -3;
-            var MarkerNumber_PostOffice = -4;
+            const MarkerNumber_Home = -2;
+            const MarkerNumber_Hospital = -3;
+            const MarkerNumber_PostOffice = -4;
 
-            var retPath = "/assets/images/MapMarkers/";
+            let retPath = "/assets/images/MapMarkers/";
             if( markerNumber >= 1 && markerNumber <= 10 )
                 retPath += "green_" + markerNumber;
             else if( markerNumber === MarkerNumber_Home )
@@ -341,7 +340,7 @@ namespace Ally
          */
         getWalkScore()
         {
-            var handleWalkScoreResult = function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+            const handleWalkScoreResult = ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
             {
                 if( !httpResponse || !httpResponse.data || httpResponse.data === "Error" )
                 {
@@ -501,13 +500,6 @@ class MapCtrlMapMgr
             MapCtrlMapMgr.AddMarker( MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null );
 
         MapCtrlMapMgr.OnMapReady();
-        
-        // Add any markers that already exist to this map
-        //for( var markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex )
-        //{
-        //    if( !MapCtrlMapMgr._markers[markerIndex].getMap() )
-        //        MapCtrlMapMgr._markers[markerIndex].setMap( MapCtrlMapMgr._mainMap );
-        //}
     }
 
 
@@ -531,7 +523,7 @@ class MapCtrlMapMgr
     {
         MapCtrlMapMgr.ClearAllMarkers();
 
-        for( var markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex )
+        for( let markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex )
         {
             const tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
 
@@ -550,7 +542,7 @@ class MapCtrlMapMgr
             else
                 markerImageUrl = "/assets/images/MapMarkers/green_blank.png";
 
-            var marker = new google.maps.Marker(
+            const marker = new google.maps.Marker(
                 {
                     position: new google.maps.LatLng( tempMarker.lat, tempMarker.lon ),
                     map: MapCtrlMapMgr._mainMap,
@@ -562,13 +554,13 @@ class MapCtrlMapMgr
             
             google.maps.event.addListener( marker, 'dragend', function()
             {
-                var marker = this;
+                const draggedMarker = this;
 
-                var gpsPos = marker.getPosition();
+                const gpsPos = draggedMarker.getPosition();
 
                 MapCtrlMapMgr.ngScope.$apply( function()
                 {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation( marker, gpsPos.lat(), gpsPos.lng() );
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation( draggedMarker, gpsPos.lat(), gpsPos.lng() );
                 } );
                 
             } );
@@ -599,9 +591,9 @@ class MapCtrlMapMgr
                 
         if( MapCtrlMapMgr._groupGpsBounds )
         {
-            var groupBoundsPath = Ally.MapUtil.gpsBoundsToGooglePoly( MapCtrlMapMgr._groupGpsBounds );
+            const groupBoundsPath = Ally.MapUtil.gpsBoundsToGooglePoly( MapCtrlMapMgr._groupGpsBounds );
 
-            var groupBoundsPolylineOptions = {
+            const groupBoundsPolylineOptions = {
                 paths: groupBoundsPath,
                 map: MapCtrlMapMgr._mainMap,
                 strokeColor: '#0000FF',
@@ -624,7 +616,7 @@ class MapCtrlMapMgr
     */
     static ClearAllMarkers()
     {
-        for( var i = 0; i < MapCtrlMapMgr._markers.length; i++ )
+        for( let i = 0; i < MapCtrlMapMgr._markers.length; i++ )
             MapCtrlMapMgr._markers[i].setMap( null );
         
         MapCtrlMapMgr._markers = [];
@@ -664,17 +656,17 @@ class MapCtrlMapMgr
     static ZoomMapToFitMarkers()
     {
         //  Create a new viewpoint bound
-        var bounds = new google.maps.LatLngBounds();
+        const bounds = new google.maps.LatLngBounds();
 
         //  Go through each marker and make the bounds extend to fit it
-        for( var markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex )
+        for( let markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex )
             bounds.extend( MapCtrlMapMgr._markers[markerIndex].getPosition() );
 
         if( MapCtrlMapMgr._groupBoundsShape )
         {
-            var path = MapCtrlMapMgr._groupBoundsShape.getPath();
+            const path = MapCtrlMapMgr._groupBoundsShape.getPath();
 
-            for( var i = 0; i < path.getLength(); ++i )
+            for( let i = 0; i < path.getLength(); ++i )
                 bounds.extend( path.getAt(i) );
         }
 
