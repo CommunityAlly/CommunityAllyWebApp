@@ -175,7 +175,7 @@ var Ally;
                 {
                     headerText: "Address",
                     fieldName: "fullAddress",
-                    dataMapper: (value) => value.oneLiner
+                    dataMapper: (value) => value ? value.oneLiner : ""
                 },
                 {
                     headerText: "Notes",

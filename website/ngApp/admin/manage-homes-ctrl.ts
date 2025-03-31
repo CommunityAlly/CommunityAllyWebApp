@@ -261,7 +261,7 @@
                 {
                     headerText: "Address",
                     fieldName: "fullAddress",
-                    dataMapper: ( value: FullAddress ) => value.oneLiner
+                    dataMapper: ( value: FullAddress ) => value ? value.oneLiner : ""
                 },
                 {
                     headerText: "Notes",
