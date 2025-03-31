@@ -106,7 +106,13 @@ namespace Ally
         /**
         * The constructor for the class
         */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService, private wizardHandler: any, private $scope: ng.IScope, private $timeout: ng.ITimeoutService, private $location: ng.ILocationService )
+        constructor( private $http: ng.IHttpService,
+            private siteInfo: Ally.SiteInfoService,
+            private fellowResidents: Ally.FellowResidentsService,
+            private wizardHandler: any,
+            private $scope: ng.IScope,
+            private $timeout: ng.ITimeoutService,
+            private $location: ng.ILocationService )
         {
             const amountCellTemplate = '<div class="ui-grid-cell-contents">$<input type="number" style="width: 90%;" data-ng-model="row.entity[col.field]" autocomplete="off" data-lpignore="true" data-form-type="other" /></div>';
 
@@ -224,6 +230,17 @@ namespace Ally
                 // Or if we moved to the third step, contact method
                 if( this.activeStepIndex === 2 )
                 {
+                    // Go through the rows and make sure no amounts due are empty
+                    const invalidRows = _.filter( this.selectedEntries, e => isNaN( e.amountDue ) || e.amountDue === null || e.amountDue === undefined );
+                    if( invalidRows.length > 0 )
+                    {
+                        const invalidHomeNames = invalidRows.map( e => e.homeNames ).join( "\n" );
+                        const errorMessage = "These homes have invalid amounts. If you don't want to send an invoice, uncheck the box to the home's left. If you want to send an invoice for $0, enter 0 in the amount due field.\n\nHomes:\n" + invalidHomeNames;
+                        alert( errorMessage );
+                        this.wizardHandler.wizard().goTo( 1 );
+                    }
+                    //this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
+
                     // Filter out any fields with an empty due
                     // TWC - 6/25/19 - Had a request to still be able to send out $0 invoices, makes sense
                     //this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
