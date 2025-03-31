@@ -67,9 +67,6 @@ var Ally;
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             const StripeEnabledGroups = ["qa", "502wainslie"];
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-            // Allow a single HOA to try WePay
-            //const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
-            //this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             this.payments = [
                 {
                     Date: "",
@@ -288,23 +285,6 @@ var Ally;
                 $('.editable-input').select();
             }, 50);
         }
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user presses the button to send money from the WePay account to their
-        // association's account
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        onWithdrawalClick() {
-            this.errorMessage = "";
-            this.$http.get("/api/OnlinePayment/PerformAction?action=withdrawal").then((httpResponse) => {
-                const withdrawalInfo = httpResponse.data;
-                if (withdrawalInfo.redirectUri)
-                    window.location.href = withdrawalInfo.redirectUri;
-                else
-                    this.errorMessage = withdrawalInfo.message;
-            }, (httpResponse) => {
-                if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    this.errorMessage = httpResponse.data.exceptionMessage;
-            });
-        }
         /**
          * Occurs when the user presses the button to edit a unit's assessment
          */
@@ -348,7 +328,7 @@ var Ally;
             });
         }
         /**
-         * Occurs when the user changes who covers the WePay transaction fee
+         * Occurs when the user changes who covers the transaction fee
          */
         onChangeFeePayerInfo(payTypeUpdated) {
             // See if any users have auto-pay setup for this payment type
@@ -612,18 +592,6 @@ var Ally;
                 this.testFee.achResidentPays = stripeFeeInfo.totalAmountPaid;
                 this.testFee.achAssociationReceives = stripeFeeInfo.groupReceives;
             }
-        }
-        /**
-         * Allow the admin to clear the WePay access token for testing
-         */
-        clearWePayAccessToken() {
-            this.isLoading = true;
-            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(() => {
-                window.location.reload();
-            }, (httpResponse) => {
-                this.isLoading = false;
-                alert("Failed to disable WePay: " + httpResponse.data.exceptionMessage);
-            });
         }
         showDwollaSignUpModal() {
             this.shouldShowDwollaAddAccountModal = true;

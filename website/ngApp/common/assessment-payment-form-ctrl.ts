@@ -47,7 +47,6 @@ namespace Ally
             ssnFull: "",
             streetAddress: new FullAddress()
         };
-        isWePayPaymentActive: boolean = false;
         isDwollaEnabledOnGroup: boolean = false;
         isStripeEnabledOnGroup: boolean = false;
         isDwollaReadyForPayment: boolean = false;
@@ -126,13 +125,6 @@ namespace Ally
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
 
-            this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-
-            // Disable to Stripe testing
-            if( this.siteInfo.publicSiteInfo.groupId === 28 )
-                this.isWePayPaymentActive = false;
-            this.isWePayPaymentActive = false;
-
             const shouldShowDwolla = false; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if( shouldShowDwolla )
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
@@ -150,8 +142,6 @@ namespace Ally
                 this.customFinancialInstructions = this.$sce.trustAsHtml( this.siteInfo.privateSiteInfo.customFinancialInstructions );
 
             let numProviders = 0;
-            if( this.isWePayPaymentActive )
-                ++numProviders;
             if( this.isDwollaEnabledOnGroup )
                 ++numProviders;
             if( this.isStripeEnabledOnGroup )
@@ -548,64 +538,9 @@ namespace Ally
         }
 
 
-        /**
-         * Occurs when the user presses the button to make a payment to their organization
-         */
-        submitWePayPayment( fundingTypeName: string )
-        {
-            this.isLoading_Payment = true;
-            this.paymentInfo.fundingType = fundingTypeName;
-
-            // Remove leading dollar signs
-            const testAmount = this.paymentInfo.amount as any;
-            if( HtmlUtil.isValidString( testAmount ) && ( testAmount as string )[0] === '$' )
-                this.paymentInfo.amount = parseFloat( testAmount.substr( 1 ) );
-
-            analytics.track( "makePayment", {
-                fundingType: fundingTypeName
-            } );
-
-            this.$http.post( "/api/WePayPayment/MakeNewPayment", this.paymentInfo ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<CheckoutRequest> ) =>
-                {
-                    const checkoutInfo = httpResponse.data;
-
-                    if( checkoutInfo !== null && typeof ( checkoutInfo.checkoutUri ) === "string" && checkoutInfo.checkoutUri.length > 0 )
-                    {
-                        //if( checkoutInfo.pendingPaymentAmount )
-                        //{
-                        //    const pendingDateStr = moment( checkoutInfo.pendingPaymentDateUtc ).format("M/D/YYYY h:mma")
-                        //    const pendingMessage = `You already have a pending payment of $${checkoutInfo.pendingPaymentAmount} made on ${pendingDateStr}. Would you still like to continue to a make a new payment?`;
-                        //    if( !confirm( pendingMessage ) )
-                        //    {
-                        //        this.isLoading_Payment = false;
-                        //        return;
-                        //    }
-                        //}
-
-                        window.location.href = checkoutInfo.checkoutUri;
-                    }
-                    else
-                    {
-                        this.isLoading_Payment = false;
-                        alert( "Unable to initiate WePay checkout" );
-                    }
-
-                },
-                ( httpResponse: any ) =>
-                {
-                    this.isLoading_Payment = false;
-
-                    if( httpResponse.data && httpResponse.data.exceptionMessage )
-                        alert( httpResponse.data.exceptionMessage );
-                }
-            );
-        }
-
-
         getMyRecentPayments()
         {
-            this.$http.get( "/api/WePayPayment/MyRecentPayments" ).then(
+            this.$http.get( "/api/OnlinePayment/MyRecentPayments" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ElectronicPayment[]> ) =>
                 {
                     this.myRecentPayments = httpResponse.data;
@@ -710,63 +645,6 @@ namespace Ally
             this.paymentInfo.paysFor = [curPeriod];
 
             return paymentText;
-        }
-
-
-        /**
-         * Occurs when the user presses the button to setup auto-pay for assessments
-         */
-        onSetupWePayAutoPay( fundingTypeName: string )
-        {
-            this.isLoading_Payment = true;
-
-            this.$http.get( "/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
-                {
-                    const redirectUrl = httpResponse.data;
-
-                    if( typeof ( redirectUrl ) === "string" && redirectUrl.length > 0 )
-                        window.location.href = redirectUrl;
-                    else
-                    {
-                        this.isLoading_Payment = false;
-                        alert( "Unable to initiate WePay auto-pay setup" );
-                    }
-
-                },
-                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                {
-                    this.isLoading_Payment = false;
-
-                    if( httpResponse.data && httpResponse.data.exceptionMessage )
-                        alert( httpResponse.data.exceptionMessage );
-                }
-            );
-        }
-
-
-        /**
-         * Occurs when the user clicks the button to disable auto-pay
-         */
-        onDisableAutoPay()
-        {
-            if( !confirm( "Just to double check, this will disable your auto-payment. You need to make sure to manually make your regular payments to avoid any late fees your association may enforce." ) )
-                return;
-
-            this.isLoading_Payment = true;
-
-            this.$http.get( "/api/WePayPayment/DisableAutoPay" ).then( () =>
-            {
-                this.isLoading_Payment = false;
-                this.isWePayAutoPayActive = false;
-
-            }, ( httpResponse ) =>
-            {
-                this.isLoading_Payment = false;
-
-                if( httpResponse.data && httpResponse.data.exceptionMessage )
-                    alert( httpResponse.data.exceptionMessage );
-            } );
         }
 
 

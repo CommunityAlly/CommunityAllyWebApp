@@ -187,83 +187,6 @@
                     <span class="text-link" data-ng-click="$ctrl.disconnectDwolla()">Unlink Dwolla bank account</span>
                 </div>
 
-                <!--<div data-ng-if="$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.needsReLogin">
-        <table style="width:100%;">
-            <tr>
-                <td style="width:50%;">WePay Balance: {{ $ctrl.paymentInfo.balanceDetail.availableBalance | currency }}</td>
-                <td style="width:50%;">WePay Pending Balance: {{ $ctrl.paymentInfo.balanceDetail.pendingBalance | currency }}</td>
-                <td style="width:33%; display: none;">
-                    <input type="button" value="Withdrawal" data-ng-click="$ctrl.onWithdrawalClick();" />
-                </td>
-            </tr>
-        </table>
-        <div data-ng-if="isAdmin">
-            <span class="text-link" data-ng-click="">Clear access token</span>
-        </div>
-    </div>-->
-
-                <div data-ng-if="$ctrl.paymentInfo.isWePaySetup" data-ng-class="{'payment-provider-panel': $ctrl.hasMultipleProviders}">
-                    <h5 data-ng-if="$ctrl.hasMultipleProviders">WePay</h5>
-
-                    <div class="alert alert-warning">
-                        WePay will stop working October 10th because they are shutting down their small business services. We're here to help you transition to Stripe, just reach out via help or chat.
-                        <br />
-                        <br />
-                        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Sign-up for Stripe Now</button>
-                    </div>
-
-                    <div data-ng-if="$ctrl.paymentInfo.needsReLogin">
-                        You need to log-in to WePay with your association's account if you want to re-enable WePay payments.<br>
-                        <a href="{{ $ctrl.paymentInfo.wePayLoginUri }}">Log-in Now</a>
-                    </div>
-
-                    <div data-ng-if="!$ctrl.paymentInfo.needsReLogin">
-                        WePay is successfully enabled. You can disable WePay payments if you'd like to move users to other payment methods. You can always undo this.<br />
-                        <span class="text-link" data-ng-click="$ctrl.clearWePayAccessToken()">Disable WePay</span>
-                        <div data-ng-if="$ctrl.paymentInfo.balanceDetail.payoutAccountName || $ctrl.paymentInfo.balanceDetail.wePayAccountEmail" class="mt-3">
-                            <span data-ng-if="$ctrl.paymentInfo.balanceDetail.payoutAccountName">
-                                WePay pays out to:
-                                <span style="font-weight: bold;">{{$ctrl.paymentInfo.balanceDetail.payoutAccountName}}</span>
-                            </span>
-                            <span class="note-text">(Account Admin: {{$ctrl.paymentInfo.balanceDetail.wePayAccountEmail}})</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div data-ng-if="!$ctrl.paymentInfo.isStripeSetup" class="mb-3 mt-3">
-                    <button type="button" data-ng-if="!$ctrl.paymentInfo.isWePaySetup && !$ctrl.paymentInfo.isStripeSetup" class="btn btn-primary" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Setup an Online Payment Processor</button>
-                    <span class="text-link note-text" data-ng-if="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.isStripeSetup" data-ng-click="$ctrl.shouldShowPaymentSignupModal = true">Setup Another Online Payment Processor</span>
-                </div>
-
-                <!--<div data-ng-hide="$ctrl.paymentInfo.payPalClientId">
-        <h3>Setup PayPal Payments</h3>
-        In order to accept payments via PayPal you need to sign-up for a PayPal business account. It only takes a few
-        minutes and we've written a helpful guide to walk you through the process.<br />
-        <a href="https://help.communityally.org/accept-payments-through-paypal/" target="_blank">Accept Payments Through PayPal Guide</a><br />
-        <br />
-        Once you get near the end of sign-up you'll need to paste in your PayPal client ID and secret API value here to
-        enable payments.<br />
-        <form>
-            <div class="form-group row">
-                <label class="col-sm-4">Client ID:</label>
-                <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientId"></div>
-            </div>
-
-            <div class="form-group row">
-                <label class="col-sm-4">Client Secret:</label>
-                <div class="col-sm-8"><input type="text" class="form-control form-control-sm" data-ng-model="$ctrl.payPalSignUpClientSecret"></div>
-            </div>
-
-            <div data-ng-if="$ctrl.payPalSignUpErrorMessage" class="text-error">
-                {{ $ctrl.payPalSignUpErrorMessage }}
-            </div>
-
-            <div class="text-end mt-3">
-                <input class="btn btn-primary" type="button" value="Enable PayPal Payments" data-ng-click="$ctrl.enablePayPal();">
-            </div>
-        </form>
-    </div>-->
-
                 <h3 class="margin-top-50">Online Payment History</h3>
 
                 <div class="wide_tble_wrap">
@@ -272,34 +195,6 @@
                         No online payments have been made yet.
                     </div>
 
-                    <!--<table class="table table-bordered" data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Unit</th>
-                    <th>Resident</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Notes</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-ng-repeat="payment in $ctrl.paymentInfo.electronicPayments" data-ng-class="{ 'highlight': (payment.wePayCheckoutId == $ctrl.highlightWePayCheckoutId) }">
-                    <td>{{ payment.submitDateUtc | date }}</td>
-                    <td>{{ payment.unitName }}</td>
-                    <td>{{ payment.resident }}</td>
-                    <td>{{ payment.amount | currency }}</td>
-                    <td>{{ payment.status }}</td>
-                    <td>{{ payment.notes }}</td>
-                    <td>
-                        <span class="text-link" data-ng-if="payment.wePayCheckoutId" data-ng-click="$ctrl.showWePayCheckoutInfo( payment.wePayCheckoutId )">WePay Details</span>
-                        <span class="text-link" data-ng-if="payment.payPalCheckoutId" data-ng-click="$ctrl.showPayPalCheckoutInfo( payment.payPalCheckoutId )">PayPal Details</span>
-                        <span class="text-link" data-ng-if="payment.paragonReferenceNumber" data-ng-click="$ctrl.showParagonCheckoutInfo( payment.paragonReferenceNumber )">Paragon Details</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>-->
                     <div data-ng-if="$ctrl.paymentInfo.electronicPayments.length > 0" data-ui-grid="$ctrl.paymentsGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-auto-resize class="gridStyle margin-top-20"></div>
                     <div style="height: 20px;"></div>
                 </div>
@@ -371,7 +266,6 @@
                     <div data-ng-if="$ctrl.paymentInfo.isWePaySetup && $ctrl.paymentInfo.isStripeSetup" class="mt-2 mb-1">
                         Show example fees for
                         <label><input type="radio" data-ng-change="$ctrl.updateTestFee()" data-ng-model="$ctrl.exampleFeeService" value="stripe" /> Stripe</label>
-                        <label><input type="radio" data-ng-change="$ctrl.updateTestFee()" data-ng-model="$ctrl.exampleFeeService" value="wepay" /> WePay</label>
                     </div>
                     <div class="spinner-effect">
                         <div data-ng-show="$ctrl.isLoadingPayment" class="loading-overlay"></div>
