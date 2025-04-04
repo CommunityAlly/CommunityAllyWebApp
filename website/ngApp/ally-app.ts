@@ -461,8 +461,10 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
 
 
         // Clear the cache if needed
-        $rootScope.$on( '$routeChangeStart', function()
+        $rootScope.$on( '$routeChangeStart', () =>
         {
+            //console.log( "In $routeChangeStart" );
+
             if( CA.clearTemplateCacheIfNeeded )
                 CA.clearTemplateCacheIfNeeded( $templateCache );
         } );

@@ -124,6 +124,9 @@ var Ally;
     class FoundGroup {
     }
     Ally.FoundGroup = FoundGroup;
+    class FoundGroupResults {
+    }
+    Ally.FoundGroupResults = FoundGroupResults;
     /**
      * The controller for the admin-only page to edit group boundary polygons
      */
@@ -253,7 +256,7 @@ var Ally;
             this.isLoading = true;
             this.$http.get("/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail).then((response) => {
                 this.isLoading = false;
-                this.foundUserAssociations = response.data;
+                this.foundUserAssociations = response.data.groups;
                 _.forEach(this.foundUserAssociations, g => {
                     g.viewUrl = `https://${g.shortName}.condoally.com/`;
                     if (g.appName === 2)
@@ -572,9 +575,21 @@ var Ally;
                 alert("Adding setting failed: " + response.data.exceptionMessage);
             });
         }
+        loadAlliesOfAlly() {
+            this.isLoading = true;
+            this.$http.get(`/api/AdminHelper/AlliesOfAlly`).then((response) => {
+                this.isLoading = false;
+                this.alliesOfAllyUsers = response.data;
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to retreive allies: " + response.data.exceptionMessage);
+            });
+        }
     }
     ManageGroupsController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.ManageGroupsController = ManageGroupsController;
+    class AllyOfAllyUser {
+    }
     class AllyPaymentEntry {
     }
     class AllyAppSetting {
@@ -770,7 +785,7 @@ var Ally;
                 {
                     headerText: "Address",
                     fieldName: "fullAddress",
-                    dataMapper: (value) => value.oneLiner
+                    dataMapper: (value) => value ? value.oneLiner : ""
                 },
                 {
                     headerText: "Notes",
@@ -1356,7 +1371,8 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             $http.get("/api/Login/Logout").then($rootScope.onLogOut_ClearData, $rootScope.onLogOut_ClearData);
         };
         // Clear the cache if needed
-        $rootScope.$on('$routeChangeStart', function () {
+        $rootScope.$on('$routeChangeStart', () => {
+            //console.log( "In $routeChangeStart" );
             if (CA.clearTemplateCacheIfNeeded)
                 CA.clearTemplateCacheIfNeeded($templateCache);
         });
@@ -1578,12 +1594,12 @@ const CondoAllyAppConfig = {
         // Manager pages
         new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Residents", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
-        new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls/Voting", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Financials/OnlinePayments", templateHtml: "<financial-parent></financial-parent>", menuTitle: "Financials", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Financials/StripeLinkRefresh", templateHtml: "<stripe-link-refresh></stripe-link-refresh>", role: Role_Manager }),
         //new Ally.RoutePath_v3( { path: "ManagePayments", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Online Payments. We will be removing this menu item soon.</div></div>", menuTitle: "Online Payments", role: Role_Manager } ),
         //new Ally.RoutePath_v3( { path: "AssessmentHistory", templateHtml: "<div class='page'><div>Heads up! This page has moved to Manage -> Financials -> Assessment History. We will be removing this menu item soon.</div></div>", menuTitle: "Assessment History", role: Role_Manager } ),
-        new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing", role: Role_Manager, pageTitle: "Send Invoice" }),
+        new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing/Invoices", role: Role_Manager, pageTitle: "Send Invoice" }),
         new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager, pageTitle: "Mailing" }),
         new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
@@ -1748,7 +1764,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "MyProfile", templateHtml: "<my-profile></my-profile>" }),
     new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager }),
     new Ally.RoutePath_v3({ path: "ManageCommittees", templateHtml: "<manage-committees></manage-committees>", menuTitle: "Committees", role: Role_Manager }),
-    new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls", role: Role_Manager }),
+    new Ally.RoutePath_v3({ path: "ManagePolls", templateHtml: "<manage-polls></manage-polls>", menuTitle: "Polls/Voting", role: Role_Manager }),
     //new Ally.RoutePath_v3( { path: "ManagePayments", templateHtml: "<manage-payments></manage-payments>", menuTitle: "Online Payments", role: Role_Manager } ),
     new Ally.RoutePath_v3({ path: "AssessmentHistory", templateHtml: "<assessment-history></assessment-history>", menuTitle: "Membership Dues History", role: Role_Manager }),
     new Ally.RoutePath_v3({ path: "Settings", templateHtml: "<chtn-settings></chtn-settings>", menuTitle: "Settings", role: Role_Manager }),
@@ -1786,6 +1802,11 @@ else {
     console.log("Unknown ally app");
     AppConfig = CondoAllyAppConfig;
 }
+// No changes should be made to the config object
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+// Commented out because this appears to break route navigation. I'm wondering if AngularJS's
+// router is trying to modify something on the controller object on the menu items.
+// Object.freeze( AppConfig );
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 window.AppConfig = AppConfig;
 AppConfig.isPublicRoute = function (path) {
@@ -4447,10 +4468,12 @@ var Ally;
             this.lateFeeInfo = {};
             this.hasLoadedPage = false;
             this.isLoading = false;
+            this.hasAssessments = null;
             this.isLoadingUnits = false;
             this.isLoadingPayment = false;
             this.isLoadingLateFee = false;
             this.isLoadingCheckoutDetails = false;
+            this.units = [];
             this.allowNewWePaySignUp = false;
             this.shouldShowDwollaAddAccountModal = false;
             this.shouldShowDwollaModalClose = false;
@@ -4472,7 +4495,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            this.homeName = AppConfig.homeName;
+            this.homeNameLabel = AppConfig.homeName;
             this.highlightWePayCheckoutId = this.appCacheService.getAndClear("hwpid");
             const tempPayId = this.appCacheService.getAndClear("onpayid");
             if (HtmlUtil.isNumericString(tempPayId))
@@ -4480,9 +4503,6 @@ var Ally;
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             const StripeEnabledGroups = ["qa", "502wainslie"];
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-            // Allow a single HOA to try WePay
-            //const wePayExemptGroupShortNames: string[] = ["tigertrace", "7mthope", "qa"];
-            //this.allowNewWePaySignUp = wePayExemptGroupShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             this.payments = [
                 {
                     Date: "",
@@ -4509,7 +4529,7 @@ var Ally;
                 {
                     columnDefs: [
                         { field: 'submitDateUtc', displayName: 'Date', width: 140, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'unitName', displayName: this.homeName, width: 80 },
+                        { field: 'unitName', displayName: this.homeNameLabel, width: 80 },
                         { field: 'resident', displayName: 'Resident', width: 160 },
                         { field: 'amount', displayName: 'Amount', width: 100, type: 'number', cellFilter: "currency" },
                         { field: 'status', displayName: 'Status', width: 110 },
@@ -4607,11 +4627,9 @@ var Ally;
             this.isLoadingUnits = true;
             this.$http.get("/api/Unit").then((httpResponse) => {
                 this.units = httpResponse.data;
-                _.each(this.units, function (u) { if (u.adjustedAssessment === null) {
-                    u.adjustedAssessment = u.assessment;
-                } });
+                //_.each( this.units, ( u: Unit ) => { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
                 this.assessmentSum = _.reduce(this.units, function (memo, u) { return memo + u.assessment; }, 0);
-                this.adjustedAssessmentSum = _.reduce(this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                //this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
                 this.isLoadingUnits = false;
             }, (httpResponse) => {
                 this.isLoading = false;
@@ -4703,39 +4721,22 @@ var Ally;
                 $('.editable-input').select();
             }, 50);
         }
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        // Occurs when the user presses the button to send money from the WePay account to their
-        // association's account
-        ///////////////////////////////////////////////////////////////////////////////////////////////
-        onWithdrawalClick() {
-            this.errorMessage = "";
-            this.$http.get("/api/OnlinePayment/PerformAction?action=withdrawal").then((httpResponse) => {
-                const withdrawalInfo = httpResponse.data;
-                if (withdrawalInfo.redirectUri)
-                    window.location.href = withdrawalInfo.redirectUri;
-                else
-                    this.errorMessage = withdrawalInfo.message;
-            }, (httpResponse) => {
-                if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    this.errorMessage = httpResponse.data.exceptionMessage;
-            });
-        }
         /**
          * Occurs when the user presses the button to edit a unit's assessment
          */
         onUnitAssessmentChanged(unit) {
             this.isLoadingUnits = true;
-            if (typeof (unit.adjustedAssessment) === "string")
-                unit.adjustedAssessment = parseFloat(unit.adjustedAssessment);
+            if (typeof (unit.assessment) === "string")
+                unit.assessment = parseFloat(unit.assessment);
             const updateInfo = {
                 unitId: unit.unitId,
-                assessment: unit.adjustedAssessment,
+                assessment: unit.assessment,
                 assessmentNote: unit.adjustedAssessmentReason
             };
             this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(() => {
                 this.isLoadingUnits = false;
                 this.assessmentSum = _.reduce(this.units, function (memo, u) { return memo + u.assessment; }, 0);
-                this.adjustedAssessmentSum = _.reduce(this.units, function (memo, u) { return memo + (u.adjustedAssessment || 0); }, 0);
+                //this.adjustedAssessmentSum = _.reduce( this.units, function( memo: number, u: Unit ) { return memo + ( u.adjustedAssessment || 0 ); }, 0 );
             }, (response) => {
                 alert("Failed to update: " + response.data.exceptionMessage);
             });
@@ -4763,7 +4764,7 @@ var Ally;
             });
         }
         /**
-         * Occurs when the user changes who covers the WePay transaction fee
+         * Occurs when the user changes who covers the transaction fee
          */
         onChangeFeePayerInfo(payTypeUpdated) {
             // See if any users have auto-pay setup for this payment type
@@ -5027,18 +5028,6 @@ var Ally;
                 this.testFee.achResidentPays = stripeFeeInfo.totalAmountPaid;
                 this.testFee.achAssociationReceives = stripeFeeInfo.groupReceives;
             }
-        }
-        /**
-         * Allow the admin to clear the WePay access token for testing
-         */
-        clearWePayAccessToken() {
-            this.isLoading = true;
-            this.$http.get("/api/OnlinePayment/ClearWePayAuthToken").then(() => {
-                window.location.reload();
-            }, (httpResponse) => {
-                this.isLoading = false;
-                alert("Failed to disable WePay: " + httpResponse.data.exceptionMessage);
-            });
         }
         showDwollaSignUpModal() {
             this.shouldShowDwollaAddAccountModal = true;
@@ -5583,6 +5572,8 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldAllowMultipleAnswers = false;
             this.isPremiumPlanActive = false;
+            this.editPollHasAbstain = false;
+            this.whoGroupNumMembers = null;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -5605,6 +5596,7 @@ var Ally;
             this.isLoading = true;
             this.fellowResidents.getGroupEmailObject().then((groupEmails) => {
                 this.groupEmails = _.sortBy(groupEmails, e => e.displayName.toUpperCase());
+                this.onWhoGroupChange();
                 this.retrievePolls();
             }, () => this.retrievePolls());
         }
@@ -5624,6 +5616,10 @@ var Ally;
                     // list for displaying results
                     this.pollHistory[i].fullResultAnswers = this.pollHistory[i].answers;
                     this.pollHistory[i].answers = _.reject(this.pollHistory[i].answers, function (pa) { return pa.sortOrder === AbstainAnswerSortOrder; });
+                    if (this.isPollClosed(this.pollHistory[i]))
+                        this.pollHistory[i].activeState = "closed";
+                    else if (this.pollHistory[i].responses != null && this.pollHistory[i].responses.length > 0)
+                        this.pollHistory[i].activeState = "inprogress";
                 }
                 this.isLoading = false;
             });
@@ -5639,6 +5635,7 @@ var Ally;
                 return;
             }
             this.editingItem.answers.push(new PollAnswer(""));
+            this.onAnswersChange();
             window.setTimeout(() => document.getElementById("poll-answer-textbox-" + (this.editingItem.answers.length - 1)).focus(), 100);
         }
         /**
@@ -5647,6 +5644,7 @@ var Ally;
         cancelEdit() {
             this.editingItem = angular.copy(this.defaultPoll);
             this.shouldAllowMultipleAnswers = false;
+            this.onAnswersChange();
         }
         /**
          * Occurs when the user presses the button to save a poll
@@ -5658,6 +5656,7 @@ var Ally;
             const onSave = () => {
                 this.isLoading = false;
                 this.editingItem = angular.copy(this.defaultPoll);
+                this.onAnswersChange();
                 this.shouldAllowMultipleAnswers = false;
                 this.retrievePolls();
             };
@@ -5683,6 +5682,7 @@ var Ally;
             this.editingItem = angular.copy(item);
             window.scrollTo(0, 0);
             this.shouldAllowMultipleAnswers = this.editingItem.maxNumResponses > 1;
+            this.onAnswersChange();
         }
         /**
          * Occurs when the user wants to delete a poll
@@ -5738,6 +5738,28 @@ var Ally;
         }
         removeAnswer(index) {
             this.editingItem.answers.splice(index, 1);
+            this.onAnswersChange();
+        }
+        addAbstain() {
+            this.editingItem.answers.push(new PollAnswer("Abstain"));
+            this.editPollHasAbstain = true;
+            this.onAnswersChange();
+        }
+        onAnswersChange() {
+            if (!this.editingItem || !this.editingItem.answers)
+                return;
+            this.editPollHasAbstain = this.editingItem.answers.some(a => a.answerText && a.answerText.toUpperCase() === "ABSTAIN");
+        }
+        isPollClosed(pollItem) {
+            if (!pollItem || !pollItem.pollExpirationDateUtc)
+                return false;
+            return moment(pollItem.pollExpirationDateUtc).isBefore(moment());
+        }
+        onWhoGroupChange() {
+            if (!this.editingItem || !this.editingItem.votingGroupShortName)
+                return;
+            const emailGroup = this.groupEmails.find(g => g.recipientTypeName === this.editingItem.votingGroupShortName);
+            this.whoGroupNumMembers = emailGroup ? emailGroup.usersFullNames.length : null;
         }
     }
     ManagePollsController.$inject = ["$http", "SiteInfo", "fellowResidents"];
@@ -5748,6 +5770,9 @@ var Ally;
         }
     }
     Ally.Poll = Poll;
+    class PollResultEntry {
+    }
+    Ally.PollResultEntry = PollResultEntry;
     class PollAnswer {
         constructor(answerText) {
             this.answerText = answerText;
@@ -6760,7 +6785,7 @@ var Ally;
                 // If this row contains two people
                 let spouseRow = null;
                 if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" & ") !== -1)
-                    newRow.firstName = newRow.firstName.replace(" & ", " and  ");
+                    newRow.firstName = newRow.firstName.replace(" & ", " and "); // Normalize "&" to "and"
                 if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
                     spouseRow = _.clone(newRow);
                     const splitFirst = newRow.firstName.split(" and ");
@@ -7468,6 +7493,59 @@ var Ally;
                 this.isLoading = false;
                 alert("Failed to start Stripe connection: " + httpResponse.data.exceptionMessage);
             });
+        }
+        /**
+         * Occurs when the user accepts or denies the mandate for a Stripe ACH payment method
+         */
+        acceptStripeAchMandate(didAccept) {
+            console.log("In acceptStripeAchMandate", didAccept);
+            if (!didAccept)
+                this.shouldShowStripeAchMandate = false;
+            else {
+                this.isLoading = true;
+                this.stripeApi.confirmUsBankAccountSetup(this.pendingStripeAchClientSecret)
+                    .then((result) => {
+                    console.log("In acceptStripeAchMandate then", result);
+                    // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
+                    this.$scope.$apply(() => {
+                        if (result.error) {
+                            this.isLoading = false;
+                            this.shouldShowStripeAchMandate = false;
+                            // The payment failed for some reason.
+                            console.error(result.error.message);
+                            alert("Failed to confirm: " + result.error.message);
+                        }
+                        else if (result.setupIntent.status === "requires_payment_method") {
+                            // Confirmation failed. Attempt again with a different payment method.
+                            this.isLoading = false;
+                            this.shouldShowStripeAchMandate = false;
+                        }
+                        else if (result.setupIntent.next_action?.type === "verify_with_microdeposits") {
+                            // The account needs to be verified via microdeposits.
+                            // Display a message to consumer with next steps (consumer waits for
+                            // microdeposits, then enters a statement descriptor code on a page sent to them via email).
+                            //this.isLoading_Payment = false;
+                            this.shouldShowStripeAchMandate = false;
+                            window.location.reload();
+                        }
+                        else {
+                            this.$http.get("/api/StripePayments/CompleteGroupBankSignUp").then(() => {
+                                this.isLoading = false;
+                                this.shouldShowStripeAchMandate = false;
+                                window.location.reload();
+                            }, (httpResponse) => {
+                                this.isLoading = false;
+                                alert("Failed to cancel account addition: " + httpResponse.data.exceptionMessage);
+                            });
+                        }
+                    });
+                    //else if( result.setupIntent.status === "succeeded" )
+                    //{
+                    //    // Confirmation succeeded! The account is now saved.
+                    //    // Display a message to customer.
+                    //}
+                });
+            }
         }
         /**
          * Complete the Stripe-Plaid ACH-linking flow
@@ -8319,14 +8397,14 @@ var Ally;
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             // If we know our group's position, let's tighten the 
-            var autocompleteOptions = undefined;
+            let autocompleteOptions = undefined;
             if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
-                var TwentyFiveMilesInMeters = 40234;
-                var latLon = {
+                const TwentyFiveMilesInMeters = 40234;
+                const latLon = {
                     lat: 41.142248,
                     lng: -73.633228
                 };
-                var circle = new google.maps.Circle({
+                const circle = new google.maps.Circle({
                     center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
                 });
@@ -8334,15 +8412,14 @@ var Ally;
                     bounds: circle.getBounds()
                 };
             }
-            var addressInput = document.getElementById("edit-location-address-text-box");
+            const addressInput = document.getElementById("edit-location-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
             google.maps.event.addListener(this.addressAutocomplete, 'place_changed', () => {
-                var place = this.addressAutocomplete.getPlace();
+                const place = this.addressAutocomplete.getPlace();
                 this.editingTip.address = place.formatted_address;
             });
             this.retrieveHoaHomes();
-            var innerThis = this;
-            this.$timeout(() => innerThis.getWalkScore(), 1000);
+            //this.$timeout( () => this.getWalkScore(), 1000 );
             MapCtrlMapMgr.Init(this.siteInfo, this.$scope, this);
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -8361,8 +8438,8 @@ var Ally;
             if (AppConfig.appShortName === "condo")
                 MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, ChtnMapController.HomeMarkerUnitId);
             if (!this.isMovingHomes) {
-                for (var locationIndex = 0; locationIndex < this.tips.length; ++locationIndex) {
-                    var curLocation = this.tips[locationIndex];
+                for (let locationIndex = 0; locationIndex < this.tips.length; ++locationIndex) {
+                    const curLocation = this.tips[locationIndex];
                     if (curLocation.gpsPos === null)
                         continue;
                     curLocation.markerIndex = MapCtrlMapMgr.AddMarker(curLocation.gpsPos.lat, curLocation.gpsPos.lon, curLocation.name, curLocation.markerNumber, null);
@@ -8372,8 +8449,8 @@ var Ally;
             if (this.hoaHomes && this.hoaHomes.length > 0 && AppConfig.appShortName === "hoa") {
                 _.each(this.hoaHomes, (home) => {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
-                        var markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
-                        var markerText = home.name;
+                        let markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
+                        let markerText = home.name;
                         if (_.any(this.siteInfo.userInfo.usersUnits, u => u.unitId === home.unitId)) {
                             markerIcon = MapCtrlMapMgr.MarkerNumber_MyHome;
                             markerText = "Your home: " + markerText;
@@ -8422,12 +8499,12 @@ var Ally;
             //$( "#new-item-form" ).validate();
             //if ( !$( "#new-item-form" ).valid() )
             //    return;
-            var onSave = () => {
+            const onSave = () => {
                 this.isLoading = false;
                 this.editingTip = new WelcomeTip();
                 this.refresh();
             };
-            var onFailure = (response) => {
+            const onFailure = (response) => {
                 this.isLoading = false;
                 alert("Failed to save item: " + response.data.exceptionMessage);
             };
@@ -8452,10 +8529,10 @@ var Ally;
         // Get the URL to the image for a specific marker
         ///////////////////////////////////////////////////////////////////////////////////////////////
         getMarkerIconUrl(markerNumber) {
-            var MarkerNumber_Home = -2;
-            var MarkerNumber_Hospital = -3;
-            var MarkerNumber_PostOffice = -4;
-            var retPath = "/assets/images/MapMarkers/";
+            const MarkerNumber_Home = -2;
+            const MarkerNumber_Hospital = -3;
+            const MarkerNumber_PostOffice = -4;
+            let retPath = "/assets/images/MapMarkers/";
             if (markerNumber >= 1 && markerNumber <= 10)
                 retPath += "green_" + markerNumber;
             else if (markerNumber === MarkerNumber_Home)
@@ -8520,7 +8597,7 @@ var Ally;
          * Set the walkscore info
          */
         getWalkScore() {
-            var handleWalkScoreResult = function (httpResponse) {
+            const handleWalkScoreResult = (httpResponse) => {
                 if (!httpResponse || !httpResponse.data || httpResponse.data === "Error") {
                     $("#WalkScorePanel").html("Failed to load Walk Score.");
                     $("#WalkScorePanel").hide();
@@ -8591,12 +8668,6 @@ class MapCtrlMapMgr {
         if (AppConfig.appShortName === "condo")
             MapCtrlMapMgr.AddMarker(MapCtrlMapMgr._homeGpsPos.lat(), MapCtrlMapMgr._homeGpsPos.lng(), "Home", MapCtrlMapMgr.MarkerNumber_Home, null);
         MapCtrlMapMgr.OnMapReady();
-        // Add any markers that already exist to this map
-        //for( var markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex )
-        //{
-        //    if( !MapCtrlMapMgr._markers[markerIndex].getMap() )
-        //        MapCtrlMapMgr._markers[markerIndex].setMap( MapCtrlMapMgr._mainMap );
-        //}
     }
     static OnMapReady() {
         MapCtrlMapMgr._isMapReady = true;
@@ -8610,7 +8681,7 @@ class MapCtrlMapMgr {
     }
     static OnMapAndMarkersReady() {
         MapCtrlMapMgr.ClearAllMarkers();
-        for (var markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex) {
+        for (let markerIndex = 0; markerIndex < MapCtrlMapMgr._tempMarkers.length; ++markerIndex) {
             const tempMarker = MapCtrlMapMgr._tempMarkers[markerIndex];
             let markerImageUrl = null;
             if (tempMarker.markerNumber >= 1 && tempMarker.markerNumber <= 10)
@@ -8625,7 +8696,7 @@ class MapCtrlMapMgr {
                 markerImageUrl = "/assets/images/MapMarkers/MapMarker_MyHome.png";
             else
                 markerImageUrl = "/assets/images/MapMarkers/green_blank.png";
-            var marker = new google.maps.Marker({
+            const marker = new google.maps.Marker({
                 position: new google.maps.LatLng(tempMarker.lat, tempMarker.lon),
                 map: MapCtrlMapMgr._mainMap,
                 animation: google.maps.Animation.DROP,
@@ -8634,10 +8705,10 @@ class MapCtrlMapMgr {
             });
             marker.markerIndex = markerIndex;
             google.maps.event.addListener(marker, 'dragend', function () {
-                var marker = this;
-                var gpsPos = marker.getPosition();
+                const draggedMarker = this;
+                const gpsPos = draggedMarker.getPosition();
                 MapCtrlMapMgr.ngScope.$apply(function () {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(marker, gpsPos.lat(), gpsPos.lng());
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(draggedMarker, gpsPos.lat(), gpsPos.lng());
                 });
             });
             if (tempMarker.unitId) {
@@ -8657,8 +8728,8 @@ class MapCtrlMapMgr {
         // We've processed all of the temp markes so clear the array
         MapCtrlMapMgr._tempMarkers = [];
         if (MapCtrlMapMgr._groupGpsBounds) {
-            var groupBoundsPath = Ally.MapUtil.gpsBoundsToGooglePoly(MapCtrlMapMgr._groupGpsBounds);
-            var groupBoundsPolylineOptions = {
+            const groupBoundsPath = Ally.MapUtil.gpsBoundsToGooglePoly(MapCtrlMapMgr._groupGpsBounds);
+            const groupBoundsPolylineOptions = {
                 paths: groupBoundsPath,
                 map: MapCtrlMapMgr._mainMap,
                 strokeColor: '#0000FF',
@@ -8676,7 +8747,7 @@ class MapCtrlMapMgr {
     * Add a marker to the map
     */
     static ClearAllMarkers() {
-        for (var i = 0; i < MapCtrlMapMgr._markers.length; i++)
+        for (let i = 0; i < MapCtrlMapMgr._markers.length; i++)
             MapCtrlMapMgr._markers[i].setMap(null);
         MapCtrlMapMgr._markers = [];
     }
@@ -8704,13 +8775,13 @@ class MapCtrlMapMgr {
     */
     static ZoomMapToFitMarkers() {
         //  Create a new viewpoint bound
-        var bounds = new google.maps.LatLngBounds();
+        const bounds = new google.maps.LatLngBounds();
         //  Go through each marker and make the bounds extend to fit it
-        for (var markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex)
+        for (let markerIndex = 0; markerIndex < MapCtrlMapMgr._markers.length; ++markerIndex)
             bounds.extend(MapCtrlMapMgr._markers[markerIndex].getPosition());
         if (MapCtrlMapMgr._groupBoundsShape) {
-            var path = MapCtrlMapMgr._groupBoundsShape.getPath();
-            for (var i = 0; i < path.getLength(); ++i)
+            const path = MapCtrlMapMgr._groupBoundsShape.getPath();
+            for (let i = 0; i < path.getLength(); ++i)
                 bounds.extend(path.getAt(i));
         }
         //  Fit these bounds to the map
@@ -9341,8 +9412,7 @@ var Ally;
             if (AppConfig.isChtnSite) {
                 this.fellowResidents.getResidents().then((residents) => {
                     this.residents = residents;
-                    this.residents = _.sortBy(this.residents, (r) => r.lastName);
-                    123;
+                    this.residents = _.sortBy(this.residents, r => r.fullName.toUpperCase());
                     this.residents.forEach(r => {
                         // TODO include the home address in the drop down to distinguish between residents with the same name
                         //if( r.homes && r.homes.length > 0 )
@@ -9374,7 +9444,7 @@ var Ally;
                     if (!this.$rootScope.isSiteManager)
                         return;
                     // The date is wrong if time zone is considered
-                    var clickedDate = moment(date.format(LogbookController.DateFormat)).toDate();
+                    const clickedDate = moment(date.format(LogbookController.DateFormat)).toDate();
                     this.$scope.$apply(() => {
                         const maxDaysBack = null; //3;
                         //if( moment( clickedDate ).subtract( maxDaysBack, 'day' ).isBefore( moment() ) )
@@ -9480,8 +9550,6 @@ var Ally;
             const loadNewsToCalendar = false;
             const loadLogbookToCalendar = false;
             const loadPollsToCalendar = AppConfig.isChtnSite;
-            //var firstDay = moment().startOf( "month" ).format( DateFormat );
-            //var lastDay = moment().add( 1, "month" ).startOf( "month" ).format( DateFormat );
             const firstDay = startDate.format(LogbookController.DateFormat);
             const lastDay = endDate.format(LogbookController.DateFormat);
             const newsDeferred = this.$q.defer();
@@ -9490,13 +9558,13 @@ var Ally;
             if (loadNewsToCalendar) {
                 this.isLoadingNews = true;
                 this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                    var data = httpResponse.data;
+                    const newsData = httpResponse.data;
                     this.isLoadingNews = false;
-                    _.each(data, function (entry) {
-                        var shortText = entry.text;
+                    _.each(newsData, function (entry) {
+                        let shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         this.calendarEvents.push({
                             title: "Notice: " + shortText,
                             start: moment(entry.postDate).toDate(),
@@ -9518,10 +9586,10 @@ var Ally;
                     const calendarEvents = httpResponse.data;
                     this.isLoadingLogbookForCalendar = false;
                     _.each(calendarEvents, function (entry) {
-                        var shortText = entry.text;
+                        let shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         this.calendarEvents.push({
                             title: "Logbook: " + shortText,
                             start: moment(entry.postDate).format("YYYY-MM-DD"),
@@ -9540,13 +9608,13 @@ var Ally;
             if (loadPollsToCalendar) {
                 this.isLoadingPolls = true;
                 this.$http.get("/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                    var data = httpResponse.data;
+                    const pollData = httpResponse.data;
                     this.isLoadingPolls = false;
-                    _.each(data, (entry) => {
-                        var shortText = entry.text;
+                    _.each(pollData, (entry) => {
+                        let shortText = entry.text;
                         if (shortText.length > 10)
                             shortText = shortText.substring(0, 10) + "...";
-                        var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
+                        const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.text + "</p>";
                         this.calendarEvents.push({
                             title: "Poll: " + shortText,
                             start: moment(entry.postDate).toDate(),
@@ -9582,47 +9650,51 @@ var Ally;
             const firstDay = start.format(LogbookController.DateFormat);
             const lastDay = end.format(LogbookController.DateFormat);
             this.$http.get("/api/CalendarEvent?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
-                var associationEvents = [];
                 this.isLoadingCalendarEvents = false;
-                _.each(httpResponse.data, (entry) => {
-                    const utcEventDate = moment(entry.eventDateUtc);
-                    //const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
-                    const isAllDay = !entry.hasTimeComponent; // utcTimeOnly == LogbookController.NoTime;
-                    let dateEntry;
-                    if (isAllDay) {
-                        entry.timeOnly = "";
-                        entry.calLinkStartTimeOnly = "00:01";
-                        entry.calLinkEndTimeOnly = "23:59";
-                        entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
-                        dateEntry = entry.dateOnly;
-                    }
-                    else {
-                        const localDate = moment(entry.eventDateUtc).local();
-                        entry.timeOnly = localDate.format(LogbookController.TimeFormat);
-                        entry.calLinkStartTimeOnly = localDate.format("HH:mm");
-                        ;
-                        entry.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
-                        ;
-                        entry.dateOnly = localDate.clone().startOf('day').toDate();
-                        dateEntry = localDate.toDate();
-                    }
-                    var shortText = entry.title;
-                    if (shortText && shortText.length > 10)
-                        shortText = shortText.substring(0, 10) + "...";
-                    var fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
-                    associationEvents.push({
-                        title: shortText,
-                        start: dateEntry,
-                        toolTipTitle: "Event",
-                        fullDescription: fullDescription,
-                        calendarEventObject: entry,
-                        allDay: isAllDay
-                    });
-                });
+                const associationEvents = this.prepEventObjectData(httpResponse.data);
                 callback(associationEvents);
             }, () => {
                 this.isLoadingCalendarEvents = false;
             });
+        }
+        prepEventObjectData(calendarEvents) {
+            const associationEvents = [];
+            _.each(calendarEvents, (entry) => {
+                const utcEventDate = moment(entry.eventDateUtc);
+                //const utcTimeOnly = utcEventDate.format( LogbookController.TimeFormat );
+                const isAllDay = !entry.hasTimeComponent; // utcTimeOnly == LogbookController.NoTime;
+                let dateEntry;
+                if (isAllDay) {
+                    entry.timeOnly = "";
+                    entry.calLinkStartTimeOnly = "00:01";
+                    entry.calLinkEndTimeOnly = "23:59";
+                    entry.dateOnly = new Date(utcEventDate.year(), utcEventDate.month(), utcEventDate.date());
+                    dateEntry = entry.dateOnly;
+                }
+                else {
+                    const localDate = moment(entry.eventDateUtc).local();
+                    entry.timeOnly = localDate.format(LogbookController.TimeFormat);
+                    entry.calLinkStartTimeOnly = localDate.format("HH:mm");
+                    ;
+                    entry.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
+                    ;
+                    entry.dateOnly = localDate.clone().startOf('day').toDate();
+                    dateEntry = localDate.toDate();
+                }
+                let shortText = entry.title;
+                if (shortText && shortText.length > 10)
+                    shortText = shortText.substring(0, 10) + "...";
+                const fullDescription = "Posted by: " + entry.authorName + "<br><p>" + entry.title + "</p>";
+                associationEvents.push({
+                    title: shortText,
+                    start: dateEntry,
+                    toolTipTitle: "Event",
+                    fullDescription: fullDescription,
+                    calendarEventObject: entry,
+                    allDay: isAllDay
+                });
+            });
+            return associationEvents;
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks a user in the calendar event modal
@@ -9761,6 +9833,8 @@ var Ally;
                 this.editEvent = null;
                 this.onlyRefreshCalendarEvents = true;
                 $('#full-calendar-elem').fullCalendar('refetchEvents');
+                // Delay a little to speed up the UI
+                this.$timeout(() => this.getUpcomingAmenityEvents(), 100);
             }, () => {
                 this.isLoadingCalendarEvents = false;
                 alert("Failed to delete the calendar event.");
@@ -9802,10 +9876,10 @@ var Ally;
             }
             // Build the list of the associated users
             if (this.residents) {
-                var associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
+                const associatedUsers = _.filter(this.residents, function (r) { return r.isAssociated; });
                 this.editEvent.associatedUserIds = _.map(associatedUsers, function (r) { return r.userId; });
             }
-            var dateTimeString = "";
+            let dateTimeString = "";
             if (typeof (this.editEvent.timeOnly) === "string" && this.editEvent.timeOnly.length > 1) {
                 dateTimeString = moment(this.editEvent.dateOnly).format(LogbookController.DateFormat) + " " + this.editEvent.timeOnly;
                 this.editEvent.eventDateUtc = moment(dateTimeString, LogbookController.DateFormat + " " + LogbookController.TimeFormat).utc().toDate();
@@ -9825,11 +9899,7 @@ var Ally;
             }
             // Build the list of group emails to notify
             this.editEvent.associatedGroupShortNames = this.associatedGroups.filter(ag => ag.isAssociated).map(ag => ag.groupShortName);
-            let httpFunc;
-            if (this.editEvent.eventId)
-                httpFunc = this.$http.put;
-            else
-                httpFunc = this.$http.post;
+            const httpFunc = this.editEvent.eventId ? this.$http.put : this.$http.post;
             analytics.track("addCalendarEvent");
             this.isLoadingCalendarEvents = true;
             httpFunc("/api/CalendarEvent", this.editEvent).then(() => {
@@ -9841,7 +9911,7 @@ var Ally;
                 this.$timeout(() => this.getUpcomingAmenityEvents(), 100);
             }, (httpResponse) => {
                 this.isLoadingCalendarEvents = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                const errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to save the calendar event: " + errorMessage);
             });
         }
@@ -11828,11 +11898,13 @@ var Ally;
             this.isLoading = false;
             this.multiSelectWriteInPlaceholder = new Ally.PollAnswer("write-in");
             this.timezoneAbbreviation = "";
+            this.homeName = "unit";
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
+            this.homeName = AppConfig.homeName.toLocaleLowerCase();
             this.refreshPolls();
             this.timezoneAbbreviation = Ally.LogbookController.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
         }
@@ -11845,12 +11917,18 @@ var Ally;
             if (pollData && pollData.length > 0)
                 this.$rootScope.$broadcast("homeHasActivePolls");
             for (let pollIndex = 0; pollIndex < this.polls.length; ++pollIndex) {
-                const poll = this.polls[pollIndex];
-                if (poll.hasUsersUnitVoted) {
-                    if (poll.canViewResults) {
-                        const chartInfo = Ally.FellowResidentsService.pollReponsesToChart(poll, this.siteInfo);
-                        poll.chartData = chartInfo.chartData;
-                        poll.chartLabels = chartInfo.chartLabels;
+                const curPoll = this.polls[pollIndex];
+                // We only show results to users that have voted (Not sure we still want this in Q1 2025)
+                if (curPoll.hasUsersUnitVoted) {
+                    // If the results are ready, populate the chart and result tallies
+                    if (curPoll.canViewResults) {
+                        const chartInfo = Ally.FellowResidentsService.pollReponsesToChart(curPoll, this.siteInfo);
+                        curPoll.chartData = chartInfo.chartData;
+                        curPoll.chartLabels = chartInfo.chartLabels;
+                        curPoll.pollResultEntries = [];
+                        for (let i = 0; i < curPoll.chartData.length; ++i) {
+                            curPoll.pollResultEntries.push({ label: curPoll.chartLabels[i], numVotes: curPoll.chartData[i] });
+                        }
                     }
                 }
             }
@@ -11965,7 +12043,6 @@ var Ally;
                 ssnFull: "",
                 streetAddress: new Ally.FullAddress()
             };
-            this.isWePayPaymentActive = false;
             this.isDwollaEnabledOnGroup = false;
             this.isStripeEnabledOnGroup = false;
             this.isDwollaReadyForPayment = false;
@@ -12005,11 +12082,6 @@ var Ally;
             this.paragonPaymentParams = `&BillingAddress1=${encodeURIComponent("900 W Ainslie St")}&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=${encodeURIComponent(this.siteInfo.userInfo.firstName)}&LastName=${encodeURIComponent(this.siteInfo.userInfo.lastName)}`;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
-            this.isWePayPaymentActive = this.siteInfo.privateSiteInfo.isWePayPaymentActive;
-            // Disable to Stripe testing
-            if (this.siteInfo.publicSiteInfo.groupId === 28)
-                this.isWePayPaymentActive = false;
-            this.isWePayPaymentActive = false;
             const shouldShowDwolla = false; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if (shouldShowDwolla)
                 this.isDwollaEnabledOnGroup = this.siteInfo.privateSiteInfo.isDwollaPaymentActive;
@@ -12024,8 +12096,6 @@ var Ally;
             if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
                 this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);
             let numProviders = 0;
-            if (this.isWePayPaymentActive)
-                ++numProviders;
             if (this.isDwollaEnabledOnGroup)
                 ++numProviders;
             if (this.isStripeEnabledOnGroup)
@@ -12297,46 +12367,8 @@ var Ally;
                 this.paragonPaymentMessage = errorResponse.data.exceptionMessage;
             });
         }
-        /**
-         * Occurs when the user presses the button to make a payment to their organization
-         */
-        submitWePayPayment(fundingTypeName) {
-            this.isLoading_Payment = true;
-            this.paymentInfo.fundingType = fundingTypeName;
-            // Remove leading dollar signs
-            const testAmount = this.paymentInfo.amount;
-            if (HtmlUtil.isValidString(testAmount) && testAmount[0] === '$')
-                this.paymentInfo.amount = parseFloat(testAmount.substr(1));
-            analytics.track("makePayment", {
-                fundingType: fundingTypeName
-            });
-            this.$http.post("/api/WePayPayment/MakeNewPayment", this.paymentInfo).then((httpResponse) => {
-                const checkoutInfo = httpResponse.data;
-                if (checkoutInfo !== null && typeof (checkoutInfo.checkoutUri) === "string" && checkoutInfo.checkoutUri.length > 0) {
-                    //if( checkoutInfo.pendingPaymentAmount )
-                    //{
-                    //    const pendingDateStr = moment( checkoutInfo.pendingPaymentDateUtc ).format("M/D/YYYY h:mma")
-                    //    const pendingMessage = `You already have a pending payment of $${checkoutInfo.pendingPaymentAmount} made on ${pendingDateStr}. Would you still like to continue to a make a new payment?`;
-                    //    if( !confirm( pendingMessage ) )
-                    //    {
-                    //        this.isLoading_Payment = false;
-                    //        return;
-                    //    }
-                    //}
-                    window.location.href = checkoutInfo.checkoutUri;
-                }
-                else {
-                    this.isLoading_Payment = false;
-                    alert("Unable to initiate WePay checkout");
-                }
-            }, (httpResponse) => {
-                this.isLoading_Payment = false;
-                if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    alert(httpResponse.data.exceptionMessage);
-            });
-        }
         getMyRecentPayments() {
-            this.$http.get("/api/WePayPayment/MyRecentPayments").then((httpResponse) => {
+            this.$http.get("/api/OnlinePayment/MyRecentPayments").then((httpResponse) => {
                 this.myRecentPayments = httpResponse.data;
             }, (httpResponse) => {
                 console.log("Failed to retrieve recent payments: " + httpResponse.data.exceptionMessage);
@@ -12409,41 +12441,6 @@ var Ally;
                 paymentText += " " + curPeriod.year;
             this.paymentInfo.paysFor = [curPeriod];
             return paymentText;
-        }
-        /**
-         * Occurs when the user presses the button to setup auto-pay for assessments
-         */
-        onSetupWePayAutoPay(fundingTypeName) {
-            this.isLoading_Payment = true;
-            this.$http.get("/api/WePayPayment/SetupAutoPay?fundingType=" + fundingTypeName).then((httpResponse) => {
-                const redirectUrl = httpResponse.data;
-                if (typeof (redirectUrl) === "string" && redirectUrl.length > 0)
-                    window.location.href = redirectUrl;
-                else {
-                    this.isLoading_Payment = false;
-                    alert("Unable to initiate WePay auto-pay setup");
-                }
-            }, (httpResponse) => {
-                this.isLoading_Payment = false;
-                if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    alert(httpResponse.data.exceptionMessage);
-            });
-        }
-        /**
-         * Occurs when the user clicks the button to disable auto-pay
-         */
-        onDisableAutoPay() {
-            if (!confirm("Just to double check, this will disable your auto-payment. You need to make sure to manually make your regular payments to avoid any late fees your association may enforce."))
-                return;
-            this.isLoading_Payment = true;
-            this.$http.get("/api/WePayPayment/DisableAutoPay").then(() => {
-                this.isLoading_Payment = false;
-                this.isWePayAutoPayActive = false;
-            }, (httpResponse) => {
-                this.isLoading_Payment = false;
-                if (httpResponse.data && httpResponse.data.exceptionMessage)
-                    alert(httpResponse.data.exceptionMessage);
-            });
         }
         /**
          * Sign-up a user for Dwolla payments
@@ -15044,6 +15041,15 @@ var Ally;
                 }
                 // Or if we moved to the third step, contact method
                 if (this.activeStepIndex === 2) {
+                    // Go through the rows and make sure no amounts due are empty
+                    const invalidRows = _.filter(this.selectedEntries, e => isNaN(e.amountDue) || e.amountDue === null || e.amountDue === undefined);
+                    if (invalidRows.length > 0) {
+                        const invalidHomeNames = invalidRows.map(e => e.homeNames).join("\n");
+                        const errorMessage = "These homes have invalid amounts. If you don't want to send an invoice, uncheck the box to the home's left. If you want to send an invoice for $0, enter 0 in the amount due field.\n\nHomes:\n" + invalidHomeNames;
+                        alert(errorMessage);
+                        this.wizardHandler.wizard().goTo(1);
+                    }
+                    //this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
                     // Filter out any fields with an empty due
                     // TWC - 6/25/19 - Had a request to still be able to send out $0 invoices, makes sense
                     //this.selectedEntries = _.filter( this.selectedEntries, e => this.getTotalDue( e ) != 0 );
@@ -18157,16 +18163,25 @@ var Ally;
                     results.chartLabels.push("Write In: " + curTalliedVote.writeInAnswer);
                     results.chartData.push(curTalliedVote.numVotes);
                 }
-                else
+                else {
+                    results.chartLabels.push("Removed answer ID " + curTalliedVote.answerId);
+                    results.chartData.push(curTalliedVote.numVotes);
                     console.log("Unknown answer ID found: " + curTalliedVote.answerId);
+                }
             }
-            if (poll.responses && poll.responses.length < siteInfo.privateSiteInfo.numUnits) {
+            const isMemberBasedGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+            let numTotalResponses;
+            if (poll.expectedNumVoters)
+                numTotalResponses = poll.expectedNumVoters;
+            else if (isMemberBasedGroup)
+                numTotalResponses = siteInfo.privateSiteInfo.numMembers;
+            else
+                numTotalResponses = siteInfo.privateSiteInfo.numUnits;
+            if (poll.responses.length > numTotalResponses)
+                numTotalResponses = poll.responses.length;
+            if (poll.responses && poll.responses.length < numTotalResponses) {
                 results.chartLabels.push("No Response");
-                const isMemberBasedGroup = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
-                if (isMemberBasedGroup)
-                    results.chartData.push(siteInfo.privateSiteInfo.numMembers - poll.responses.length);
-                else
-                    results.chartData.push(siteInfo.privateSiteInfo.numUnits - poll.responses.length);
+                results.chartData.push(numTotalResponses - poll.responses.length);
             }
             return results;
         }

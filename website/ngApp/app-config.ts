@@ -90,9 +90,9 @@ namespace Ally
         menu: Ally.RoutePath_v3[];
         isPublicRoute?: ( path: string ) => boolean;
 
-        static dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
-        static dwollaEnvironmentName = "prod";
-        static localNewsAllyDomain = "https://localnewsally2-h7fccdagf6cmdub8.northcentralus-01.azurewebsites.net/";
+        static readonly dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
+        static readonly dwollaEnvironmentName = "prod";
+        static readonly localNewsAllyDomain = "https://localnewsally2-h7fccdagf6cmdub8.northcentralus-01.azurewebsites.net/";
     }
 
 
@@ -462,6 +462,12 @@ else
     console.log( "Unknown ally app" );
     AppConfig = CondoAllyAppConfig;
 }
+
+// No changes should be made to the config object
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+// Commented out because this appears to break route navigation. I'm wondering if AngularJS's
+// router is trying to modify something on the controller object on the menu items.
+// Object.freeze( AppConfig );
 
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 (<any>window).AppConfig = AppConfig;

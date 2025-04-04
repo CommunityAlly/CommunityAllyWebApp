@@ -205,7 +205,7 @@ namespace Ally
             this.$scope.$on( 'wizard:stepChanged', ( event, args ) =>
             {
                 this.activeStepIndex = args.index;
-                console.log( "wizard:stepChanged, step " + this.activeStepIndex );
+                //console.log( "wizard:stepChanged, step " + this.activeStepIndex );
 
                 // If we moved to the second step, amounts due
                 if( this.activeStepIndex === 1 )

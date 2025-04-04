@@ -303,7 +303,8 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
             $http.get("/api/Login/Logout").then($rootScope.onLogOut_ClearData, $rootScope.onLogOut_ClearData);
         };
         // Clear the cache if needed
-        $rootScope.$on('$routeChangeStart', function () {
+        $rootScope.$on('$routeChangeStart', () => {
+            //console.log( "In $routeChangeStart" );
             if (CA.clearTemplateCacheIfNeeded)
                 CA.clearTemplateCacheIfNeeded($templateCache);
         });
