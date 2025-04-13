@@ -166,8 +166,6 @@ var Ally;
         exportAllToCsv() {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportTodoListCsv');
-            const a = this.todoLists[0].todoItems;
-            a[0].completedByFullName;
             const csvColumns = [
                 {
                     headerText: "List",

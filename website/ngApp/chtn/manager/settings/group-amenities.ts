@@ -53,7 +53,7 @@
             this.isLoading = true;
 
             this.$http.put( "/api/Association/GroupAmenities", this.groupAmenities ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<GroupAmenities> ) =>
+                () =>
                 {
                     this.$location.path( "/Home" );
                 },

@@ -1,4 +1,5 @@
-﻿declare var html2canvas: any;
+﻿// eslint-disable-next-line no-var
+declare var html2canvas: any;
 
 
 namespace Ally

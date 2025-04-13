@@ -122,7 +122,7 @@ var Ally;
             this.loadMailingInfo();
             this.$scope.$on('wizard:stepChanged', (event, args) => {
                 this.activeStepIndex = args.index;
-                console.log("wizard:stepChanged, step " + this.activeStepIndex);
+                //console.log( "wizard:stepChanged, step " + this.activeStepIndex );
                 // If we moved to the second step, amounts due
                 if (this.activeStepIndex === 1) {
                     this.$timeout(() => {
@@ -180,7 +180,7 @@ var Ally;
             //this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
         }
         static getCurrentPayPeriod(assessmentFrequency) {
-            const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            const payPeriodInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
             if (!payPeriodInfo)
                 return null;
             const today = new Date();
@@ -201,7 +201,7 @@ var Ally;
             return periodInfo;
         }
         static getCurrentPayPeriodLabel(assessmentFrequency) {
-            const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            const payPeriodInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
             if (!payPeriodInfo)
                 return null;
             const periodNames = GetLongPayPeriodNames(payPeriodInfo.intervalName);

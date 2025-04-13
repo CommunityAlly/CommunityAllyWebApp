@@ -25,7 +25,6 @@ var Ally;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
             if (!this.homeRightColumnType)
                 this.homeRightColumnType = "localnews";
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
             this.allyAppName = AppConfig.appName;
             // The object that contains a message if the user wants to send one out
             this.messageObject = {};
@@ -69,21 +68,21 @@ var Ally;
             // Ensure the periods is an array
             if (payPeriods.constructor !== Array)
                 payPeriods = [payPeriods];
-            var paymentText = "";
-            var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
-            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
-                var curPeriod = payPeriods[periodIndex];
+            let paymentText = "";
+            const frequencyInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
+            for (let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
+                const curPeriod = payPeriods[periodIndex];
                 if (frequencyInfo.intervalName === "month") {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "quarter") {
-                    var quarterNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const quarterNames = ["Q1", "Q2", "Q3", "Q4"];
                     paymentText = quarterNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "half-year") {
-                    var halfYearNames = ["First Half", "Second Half"];
+                    const halfYearNames = ["First Half", "Second Half"];
                     paymentText = halfYearNames[curPeriod.period - 1];
                 }
                 paymentText += " " + curPeriod.year;

@@ -47,13 +47,13 @@ var Ally;
             if (!$("#AddUnitForm").valid())
                 return;
             this.isLoading = true;
-            var onSave = () => {
+            const onSave = () => {
                 this.isLoading = false;
                 this.isEdit = false;
                 this.unitToEdit = new Ally.Unit();
                 this.refresh();
             };
-            var onError = (response) => {
+            const onError = (response) => {
                 this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             };
@@ -115,7 +115,7 @@ var Ally;
          * Occurs when the user presses the button to add units from the multi-line text box
          */
         onAddUnitsPerLine() {
-            var postData = {
+            const postData = {
                 action: "onePerLine",
                 lines: this.unitNamePerLine
             };
@@ -132,7 +132,7 @@ var Ally;
          * Occurs when the user presses the button to add homes from the address multi-line text box
          */
         onAddUnitsByAddressPerLine() {
-            var postData = {
+            const postData = {
                 action: "onePerLine",
                 lines: this.unitAddressPerLine
             };

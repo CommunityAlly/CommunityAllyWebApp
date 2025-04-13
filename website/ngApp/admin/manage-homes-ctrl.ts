@@ -72,7 +72,7 @@
 
             this.isLoading = true;
 
-            var onSave = () =>
+            const onSave = () =>
             {
                 this.isLoading = false;
                 this.isEdit = false;
@@ -82,7 +82,7 @@
                 this.refresh();
             };
 
-            var onError = ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+            const onError = ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;
                 alert( "Failed to save: " + response.data.exceptionMessage );
@@ -175,7 +175,7 @@
          */
         onAddUnitsPerLine()
         {
-            var postData =
+            const postData =
                 {
                     action: "onePerLine",
                     lines: this.unitNamePerLine
@@ -200,7 +200,7 @@
          */
         onAddUnitsByAddressPerLine()
         {
-            var postData =
+            const postData =
                 {
                     action: "onePerLine",
                     lines: this.unitAddressPerLine

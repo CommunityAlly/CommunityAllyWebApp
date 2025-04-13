@@ -1,7 +1,4 @@
-﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
     export class CondoSignUpWizardController implements ng.IController
     {

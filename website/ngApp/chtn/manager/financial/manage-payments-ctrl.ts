@@ -159,7 +159,6 @@ namespace Ally
 
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             
-            const StripeEnabledGroups = ["qa", "502wainslie"];
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
 
             this.payments = [

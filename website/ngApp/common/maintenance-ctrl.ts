@@ -155,7 +155,7 @@
                     enableFullRowSelection: false,
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function( gridApi )
+                    onRegisterApi: function()
                     {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
@@ -199,7 +199,7 @@
 
             _.forEach( this.projects, p =>
             {
-                var newEntry = new MaintenanceEntry();
+                const newEntry = new MaintenanceEntry();
                 newEntry.project = p;
 
                 if( this.vendorListItems && p.vendorId )
@@ -219,7 +219,7 @@
 
             _.forEach( this.maintenanceTodos.todoItems, t =>
             {
-                var newEntry = new MaintenanceEntry();
+                const newEntry = new MaintenanceEntry();
                 newEntry.todo = t;
                 this.maintenanceEntries.push( newEntry );
             } );
@@ -243,7 +243,7 @@
                 // Deep clone the data so we can modify the data
                 this.equipmentGridOptions.data = JSON.parse( JSON.stringify( this.equipmentOptions ) );
 
-                var addNewOption = new Equipment();
+                const addNewOption = new Equipment();
                 addNewOption.name = "Add New...";
                 addNewOption.equipmentId = MaintenanceController.EquipmentId_AddNew;
                 this.equipmentOptions.push( addNewOption );
@@ -573,8 +573,8 @@
                 // Needed for the searchable drop-down
                 for( let i = 0; i < this.assigneeOptions.length; ++i )
                     (<any>(this.assigneeOptions[i])).isSelectedAssignee = false;
-                //_.forEach( this.assigneeOptions, u => ( <any>u ).isSelectedAssignee = false );
-                var foundAssignee = _.find( this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId );
+
+                const foundAssignee = _.find( this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId );
                 if( foundAssignee )
                 {
                     // Set isSelectedAssignee on a cloned object so we don't change the base list

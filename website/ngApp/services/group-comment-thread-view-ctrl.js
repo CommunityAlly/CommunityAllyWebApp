@@ -1,9 +1,5 @@
 var Ally;
 (function (Ally) {
-    class ReplyComment {
-    }
-    class CommentsState {
-    }
     /**
      * The controller for the committee home page
      */
@@ -275,6 +271,7 @@ var Ally;
                 alert("Failed to add comment: " + response.data.exceptionMessage);
             });
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         closeModal(isFromOverlayClick) {
             if (this.onClosed)
                 this.onClosed();
@@ -358,6 +355,8 @@ var Ally;
         toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link"
     };
     Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;
+    class CommentsState {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupCommentThreadView", {
     bindings: {

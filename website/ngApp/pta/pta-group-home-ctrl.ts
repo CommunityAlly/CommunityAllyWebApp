@@ -43,8 +43,6 @@
             if( !this.homeRightColumnType )
                 this.homeRightColumnType = "localnews";
 
-            var subDomain = HtmlUtil.getSubdomain( window.location.host );
-
             this.allyAppName = AppConfig.appName;
 
 
@@ -116,30 +114,30 @@
             if( payPeriods.constructor !== Array )
                 payPeriods = [<any>payPeriods];
 
-            var paymentText = "";
+            let paymentText = "";
 
-            var frequencyInfo = FrequencyIdToInfo( assessmentFrequency );
+            const frequencyInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
 
-            for( var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
+            for( let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
             {
-                var curPeriod = payPeriods[periodIndex];
+                const curPeriod = payPeriods[periodIndex];
 
                 if( frequencyInfo.intervalName === "month" )
                 {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
 
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if( frequencyInfo.intervalName === "quarter" )
                 {
-                    var quarterNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const quarterNames = ["Q1", "Q2", "Q3", "Q4"];
 
                     paymentText = quarterNames[curPeriod.period - 1];
                 }
                 else if( frequencyInfo.intervalName === "half-year" )
                 {
-                    var halfYearNames = ["First Half", "Second Half"];
+                    const halfYearNames = ["First Half", "Second Half"];
 
                     paymentText = halfYearNames[curPeriod.period - 1];
                 }

@@ -123,16 +123,18 @@ var Ally;
                 console.log("Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage);
             });
         }
-        updateMemberFilter() {
-            //TODO
-            const lowerFilter = (this.memberSearchTerm || '').toLowerCase();
-            const filterSearchFiles = (unitListing) => {
-                if ((unitListing.name || '').toLowerCase().indexOf(lowerFilter) !== -1)
-                    return true;
-                return false;
-            };
-            //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
-        }
+        //updateMemberFilter()
+        //{
+        //    //TODO
+        //    const lowerFilter = ( this.memberSearchTerm || '').toLowerCase();
+        //    const filterSearchFiles = ( unitListing: UnitListing ) =>
+        //    {
+        //        if( ( unitListing.name || '' ).toLowerCase().indexOf( lowerFilter ) !== -1 )
+        //            return true;
+        //        return false;
+        //    };
+        //    //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
+        //}
         loadGroupEmails() {
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             this.groupEmailsLoadError = null;

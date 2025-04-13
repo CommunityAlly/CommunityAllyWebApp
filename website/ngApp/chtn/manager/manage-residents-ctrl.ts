@@ -551,7 +551,7 @@ namespace Ally
             if( !boardValue )
                 return "";
 
-            const boardPosition = jQuery.grep( FellowResidentsService.BoardPositionNames, ( pos, i ) => pos.id === boardValue )[0];
+            const boardPosition = jQuery.grep( FellowResidentsService.BoardPositionNames, ( pos ) => pos.id === boardValue )[0];
 
             if( !boardPosition )
                 return "";

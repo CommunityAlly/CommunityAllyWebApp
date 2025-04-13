@@ -21,8 +21,7 @@
 
     getAndClear( key: string ): string
     {
-        var result;
-        result = this.get( key );
+        const result = this.get( key );
         this.clear( key );
         return result;
     }

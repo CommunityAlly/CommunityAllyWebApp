@@ -1,5 +1,4 @@
-/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
-/// <reference path="../../Scripts/typings/underscore/underscore.d.ts" />
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Ally;
 (function (Ally) {
     /**
@@ -35,10 +34,10 @@ var Ally;
          * @param addressComponents The address data returned from AutoComplete or a geocode
          */
         static parseAddressComponents(addressComponents) {
-            let splitAddress = new SplitAddress();
+            const splitAddress = new SplitAddress();
             let streetNumber = "";
             let streetName = "";
-            for (var component of addressComponents) {
+            for (const component of addressComponents) {
                 if (component.types.indexOf("street_number") !== -1)
                     streetNumber = component.short_name;
                 else if (component.types.indexOf("route") !== -1)
@@ -60,7 +59,7 @@ var Ally;
          * @param gpsBounds The array of
          */
         static gpsBoundsToGooglePoly(gpsBounds) {
-            var path = _.map(gpsBounds.vertices, function (v) {
+            const path = _.map(gpsBounds.vertices, function (v) {
                 return new google.maps.LatLng(v.lat, v.lon);
             });
             return path;

@@ -32,7 +32,7 @@ var Ally;
         */
         saveForm() {
             this.isLoading = true;
-            this.$http.put("/api/Association/GroupAmenities", this.groupAmenities).then((httpResponse) => {
+            this.$http.put("/api/Association/GroupAmenities", this.groupAmenities).then(() => {
                 this.$location.path("/Home");
             }, (httpResponse) => {
                 this.isLoading = false;

@@ -1,7 +1,9 @@
-﻿declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
-declare var $zopim: any;
-declare var zE: any;
+﻿// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-var
+declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
+//declare var $zopim: any;
+// eslint-disable-next-line no-var
 declare var analytics: any;
+// eslint-disable-next-line no-var
 declare var OverrideBaseApiPath: string;
 
 
@@ -279,7 +281,7 @@ namespace Ally
             // Remove that prefix and add a slash as that's what the menu item stores
             locationHash = "/" + locationHash.substring( HashPrefix.length );
 
-            const menuItem = _.find( AppConfig.menu, ( menuItem: any ) => menuItem.path === locationHash );
+            const menuItem = _.find( AppConfig.menu, menuItem => menuItem.path === locationHash );
 
             return typeof ( menuItem ) === "object";
         };
@@ -377,24 +379,6 @@ namespace Ally
                     if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
                         effectiveEmail = $rootScope.userInfo.emailAddress;
 
-                    if( typeof zE !== "undefined" )
-                    {
-                        zE( 'webWidget', 'prefill', {
-                            name: {
-                                value: effectiveName,
-                                readOnly: true // optional
-                            },
-                            email: {
-                                value: effectiveEmail,
-                                readOnly: true // optional
-                            }
-                            //phone: {
-                            //    value: '61431909749',
-                            //    readOnly: true // optional
-                            //}
-                        } );
-                    }
-
                     // Prefill the contact form with details about a customer
                     if( typeof ( ( window as any ).FreshworksWidget ) !== "undefined" )
                     {
@@ -407,19 +391,19 @@ namespace Ally
                         ( window as any ).FreshworksWidget( 'hide', 'ticketForm', ['subject'] );
                     }
 
-                    if( typeof ( $zopim ) !== "undefined" )
-                    {
-                        $zopim( () =>
-                        {
-                            if( $rootScope.userInfo )
-                            {
-                                $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
+                    //if( typeof ( $zopim ) !== "undefined" )
+                    //{
+                    //    $zopim( () =>
+                    //    {
+                    //        if( $rootScope.userInfo )
+                    //        {
+                    //            $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
 
-                                if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
-                                    $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
-                            }
-                        } );
-                    }
+                    //            if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                    //                $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
+                    //        }
+                    //    } );
+                    //}
                 };
 
                 const subdomain = HtmlUtil.getSubdomain( window.location.host );
@@ -604,6 +588,7 @@ namespace Ally
                     },
                     ( errorResult: ExceptionResult ) =>
                     {
+                        console.log( "Failed to refresh site info", errorResult );
                         // For some reason, this does not invoke the caller's error callback, so we need to redirect here
                         //deferred.reject( errorResult );
 

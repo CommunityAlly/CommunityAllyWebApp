@@ -1,4 +1,4 @@
-/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Ally;
 (function (Ally) {
     class HtmlUtil2 {
@@ -199,12 +199,11 @@ var Ally;
                 didCopy = successful;
             }
             catch (err) {
-                console.log("Oops, unable to copy");
+                console.log("Oops, unable to copy", err);
             }
             document.body.removeChild(textArea);
             return didCopy;
         }
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
         static smartSortStreetAddresses(homeList, namePropName) {
             if (!homeList || homeList.length === 0)
                 return homeList;
@@ -276,6 +275,9 @@ var Ally;
                     context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
                     resolve(canvas.toDataURL());
                 };
+                image.onerror = function () {
+                    reject();
+                };
                 image.src = base64;
             });
         }
@@ -286,7 +288,7 @@ var Ally;
          * @param {Number} newHeight - The height of the image in pixels
          */
         static resizeFromImg(image, newWidth, newHeight) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
@@ -303,7 +305,7 @@ var Ally;
          * @param {Number} newHeight - The height of the image in pixels
          */
         static resizeFromImgToBlob(image, newWidth, newHeight, mimeType = "image/jpeg") {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
@@ -315,7 +317,7 @@ var Ally;
             });
         }
         static initTinyMce(elemId = "tiny-mce-editor", heightPixels = 400, overrideOptions = null) {
-            const mcePromise = new Promise((resolve, reject) => {
+            const mcePromise = new Promise((resolve) => {
                 const loadRtes = () => {
                     // This can happen if TinyMCE is down
                     if (typeof (tinymce) === "undefined") {
@@ -346,7 +348,7 @@ var Ally;
                         promotion: false,
                         branding: true,
                         image_description: false,
-                        file_picker_callback: function (cb, value, meta) {
+                        file_picker_callback: function (cb) {
                             const input = document.createElement('input');
                             input.setAttribute('type', 'file');
                             input.setAttribute('accept', 'image/*');
@@ -572,8 +574,7 @@ var Ally;
         static getAllCssRules(ruleName) {
             //console.log( "In getAllCssRules", ruleName );
             ruleName = ruleName.toLowerCase();
-            let foundRules = [];
-            const find = Array.prototype.forEach;
+            const foundRules = [];
             for (let i = 0; i < document.styleSheets.length; ++i) {
                 const curSheet = document.styleSheets[i];
                 let curSheetMatchingRules;

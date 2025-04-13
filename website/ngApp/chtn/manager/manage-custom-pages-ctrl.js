@@ -30,7 +30,7 @@ var Ally;
             Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(e => {
                 this.pageContentTinyMce = e;
                 if (this.pageContentTinyMce) {
-                    this.pageContentTinyMce.on("change", (e) => {
+                    this.pageContentTinyMce.on("change", () => {
                         // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                         this.$scope.$apply(() => {
                             this.updatePageSizeLabel();
@@ -175,7 +175,7 @@ var Ally;
             if (this.selectedLandingPageId)
                 putUri += "?customPageId=" + this.selectedLandingPageId;
             this.isLoading = true;
-            this.$http.put(putUri, null).then((response) => {
+            this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
                 if (this.selectedLandingPageId)
                     this.siteInfo.publicSiteInfo.customLandingPagePath = null;

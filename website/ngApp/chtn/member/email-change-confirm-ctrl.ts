@@ -45,7 +45,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.put( "/api/MyProfile/ConfirmEmailChange?emailChangeId=" + this.$routeParams.emailChangeId, null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.confirmationResultMessage = "Email successfully updated.";

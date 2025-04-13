@@ -78,7 +78,7 @@ var Ally;
                 });
             }, (httpResponse) => {
                 //this.isLoading = false;
-                console.log("Failed to load units");
+                console.log("Failed to load units", httpResponse.data);
                 //alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
             });
         }
@@ -127,7 +127,7 @@ var Ally;
             });
         }
         exportTransactionsCsv() {
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Date",
                     fieldName: "transactionDate",
@@ -154,7 +154,7 @@ var Ally;
                     fieldName: "amount"
                 }
             ];
-            var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
+            const csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
         }
         onFilterDateRangeChange() {

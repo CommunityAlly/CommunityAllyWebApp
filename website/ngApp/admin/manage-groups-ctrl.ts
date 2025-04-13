@@ -216,16 +216,19 @@
 
             this.isLoading = true;
 
-            this.$http.put( "/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.changeShortNameResult = "Successfully changed";
+            this.$http.put( "/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null ).then(
+                () => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.changeShortNameResult = "Successfully changed";
 
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                this.changeShortNameResult = "Failed to change: " + response.data.exceptionMessage;
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    this.changeShortNameResult = "Failed to change: " + response.data.exceptionMessage;
+                }
+            );
         }
 
 
@@ -541,7 +544,7 @@
             this.isLoading = true;
 
             this.$http.post( "/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
                     this.newAllyPaymentEntry.amount = 0;
@@ -564,7 +567,7 @@
 
             const postUri = `/api/AdminHelper/SetPremiumCost/${this.premiumUpdateGroupId}?cost=${this.premiumNewCost}`;
             this.$http.put( postUri, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
                     this.premiumNewCost = 0;
@@ -591,7 +594,7 @@
 
             const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
             this.$http.put( postUri, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () => // response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
                     this.premiumNewExpiration = null;
@@ -695,7 +698,7 @@
 
             const postUri = `/api/AllyAppChangeLog/AddNewEntry`;
             this.$http.post( postUri, this.newAllyAppChangeLogEntry ).then(
-                ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+                () => // response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading = false;
                     this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();

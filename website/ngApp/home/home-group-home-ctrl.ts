@@ -45,8 +45,6 @@
             if( !this.homeRightColumnType )
                 this.homeRightColumnType = "localnews";
 
-            var subDomain = HtmlUtil.getSubdomain( window.location.host );
-
             this.allyAppName = AppConfig.appName;
 
 
@@ -120,30 +118,30 @@
             if( payPeriods.constructor !== Array )
                 payPeriods = [<any>payPeriods];
 
-            var paymentText = "";
+            let paymentText = "";
 
-            var frequencyInfo = FrequencyIdToInfo( assessmentFrequency );
+            const frequencyInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
 
-            for( var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
+            for( let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
             {
-                var curPeriod = payPeriods[periodIndex];
+                const curPeriod = payPeriods[periodIndex];
 
                 if( frequencyInfo.intervalName === "month" )
                 {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
 
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if( frequencyInfo.intervalName === "quarter" )
                 {
-                    var quarterNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const quarterNames = ["Q1", "Q2", "Q3", "Q4"];
 
                     paymentText = quarterNames[curPeriod.period - 1];
                 }
                 else if( frequencyInfo.intervalName === "half-year" )
                 {
-                    var halfYearNames = ["First Half", "Second Half"];
+                    const halfYearNames = ["First Half", "Second Half"];
 
                     paymentText = halfYearNames[curPeriod.period - 1];
                 }
@@ -183,18 +181,12 @@
         ///////////////////////////////////////////////////////////////////////////////////////////////
         refreshData()
         {
-            //window.location.host is subdomain.domain.com
-            var subDomain = HtmlUtil.getSubdomain( window.location.host );
-
-            // A little test to help the automated tests run faster
-            var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
-            isTestSubdomain = false;
-            if( !isTestSubdomain && this.homeRightColumnType === "localnews" )
+            if( this.homeRightColumnType === "localnews" )
             {
                 this.isLoading_LocalNews = true;
 
-                var localNewsUri;
-                var queryParams;
+                let localNewsUri: string;
+                let queryParams: any;
 
                 if( this.siteInfo.privateSiteInfo.country === "US" )
                 {
@@ -218,15 +210,13 @@
                     };
                 }
 
-                var innerThis = this;
-
                 this.$http.get( localNewsUri, {
                     cache: true,
                     params: queryParams
-                } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
+                } ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    innerThis.localNews = httpResponse.data;
-                    innerThis.isLoading_LocalNews = false;
+                    this.localNews = httpResponse.data;
+                    this.isLoading_LocalNews = false;
                 } );
             }
         }

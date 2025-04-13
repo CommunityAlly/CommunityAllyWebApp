@@ -33,6 +33,7 @@ var Ally;
                 if (this.shouldShowWidget)
                     this.valueInfo = response.data;
             }, (response) => {
+                console.log("Failed to get Zillow info", response.data);
                 this.isLoading = false;
                 this.shouldShowWidget = false;
             });

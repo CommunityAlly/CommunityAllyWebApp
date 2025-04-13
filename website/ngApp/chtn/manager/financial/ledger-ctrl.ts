@@ -1,4 +1,6 @@
+// eslint-disable-next-line no-var
 declare var Plaid: any;
+
 
 namespace Ally
 {
@@ -322,8 +324,7 @@ namespace Ally
             if( !this.shouldShowFullCatPathInGrid )
                 return catEntry.displayName;
 
-            let getFullPath: ( curEntry: FinancialCategory, curPath: string ) => string;
-            getFullPath = ( curEntry: FinancialCategory, curPath: string ) =>
+            const getFullPath = ( curEntry: FinancialCategory, curPath: string ): string =>
             {
                 if( !curEntry.parentFinancialCategoryId )
                     return curPath;

@@ -241,7 +241,8 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then((response) => {
+            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.changeShortNameResult = "Successfully changed";
             }, (response) => {
@@ -428,7 +429,8 @@ var Ally;
         }
         onAddAllyPayment() {
             this.isLoading = true;
-            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then((response) => {
+            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.newAllyPaymentEntry.amount = 0;
                 this.newAllyPaymentEntry.netAmount = null;
@@ -442,7 +444,8 @@ var Ally;
         updatePremiumCost() {
             this.isLoading = true;
             const postUri = `/api/AdminHelper/SetPremiumCost/${this.premiumUpdateGroupId}?cost=${this.premiumNewCost}`;
-            this.$http.put(postUri, null).then((response) => {
+            this.$http.put(postUri, null).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.premiumNewCost = 0;
                 alert("Succeeded");
@@ -458,7 +461,8 @@ var Ally;
             }
             this.isLoading = true;
             const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
-            this.$http.put(postUri, null).then((response) => {
+            this.$http.put(postUri, null).then(() => // response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.premiumNewExpiration = null;
                 alert("Succeeded");
@@ -517,7 +521,8 @@ var Ally;
         onAddChangeLogEntry() {
             this.isLoading = true;
             const postUri = `/api/AllyAppChangeLog/AddNewEntry`;
-            this.$http.post(postUri, this.newAllyAppChangeLogEntry).then((response) => {
+            this.$http.post(postUri, this.newAllyAppChangeLogEntry).then(() => // response: ng.IHttpPromiseCallbackArg<string> ) =>
+             {
                 this.isLoading = false;
                 this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
                 alert("Successfully added new entry");
@@ -657,13 +662,13 @@ var Ally;
             if (!$("#AddUnitForm").valid())
                 return;
             this.isLoading = true;
-            var onSave = () => {
+            const onSave = () => {
                 this.isLoading = false;
                 this.isEdit = false;
                 this.unitToEdit = new Ally.Unit();
                 this.refresh();
             };
-            var onError = (response) => {
+            const onError = (response) => {
                 this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             };
@@ -725,7 +730,7 @@ var Ally;
          * Occurs when the user presses the button to add units from the multi-line text box
          */
         onAddUnitsPerLine() {
-            var postData = {
+            const postData = {
                 action: "onePerLine",
                 lines: this.unitNamePerLine
             };
@@ -742,7 +747,7 @@ var Ally;
          * Occurs when the user presses the button to add homes from the address multi-line text box
          */
         onAddUnitsByAddressPerLine() {
-            var postData = {
+            const postData = {
                 action: "onePerLine",
                 lines: this.unitAddressPerLine
             };
@@ -889,20 +894,20 @@ var Ally;
             this.refreshAddresses();
         }
         findCenter(polys) {
-            var currentCenter = {
+            const currentCenter = {
                 lat: 0,
                 lng: 0
             };
-            for (var polyIndex = 0; polyIndex < polys.length; ++polyIndex) {
-                var curPoly = polys[polyIndex];
+            for (let polyIndex = 0; polyIndex < polys.length; ++polyIndex) {
+                const curPoly = polys[polyIndex];
                 if (!curPoly)
                     continue;
-                var polyCenter = {
+                const polyCenter = {
                     lat: 0,
                     lng: 0
                 };
-                for (var vertexIndex = 0; vertexIndex < curPoly.vertices.length; ++vertexIndex) {
-                    var vertex = curPoly.vertices[vertexIndex];
+                for (let vertexIndex = 0; vertexIndex < curPoly.vertices.length; ++vertexIndex) {
+                    const vertex = curPoly.vertices[vertexIndex];
                     polyCenter.lat += vertex.lat;
                     polyCenter.lng += vertex.lng;
                 }
@@ -919,14 +924,13 @@ var Ally;
         refreshAddresses() {
             this.isLoading = true;
             this.neighborhoodPolys = [];
-            var innerThis = this;
             this.$http.get("/api/Neighborhood/GetAll").then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.neighborhoods = httpResponse.data;
-                innerThis.neighborhoodPolys = _.select(innerThis.neighborhoods, function (n) { return n.Bounds; });
-                innerThis.mapCenter = innerThis.findCenter(this.neighborhoodPolys);
+                this.isLoading = false;
+                this.neighborhoods = httpResponse.data;
+                this.neighborhoodPolys = _.select(this.neighborhoods, function (n) { return n.Bounds; });
+                this.mapCenter = this.findCenter(this.neighborhoodPolys);
             }, (httpResponse) => {
-                innerThis.isLoading = false;
+                this.isLoading = false;
                 alert("Failed to retrieve neighborhoods: " + httpResponse.data.exceptionMessage);
             });
         }
@@ -962,11 +966,11 @@ var Ally;
             this.refreshCells();
         }
         addLine(map, minLat, minLon, maxLat, maxLon) {
-            var lineCoordinates = [
+            const lineCoordinates = [
                 { lat: minLat, lng: minLon },
                 { lat: maxLat, lng: maxLon }
             ];
-            var linePath = new google.maps.Polyline({
+            const linePath = new google.maps.Polyline({
                 path: lineCoordinates,
                 geodesic: false,
                 strokeColor: '#FF0000',
@@ -975,8 +979,9 @@ var Ally;
             });
             linePath.setMap(map);
         }
-        onBuildingSelected(building) {
-        }
+        //onBuildingSelected( building: any )
+        //{
+        //}
         onCellSelected(cell) {
             cell.gpsBounds.mapShapeObject.setOptions({ fillOpacity: 0.1 });
             if (this.selectedCell) {
@@ -991,10 +996,9 @@ var Ally;
         // Get the addresses that are missing bounding polys
         refreshCells() {
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/ResearchMap").then((response) => {
-                innerThis.isLoading = false;
-                innerThis.cells = response.data;
+                this.isLoading = false;
+                this.cells = response.data;
                 //this.cellPolys = _.map( this.cells, function ( c )
                 //{
                 //    var result = c.gpsBounds;
@@ -1005,10 +1009,10 @@ var Ally;
                 //    };
                 //    return result;
                 //} );
-                innerThis.isLoading = true;
-                innerThis.$http.get("/api/ResearchMap/Buildings").then(function (httpResponse) {
-                    innerThis.isLoading = false;
-                    innerThis.buildings = httpResponse.data;
+                this.isLoading = true;
+                this.$http.get("/api/ResearchMap/Buildings").then((httpResponse) => {
+                    this.isLoading = false;
+                    this.buildings = httpResponse.data;
                     //this.cellPolys = _.map( this.buildings, function ( b )
                     //{
                     //    var result = b.footprintPolygon;
@@ -1019,8 +1023,8 @@ var Ally;
                     //    };
                     //    return result;
                     //} );
-                    innerThis.buildingPoints = _.map(innerThis.buildings, function (b) {
-                        var result = b.addressPos;
+                    this.buildingPoints = _.map(this.buildings, function (b) {
+                        const result = b.addressPos;
                         result.ownerBuilding = b;
                         result.onClick = function () {
                             //this.onBuildingSelected( result.ownerBuilding );
@@ -1028,8 +1032,8 @@ var Ally;
                         return result;
                     });
                 });
-            }, function (httpResponse) {
-                innerThis.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve cells: " + httpResponse.data.exceptionMessage);
             });
         }
@@ -1045,8 +1049,8 @@ var Ally;
                 this.selectedAddress.gpsBounds.vertices = [];
             // If the array is empty then create a default rectangle
             if (this.selectedAddress.gpsBounds.vertices.length == 0 && address.gpsPos) {
-                var southWest = new google.maps.LatLng(address.gpsPos.lat, address.gpsPos.lon);
-                var northEast = new google.maps.LatLng(address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001);
+                //const southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
+                //const northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
                 address.gpsBounds.vertices = [
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon },
                     { lat: address.gpsPos.lat + 0.001, lon: address.gpsPos.lon },
@@ -1068,9 +1072,12 @@ CA.angularApp.component("viewResearch", {
 
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally.
+// eslint-disable-next-line no-var
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
+// eslint-disable-next-line no-var
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
 CA.angularApp.config(['$routeProvider', '$httpProvider', '$provide', "SiteInfoProvider", "$locationProvider",
     function ($routeProvider, $httpProvider, $provide, siteInfoProvider, $locationProvider) {
@@ -1460,29 +1467,6 @@ var Ally;
     Ally.MenuItem_v3 = MenuItem_v3;
 })(Ally || (Ally = {}));
 
-function RoutePath(path, templateUrl, controller, menuTitle, role = null) {
-    if (path[0] !== '/')
-        path = "/" + path;
-    this.path = path;
-    this.templateUrl = templateUrl;
-    this.controller = controller;
-    this.menuTitle = menuTitle;
-    this.role = role || Role_Authorized;
-    // authorized, all, manager, admin
-    this.controllerAs = typeof controller === "function" ? "vm" : null;
-}
-function RoutePath_v2(routeOptions) {
-    if (routeOptions.path[0] !== '/')
-        routeOptions.path = "/" + routeOptions.path;
-    this.path = routeOptions.path;
-    this.templateUrl = routeOptions.templateUrl;
-    this.templateHtml = routeOptions.templateHtml;
-    this.controller = routeOptions.controller;
-    this.menuTitle = routeOptions.menuTitle;
-    this.role = routeOptions.role || Role_Authorized;
-    // authorized, all, manager, admin
-    this.controllerAs = typeof routeOptions.controller === "function" ? "vm" : null;
-}
 var Ally;
 (function (Ally) {
     class RouteOptions_v3 {
@@ -1513,22 +1497,29 @@ var Ally;
     }
     Ally.PeriodicPaymentFrequency = PeriodicPaymentFrequency;
 })(Ally || (Ally = {}));
+// eslint-disable-next-line no-var
 var Role_Authorized = "authorized";
+// eslint-disable-next-line no-var
 var Role_All = "all";
+// eslint-disable-next-line no-var
 var Role_Manager = "manager";
+// eslint-disable-next-line no-var
 var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
+// eslint-disable-next-line no-var
 var PeriodicPaymentFrequencies = [
     { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
     { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
     { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
     { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
 ];
-function FrequencyIdToInfo(frequencyId) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function PaymentFrequencyIdToInfo(frequencyId) {
     if (isNaN(frequencyId) || frequencyId < 50)
         return null;
     return PeriodicPaymentFrequencies[frequencyId - 50];
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GetLongPayPeriodNames(intervalName) {
     if (intervalName === "month") {
         return ["January", "February", "March", "April", "May", "June",
@@ -1542,6 +1533,7 @@ function GetLongPayPeriodNames(intervalName) {
     }
     return null;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GetShortPayPeriodNames(intervalName) {
     if (intervalName === "month") {
         return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -1773,6 +1765,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
     new Ally.RoutePath_v3({ path: "PtaSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All })
 ];
+// eslint-disable-next-line no-var
 var AppConfig = null;
 let lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")
@@ -1966,7 +1959,7 @@ var Ally;
             //const shortQuarterNames = ["Q1", "Q2", "Q3", "Q4"];
             //const semiannualNames = ["First Half", "Second Half"];
             //const shortSemiannualNames = ["1st Half", "2nd Half"];
-            const payFrequencyInfo = FrequencyIdToInfo(this.assessmentFrequency);
+            const payFrequencyInfo = PaymentFrequencyIdToInfo(this.assessmentFrequency);
             this.periodNames = GetLongPayPeriodNames(payFrequencyInfo.intervalName);
             this.shortPeriodNames = GetShortPayPeriodNames(payFrequencyInfo.intervalName);
             if (!this.periodNames) {
@@ -3258,7 +3251,7 @@ var Ally;
             }
             this.isLoading = true;
             const putUri = `/api/Ledger/FinancialCategory/UpdateName/${this.selectedCategory.financialCategoryId}?newName=${encodeURIComponent(this.editName)}`;
-            this.$http.put(putUri, null).then((httpResponse) => {
+            this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
                 this.didMakeChanges = true;
                 this.shouldShowNewCategoryArea = false;
@@ -3305,7 +3298,7 @@ var Ally;
             let deleteUri = `/api/Ledger/FinancialCategory/${this.selectedCategory.financialCategoryId}`;
             if (this.deleteCategoryRessignTo)
                 deleteUri += "?reassignToCategoryId=" + this.deleteCategoryRessignTo.financialCategoryId;
-            this.$http.delete(deleteUri).then((httpResponse) => {
+            this.$http.delete(deleteUri).then(() => {
                 this.isLoading = false;
                 this.didMakeChanges = true;
                 this.shouldShowDeleteCategoryArea = false;
@@ -3397,6 +3390,8 @@ var Ally;
                 this.endDate = new Date(parseInt(window.sessionStorage.getItem("financialReport_endDate")));
             if (!this.endDate || isNaN(this.endDate.getTime()))
                 this.endDate = moment().toDate();
+            // We need to use classic function() syntax here in order to access Chart.js getElementAtEvent
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const innerThis = this;
             this.doughnutChartOptions = {
                 onClick: function (event) {
@@ -3710,8 +3705,7 @@ var Ally;
                 return "[N/A]";
             if (!this.shouldShowFullCatPathInGrid)
                 return catEntry.displayName;
-            let getFullPath;
-            getFullPath = (curEntry, curPath) => {
+            const getFullPath = (curEntry, curPath) => {
                 if (!curEntry.parentFinancialCategoryId)
                     return curPath;
                 const parentEntry = this.flatCategoryList.find(c => c.financialCategoryId === curEntry.parentFinancialCategoryId);
@@ -4501,7 +4495,6 @@ var Ally;
             if (HtmlUtil.isNumericString(tempPayId))
                 this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
-            const StripeEnabledGroups = ["qa", "502wainslie"];
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             this.payments = [
                 {
@@ -5380,7 +5373,7 @@ var Ally;
             Ally.HtmlUtil2.initTinyMce("tiny-mce-editor", 900).then(e => {
                 this.pageContentTinyMce = e;
                 if (this.pageContentTinyMce) {
-                    this.pageContentTinyMce.on("change", (e) => {
+                    this.pageContentTinyMce.on("change", () => {
                         // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                         this.$scope.$apply(() => {
                             this.updatePageSizeLabel();
@@ -5525,7 +5518,7 @@ var Ally;
             if (this.selectedLandingPageId)
                 putUri += "?customPageId=" + this.selectedLandingPageId;
             this.isLoading = true;
-            this.$http.put(putUri, null).then((response) => {
+            this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
                 if (this.selectedLandingPageId)
                     this.siteInfo.publicSiteInfo.customLandingPagePath = null;
@@ -6099,7 +6092,7 @@ var Ally;
         getBoardPositionName(boardValue) {
             if (!boardValue)
                 return "";
-            const boardPosition = jQuery.grep(Ally.FellowResidentsService.BoardPositionNames, (pos, i) => pos.id === boardValue)[0];
+            const boardPosition = jQuery.grep(Ally.FellowResidentsService.BoardPositionNames, (pos) => pos.id === boardValue)[0];
             if (!boardPosition)
                 return "";
             return boardPosition.name;
@@ -6966,7 +6959,7 @@ var Ally;
         */
         saveForm() {
             this.isLoading = true;
-            this.$http.put("/api/Association/GroupAmenities", this.groupAmenities).then((httpResponse) => {
+            this.$http.put("/api/Association/GroupAmenities", this.groupAmenities).then(() => {
                 this.$location.path("/Home");
             }, (httpResponse) => {
                 this.isLoading = false;
@@ -7853,6 +7846,7 @@ var Ally;
                             $("#FileUploadProgressLabel").text(progress + "%");
                     },
                     fail: (e, xhr) => {
+                        console.log("Failed to upload document", e, xhr);
                         //alert( "Failed to upload login image, please let support know if this continues: " + xhr.response().jqXHR.responseJSON.exceptionMessage );
                         //console.log( "Failed to upload document", xhr );
                         //this.$scope.$apply( () => this.isLoading = false );
@@ -8039,30 +8033,6 @@ var Ally;
                 this.isLoading = false;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
-        }
-        /**
-         * Occurs when the user clicks a new background image
-         */
-        onImageClick(bgImage) {
-            this.settings.bgImageFileName = bgImage;
-            //SettingsJS._defaultBG = bgImage;
-            this.$http.put("/api/Settings/NOTUSED", { BGImageFileName: this.settings.bgImageFileName }).then(() => {
-                $(".test-bg-image").removeClass("test-bg-image-selected");
-                //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
-                this.isLoading = false;
-            }, (response) => {
-                this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        }
-        onImageHoverOver(bgImage) {
-            //$( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + bgImage + ")" );
-        }
-        onImageHoverOut() {
-            //if( typeof ( this.settings.bgImageFileName ) === "string" && this.settings.bgImageFileName.length > 0 )
-            //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.settings.bgImageFileName + ")" );
-            //else
-            //    $( document.documentElement ).css( "background-image", this.defaultBGImage );
         }
         onQaDeleteSite() {
             this.$http.get("/api/QA/DeleteThisAssociation").then(function () {
@@ -8400,10 +8370,6 @@ var Ally;
             let autocompleteOptions = undefined;
             if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
                 const TwentyFiveMilesInMeters = 40234;
-                const latLon = {
-                    lat: 41.142248,
-                    lng: -73.633228
-                };
                 const circle = new google.maps.Circle({
                     center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
@@ -8705,10 +8671,9 @@ class MapCtrlMapMgr {
             });
             marker.markerIndex = markerIndex;
             google.maps.event.addListener(marker, 'dragend', function () {
-                const draggedMarker = this;
-                const gpsPos = draggedMarker.getPosition();
-                MapCtrlMapMgr.ngScope.$apply(function () {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(draggedMarker, gpsPos.lat(), gpsPos.lng());
+                const gpsPos = this.getPosition();
+                MapCtrlMapMgr.ngScope.$apply(() => {
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(this, gpsPos.lat(), gpsPos.lng());
                 });
             });
             if (tempMarker.unitId) {
@@ -8869,7 +8834,7 @@ var Ally;
         */
         confirmChangeId() {
             this.isLoading = true;
-            this.$http.put("/api/MyProfile/ConfirmEmailChange?emailChangeId=" + this.$routeParams.emailChangeId, null).then((httpResponse) => {
+            this.$http.put("/api/MyProfile/ConfirmEmailChange?emailChangeId=" + this.$routeParams.emailChangeId, null).then(() => {
                 this.isLoading = false;
                 this.confirmationResultMessage = "Email successfully updated.";
                 this.isError = false;
@@ -9064,16 +9029,18 @@ var Ally;
                 console.log("Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage);
             });
         }
-        updateMemberFilter() {
-            //TODO
-            const lowerFilter = (this.memberSearchTerm || '').toLowerCase();
-            const filterSearchFiles = (unitListing) => {
-                if ((unitListing.name || '').toLowerCase().indexOf(lowerFilter) !== -1)
-                    return true;
-                return false;
-            };
-            //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
-        }
+        //updateMemberFilter()
+        //{
+        //    //TODO
+        //    const lowerFilter = ( this.memberSearchTerm || '').toLowerCase();
+        //    const filterSearchFiles = ( unitListing: UnitListing ) =>
+        //    {
+        //        if( ( unitListing.name || '' ).toLowerCase().indexOf( lowerFilter ) !== -1 )
+        //            return true;
+        //        return false;
+        //    };
+        //    //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
+        //}
         loadGroupEmails() {
             this.hasMissingEmails = _.some(this.allResidents, function (r) { return !r.hasEmail; });
             this.groupEmailsLoadError = null;
@@ -9936,7 +9903,8 @@ var Ally;
             const clearFile = () => { document.getElementById("ics-file-input").value = null; };
             const createEvents = () => {
                 this.isLoadingCalendarEvents = true;
-                this.$http.post("/api/CalendarEvent/ImportIcs", formData, postHeaders).then((response) => {
+                this.$http.post("/api/CalendarEvent/ImportIcs", formData, postHeaders).then(() => // response: ng.IHttpPromiseCallbackArg<PreviewIcsResult> ) =>
+                 {
                     this.isLoadingCalendarEvents = false;
                     clearFile();
                     this.onlyRefreshCalendarEvents = true;
@@ -9970,8 +9938,7 @@ var Ally;
         getRepeatRule() {
             if (!this.editEvent || this.editEvent.repeatType === null)
                 return null;
-            let rruleRepeatType;
-            rruleRepeatType = this.editEvent.repeatType;
+            const rruleRepeatType = this.editEvent.repeatType;
             //if( this.editEvent.repeatType === "daily" )
             //    rruleRepeatType = rrule.RRule.DAILY; // 3
             //else if( this.editEvent.repeatType === "weekly" )
@@ -10310,7 +10277,7 @@ var Ally;
                             data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
                         this.$scope.$apply(() => this.isLoading = true);
                         const xhr = data.submit();
-                        xhr.done((result) => {
+                        xhr.done(() => {
                             this.$scope.$apply(() => {
                                 // Reload the page to see the changes
                                 window.location.reload();
@@ -10522,7 +10489,6 @@ CA.angularApp.component("collectiveCouponDetail", {
     controller: Ally.CollectiveCouponDetailController
 });
 
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
     class CondoSignUpWizardController {
@@ -10828,7 +10794,6 @@ CA.angularApp.component("condoSignUpWizard", {
     controller: Ally.CondoSignUpWizardController
 });
 
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
     class DiscussionThread {
@@ -10857,50 +10822,50 @@ var Ally;
         * Load the discussion details
         */
         loadDiscussion() {
-            var idVal = decodeURIComponent(this.$routeParams.idValue);
+            const idVal = decodeURIComponent(this.$routeParams.idValue);
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/Discussion/" + idVal).then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.discussion = httpResponse.data;
+                this.isLoading = false;
+                this.discussion = httpResponse.data;
             }, (httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.errorMessage = "Failed to find the discussion details. Please contact support to alert them to the issue.";
+                this.isLoading = false;
+                this.errorMessage = "Failed to find the discussion details. Please contact support to alert them to the issue.";
+                console.log("Failed to load discussion", httpResponse.data);
             });
         }
         /**
          * Unsubscribe the user from the discussion
          */
         unsubscribeUser() {
-            var idVal = decodeURIComponent(this.$routeParams.idValue);
+            const idVal = decodeURIComponent(this.$routeParams.idValue);
             this.isLoading = true;
             this.activeView = "loading";
-            var innerThis = this;
             this.$http.put("/api/Discussion/Unsubscribe/" + idVal, null).then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "unsubscribed";
-                innerThis.discussion = httpResponse.data;
+                this.isLoading = false;
+                this.activeView = "unsubscribed";
+                this.discussion = httpResponse.data;
             }, (httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "error";
-                innerThis.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                this.isLoading = false;
+                this.activeView = "error";
+                this.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                console.log("Failed to unsubscribe", httpResponse.data);
             });
         }
         /**
          * Resubscribe the user to a discussion
          */
         resubscribeUser() {
-            var idVal = decodeURIComponent(this.$routeParams.idValue);
+            const idVal = decodeURIComponent(this.$routeParams.idValue);
             this.isLoading = true;
             this.activeView = "loading";
-            var innerThis = this;
-            this.$http.put("/api/Discussion/Resubscribe/" + idVal, null).then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "resubscribed";
+            this.$http.put("/api/Discussion/Resubscribe/" + idVal, null).then(() => {
+                this.isLoading = false;
+                this.activeView = "resubscribed";
             }, (httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "error";
-                innerThis.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                this.isLoading = false;
+                this.activeView = "error";
+                this.errorMessage = "Failed to resubscribe you to the discussion due to a server error.";
+                console.log("Failed to resubscribe", httpResponse.data);
             });
         }
     }
@@ -10912,8 +10877,6 @@ CA.angularApp.component("discussionManage", {
     controller: Ally.DiscussionManageController
 });
 
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../../Scripts/typings/angularjs/angular-route.d.ts" />
 var Ally;
 (function (Ally) {
     /**
@@ -10965,7 +10928,6 @@ CA.angularApp.component("emailAbuse", {
     controller: Ally.EmailAbuseController
 });
 
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
     class HoaSignerUpInfo {
@@ -11227,7 +11189,8 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes)).then((httpResponse) => {
+            const getUri = "/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes);
+            this.$http.get(getUri).then(() => {
                 this.isLoading = false;
                 this.didSignUpForHoaAlert = true;
             }, (httpResponse) => {
@@ -11319,18 +11282,8 @@ CA.angularApp.component("neighborSignUp", {
     controller: Ally.NeighborSignUpController
 });
 
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
-    class TempNeighborhoodSignUpInfo {
-        constructor() {
-            this.fullName = "";
-            this.email = "";
-            this.address = "";
-            this.neighborhoodName = "";
-            this.notes = "";
-        }
-    }
     /**
      * The controller for the HOA Ally sign-up page
      */
@@ -11542,6 +11495,15 @@ var Ally;
     }
     NeighborhoodSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];
     Ally.NeighborhoodSignUpWizardController = NeighborhoodSignUpWizardController;
+    class TempNeighborhoodSignUpInfo {
+        constructor() {
+            this.fullName = "";
+            this.email = "";
+            this.address = "";
+            this.neighborhoodName = "";
+            this.notes = "";
+        }
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("neighborhoodSignUpWizard", {
     templateUrl: "/ngApp/chtn/public/neighborhood-sign-up-wizard.html",
@@ -11585,7 +11547,7 @@ var Ally;
          */
         hookupAddressAutocomplete() {
             // If we know our group's position, let's tighten the auto-complete suggestion radius
-            var autocompleteOptions = undefined;
+            const autocompleteOptions = undefined;
             //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
             //{
             //    // Also mask phone numbers for US phones
@@ -11600,12 +11562,11 @@ var Ally;
             //        bounds: circle.getBounds()
             //    };
             //}
-            var addressInput = document.getElementById("member-home-address-text-box");
+            const addressInput = document.getElementById("member-home-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
-            google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                innerThis.signUpInfo.streetAddress = place.formatted_address;
+            google.maps.event.addListener(this.addressAutocomplete, "place_changed", () => {
+                const place = this.addressAutocomplete.getPlace();
+                this.signUpInfo.streetAddress = place.formatted_address;
             });
         }
         submitInfo() {
@@ -11616,7 +11577,7 @@ var Ally;
             }
             this.isLoading = true;
             this.errorMessage = null;
-            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then((response) => {
+            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then(() => {
                 this.isLoading = false;
                 this.showInputForm = false;
             }, (response) => {
@@ -11725,7 +11686,8 @@ var Ally;
                 return;
             this.isLoading = true;
             const putUri = `/api/Committee/${this.committee.committeeId}/SetMemberIsContact/${member.userId}/${isContactMember}`;
-            this.$http.put(putUri, null).then((response) => {
+            this.$http.put(putUri, null).then(() => // response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 member.isContactMember = isContactMember;
                 this.contactUserForAdd = null;
@@ -11749,7 +11711,7 @@ var Ally;
                 this.isLoading = false;
                 this.members = committeeMembers;
                 this.members = _.sortBy(this.members, m => (m.fullName || "").toLowerCase());
-                var isMember = (u) => _.some(this.members, (m) => m.userId === u.userId);
+                const isMember = (u) => _.some(this.members, (m) => m.userId === u.userId);
                 this.filteredGroupMembers = _.filter(this.allGroupMembers, m => !isMember(m));
                 this.filteredGroupMembers = _.sortBy(this.filteredGroupMembers, m => (m.fullName || "").toLowerCase());
                 this.contactUsers = _.filter(this.members, m => m.isContactMember);
@@ -11758,6 +11720,7 @@ var Ally;
                 this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager || _.any(this.members, m => m.userId === this.siteInfo.userInfo.userId);
             }, (response) => {
                 this.isLoading = false;
+                console.log("Failed to retrieve committee members", response.data);
                 alert("Failed to retrieve committee members, please refresh the page to try again");
             });
         }
@@ -11768,7 +11731,7 @@ var Ally;
             if (!this.userForAdd)
                 return;
             this.isLoading = true;
-            this.$http.put(`/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null).then((response) => {
+            this.$http.put(`/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null).then(() => {
                 this.isLoading = false;
                 this.getCommitteeMembers();
             }, (response) => {
@@ -11783,7 +11746,7 @@ var Ally;
             if (!confirm("Are you sure you want to remove this person from this committee?"))
                 return;
             this.isLoading = true;
-            this.$http.put(`/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null).then((response) => {
+            this.$http.put(`/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null).then(() => {
                 this.isLoading = false;
                 this.getCommitteeMembers();
             }, (response) => {
@@ -12015,6 +11978,7 @@ CA.angularApp.component("activePolls", {
     controller: Ally.ActivePollsController
 });
 
+//declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 var Ally;
 (function (Ally) {
     /**
@@ -12430,7 +12394,7 @@ var Ally;
             if (!curPeriod)
                 return "";
             let paymentText = "";
-            const frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
+            const frequencyInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
             const periodNames = GetLongPayPeriodNames(frequencyInfo.intervalName);
             if (periodNames)
                 paymentText = periodNames[curPeriod.period - 1];
@@ -12808,7 +12772,7 @@ var Ally;
                         });
                     },
                     onExit: (err, metadata) => {
-                        //console.log( "update onExit.err", err, metadata );
+                        console.log("StripeLink update onExit.err", err, metadata);
                         // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
                         this.$scope.$apply(() => {
                             this.isLoading_Payment = false;
@@ -13168,8 +13132,6 @@ var Ally;
     class StripeAchStartResult {
     }
     Ally.StripeAchStartResult = StripeAchStartResult;
-    class CheckoutRequest {
-    }
     class DwollaAccountStatusInfo {
     }
     class MakePaymentRequest {
@@ -13536,10 +13498,10 @@ var Ally;
         }
         startZipGenDownload() {
             let refreshGenStatus = null;
-            let numRefreshes = 0;
+            //let numRefreshes = 0;
             refreshGenStatus = () => {
                 this.$http.get("/api/DocumentUpload/GetZipGenStatus?vid=" + this.generatingZipId).then((response) => {
-                    ++numRefreshes;
+                    //++numRefreshes;
                     if (response.data.totalNumFiles === 0)
                         this.generatingZipStatus = "Still waiting...";
                     else
@@ -13619,6 +13581,7 @@ var Ally;
                 const element = document.getElementById("documents-area");
                 const disp = element.style.display;
                 element.style.display = 'none';
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const trick = element.offsetHeight;
                 element.style.display = disp;
             }, 50);
@@ -14310,7 +14273,7 @@ var Ally;
                 });
             }, (httpResponse) => {
                 //this.isLoading = false;
-                console.log("Failed to load units");
+                console.log("Failed to load units", httpResponse.data);
                 //alert( `Failed to load units, please contact technical support. (${httpResponse.data.exceptionMessage})` );
             });
         }
@@ -14359,7 +14322,7 @@ var Ally;
             });
         }
         exportTransactionsCsv() {
-            var csvColumns = [
+            const csvColumns = [
                 {
                     headerText: "Date",
                     fieldName: "transactionDate",
@@ -14386,7 +14349,7 @@ var Ally;
                     fieldName: "amount"
                 }
             ];
-            var csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
+            const csvDataString = Ally.createCsvString(this.transactionGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Owner-Transactions.csv");
         }
         onFilterDateRangeChange() {
@@ -14430,8 +14393,8 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            var lowerAppName = (this.$routeParams.appName || "").toLowerCase();
-            var appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
+            const lowerAppName = (this.$routeParams.appName || "").toLowerCase();
+            const appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
             let domainName = null;
             for (let i = 0; i < appConfigs.length; ++i) {
                 if (appConfigs[i].appShortName.toLowerCase() === lowerAppName) {
@@ -14441,8 +14404,7 @@ var Ally;
             }
             if (!domainName)
                 domainName = "condoally.com";
-            domainName = "myhoaally.org";
-            var redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
+            const redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
             window.location.href = redirectUrl;
         }
     }
@@ -14456,13 +14418,6 @@ CA.angularApp.component("groupRedirect", {
 
 var Ally;
 (function (Ally) {
-    class SendEmailRecpientEntry {
-    }
-    class HomeEmailMessage {
-        constructor() {
-            this.recipientType = "board";
-        }
-    }
     /**
      * The controller for the widget that lets members send emails to the group
      */
@@ -14626,6 +14581,11 @@ var Ally;
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
     Ally.GroupSendEmailController = GroupSendEmailController;
+    class HomeEmailMessage {
+        constructor() {
+            this.recipientType = "board";
+        }
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupSendEmail", {
     bindings: {
@@ -14839,7 +14799,7 @@ var Ally;
                     enableVerticalScrollbar: 0,
                     enableColumnMenus: false,
                     minRowsToShow: 5,
-                    onRegisterApi: (gridApi) => {
+                    onRegisterApi: () => {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -15023,7 +14983,7 @@ var Ally;
             this.loadMailingInfo();
             this.$scope.$on('wizard:stepChanged', (event, args) => {
                 this.activeStepIndex = args.index;
-                console.log("wizard:stepChanged, step " + this.activeStepIndex);
+                //console.log( "wizard:stepChanged, step " + this.activeStepIndex );
                 // If we moved to the second step, amounts due
                 if (this.activeStepIndex === 1) {
                     this.$timeout(() => {
@@ -15081,7 +15041,7 @@ var Ally;
             //this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) => this.settings = response.data );
         }
         static getCurrentPayPeriod(assessmentFrequency) {
-            const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            const payPeriodInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
             if (!payPeriodInfo)
                 return null;
             const today = new Date();
@@ -15102,7 +15062,7 @@ var Ally;
             return periodInfo;
         }
         static getCurrentPayPeriodLabel(assessmentFrequency) {
-            const payPeriodInfo = FrequencyIdToInfo(assessmentFrequency);
+            const payPeriodInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
             if (!payPeriodInfo)
                 return null;
             const periodNames = GetLongPayPeriodNames(payPeriodInfo.intervalName);
@@ -15499,7 +15459,7 @@ var Ally;
                     enableFullRowSelection: false,
                     enableColumnMenus: false,
                     enableRowHeaderSelection: false,
-                    onRegisterApi: function (gridApi) {
+                    onRegisterApi: function () {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
@@ -15530,7 +15490,7 @@ var Ally;
         rebuildMaintenanceEntries() {
             this.maintenanceEntries = [];
             _.forEach(this.projects, p => {
-                var newEntry = new Ally.MaintenanceEntry();
+                const newEntry = new Ally.MaintenanceEntry();
                 newEntry.project = p;
                 if (this.vendorListItems && p.vendorId) {
                     const vendorInfo = this.vendorListItems.find(v => v.preferredVendorId === p.vendorId);
@@ -15544,7 +15504,7 @@ var Ally;
                 this.maintenanceEntries.push(newEntry);
             });
             _.forEach(this.maintenanceTodos.todoItems, t => {
-                var newEntry = new Ally.MaintenanceEntry();
+                const newEntry = new Ally.MaintenanceEntry();
                 newEntry.todo = t;
                 this.maintenanceEntries.push(newEntry);
             });
@@ -15560,7 +15520,7 @@ var Ally;
                 this.equipmentOptions = response.data;
                 // Deep clone the data so we can modify the data
                 this.equipmentGridOptions.data = JSON.parse(JSON.stringify(this.equipmentOptions));
-                var addNewOption = new Equipment();
+                const addNewOption = new Equipment();
                 addNewOption.name = "Add New...";
                 addNewOption.equipmentId = MaintenanceController.EquipmentId_AddNew;
                 this.equipmentOptions.push(addNewOption);
@@ -15787,8 +15747,7 @@ var Ally;
                 // Needed for the searchable drop-down
                 for (let i = 0; i < this.assigneeOptions.length; ++i)
                     (this.assigneeOptions[i]).isSelectedAssignee = false;
-                //_.forEach( this.assigneeOptions, u => ( <any>u ).isSelectedAssignee = false );
-                var foundAssignee = _.find(this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId);
+                const foundAssignee = _.find(this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId);
                 if (foundAssignee) {
                     // Set isSelectedAssignee on a cloned object so we don't change the base list
                     foundAssignee.isSelectedAssignee = true;
@@ -16011,8 +15970,7 @@ CA.angularApp.component("maintenanceWidget", {
     controller: Ally.MaintenanceWidgetController
 });
 
-/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
-/// <reference path="../../Scripts/typings/underscore/underscore.d.ts" />
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Ally;
 (function (Ally) {
     /**
@@ -16048,10 +16006,10 @@ var Ally;
          * @param addressComponents The address data returned from AutoComplete or a geocode
          */
         static parseAddressComponents(addressComponents) {
-            let splitAddress = new SplitAddress();
+            const splitAddress = new SplitAddress();
             let streetNumber = "";
             let streetName = "";
-            for (var component of addressComponents) {
+            for (const component of addressComponents) {
                 if (component.types.indexOf("street_number") !== -1)
                     streetNumber = component.short_name;
                 else if (component.types.indexOf("route") !== -1)
@@ -16073,7 +16031,7 @@ var Ally;
          * @param gpsBounds The array of
          */
         static gpsBoundsToGooglePoly(gpsBounds) {
-            var path = _.map(gpsBounds.vertices, function (v) {
+            const path = _.map(gpsBounds.vertices, function (v) {
                 return new google.maps.LatLng(v.lat, v.lon);
             });
             return path;
@@ -16119,7 +16077,7 @@ var Ally;
                     fundingType: null,
                     paysFor: null
                 };
-            var MaxNumRecentPayments = 6;
+            const MaxNumRecentPayments = 6;
             this.recentPayments = []; // this.siteInfo.userInfo.recentPayments;
             if (this.recentPayments && this.recentPayments.length > 0) {
                 if (this.recentPayments.length > MaxNumRecentPayments)
@@ -16187,12 +16145,13 @@ var Ally;
                     return actions.payment.execute().then((payment) => {
                         // The payment is complete!
                         // Tell the server about payment.id with memo
-                        var memoInfo = {
+                        const memoInfo = {
                             PayPalCheckoutId: payment.id,
                             Memo: this.paymentInfo.note
                         };
                         this.isLoading = true;
-                        this.$http.put("/api/OnlinePayment/SetMemo", memoInfo).then((httpResponse) => {
+                        this.$http.put("/api/OnlinePayment/SetMemo", memoInfo).then(() => //( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                         {
                             this.isLoading = false;
                         }, (httpResponse) => {
                             this.isLoading = false;
@@ -16202,12 +16161,14 @@ var Ally;
                     });
                 },
                 onCancel: (data, actions) => {
+                    console.log("PayPal cancel", data, actions);
                     this.isLoading = false;
                     /*
                      * Buyer canceled the payment
                      */
                 },
                 onError: (err) => {
+                    console.log("PayPal error", err);
                     this.isLoading = false;
                     /*
                      * An error occurred during the transaction
@@ -16239,21 +16200,21 @@ var Ally;
             // Ensure the periods is an array
             if (payPeriods.constructor !== Array)
                 payPeriods = [payPeriods];
-            var paymentText = "";
-            var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
-            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
-                var curPeriod = payPeriods[periodIndex];
+            let paymentText = "";
+            const frequencyInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
+            for (let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
+                const curPeriod = payPeriods[periodIndex];
                 if (frequencyInfo.intervalName === "month") {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "quarter") {
-                    var periodNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const periodNames = ["Q1", "Q2", "Q3", "Q4"];
                     paymentText = periodNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "half-year") {
-                    var periodNames = ["First Half", "Second Half"];
+                    const periodNames = ["First Half", "Second Half"];
                     paymentText = periodNames[curPeriod.period - 1];
                 }
                 paymentText += " " + curPeriod.year;
@@ -16590,12 +16551,12 @@ var Ally;
                     fieldName: "notes"
                 }
             ];
-            var csvDataString = Ally.createCsvString(this.allVendors, csvColumns);
+            const csvDataString = Ally.createCsvString(this.allVendors, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Vendors.csv");
         }
         onTagFilterToggle(tagName) {
             // Add if the tag to our filter list if it's not there, remove it if it is
-            var tagCurrentIndex = this.filterTags.indexOf(tagName);
+            const tagCurrentIndex = this.filterTags.indexOf(tagName);
             if (tagCurrentIndex === -1)
                 this.filterTags.push(tagName);
             else
@@ -16724,7 +16685,6 @@ var Ally;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
             if (!this.homeRightColumnType)
                 this.homeRightColumnType = "localnews";
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
             this.allyAppName = AppConfig.appName;
             // The object that contains a message if the user wants to send one out
             this.messageObject = {};
@@ -16769,21 +16729,21 @@ var Ally;
             // Ensure the periods is an array
             if (payPeriods.constructor !== Array)
                 payPeriods = [payPeriods];
-            var paymentText = "";
-            var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
-            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
-                var curPeriod = payPeriods[periodIndex];
+            let paymentText = "";
+            const frequencyInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
+            for (let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
+                const curPeriod = payPeriods[periodIndex];
                 if (frequencyInfo.intervalName === "month") {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "quarter") {
-                    var quarterNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const quarterNames = ["Q1", "Q2", "Q3", "Q4"];
                     paymentText = quarterNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "half-year") {
-                    var halfYearNames = ["First Half", "Second Half"];
+                    const halfYearNames = ["First Half", "Second Half"];
                     paymentText = halfYearNames[curPeriod.period - 1];
                 }
                 paymentText += " " + curPeriod.year;
@@ -16808,15 +16768,10 @@ var Ally;
         // Populate the page from the server
         ///////////////////////////////////////////////////////////////////////////////////////////////
         refreshData() {
-            //window.location.host is subdomain.domain.com
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
-            // A little test to help the automated tests run faster
-            var isTestSubdomain = subDomain === "qa" || subDomain === "localtest";
-            isTestSubdomain = false;
-            if (!isTestSubdomain && this.homeRightColumnType === "localnews") {
+            if (this.homeRightColumnType === "localnews") {
                 this.isLoading_LocalNews = true;
-                var localNewsUri;
-                var queryParams;
+                let localNewsUri;
+                let queryParams;
                 if (this.siteInfo.privateSiteInfo.country === "US") {
                     localNewsUri = Ally.AppConfigInfo.localNewsAllyDomain + "api/LocalNews";
                     queryParams = {
@@ -16834,13 +16789,12 @@ var Ally;
                         city: this.siteInfo.privateSiteInfo.groupAddress.city
                     };
                 }
-                var innerThis = this;
                 this.$http.get(localNewsUri, {
                     cache: true,
                     params: queryParams
-                }).then(function (httpResponse) {
-                    innerThis.localNews = httpResponse.data;
-                    innerThis.isLoading_LocalNews = false;
+                }).then((httpResponse) => {
+                    this.localNews = httpResponse.data;
+                    this.isLoading_LocalNews = false;
                 });
             }
         }
@@ -16888,6 +16842,7 @@ var Ally;
                 if (this.shouldShowWidget)
                     this.valueInfo = response.data;
             }, (response) => {
+                console.log("Failed to get Zillow info", response.data);
                 this.isLoading = false;
                 this.shouldShowWidget = false;
             });
@@ -16932,8 +16887,6 @@ CA.angularApp.component("homeUsers", {
     controller: Ally.HomeUsersController
 });
 
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../../Scripts/typings/googlemaps/google.maps.d.ts" />
 var Ally;
 (function (Ally) {
     class SignerUpInfo {
@@ -16984,7 +16937,6 @@ var Ally;
                     this.retrieveHomeInfoForAddress();
             });
             // The controller is ready, but let's wait a bit for the page to be ready
-            var innerThis = this;
             setTimeout(() => { this.initMap(); }, 300);
         }
         /**
@@ -16994,7 +16946,7 @@ var Ally;
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.streetAddress) || this.hasAlreadyCheckedForHomeInfo)
                 return;
             this.hasAlreadyCheckedForHomeInfo = true;
-            var getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent(this.signUpInfo.streetAddress);
+            const getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent(this.signUpInfo.streetAddress);
             this.$http.get(getUri, { cache: true }).then((response) => {
                 if (!response.data)
                     return;
@@ -17026,7 +16978,7 @@ var Ally;
          * Initialize the Google map on the page
          */
         initMap() {
-            var mapDiv = document.getElementById("address-map");
+            const mapDiv = document.getElementById("address-map");
             this.map = new google.maps.Map(mapDiv, {
                 center: { lat: 41.869638, lng: -87.657423 },
                 zoom: 9
@@ -17037,25 +16989,24 @@ var Ally;
                 icon: "/assets/images/MapMarkers/MapMarker_Home.png",
                 position: null
             });
-            var addressInput = document.getElementById("home-address-text-box");
+            const addressInput = document.getElementById("home-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput);
             this.addressAutocomplete.bindTo('bounds', this.map);
             // Occurs when the user selects a Google suggested address
-            var innerThis = this;
-            this.addressAutocomplete.addListener('place_changed', function () {
+            this.addressAutocomplete.addListener('place_changed', () => {
                 //innerThis.setPlaceWasSelected();
                 //infowindow.close();
-                innerThis.mapMarker.setVisible(false);
-                var place = innerThis.addressAutocomplete.getPlace();
-                var readableAddress = place.formatted_address;
+                this.mapMarker.setVisible(false);
+                const place = this.addressAutocomplete.getPlace();
+                let readableAddress = place.formatted_address;
                 // Remove the trailing country if it's USA
                 if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                     readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                innerThis.signUpInfo.streetAddress = readableAddress;
-                innerThis.selectedSplitAddress = Ally.MapUtil.parseAddressComponents(place.address_components);
+                this.signUpInfo.streetAddress = readableAddress;
+                this.selectedSplitAddress = Ally.MapUtil.parseAddressComponents(place.address_components);
                 //innerThis.prepopulateHomeInfo();
                 if (place.geometry)
-                    innerThis.centerMap(place.geometry);
+                    this.centerMap(place.geometry);
                 $("#association-name-text-box").focus();
             });
         }
@@ -17074,15 +17025,14 @@ var Ally;
             //else
             //    this.signUpInfo.homeInfo.lotSquareFeet = this.lotSquareUnits;
             this.isLoading = true;
-            var innerThis = this;
-            this.$http.post("/api/HomeSignUp", this.signUpInfo).then(function (httpResponse) {
-                innerThis.isLoading = false;
-                let signUpResult = httpResponse.data;
+            this.$http.post("/api/HomeSignUp", this.signUpInfo).then((httpResponse) => {
+                this.isLoading = false;
+                const signUpResult = httpResponse.data;
                 // If we successfully created the site
                 if (!HtmlUtil.isNullOrWhitespace(signUpResult.errorMessage)) {
                     alert("Failed to complete sign-up: " + signUpResult.errorMessage);
                     if (signUpResult.stepIndex >= 0)
-                        innerThis.WizardHandler.wizard().goTo(signUpResult.stepIndex);
+                        this.WizardHandler.wizard().goTo(signUpResult.stepIndex);
                 }
                 // Or if the user created an active signUpResult
                 else if (!HtmlUtil.isNullOrWhitespace(signUpResult.createUrl)) {
@@ -17090,12 +17040,12 @@ var Ally;
                 }
                 // Otherwise the user needs to confirm sign-up via email
                 else {
-                    innerThis.hideWizard = true;
-                    innerThis.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
+                    this.hideWizard = true;
+                    this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
                 }
-            }, function (httpResponse) {
-                innerThis.isLoading = false;
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                const errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
                 alert("Failed to complete sign-up: " + errorMessage);
             });
         }
@@ -17103,19 +17053,18 @@ var Ally;
          * Called when the user types in a new street address
          */
         onHomeAddressChanged() {
-            var innerThis = this;
-            HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, function (results, status) {
-                innerThis.$scope.$apply(function () {
+            HtmlUtil.geocodeAddress(this.signUpInfo.streetAddress, (results, status) => {
+                this.$scope.$apply(function () {
                     if (status != google.maps.GeocoderStatus.OK) {
                         //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
                         return;
                     }
-                    var readableAddress = results[0].formatted_address;
+                    let readableAddress = results[0].formatted_address;
                     // Remove the trailing country if it's USA
                     if (readableAddress.indexOf(", USA") === readableAddress.length - ", USA".length)
                         readableAddress = readableAddress.substring(0, readableAddress.length - ", USA".length);
-                    innerThis.signUpInfo.streetAddress = readableAddress;
-                    innerThis.centerMap(results[0].geometry);
+                    this.signUpInfo.streetAddress = readableAddress;
+                    this.centerMap(results[0].geometry);
                 });
             });
         }
@@ -17142,18 +17091,17 @@ var Ally;
             if (!this.selectedSplitAddress)
                 return;
             this.isLoadingHomeInfo = true;
-            let getUri = `/api/PropertyResearch/HomeInfo?street=${encodeURIComponent(this.selectedSplitAddress.street)}&city=${encodeURIComponent(this.selectedSplitAddress.city)}&state=${this.selectedSplitAddress.state}&zip=${this.selectedSplitAddress.zip}`;
-            var innerThis = this;
+            const getUri = `/api/PropertyResearch/HomeInfo?street=${encodeURIComponent(this.selectedSplitAddress.street)}&city=${encodeURIComponent(this.selectedSplitAddress.city)}&state=${this.selectedSplitAddress.state}&zip=${this.selectedSplitAddress.zip}`;
             this.$http.get(getUri).then((httpResponse) => {
-                innerThis.isLoadingHomeInfo = false;
-                let homeInfo = httpResponse.data;
+                this.isLoadingHomeInfo = false;
+                const homeInfo = httpResponse.data;
                 if (homeInfo) {
-                    innerThis.didLoadHomeInfo = true;
-                    innerThis.signUpInfo.homeInfo = homeInfo;
-                    innerThis.processLotSizeHint(homeInfo.lotSquareFeet);
+                    this.didLoadHomeInfo = true;
+                    this.signUpInfo.homeInfo = homeInfo;
+                    this.processLotSizeHint(homeInfo.lotSquareFeet);
                 }
             }, () => {
-                innerThis.isLoadingHomeInfo = false;
+                this.isLoadingHomeInfo = false;
             });
         }
     }
@@ -17192,7 +17140,6 @@ var Ally;
             this.homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType;
             if (!this.homeRightColumnType)
                 this.homeRightColumnType = "localnews";
-            var subDomain = HtmlUtil.getSubdomain(window.location.host);
             this.allyAppName = AppConfig.appName;
             // The object that contains a message if the user wants to send one out
             this.messageObject = {};
@@ -17236,21 +17183,21 @@ var Ally;
             // Ensure the periods is an array
             if (payPeriods.constructor !== Array)
                 payPeriods = [payPeriods];
-            var paymentText = "";
-            var frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
-            for (var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
-                var curPeriod = payPeriods[periodIndex];
+            let paymentText = "";
+            const frequencyInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
+            for (let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex) {
+                const curPeriod = payPeriods[periodIndex];
                 if (frequencyInfo.intervalName === "month") {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "quarter") {
-                    var quarterNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const quarterNames = ["Q1", "Q2", "Q3", "Q4"];
                     paymentText = quarterNames[curPeriod.period - 1];
                 }
                 else if (frequencyInfo.intervalName === "half-year") {
-                    var halfYearNames = ["First Half", "Second Half"];
+                    const halfYearNames = ["First Half", "Second Half"];
                     paymentText = halfYearNames[curPeriod.period - 1];
                 }
                 paymentText += " " + curPeriod.year;
@@ -17306,8 +17253,7 @@ class AppCacheService {
         delete window.sessionStorage[AppCacheService.KeyPrefix + key];
     }
     getAndClear(key) {
-        var result;
-        result = this.get(key);
+        const result = this.get(key);
         this.clear(key);
         return result;
     }
@@ -17498,7 +17444,7 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             // Just a little delay to help the home page layout faster
             this.$timeout(() => this.refreshCommentThreads(), 5);
-            this.$scope.$on("refreshBBoardPosts", (event, data) => this.refreshCommentThreads());
+            this.$scope.$on("refreshBBoardPosts", () => this.refreshCommentThreads());
             this.$scope.$on("refreshSingleBBoardPost", (event, commentThreadId) => this.refreshSingleCommentThread(commentThreadId));
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if (!this.canCreateThreads) {
@@ -17589,7 +17535,7 @@ var Ally;
          */
         refreshSingleCommentThread(commentThreadId) {
             const commentThread = this.commentThreads.find(ct => ct.commentThreadId === commentThreadId);
-            let getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
+            const getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
             commentThread.isLoading = true;
             return this.$http.get(getUri).then((response) => {
                 commentThread.isLoading = false;
@@ -17709,7 +17655,7 @@ var Ally;
             if (this.committeeId)
                 newThreadFormData.append("committeeId", this.committeeId.toString());
             // Combine the event date and time
-            var eventDateUtcString = null;
+            let eventDateUtcString = null;
             if (this.editPostItem.postType && this.editPostDateOnly && this.editPostTimeOnly && typeof (this.editPostTimeOnly) === "string" && this.editPostTimeOnly.length > 1) {
                 const dateTimeString = moment(this.editPostDateOnly).format(Ally.LogbookController.DateFormat) + " " + this.editPostTimeOnly;
                 eventDateUtcString = moment(dateTimeString, Ally.LogbookController.DateFormat + " " + Ally.LogbookController.TimeFormat).utc().toISOString(); // .toDate();
@@ -17745,6 +17691,7 @@ var Ally;
                 alert("Failed to create post: " + response.data.exceptionMessage);
             });
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         addComment(curThread, parentComment) {
             const newCommentText = this.newBodyMceEditor ? this.newBodyMceEditor.getContent() : curThread.newRootCommentText;
             if (!newCommentText) {
@@ -17783,6 +17730,7 @@ var Ally;
             else
                 curThread.attachmentPreviewUrl = null;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         openAttachmentFilePicker(curThread, parentComment) {
             const fileElemId = "file-attacher-root-" + curThread.commentThreadId;
             document.getElementById(fileElemId).click();
@@ -17890,6 +17838,7 @@ CA.angularApp.component("bulletinBoard", {
     controller: Ally.BulletinBoardController
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Ally;
 (function (Ally) {
     /**
@@ -18647,10 +18596,6 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
 }] );
 var Ally;
 (function (Ally) {
-    class ReplyComment {
-    }
-    class CommentsState {
-    }
     /**
      * The controller for the committee home page
      */
@@ -18922,6 +18867,7 @@ var Ally;
                 alert("Failed to add comment: " + response.data.exceptionMessage);
             });
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         closeModal(isFromOverlayClick) {
             if (this.onClosed)
                 this.onClosed();
@@ -19005,6 +18951,8 @@ var Ally;
         toolbar: "bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link"
     };
     Ally.GroupCommentThreadViewController = GroupCommentThreadViewController;
+    class CommentsState {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupCommentThreadView", {
     bindings: {
@@ -19073,7 +19021,7 @@ var Ally;
                 commentText: "",
                 replyToCommentId: null
             };
-            this.$scope.$on("refreshCommentThreadList", (event, data) => this.refreshCommentThreads(false));
+            this.$scope.$on("refreshCommentThreadList", () => this.refreshCommentThreads(false));
             this.refreshCommentThreads(false);
         }
         setDisplayCreateModal(shouldShow) {
@@ -19100,7 +19048,8 @@ var Ally;
          */
         onClickPin(thread) {
             this.isLoading = true;
-            this.$http.put("/api/CommentThread/TogglePinned/" + thread.commentThreadId, null).then((response) => {
+            this.$http.put("/api/CommentThread/TogglePinned/" + thread.commentThreadId, null).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.refreshCommentThreads();
             }, (response) => {
@@ -19350,7 +19299,7 @@ CA.angularApp.component("groupComments", {
     controller: Ally.GroupCommentsController
 });
 
-/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Ally;
 (function (Ally) {
     class HtmlUtil2 {
@@ -19551,12 +19500,11 @@ var Ally;
                 didCopy = successful;
             }
             catch (err) {
-                console.log("Oops, unable to copy");
+                console.log("Oops, unable to copy", err);
             }
             document.body.removeChild(textArea);
             return didCopy;
         }
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
         static smartSortStreetAddresses(homeList, namePropName) {
             if (!homeList || homeList.length === 0)
                 return homeList;
@@ -19628,6 +19576,9 @@ var Ally;
                     context.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
                     resolve(canvas.toDataURL());
                 };
+                image.onerror = function () {
+                    reject();
+                };
                 image.src = base64;
             });
         }
@@ -19638,7 +19589,7 @@ var Ally;
          * @param {Number} newHeight - The height of the image in pixels
          */
         static resizeFromImg(image, newWidth, newHeight) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
@@ -19655,7 +19606,7 @@ var Ally;
          * @param {Number} newHeight - The height of the image in pixels
          */
         static resizeFromImgToBlob(image, newWidth, newHeight, mimeType = "image/jpeg") {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const canvas = document.createElement("canvas");
                 canvas.width = newWidth;
                 canvas.height = newHeight;
@@ -19667,7 +19618,7 @@ var Ally;
             });
         }
         static initTinyMce(elemId = "tiny-mce-editor", heightPixels = 400, overrideOptions = null) {
-            const mcePromise = new Promise((resolve, reject) => {
+            const mcePromise = new Promise((resolve) => {
                 const loadRtes = () => {
                     // This can happen if TinyMCE is down
                     if (typeof (tinymce) === "undefined") {
@@ -19698,7 +19649,7 @@ var Ally;
                         promotion: false,
                         branding: true,
                         image_description: false,
-                        file_picker_callback: function (cb, value, meta) {
+                        file_picker_callback: function (cb) {
                             const input = document.createElement('input');
                             input.setAttribute('type', 'file');
                             input.setAttribute('accept', 'image/*');
@@ -19924,8 +19875,7 @@ var Ally;
         static getAllCssRules(ruleName) {
             //console.log( "In getAllCssRules", ruleName );
             ruleName = ruleName.toLowerCase();
-            let foundRules = [];
-            const find = Array.prototype.forEach;
+            const foundRules = [];
             for (let i = 0; i < document.styleSheets.length; ++i) {
                 const curSheet = document.styleSheets[i];
                 let curSheetMatchingRules;
@@ -20077,7 +20027,8 @@ var Ally;
             this.shouldShowButtons = false;
             this.isSending = true;
             this.sendResultMessage = "";
-            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.selectedSendAs.isBoardOption, this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null).then((response) => {
+            this.fellowResidents.sendMessage(this.recipientInfo.userId, this.messageBody, this.messageSubject, this.selectedSendAs.isBoardOption, this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isSending = false;
                 this.sendResultIsError = false;
                 this.messageBody = "";
@@ -20160,7 +20111,7 @@ angular.module("CondoAlly").directive("imageonload", function () {
     return {
         restrict: "A",
         link: function (scope, element, attrs) {
-            element.bind("load", function (evt) {
+            element.bind("load", function () {
                 if (attrs.imageonload)
                     scope.$apply(attrs.imageonload);
             });
@@ -20171,7 +20122,7 @@ angular.module("CondoAlly").directive("imageonerror", function () {
     return {
         restrict: "A",
         link: function (scope, element, attrs) {
-            element.bind("error", function (evt) {
+            element.bind("error", function () {
                 if (attrs.imageonerror)
                     scope.$apply(attrs.imageonerror);
             });
@@ -20204,43 +20155,45 @@ CA.angularApp.filter('tel', function () {
         if (!tel) {
             return '';
         }
-        var value = tel.toString().trim().replace(/^\+/, '');
-        if (value.match(/[^0-9]/)) {
+        const trimmedString = tel.toString().trim().replace(/^\+/, '');
+        if (trimmedString.match(/[^0-9]/)) {
             return tel;
         }
-        var country, city, number;
-        switch (value.length) {
+        let countryCode;
+        let city;
+        let phoneNumber;
+        switch (trimmedString.length) {
             case 7: // ####### -> ###-####
-                country = 1;
+                countryCode = "1";
                 city = "";
-                number = value;
+                phoneNumber = trimmedString;
                 break;
             case 10: // +1PPP####### -> C (PPP) ###-####
-                country = 1;
-                city = value.slice(0, 3);
-                number = value.slice(3);
+                countryCode = "1";
+                city = trimmedString.slice(0, 3);
+                phoneNumber = trimmedString.slice(3);
                 break;
             case 11: // +CPPP####### -> CCC (PP) ###-####
-                country = value[0];
-                city = value.slice(1, 4);
-                number = value.slice(4);
+                countryCode = trimmedString[0];
+                city = trimmedString.slice(1, 4);
+                phoneNumber = trimmedString.slice(4);
                 break;
             case 12: // +CCCPP####### -> CCC (PP) ###-####
-                country = value.slice(0, 3);
-                city = value.slice(3, 5);
-                number = value.slice(5);
+                countryCode = trimmedString.slice(0, 3);
+                city = trimmedString.slice(3, 5);
+                phoneNumber = trimmedString.slice(5);
                 break;
             default:
                 city = "";
                 return tel;
         }
         // Ignore USA
-        if (country === 1)
-            country = "";
-        number = number.slice(0, 3) + '-' + number.slice(3);
+        if (countryCode === "1")
+            countryCode = "";
+        phoneNumber = phoneNumber.slice(0, 3) + '-' + phoneNumber.slice(3);
         if (city.length > 0)
             city = "(" + city + ")";
-        return (country + " " + city + " " + number).trim();
+        return (countryCode + " " + city + " " + phoneNumber).trim();
     };
 });
 CA.angularApp.filter("filesize", function () {
@@ -20263,6 +20216,7 @@ CA.angularApp.filter("filesize", function () {
     };
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Ally;
 (function (Ally) {
     class SiteDesignSettings {
@@ -20599,7 +20553,7 @@ var Ally;
                 return false;
             // Remove that prefix and add a slash as that's what the menu item stores
             locationHash = "/" + locationHash.substring(HashPrefix.length);
-            const menuItem = _.find(AppConfig.menu, (menuItem) => menuItem.path === locationHash);
+            const menuItem = _.find(AppConfig.menu, menuItem => menuItem.path === locationHash);
             return typeof (menuItem) === "object";
         }
         ;
@@ -20670,22 +20624,6 @@ var Ally;
                     let effectiveEmail = null;
                     if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
                         effectiveEmail = $rootScope.userInfo.emailAddress;
-                    if (typeof zE !== "undefined") {
-                        zE('webWidget', 'prefill', {
-                            name: {
-                                value: effectiveName,
-                                readOnly: true // optional
-                            },
-                            email: {
-                                value: effectiveEmail,
-                                readOnly: true // optional
-                            }
-                            //phone: {
-                            //    value: '61431909749',
-                            //    readOnly: true // optional
-                            //}
-                        });
-                    }
                     // Prefill the contact form with details about a customer
                     if (typeof (window.FreshworksWidget) !== "undefined") {
                         window.FreshworksWidget('identify', 'ticketForm', { name: effectiveName, email: effectiveEmail });
@@ -20694,15 +20632,18 @@ var Ally;
                         // But then hide that same subject field because it doesn't add value, in our situation
                         window.FreshworksWidget('hide', 'ticketForm', ['subject']);
                     }
-                    if (typeof ($zopim) !== "undefined") {
-                        $zopim(() => {
-                            if ($rootScope.userInfo) {
-                                $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
-                                if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
-                                    $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
-                            }
-                        });
-                    }
+                    //if( typeof ( $zopim ) !== "undefined" )
+                    //{
+                    //    $zopim( () =>
+                    //    {
+                    //        if( $rootScope.userInfo )
+                    //        {
+                    //            $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
+                    //            if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                    //                $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
+                    //        }
+                    //    } );
+                    //}
                 };
                 const subdomain = HtmlUtil.getSubdomain(window.location.host);
                 const isSpammedSite = subdomain === "themaples";
@@ -20826,6 +20767,7 @@ var Ally;
                     }
                     deferred.resolve(SiteInfoProvider.siteInfo);
                 }, (errorResult) => {
+                    console.log("Failed to refresh site info", errorResult);
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here
                     //deferred.reject( errorResult );
                     Ally.HtmlUtil2.globalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");
@@ -21027,8 +20969,6 @@ var Ally;
         exportAllToCsv() {
             if (typeof (analytics) !== "undefined")
                 analytics.track('exportTodoListCsv');
-            const a = this.todoLists[0].todoItems;
-            a[0].completedByFullName;
             const csvColumns = [
                 {
                     headerText: "List",

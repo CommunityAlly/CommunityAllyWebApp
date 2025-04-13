@@ -141,7 +141,7 @@
                 replyToCommentId: null
             };
 
-            this.$scope.$on( "refreshCommentThreadList", ( event, data ) => this.refreshCommentThreads( false ) );
+            this.$scope.$on( "refreshCommentThreadList", () => this.refreshCommentThreads( false ) );
 
             this.refreshCommentThreads( false );
         }
@@ -185,7 +185,7 @@
             this.isLoading = true;
 
             this.$http.put( "/api/CommentThread/TogglePinned/" + thread.commentThreadId, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
                     this.refreshCommentThreads();

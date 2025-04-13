@@ -1,5 +1,6 @@
-﻿declare var dwolla: any;
-declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
+﻿// eslint-disable-next-line no-var
+declare var dwolla: any;
+//declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 
 namespace Ally
 {
@@ -630,7 +631,7 @@ namespace Ally
 
             let paymentText = "";
 
-            const frequencyInfo = FrequencyIdToInfo( assessmentFrequency );
+            const frequencyInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
 
             const periodNames = GetLongPayPeriodNames( frequencyInfo.intervalName );
             if( periodNames )
@@ -1210,7 +1211,7 @@ namespace Ally
                         },
                         onExit: ( err: any, metadata: any ) =>
                         {
-                            //console.log( "update onExit.err", err, metadata );
+                            console.log( "StripeLink update onExit.err", err, metadata );
 
                             // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
                             this.$scope.$apply( () =>
@@ -1761,17 +1762,12 @@ namespace Ally
     }
 
 
-    class CheckoutRequest
-    {
-        wasSuccessful: boolean;
-        checkoutUri: string;
-    }
-
     class DwollaAccountStatusInfo
     {
         status: string;
         streetAddress: FullAddress;
     }
+
 
     class MakePaymentRequest
     {

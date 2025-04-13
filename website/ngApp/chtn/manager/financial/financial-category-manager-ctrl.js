@@ -95,7 +95,7 @@ var Ally;
             }
             this.isLoading = true;
             const putUri = `/api/Ledger/FinancialCategory/UpdateName/${this.selectedCategory.financialCategoryId}?newName=${encodeURIComponent(this.editName)}`;
-            this.$http.put(putUri, null).then((httpResponse) => {
+            this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
                 this.didMakeChanges = true;
                 this.shouldShowNewCategoryArea = false;
@@ -142,7 +142,7 @@ var Ally;
             let deleteUri = `/api/Ledger/FinancialCategory/${this.selectedCategory.financialCategoryId}`;
             if (this.deleteCategoryRessignTo)
                 deleteUri += "?reassignToCategoryId=" + this.deleteCategoryRessignTo.financialCategoryId;
-            this.$http.delete(deleteUri).then((httpResponse) => {
+            this.$http.delete(deleteUri).then(() => {
                 this.isLoading = false;
                 this.didMakeChanges = true;
                 this.shouldShowDeleteCategoryArea = false;

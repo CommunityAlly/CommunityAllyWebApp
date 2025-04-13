@@ -1,26 +1,3 @@
-function RoutePath(path, templateUrl, controller, menuTitle, role = null) {
-    if (path[0] !== '/')
-        path = "/" + path;
-    this.path = path;
-    this.templateUrl = templateUrl;
-    this.controller = controller;
-    this.menuTitle = menuTitle;
-    this.role = role || Role_Authorized;
-    // authorized, all, manager, admin
-    this.controllerAs = typeof controller === "function" ? "vm" : null;
-}
-function RoutePath_v2(routeOptions) {
-    if (routeOptions.path[0] !== '/')
-        routeOptions.path = "/" + routeOptions.path;
-    this.path = routeOptions.path;
-    this.templateUrl = routeOptions.templateUrl;
-    this.templateHtml = routeOptions.templateHtml;
-    this.controller = routeOptions.controller;
-    this.menuTitle = routeOptions.menuTitle;
-    this.role = routeOptions.role || Role_Authorized;
-    // authorized, all, manager, admin
-    this.controllerAs = typeof routeOptions.controller === "function" ? "vm" : null;
-}
 var Ally;
 (function (Ally) {
     class RouteOptions_v3 {
@@ -51,22 +28,29 @@ var Ally;
     }
     Ally.PeriodicPaymentFrequency = PeriodicPaymentFrequency;
 })(Ally || (Ally = {}));
+// eslint-disable-next-line no-var
 var Role_Authorized = "authorized";
+// eslint-disable-next-line no-var
 var Role_All = "all";
+// eslint-disable-next-line no-var
 var Role_Manager = "manager";
+// eslint-disable-next-line no-var
 var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
+// eslint-disable-next-line no-var
 var PeriodicPaymentFrequencies = [
     { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
     { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
     { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
     { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
 ];
-function FrequencyIdToInfo(frequencyId) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function PaymentFrequencyIdToInfo(frequencyId) {
     if (isNaN(frequencyId) || frequencyId < 50)
         return null;
     return PeriodicPaymentFrequencies[frequencyId - 50];
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GetLongPayPeriodNames(intervalName) {
     if (intervalName === "month") {
         return ["January", "February", "March", "April", "May", "June",
@@ -80,6 +64,7 @@ function GetLongPayPeriodNames(intervalName) {
     }
     return null;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GetShortPayPeriodNames(intervalName) {
     if (intervalName === "month") {
         return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -311,6 +296,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
     new Ally.RoutePath_v3({ path: "PtaSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All })
 ];
+// eslint-disable-next-line no-var
 var AppConfig = null;
 let lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")

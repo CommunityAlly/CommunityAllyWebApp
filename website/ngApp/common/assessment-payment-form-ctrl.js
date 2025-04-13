@@ -1,3 +1,4 @@
+//declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 var Ally;
 (function (Ally) {
     /**
@@ -413,7 +414,7 @@ var Ally;
             if (!curPeriod)
                 return "";
             let paymentText = "";
-            const frequencyInfo = FrequencyIdToInfo(assessmentFrequency);
+            const frequencyInfo = PaymentFrequencyIdToInfo(assessmentFrequency);
             const periodNames = GetLongPayPeriodNames(frequencyInfo.intervalName);
             if (periodNames)
                 paymentText = periodNames[curPeriod.period - 1];
@@ -791,7 +792,7 @@ var Ally;
                         });
                     },
                     onExit: (err, metadata) => {
-                        //console.log( "update onExit.err", err, metadata );
+                        console.log("StripeLink update onExit.err", err, metadata);
                         // Need to wrap this in a $scope.using because th Plaid.create call is invoked by vanilla JS, not AngularJS
                         this.$scope.$apply(() => {
                             this.isLoading_Payment = false;
@@ -1151,8 +1152,6 @@ var Ally;
     class StripeAchStartResult {
     }
     Ally.StripeAchStartResult = StripeAchStartResult;
-    class CheckoutRequest {
-    }
     class DwollaAccountStatusInfo {
     }
     class MakePaymentRequest {

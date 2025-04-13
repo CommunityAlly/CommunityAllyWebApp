@@ -1,4 +1,6 @@
-﻿declare var tinymce: any;
+﻿// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-var
+declare var tinymce: any;
+
 
 namespace Ally
 {
@@ -44,7 +46,7 @@ namespace Ally
 
                 if( this.pageContentTinyMce )
                 {
-                    this.pageContentTinyMce.on( "change", ( e: any ) =>
+                    this.pageContentTinyMce.on( "change", () =>
                     {
                         // Need to wrap this in a $scope.using because this event is invoked by vanilla JS, not Angular
                         this.$scope.$apply( () =>
@@ -261,7 +263,7 @@ namespace Ally
             this.isLoading = true;
 
             this.$http.put( putUri, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
 

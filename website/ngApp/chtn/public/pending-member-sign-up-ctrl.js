@@ -35,7 +35,7 @@ var Ally;
          */
         hookupAddressAutocomplete() {
             // If we know our group's position, let's tighten the auto-complete suggestion radius
-            var autocompleteOptions = undefined;
+            const autocompleteOptions = undefined;
             //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
             //{
             //    // Also mask phone numbers for US phones
@@ -50,12 +50,11 @@ var Ally;
             //        bounds: circle.getBounds()
             //    };
             //}
-            var addressInput = document.getElementById("member-home-address-text-box");
+            const addressInput = document.getElementById("member-home-address-text-box");
             this.addressAutocomplete = new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
-            var innerThis = this;
-            google.maps.event.addListener(this.addressAutocomplete, "place_changed", function () {
-                var place = innerThis.addressAutocomplete.getPlace();
-                innerThis.signUpInfo.streetAddress = place.formatted_address;
+            google.maps.event.addListener(this.addressAutocomplete, "place_changed", () => {
+                const place = this.addressAutocomplete.getPlace();
+                this.signUpInfo.streetAddress = place.formatted_address;
             });
         }
         submitInfo() {
@@ -66,7 +65,7 @@ var Ally;
             }
             this.isLoading = true;
             this.errorMessage = null;
-            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then((response) => {
+            this.$http.post("/api/PublicPendingUser", this.signUpInfo).then(() => {
                 this.isLoading = false;
                 this.showInputForm = false;
             }, (response) => {

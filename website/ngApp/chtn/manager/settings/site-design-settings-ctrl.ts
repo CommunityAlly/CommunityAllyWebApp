@@ -277,6 +277,7 @@ namespace Ally
                     },
                     fail: ( e: any, xhr: any ) =>
                     {
+                        console.log( "Failed to upload document", e, xhr );
                         //alert( "Failed to upload login image, please let support know if this continues: " + xhr.response().jqXHR.responseJSON.exceptionMessage );
                         //console.log( "Failed to upload document", xhr );
 

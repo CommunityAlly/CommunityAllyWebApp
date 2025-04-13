@@ -52,7 +52,7 @@ var Ally;
                             data.url = this.siteInfo.publicSiteInfo.baseApiUrl + "DocumentUpload/ProfileImage";
                         this.$scope.$apply(() => this.isLoading = true);
                         const xhr = data.submit();
-                        xhr.done((result) => {
+                        xhr.done(() => {
                             this.$scope.$apply(() => {
                                 // Reload the page to see the changes
                                 window.location.reload();

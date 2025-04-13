@@ -30,10 +30,6 @@ var Ally;
             let autocompleteOptions = undefined;
             if (this.siteInfo.privateSiteInfo.googleGpsPosition) {
                 const TwentyFiveMilesInMeters = 40234;
-                const latLon = {
-                    lat: 41.142248,
-                    lng: -73.633228
-                };
                 const circle = new google.maps.Circle({
                     center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
@@ -335,10 +331,9 @@ class MapCtrlMapMgr {
             });
             marker.markerIndex = markerIndex;
             google.maps.event.addListener(marker, 'dragend', function () {
-                const draggedMarker = this;
-                const gpsPos = draggedMarker.getPosition();
-                MapCtrlMapMgr.ngScope.$apply(function () {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(draggedMarker, gpsPos.lat(), gpsPos.lng());
+                const gpsPos = this.getPosition();
+                MapCtrlMapMgr.ngScope.$apply(() => {
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation(this, gpsPos.lat(), gpsPos.lng());
                 });
             });
             if (tempMarker.unitId) {

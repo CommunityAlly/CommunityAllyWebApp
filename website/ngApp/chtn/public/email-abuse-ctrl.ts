@@ -1,8 +1,4 @@
-﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../../Scripts/typings/angularjs/angular-route.d.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
     interface IEmailAbuseRouteParams extends ng.route.IRouteParamsService
     {

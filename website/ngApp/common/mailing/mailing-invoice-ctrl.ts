@@ -286,7 +286,7 @@ namespace Ally
 
         static getCurrentPayPeriod( assessmentFrequency: number )
         {
-            const payPeriodInfo = FrequencyIdToInfo( assessmentFrequency );
+            const payPeriodInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
             if( !payPeriodInfo )
                 return null;
 
@@ -315,7 +315,7 @@ namespace Ally
 
         static getCurrentPayPeriodLabel( assessmentFrequency: number ): string
         {
-            const payPeriodInfo = FrequencyIdToInfo( assessmentFrequency );
+            const payPeriodInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
             if( !payPeriodInfo )
                 return null;
 

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 declare var rrule: any;
 
 namespace Ally
@@ -863,7 +864,7 @@ namespace Ally
                 this.isLoadingCalendarEvents = true;
 
                 this.$http.post( "/api/CalendarEvent/ImportIcs", formData, postHeaders ).then(
-                    ( response: ng.IHttpPromiseCallbackArg<PreviewIcsResult> ) =>
+                    () => // response: ng.IHttpPromiseCallbackArg<PreviewIcsResult> ) =>
                     {
                         this.isLoadingCalendarEvents = false;
                         clearFile();
@@ -919,8 +920,7 @@ namespace Ally
             if( !this.editEvent || this.editEvent.repeatType === null )
                 return null;
 
-            let rruleRepeatType: number;
-            rruleRepeatType = this.editEvent.repeatType;
+            const rruleRepeatType: number = this.editEvent.repeatType;
             //if( this.editEvent.repeatType === "daily" )
             //    rruleRepeatType = rrule.RRule.DAILY; // 3
             //else if( this.editEvent.repeatType === "weekly" )

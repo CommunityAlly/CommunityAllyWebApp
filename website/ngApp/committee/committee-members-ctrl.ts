@@ -70,7 +70,7 @@
             const putUri = `/api/Committee/${this.committee.committeeId}/SetMemberIsContact/${member.userId}/${isContactMember}`;
 
             this.$http.put( putUri, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () => // response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isLoading = false;
 
@@ -111,7 +111,7 @@
 
                     this.members = _.sortBy( this.members, m => ( m.fullName || "" ).toLowerCase() );
 
-                    var isMember = ( u: FellowChtnResident ) => _.some( this.members, ( m: FellowChtnResident ) => m.userId === u.userId );
+                    const isMember = ( u: FellowChtnResident ) => _.some( this.members, ( m: FellowChtnResident ) => m.userId === u.userId );
 
                     this.filteredGroupMembers = _.filter( this.allGroupMembers, m => !isMember( m ) );
                     this.filteredGroupMembers = _.sortBy( this.filteredGroupMembers, m => ( m.fullName || "" ).toLowerCase() );
@@ -125,6 +125,7 @@
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
+                    console.log( "Failed to retrieve committee members", response.data );
                     alert( "Failed to retrieve committee members, please refresh the page to try again" );
                 }
             );
@@ -142,7 +143,7 @@
             this.isLoading = true;
 
             this.$http.put( `/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.getCommitteeMembers();
@@ -166,16 +167,19 @@
 
             this.isLoading = true;
 
-            this.$http.put( `/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.getCommitteeMembers();
+            this.$http.put( `/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.getCommitteeMembers();
 
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                alert( "Failed to remove member, please refresh the page to try again: " + response.data.exceptionMessage );
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to remove member, please refresh the page to try again: " + response.data.exceptionMessage );
+                }
+            );
         }
     }
 }

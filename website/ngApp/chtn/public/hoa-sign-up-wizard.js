@@ -1,4 +1,3 @@
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
     class HoaSignerUpInfo {
@@ -260,7 +259,8 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.get("/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes)).then((httpResponse) => {
+            const getUri = "/api/PublicEmail/SignUpForHoaAllyAlert?email=" + encodeURIComponent(this.hoaAlertEmail) + "&numHomes=" + encodeURIComponent(this.hoaAlertNumHomes);
+            this.$http.get(getUri).then(() => {
                 this.isLoading = false;
                 this.didSignUpForHoaAlert = true;
             }, (httpResponse) => {

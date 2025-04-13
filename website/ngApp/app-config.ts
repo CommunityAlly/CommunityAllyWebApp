@@ -1,34 +1,5 @@
-﻿declare var OverrideOriginalUrl: string;
-
-
-function RoutePath( path: string, templateUrl: string, controller: any, menuTitle: string, role: string = null )
-{
-    if( path[0] !== '/' )
-        path = "/" + path;
-
-    this.path = path;
-    this.templateUrl = templateUrl;
-    this.controller = controller;
-    this.menuTitle = menuTitle;
-    this.role = role || Role_Authorized;
-    // authorized, all, manager, admin
-    this.controllerAs = typeof controller === "function" ? "vm" : null;
-}
-
-function RoutePath_v2( routeOptions: any )
-{
-    if( routeOptions.path[0] !== '/' )
-        routeOptions.path = "/" + routeOptions.path;
-
-    this.path = routeOptions.path;
-    this.templateUrl = routeOptions.templateUrl;
-    this.templateHtml = routeOptions.templateHtml;
-    this.controller = routeOptions.controller;
-    this.menuTitle = routeOptions.menuTitle;
-    this.role = routeOptions.role || Role_Authorized;
-    // authorized, all, manager, admin
-    this.controllerAs = typeof routeOptions.controller === "function" ? "vm" : null;
-}
+﻿// eslint-disable-next-line no-var
+declare var OverrideOriginalUrl: string;
 
 
 namespace Ally
@@ -106,13 +77,18 @@ namespace Ally
 }
 
 
+// eslint-disable-next-line no-var
 var Role_Authorized = "authorized";
+// eslint-disable-next-line no-var
 var Role_All = "all";
+// eslint-disable-next-line no-var
 var Role_Manager = "manager";
+// eslint-disable-next-line no-var
 var Role_Admin = "admin";
 
 
 // The names need to match the PeriodicPaymentFrequency enum
+// eslint-disable-next-line no-var
 var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[] = [
     { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
     { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
@@ -120,7 +96,9 @@ var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[] = [
     { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
 ];
 
-function FrequencyIdToInfo( frequencyId: number )
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function PaymentFrequencyIdToInfo( frequencyId: number )
 {
     if( isNaN( frequencyId ) || frequencyId < 50 )
         return null;
@@ -129,6 +107,7 @@ function FrequencyIdToInfo( frequencyId: number )
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GetLongPayPeriodNames( intervalName: string )
 {
     if( intervalName === "month" )
@@ -149,6 +128,7 @@ function GetLongPayPeriodNames( intervalName: string )
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GetShortPayPeriodNames( intervalName: string )
 {
     if( intervalName === "month" )
@@ -428,6 +408,7 @@ PtaAppConfig.menu = [
 ];
 
 
+// eslint-disable-next-line no-var
 var AppConfig:Ally.AppConfigInfo = null;
 
 let lowerDomain = document.domain.toLowerCase();

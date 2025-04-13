@@ -1,4 +1,3 @@
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
     class CondoSignUpWizardController {

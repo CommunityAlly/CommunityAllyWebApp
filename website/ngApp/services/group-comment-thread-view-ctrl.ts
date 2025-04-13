@@ -1,20 +1,5 @@
 ﻿namespace Ally
 {
-    class ReplyComment
-    {
-        replyToCommentId: number;
-        commentText: string;
-    }
-
-
-    class CommentsState
-    {
-        comments: Comment[];
-        lastReadDateUtc: Date;
-        digestFrequency: string;
-    }
-
-
     /**
      * The controller for the committee home page
      */
@@ -428,6 +413,7 @@
         }
 
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         closeModal( isFromOverlayClick: boolean )
         {
             if( this.onClosed )
@@ -551,6 +537,14 @@
                 }
             );
         }
+    }
+
+
+    class CommentsState
+    {
+        comments: Comment[];
+        lastReadDateUtc: Date;
+        digestFrequency: string;
     }
 }
 

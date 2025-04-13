@@ -32,7 +32,7 @@ var Ally;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
             // Just a little delay to help the home page layout faster
             this.$timeout(() => this.refreshCommentThreads(), 5);
-            this.$scope.$on("refreshBBoardPosts", (event, data) => this.refreshCommentThreads());
+            this.$scope.$on("refreshBBoardPosts", () => this.refreshCommentThreads());
             this.$scope.$on("refreshSingleBBoardPost", (event, commentThreadId) => this.refreshSingleCommentThread(commentThreadId));
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
             if (!this.canCreateThreads) {
@@ -123,7 +123,7 @@ var Ally;
          */
         refreshSingleCommentThread(commentThreadId) {
             const commentThread = this.commentThreads.find(ct => ct.commentThreadId === commentThreadId);
-            let getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
+            const getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
             commentThread.isLoading = true;
             return this.$http.get(getUri).then((response) => {
                 commentThread.isLoading = false;
@@ -243,7 +243,7 @@ var Ally;
             if (this.committeeId)
                 newThreadFormData.append("committeeId", this.committeeId.toString());
             // Combine the event date and time
-            var eventDateUtcString = null;
+            let eventDateUtcString = null;
             if (this.editPostItem.postType && this.editPostDateOnly && this.editPostTimeOnly && typeof (this.editPostTimeOnly) === "string" && this.editPostTimeOnly.length > 1) {
                 const dateTimeString = moment(this.editPostDateOnly).format(Ally.LogbookController.DateFormat) + " " + this.editPostTimeOnly;
                 eventDateUtcString = moment(dateTimeString, Ally.LogbookController.DateFormat + " " + Ally.LogbookController.TimeFormat).utc().toISOString(); // .toDate();
@@ -279,6 +279,7 @@ var Ally;
                 alert("Failed to create post: " + response.data.exceptionMessage);
             });
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         addComment(curThread, parentComment) {
             const newCommentText = this.newBodyMceEditor ? this.newBodyMceEditor.getContent() : curThread.newRootCommentText;
             if (!newCommentText) {
@@ -317,6 +318,7 @@ var Ally;
             else
                 curThread.attachmentPreviewUrl = null;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         openAttachmentFilePicker(curThread, parentComment) {
             const fileElemId = "file-attacher-root-" + curThread.commentThreadId;
             document.getElementById(fileElemId).click();

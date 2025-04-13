@@ -112,30 +112,6 @@ var Ally;
                 alert("Failed to save: " + response.data.exceptionMessage);
             });
         }
-        /**
-         * Occurs when the user clicks a new background image
-         */
-        onImageClick(bgImage) {
-            this.settings.bgImageFileName = bgImage;
-            //SettingsJS._defaultBG = bgImage;
-            this.$http.put("/api/Settings/NOTUSED", { BGImageFileName: this.settings.bgImageFileName }).then(() => {
-                $(".test-bg-image").removeClass("test-bg-image-selected");
-                //$( "img[src='" + $rootScope.bgImagePath + bgImage + "']" ).addClass( "test-bg-image-selected" );
-                this.isLoading = false;
-            }, (response) => {
-                this.isLoading = false;
-                alert("Failed to save: " + response.data);
-            });
-        }
-        onImageHoverOver(bgImage) {
-            //$( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + bgImage + ")" );
-        }
-        onImageHoverOut() {
-            //if( typeof ( this.settings.bgImageFileName ) === "string" && this.settings.bgImageFileName.length > 0 )
-            //    $( document.documentElement ).css( "background-image", "url(" + $rootScope.bgImagePath + this.settings.bgImageFileName + ")" );
-            //else
-            //    $( document.documentElement ).css( "background-image", this.defaultBGImage );
-        }
         onQaDeleteSite() {
             this.$http.get("/api/QA/DeleteThisAssociation").then(function () {
                 location.reload();

@@ -27,7 +27,7 @@ var Ally;
         */
         confirmChangeId() {
             this.isLoading = true;
-            this.$http.put("/api/MyProfile/ConfirmEmailChange?emailChangeId=" + this.$routeParams.emailChangeId, null).then((httpResponse) => {
+            this.$http.put("/api/MyProfile/ConfirmEmailChange?emailChangeId=" + this.$routeParams.emailChangeId, null).then(() => {
                 this.isLoading = false;
                 this.confirmationResultMessage = "Email successfully updated.";
                 this.isError = false;

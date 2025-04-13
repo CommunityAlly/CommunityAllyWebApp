@@ -1,15 +1,5 @@
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
-    class TempNeighborhoodSignUpInfo {
-        constructor() {
-            this.fullName = "";
-            this.email = "";
-            this.address = "";
-            this.neighborhoodName = "";
-            this.notes = "";
-        }
-    }
     /**
      * The controller for the HOA Ally sign-up page
      */
@@ -221,6 +211,15 @@ var Ally;
     }
     NeighborhoodSignUpWizardController.$inject = ["$scope", "$http", "$timeout", "WizardHandler"];
     Ally.NeighborhoodSignUpWizardController = NeighborhoodSignUpWizardController;
+    class TempNeighborhoodSignUpInfo {
+        constructor() {
+            this.fullName = "";
+            this.email = "";
+            this.address = "";
+            this.neighborhoodName = "";
+            this.notes = "";
+        }
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("neighborhoodSignUpWizard", {
     templateUrl: "/ngApp/chtn/public/neighborhood-sign-up-wizard.html",

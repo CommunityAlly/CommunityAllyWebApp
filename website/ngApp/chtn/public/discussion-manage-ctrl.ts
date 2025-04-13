@@ -1,7 +1,4 @@
-﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
     interface IDiscussionManageRouteParams extends ng.route.IRouteParamsService
     {
@@ -52,21 +49,23 @@ namespace Ally
         */
         loadDiscussion()
         {
-            var idVal = decodeURIComponent( this.$routeParams.idValue );
+            const idVal = decodeURIComponent( this.$routeParams.idValue );
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/Discussion/" + idVal ).then(( httpResponse: ng.IHttpPromiseCallbackArg<Ally.DiscussionThread> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.discussion = httpResponse.data;
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.errorMessage = "Failed to find the discussion details. Please contact support to alert them to the issue.";
-            } );
+            this.$http.get( "/Discussion/" + idVal ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.DiscussionThread> ) =>
+                {
+                    this.isLoading = false;
+                    this.discussion = httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.errorMessage = "Failed to find the discussion details. Please contact support to alert them to the issue.";
+                    console.log( "Failed to load discussion", httpResponse.data );
+                }
+            );
         }
 
 
@@ -75,24 +74,26 @@ namespace Ally
          */
         unsubscribeUser()
         {
-            var idVal = decodeURIComponent( this.$routeParams.idValue );
+            const idVal = decodeURIComponent( this.$routeParams.idValue );
 
             this.isLoading = true;
             this.activeView = "loading";
 
-            var innerThis = this;
-            this.$http.put( "/api/Discussion/Unsubscribe/" + idVal, null ).then(( httpResponse: ng.IHttpPromiseCallbackArg<DiscussionThread> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.activeView = "unsubscribed";
-                innerThis.discussion = httpResponse.data;
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.activeView = "error";
-                innerThis.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
-            } );
+            this.$http.put( "/api/Discussion/Unsubscribe/" + idVal, null ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<DiscussionThread> ) =>
+                {
+                    this.isLoading = false;
+                    this.activeView = "unsubscribed";
+                    this.discussion = httpResponse.data;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.activeView = "error";
+                    this.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                    console.log( "Failed to unsubscribe", httpResponse.data );
+                }
+            );
         }
 
 
@@ -101,23 +102,25 @@ namespace Ally
          */
         resubscribeUser()
         {
-            var idVal = decodeURIComponent( this.$routeParams.idValue );
+            const idVal = decodeURIComponent( this.$routeParams.idValue );
 
             this.isLoading = true;
             this.activeView = "loading";
 
-            var innerThis = this;
-            this.$http.put( "/api/Discussion/Resubscribe/" + idVal, null ).then(( httpResponse: ng.IHttpPromiseCallbackArg<DiscussionThread> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.activeView = "resubscribed";
-
-            }, ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                innerThis.isLoading = false;
-                innerThis.activeView = "error";
-                innerThis.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
-            } );
+            this.$http.put( "/api/Discussion/Resubscribe/" + idVal, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.activeView = "resubscribed";
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
+                    this.activeView = "error";
+                    this.errorMessage = "Failed to resubscribe you to the discussion due to a server error.";
+                    console.log( "Failed to resubscribe", httpResponse.data );
+                }
+            );
         }
     }
 }

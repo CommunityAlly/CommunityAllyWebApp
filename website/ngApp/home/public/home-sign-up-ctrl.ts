@@ -1,7 +1,4 @@
-﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-/// <reference path="../../../Scripts/typings/googlemaps/google.maps.d.ts" />
-
-declare class CA
+﻿declare class CA
 {
     static angularApp: ng.IModule;
     static clearTemplateCacheIfNeeded( templateCache: ng.ITemplateCacheService ): void;
@@ -108,7 +105,6 @@ namespace Ally
             } );
             
             // The controller is ready, but let's wait a bit for the page to be ready
-            var innerThis = this;
             setTimeout(() => { this.initMap(); }, 300 );            
         }
 
@@ -123,7 +119,7 @@ namespace Ally
 
             this.hasAlreadyCheckedForHomeInfo = true;
 
-            var getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent( this.signUpInfo.streetAddress );
+            const getUri = "/api/HomeSignUp/HomeInfo?streetAddress=" + encodeURIComponent( this.signUpInfo.streetAddress );
 
             this.$http.get( getUri, { cache: true } ).then( (response:ng.IHttpPromiseCallbackArg<HomeInfo>) =>
             {
@@ -169,7 +165,7 @@ namespace Ally
          */
         initMap()
         {
-            var mapDiv = document.getElementById( "address-map" );
+            const mapDiv = document.getElementById( "address-map" );
 
             this.map = new google.maps.Map( mapDiv, {
                 center: { lat: 41.869638, lng: -87.657423 },
@@ -183,33 +179,32 @@ namespace Ally
                 position: null
             });
 
-            var addressInput = document.getElementById( "home-address-text-box" ) as HTMLInputElement;
+            const addressInput = document.getElementById( "home-address-text-box" ) as HTMLInputElement;
             this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput );
             this.addressAutocomplete.bindTo( 'bounds', this.map );
 
             // Occurs when the user selects a Google suggested address
-            var innerThis = this;
-            this.addressAutocomplete.addListener( 'place_changed', function()
+            this.addressAutocomplete.addListener( 'place_changed', () =>
             {
                 //innerThis.setPlaceWasSelected();
 
                 //infowindow.close();
-                innerThis.mapMarker.setVisible( false );
-                var place = innerThis.addressAutocomplete.getPlace();
+                this.mapMarker.setVisible( false );
+                const place = this.addressAutocomplete.getPlace();
                 
-                var readableAddress = place.formatted_address;
+                let readableAddress = place.formatted_address;
 
                 // Remove the trailing country if it's USA
                 if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
                     readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                innerThis.signUpInfo.streetAddress = readableAddress;
-                innerThis.selectedSplitAddress = Ally.MapUtil.parseAddressComponents( place.address_components );
+                this.signUpInfo.streetAddress = readableAddress;
+                this.selectedSplitAddress = Ally.MapUtil.parseAddressComponents( place.address_components );
 
                 //innerThis.prepopulateHomeInfo();
 
                 if( place.geometry )
-                    innerThis.centerMap( place.geometry as google.maps.GeocoderGeometry );
+                    this.centerMap( place.geometry as google.maps.GeocoderGeometry );
 
                 $( "#association-name-text-box" ).focus();
             });
@@ -237,41 +232,43 @@ namespace Ally
 
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.post( "/api/HomeSignUp", this.signUpInfo ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
-            {
-                innerThis.isLoading = false;
-
-                let signUpResult = httpResponse.data;
-
-                // If we successfully created the site
-                if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
+            this.$http.post( "/api/HomeSignUp", this.signUpInfo ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
+                    this.isLoading = false;
 
-                    if( signUpResult.stepIndex >= 0 )
-                        innerThis.WizardHandler.wizard().goTo( signUpResult.stepIndex );
-                }
-                // Or if the user created an active signUpResult
-                else if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                    const signUpResult = httpResponse.data;
+
+                    // If we successfully created the site
+                    if( !HtmlUtil.isNullOrWhitespace( signUpResult.errorMessage ) )
+                    {
+                        alert( "Failed to complete sign-up: " + signUpResult.errorMessage );
+
+                        if( signUpResult.stepIndex >= 0 )
+                            this.WizardHandler.wizard().goTo( signUpResult.stepIndex );
+                    }
+                    // Or if the user created an active signUpResult
+                    else if( !HtmlUtil.isNullOrWhitespace( signUpResult.createUrl ) )
+                    {
+                        window.location.href = signUpResult.createUrl;
+                    }
+                    // Otherwise the user needs to confirm sign-up via email
+                    else
+                    {
+                        this.hideWizard = true;
+
+                        this.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
+                    }
+
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    window.location.href = signUpResult.createUrl;
+                    this.isLoading = false;
+
+                    const errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    alert( "Failed to complete sign-up: " + errorMessage );
                 }
-                // Otherwise the user needs to confirm sign-up via email
-                else
-                {
-                    innerThis.hideWizard = true;
-
-                    innerThis.resultMessage = "Great work! We just sent you an email with instructions on how access your new site.";
-                }
-
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<any> )
-            {
-                innerThis.isLoading = false;
-
-                var errorMessage = !!httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
-                alert( "Failed to complete sign-up: " + errorMessage );
-            });
+            );
         }
 
 
@@ -280,28 +277,29 @@ namespace Ally
          */
         onHomeAddressChanged()
         {
-            var innerThis = this;
-            HtmlUtil.geocodeAddress( this.signUpInfo.streetAddress, function( results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus )
-            {
-                innerThis.$scope.$apply( function()
+            HtmlUtil.geocodeAddress( this.signUpInfo.streetAddress,
+                ( results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus ) =>
                 {
-                    if( status != google.maps.GeocoderStatus.OK )
+                    this.$scope.$apply( function()
                     {
-                        //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
-                        return;
-                    }
+                        if( status != google.maps.GeocoderStatus.OK )
+                        {
+                            //$( "#GeocodeResultPanel" ).text( "Failed to find address for the following reason: " + status );
+                            return;
+                        }
 
-                    var readableAddress = results[0].formatted_address;
+                        let readableAddress = results[0].formatted_address;
 
-                    // Remove the trailing country if it's USA
-                    if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
-                        readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
+                        // Remove the trailing country if it's USA
+                        if( readableAddress.indexOf( ", USA" ) === readableAddress.length - ", USA".length )
+                            readableAddress = readableAddress.substring( 0, readableAddress.length - ", USA".length );
 
-                    innerThis.signUpInfo.streetAddress = readableAddress;
+                        this.signUpInfo.streetAddress = readableAddress;
 
-                    innerThis.centerMap( results[0].geometry );
-                });
-            });
+                        this.centerMap( results[0].geometry );
+                    } );
+                }
+            );
         }
 
 
@@ -336,25 +334,27 @@ namespace Ally
 
             this.isLoadingHomeInfo = true;
 
-            let getUri = `/api/PropertyResearch/HomeInfo?street=${encodeURIComponent( this.selectedSplitAddress.street )}&city=${encodeURIComponent( this.selectedSplitAddress.city )}&state=${this.selectedSplitAddress.state}&zip=${this.selectedSplitAddress.zip}`;
+            const getUri = `/api/PropertyResearch/HomeInfo?street=${encodeURIComponent( this.selectedSplitAddress.street )}&city=${encodeURIComponent( this.selectedSplitAddress.city )}&state=${this.selectedSplitAddress.state}&zip=${this.selectedSplitAddress.zip}`;
 
-            var innerThis = this;
-            this.$http.get( getUri ).then(( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                innerThis.isLoadingHomeInfo = false;
-
-                let homeInfo = httpResponse.data;
-                if( homeInfo )
+            this.$http.get( getUri ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
-                    innerThis.didLoadHomeInfo = true;
-                    innerThis.signUpInfo.homeInfo = homeInfo;
+                    this.isLoadingHomeInfo = false;
 
-                    innerThis.processLotSizeHint( homeInfo.lotSquareFeet );
+                    const homeInfo = httpResponse.data;
+                    if( homeInfo )
+                    {
+                        this.didLoadHomeInfo = true;
+                        this.signUpInfo.homeInfo = homeInfo;
+
+                        this.processLotSizeHint( homeInfo.lotSquareFeet );
+                    }
+                },
+                () =>
+                {
+                    this.isLoadingHomeInfo = false;
                 }
-            }, () =>
-            {
-                innerThis.isLoadingHomeInfo = false;
-            });
+            );
         }
     }
 }

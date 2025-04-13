@@ -1,4 +1,5 @@
-﻿namespace Ally
+﻿// eslint-disable-next-line @typescript-eslint/no-unused-vars
+namespace Ally
 {
     /**
      * Represents a column in a CSV spreadsheet

@@ -1,4 +1,6 @@
-﻿declare var appVer: number;
+﻿// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-var
+declare var appVer: number;
+// eslint-disable-next-line no-var
 declare var Stripe: any;
 
 

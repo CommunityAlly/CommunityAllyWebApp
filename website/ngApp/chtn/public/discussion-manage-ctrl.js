@@ -1,4 +1,3 @@
-/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
 var Ally;
 (function (Ally) {
     class DiscussionThread {
@@ -27,50 +26,50 @@ var Ally;
         * Load the discussion details
         */
         loadDiscussion() {
-            var idVal = decodeURIComponent(this.$routeParams.idValue);
+            const idVal = decodeURIComponent(this.$routeParams.idValue);
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/Discussion/" + idVal).then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.discussion = httpResponse.data;
+                this.isLoading = false;
+                this.discussion = httpResponse.data;
             }, (httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.errorMessage = "Failed to find the discussion details. Please contact support to alert them to the issue.";
+                this.isLoading = false;
+                this.errorMessage = "Failed to find the discussion details. Please contact support to alert them to the issue.";
+                console.log("Failed to load discussion", httpResponse.data);
             });
         }
         /**
          * Unsubscribe the user from the discussion
          */
         unsubscribeUser() {
-            var idVal = decodeURIComponent(this.$routeParams.idValue);
+            const idVal = decodeURIComponent(this.$routeParams.idValue);
             this.isLoading = true;
             this.activeView = "loading";
-            var innerThis = this;
             this.$http.put("/api/Discussion/Unsubscribe/" + idVal, null).then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "unsubscribed";
-                innerThis.discussion = httpResponse.data;
+                this.isLoading = false;
+                this.activeView = "unsubscribed";
+                this.discussion = httpResponse.data;
             }, (httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "error";
-                innerThis.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                this.isLoading = false;
+                this.activeView = "error";
+                this.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                console.log("Failed to unsubscribe", httpResponse.data);
             });
         }
         /**
          * Resubscribe the user to a discussion
          */
         resubscribeUser() {
-            var idVal = decodeURIComponent(this.$routeParams.idValue);
+            const idVal = decodeURIComponent(this.$routeParams.idValue);
             this.isLoading = true;
             this.activeView = "loading";
-            var innerThis = this;
-            this.$http.put("/api/Discussion/Resubscribe/" + idVal, null).then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "resubscribed";
+            this.$http.put("/api/Discussion/Resubscribe/" + idVal, null).then(() => {
+                this.isLoading = false;
+                this.activeView = "resubscribed";
             }, (httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.activeView = "error";
-                innerThis.errorMessage = "Failed to unsubscribe you from the discussion due to a server error.";
+                this.isLoading = false;
+                this.activeView = "error";
+                this.errorMessage = "Failed to resubscribe you to the discussion due to a server error.";
+                console.log("Failed to resubscribe", httpResponse.data);
             });
         }
     }

@@ -14,8 +14,8 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            var lowerAppName = (this.$routeParams.appName || "").toLowerCase();
-            var appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
+            const lowerAppName = (this.$routeParams.appName || "").toLowerCase();
+            const appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
             let domainName = null;
             for (let i = 0; i < appConfigs.length; ++i) {
                 if (appConfigs[i].appShortName.toLowerCase() === lowerAppName) {
@@ -25,8 +25,7 @@ var Ally;
             }
             if (!domainName)
                 domainName = "condoally.com";
-            domainName = "myhoaally.org";
-            var redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
+            const redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
             window.location.href = redirectUrl;
         }
     }

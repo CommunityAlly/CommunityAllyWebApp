@@ -1,4 +1,5 @@
-﻿declare var appVer: number; // Defined in index.html
+﻿// eslint-disable-next-line no-var
+declare var appVer: number; // Defined in index.html
 
 
 namespace Ally

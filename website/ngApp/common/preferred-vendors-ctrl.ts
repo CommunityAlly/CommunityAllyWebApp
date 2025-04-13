@@ -185,7 +185,7 @@
                 }
             ];
 
-            var csvDataString = Ally.createCsvString( this.allVendors, csvColumns );
+            const csvDataString = Ally.createCsvString( this.allVendors, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Vendors.csv" );
         }
@@ -195,7 +195,7 @@
         onTagFilterToggle( tagName: string )
         {
             // Add if the tag to our filter list if it's not there, remove it if it is
-            var tagCurrentIndex = this.filterTags.indexOf( tagName );
+            const tagCurrentIndex = this.filterTags.indexOf( tagName );
             if( tagCurrentIndex === -1 )
                 this.filterTags.push( tagName );
             else

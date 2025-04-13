@@ -32,25 +32,25 @@
 
         findCenter( polys: any[] )
         {
-            var currentCenter = {
+            const currentCenter = {
                 lat: 0,
                 lng: 0
             };
 
-            for( var polyIndex = 0; polyIndex < polys.length; ++polyIndex )
+            for( let polyIndex = 0; polyIndex < polys.length; ++polyIndex )
             {
-                var curPoly = polys[polyIndex];
+                const curPoly = polys[polyIndex];
                 if( !curPoly )
                     continue;
 
-                var polyCenter = {
+                const polyCenter = {
                     lat: 0,
                     lng: 0
                 };
 
-                for( var vertexIndex = 0; vertexIndex < curPoly.vertices.length; ++vertexIndex )
+                for( let vertexIndex = 0; vertexIndex < curPoly.vertices.length; ++vertexIndex )
                 {
-                    var vertex = curPoly.vertices[vertexIndex];
+                    const vertex = curPoly.vertices[vertexIndex];
                     polyCenter.lat += vertex.lat;
                     polyCenter.lng += vertex.lng;
                 }
@@ -75,23 +75,24 @@
 
             this.neighborhoodPolys = [];
 
-            var innerThis = this;
-            this.$http.get( "/api/Neighborhood/GetAll" ).then( ( httpResponse:ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                innerThis.isLoading = false;
+            this.$http.get( "/api/Neighborhood/GetAll" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                {
+                    this.isLoading = false;
 
-                innerThis.neighborhoods = httpResponse.data;
+                    this.neighborhoods = httpResponse.data;
 
-                innerThis.neighborhoodPolys = _.select( innerThis.neighborhoods, function( n ) { return n.Bounds; } );
+                    this.neighborhoodPolys = _.select( this.neighborhoods, function( n ) { return n.Bounds; } );
 
-                innerThis.mapCenter = innerThis.findCenter( this.neighborhoodPolys );
+                    this.mapCenter = this.findCenter( this.neighborhoodPolys );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
 
-            }, ( httpResponse:ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                innerThis.isLoading = false;
-
-                alert( "Failed to retrieve neighborhoods: " + httpResponse.data.exceptionMessage );
-            } );
+                    alert( "Failed to retrieve neighborhoods: " + httpResponse.data.exceptionMessage );
+                }
+            );
         };
     }
 }

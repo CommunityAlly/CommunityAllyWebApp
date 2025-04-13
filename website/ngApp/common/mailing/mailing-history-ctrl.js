@@ -129,7 +129,7 @@ var Ally;
                     enableVerticalScrollbar: 0,
                     enableColumnMenus: false,
                     minRowsToShow: 5,
-                    onRegisterApi: (gridApi) => {
+                    onRegisterApi: () => {
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }

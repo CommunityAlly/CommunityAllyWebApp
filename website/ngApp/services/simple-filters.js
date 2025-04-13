@@ -10,43 +10,45 @@ CA.angularApp.filter('tel', function () {
         if (!tel) {
             return '';
         }
-        var value = tel.toString().trim().replace(/^\+/, '');
-        if (value.match(/[^0-9]/)) {
+        const trimmedString = tel.toString().trim().replace(/^\+/, '');
+        if (trimmedString.match(/[^0-9]/)) {
             return tel;
         }
-        var country, city, number;
-        switch (value.length) {
+        let countryCode;
+        let city;
+        let phoneNumber;
+        switch (trimmedString.length) {
             case 7: // ####### -> ###-####
-                country = 1;
+                countryCode = "1";
                 city = "";
-                number = value;
+                phoneNumber = trimmedString;
                 break;
             case 10: // +1PPP####### -> C (PPP) ###-####
-                country = 1;
-                city = value.slice(0, 3);
-                number = value.slice(3);
+                countryCode = "1";
+                city = trimmedString.slice(0, 3);
+                phoneNumber = trimmedString.slice(3);
                 break;
             case 11: // +CPPP####### -> CCC (PP) ###-####
-                country = value[0];
-                city = value.slice(1, 4);
-                number = value.slice(4);
+                countryCode = trimmedString[0];
+                city = trimmedString.slice(1, 4);
+                phoneNumber = trimmedString.slice(4);
                 break;
             case 12: // +CCCPP####### -> CCC (PP) ###-####
-                country = value.slice(0, 3);
-                city = value.slice(3, 5);
-                number = value.slice(5);
+                countryCode = trimmedString.slice(0, 3);
+                city = trimmedString.slice(3, 5);
+                phoneNumber = trimmedString.slice(5);
                 break;
             default:
                 city = "";
                 return tel;
         }
         // Ignore USA
-        if (country === 1)
-            country = "";
-        number = number.slice(0, 3) + '-' + number.slice(3);
+        if (countryCode === "1")
+            countryCode = "";
+        phoneNumber = phoneNumber.slice(0, 3) + '-' + phoneNumber.slice(3);
         if (city.length > 0)
             city = "(" + city + ")";
-        return (country + " " + city + " " + number).trim();
+        return (countryCode + " " + city + " " + phoneNumber).trim();
     };
 });
 CA.angularApp.filter("filesize", function () {

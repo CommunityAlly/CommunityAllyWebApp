@@ -234,8 +234,7 @@ var Ally;
                 return "[N/A]";
             if (!this.shouldShowFullCatPathInGrid)
                 return catEntry.displayName;
-            let getFullPath;
-            getFullPath = (curEntry, curPath) => {
+            const getFullPath = (curEntry, curPath) => {
                 if (!curEntry.parentFinancialCategoryId)
                     return curPath;
                 const parentEntry = this.flatCategoryList.find(c => c.financialCategoryId === curEntry.parentFinancialCategoryId);

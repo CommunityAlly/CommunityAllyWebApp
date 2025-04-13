@@ -595,7 +595,8 @@ var Ally;
             const clearFile = () => { document.getElementById("ics-file-input").value = null; };
             const createEvents = () => {
                 this.isLoadingCalendarEvents = true;
-                this.$http.post("/api/CalendarEvent/ImportIcs", formData, postHeaders).then((response) => {
+                this.$http.post("/api/CalendarEvent/ImportIcs", formData, postHeaders).then(() => // response: ng.IHttpPromiseCallbackArg<PreviewIcsResult> ) =>
+                 {
                     this.isLoadingCalendarEvents = false;
                     clearFile();
                     this.onlyRefreshCalendarEvents = true;
@@ -629,8 +630,7 @@ var Ally;
         getRepeatRule() {
             if (!this.editEvent || this.editEvent.repeatType === null)
                 return null;
-            let rruleRepeatType;
-            rruleRepeatType = this.editEvent.repeatType;
+            const rruleRepeatType = this.editEvent.repeatType;
             //if( this.editEvent.repeatType === "daily" )
             //    rruleRepeatType = rrule.RRule.DAILY; // 3
             //else if( this.editEvent.repeatType === "weekly" )

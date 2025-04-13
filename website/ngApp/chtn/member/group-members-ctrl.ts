@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-var
 declare var ClipboardJS: any;
 
 
@@ -190,20 +191,20 @@ namespace Ally
         }
 
 
-        updateMemberFilter()
-        {
-            //TODO
-            const lowerFilter = ( this.memberSearchTerm || '').toLowerCase();
-            const filterSearchFiles = ( unitListing: UnitListing ) =>
-            {
-                if( ( unitListing.name || '' ).toLowerCase().indexOf( lowerFilter ) !== -1 )
-                    return true;
+        //updateMemberFilter()
+        //{
+        //    //TODO
+        //    const lowerFilter = ( this.memberSearchTerm || '').toLowerCase();
+        //    const filterSearchFiles = ( unitListing: UnitListing ) =>
+        //    {
+        //        if( ( unitListing.name || '' ).toLowerCase().indexOf( lowerFilter ) !== -1 )
+        //            return true;
 
-                return false;
-            };
+        //        return false;
+        //    };
 
-            //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
-        }
+        //    //this.searchFileList = _.filter( this.fullSearchFileList, filterSearchFiles );
+        //}
 
 
         loadGroupEmails()

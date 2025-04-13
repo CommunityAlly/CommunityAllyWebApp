@@ -44,19 +44,23 @@
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/HomeValue/ZillowInfo" ).then( ( response: ng.IHttpPromiseCallbackArg<HomeValueResponse> ) =>
-            {
-                this.isLoading = false;
-                this.shouldShowWidget = !!response.data && !!response.data.chartImageUri;
+            this.$http.get( "/api/HomeValue/ZillowInfo" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<HomeValueResponse> ) =>
+                {
+                    this.isLoading = false;
+                    this.shouldShowWidget = !!response.data && !!response.data.chartImageUri;
 
-                if( this.shouldShowWidget )
-                    this.valueInfo = response.data;
+                    if( this.shouldShowWidget )
+                        this.valueInfo = response.data;
 
-            }, ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                this.shouldShowWidget = false;
-            } );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    console.log( "Failed to get Zillow info", response.data );
+                    this.isLoading = false;
+                    this.shouldShowWidget = false;
+                }
+            );
         }
     }
 }

@@ -144,7 +144,7 @@
             const putUri = `/api/Ledger/FinancialCategory/UpdateName/${this.selectedCategory.financialCategoryId}?newName=${encodeURIComponent( this.editName )}`;
 
             this.$http.put( putUri, null ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.didMakeChanges = true;
@@ -215,7 +215,7 @@
                 deleteUri += "?reassignToCategoryId=" + this.deleteCategoryRessignTo.financialCategoryId;
 
             this.$http.delete( deleteUri ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<number> ) =>
+                () =>
                 {
                     this.isLoading = false;
                     this.didMakeChanges = true;

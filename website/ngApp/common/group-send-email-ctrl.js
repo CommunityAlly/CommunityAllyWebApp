@@ -1,12 +1,5 @@
 var Ally;
 (function (Ally) {
-    class SendEmailRecpientEntry {
-    }
-    class HomeEmailMessage {
-        constructor() {
-            this.recipientType = "board";
-        }
-    }
     /**
      * The controller for the widget that lets members send emails to the group
      */
@@ -170,6 +163,11 @@ var Ally;
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
     Ally.GroupSendEmailController = GroupSendEmailController;
+    class HomeEmailMessage {
+        constructor() {
+            this.recipientType = "board";
+        }
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("groupSendEmail", {
     bindings: {

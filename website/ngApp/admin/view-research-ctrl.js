@@ -20,11 +20,11 @@ var Ally;
             this.refreshCells();
         }
         addLine(map, minLat, minLon, maxLat, maxLon) {
-            var lineCoordinates = [
+            const lineCoordinates = [
                 { lat: minLat, lng: minLon },
                 { lat: maxLat, lng: maxLon }
             ];
-            var linePath = new google.maps.Polyline({
+            const linePath = new google.maps.Polyline({
                 path: lineCoordinates,
                 geodesic: false,
                 strokeColor: '#FF0000',
@@ -33,8 +33,9 @@ var Ally;
             });
             linePath.setMap(map);
         }
-        onBuildingSelected(building) {
-        }
+        //onBuildingSelected( building: any )
+        //{
+        //}
         onCellSelected(cell) {
             cell.gpsBounds.mapShapeObject.setOptions({ fillOpacity: 0.1 });
             if (this.selectedCell) {
@@ -49,10 +50,9 @@ var Ally;
         // Get the addresses that are missing bounding polys
         refreshCells() {
             this.isLoading = true;
-            var innerThis = this;
             this.$http.get("/api/ResearchMap").then((response) => {
-                innerThis.isLoading = false;
-                innerThis.cells = response.data;
+                this.isLoading = false;
+                this.cells = response.data;
                 //this.cellPolys = _.map( this.cells, function ( c )
                 //{
                 //    var result = c.gpsBounds;
@@ -63,10 +63,10 @@ var Ally;
                 //    };
                 //    return result;
                 //} );
-                innerThis.isLoading = true;
-                innerThis.$http.get("/api/ResearchMap/Buildings").then(function (httpResponse) {
-                    innerThis.isLoading = false;
-                    innerThis.buildings = httpResponse.data;
+                this.isLoading = true;
+                this.$http.get("/api/ResearchMap/Buildings").then((httpResponse) => {
+                    this.isLoading = false;
+                    this.buildings = httpResponse.data;
                     //this.cellPolys = _.map( this.buildings, function ( b )
                     //{
                     //    var result = b.footprintPolygon;
@@ -77,8 +77,8 @@ var Ally;
                     //    };
                     //    return result;
                     //} );
-                    innerThis.buildingPoints = _.map(innerThis.buildings, function (b) {
-                        var result = b.addressPos;
+                    this.buildingPoints = _.map(this.buildings, function (b) {
+                        const result = b.addressPos;
                         result.ownerBuilding = b;
                         result.onClick = function () {
                             //this.onBuildingSelected( result.ownerBuilding );
@@ -86,8 +86,8 @@ var Ally;
                         return result;
                     });
                 });
-            }, function (httpResponse) {
-                innerThis.isLoading = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
                 alert("Failed to retrieve cells: " + httpResponse.data.exceptionMessage);
             });
         }
@@ -103,8 +103,8 @@ var Ally;
                 this.selectedAddress.gpsBounds.vertices = [];
             // If the array is empty then create a default rectangle
             if (this.selectedAddress.gpsBounds.vertices.length == 0 && address.gpsPos) {
-                var southWest = new google.maps.LatLng(address.gpsPos.lat, address.gpsPos.lon);
-                var northEast = new google.maps.LatLng(address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001);
+                //const southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
+                //const northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
                 address.gpsBounds.vertices = [
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon },
                     { lat: address.gpsPos.lat + 0.001, lon: address.gpsPos.lon },

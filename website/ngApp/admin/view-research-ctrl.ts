@@ -40,12 +40,12 @@
 
         addLine( map: any, minLat: number, minLon: number, maxLat: number, maxLon: number )
         {
-            var lineCoordinates = [
+            const lineCoordinates = [
                 { lat: minLat, lng: minLon },
                 { lat: maxLat, lng: maxLon }
             ];
 
-            var linePath = new google.maps.Polyline( {
+            const linePath = new google.maps.Polyline( {
                 path: lineCoordinates,
                 geodesic: false,
                 strokeColor: '#FF0000',
@@ -56,9 +56,11 @@
             linePath.setMap( map );
         }
 
-        onBuildingSelected( building: any )
-        {
-        }
+
+        //onBuildingSelected( building: any )
+        //{
+        //}
+
 
         onCellSelected( cell: any )
         {
@@ -83,66 +85,69 @@
         {
             this.isLoading = true;
 
-            var innerThis = this;
-            this.$http.get( "/api/ResearchMap" ).then(( response: ng.IHttpPromiseCallbackArg<any[]> ) =>
-            {
-                innerThis.isLoading = false;
-
-                innerThis.cells = response.data;
-
-                //this.cellPolys = _.map( this.cells, function ( c )
-                //{
-                //    var result = c.gpsBounds;
-                //    result.ownerCell = c;
-
-                //    result.onClick = function ()
-                //    {
-                //        this.onCellSelected( result.ownerCell );
-                //    };
-
-                //    return result;
-                //} );
-
-                innerThis.isLoading = true;
-
-                innerThis.$http.get( "/api/ResearchMap/Buildings" ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<any[]> )
+            this.$http.get( "/api/ResearchMap" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<any[]> ) =>
                 {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
 
-                    innerThis.buildings = httpResponse.data;
+                    this.cells = response.data;
 
-                    //this.cellPolys = _.map( this.buildings, function ( b )
+                    //this.cellPolys = _.map( this.cells, function ( c )
                     //{
-                    //    var result = b.footprintPolygon;
-                    //    result.ownerBuilding = b;
+                    //    var result = c.gpsBounds;
+                    //    result.ownerCell = c;
 
                     //    result.onClick = function ()
                     //    {
-                    //        this.onBuildingSelected( result.ownerBuilding );
+                    //        this.onCellSelected( result.ownerCell );
                     //    };
 
                     //    return result;
                     //} );
 
-                    innerThis.buildingPoints = _.map( innerThis.buildings, function( b: any )
-                    {
-                        var result = b.addressPos;
-                        result.ownerBuilding = b;
+                    this.isLoading = true;
 
-                        result.onClick = function()
+                    this.$http.get( "/api/ResearchMap/Buildings" ).then(
+                        ( httpResponse: ng.IHttpPromiseCallbackArg<any[]> ) =>
                         {
-                            //this.onBuildingSelected( result.ownerBuilding );
-                        };
+                            this.isLoading = false;
 
-                        return result;
-                    } );
-                } );
+                            this.buildings = httpResponse.data;
 
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
+                            //this.cellPolys = _.map( this.buildings, function ( b )
+                            //{
+                            //    var result = b.footprintPolygon;
+                            //    result.ownerBuilding = b;
+
+                            //    result.onClick = function ()
+                            //    {
+                            //        this.onBuildingSelected( result.ownerBuilding );
+                            //    };
+
+                            //    return result;
+                            //} );
+
+                            this.buildingPoints = _.map( this.buildings, function( b: any )
+                            {
+                                const result = b.addressPos;
+                                result.ownerBuilding = b;
+
+                                result.onClick = function()
+                                {
+                                    //this.onBuildingSelected( result.ownerBuilding );
+                                };
+
+                                return result;
+                            } );
+                        }
+                    );
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
-                    innerThis.isLoading = false;
+                    this.isLoading = false;
                     alert( "Failed to retrieve cells: " + httpResponse.data.exceptionMessage );
-                } );
+                }
+            );
         }
 
 
@@ -163,8 +168,8 @@
             // If the array is empty then create a default rectangle
             if( this.selectedAddress.gpsBounds.vertices.length == 0 && address.gpsPos )
             {
-                var southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
-                var northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
+                //const southWest = new google.maps.LatLng( address.gpsPos.lat, address.gpsPos.lon );
+                //const northEast = new google.maps.LatLng( address.gpsPos.lat + 0.001, address.gpsPos.lon + 0.001 );
 
                 address.gpsBounds.vertices = [
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon },

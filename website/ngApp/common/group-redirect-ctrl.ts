@@ -28,9 +28,9 @@
         */
         $onInit()
         {
-            var lowerAppName = ( this.$routeParams.appName || "" ).toLowerCase();
+            const lowerAppName = ( this.$routeParams.appName || "" ).toLowerCase();
 
-            var appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
+            const appConfigs = [CondoAllyAppConfig, HomeAppConfig, HOAAppConfig, NeighborhoodAppConfig, BlockClubAppConfig];
 
             let domainName:string = null;
             for( let i = 0; i < appConfigs.length; ++i )
@@ -45,8 +45,7 @@
             if( !domainName )
                 domainName = "condoally.com";
 
-            domainName = "myhoaally.org";
-            var redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
+            const redirectUrl = `https://${this.$routeParams.shortName}.${domainName}/`;
 
             window.location.href = redirectUrl;
         }

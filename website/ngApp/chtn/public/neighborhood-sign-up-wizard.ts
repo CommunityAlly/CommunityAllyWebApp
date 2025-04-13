@@ -1,18 +1,5 @@
-﻿/// <reference path="../../../Scripts/typings/angularjs/angular.d.ts" />
-
-
-namespace Ally
+﻿namespace Ally
 {
-    class TempNeighborhoodSignUpInfo
-    {
-        fullName: string = "";
-        email: string = "";
-        address: string = "";
-        neighborhoodName: string = "";
-        notes: string = "";
-    }
-
-
     /**
      * The controller for the HOA Ally sign-up page
      */
@@ -325,6 +312,16 @@ namespace Ally
                 }
             );
         }
+    }
+
+
+    class TempNeighborhoodSignUpInfo
+    {
+        fullName: string = "";
+        email: string = "";
+        address: string = "";
+        neighborhoodName: string = "";
+        notes: string = "";
     }
 }
 

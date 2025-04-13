@@ -1,4 +1,5 @@
-﻿declare var paypal: any;
+﻿// eslint-disable-next-line no-var
+declare var paypal: any;
 
 
 namespace Ally
@@ -60,7 +61,7 @@ namespace Ally
                     paysFor: null
                 };
 
-            var MaxNumRecentPayments: number = 6;
+            const MaxNumRecentPayments = 6;
             this.recentPayments = [];// this.siteInfo.userInfo.recentPayments;
             if( this.recentPayments && this.recentPayments.length > 0 )
             {
@@ -158,22 +159,25 @@ namespace Ally
                         // The payment is complete!
 
                         // Tell the server about payment.id with memo
-                        var memoInfo = {
+                        const memoInfo = {
                             PayPalCheckoutId: payment.id,
                             Memo: this.paymentInfo.note
                         };
 
                         this.isLoading = true;
 
-                        this.$http.put( "/api/OnlinePayment/SetMemo", memoInfo ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
-                        {
-                            this.isLoading = false;
+                        this.$http.put( "/api/OnlinePayment/SetMemo", memoInfo ).then(
+                            () => //( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+                            {
+                                this.isLoading = false;
 
-                        }, ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
-                        {
-                            this.isLoading = false;
-                            alert( "Failed to save: " + httpResponse.data.exceptionMessage );
-                        } );
+                            },
+                            ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                            {
+                                this.isLoading = false;
+                                alert( "Failed to save: " + httpResponse.data.exceptionMessage );
+                            }
+                        );
                         
                         // You can now show a confirmation message to the customer
                     } );
@@ -181,6 +185,7 @@ namespace Ally
 
                 onCancel: ( data: any, actions: any ) =>
                 {
+                    console.log( "PayPal cancel", data, actions );
                     this.isLoading = false;
                     /* 
                      * Buyer canceled the payment 
@@ -189,6 +194,7 @@ namespace Ally
 
                 onError: ( err: any ) =>
                 {
+                    console.log( "PayPal error", err );
                     this.isLoading = false;
                     /* 
                      * An error occurred during the transaction 
@@ -230,30 +236,30 @@ namespace Ally
             if( payPeriods.constructor !== Array )
                 payPeriods = [<any>payPeriods];
 
-            var paymentText = "";
+            let paymentText = "";
 
-            var frequencyInfo = FrequencyIdToInfo( assessmentFrequency );
+            const frequencyInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
 
-            for( var periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
+            for( let periodIndex = 0; periodIndex < payPeriods.length; ++periodIndex )
             {
-                var curPeriod = payPeriods[periodIndex];
+                const curPeriod = payPeriods[periodIndex];
 
                 if( frequencyInfo.intervalName === "month" )
                 {
-                    var monthNames = ["January", "February", "March", "April", "May", "June",
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"];
 
                     paymentText = monthNames[curPeriod.period - 1];
                 }
                 else if( frequencyInfo.intervalName === "quarter" )
                 {
-                    var periodNames = ["Q1", "Q2", "Q3", "Q4"];
+                    const periodNames = ["Q1", "Q2", "Q3", "Q4"];
 
                     paymentText = periodNames[curPeriod.period - 1];
                 }
                 else if( frequencyInfo.intervalName === "half-year" )
                 {
-                    var periodNames = ["First Half", "Second Half"];
+                    const periodNames = ["First Half", "Second Half"];
 
                     paymentText = periodNames[curPeriod.period - 1];
                 }

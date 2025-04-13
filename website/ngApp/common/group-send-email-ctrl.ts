@@ -1,24 +1,5 @@
 ﻿namespace Ally
 {
-    class SendEmailRecpientEntry
-    {
-        recipientType: string;
-        displayName: string;
-        sortOrder: number;
-    }
-
-    class HomeEmailMessage
-    {
-        subject: string;
-        message: string;
-        recipientType: string = "board";
-        customRecipientShortName: string;
-        committeeId: number;
-        shouldSendAsBoard: boolean;
-        shouldSendAsCommitteeId: number;
-    }
-
-
     /**
      * The controller for the widget that lets members send emails to the group
      */
@@ -254,6 +235,18 @@
                 this.selectedSendAs = this.filteredSendAsOptions[0];
             }
         }
+    }
+
+
+    class HomeEmailMessage
+    {
+        subject: string;
+        message: string;
+        recipientType: string = "board";
+        customRecipientShortName: string;
+        committeeId: number;
+        shouldSendAsBoard: boolean;
+        shouldSendAsCommitteeId: number;
     }
 }
 

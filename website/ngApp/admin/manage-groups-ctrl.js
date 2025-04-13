@@ -122,7 +122,8 @@ var Ally;
                 return;
             }
             this.isLoading = true;
-            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then((response) => {
+            this.$http.put("/api/AdminHelper/ChangeShortName?oldShortName=" + this.changeShortNameData.old + "&newShortName=" + this.changeShortNameData.newShortName + "&appName=" + this.changeShortNameData.appName, null).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.changeShortNameResult = "Successfully changed";
             }, (response) => {
@@ -309,7 +310,8 @@ var Ally;
         }
         onAddAllyPayment() {
             this.isLoading = true;
-            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then((response) => {
+            this.$http.post("/api/AdminHelper/AddAllyPaymentEntry", this.newAllyPaymentEntry).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.newAllyPaymentEntry.amount = 0;
                 this.newAllyPaymentEntry.netAmount = null;
@@ -323,7 +325,8 @@ var Ally;
         updatePremiumCost() {
             this.isLoading = true;
             const postUri = `/api/AdminHelper/SetPremiumCost/${this.premiumUpdateGroupId}?cost=${this.premiumNewCost}`;
-            this.$http.put(postUri, null).then((response) => {
+            this.$http.put(postUri, null).then(() => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.premiumNewCost = 0;
                 alert("Succeeded");
@@ -339,7 +342,8 @@ var Ally;
             }
             this.isLoading = true;
             const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
-            this.$http.put(postUri, null).then((response) => {
+            this.$http.put(postUri, null).then(() => // response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 this.premiumNewExpiration = null;
                 alert("Succeeded");
@@ -398,7 +402,8 @@ var Ally;
         onAddChangeLogEntry() {
             this.isLoading = true;
             const postUri = `/api/AllyAppChangeLog/AddNewEntry`;
-            this.$http.post(postUri, this.newAllyAppChangeLogEntry).then((response) => {
+            this.$http.post(postUri, this.newAllyAppChangeLogEntry).then(() => // response: ng.IHttpPromiseCallbackArg<string> ) =>
+             {
                 this.isLoading = false;
                 this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
                 alert("Successfully added new entry");

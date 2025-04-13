@@ -42,7 +42,8 @@ var Ally;
                 return;
             this.isLoading = true;
             const putUri = `/api/Committee/${this.committee.committeeId}/SetMemberIsContact/${member.userId}/${isContactMember}`;
-            this.$http.put(putUri, null).then((response) => {
+            this.$http.put(putUri, null).then(() => // response: ng.IHttpPromiseCallbackArg<any> ) =>
+             {
                 this.isLoading = false;
                 member.isContactMember = isContactMember;
                 this.contactUserForAdd = null;
@@ -66,7 +67,7 @@ var Ally;
                 this.isLoading = false;
                 this.members = committeeMembers;
                 this.members = _.sortBy(this.members, m => (m.fullName || "").toLowerCase());
-                var isMember = (u) => _.some(this.members, (m) => m.userId === u.userId);
+                const isMember = (u) => _.some(this.members, (m) => m.userId === u.userId);
                 this.filteredGroupMembers = _.filter(this.allGroupMembers, m => !isMember(m));
                 this.filteredGroupMembers = _.sortBy(this.filteredGroupMembers, m => (m.fullName || "").toLowerCase());
                 this.contactUsers = _.filter(this.members, m => m.isContactMember);
@@ -75,6 +76,7 @@ var Ally;
                 this.canManage = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager || _.any(this.members, m => m.userId === this.siteInfo.userInfo.userId);
             }, (response) => {
                 this.isLoading = false;
+                console.log("Failed to retrieve committee members", response.data);
                 alert("Failed to retrieve committee members, please refresh the page to try again");
             });
         }
@@ -85,7 +87,7 @@ var Ally;
             if (!this.userForAdd)
                 return;
             this.isLoading = true;
-            this.$http.put(`/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null).then((response) => {
+            this.$http.put(`/api/Committee/${this.committee.committeeId}/AddMember?userId=${this.userForAdd.userId}`, null).then(() => {
                 this.isLoading = false;
                 this.getCommitteeMembers();
             }, (response) => {
@@ -100,7 +102,7 @@ var Ally;
             if (!confirm("Are you sure you want to remove this person from this committee?"))
                 return;
             this.isLoading = true;
-            this.$http.put(`/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null).then((response) => {
+            this.$http.put(`/api/Committee/${this.committee.committeeId}/RemoveMember?userId=${member.userId}`, null).then(() => {
                 this.isLoading = false;
                 this.getCommitteeMembers();
             }, (response) => {

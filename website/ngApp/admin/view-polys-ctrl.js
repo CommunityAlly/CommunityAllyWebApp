@@ -18,20 +18,20 @@ var Ally;
             this.refreshAddresses();
         }
         findCenter(polys) {
-            var currentCenter = {
+            const currentCenter = {
                 lat: 0,
                 lng: 0
             };
-            for (var polyIndex = 0; polyIndex < polys.length; ++polyIndex) {
-                var curPoly = polys[polyIndex];
+            for (let polyIndex = 0; polyIndex < polys.length; ++polyIndex) {
+                const curPoly = polys[polyIndex];
                 if (!curPoly)
                     continue;
-                var polyCenter = {
+                const polyCenter = {
                     lat: 0,
                     lng: 0
                 };
-                for (var vertexIndex = 0; vertexIndex < curPoly.vertices.length; ++vertexIndex) {
-                    var vertex = curPoly.vertices[vertexIndex];
+                for (let vertexIndex = 0; vertexIndex < curPoly.vertices.length; ++vertexIndex) {
+                    const vertex = curPoly.vertices[vertexIndex];
                     polyCenter.lat += vertex.lat;
                     polyCenter.lng += vertex.lng;
                 }
@@ -48,14 +48,13 @@ var Ally;
         refreshAddresses() {
             this.isLoading = true;
             this.neighborhoodPolys = [];
-            var innerThis = this;
             this.$http.get("/api/Neighborhood/GetAll").then((httpResponse) => {
-                innerThis.isLoading = false;
-                innerThis.neighborhoods = httpResponse.data;
-                innerThis.neighborhoodPolys = _.select(innerThis.neighborhoods, function (n) { return n.Bounds; });
-                innerThis.mapCenter = innerThis.findCenter(this.neighborhoodPolys);
+                this.isLoading = false;
+                this.neighborhoods = httpResponse.data;
+                this.neighborhoodPolys = _.select(this.neighborhoods, function (n) { return n.Bounds; });
+                this.mapCenter = this.findCenter(this.neighborhoodPolys);
             }, (httpResponse) => {
-                innerThis.isLoading = false;
+                this.isLoading = false;
                 alert("Failed to retrieve neighborhoods: " + httpResponse.data.exceptionMessage);
             });
         }

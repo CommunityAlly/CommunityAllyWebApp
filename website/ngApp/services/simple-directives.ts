@@ -71,7 +71,7 @@ angular.module( "CondoAlly" ).directive( "imageonload", function()
         restrict: "A",
         link: function( scope: ng.IScope, element: any, attrs: any )
         {
-            element.bind( "load", function( evt: any )
+            element.bind( "load", function()
             {
                 if( attrs.imageonload )
                     scope.$apply( attrs.imageonload );
@@ -86,7 +86,7 @@ angular.module( "CondoAlly" ).directive( "imageonerror", function()
         restrict: "A",
         link: function( scope: ng.IScope, element: any, attrs: any )
         {
-            element.bind( "error", function( evt: any )
+            element.bind( "error", function()
             {
                 if( attrs.imageonerror )
                     scope.$apply( attrs.imageonerror );

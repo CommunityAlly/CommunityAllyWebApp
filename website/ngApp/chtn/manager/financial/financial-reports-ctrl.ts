@@ -46,9 +46,11 @@
             if( !this.endDate || isNaN( this.endDate.getTime() ) )
                 this.endDate = moment().toDate();
 
+            // We need to use classic function() syntax here in order to access Chart.js getElementAtEvent
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const innerThis = this;
             this.doughnutChartOptions = {
-                onClick: function( event: MouseEvent ) // We need to use classic function() syntax here in order to access Chart.js getElementAtEvent
+                onClick: function( event: MouseEvent )
                 {
                     const elements = this.getElementAtEvent( event );
                     if( elements.length )

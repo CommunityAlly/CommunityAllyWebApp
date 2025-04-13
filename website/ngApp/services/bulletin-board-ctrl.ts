@@ -55,7 +55,7 @@ namespace Ally
             // Just a little delay to help the home page layout faster
             this.$timeout( () => this.refreshCommentThreads(), 5 );
             
-            this.$scope.$on( "refreshBBoardPosts", ( event, data ) => this.refreshCommentThreads() );
+            this.$scope.$on( "refreshBBoardPosts", () => this.refreshCommentThreads() );
             this.$scope.$on( "refreshSingleBBoardPost", ( event, commentThreadId: number ) => this.refreshSingleCommentThread( commentThreadId ) );
 
             this.canCreateThreads = this.siteInfo.userInfo.isAdmin || this.siteInfo.userInfo.isSiteManager;
@@ -188,7 +188,7 @@ namespace Ally
         {
             const commentThread = this.commentThreads.find( ct => ct.commentThreadId === commentThreadId );
 
-            let getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
+            const getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
 
             commentThread.isLoading = true;
 
@@ -358,7 +358,7 @@ namespace Ally
                 newThreadFormData.append( "committeeId", this.committeeId.toString() );
 
             // Combine the event date and time
-            var eventDateUtcString: string = null;
+            let eventDateUtcString: string = null;
             if( this.editPostItem.postType && this.editPostDateOnly && this.editPostTimeOnly && typeof ( this.editPostTimeOnly ) === "string" && this.editPostTimeOnly.length > 1 )
             {
                 const dateTimeString = moment( this.editPostDateOnly ).format( LogbookController.DateFormat ) + " " + this.editPostTimeOnly;
@@ -413,6 +413,7 @@ namespace Ally
         }
 
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         addComment( curThread: CommentThreadBBoard, parentComment: Comment )
         {
             const newCommentText = this.newBodyMceEditor ? this.newBodyMceEditor.getContent() : curThread.newRootCommentText;
@@ -471,6 +472,7 @@ namespace Ally
         }
 
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         openAttachmentFilePicker( curThread: CommentThreadBBoard, parentComment: Comment )
         {
             const fileElemId = "file-attacher-root-" + curThread.commentThreadId;

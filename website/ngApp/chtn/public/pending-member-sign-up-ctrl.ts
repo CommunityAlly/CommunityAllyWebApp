@@ -1,4 +1,5 @@
-﻿declare var grecaptcha: any;
+﻿// eslint-disable-next-line no-var
+declare var grecaptcha: any;
 
 
 namespace Ally
@@ -64,7 +65,7 @@ namespace Ally
         hookupAddressAutocomplete()
         {
             // If we know our group's position, let's tighten the auto-complete suggestion radius
-            var autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
+            const autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
 
             //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
             //{
@@ -84,16 +85,18 @@ namespace Ally
             //    };
             //}
 
-            var addressInput = document.getElementById( "member-home-address-text-box" ) as HTMLInputElement;
+            const addressInput = document.getElementById( "member-home-address-text-box" ) as HTMLInputElement;
             this.addressAutocomplete = new google.maps.places.Autocomplete( addressInput, autocompleteOptions );
 
-            var innerThis = this;
-            google.maps.event.addListener( this.addressAutocomplete, "place_changed", function()
-            {
-                var place = innerThis.addressAutocomplete.getPlace();
+            google.maps.event.addListener( this.addressAutocomplete,
+                "place_changed",
+                () =>
+                {
+                    const place = this.addressAutocomplete.getPlace();
 
-                innerThis.signUpInfo.streetAddress = place.formatted_address;
-            } );
+                    this.signUpInfo.streetAddress = place.formatted_address;
+                }
+            );
         }
 
 
@@ -110,16 +113,18 @@ namespace Ally
             this.isLoading = true;
             this.errorMessage = null;
 
-            this.$http.post( "/api/PublicPendingUser", this.signUpInfo ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) =>
-            {
-                this.isLoading = false;
-                this.showInputForm = false;
-
-            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-            {
-                this.isLoading = false;
-                this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
-            } );
+            this.$http.post( "/api/PublicPendingUser", this.signUpInfo ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.showInputForm = false;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    this.errorMessage = "Failed to submit: " + response.data.exceptionMessage;
+                }
+            );
         }
     }
 }

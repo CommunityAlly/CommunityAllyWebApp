@@ -244,7 +244,7 @@
             //const semiannualNames = ["First Half", "Second Half"];
             //const shortSemiannualNames = ["1st Half", "2nd Half"];
 
-            const payFrequencyInfo = FrequencyIdToInfo( this.assessmentFrequency );
+            const payFrequencyInfo = PaymentFrequencyIdToInfo( this.assessmentFrequency );
             this.periodNames = GetLongPayPeriodNames( payFrequencyInfo.intervalName );
             this.shortPeriodNames = GetShortPayPeriodNames( payFrequencyInfo.intervalName );
             if( !this.periodNames )

@@ -101,7 +101,7 @@ namespace Ally
                         this.$scope.$apply( () => this.isLoading = true );
 
                         const xhr = data.submit();
-                        xhr.done( ( result: any ) =>
+                        xhr.done( () =>
                         {
                             this.$scope.$apply( () =>
                             {

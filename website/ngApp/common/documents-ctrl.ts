@@ -297,14 +297,14 @@
         startZipGenDownload()
         {
             let refreshGenStatus: () => void = null;
-            let numRefreshes = 0;
+            //let numRefreshes = 0;
 
             refreshGenStatus = () =>
             {
                 this.$http.get( "/api/DocumentUpload/GetZipGenStatus?vid=" + this.generatingZipId ).then(
                     ( response: ng.IHttpPromiseCallbackArg<FullZipGenStatus> ) =>
                     {
-                        ++numRefreshes;
+                        //++numRefreshes;
                         if( response.data.totalNumFiles === 0 )
                             this.generatingZipStatus = "Still waiting...";
                         else
@@ -422,6 +422,7 @@
                 const element = document.getElementById( "documents-area" );
                 const disp = element.style.display;
                 element.style.display = 'none';
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const trick = element.offsetHeight;
                 element.style.display = disp;
             }, 50 );

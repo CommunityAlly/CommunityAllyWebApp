@@ -78,7 +78,7 @@
             this.sendResultMessage = "";
             
             this.fellowResidents.sendMessage( this.recipientInfo.userId, this.messageBody, this.messageSubject, this.selectedSendAs.isBoardOption, this.selectedSendAs.committee ? this.selectedSendAs.committee.committeeId : null ).then(
-                ( response: ng.IHttpPromiseCallbackArg<any> ) =>
+                () => //( response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
                     this.isSending = false;
                     this.sendResultIsError = false;

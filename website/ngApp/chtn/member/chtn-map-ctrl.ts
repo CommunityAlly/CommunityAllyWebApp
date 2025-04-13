@@ -53,10 +53,6 @@ namespace Ally
             {
                 const TwentyFiveMilesInMeters = 40234;
 
-                const latLon = {
-                    lat: 41.142248,
-                    lng: -73.633228
-                };
                 const circle = new google.maps.Circle( {
                     center: this.siteInfo.privateSiteInfo.googleGpsPosition,
                     radius: TwentyFiveMilesInMeters
@@ -554,15 +550,12 @@ class MapCtrlMapMgr
             
             google.maps.event.addListener( marker, 'dragend', function()
             {
-                const draggedMarker = this;
+                const gpsPos = this.getPosition();
 
-                const gpsPos = draggedMarker.getPosition();
-
-                MapCtrlMapMgr.ngScope.$apply( function()
+                MapCtrlMapMgr.ngScope.$apply( () =>
                 {
-                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation( draggedMarker, gpsPos.lat(), gpsPos.lng() );
-                } );
-                
+                    MapCtrlMapMgr.mapCtrl.updateItemGpsLocation( this, gpsPos.lat(), gpsPos.lng() );
+                } );                
             } );
 
             if( tempMarker.unitId )

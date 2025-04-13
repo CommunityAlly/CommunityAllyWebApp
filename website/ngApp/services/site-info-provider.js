@@ -109,7 +109,7 @@ var Ally;
                 return false;
             // Remove that prefix and add a slash as that's what the menu item stores
             locationHash = "/" + locationHash.substring(HashPrefix.length);
-            const menuItem = _.find(AppConfig.menu, (menuItem) => menuItem.path === locationHash);
+            const menuItem = _.find(AppConfig.menu, menuItem => menuItem.path === locationHash);
             return typeof (menuItem) === "object";
         }
         ;
@@ -180,22 +180,6 @@ var Ally;
                     let effectiveEmail = null;
                     if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
                         effectiveEmail = $rootScope.userInfo.emailAddress;
-                    if (typeof zE !== "undefined") {
-                        zE('webWidget', 'prefill', {
-                            name: {
-                                value: effectiveName,
-                                readOnly: true // optional
-                            },
-                            email: {
-                                value: effectiveEmail,
-                                readOnly: true // optional
-                            }
-                            //phone: {
-                            //    value: '61431909749',
-                            //    readOnly: true // optional
-                            //}
-                        });
-                    }
                     // Prefill the contact form with details about a customer
                     if (typeof (window.FreshworksWidget) !== "undefined") {
                         window.FreshworksWidget('identify', 'ticketForm', { name: effectiveName, email: effectiveEmail });
@@ -204,15 +188,18 @@ var Ally;
                         // But then hide that same subject field because it doesn't add value, in our situation
                         window.FreshworksWidget('hide', 'ticketForm', ['subject']);
                     }
-                    if (typeof ($zopim) !== "undefined") {
-                        $zopim(() => {
-                            if ($rootScope.userInfo) {
-                                $zopim.livechat.setName($rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName);
-                                if ($rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf("@") !== -1)
-                                    $zopim.livechat.setEmail($rootScope.userInfo.emailAddress);
-                            }
-                        });
-                    }
+                    //if( typeof ( $zopim ) !== "undefined" )
+                    //{
+                    //    $zopim( () =>
+                    //    {
+                    //        if( $rootScope.userInfo )
+                    //        {
+                    //            $zopim.livechat.setName( $rootScope.userInfo.firstName + " " + $rootScope.userInfo.lastName );
+                    //            if( $rootScope.userInfo.emailAddress && $rootScope.userInfo.emailAddress.indexOf( "@" ) !== -1 )
+                    //                $zopim.livechat.setEmail( $rootScope.userInfo.emailAddress );
+                    //        }
+                    //    } );
+                    //}
                 };
                 const subdomain = HtmlUtil.getSubdomain(window.location.host);
                 const isSpammedSite = subdomain === "themaples";
@@ -336,6 +323,7 @@ var Ally;
                     }
                     deferred.resolve(SiteInfoProvider.siteInfo);
                 }, (errorResult) => {
+                    console.log("Failed to refresh site info", errorResult);
                     // For some reason, this does not invoke the caller's error callback, so we need to redirect here
                     //deferred.reject( errorResult );
                     Ally.HtmlUtil2.globalRedirect("https://login." + AppConfig.baseTld + "/#!/Login");

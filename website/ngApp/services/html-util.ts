@@ -1,7 +1,4 @@
-﻿/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
-
-
-declare class HtmlUtil
+﻿declare class HtmlUtil
 {
     //TODO Move all of these to HtmlUtil2 then rename HtmlUtil2 to HtmlUtil
     static isNullOrWhitespace( str: string ): boolean;
@@ -22,6 +19,7 @@ declare class HtmlUtil
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 namespace Ally
 {
     export class HtmlUtil2
@@ -329,9 +327,10 @@ namespace Ally
                 console.log( "Copying text command was " + msg );
 
                 didCopy = successful;
-            } catch( err )
+            }
+            catch( err )
             {
-                console.log( "Oops, unable to copy" );
+                console.log( "Oops, unable to copy", err );
             }
 
             document.body.removeChild( textArea );
@@ -340,7 +339,6 @@ namespace Ally
         }
 
 
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
         static smartSortStreetAddresses( homeList: any[], namePropName: string ): any[]
         {
             if( !homeList || homeList.length === 0 )
@@ -437,7 +435,11 @@ namespace Ally
                 {
                     context.drawImage( image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight );
                     resolve( canvas.toDataURL() );
-                }
+                };
+                image.onerror = function()
+                {
+                    reject();
+                };
                 image.src = base64;
             } );
         }
@@ -451,7 +453,7 @@ namespace Ally
          */
         static resizeFromImg( image: HTMLImageElement, newWidth: number, newHeight: number )
         {
-            return new Promise( ( resolve, reject ) =>
+            return new Promise( ( resolve ) =>
             {
                 const canvas = document.createElement( "canvas" );
                 canvas.width = newWidth;
@@ -474,7 +476,7 @@ namespace Ally
          */
         static resizeFromImgToBlob( image: HTMLImageElement, newWidth: number, newHeight: number, mimeType: string = "image/jpeg" )
         {
-            return new Promise( ( resolve, reject ) =>
+            return new Promise( ( resolve ) =>
             {
                 const canvas = document.createElement( "canvas" );
                 canvas.width = newWidth;
@@ -493,7 +495,7 @@ namespace Ally
 
         static initTinyMce( elemId: string = "tiny-mce-editor", heightPixels: number = 400, overrideOptions: any = null ): Promise<ITinyMce>
         {
-            const mcePromise = new Promise<ITinyMce>( ( resolve, reject ) =>
+            const mcePromise = new Promise<ITinyMce>( ( resolve ) =>
             {
                 const loadRtes = () =>
                 {
@@ -530,7 +532,7 @@ namespace Ally
                         promotion: false,
                         branding: true,
                         image_description: false,
-                        file_picker_callback: function( cb: any, value: any, meta: any )
+                        file_picker_callback: function( cb: any )
                         {
                             const input = document.createElement( 'input' );
                             input.setAttribute( 'type', 'file' );
@@ -841,9 +843,8 @@ namespace Ally
             //console.log( "In getAllCssRules", ruleName );
 
             ruleName = ruleName.toLowerCase();
-            let foundRules: CSSStyleRule[] = [];
-            const find = Array.prototype.forEach;
-
+            const foundRules: CSSStyleRule[] = [];
+            
             for( let i = 0; i < document.styleSheets.length; ++i )
             {
                 const curSheet = document.styleSheets[i];

@@ -6,8 +6,7 @@ class AppCacheService {
         delete window.sessionStorage[AppCacheService.KeyPrefix + key];
     }
     getAndClear(key) {
-        var result;
-        result = this.get(key);
+        const result = this.get(key);
         this.clear(key);
         return result;
     }

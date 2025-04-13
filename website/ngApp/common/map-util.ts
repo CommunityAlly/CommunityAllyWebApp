@@ -1,7 +1,4 @@
-﻿/// <reference path="../../Scripts/typings/googlemaps/google.maps.d.ts" />
-/// <reference path="../../Scripts/typings/underscore/underscore.d.ts" />
-
-
+﻿// eslint-disable-next-line @typescript-eslint/no-unused-vars
 namespace Ally
 {
     /**
@@ -70,11 +67,11 @@ namespace Ally
          */
         static parseAddressComponents( addressComponents: google.maps.GeocoderAddressComponent[] ): SplitAddress
         {
-            let splitAddress = new SplitAddress();
+            const splitAddress = new SplitAddress();
 
             let streetNumber = "";
             let streetName = "";
-            for( var component of addressComponents )
+            for( const component of addressComponents )
             {
                 if( component.types.indexOf( "street_number" ) !== -1 )
                     streetNumber = component.short_name;
@@ -102,7 +99,7 @@ namespace Ally
          */
         static gpsBoundsToGooglePoly( gpsBounds: GpsPolygon ): google.maps.LatLng[]
         {
-            var path = _.map( gpsBounds.vertices, function( v )
+            const path = _.map( gpsBounds.vertices, function( v )
             {
                 return new google.maps.LatLng( v.lat, v.lon );
             });
