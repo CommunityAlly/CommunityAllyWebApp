@@ -18,6 +18,7 @@
         referralSource: string = "";
         recaptchaKey: string = "";
         numHomes: string;
+        howFoundUs: string;
     }
 
 

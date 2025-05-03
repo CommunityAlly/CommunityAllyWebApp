@@ -27,7 +27,8 @@
                 buildingIndex: 0,
                 boardPositionValue: "1"
             },
-            recaptchaKey: ""
+            recaptchaKey: "",
+            howFoundUs: ""
         };
 
 
