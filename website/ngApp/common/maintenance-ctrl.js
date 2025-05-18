@@ -1,15 +1,5 @@
 var Ally;
 (function (Ally) {
-    class MaintenanceProject {
-    }
-    Ally.MaintenanceProject = MaintenanceProject;
-    class TagPickerItem {
-    }
-    class Equipment {
-    }
-    class VendorListItem {
-    }
-    Ally.VendorListItem = VendorListItem;
     class MaintenanceController {
         /**
          * The constructor for the class
@@ -26,6 +16,7 @@ var Ally;
             this.maintenanceEntries = [];
             this.assigneeOptions = [];
             this.entriesSortAscending = true;
+            this.homeName = "Unit";
             this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, o => o.text);
             this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, o => o.text);
             this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
@@ -34,6 +25,7 @@ var Ally;
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
+            this.homeName = AppConfig.homeName || "Unit";
             this.equipmentGridOptions =
                 {
                     data: [],
@@ -78,7 +70,22 @@ var Ally;
                 .then(() => this.loadVendorListItems())
                 .then(() => this.loadProjects())
                 .then(() => this.loadMaintenanceTodos())
+                .then(() => this.loadUnits())
                 .then(() => this.rebuildMaintenanceEntries());
+        }
+        loadUnits() {
+            return this.$http.get("/api/Unit/AllUnits").then((httpResponse) => {
+                this.isLoading = false;
+                this.allUnits = httpResponse.data;
+                const shouldSortUnitsNumerically = _.every(this.allUnits, u => HtmlUtil.isNumericString(u.name));
+                if (shouldSortUnitsNumerically)
+                    this.allUnits = _.sortBy(this.allUnits, u => parseFloat(u.name));
+                // If we have a lot of units then allow searching
+                //this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
+            }, () => {
+                this.isLoading = false;
+                alert("Failed to retrieve your association's home listing, please contact support.");
+            });
         }
         /**
         * Rebuild the arrow of projects and to-do's
@@ -88,6 +95,8 @@ var Ally;
             _.forEach(this.projects, p => {
                 const newEntry = new Ally.MaintenanceEntry();
                 newEntry.project = p;
+                if (p.relatedUnitId && this.allUnits)
+                    p.relatedUnitName = this.allUnits.find(u => u.unitId === p.relatedUnitId)?.name;
                 if (this.vendorListItems && p.vendorId) {
                     const vendorInfo = this.vendorListItems.find(v => v.preferredVendorId === p.vendorId);
                     if (vendorInfo) {
@@ -514,6 +523,16 @@ var Ally;
         { text: "Siding" },
         { text: "Structural" }];
     Ally.MaintenanceController = MaintenanceController;
+    class MaintenanceProject {
+    }
+    Ally.MaintenanceProject = MaintenanceProject;
+    class TagPickerItem {
+    }
+    class Equipment {
+    }
+    class VendorListItem {
+    }
+    Ally.VendorListItem = VendorListItem;
 })(Ally || (Ally = {}));
 CA.angularApp.component("maintenance", {
     bindings: {},

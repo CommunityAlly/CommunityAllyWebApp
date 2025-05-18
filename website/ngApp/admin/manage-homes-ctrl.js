@@ -58,7 +58,7 @@ var Ally;
                 alert("Failed to save: " + response.data.exceptionMessage);
             };
             if (this.isEdit)
-                this.$http.put("/api/Unit", this.unitToEdit).then(onSave, onError);
+                this.$http.put("/api/Unit/UpdateUnit", this.unitToEdit).then(onSave, onError);
             else
                 this.$http.post("/api/Unit/AddSingle", this.unitToEdit).then(onSave, onError);
         }

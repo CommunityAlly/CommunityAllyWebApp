@@ -316,7 +316,7 @@ namespace Ally
             // Load the units and assessments
             this.isLoadingUnits = true;
 
-            this.$http.get( "/api/Unit" ).then(
+            this.$http.get( "/api/Unit/AllUnits" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Unit[]> ) =>
                 {
                     this.units = httpResponse.data;

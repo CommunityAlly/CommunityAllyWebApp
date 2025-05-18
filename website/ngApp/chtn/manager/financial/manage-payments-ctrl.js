@@ -188,7 +188,7 @@ var Ally;
         refreshUnits() {
             // Load the units and assessments
             this.isLoadingUnits = true;
-            this.$http.get("/api/Unit").then((httpResponse) => {
+            this.$http.get("/api/Unit/AllUnits").then((httpResponse) => {
                 this.units = httpResponse.data;
                 //_.each( this.units, ( u: Unit ) => { if( u.adjustedAssessment === null ) { u.adjustedAssessment = u.assessment; } } );
                 this.assessmentSum = _.reduce(this.units, function (memo, u) { return memo + u.assessment; }, 0);

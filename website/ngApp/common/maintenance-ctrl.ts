@@ -1,73 +1,5 @@
 ﻿namespace Ally
 {
-    export class MaintenanceProject
-    {
-        maintenanceProjectId: number;
-        equipmentId: number;
-        groupId: number;
-        startDate: Date;
-        endDate: Date;
-        vendorId: number;
-        cost: number;
-        title: string;
-        descriptionText: string;
-        createDateUtc: Date;
-        deletedDateUtc: Date;
-        creatorUserId: string;
-        status: string;
-        assignedTo: string;
-        
-        vendorCompanyName: string;
-        equipmentName: string;
-        creatorFullName: string;
-
-        // Populated locally
-        vendorWeb: string;
-        vendorPhone: string;
-        vendorEmail: string;
-    }
-
-
-    class TagPickerItem
-    {
-        text: string;
-    }
-
-
-    class Equipment
-    {
-        equipmentId: number;
-        groupId: number;
-        buildingId: number;
-        chtnGroupHomeId: number;
-        type: string;
-        name: string;
-        initialCost: number;
-        installDate: Date;
-        manufacturer: string;
-        modelNumber: string;
-        serialNumber: string;
-        location: string;
-        addedDateUtc: Date;
-        deletedDateUtc: Date;
-        addedByUserId: string;
-
-        // Not from the server
-        typeTags: TagPickerItem[];
-        locationTags: TagPickerItem[];
-    }
-
-
-    export class VendorListItem
-    {
-        preferredVendorId: number;
-        companyName: string;
-        phoneNumber: string;
-        companyWeb: string;
-        contactEmail: string;
-    }
-
-
     export class MaintenanceController implements ng.IController
     {
         static $inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
@@ -91,6 +23,8 @@
         selectedAssignee: FellowChtnResident[];
         entriesSortField: string;
         entriesSortAscending: boolean = true;
+        allUnits: Ally.Unit[];
+        homeName = "Unit";
         static StorageKey_SortField = "maintenance_entriesSortField";
         static StorageKey_SortDir = "maintenance_entriesSortAscending";
 
@@ -133,6 +67,8 @@
         */
         $onInit()
         {
+            this.homeName = AppConfig.homeName || "Unit";
+
             this.equipmentGridOptions =
                 {
                     data: [],
@@ -186,7 +122,33 @@
                 .then( () => this.loadVendorListItems() )
                 .then( () => this.loadProjects() )
                 .then( () => this.loadMaintenanceTodos() )
+                .then( () => this.loadUnits() )
                 .then( () => this.rebuildMaintenanceEntries() );
+        }
+
+
+        loadUnits()
+        {
+            return this.$http.get( "/api/Unit/AllUnits" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
+                {
+                    this.isLoading = false;
+                    this.allUnits = httpResponse.data;
+
+                    const shouldSortUnitsNumerically = _.every( this.allUnits, u => HtmlUtil.isNumericString( u.name ) );
+
+                    if( shouldSortUnitsNumerically )
+                        this.allUnits = _.sortBy( this.allUnits, u => parseFloat( u.name ) );
+
+                    // If we have a lot of units then allow searching
+                    //this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to retrieve your association's home listing, please contact support." );
+                }
+            );
         }
 
 
@@ -201,6 +163,9 @@
             {
                 const newEntry = new MaintenanceEntry();
                 newEntry.project = p;
+
+                if( p.relatedUnitId && this.allUnits )
+                    p.relatedUnitName = this.allUnits.find( u => u.unitId === p.relatedUnitId )?.name;
 
                 if( this.vendorListItems && p.vendorId )
                 {
@@ -764,6 +729,76 @@
 
             this.sortEntries();
         }
+    }
+
+
+    export class MaintenanceProject
+    {
+        maintenanceProjectId: number;
+        equipmentId: number;
+        groupId: number;
+        startDate: Date;
+        endDate: Date;
+        vendorId: number;
+        cost: number;
+        title: string;
+        descriptionText: string;
+        createDateUtc: Date;
+        deletedDateUtc: Date;
+        creatorUserId: string;
+        status: string;
+        assignedTo: string;
+        relatedUnitId: number | null;
+
+        vendorCompanyName: string;
+        equipmentName: string;
+        creatorFullName: string;
+
+        // Populated locally
+        vendorWeb: string;
+        vendorPhone: string;
+        vendorEmail: string;
+        relatedUnitName: string;
+    }
+
+
+    class TagPickerItem
+    {
+        text: string;
+    }
+
+
+    class Equipment
+    {
+        equipmentId: number;
+        groupId: number;
+        buildingId: number;
+        chtnGroupHomeId: number;
+        type: string;
+        name: string;
+        initialCost: number;
+        installDate: Date;
+        manufacturer: string;
+        modelNumber: string;
+        serialNumber: string;
+        location: string;
+        addedDateUtc: Date;
+        deletedDateUtc: Date;
+        addedByUserId: string;
+
+        // Not from the server
+        typeTags: TagPickerItem[];
+        locationTags: TagPickerItem[];
+    }
+
+
+    export class VendorListItem
+    {
+        preferredVendorId: number;
+        companyName: string;
+        phoneNumber: string;
+        companyWeb: string;
+        contactEmail: string;
     }
 }
 

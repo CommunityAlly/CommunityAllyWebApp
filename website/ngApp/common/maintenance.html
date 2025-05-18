@@ -67,6 +67,7 @@
                         <div data-ng-if="entry.project.equipmentName"><label style="font-weight:bold;" class="mb-2">Equipment:</label>&nbsp;{{ entry.project.equipmentName }}</div>
                         <div data-ng-if="entry.project.status"><label style="font-weight:bold;" class="mb-2">Status:</label>&nbsp;{{ entry.project.status }}</div>
                         <div data-ng-if="entry.project.assignedTo"><label style="font-weight:bold;" class="mb-2">Assigned To:</label>&nbsp;{{ entry.project.assignedTo }}</div>
+                        <div data-ng-if="entry.project.relatedUnitName"><label style="font-weight:bold;" class="mb-2">{{$ctrl.homeName}}:</label>&nbsp;{{ entry.project.relatedUnitName }}</div>
                         <p id="maintenance-item-body-{{ $index }}" data-ng-if="entry.project.descriptionText" class="maintenance-item-body" style="white-space: pre-wrap;" ng-bind-html="entry.project.descriptionText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}">
                         </p>
                     </div>
@@ -170,6 +171,15 @@
                     <label class="col-sm-3 col-12 form-label-popup">Cost:</label>
                     <div class="col-sm-9 col-12">
                         $<input type="number" class="form-control no-spinners" style="display: inline-block; width: 98%;" data-ng-enter="$ctrl.saveProject()" data-ng-model="$ctrl.editingProject.cost" />
+                    </div>
+                </div>
+
+                <div class="mb-3 row" data-ng-if="$ctrl.allUnits && $ctrl.allUnits.length > 0">
+                    <label class="col-sm-3 col-12 form-label-popup">Related {{$ctrl.homeName}}:</label>
+                    <div class="col-sm-9 col-12">
+                        <select class="form-control form-select" data-ng-options="u.unitId as u.name for u in $ctrl.allUnits" data-ng-model="$ctrl.editingProject.relatedUnitId">
+                            <option></option>
+                        </select>
                     </div>
                 </div>
 
