@@ -20,6 +20,7 @@ var Ally;
             this.tips = [];
             this.isLoading = false;
             this.isMovingHomes = false;
+            this.shouldListHomes = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -44,6 +45,7 @@ var Ally;
                 const place = this.addressAutocomplete.getPlace();
                 this.editingTip.address = place.formatted_address;
             });
+            this.shouldListHomes = AppConfig.appShortName === "hoa" || (AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi);
             this.retrieveHoaHomes();
             //this.$timeout( () => this.getWalkScore(), 1000 );
             MapCtrlMapMgr.Init(this.siteInfo, this.$scope, this);
@@ -72,7 +74,7 @@ var Ally;
                 }
             }
             // Add HOA homes
-            if (this.hoaHomes && this.hoaHomes.length > 0 && AppConfig.appShortName === "hoa") {
+            if (this.hoaHomes && this.hoaHomes.length > 0 && this.shouldListHomes) {
                 _.each(this.hoaHomes, (home) => {
                     if (home.fullAddress && home.fullAddress.gpsPos) {
                         let markerIcon = MapCtrlMapMgr.MarkerNumber_Home;
@@ -246,7 +248,7 @@ var Ally;
                         if (nonMainAddresses.length > 0)
                             this.hoaHomes = httpResponse.data;
                     }
-                    else if (AppConfig.appShortName === "hoa")
+                    else if (this.shouldListHomes)
                         this.hoaHomes = httpResponse.data;
                 }
                 this.refresh();

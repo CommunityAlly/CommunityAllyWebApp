@@ -377,6 +377,13 @@
             </span>
         </div>
 
+        <div class="mt-4" data-ng-if="$ctrl.isNeighborhoodSite">
+            <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.shouldUseFamiliarNeighborUi" data-ng-change="$ctrl.saveResidentSettings()" />Use Familiar Neighbor Interface</label><br />
+            <span class="note-text">
+                When enabled, more details about members are shown in the user interface, such as where they live. This is ideal for smaller neighborhood groups where everyone knows each other.
+            </span>
+        </div>
+
         <p id="toggle-email-history-link" class="text-link mt-5 mb-0" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} Email History</p>
         <div data-ng-if="$ctrl.showEmailHistory">
             <h4>Group Email History</h4>

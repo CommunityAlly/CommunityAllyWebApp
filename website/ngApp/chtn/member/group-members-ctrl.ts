@@ -17,7 +17,7 @@ namespace Ally
         isLoadingSaveEmailGroup: boolean = false;
         allyAppName: string;
         groupShortName: string;
-        showMemberList: boolean;
+        shouldShowMemberList = false;
         emailLists: GroupEmailInfo[] = [];
         customEmailList: CustomEmailGroup[] = [];
         allResidents: FellowChtnResident[];
@@ -54,9 +54,10 @@ namespace Ally
         {
             this.allyAppName = AppConfig.appName;
             this.groupShortName = siteInfo.publicSiteInfo.shortName;
-            this.showMemberList = AppConfig.appShortName === "neighborhood" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "pta";
+            this.shouldShowMemberList = AppConfig.appShortName === NeighborhoodAppConfig.appShortName
+                || AppConfig.appShortName === "block-club"
+                || AppConfig.appShortName === "pta";
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
-
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
 
@@ -72,6 +73,10 @@ namespace Ally
             if( AppConfig.isChtnSite )
                 this.shouldShowQuickFilter = this.siteInfo.privateSiteInfo.numUnits > 10;
 
+            // Neighborhoods can override the member list type
+            if( this.shouldShowMemberList && AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi )
+                this.shouldShowMemberList = false;
+
             this.fellowResidents.getByUnitsAndResidents().then(
                 ( data: FellowResidents ) =>
                 {
@@ -84,7 +89,7 @@ namespace Ally
                         this.allResidents = <FellowChtnResident[]>data.ptaMembers;
 
                     // Sort by last name for member lists, first name otherwise
-                    if( this.showMemberList )
+                    if( this.shouldShowMemberList )
                         this.allResidents = _.sortBy( this.allResidents, r => ( r.lastName || "" ).toLowerCase() );
                     else
                         this.allResidents = _.sortBy( this.allResidents, r => ( r.fullName || "" ).toLowerCase() );

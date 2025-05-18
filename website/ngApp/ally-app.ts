@@ -6,7 +6,6 @@ var OverrideBaseApiPath: string = null; // Should be something like "https://123
 var OverrideOriginalUrl: string = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 
 //OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
-//OverrideBaseApiPath = "https://7478.webappapi.mycommunityally.org/api/";
 //OverrideOriginalUrl = "https://qa.condoally.com/";
 
 

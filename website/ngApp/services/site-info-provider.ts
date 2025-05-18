@@ -133,6 +133,7 @@ namespace Ally
         numMembers: number;
         stripeConnectAccountId: string;
         nonAdminCanAddVendors: boolean;
+        shouldUseFamiliarNeighborUi: boolean;
 
         // Only on PTAs
         ptaUnitId: number;

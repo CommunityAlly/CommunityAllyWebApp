@@ -29,6 +29,7 @@ namespace Ally
         addressAutocomplete: google.maps.places.Autocomplete;
         isSiteManager: boolean;
         isMovingHomes = false;
+        shouldListHomes = false;
         static readonly HomeMarkerUnitId = -5;
 
 
@@ -72,6 +73,7 @@ namespace Ally
                 this.editingTip.address = place.formatted_address;
             } );
 
+            this.shouldListHomes = AppConfig.appShortName === "hoa" || ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
 
             this.retrieveHoaHomes();
 
@@ -87,14 +89,19 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/WelcomeTip" ).then( ( httpResponse: ng.IHttpPromiseCallbackArg<any> ) =>
+            const onLoad = ( welcomeTip: WelcomeTip[] ) =>
             {
-                this.tips = httpResponse.data;
+                this.tips = welcomeTip;
 
                 this.populateAllMarkers();
 
                 this.isLoading = false;
-            } );
+            };
+
+            this.$http.get( "/api/WelcomeTip" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<WelcomeTip[]> ) => onLoad( httpResponse.data ),
+                () => onLoad( null )
+            );
         }
 
 
@@ -119,7 +126,7 @@ namespace Ally
             }
 
             // Add HOA homes
-            if( this.hoaHomes && this.hoaHomes.length > 0 && AppConfig.appShortName === "hoa" )
+            if( this.hoaHomes && this.hoaHomes.length > 0 && this.shouldListHomes )
             {
                 _.each( this.hoaHomes, ( home ) =>
                 {
@@ -369,7 +376,7 @@ namespace Ally
                         if( nonMainAddresses.length > 0 )
                             this.hoaHomes = httpResponse.data;
                     }
-                    else if( AppConfig.appShortName === "hoa" )
+                    else if( this.shouldListHomes )
                         this.hoaHomes = httpResponse.data;
                 }
                 

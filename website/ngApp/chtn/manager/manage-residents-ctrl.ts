@@ -235,6 +235,7 @@ namespace Ally
         hasMemberNotOwnerRenter: boolean = false;
         didLoadResidentGridState = false;
         shouldSaveResidentGridState = true;
+        isNeighborhoodSite = false;
         static readonly StoreKeyResidentGridState = "AllyResGridState";
 
 
@@ -262,15 +263,16 @@ namespace Ally
             this.multiselectOptions = "";
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
-            this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            this.shouldShowResidentPermissions = this.showIsRenter || AppConfig.appShortName === "block-club";
-            this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
-            this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
+            this.showIsRenter = AppConfig.appShortName === CondoAllyAppConfig.appShortName || AppConfig.appShortName === HOAAppConfig.appShortName;
+            this.shouldShowResidentPermissions = this.showIsRenter || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
+            this.shouldShowHomePicker = AppConfig.appShortName !== PtaAppConfig.appShortName;
+            this.showKansasPtaExport = AppConfig.appShortName === PtaAppConfig.appShortName && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
-            this.showLaunchSite = AppConfig.appShortName !== "pta";
-            this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
-            this.hasMemberNotOwnerRenter = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
+            this.showLaunchSite = AppConfig.appShortName !== PtaAppConfig.appShortName;
+            this.showPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
+            this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
+            this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName;
 
             // Show the add home article link if the site isn't launched and is less than 8 days old
             const twoWeeksAfterCreate = moment( this.siteInfo.privateSiteInfo.creationDate ).add( 14, "days" );
@@ -505,7 +507,7 @@ namespace Ally
             
 
             this.refreshResidents()
-                .then( () => this.loadSettings() )
+                .then( () => this.loadResidentSettings() )
                 .then( () =>
                 {
                     if( this.appCacheService.getAndClear( "goToEmailHistory" ) === "true" )
@@ -784,7 +786,7 @@ namespace Ally
                     {
                         this.isLoading = true;
 
-                        this.$http.get( "/api/Unit" ).then(
+                        this.$http.get( "/api/Unit/AllUnits" ).then(
                             ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
                             {
                                 this.isLoading = false;
@@ -1032,33 +1034,6 @@ namespace Ally
 
 
         /**
-         * Load the resident settings
-         */
-        loadSettings()
-        {
-            this.isLoadingSettings = true;
-
-            this.$http.get( "/api/Settings/GetSiteSettings" ).then(
-                ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
-                {
-                    this.isLoadingSettings = false;
-                    this.residentSettings = response.data;
-
-                    // Update the SiteInfoService so the privateSiteInfo properties reflects changes
-                    this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
-                    this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
-                    this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
-                },
-                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
-                {
-                    this.isLoadingSettings = false;
-                    console.log( "Failed to retrieve settings: " + response.data.exceptionMessage );
-                }
-            );
-        }
-
-
-        /**
          * Export the resident list as a CSV
          */
         exportResidentCsv()
@@ -1300,6 +1275,34 @@ namespace Ally
 
 
         /**
+         * Load the resident settings
+         */
+        loadResidentSettings()
+        {
+            this.isLoadingSettings = true;
+
+            this.$http.get( "/api/Settings/GetSiteSettings" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
+                {
+                    this.isLoadingSettings = false;
+                    this.residentSettings = response.data;
+
+                    // Update the SiteInfoService so the privateSiteInfo properties reflects changes
+                    this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
+                    this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
+                    this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
+                    this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi = this.residentSettings.shouldUseFamiliarNeighborUi;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingSettings = false;
+                    console.log( "Failed to retrieve settings: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        /**
          * Save the resident settings to the server
          */
         saveResidentSettings()
@@ -1320,6 +1323,7 @@ namespace Ally
                     this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
                     this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
                     this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
+                    this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi = this.residentSettings.shouldUseFamiliarNeighborUi;
                 },
                 () =>
                 {

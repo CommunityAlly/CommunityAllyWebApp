@@ -71,12 +71,12 @@
     <div class="portlet-box white no-padding spinner-effect">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-        <div class="portlet-header" data-ng-if="!$ctrl.showMemberList">
+        <div class="portlet-header" data-ng-if="!$ctrl.shouldShowMemberList">
             <div class="float-end col-2" style="display: none;">
                 <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateMemberFilter()" data-ng-model="$ctrl.memberSearchTerm" data-ng-model-options="{ debounce: 1 }" placeholder="Search" aria-describedby="basic-addon2" />
             </div>
 
-            <span class="title" style="display: inline-block;">{{ $ctrl.showMemberList ? "Members" : "Residents" }}</span>
+            <span class="title" style="display: inline-block;">{{ $ctrl.shouldShowMemberList ? "Members" : "Residents" }}</span>
 
             <span data-ng-if="$ctrl.shouldShowQuickFilter" class="ms-5">
                 Quick Filter:
@@ -87,7 +87,7 @@
             </span>
         </div>
 
-        <div class="portlet-body" data-ng-if="!$ctrl.showMemberList">
+        <div class="portlet-body" data-ng-if="!$ctrl.shouldShowMemberList">
             <div data-ng-repeat="curUnit in $ctrl.filteredUnitList" id="unit-id-{{::curUnit.unitId}}">
                 <h5 id="unit-name-{{ ::$index }}">{{ ::$ctrl.unitPrefix }}{{ ::curUnit.name }}</h5>
                 <div>
@@ -119,7 +119,7 @@
             </div>
         </div>
 
-        <div class="portlet-body" data-ng-if="$ctrl.showMemberList">
+        <div class="portlet-body" data-ng-if="$ctrl.shouldShowMemberList">
             <h4>Members</h4>
             <div class="row">
                 <div class="col-md-4 col-sm-12" data-ng-repeat="resident in $ctrl.allResidents">

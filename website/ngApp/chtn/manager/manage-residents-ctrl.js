@@ -78,6 +78,7 @@ var Ally;
             this.hasMemberNotOwnerRenter = false;
             this.didLoadResidentGridState = false;
             this.shouldSaveResidentGridState = true;
+            this.isNeighborhoodSite = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -89,15 +90,16 @@ var Ally;
             this.multiselectOptions = "";
             this.allUnits = null;
             this.homeName = AppConfig.homeName || "Unit";
-            this.showIsRenter = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
-            this.shouldShowResidentPermissions = this.showIsRenter || AppConfig.appShortName === "block-club";
-            this.shouldShowHomePicker = AppConfig.appShortName !== "pta";
-            this.showKansasPtaExport = AppConfig.appShortName === "pta" && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
+            this.showIsRenter = AppConfig.appShortName === CondoAllyAppConfig.appShortName || AppConfig.appShortName === HOAAppConfig.appShortName;
+            this.shouldShowResidentPermissions = this.showIsRenter || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
+            this.shouldShowHomePicker = AppConfig.appShortName !== PtaAppConfig.appShortName;
+            this.showKansasPtaExport = AppConfig.appShortName === PtaAppConfig.appShortName && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
-            this.showLaunchSite = AppConfig.appShortName !== "pta";
-            this.showPendingMembers = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
-            this.hasMemberNotOwnerRenter = AppConfig.appShortName === "pta" || AppConfig.appShortName === "block-club" || AppConfig.appShortName === "neighborhood";
+            this.showLaunchSite = AppConfig.appShortName !== PtaAppConfig.appShortName;
+            this.showPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
+            this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
+            this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName;
             // Show the add home article link if the site isn't launched and is less than 8 days old
             const twoWeeksAfterCreate = moment(this.siteInfo.privateSiteInfo.creationDate).add(14, "days");
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(twoWeeksAfterCreate);
@@ -277,7 +279,7 @@ var Ally;
                     }
                 };
             this.refreshResidents()
-                .then(() => this.loadSettings())
+                .then(() => this.loadResidentSettings())
                 .then(() => {
                 if (this.appCacheService.getAndClear("goToEmailHistory") === "true") {
                     document.getElementById("toggle-email-history-link").scrollIntoView();
@@ -470,7 +472,7 @@ var Ally;
                 this.populateGridUnitLabels();
                 if (!this.allUnits && AppConfig.isChtnSite) {
                     this.isLoading = true;
-                    this.$http.get("/api/Unit").then((httpResponse) => {
+                    this.$http.get("/api/Unit/AllUnits").then((httpResponse) => {
                         this.isLoading = false;
                         this.allUnits = httpResponse.data;
                         this.shouldSortUnitsNumerically = _.every(this.allUnits, u => HtmlUtil.isNumericString(u.name));
@@ -636,23 +638,6 @@ var Ally;
                 this.adminSetPass_ResultMessage = response.data;
             }, (response) => {
                 alert("Failed to set password: " + response.data.exceptionMessage);
-            });
-        }
-        /**
-         * Load the resident settings
-         */
-        loadSettings() {
-            this.isLoadingSettings = true;
-            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
-                this.isLoadingSettings = false;
-                this.residentSettings = response.data;
-                // Update the SiteInfoService so the privateSiteInfo properties reflects changes
-                this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
-                this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
-                this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
-            }, (response) => {
-                this.isLoadingSettings = false;
-                console.log("Failed to retrieve settings: " + response.data.exceptionMessage);
             });
         }
         /**
@@ -871,6 +856,24 @@ var Ally;
             setTimeout(() => document.body.removeChild(csvLink), 500);
         }
         /**
+         * Load the resident settings
+         */
+        loadResidentSettings() {
+            this.isLoadingSettings = true;
+            this.$http.get("/api/Settings/GetSiteSettings").then((response) => {
+                this.isLoadingSettings = false;
+                this.residentSettings = response.data;
+                // Update the SiteInfoService so the privateSiteInfo properties reflects changes
+                this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
+                this.siteInfo.privateSiteInfo.whoCanCreateDiscussionThreads = this.residentSettings.whoCanCreateDiscussionThreads;
+                this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
+                this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi = this.residentSettings.shouldUseFamiliarNeighborUi;
+            }, (response) => {
+                this.isLoadingSettings = false;
+                console.log("Failed to retrieve settings: " + response.data.exceptionMessage);
+            });
+        }
+        /**
          * Save the resident settings to the server
          */
         saveResidentSettings() {
@@ -884,6 +887,7 @@ var Ally;
                 this.siteInfo.privateSiteInfo.canHideContactInfo = this.residentSettings.canHideContactInfo;
                 this.siteInfo.privateSiteInfo.isDiscussionEmailGroupEnabled = this.residentSettings.isDiscussionEmailGroupEnabled;
                 this.siteInfo.privateSiteInfo.nonAdminCanAddVendors = this.residentSettings.nonAdminCanAddVendors;
+                this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi = this.residentSettings.shouldUseFamiliarNeighborUi;
             }, () => {
                 this.isLoadingSettings = false;
                 alert("Failed to update settings, please try again or contact support.");

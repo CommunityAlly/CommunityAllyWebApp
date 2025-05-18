@@ -35,6 +35,7 @@ namespace Ally
         ptaUnitId: number;
         hasStripePremiumPendingAchAccount: boolean;
         nonAdminCanAddVendors: boolean;
+        shouldUseFamiliarNeighborUi: boolean;
     }
 
 
