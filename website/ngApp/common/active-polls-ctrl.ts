@@ -34,7 +34,7 @@
 
             this.refreshPolls();
 
-            this.timezoneAbbreviation = LogbookController.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
+            this.timezoneAbbreviation = LogbookController.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana, this.siteInfo.privateSiteInfo )
         }
 
 

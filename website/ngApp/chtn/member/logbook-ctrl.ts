@@ -47,7 +47,7 @@ namespace Ally
         }
 
 
-        static getTimezoneAbbreviation( timeZoneIana: string = null )
+        static getTimezoneAbbreviation( timeZoneIana: string = null, privateSiteInfo: ChtnPrivateSiteInfo = null )
         {
             // Need to cast moment to any because we don't have the tz typedef file
             const tempMoment = <any>moment();
@@ -58,15 +58,33 @@ namespace Ally
             const timeZoneInfo = tempMoment.tz( timeZoneIana );
             const timeZoneAbbreviation: string = timeZoneInfo.format( 'z' );
 
+            let shouldShortenAbbreviation = true;
+            if( privateSiteInfo && privateSiteInfo.groupAddress )
+            {
+                // Only shorten for US groups
+                if( !privateSiteInfo.country || privateSiteInfo.country !== "US" )
+                    shouldShortenAbbreviation = false;
+                else
+                {
+                    // Arizona and Hawaii don't use daylight savings
+                    const isNonDstState = ["HI", "AZ"].includes( privateSiteInfo.groupAddress.state );
+                    if( isNonDstState )
+                        shouldShortenAbbreviation = false;
+                }
+            }
+
             // Drop the daylight savings time (DST) info to avoid confusion with users
-            if( timeZoneAbbreviation === "EST" || timeZoneAbbreviation === "EDT" )
-                return "ET";
-            else if( timeZoneAbbreviation === "CST" || timeZoneAbbreviation === "CDT" )
-                return "CT";
-            else if( timeZoneAbbreviation === "MST" || timeZoneAbbreviation === "MDT" )
-                return "MT";
-            else if( timeZoneAbbreviation === "PST" || timeZoneAbbreviation === "PDT" )
-                return "PT";
+            if( shouldShortenAbbreviation )
+            {
+                if( timeZoneAbbreviation === "EST" || timeZoneAbbreviation === "EDT" )
+                    return "ET";
+                else if( timeZoneAbbreviation === "CST" || timeZoneAbbreviation === "CDT" )
+                    return "CT";
+                else if( timeZoneAbbreviation === "MST" || timeZoneAbbreviation === "MDT" )
+                    return "MT";
+                else if( timeZoneAbbreviation === "PST" || timeZoneAbbreviation === "PDT" )
+                    return "PT";
+            }
 
             return timeZoneAbbreviation;
         }
@@ -77,12 +95,12 @@ namespace Ally
         */
         $onInit()
         {
-            this.currentTimeZoneAbbreviation = LogbookController.getTimezoneAbbreviation();
+            this.currentTimeZoneAbbreviation = LogbookController.getTimezoneAbbreviation( null, this.siteInfo.privateSiteInfo );
             this.canEditEvents = this.siteInfo.userInfo.isSiteManager;
-
+            
             if( this.siteInfo.privateSiteInfo.groupAddress && this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana )
             {
-                this.groupTimeZoneAbbreviation = LogbookController.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana );
+                this.groupTimeZoneAbbreviation = LogbookController.getTimezoneAbbreviation( this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana, this.siteInfo.privateSiteInfo );
 
                 if( this.groupTimeZoneAbbreviation != this.currentTimeZoneAbbreviation )
                     this.localTimeZoneDiffersFromGroup = true;

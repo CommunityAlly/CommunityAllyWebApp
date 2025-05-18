@@ -23,7 +23,7 @@ var Ally;
         $onInit() {
             this.homeName = AppConfig.homeName.toLocaleLowerCase();
             this.refreshPolls();
-            this.timezoneAbbreviation = Ally.LogbookController.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana);
+            this.timezoneAbbreviation = Ally.LogbookController.getTimezoneAbbreviation(this.siteInfo.privateSiteInfo.groupAddress.timeZoneIana, this.siteInfo.privateSiteInfo);
         }
         /**
          * Retrieve any active polls from the server
