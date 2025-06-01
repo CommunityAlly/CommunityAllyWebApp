@@ -55,11 +55,12 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         refresh() {
             this.isLoading = true;
-            this.$http.get("/api/WelcomeTip").then((httpResponse) => {
-                this.tips = httpResponse.data;
+            const onLoad = (welcomeTip) => {
+                this.tips = welcomeTip;
                 this.populateAllMarkers();
                 this.isLoading = false;
-            });
+            };
+            this.$http.get("/api/WelcomeTip").then((httpResponse) => onLoad(httpResponse.data), () => onLoad(null));
         }
         populateAllMarkers() {
             MapCtrlMapMgr.ClearAllMarkers();

@@ -37,9 +37,11 @@ var Ally;
             this.shouldShowTrialNote = false;
             this.shouldShowHomeSetupNote = false;
             this.shouldShowStripeAchMandate = false;
+            this.userIsAdmin = false;
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
+            this.userIsAdmin = siteInfo.userInfo.isAdmin;
             try {
                 this.stripeApi = Stripe(StripeApiKey);
             }

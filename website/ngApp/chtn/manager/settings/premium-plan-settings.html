@@ -98,7 +98,10 @@
             </div>
         </div>
 
-        <div class="row mt-3" data-ng-if="$ctrl.shouldShowPaymentForm">
+        <div class="row mt-3" data-ng-if="$ctrl.shouldShowPaymentForm || $ctrl.userIsAdmin">
+            <h2 data-ng-if="!$ctrl.shouldShowPaymentForm && $ctrl.userIsAdmin" style="color: blue;">
+                Admin View
+            </h2>
             <h5>Step 2: Choose Payment Method</h5>
             <div class="card col-sm-12 col-md-6" style="margin: 0 auto;">
                 <div class="card-body">

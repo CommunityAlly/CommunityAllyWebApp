@@ -46,6 +46,7 @@ namespace Ally
         shouldShowHomeSetupNote = false;
         pendingStripeAchClientSecret: string;
         shouldShowStripeAchMandate = false;
+        userIsAdmin = false;
 
 
         /**
@@ -60,6 +61,7 @@ namespace Ally
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
+            this.userIsAdmin = siteInfo.userInfo.isAdmin;
 
             try
             {

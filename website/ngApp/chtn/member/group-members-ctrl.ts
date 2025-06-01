@@ -278,6 +278,7 @@ namespace Ally
         {
             this.shouldShowNewCustomEmailModal = true;
             this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.editGroupEmailInfoInputShortName = "";
             this.allResidents.forEach( r => r.isAssociated = false );
 
             window.setTimeout( () => document.getElementById( "custom-group-email-short-name-text" ).focus(), 50 );
@@ -311,6 +312,7 @@ namespace Ally
                 this.isLoadingSaveEmailGroup = false;
                 this.shouldShowNewCustomEmailModal = false;
                 this.editGroupEmailInfo = null;
+                this.editGroupEmailInfoInputShortName = "";
 
                 // Refresh the emails, clear the cache first since we added a new group email address
                 this.fellowResidents.clearResidentCache();
@@ -341,6 +343,7 @@ namespace Ally
             this.editGroupEmailInfo.existingGroupEmailId = groupEmail.customGroupEmailId;
             this.editGroupEmailInfo.description = groupEmail.description;
             this.editGroupEmailInfo.shortName = groupEmail.shortName;
+            this.editGroupEmailInfoInputShortName = this.editGroupEmailInfo.shortName;
             this.editGroupEmailInfo.memberUserIds = groupEmail.members.map( m => m.userId );
             this.editGroupEmailInfo.allowPublicIncoming = groupEmail.allowPublicIncoming;
             this.allResidents.forEach( r => r.isAssociated = this.editGroupEmailInfo.memberUserIds.indexOf( r.userId ) !== -1 );
