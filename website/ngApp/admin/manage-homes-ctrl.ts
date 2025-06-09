@@ -266,6 +266,10 @@
                 {
                     headerText: "Notes",
                     fieldName: "notes"
+                },
+                {
+                    headerText: "Lot",
+                    fieldName: "lotNumber"
                 }
             ];
 

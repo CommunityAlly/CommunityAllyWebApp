@@ -180,6 +180,10 @@ var Ally;
                 {
                     headerText: "Notes",
                     fieldName: "notes"
+                },
+                {
+                    headerText: "Lot",
+                    fieldName: "lotNumber"
                 }
             ];
             const csvDataString = Ally.createCsvString(this.units, csvColumns);
