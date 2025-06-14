@@ -66,8 +66,13 @@
             Who can take part in this vote?
             <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-change="$ctrl.onWhoGroupChange()" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.whoCanVoteGroups">
             </select>
-            <div class="note-text" data-ng-if="$ctrl.whoGroupNumPossibleVotes" title="{{$ctrl.whoGroupMembersTooltip}}">
-                The selected group can cast {{$ctrl.whoGroupNumPossibleVotes}} possible vote{{$ctrl.whoGroupNumPossibleVotes===1 ? '' : 's'}} (hover for more info)
+            <div class="note-text" data-ng-if="$ctrl.whoGroupNumPossibleVotes">
+                The selected group can cast {{$ctrl.whoGroupNumPossibleVotes}} possible vote{{$ctrl.whoGroupNumPossibleVotes===1 ? '' : 's'}}
+                <span class="text-link" data-ng-if="!$ctrl.shouldShowVoters" data-ng-click="$ctrl.shouldShowVoters = true">(Show voters)</span>
+                <span class="text-link" data-ng-if="$ctrl.shouldShowVoters" data-ng-click="$ctrl.shouldShowVoters = false">(Hide voters)</span>
+                <div data-ng-if="$ctrl.shouldShowVoters">
+                    {{$ctrl.whoGroupMembersTooltip}}
+                </div>
             </div>
         </div>
 
