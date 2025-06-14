@@ -686,9 +686,9 @@
         retrievePaymentHistory(): void
         {
             this.isLoading = true;
-            let getUri = "/api/PaymentHistory/FullHistory?oldestDate=";
+            let getUri = "/api/PaymentHistory/FullHistory";
             if( this.shouldShowAllUnits )
-                getUri += "&showAllUnits=true";
+                getUri += "?showAllUnits=true";
 
             window.localStorage["assessmentHistory_showAllUnits"] = this.shouldShowAllUnits;
 
@@ -796,28 +796,109 @@
 
         getEstimatedBalance( unit: UnitWithPayment ) : number | undefined
         {
-            const mostRecentPayment = unit.allPayments.find( p => p.isPaid );
-            if( !mostRecentPayment )
-                return undefined;
-
-            const paidEntries = unit.allPayments.filter( p => p.isPaid );
-            const oldestPayment = paidEntries[paidEntries.length - 1];
-            const startPeriod = new PeriodYear( oldestPayment.period, oldestPayment.year );
-
-            // Add 2 to include the start and end pay periods
-            const totalNumPayPeriods = this.getNumPaymentsBetween( startPeriod, this.todaysPayPeriod ) + 2;
-            const totalNumPayments = paidEntries.length;
-
-            if( unit.name === "C" )
-                console.log( "unit c", startPeriod, this.todaysPayPeriod, totalNumPayPeriods, totalNumPayments );
-
-            const estBalance = ( totalNumPayPeriods - totalNumPayments ) * unit.assessment;
-
-            // If the person is ahead on payments, still show 0 rather than negative due
-            if( estBalance < 0 )
+            if( !unit || !unit.allPayments || unit.allPayments.length === 0 )
                 return 0;
 
-            return estBalance;
+            // v3 Loop through paid periods and sum up amount paid vs amount owed
+            const oldestPayment = unit.allPayments[unit.allPayments.length - 1];
+            const endPeriod = this.getTodaysPayPeriod();
+            const curPeriod = new PeriodYear( oldestPayment.period, oldestPayment.year );
+
+            let amountPaid = 0;
+            let amountOwed = 0;
+            while( PeriodYear.isBeforeOrSame( curPeriod, endPeriod ) )
+            {
+                const curPaymentEntry = unit.allPayments.find( p => p.period === curPeriod.periodValue && p.year === curPeriod.year );
+                PeriodYear.Increment( curPeriod, this.maxPeriodRange );
+
+                const curPeriodAssessmentAmount = unit.assessment || 0;
+                
+                if( !curPaymentEntry || curPaymentEntry.isEmptyEntry )
+                {
+                    amountOwed += curPeriodAssessmentAmount;
+                }
+                else if( curPaymentEntry.isPaid )
+                {
+                    amountPaid += curPeriodAssessmentAmount;
+                    amountOwed += curPeriodAssessmentAmount;
+                }
+                else
+                {
+                    amountPaid += curPaymentEntry.amount || 0;
+                    amountOwed += curPeriodAssessmentAmount;
+                }
+            }
+
+            if( this.specialAssessments && this.specialAssessments.length > 0 )
+            {
+                // Don't include special assessments before our start date
+                const oldestPaymentDate = this.periodToDate( { periodValue: oldestPayment.period, year: oldestPayment.year } );
+                //const shouldInclude = ( testDate: Date ): boolean =>
+                //{
+
+                //    if( testDate.getFullYear() < oldestPayment.year )
+                //        return false;
+                //    else if( testDate.getFullYear() > oldestPayment.year )
+                //        return true;
+
+                    
+                //    return oldestPayment.period;
+                //};
+                const filteredSpecialAssessments = this.specialAssessments.filter( a => a.assessmentDate >= oldestPaymentDate );
+
+                for( const curSpecialAssessment of filteredSpecialAssessments )
+                {
+                    const curAmount = curSpecialAssessment.amount || 0;
+
+                    const curPaymentEntry = unit.allPayments.find( u => u.specialAssessmentId === curSpecialAssessment.specialAssessmentId );
+                    if( !curPaymentEntry || curPaymentEntry.isEmptyEntry )
+                        amountOwed += curAmount;
+                    else if( curPaymentEntry.isPaid )
+                    {
+                        amountPaid += curAmount;
+                        amountOwed += curAmount;
+                    }
+                    else
+                    {
+                        amountPaid += curPaymentEntry.amount || 0;
+                        amountOwed += curAmount;
+                    }
+                }
+            }
+
+            //console.log( `Found est balance for '${unit.name}' was $${amountOwed - amountPaid} from ${oldestPayment.period}/${oldestPayment.year} to ${endPeriod.periodValue}/${endPeriod.year}` );
+
+            return amountOwed - amountPaid;
+
+
+
+            // v2 Count # of paid periods between oldest and most recent
+            //const mostRecentPayment = unit.allPayments.find( p => p.isPaid );
+            //if( !mostRecentPayment )
+            //    return undefined;
+
+            //const paidEntries = unit.allPayments.filter( p => p.isPaid );
+            //const oldestPayment = paidEntries[paidEntries.length - 1];
+            //const startPeriod = new PeriodYear( oldestPayment.period, oldestPayment.year );
+
+            //// Add 2 to include the start and end pay periods
+            //const totalNumPayPeriods = this.getNumPaymentsBetween( startPeriod, this.todaysPayPeriod ) + 2;
+            //const totalNumPayments = paidEntries.length;
+
+            //if( unit.name === "C" )
+            //    console.log( "unit c", startPeriod, this.todaysPayPeriod, totalNumPayPeriods, totalNumPayments );
+
+            //const estBalance = ( totalNumPayPeriods - totalNumPayments ) * unit.assessment;
+
+            //// If the person is ahead on payments, still show 0 rather than negative due
+            //if( estBalance < 0 )
+            //    return 0;
+
+            //return estBalance;
+
+
+
+            // v1 Calculate # of paid since most recent payment
             //let numMissedPayments = 0;
             //const todaysPayPeriod = this.getTodaysPayPeriod();
 
@@ -1184,6 +1265,40 @@
         // Pay period values start at 1, not 0
         periodValue: number;
         year: number;
+
+
+        /// Returns true if testPeriod comes before (older than) comparePeriod
+        static isBefore( testPeriod: PeriodYear, comparePeriod: PeriodYear ): boolean
+        {
+            if( testPeriod.year < comparePeriod.year )
+                return true;
+            else if( testPeriod.year > comparePeriod.year )
+                return false;
+
+            return testPeriod.periodValue < comparePeriod.periodValue;
+        }
+
+        /// Returns true if testPeriod comes before (older than) comparePeriod or is the same
+        static isBeforeOrSame( testPeriod: PeriodYear, comparePeriod: PeriodYear ): boolean
+        {
+            if( testPeriod.year < comparePeriod.year )
+                return true;
+            else if( testPeriod.year > comparePeriod.year )
+                return false;
+
+            return testPeriod.periodValue <= comparePeriod.periodValue;
+        }
+
+        static Increment( period: PeriodYear, maxPeriodRange: number ): void
+        {
+            ++period.periodValue;
+
+            if( period.periodValue > maxPeriodRange )
+            {
+                period.periodValue = 1;
+                ++period.year;
+            }
+        }
     }
 
 
