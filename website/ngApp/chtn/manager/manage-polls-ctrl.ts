@@ -15,11 +15,17 @@
         chartData: number[];
         chartLabels: string[];
         isSuperAdmin: boolean = false;
-        groupEmails: GroupEmailInfo[];
+        //groupEmails: GroupEmailInfo[];
+        //groupResidents: FellowChtnResident[];
+        //groupUnits: UnitListing[];
+        whoCanVoteGroups: PollWhoCanVoteGroup[];
         shouldAllowMultipleAnswers: boolean = false;
         isPremiumPlanActive: boolean = false;
         editPollHasAbstain = false;
-        whoGroupNumMembers: number | null = null;
+        whoGroupNumPossibleVotes: number | null = null;
+        whoGroupMembersTooltip = "";
+        shouldShowMemberCheckbox = false;
+        pollMemberLabel = "member";
 
 
         /**
@@ -39,7 +45,8 @@
         {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
-
+            this.shouldShowMemberCheckbox = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+            
             const threeDaysLater = new Date();
             threeDaysLater.setDate( new Date().getDate() + 3 );
 
@@ -56,15 +63,41 @@
             this.shouldAllowMultipleAnswers = false;
             
             this.isLoading = true;
-            this.fellowResidents.getGroupEmailObject().then(
-                ( groupEmails ) =>
+            this.$http.get( "/api/Poll/WhoCanVoteGroups" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<PollWhoCanVoteGroup[]> ) =>
                 {
-                    this.groupEmails = _.sortBy( groupEmails, e => e.displayName.toUpperCase() );
+                    //this.groupEmails = _.sortBy( groupEmails, e => e.displayName.toUpperCase() );
+                    this.whoCanVoteGroups = response.data;
+
+                    // Default to owners instead of everyone for more consistent results in HOAs/condos
+                    if( this.shouldShowMemberCheckbox && this.whoCanVoteGroups.some( vg => vg.recipientTypeName === "owners" ) )
+                    {
+                        this.defaultPoll.votingGroupShortName = "owners";
+                        this.editingItem.votingGroupShortName = this.defaultPoll.votingGroupShortName;
+                    }
+
                     this.onWhoGroupChange();
                     this.retrievePolls();
                 },
                 () => this.retrievePolls()
             );
+
+            //this.fellowResidents.getGroupEmailObject().then(
+            //    ( groupEmails ) =>
+            //    {
+            //        this.fellowResidents.getByUnitsAndResidents().then(
+            //            ( residentData ) =>
+            //            {
+            //                this.groupEmails = _.sortBy( groupEmails, e => e.displayName.toUpperCase() );
+            //                this.groupResidents = residentData.residents;
+            //                this.groupUnits = residentData.byUnit;
+            //                this.onWhoGroupChange();
+            //                this.retrievePolls();
+            //            }
+            //        );
+            //    },
+            //    () => this.retrievePolls()
+            //);
         }
 
 
@@ -247,10 +280,10 @@
 
         formatVoteGroupName( votingGroupShortName: string )
         {
-            if( !this.groupEmails )
+            if( !this.whoCanVoteGroups )
                 return votingGroupShortName;
 
-            const emailGroup = this.groupEmails.find( g => g.recipientTypeName.toLowerCase() === votingGroupShortName );
+            const emailGroup = this.whoCanVoteGroups.find( g => g.recipientTypeName.toLowerCase() === votingGroupShortName );
             if( !emailGroup )
                 return votingGroupShortName;
 
@@ -303,13 +336,47 @@
 
         onWhoGroupChange()
         {
-            if( !this.editingItem || !this.editingItem.votingGroupShortName )
-                return;
+            if( !this.shouldShowMemberCheckbox || this.editingItem.isMemberBasedVote )
+                this.pollMemberLabel = "member";
+            else
+                this.pollMemberLabel = "home";
 
-            const emailGroup = this.groupEmails.find( g => g.recipientTypeName === this.editingItem.votingGroupShortName );
-            this.whoGroupNumMembers = emailGroup ? emailGroup.usersFullNames.length : null;
+            if( !this.editingItem || !this.editingItem.votingGroupShortName )
+            {
+                this.whoGroupNumPossibleVotes = null;
+                return;
+            }
+
+            const emailGroup = this.whoCanVoteGroups.find( g => g.recipientTypeName === this.editingItem.votingGroupShortName );
+            if( !emailGroup )
+            {
+                alert( "Failed to find selected email group, please refresh the page" );
+                return;
+            }
+
+            // If we're counting homes instead of members
+            const isHomeBasedVote = this.shouldShowMemberCheckbox && !this.editingItem.isMemberBasedVote;
+            if( isHomeBasedVote )
+            {
+                //const emailGroupResidents = this.groupResidents.filter( gr => emailGroup.memberUserIds.includes( gr.userId ) );
+                //const emailGroupHomeIds = _.uniq( emailGroupResidents.flatMap( egr => egr.homes.filter( h => !h.isRenter ).map( h => h.unitId ) ) );
+                //this.whoGroupNumPossibleVotes = emailGroupHomeIds.length;
+                //this.whoGroupMembersTooltip = "Homes: " + this.groupUnits
+                //    .filter( gu => emailGroupHomeIds.includes( gu.unitId ) )
+                //    .map( gu => gu.name + " (" + gu.owners.filter( o => emailGroup.memberUserIds.includes( o.userId ) ).map( o => o.fullName ) + ")" )
+                //    .join( ", " );
+                this.whoGroupNumPossibleVotes = emailGroup.numPossibleHomeVotes;
+                this.whoGroupMembersTooltip = "Homes: " + emailGroup.homeNamesInvolved;
+            }
+            // Otherwise all residents can cast a vote
+            else
+            {
+                this.whoGroupNumPossibleVotes = emailGroup.numPossibleMemberVotes;
+                this.whoGroupMembersTooltip = "Members: " + emailGroup.memberNamesInvolved;
+            }
         }
     }
+
 
     export class Poll
     {
@@ -331,6 +398,7 @@
         expectedNumVoters: number;
         expectedVoterUserIdsCsv: string;
         expectedVoterUserIdsSplit: string[];
+        isMemberBasedVote: boolean | null;
 
         isComplete: boolean;
         answers: PollAnswer[];

@@ -1353,9 +1353,6 @@ footer a:hover {
   display: inline-block;
   width: 15px;
 }
-.page-manage-polls #edit-item-form {
-  max-width: 450px;
-}
 .page-manage-polls ol.question-list {
   counter-reset: list;
   padding-left: 0px;

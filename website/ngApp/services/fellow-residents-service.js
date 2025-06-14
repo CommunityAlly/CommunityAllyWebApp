@@ -6,6 +6,9 @@ var Ally;
     class GroupEmailInfo {
     }
     Ally.GroupEmailInfo = GroupEmailInfo;
+    class PollWhoCanVoteGroup extends GroupEmailInfo {
+    }
+    Ally.PollWhoCanVoteGroup = PollWhoCanVoteGroup;
     class GroupEmailGroups {
     }
     Ally.GroupEmailGroups = GroupEmailGroups;
@@ -55,7 +58,7 @@ var Ally;
          * Get the residents for the current group
          */
         getResidents() {
-            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then((httpResponse) => {
+            return this.$http.get("/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache }).then((httpResponse) => {
                 return httpResponse.data.residents;
             }, (httpResponse) => {
                 return this.$q.reject(httpResponse);
@@ -85,7 +88,7 @@ var Ally;
          * Get the residents for an association, broken down by unit for easy display
          */
         getByUnits() {
-            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then((httpResponse) => {
+            return this.$http.get("/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache }).then((httpResponse) => {
                 return httpResponse.data.byUnit;
             }, (httpResponse) => {
                 return this.$q.reject(httpResponse);
@@ -95,7 +98,7 @@ var Ally;
          * Get a list of residents and homes
          */
         getByUnitsAndResidents() {
-            return this.$http.get("/api/BuildingResidents", { cache: this.httpCache }).then((httpResponse) => {
+            return this.$http.get("/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache }).then((httpResponse) => {
                 return httpResponse.data;
             }, (httpResponse) => {
                 return this.$q.reject(httpResponse);

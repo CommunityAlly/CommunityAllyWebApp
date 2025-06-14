@@ -9,8 +9,19 @@
         recipientTypeName: string;
         displayName: string;
         usersFullNames: string[];
+        memberUserIds: string[];
         sortOrder: number;
         isRestrictedGroup: boolean;
+    }
+
+
+    export class PollWhoCanVoteGroup extends GroupEmailInfo
+    {
+        numPossibleHomeVotes: number;
+        numPossibleMemberVotes: number;
+        homeNamesInvolved: string;
+        memberNamesInvolved: string;
+        renterNamesInvolved: string;
     }
 
 
@@ -145,7 +156,7 @@
          */
         getResidents()
         {
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+            return this.$http.get( "/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
                 {
                     return httpResponse.data.residents;
@@ -199,7 +210,7 @@
          */
         getByUnits(): ng.IPromise<UnitListing[]>
         {
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+            return this.$http.get( "/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
                 {
                     return httpResponse.data.byUnit;
@@ -218,11 +229,10 @@
          */
         getByUnitsAndResidents(): ng.IPromise<FellowResidents>
         {
-            return this.$http.get( "/api/BuildingResidents", { cache: this.httpCache } ).then(
+            return this.$http.get( "/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
                 {
                     return httpResponse.data;
-
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {

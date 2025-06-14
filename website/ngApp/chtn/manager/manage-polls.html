@@ -13,7 +13,7 @@
         <li>Users can vote and change their vote any number of times until the vote's expiration date at which point the results will be shown.</li>
     </ul>
 
-    <form id="edit-item-form" name="editItemForm" class="spinner-effect margin-top" novalidate>
+    <form id="edit-item-form" name="editItemForm" class="spinner-effect margin-top col-6" novalidate>
         <div class="row mb-3 px-3">
             <label class="form-label">Enter Question:<span class="validation-label" data-ng-show="$ctrl.editItemForm.PollQuestionTextBox.$error.required">Required</span></label>
             <input id="poll-question-textbox" type="text" class="form-control form-control-sm" maxlength="80" name="PollQuestionTextBox" data-ng-model="$ctrl.editingItem.questionText" required />
@@ -64,12 +64,20 @@
 
         <div class="mb-4">
             Who can take part in this vote?
-            <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-change="$ctrl.onWhoGroupChange()" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.groupEmails">
+            <select data-ng-model="$ctrl.editingItem.votingGroupShortName" data-ng-change="$ctrl.onWhoGroupChange()" data-ng-options="g.recipientTypeName as g.displayName for g in $ctrl.whoCanVoteGroups">
             </select>
-            <div class="note-text" data-ng-if="$ctrl.whoGroupNumMembers">
-                This group has {{$ctrl.whoGroupNumMembers}} member{{$ctrl.whoGroupNumMembers===1 ? '' : 's'}}
+            <div class="note-text" data-ng-if="$ctrl.whoGroupNumPossibleVotes" title="{{$ctrl.whoGroupMembersTooltip}}">
+                The selected group can cast {{$ctrl.whoGroupNumPossibleVotes}} possible vote{{$ctrl.whoGroupNumPossibleVotes===1 ? '' : 's'}} (hover for more info)
             </div>
         </div>
+
+        <!--<p data-ng-if="$ctrl.shouldShowMemberCheckbox">
+            <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.isMemberBasedVote" data-ng-change="$ctrl.onWhoGroupChange()"> Allow all members to vote, not just one per home</label>
+            <br />
+            <span class="note-text">
+                By default, votes allow only one response per household. If you check this box, everyone in a home can cast their own vote. (As long as they're in the 'Who can take part' group selected above)
+            </span>
+        </p>-->
 
         <p>
             <label style="margin-bottom: 0;"><input type="checkbox" data-ng-model="$ctrl.editingItem.allowOtherAnswer"> Allow users to type in their own responses</label><br />
