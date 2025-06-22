@@ -18,7 +18,7 @@
             <button data-ng-click="$ctrl.demoLogin()">Log In</button>
         </div>
 
-        <div>
+        <div data-ng-if="!$ctrl.isEnteringMfaCode">
             <div style="max-width: 760px; margin: 0 auto;">
                 <!-- Needs to be ng-show rather than ng-if for the Protractor tests -->
                 <div data-ng-if="$ctrl.welcomeImageContainerStyle" data-ng-style="$ctrl.welcomeImageContainerStyle">
@@ -66,7 +66,37 @@
                 </form>
             </div>
         </div>
+
+        <div data-ng-if="$ctrl.isEnteringMfaCode">
+            You have enabled SMS two factor authentication on your account.
+            <br />
+            <br />
+            <b>Enter the security code sent to (***) ***-{{$ctrl.mfaLoginResults.mfaPhoneLast4}}</b>
+            <br />
+            <div data-ng-show="$ctrl.loginResultMessage" style="font-weight: bold; color: #F00; font-size:1.25em;" class="mt-2 mb-4">
+                <span id="error-label" class="error-text">{{ $ctrl.loginResultMessage }}</span>
+                <br />
+                <span class="text-link note-text" data-ng-click="$ctrl.reload()">Restart Login</span>
+            </div>
+            <div class="mt-2 mb-2 note-text">
+                MFA code will expire in <b>{{$ctrl.mfaExpirationCountdownText}}</b>
+            </div>
+            <form style="max-width: 500px; margin: 0 auto;" data-ng-submit="$ctrl.onLoginViaMfa($event)">
+
+                <div class="row mb-3 text-start">
+                    <!--<label for="login-email-textbox" class="form-label">Access Code:</label>-->
+                    <input type="text" maxlength="6" class="form-control" id="login-mfa-textbox" data-ng-enter="$ctrl.onLoginViaMfa($event)" data-ng-model="$ctrl.mfaCode" style="max-width: 150px; margin: 0 auto;" autocomplete="one-time-code" data-rule-required="true">
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <input type="submit" value="Log In" id="login-button" class="btn btn-primary" style="float:none;"><br />
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
+
     <div class="modal-container" data-ng-if="$ctrl.showNeedAccessModal">
         <div class="modal-overlay" data-ng-click="$ctrl.showNeedAccessModal = false"></div>
         <div class="ca-modal-dialog">

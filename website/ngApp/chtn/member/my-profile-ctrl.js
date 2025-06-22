@@ -32,6 +32,10 @@ var Ally;
             this.passwordComplexity = "short";
             this.emailFlagsNonBoard = true;
             this.emailFlagsDiscussion = true;
+            this.shouldShowPhoneVerifyModal = false;
+            this.phoneVerifyCodeWasSent = false;
+            this.phoneVerifyCode = "";
+            this.originalPhoneNumber = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -106,34 +110,33 @@ var Ally;
          */
         retrieveProfileData() {
             this.isLoading = true;
-            this.$http.get("/api/MyProfile").then((httpResponse) => {
+            this.$http.get("/api/MyProfile/MyInfo").then((httpResponse) => {
                 this.isLoading = false;
                 this.profileInfo = httpResponse.data;
-                this.initialProfileImageType = "blank";
-                if (!this.profileInfo.avatarUrl || this.profileInfo.avatarUrl.indexOf("blank-headshot") !== -1)
-                    this.initialProfileImageType = "blank";
-                else if (this.profileInfo.avatarUrl && this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
-                    this.initialProfileImageType = "gravatar";
-                else if (this.profileInfo.avatarUrl && this.profileInfo.avatarUrl.length > 0)
-                    this.initialProfileImageType = "upload";
-                if (this.initialProfileImageType !== "upload")
-                    this.profileInfo.avatarUrl = null;
-                this.profileImageType = this.initialProfileImageType;
-                this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
-                // Don't show empty email address
-                if (HtmlUtil.endsWith(this.profileInfo.email, "@condoally.com"))
-                    this.profileInfo.email = "";
-                this.needsToAcceptTerms = this.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
-                this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
-                this.$rootScope.shouldHideMenu = this.needsToAcceptTerms;
-                this.emailFlagsNonBoard = (this.profileInfo.enabledEmailsFlags & 2) === 2;
-                this.emailFlagsDiscussion = (this.profileInfo.enabledEmailsFlags & 4) === 4;
-                // Was used before, here for convenience
-                this.saveButtonStyle = {
-                    width: "100px",
-                    "font-size": "1em"
-                };
+                this.updateLocalProfileInfo();
             });
+        }
+        updateLocalProfileInfo() {
+            this.initialProfileImageType = "blank";
+            if (!this.profileInfo.avatarUrl || this.profileInfo.avatarUrl.indexOf("blank-headshot") !== -1)
+                this.initialProfileImageType = "blank";
+            else if (this.profileInfo.avatarUrl && this.profileInfo.avatarUrl.indexOf("gravatar") !== -1)
+                this.initialProfileImageType = "gravatar";
+            else if (this.profileInfo.avatarUrl && this.profileInfo.avatarUrl.length > 0)
+                this.initialProfileImageType = "upload";
+            if (this.initialProfileImageType !== "upload")
+                this.profileInfo.avatarUrl = null;
+            this.profileImageType = this.initialProfileImageType;
+            this.gravatarUrl = "https://www.gravatar.com/avatar/" + md5((this.profileInfo.email || "").toLowerCase()) + "?s=80&d=identicon";
+            // Don't show empty email address
+            if (HtmlUtil.endsWith(this.profileInfo.email, "@condoally.com"))
+                this.profileInfo.email = "";
+            this.needsToAcceptTerms = this.profileInfo.acceptedTermsDate === null && !this.isDemoSite;
+            this.hasAcceptedTerms = !this.needsToAcceptTerms; // Gets set by the checkbox
+            this.$rootScope.shouldHideMenu = this.needsToAcceptTerms;
+            this.emailFlagsNonBoard = (this.profileInfo.enabledEmailsFlags & 2) === 2;
+            this.emailFlagsDiscussion = (this.profileInfo.enabledEmailsFlags & 4) === 4;
+            this.originalPhoneNumber = this.profileInfo.phoneNumber;
         }
         /**
          * Occurs when the user hits the save button
@@ -141,7 +144,7 @@ var Ally;
         onSaveInfo() {
             this.isLoading = true;
             this.resultMessage = "";
-            this.$http.put("/api/MyProfile", this.profileInfo).then((httpResponse) => {
+            this.$http.put("/api/MyProfile/UpdateMyProfile", this.profileInfo).then((httpResponse) => {
                 this.isLoading = false;
                 this.profileInfo.password = null;
                 this.isResultMessageGood = true;
@@ -159,8 +162,10 @@ var Ally;
                     this.$location.path("/Home");
                 }
                 // Make sure our local data matches
+                this.profileInfo = httpResponse.data.updatedUserInfo;
                 this.siteInfo.userInfo.firstName = this.profileInfo.firstName;
                 this.siteInfo.userInfo.lastName = this.profileInfo.lastName;
+                this.updateLocalProfileInfo();
             }, (httpResponse) => {
                 this.isLoading = false;
                 this.resultMessage = httpResponse.data.exceptionMessage;
@@ -195,6 +200,51 @@ var Ally;
             //}
             this.profileInfo.enabledEmailsFlags = 1 | (this.emailFlagsNonBoard ? 2 : 0) | (this.emailFlagsDiscussion ? 4 : 0);
             //console.log( "this.profileInfo.enabledEmailsFlags", this.profileInfo.enabledEmailsFlags );
+        }
+        /**
+         * Occurs when the user presses the button to start the phone number verification status
+         */
+        showPhoneVerifyModal() {
+            this.shouldShowPhoneVerifyModal = true;
+            this.phoneVerifyCodeWasSent = false;
+            this.phoneVerifyCode = "";
+        }
+        /**
+         * Occurs when the user presses the button to send themselves a code to verify ownership of their phone number
+         */
+        sendPhoneVerifyCode() {
+            this.isLoading = true;
+            this.resultMessage = "";
+            this.$http.get("/api/MyProfile/SendPhoneVerifyCode").then(() => {
+                this.isLoading = false;
+                this.phoneVerifyCodeWasSent = true;
+                this.phoneVerifyCode = "";
+                // Focus on the code field
+                window.setTimeout(() => document.getElementById("phone-code-input").focus(), 100);
+            }, (httpResponse) => {
+                this.isLoading = false;
+                alert("Failed to send code: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /**
+         * Occurs when the user presses the button to submit the code to verify ownership of their phone number
+         */
+        verifyPhoneCode() {
+            this.isLoading = true;
+            this.resultMessage = "";
+            const putBody = {
+                verifyCode: this.phoneVerifyCode
+            };
+            this.$http.put("/api/MyProfile/VerifyPhoneCode", putBody).then(() => {
+                this.profileInfo.phoneVerificationDateUtc = new Date();
+                this.profileInfo.hasSmsConsent = true;
+                this.isLoading = false;
+                this.phoneVerifyCodeWasSent = false;
+                this.shouldShowPhoneVerifyModal = false;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                alert("Failed to verify code: " + httpResponse.data.exceptionMessage);
+            });
         }
     }
     MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];

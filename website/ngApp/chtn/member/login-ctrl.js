@@ -14,16 +14,20 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, $rootScope, $location, appCacheService, siteInfo, xdLocalStorage) {
+        constructor($http, $rootScope, $location, appCacheService, siteInfo, $timeout) {
             this.$http = $http;
             this.$rootScope = $rootScope;
             this.$location = $location;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
-            this.xdLocalStorage = xdLocalStorage;
+            this.$timeout = $timeout;
             this.isDemoSite = false;
             this.loginInfo = new LoginInfo();
             this.showNeedAccessModal = false;
+            this.isEnteringMfaCode = false;
+            this.mfaCode = "";
+            this.mfaCountdownSecs = 0;
+            this.mfaExpirationCountdownText = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -124,6 +128,33 @@ var Ally;
             };
             this.onLogin(null);
         }
+        completeLogin(loginResult) {
+            let redirectPath = this.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
+            if (!redirectPath && loginResult.redirectUrl)
+                redirectPath = loginResult.redirectUrl;
+            this.siteInfo.setAuthToken(loginResult.authToken);
+            if (this.rememberMe) {
+                window.localStorage["rememberMe_Email"] = this.loginInfo.emailAddress;
+                window.localStorage["rememberMe_Password"] = btoa(this.loginInfo.password);
+            }
+            else {
+                window.localStorage["rememberMe_Email"] = null;
+                window.localStorage["rememberMe_Password"] = null;
+            }
+            // handleSiteInfo returns true if we redirect the user so stop processing if we did
+            if (this.siteInfo.handleSiteInfo(loginResult.siteInfo, this.$rootScope, this.$http))
+                return;
+            // If the user hasn't accepted the terms yet then make them go to the profile
+            // page. But no need if this is a demo site.
+            const shouldSendToProfile = !loginResult.siteInfo.userInfo.acceptedTermsDate && !this.isDemoSite;
+            if (shouldSendToProfile)
+                this.$location.path("/MyProfile");
+            else {
+                if (!HtmlUtil.isValidString(redirectPath) && redirectPath !== "/Login")
+                    redirectPath = "/Home";
+                this.$location.path(redirectPath);
+            }
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user clicks the log-in button
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,42 +162,78 @@ var Ally;
             if (event)
                 event.preventDefault();
             this.isLoading = true;
+            this.mfaLoginResults = null;
             // Retrieve information for the current association
-            this.$http.post("/api/Login", this.loginInfo).then((httpResponse) => {
+            this.$http.post("/api/Login/FromForm", this.loginInfo).then((httpResponse) => {
                 this.isLoading = false;
-                const data = httpResponse.data;
-                let redirectPath = this.appCacheService.getAndClear(AppCacheService.Key_AfterLoginRedirect);
-                if (!redirectPath && data.redirectUrl)
-                    redirectPath = data.redirectUrl;
-                this.siteInfo.setAuthToken(data.authToken);
-                if (this.rememberMe) {
-                    window.localStorage["rememberMe_Email"] = this.loginInfo.emailAddress;
-                    window.localStorage["rememberMe_Password"] = btoa(this.loginInfo.password);
-                }
-                else {
-                    window.localStorage["rememberMe_Email"] = null;
-                    window.localStorage["rememberMe_Password"] = null;
-                }
-                // handleSiteInfo returns true if we redirect the user so stop processing if we did
-                if (this.siteInfo.handleSiteInfo(data.siteInfo, this.$rootScope, this.$http))
+                const loginResult = httpResponse.data;
+                // If the user needs to complete MFA via SMS
+                if (loginResult.mfaMethodsCsv === "sms" && loginResult.userId) {
+                    this.isEnteringMfaCode = true;
+                    this.loginResultMessage = null;
+                    this.mfaLoginResults = loginResult;
+                    this.mfaCountdownSecs = LoginController.MfaCountdownExpirationSecs + 1; // Add one since we tick immediately
+                    this.tickMfaCountdown();
+                    // Focus on the code field
+                    window.setTimeout(() => document.getElementById("login-mfa-textbox").focus(), 100);
                     return;
-                // If the user hasn't accepted the terms yet then make them go to the profile
-                // page. But no need if this is a demo site.
-                const shouldSendToProfile = !data.siteInfo.userInfo.acceptedTermsDate && !this.isDemoSite;
-                if (shouldSendToProfile)
-                    this.$location.path("/MyProfile");
-                else {
-                    if (!HtmlUtil.isValidString(redirectPath) && redirectPath !== "/Login")
-                        redirectPath = "/Home";
-                    this.$location.path(redirectPath);
                 }
+                this.completeLogin(loginResult);
             }, (httpResponse) => {
                 this.isLoading = false;
                 this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
             });
         }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs every second while waiting for the user to enter the MFA code
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        tickMfaCountdown() {
+            --this.mfaCountdownSecs;
+            console.log("In tickMfaCountdown", this.mfaCountdownSecs);
+            if (this.mfaCountdownSecs < 0) {
+                alert("Your MFA code has expired, please restart the login process");
+                window.location.reload();
+                return;
+            }
+            let secsString = Math.floor(this.mfaCountdownSecs % 60).toString();
+            if (secsString.length < 2)
+                secsString = "0" + secsString;
+            this.mfaExpirationCountdownText = Math.floor(this.mfaCountdownSecs / 60).toString() + ":" + secsString;
+            this.mfaCountdownTimer = this.$timeout(() => this.tickMfaCountdown(), 1000);
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks the log-in button for the MFA form
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        onLoginViaMfa(event) {
+            if (event)
+                event.preventDefault();
+            this.isLoading = true;
+            const mfaLoginInfo = {
+                userId: this.mfaLoginResults.userId,
+                mfaLoginId: this.mfaLoginResults.mfaLoginId,
+                mfaCode: this.mfaCode
+            };
+            // Retrieve information for the current association
+            this.$http.post("/api/Login/ViaMfa", mfaLoginInfo).then((httpResponse) => {
+                this.isLoading = false;
+                if (this.mfaCountdownTimer)
+                    this.$timeout.cancel(this.mfaCountdownTimer);
+                const loginResult = httpResponse.data;
+                this.completeLogin(loginResult);
+            }, (httpResponse) => {
+                this.isLoading = false;
+                this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
+            });
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks the link to reload/restart login
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        reload() {
+            window.location.reload();
+        }
     }
-    LoginController.$inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "xdLocalStorage"];
+    LoginController.$inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "$timeout"];
+    LoginController.MfaCountdownExpirationSecs = 5 * 60;
     Ally.LoginController = LoginController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("loginPage", {

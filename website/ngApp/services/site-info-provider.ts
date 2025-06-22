@@ -635,6 +635,10 @@ namespace Ally
         tokenExpirationUtc: Date;
         siteInfo: AllySiteInfo;
         redirectUrl: string;
+        mfaMethodsCsv: string;
+        mfaLoginId: string;
+        mfaPhoneLast4: string;
+        userId: string;
     }
 }
 

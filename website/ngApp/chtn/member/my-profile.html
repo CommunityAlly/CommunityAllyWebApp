@@ -92,13 +92,40 @@
 
             <div class="row mt-5">
                 <div class="col-12">
+                    <span class="form-label">Two-factor Authentication</span>
+                    <div data-ng-if="!$ctrl.profileInfo.hasSmsConsent">
+                        You must verify your phone number below in order to receive SMS messages to enable two-factor authentication.
+                    </div>
+                    <div data-ng-if="$ctrl.profileInfo.hasSmsConsent">
+                        <label>
+                            <input type="checkbox" data-ng-model="$ctrl.profileInfo.mfaMethodsCsv" data-ng-true-value="'sms'" data-ng-false-value="null" />
+                            Enable two-factor authentication via SMS
+                        </label>
+                        <div class="note-text">When enabled and logging-in, we'll send you an SMS text message containing a code to add extra security to your account.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
                     <label for="phoneNumberTextBox" class="form-label">
                         Cell Phone Number:
                     </label>
                     <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
                     <span class="form-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association. You can add an alternate phone number in the secondary tab.</span>
-                    <div data-ng-if="$ctrl.canHideContactInfo">
-                        <br />
+                    <div>
+                        Verification Status:
+                        <span data-ng-if="$ctrl.originalPhoneNumber === $ctrl.profileInfo.phoneNumber">
+                            <span data-ng-if="$ctrl.originalPhoneNumber.length >= 10">
+                                <span data-ng-if="$ctrl.profileInfo.phoneVerificationDateUtc" style="color: green; font-weight: bold;">Verified</span>
+                                <span data-ng-if="!$ctrl.profileInfo.phoneVerificationDateUtc" style="color: red; font-weight: bold;">Unverified</span>
+                                <span data-ng-if="!$ctrl.profileInfo.phoneVerificationDateUtc" class="text-link ms-2" data-ng-click="$ctrl.showPhoneVerifyModal()">Verify Now</span>
+                            </span>
+                            <span data-ng-if="$ctrl.originalPhoneNumber.length < 10" style="color: darkgray; font-weight: bold;">Please enter a full phone number with area code (xxx-xxx-xxxx)</span>
+                        </span>
+                        <span data-ng-if="$ctrl.originalPhoneNumber !== $ctrl.profileInfo.phoneNumber" style="color: darkgray; font-weight: bold;">Please save your changes then you can verify</span>
+                    </div>
+                    <div data-ng-if="$ctrl.canHideContactInfo" class="mt-2">
                         <label><input type="checkbox" id="showMyPhoneNumber" data-ng-model="$ctrl.profileInfo.showPhoneInMeetNeighbors" /> Show my phone number and email address on the <a href="#!/BuildingResidents">Residents</a> page.</label>
                         <div class="note-text">With this unchecked, your neighbors can still contact you, but we keep your email address private. If you check this box, you consent to sharing your actual email address and phone number.</div>
                     </div>
@@ -108,13 +135,14 @@
             <!--<div class="row mt-5">
                 <div class="col-12">
                     <label class="form-label">
-                        SMS Consent: I consent to accept SMS from my association.
+                        SMS Consent
                     </label>
                     <div>
-                        <label><input type="radio" name="sms-consent" />Yes</label>
-                        <label class="ms-3"><input type="radio" name="sms-consent" />No</label>
+                        I consent to accept SMS from my association and Community Ally:
+                        <label><input type="radio" name="sms-consent" data-ng-model="$ctrl.profileInfo.hasSmsConsent" data-ng-value="true" />Yes</label>
+                        <label class="ms-3"><input type="radio" name="sms-consent" data-ng-model="$ctrl.profileInfo.hasSmsConsent" data-ng-value="false" />No</label>
                     </div>
-                    <div class="note-text">Answer yes to enable emergency notifications or announcements from your association. <a href="https://login.condoally.com/PrivacyPolicy.html#neversell" target="_blank">We will never sell your information</a>. Carrier message and data fees may apply. Return here to disable SMS sending at any time.</div>
+                    <div class="note-text">Answer yes to enable emergency notifications/announcements from your association and MFA login codes from Community Ally. <a href="https://login.condoally.com/PrivacyPolicy.html#neversell" target="_blank">We will never sell your information</a>. Carrier message and data fees may apply. Return here to disable SMS sending at any time.</div>
                 </div>
             </div>-->
 
@@ -184,8 +212,8 @@
         <hr />
 
         <div style="text-align: center;">
-            <button id="save-profile-button" data-ng-disabled="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms" class="btn btn-primary" style="float:none;"
-                    data-ng-click="$ctrl.onSaveInfo();" type="button" value="Save" data-ng-style="$ctrl.saveButtonStyle">
+            <button id="save-profile-button" data-ng-disabled="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms" class="btn btn-primary" style="float: none; width: 100px; font-size: 1em;"
+                    data-ng-click="$ctrl.onSaveInfo();" type="button" value="Save">
                 Save
             </button>
             <br />
@@ -225,6 +253,36 @@
                         <span>The image will be cropped to a square.</span><br />
                         <input id="JQFileUploader" type="file" name="files[]" data-url="" />
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-container" data-ng-if="$ctrl.shouldShowPhoneVerifyModal">
+    <div class="modal-overlay" data-ng-click="$ctrl.shouldShowPhoneVerifyModal = false"></div>
+    <div class="ca-modal-dialog">
+        <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+        <span style="float: right;" class="close-x" data-ng-click="$ctrl.shouldShowPhoneVerifyModal = false">&times;</span>
+        <h2>Verify Phone Number</h2>
+        <div class="row m-1">
+            <div class="col-12 mb-3" data-ng-if="!$ctrl.phoneVerifyCodeWasSent">
+                We'll verify your phone number by sending you a code via SMS. By verifying your phone number you consent to accept SMS from my association and Community Ally. We use
+                SMS/text messages to enable emergency notifications/announcements from your association and MFA login codes from Community Ally. <a href="https://login.condoally.com/PrivacyPolicy.html#neversell" target="_blank">We will never sell your information</a>. Carrier message and data fees may apply.
+            </div>
+            <div data-ng-if="!$ctrl.phoneVerifyCodeWasSent" class="text-center">
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.sendPhoneVerifyCode()">Send Verification Code</button>
+            </div>
+            <div data-ng-if="$ctrl.phoneVerifyCodeWasSent">
+                We've successfully sent a code to your phone. Enter the code below. Code will expire in 5min.
+                <!--<div class="mt-2 mb-2">
+                    MFA code will expire in <b>{{$ctrl.mfaExpirationCountdownText}}</b>
+                </div>-->
+                <div class="mt-2 text-center">
+                    <input type="text" id="phone-code-input" class="form-control" style="max-width: 150px; margin: 0 auto;" maxlength="6" autocomplete="one-time-code" data-ng-model="$ctrl.phoneVerifyCode" data-ng-enter="$ctrl.verifyPhoneCode()" />
+                    <br />
+                    <br />
+                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.verifyPhoneCode()">Submit Code</button>
                 </div>
             </div>
         </div>
