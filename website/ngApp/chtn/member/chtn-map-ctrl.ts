@@ -73,7 +73,7 @@ namespace Ally
                 this.editingTip.address = place.formatted_address;
             } );
 
-            this.shouldListHomes = AppConfig.appShortName === "hoa" || ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
+            this.shouldListHomes = AppConfig.appShortName === HOAAppConfig.appShortName || ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
 
             this.retrieveHoaHomes();
 
@@ -367,14 +367,19 @@ namespace Ally
             {
                 if( httpResponse.data )
                 {
-                    if( AppConfig.appShortName === "condo" )
+                    if( AppConfig.appShortName === CondoAllyAppConfig.appShortName )
                     {
                         // Only show homes if our units have an address other than the condo's address
                         let nonMainAddresses = _.filter( httpResponse.data, u => u.addressId && !!u.fullAddress );
                         nonMainAddresses = _.filter( nonMainAddresses, u => u.fullAddress.oneLiner != this.siteInfo.privateSiteInfo.groupAddress.oneLiner );
 
                         if( nonMainAddresses.length > 0 )
+                        {
                             this.hoaHomes = httpResponse.data;
+
+                            // By default we don't list condo homes, but if each has a street address then we will
+                            this.shouldListHomes = this.hoaHomes.every( h => !!h.addressId );
+                        }
                     }
                     else if( this.shouldListHomes )
                         this.hoaHomes = httpResponse.data;
