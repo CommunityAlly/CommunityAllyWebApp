@@ -2,10 +2,19 @@
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
 
     <div class="portlet-header">
-        <button class="btn btn-primary" data-ng-if="::$ctrl.canCreateThreads" data-ng-click="$ctrl.showEditPostModal(null)" style="float: right;">Create New Post</button>
-        <span data-ng-if="!$ctrl.canCreateThreads" class="note-text" style="float: right;">Only board can<br />create posts</span>
-        <div style="display: inline-block;" class="title"><i class="fa-solid fa-thumbtack ally-portlet-icon me-2"></i> Bulletin Board</div>
-        <div class="note-text">Adjust notification settings on <a href="#!/MyProfile">your profile</a></div>
+        <div>
+            <button class="btn btn-primary" data-ng-if="::$ctrl.canCreateThreads" data-ng-click="$ctrl.showEditPostModal(null)" style="float: right;">Create New Post</button>
+            <span data-ng-if="!$ctrl.canCreateThreads" class="note-text" style="float: right;">Only board can<br />create posts</span>
+            <div style="display: inline-block;" class="title"><i class="fa-solid fa-thumbtack ally-portlet-icon me-2"></i> Bulletin Board</div>
+        </div>
+        <div class="note-text mt-2">
+            <span style="float: right;">
+                Sort By Latest:
+                <span class="text-link" data-ng-click="$ctrl.changePostSort('lastCommentDateUtc')" data-ng-style="{'font-weight': $ctrl.sortPostsByFieldName === 'lastCommentDateUtc' ? 'bold' : 'normal','text-decoration': $ctrl.sortPostsByFieldName === 'lastCommentDateUtc' ? 'underline' : ''}">Comment</span>
+                <span class="text-link ms-1" data-ng-click="$ctrl.changePostSort('createDateUtc')" data-ng-style="{'font-weight': $ctrl.sortPostsByFieldName === 'createDateUtc' ? 'bold' : 'normal','text-decoration': $ctrl.sortPostsByFieldName === 'createDateUtc' ? 'underline' : ''}">Post</span>
+            </span>
+            <span>Adjust notification settings on <a href="#!/MyProfile">your profile</a></span>
+        </div>        
     </div>
 
     <div class="portlet-body">
@@ -95,9 +104,14 @@
                     <span class="text-link" data-ng-click="$ctrl.showCommentsForThread(curThread)"><i class="fa-solid fa-comment ally-portlet-icon me-2 fa-lg"></i> Be the first to comment</span>
                 </div>
                 <div class="col-12" data-ng-if="curThread.numComments > 0">
-                    <span class="text-link" data-ng-if="!curThread.commentsAreVisible" data-ng-click="$ctrl.showCommentsForThread(curThread)">
-                        <i class="fa-solid fa-comment ally-portlet-icon me-2 fa-lg"></i> Show {{curThread.numComments}} comment{{curThread.numComments === 1 ? '' : 's'}}
-                    </span>
+                    <div data-ng-if="!curThread.commentsAreVisible">
+                        <span class="text-link" data-ng-click="$ctrl.showCommentsForThread(curThread)">
+                            <i class="fa-solid fa-comment ally-portlet-icon me-2 fa-lg"></i> Show {{curThread.numComments}} comment{{curThread.numComments === 1 ? '' : 's'}}
+                        </span>
+                        <span class="note-text bboard-post-date" data-ng-if="curThread.lastCommentDateUtc" style="display: block;">
+                            Last comment <span data-livestamp="{{ ::curThread.lastCommentDateUtc | date:'yyyy-MM-ddTHH:mm:ssZ' }}" title="{{::curThread.lastCommentDateUtc | date:'short'}}"></span>
+                        </span>
+                    </div>
                     <span class="text-link" data-ng-if="curThread.commentsAreVisible" data-ng-click="curThread.commentsAreVisible = false">
                         <i class="fa-solid fa-comment ally-portlet-icon me-2 fa-lg"></i> Hide {{curThread.numComments}} comment{{curThread.numComments === 1 ? '' : 's'}}
                     </span>

@@ -21,6 +21,7 @@ var Ally;
             this.canCreateThreads = false;
             this.isPremiumPlanActive = false;
             this.shouldSendNoticeForNewThread = false;
+            this.sortPostsByFieldName = "lastCommentDateUtc";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -109,7 +110,7 @@ var Ally;
                 }
                 // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
                 else {
-                    response.data = _.sortBy(response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
+                    response.data = _.sortBy(response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct[this.sortPostsByFieldName]).subtract(100, "years").toDate()).reverse();
                     this.commentThreads = response.data;
                 }
                 this.couldBeMorePosts = response.data.length > 0;
@@ -133,7 +134,7 @@ var Ally;
                 else {
                     this.commentThreads.push(response.data);
                     // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                    this.commentThreads = _.sortBy(this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct.lastCommentDateUtc).subtract(100, "years").toDate()).reverse();
+                    this.commentThreads = _.sortBy(this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct[this.sortPostsByFieldName]).subtract(100, "years").toDate()).reverse();
                 }
                 this.prepThreadForDisplay(response.data);
                 return response.data;
@@ -406,6 +407,9 @@ var Ally;
                 alert("Failed to remove post: " + response.data.exceptionMessage);
             });
         }
+        /**
+         * Occurs when the user clicks the text link to display a post's comments
+         */
         showCommentsForThread(commentThread) {
             // If we've already loaded the comments, just toggle the visibility
             if (commentThread.comments) {
@@ -413,6 +417,17 @@ var Ally;
                 return;
             }
             this.refreshSingleCommentThread(commentThread.commentThreadId).then((newThread) => newThread.commentsAreVisible = true);
+        }
+        /**
+         * Occurs when the user clicks the text links to change the post sort
+         */
+        changePostSort(newSort) {
+            // Ensure a sensible default on bad input
+            const validValues = ["lastCommentDateUtc", "createDateUtc"];
+            if (!validValues.includes(newSort))
+                newSort = "lastCommentDateUtc";
+            this.sortPostsByFieldName = newSort;
+            this.commentThreads = _.sortBy(this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct[this.sortPostsByFieldName]).subtract(100, "years").toDate()).reverse();
         }
     }
     BulletinBoardController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "fellowResidents"];

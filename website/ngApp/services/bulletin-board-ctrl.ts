@@ -28,6 +28,7 @@ namespace Ally
         isPremiumPlanActive = false;
         shouldSendNoticeForNewThread = false;
         committeeId: number;
+        sortPostsByFieldName: "lastCommentDateUtc" | "createDateUtc" = "lastCommentDateUtc";
 
 
         /**
@@ -165,7 +166,7 @@ namespace Ally
                     // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
                     else
                     {
-                        response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
+                        response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct[this.sortPostsByFieldName] ).subtract( 100, "years" ).toDate() ).reverse();
 
                         this.commentThreads = response.data;
                     }
@@ -205,7 +206,7 @@ namespace Ally
                         this.commentThreads.push( response.data );
 
                         // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
-                        this.commentThreads = _.sortBy( this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct.lastCommentDateUtc ).subtract( 100, "years" ).toDate() ).reverse();
+                        this.commentThreads = _.sortBy( this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct[this.sortPostsByFieldName] ).subtract( 100, "years" ).toDate() ).reverse();
                     }
 
                     this.prepThreadForDisplay( response.data );
@@ -611,6 +612,9 @@ namespace Ally
         }
 
 
+        /**
+         * Occurs when the user clicks the text link to display a post's comments
+         */
         showCommentsForThread( commentThread: CommentThreadBBoard )
         {
             // If we've already loaded the comments, just toggle the visibility
@@ -621,6 +625,22 @@ namespace Ally
             }
 
             this.refreshSingleCommentThread( commentThread.commentThreadId ).then( ( newThread: CommentThreadBBoard ) => newThread.commentsAreVisible = true );
+        }
+
+
+        /**
+         * Occurs when the user clicks the text links to change the post sort
+         */
+        changePostSort( newSort: "lastCommentDateUtc" | "createDateUtc" )
+        {
+            // Ensure a sensible default on bad input
+            const validValues = ["lastCommentDateUtc", "createDateUtc"];
+            if( !validValues.includes( newSort ) )
+                newSort = "lastCommentDateUtc";
+
+            this.sortPostsByFieldName = newSort;
+
+            this.commentThreads = _.sortBy( this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct[this.sortPostsByFieldName] ).subtract( 100, "years" ).toDate() ).reverse();
         }
     }
 }
