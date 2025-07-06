@@ -189,7 +189,7 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         tickMfaCountdown() {
             --this.mfaCountdownSecs;
-            console.log("In tickMfaCountdown", this.mfaCountdownSecs);
+            //console.log( "In tickMfaCountdown", this.mfaCountdownSecs );
             if (this.mfaCountdownSecs < 0) {
                 alert("Your MFA code has expired, please restart the login process");
                 window.location.reload();
