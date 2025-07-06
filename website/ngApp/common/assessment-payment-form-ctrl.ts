@@ -1357,14 +1357,17 @@ namespace Ally
             if( new Date().getDate() === 1 )
             {
                 // If the user has made a payment in the last 30min, warn them
-                const lastPayment = this.historicPayments[0];
-                const lastPaymentDateMoment = moment( lastPayment.date );
-                const thirtyMinAgo = moment().subtract( 30, "minutes" );
-                const didMakePaymentWithin30min = lastPaymentDateMoment.isAfter( thirtyMinAgo );
-                if( didMakePaymentWithin30min )
+                if( this.historicPayments && this.historicPayments.length > 0 )
                 {
-                    if( !confirm( `It looks like you recently submitted a payment for $${lastPayment.amount.toFixed( 2 )}. Since it's the 1st of the month there's a chance enabling auto-pay will double charge you today. To avoid this simply wait until tomorrow to enable auto-pay. Would you still like to enable auto-pay right now?` ) )
-                        return;
+                    const lastPayment = this.historicPayments[0];
+                    const lastPaymentDateMoment = moment( lastPayment.date );
+                    const thirtyMinAgo = moment().subtract( 30, "minutes" );
+                    const didMakePaymentWithin30min = lastPaymentDateMoment.isAfter( thirtyMinAgo );
+                    if( didMakePaymentWithin30min )
+                    {
+                        if( !confirm( `It looks like you recently submitted a payment for $${lastPayment.amount.toFixed( 2 )}. Since it's the 1st of the month there's a chance enabling auto-pay will double charge you today. To avoid this simply wait until tomorrow to enable auto-pay. Would you still like to enable auto-pay right now?` ) )
+                            return;
+                    }
                 }
             }
             
@@ -1375,6 +1378,8 @@ namespace Ally
                 {
                     this.isLoading_Payment = false;
                     this.userHasStripeAutoPay = true;
+                    this.stripeAutoPayAmount = this.assessmentAmount;
+
                     alert( "Auto-pay successfully enabled" );
 
                     if( this.isUpgradingStripePaymentForAutoPay )
