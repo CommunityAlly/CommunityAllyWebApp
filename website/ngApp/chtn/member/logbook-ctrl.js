@@ -23,6 +23,7 @@ var Ally;
             this.isLoadingPolls = false;
             this.isLoadingCalendarEvents = false;
             this.isLoadingAmenities = false;
+            this.isLoadingBulletinBoardEvents = false;
             this.onlyRefreshCalendarEvents = false;
             this.showExpandedCalendarEventModel = false;
             this.currentTimeZoneAbbreviation = "CT";
@@ -220,15 +221,16 @@ var Ally;
             this.$timeout(() => this.loadReservableAmenities(), 100);
         }
         getAllEvents(startDate, endDate) {
-            const loadNewsToCalendar = false;
-            const loadLogbookToCalendar = false;
-            const loadPollsToCalendar = AppConfig.isChtnSite;
+            const shouldLoadNewsToCalendar = false;
+            const shouldLoadLogbookToCalendar = false;
+            const shouldLoadPollsToCalendar = AppConfig.isChtnSite;
             const firstDay = startDate.format(LogbookController.DateFormat);
             const lastDay = endDate.format(LogbookController.DateFormat);
             const newsDeferred = this.$q.defer();
             const logbookDeferred = this.$q.defer();
             const pollDeferred = this.$q.defer();
-            if (loadNewsToCalendar) {
+            const bulletinBoardEventsDeferred = this.$q.defer();
+            if (shouldLoadNewsToCalendar) {
                 this.isLoadingNews = true;
                 this.$http.get("/api/News/WithinDates?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
                     const newsData = httpResponse.data;
@@ -253,7 +255,7 @@ var Ally;
             }
             else
                 newsDeferred.resolve();
-            if (loadLogbookToCalendar) {
+            if (shouldLoadLogbookToCalendar) {
                 this.isLoadingLogbookForCalendar = true;
                 this.$http.get("/api/Logbook?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
                     const calendarEvents = httpResponse.data;
@@ -278,7 +280,7 @@ var Ally;
             }
             else
                 logbookDeferred.resolve();
-            if (loadPollsToCalendar) {
+            if (shouldLoadPollsToCalendar) {
                 this.isLoadingPolls = true;
                 this.$http.get("/api/Poll/DateRange?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
                     const pollData = httpResponse.data;
@@ -305,7 +307,32 @@ var Ally;
             }
             else
                 pollDeferred.resolve();
-            return this.$q.all([newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise]);
+            this.isLoadingBulletinBoardEvents = true;
+            this.$http.get("/api/CommentThread/BulletinBoard/EventsOnly?startDate=" + firstDay + "&endDate=" + lastDay).then((httpResponse) => {
+                const postData = httpResponse.data;
+                this.isLoadingBulletinBoardEvents = false;
+                _.each(postData, (entry) => {
+                    let shortText = entry.title;
+                    if (shortText.length > 10)
+                        shortText = shortText.substring(0, 10) + "...";
+                    let fullDescription = `Posted by: ${entry.authorFullName}<br>Name: ${entry.title}`;
+                    if (entry.eventLocationText)
+                        fullDescription += "<br><p>Location: " + entry.eventLocationText + "</p>";
+                    this.calendarEvents.push({
+                        title: "Post: " + shortText,
+                        start: moment(entry.eventDateUtc).toDate(),
+                        calendarEventObject: null,
+                        toolTipTitle: "Bulletin Board Event Post Added",
+                        fullDescription: fullDescription,
+                        allDay: false
+                    });
+                });
+                bulletinBoardEventsDeferred.resolve();
+            }, () => {
+                this.isLoadingBulletinBoardEvents = false;
+                bulletinBoardEventsDeferred.resolve();
+            });
+            return this.$q.all([newsDeferred.promise, logbookDeferred.promise, pollDeferred.promise, bulletinBoardEventsDeferred.promise]);
         }
         getAssociationEvents(start, end, timezone, callback) {
             if (this.onlyRefreshCalendarEvents) {
