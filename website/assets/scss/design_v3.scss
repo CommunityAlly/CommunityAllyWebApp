@@ -2,7 +2,6 @@
     position: absolute;
     z-index: 623;
     left: 50%;
-    
     max-height: 95%;
     top: 50%;
     transform: translateY(-50%);
@@ -34,7 +33,7 @@
 
         @media screen and (max-width: 900px) {
             left: 5% !important;
-            margin-left: 0px !important;
+            margin-left: -2.5% !important;
         }
     }
 
@@ -44,7 +43,7 @@
 
         @media screen and (max-width: 670px) {
             left: 5% !important;
-            margin-left: 0px !important;
+            margin-left: -2.5% !important;
         }
     }
 
@@ -55,7 +54,7 @@
 
         @media screen and (max-width: 440px) {
             left: 5% !important;
-            margin-left: 0px !important;
+            margin-left: -2.5% !important;
         }
     }
 }

@@ -34,7 +34,7 @@
 @media screen and (max-width: 900px) {
   .ca-modal-dialog.modal-lg {
     left: 5% !important;
-    margin-left: 0px !important;
+    margin-left: -2.5% !important;
   }
 }
 .ca-modal-dialog.modal-md {
@@ -44,7 +44,7 @@
 @media screen and (max-width: 670px) {
   .ca-modal-dialog.modal-md {
     left: 5% !important;
-    margin-left: 0px !important;
+    margin-left: -2.5% !important;
   }
 }
 .ca-modal-dialog.modal-sm {
@@ -54,7 +54,7 @@
 @media screen and (max-width: 440px) {
   .ca-modal-dialog.modal-sm {
     left: 5% !important;
-    margin-left: 0px !important;
+    margin-left: -2.5% !important;
   }
 }
 
