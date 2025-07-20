@@ -15,11 +15,16 @@ var Ally;
             this.isLoading = false;
             this.signUpInfo = new NewUserSignUpInfo();
             this.resultIsError = false;
+            this.productName = "Neighborhood";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
+            if (window.location.hostname.includes("homeally"))
+                this.productName = "Home";
+            else if (window.location.hostname.includes("rnoally"))
+                this.productName = "RNO";
             // Hook up address auto-complete, after the page has loaded
             setTimeout(() => {
                 const autocompleteOptions = undefined;

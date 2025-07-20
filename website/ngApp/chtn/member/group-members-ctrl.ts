@@ -56,7 +56,8 @@ namespace Ally
             this.groupShortName = siteInfo.publicSiteInfo.shortName;
             this.shouldShowMemberList = AppConfig.appShortName === NeighborhoodAppConfig.appShortName
                 || AppConfig.appShortName === "block-club"
-                || AppConfig.appShortName === "pta";
+                || AppConfig.appShortName === "pta"
+                || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
             this.unitPrefix = AppConfig.appShortName === "condo" ? "Unit " : "";
         }
@@ -74,7 +75,7 @@ namespace Ally
                 this.shouldShowQuickFilter = this.siteInfo.privateSiteInfo.numUnits > 10;
 
             // Neighborhoods can override the member list type
-            if( this.shouldShowMemberList && AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi )
+            if( this.shouldShowMemberList && ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName ) && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi )
                 this.shouldShowMemberList = false;
 
             this.fellowResidents.getByUnitsAndResidents().then(

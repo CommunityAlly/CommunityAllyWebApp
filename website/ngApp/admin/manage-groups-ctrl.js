@@ -66,6 +66,10 @@ var Ally;
                             g.appNameString = "BlockClub";
                             g.baseUrl = "https://" + g.shortName + ".BlockClubAlly.org/";
                         }
+                        else if (g.appName === 7) {
+                            g.appNameString = "Rno";
+                            g.baseUrl = "https://" + g.shortName + ".RnoAlly.org/";
+                        }
                     });
                 }, () => {
                     this.isLoading = false;

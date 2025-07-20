@@ -261,6 +261,25 @@ BlockClubAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "AssessmentHi
 BlockClubAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All }));
 //BlockClubAppConfig.menu.push( new Ally.RoutePath_v3( { path: "MemberSignUp", templateHtml: "<pending-member-sign-up></pending-member-sign-up>", role: Role_All } ) );
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// RNO Ally
+///////////////////////////////////////////////////////////////////////////////////////////////////
+const RnoAppConfig = _.clone(CondoAllyAppConfig);
+RnoAppConfig.appShortName = "rno";
+RnoAppConfig.appName = "RNO Ally";
+RnoAppConfig.baseTld = "rnoally.org";
+RnoAppConfig.baseUrl = "https://rnoally.org/";
+RnoAppConfig.homeName = "Home";
+RnoAppConfig.memberTypeLabel = "Member";
+// Remove Residents and Manage Residents
+RnoAppConfig.menu = _.reject(RnoAppConfig.menu, mi => mi.menuTitle === "Residents" || mi.menuTitle === "Directory");
+// Add them back under the name "Members"
+RnoAppConfig.menu.push(new Ally.RoutePath_v3({ path: "BuildingResidents", templateHtml: "<group-members></group-members>", menuTitle: "Members" }));
+RnoAppConfig.menu.splice(0, 0, new Ally.RoutePath_v3({ path: "ManageResidents", templateHtml: "<manage-residents></manage-residents>", menuTitle: "Members", role: Role_Manager }));
+// Remove assessment history and add dues history
+RnoAppConfig.menu = _.reject(RnoAppConfig.menu, function (mi) { return mi.menuTitle === "Assessment History"; });
+RnoAppConfig.menu.splice(3, 0, new Ally.RoutePath_v3({ path: "AssessmentHistory", menuTitle: "Membership Dues History", templateHtml: "<assessment-history></assessment-history>", role: Role_Manager }));
+RnoAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp", templateHtml: "<neighborhood-sign-up-wizard></neighborhood-sign-up-wizard>", role: Role_All }));
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // PTA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const PtaAppConfig = _.clone(CondoAllyAppConfig);
@@ -322,6 +341,8 @@ else if (lowerDomain.indexOf("chicagoblock") !== -1
     AppConfig = BlockClubAppConfig;
 else if (lowerDomain.indexOf("ptaally") !== -1)
     AppConfig = PtaAppConfig;
+else if (lowerDomain.indexOf("rnoally") !== -1)
+    AppConfig = RnoAppConfig;
 else {
     console.log("Unknown ally app");
     AppConfig = CondoAllyAppConfig;

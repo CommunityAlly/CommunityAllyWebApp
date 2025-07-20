@@ -21,6 +21,7 @@
         signUpInfo: NewUserSignUpInfo = new NewUserSignUpInfo();
         resultMessage: string;
         resultIsError: boolean = false;
+        productName = "Neighborhood";
 
 
         /**
@@ -36,6 +37,11 @@
         */
         $onInit()
         {
+            if( window.location.hostname.includes("homeally") )
+                this.productName = "Home";
+            else if( window.location.hostname.includes( "rnoally" ) )
+                this.productName = "RNO";
+
             // Hook up address auto-complete, after the page has loaded
             setTimeout(() =>
             {

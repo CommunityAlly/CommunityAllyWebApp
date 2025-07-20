@@ -73,7 +73,8 @@ namespace Ally
                 this.editingTip.address = place.formatted_address;
             } );
 
-            this.shouldListHomes = AppConfig.appShortName === HOAAppConfig.appShortName || ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
+            this.shouldListHomes = AppConfig.appShortName === HOAAppConfig.appShortName
+                || ( ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName ) && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
 
             this.retrieveHoaHomes();
 
