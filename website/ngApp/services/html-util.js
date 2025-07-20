@@ -596,6 +596,10 @@ var Ally;
             input = input.replace(/[^0-9a-zA-Z]/gi, ''); // Remove non-alphanumeric+dash
             return input;
         }
+        static isOnMobileDevice() {
+            // Mobile devices don't have hover so matches should be false on mobile
+            return !window.matchMedia('(hover: hover)').matches;
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"

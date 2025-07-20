@@ -877,6 +877,13 @@ namespace Ally
 
             return input;
         }
+
+
+        static isOnMobileDevice()
+        {
+            // Mobile devices don't have hover so matches should be false on mobile
+            return !window.matchMedia( '(hover: hover)' ).matches;
+        }
     }
 
 

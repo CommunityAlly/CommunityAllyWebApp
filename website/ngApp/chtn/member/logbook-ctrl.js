@@ -165,8 +165,12 @@ var Ally;
                             //    //setTimeout( () => RichTextHelper.makeLinksOpenNewTab( "view-event-desc" ), 500 );
                             //}
                         }
-                        else
-                            alert("This is an informational entry that does not have data to display");
+                        // Otherwise there is nothing to open
+                        else {
+                            // On mobile, don't show an alert as tapping will show the hover info, so only alert on desktop
+                            if (!Ally.HtmlUtil2.isOnMobileDevice())
+                                alert("This is an informational entry that does not have data to display");
+                        }
                     });
                 },
                 eventRender: (event, element) => {
