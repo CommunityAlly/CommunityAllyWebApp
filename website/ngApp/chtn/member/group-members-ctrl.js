@@ -263,7 +263,13 @@ var Ally;
             else {
                 const lowerFilter = this.quickFilterText.toLowerCase();
                 const unitContainsFilter = (unit) => {
-                    if (unit.name.toLowerCase().indexOf(lowerFilter) !== -1)
+                    // If we're using a unit prefix, include that in the unit name test
+                    if (this.unitPrefix && this.unitPrefix.length > 0) {
+                        if ((this.unitPrefix + unit.name).toLowerCase().indexOf(lowerFilter) !== -1)
+                            return true;
+                    }
+                    // Otherwise just test the unit name
+                    else if (unit.name.toLowerCase().indexOf(lowerFilter) !== -1)
                         return true;
                     if (unit.owners && unit.owners.length > 0) {
                         const ownerNames = unit.owners.filter(o => !!o.fullName).map(o => o.fullName.toLowerCase());
