@@ -154,9 +154,9 @@
                     </div>
 
                     <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.editEvent.reservableAmenityId">
-                        <label class="col-sm-2 col-12 text-end form-label-popup">Reserve For:</label>
+                        <label for="reserve-for-select" class="col-sm-2 col-12 text-end form-label-popup">Reserve For:</label>
                         <div class="col-sm-10 col-12">
-                            <select class="form-control form-select" data-ng-model="$ctrl.editEvent.amenityReservedForUserId" data-ng-options="r.userId as (r.fullName + r.dropDownAdditionalLabel) for r in $ctrl.residents">
+                            <select id="reserve-for-select" class="form-control form-select" data-ng-model="$ctrl.editEvent.amenityReservedForUserId" data-ng-options="r.userId as (r.fullName + r.dropDownAdditionalLabel) for r in $ctrl.residents">
                                 <option></option>
                             </select>
                             <div class="note-text">Who the amenity reservation is for</div>
@@ -177,7 +177,7 @@
 
                         <p class="text-center">
                             <label>
-                                <input type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent )"
+                                <input id="send-reminder-checkbox" type="checkbox" data-ng-readonly="$ctrl.isDateInPast( $ctrl.editEvent )"
                                        data-ng-change="$ctrl.onShouldSendChange()"
                                        data-ng-disabled="$ctrl.isDateInPast( $ctrl.editEvent )"
                                        data-ng-model="$ctrl.editEvent.shouldSendNotification" />
@@ -323,28 +323,28 @@
         </div>
 
 
-        <div id="calendar-readonly-event-panel" class="modal-container ng-cloak" data-ng-if="$ctrl.viewEvent">
+        <div id="calendar-readonly-event-panel" class="modal-container ng-cloak" data-ng-if="$ctrl.viewEvent" style="z-index:15003;">
             <div class="modal-overlay" data-ng-click="$ctrl.clearViewEvent()"></div>
             <div class="ca-modal-dialog modal-sm" style="overflow: visible;">
                 <h4>Event Details</h4>
                 <form>
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">What:</label>
-                        <div class="col-sm-8 col-12">
+                        <label for="event-title-label" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">What:</label>
+                        <div id="event-title-label" class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.title }}
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup text-end" title="Event ID: {{$ctrl.viewEvent.eventId}}">Date:</label>
+                        <label class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end" for="event-date-label" title="Event ID: {{$ctrl.viewEvent.eventId}}">Date:</label>
                         <div class="col-sm-8 col-12">
-                            <span>{{ $ctrl.viewEvent.dateOnly | date:'EEEE, MMMM d, yyyy' }}</span>
+                            <span id="event-date-label">{{ $ctrl.viewEvent.dateOnly | date:'EEEE, MMMM d, yyyy' }}</span>
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Time:</label>
-                        <div class="col-sm-8 col-12">
+                        <label for="event-time-label" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">Time:</label>
+                        <div id="event-time-label" class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.timeOnly || "All Day" }} <span data-ng-if="$ctrl.viewEvent.timeOnly">{{ $ctrl.currentTimeZoneAbbreviation }}</span>
                             <div class="note-text" data-ng-if="$ctrl.localTimeZoneDiffersFromGroup">
                                 Note: Your local time is currently in {{ $ctrl.currentTimeZoneAbbreviation }}, but your association is in the {{ $ctrl.groupTimeZoneAbbreviation }} time zone
@@ -353,35 +353,35 @@
                     </div>
 
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.repeatViewLabel">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Repeats:</label>
-                        <div class="col-sm-8 col-12">
+                        <label for="repeat-label-label" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">Repeats:</label>
+                        <div id="repeat-label-label" class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.repeatViewLabel }}
                         </div>
                     </div>
 
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.reservableAmenityName">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Reserves:</label>
-                        <div class="col-sm-8 col-12">
+                        <label for="reserves-label" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">Reserves:</label>
+                        <div id="reserves-label" class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.reservableAmenityName }}
                         </div>
                     </div>
 
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.amenityReservedForName">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Reserved For:</label>
-                        <div class="col-sm-8 col-12">
+                        <label for="reserved-for-label" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">Reserved For:</label>
+                        <div id="reserved-for-label" class="col-sm-8 col-12">
                             {{ $ctrl.viewEvent.amenityReservedForName }}
                         </div>
                     </div>
 
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.description">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Description:</label>
+                        <label for="view-event-desc" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">Description:</label>
                         <div class="col-sm-8 col-12">
                             <div id="view-event-desc" data-ng-bind-html="$ctrl.viewEvent.description"></div>
                         </div>
                     </div>
                 </form>
 
-                <div style="height: 50px;">
+                <div style="height: 50px;" class="mb-3">
                     <add-to-calendar-button name="{{$ctrl.viewEvent.title}}"
                                             description="{{$ctrl.viewEvent.description}}"
                                             options="['Apple','Google','iCal','Microsoft365','Outlook.com','Yahoo']"
