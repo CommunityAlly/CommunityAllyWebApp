@@ -1632,7 +1632,6 @@ namespace Ally
                     {
                         this.isLoadingSettings = false;
                         this.emailHistoryGridOptions.data = response.data;
-
                     },
                     ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                     {
@@ -1688,6 +1687,56 @@ namespace Ally
             newUserInfo.shouldSendWelcomeEmail = false;
 
             this.setEdit( newUserInfo );
+        }
+
+
+        exportEmailCsv()
+        {
+            const csvColumns = [
+                {
+                    headerText: "Sender",
+                    fieldName: "senderName"
+                },
+                {
+                    headerText: "Recipient Group",
+                    fieldName: "recipientGroup"
+                },
+                {
+                    headerText: "Message Source",
+                    fieldName: "messageSource"
+                },
+                {
+                    headerText: "Subject",
+                    fieldName: "subject"
+                },
+                {
+                    headerText: "Send Date (Local)",
+                    fieldName: "sendDateUtc",
+                    dataMapper: ( value: Date ) =>
+                    {
+                        if( !value )
+                            return "";
+
+                        return moment( value ).format( "ddd MMM D, YYYY h:mm a" );
+                    }
+                },
+                {
+                    headerText: "# Recipients",
+                    fieldName: "numRecipients"
+                },
+                {
+                    headerText: "# Attachments",
+                    fieldName: "numAttachments"
+                },
+                {
+                    headerText: "Message Body",
+                    fieldName: "messageBody"
+                }
+            ];
+
+            const csvDataString = Ally.createCsvString( <any[]>this.emailHistoryGridOptions.data, csvColumns );
+
+            HtmlUtil2.downloadCsv( csvDataString, this.siteInfo.publicSiteInfo.shortName + "-EmailHistory.csv" );
         }
     }
 

@@ -1134,6 +1134,49 @@ var Ally;
             newUserInfo.shouldSendWelcomeEmail = false;
             this.setEdit(newUserInfo);
         }
+        exportEmailCsv() {
+            const csvColumns = [
+                {
+                    headerText: "Sender",
+                    fieldName: "senderName"
+                },
+                {
+                    headerText: "Recipient Group",
+                    fieldName: "recipientGroup"
+                },
+                {
+                    headerText: "Message Source",
+                    fieldName: "messageSource"
+                },
+                {
+                    headerText: "Subject",
+                    fieldName: "subject"
+                },
+                {
+                    headerText: "Send Date (Local)",
+                    fieldName: "sendDateUtc",
+                    dataMapper: (value) => {
+                        if (!value)
+                            return "";
+                        return moment(value).format("ddd MMM D, YYYY h:mm a");
+                    }
+                },
+                {
+                    headerText: "# Recipients",
+                    fieldName: "numRecipients"
+                },
+                {
+                    headerText: "# Attachments",
+                    fieldName: "numAttachments"
+                },
+                {
+                    headerText: "Message Body",
+                    fieldName: "messageBody"
+                }
+            ];
+            const csvDataString = Ally.createCsvString(this.emailHistoryGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-EmailHistory.csv");
+        }
     }
     ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
     ManageResidentsController.StoreKeyResidentGridState = "AllyResGridState";

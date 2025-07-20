@@ -46,11 +46,10 @@
 
     <div class="clearfix">
         <span data-ng-if="$ctrl.residentGridOptions.data.length > 5" class="note-text">{{ $ctrl.residentGridOptions.data.length }} {{$ctrl.memberTypeLabel}}{{ $ctrl.residentGridOptions.data.length > 1 ? 's' : '' }}</span>
-        <span class="pull-right">
+        <span style="float: right;">
             <span class="text-link note-text me-1" data-ng-if="$ctrl.didLoadResidentGridState" data-ng-click="$ctrl.resetResidentGridState()" title="If your grid looks wonky, use this to refresh it">Reset Grid State</span>
-            <a href="javascript:void(0)" class="text-link pull-right ms-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>
+            <span class="text-link pull-right ms-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</span>
         </span>
-        <!--<a href="javascript:void(0)" class="text-link pull-right ms-4" data-ng-click="$ctrl.exportResidentCsv()">Export To CSV</a>-->
         <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
 
@@ -249,10 +248,11 @@
                     </div>
                 </div>
 
-                <div class="col-12 mt-3">
+                <div class="col-md-6 col-sm-12 mt-3">
                     <label class="fw-bold form-label">Move-in Date:</label>
                     <div class="col-12">
                         <input type="text" data-ui-date data-ng-model="$ctrl.editUser.moveInDate" />
+                        <div class="note-text">Month+year is good enough, you can use the first of the month if you don't know day. This is used to provide some historical fun in the directory.</div>
                     </div>
                 </div>
             </div>
@@ -389,7 +389,9 @@
             <h4>Group Email History</h4>
             <span class="note-text">Here you can view group emails sent in the last {{$ctrl.emailHistoryNumMonths}} months.</span> <span class="text-link note-text" data-ng-click="$ctrl.loadMoreRecentEmails()">Load 6 more months</span>
             <div data-ui-grid="$ctrl.emailHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
-            <br />
+            <div class="text-end">
+                <span class="text-link" data-ng-if="$ctrl.emailHistoryGridOptions.data.length > 0" data-ng-click="$ctrl.exportEmailCsv()">Export To CSV</span>
+            </div>
         </div>
 
         <div id="view-email-body-container" class="modal-container" data-ng-if="$ctrl.viewingRecentEmail" data-ng-escape="$ctrl.closeViewingEmail()">
@@ -527,12 +529,14 @@
         <br />
         <button type="button" data-ng-click="$ctrl.addBulkRow()">Add Row</button>
         <button type="button" data-ng-click="$ctrl.submitBulkRows()">Submit {{$ctrl.bulkImportRows.length}} {{ $ctrl.bulkImportRows.length === 1 ? "Resident" : "Residents" }}</button>
-
+        
         <fieldset>
             <legend>Parse CSV</legend>
             <p>
                 CSV text columns must go in order: unit name, email address, first name, last name, phone number, is renter, is admin, alternate mailing address, alternate phone, notes.
                 Specify any text for is renter/admin, an empty value means false.
+                <br />
+                <a href="/assets/files/AllyResidentsImport.csv" download="AllyResidentsImport-{{$ctrl.siteInfo.publicSiteInfo.shortName}}.csv">Download Bulk Import Spreadsheet</a>
             </p>
             <textarea style="width: 90%;" data-ng-model="$ctrl.bulkImportCsv" rows="10"></textarea>
             <label><input type="checkbox" data-ng-model="$ctrl.bulkParseNormalizeNameCase" />Normalize Name Casing</label>
