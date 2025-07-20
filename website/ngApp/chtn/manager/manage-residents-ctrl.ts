@@ -21,6 +21,7 @@ namespace Ally
         isSelectedForEditUser: boolean;
         csvTestName: string;
         streetAddress: string;
+        ownerNames: string;
     }
 
 

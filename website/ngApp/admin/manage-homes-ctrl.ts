@@ -5,7 +5,7 @@
      */
     export class ManageHomesController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo"];
+        static $inject = ["$http", "SiteInfo", "fellowResidents"];
         isLoading: boolean = false;
         unitToEdit: Unit = new Unit();
         isEdit: boolean = false;
@@ -22,7 +22,7 @@
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService )
+        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -52,6 +52,21 @@
             {
                 this.isLoading = false;
                 this.units = response.data;
+
+                // getByUnits gets cached so it's OK to call this "heavy" endpoint multiple times
+                this.fellowResidents.getByUnits().then(
+                    ( localUnits ) => 
+                    {
+                        for( const curUnit of this.units )
+                        {
+                            const curLocalUnit = localUnits.find( u => u.unitId === curUnit.unitId );
+                            if( !curLocalUnit )
+                                continue;
+
+                            curUnit.ownerNames = curLocalUnit.owners.map( o => o.fullName ).join( ", " );
+                        }
+                    }
+                );
 
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
             {

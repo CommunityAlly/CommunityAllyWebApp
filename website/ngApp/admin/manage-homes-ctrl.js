@@ -7,9 +7,10 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo) {
+        constructor($http, siteInfo, fellowResidents) {
             this.$http = $http;
             this.siteInfo = siteInfo;
+            this.fellowResidents = fellowResidents;
             this.isLoading = false;
             this.unitToEdit = new Ally.Unit();
             this.isEdit = false;
@@ -34,6 +35,15 @@ var Ally;
             this.$http.get("/api/Unit?includeAddressData=true").then((response) => {
                 this.isLoading = false;
                 this.units = response.data;
+                // getByUnits gets cached so it's OK to call this "heavy" endpoint multiple times
+                this.fellowResidents.getByUnits().then((localUnits) => {
+                    for (const curUnit of this.units) {
+                        const curLocalUnit = localUnits.find(u => u.unitId === curUnit.unitId);
+                        if (!curLocalUnit)
+                            continue;
+                        curUnit.ownerNames = curLocalUnit.owners.map(o => o.fullName).join(", ");
+                    }
+                });
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load homes: " + response.data.exceptionMessage);
@@ -190,7 +200,7 @@ var Ally;
             Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-homes.csv");
         }
     }
-    ManageHomesController.$inject = ["$http", "SiteInfo"];
+    ManageHomesController.$inject = ["$http", "SiteInfo", "fellowResidents"];
     Ally.ManageHomesController = ManageHomesController;
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageHomes", {
