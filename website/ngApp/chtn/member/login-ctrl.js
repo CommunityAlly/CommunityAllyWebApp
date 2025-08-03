@@ -223,6 +223,12 @@ var Ally;
             }, (httpResponse) => {
                 this.isLoading = false;
                 this.loginResultMessage = "Failed to log in: " + httpResponse.data.exceptionMessage;
+                // Put focus back on the code field
+                const mfaTextBox = document.getElementById("login-mfa-textbox");
+                if (mfaTextBox) {
+                    mfaTextBox.focus();
+                    mfaTextBox.select();
+                }
             });
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,6 +236,21 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         reload() {
             window.location.reload();
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user pastes content into the MFA code input field
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        onLoginMfaPaste(event) {
+            const afterModelUpdate = () => {
+                //console.log( "In onLoginMfaPaste after delay", this.mfaCode );
+                if (!this.mfaCode || this.mfaCode.length !== 6)
+                    return;
+                // The user pasted a 6-character code so let's auto-login
+                this.onLoginViaMfa(event);
+            };
+            // The ngPaste occurs before the model updates so we need to delay a bit for the model
+            // to catch up
+            this.$timeout(afterModelUpdate, 1);
         }
     }
     LoginController.$inject = ["$http", "$rootScope", "$location", "appCacheService", "SiteInfo", "$timeout"];

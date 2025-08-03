@@ -85,7 +85,7 @@
 
                 <div class="row mb-3 text-start">
                     <!--<label for="login-email-textbox" class="form-label">Access Code:</label>-->
-                    <input type="text" maxlength="6" class="form-control" id="login-mfa-textbox" data-ng-enter="$ctrl.onLoginViaMfa($event)" data-ng-model="$ctrl.mfaCode" style="max-width: 150px; margin: 0 auto;" autocomplete="one-time-code" data-rule-required="true">
+                    <input type="text" maxlength="6" class="form-control" id="login-mfa-textbox" data-ng-enter="$ctrl.onLoginViaMfa($event)" data-ng-paste="$ctrl.onLoginMfaPaste($event)" data-ng-model="$ctrl.mfaCode" style="max-width: 150px; margin: 0 auto;" autocomplete="one-time-code" data-rule-required="true">
                 </div>
 
                 <div class="row mb-3">
