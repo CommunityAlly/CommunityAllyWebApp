@@ -34,14 +34,16 @@
                     <span data-ng-if="::curThread.postType === 'sellItem'" class="badge bg-primary ms-2">For Sale</span>
                     <span data-ng-if="::curThread.postType === 'event'" class="badge bg-primary ms-2">Event</span>
                     <span data-ng-if="::curThread.archiveDateUtc" class="badge bg-danger ms-2">Archived</span>
+                    <img alt="thread is pinned" title="This thread has been pinned to the top" data-ng-if="curThread.pinnedDateUtc" style="width: 15px; vertical-align: text-top; margin-left: 6px;" src="/assets/images/pin-24-blue.png" />
                 </div>
                 <div class="col-1">
                     <div class="dropdown">
                         <button class="btn btn-sm btn-light" type="button" id="threadMenuButton{{::$ctrl.reply.commentId}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
                         <ul class="dropdown-menu" aria-labelledby="threadMenuButton{{curThread.commentThreadId}}">
-                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item"  data-ng-click="$ctrl.showEditPostModal(curThread)">Edit Post</span></li>
-                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item" data-ng-click="$ctrl.archiveThread(curThread)">Archive</span></li>
-                            <li data-ng-if="curThread.archiveDateUtc"><span class="dropdown-item" data-ng-click="$ctrl.archiveThread(curThread, false)">Unarchive</span></li>
+                            <li><span class="dropdown-item" role="button" data-ng-click="$ctrl.togglePostPinned(curThread)">{{ curThread.pinnedDateUtc ? 'Unpin' : 'Pin'}} Post</span></li>
+                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.showEditPostModal(curThread)">Edit Post</span></li>
+                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.archiveThread(curThread)">Archive</span></li>
+                            <li data-ng-if="curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.archiveThread(curThread, false)">Unarchive</span></li>
                         </ul>
                     </div>
 
@@ -157,7 +159,7 @@
             <span data-ng-if="!$ctrl.couldBeMorePosts">There are no more posts to load</span>
         </div>
 
-        <div data-ng-if="$ctrl.isSiteManager && $ctrl.commentThreads.length > 0" class="text-center note-text">
+        <div data-ng-if="$ctrl.isSiteManager" class="text-center note-text">
             <label><input type="checkbox" data-ng-model="$ctrl.shouldIncludeArchived" data-ng-change="$ctrl.refreshCommentThreads()" />Include Archived Posts</label>
         </div>
     </div>

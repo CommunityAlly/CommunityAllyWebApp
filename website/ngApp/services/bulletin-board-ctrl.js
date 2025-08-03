@@ -429,6 +429,20 @@ var Ally;
             this.sortPostsByFieldName = newSort;
             this.commentThreads = _.sortBy(this.commentThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment(ct[this.sortPostsByFieldName]).subtract(100, "years").toDate()).reverse();
         }
+        /**
+         * Occurs when the user clicks the text links to change the post sort
+         */
+        togglePostPinned(commentThread) {
+            console.log("In togglePostPinned");
+            this.isLoading = true;
+            this.$http.put("/api/CommentThread/TogglePinned/" + commentThread.commentThreadId, null).then(() => {
+                this.isLoading = false;
+                this.refreshCommentThreads();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to toggle post pinned state: " + response.data.exceptionMessage);
+            });
+        }
     }
     BulletinBoardController.$inject = ["$http", "SiteInfo", "$timeout", "$scope", "fellowResidents"];
     Ally.BulletinBoardController = BulletinBoardController;
