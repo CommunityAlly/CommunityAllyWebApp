@@ -11,7 +11,7 @@
         If you decide to proceed, we have <a href="https://help.communityally.org/how-to-add-or-edit-homes/" target="_blank">a help article to assist you</a>.
     </div>
 
-    <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span><span class="text-link ms-3" data-ng-click="$ctrl.exportHomesCsv()">Export to CSV</span><br />
+    <span>Total Number of {{$ctrl.homeName}}s: {{ $ctrl.units.length }}</span><br />
 
     <div style="position:relative;">
         <table border="1" class="table-bordered" style="width: 100%;">
@@ -48,6 +48,9 @@
         </table>
     </div>
 
+    <div class="text-end">
+        <span class="text-link ms-3" data-ng-click="$ctrl.exportHomesCsv()">Export to CSV</span>
+    </div>
     <br />
 
     <fieldset id="unit-edit-panel">
