@@ -53,16 +53,17 @@
         <span href="javascript:void(0)" data-ng-if="$ctrl.showKansasPtaExport" class="text-link pull-right" data-ng-click="$ctrl.exportKansasPtaCsv()">Export To Kansas PTA-formatted CSV</span>
     </div>
 
-    <div data-ng-if="$ctrl.showPendingMembers" class="portlet-box white mt-4 mb-4 no-padding">
+    <div data-ng-if="$ctrl.shouldShowPendingMembers" class="portlet-box white mt-4 mb-4 no-padding">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoadingPending"></div>
         <div class="portlet-header">
             <div class="title">Pending Members</div>
         </div>
 
-        <div class="portlet-body">
+        <div class="portlet-body" style="word-wrap: break-word;">
             <div class="mb-3">
-                Here you can view people that have filled out the member sign-up form, but aren't yet approved. You can share the sign-up page link to recruit new members:<br />
-                <a id="sign-up-page-link" data-ng-href="{{$ctrl.pendingMemberSignUpUrl}}">{{$ctrl.pendingMemberSignUpUrl}}</a>
+                Here you can view people that have filled out the member sign-up form, but aren't yet approved. You can share the sign-up page link to recruit new members:
+                <br />
+                <a id="sign-up-page-link" data-ng-href="{{$ctrl.pendingMemberSignUpUrl}}">{{$ctrl.pendingMemberSignUpUrl}}{{$ctrl.pendingMemberSignUpUrl}}</a>
                 &nbsp;(<span class="text-link clipboard-button" data-clipboard-target="#sign-up-page-link" data-clipboard-action="copy">copy to clipboard</span>)
             </div>
 
@@ -228,7 +229,8 @@
                 </div>
 
                 <div class="col-12">
-                    <label for="manager-notes-text-box" class="fw-bold form-label" title="{{$ctrl.editUser.userId}}">Notes:</label>
+                    <label for="manager-notes-text-box" class="fw-bold form-label" title="{{$ctrl.editUser.userId}}">Admin Notes:</label>
+                    <span class="note-text ms-2">Not visible to non-admin residents</span>
                     <div class="col-12">
                         <textarea id="manager-notes-text-box" type="text" maxlength="4000" rows="3" class="form-control form-control-sm" data-ng-model="$ctrl.editUser.managerNotes"></textarea>
                     </div>
@@ -297,17 +299,16 @@
         </form>
     </div>
 
-    <div data-ng-if="$ctrl.showLaunchSite" class="mt-4 mb-4">
+    <div data-ng-if="$ctrl.shouldShowLaunchSite" class="mt-4 mb-4">
         <div data-ng-show="!$ctrl.siteLaunchedDateUtc">
             Is your site new and are you ready to share it with your fellow residents?
             <br />
-            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-hide="$ctrl.allEmailsSent">Launch Site</button>
-            <span style="font-weight:bold; color:#22F;" data-ng-show="$ctrl.allEmailsSent">All emails sent!</span>
-            <br>
-            <span>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-if="!$ctrl.launchSiteResultsString">Launch Site</button>
+            <span style="font-weight:bold; color:#22F;" data-ng-if="$ctrl.launchSiteResultsString">{{$ctrl.launchSiteResultsString}}</span>
+            <div data-ng-if="!$ctrl.launchSiteResultsString">
                 This will send all of the residents an email with log-in instructions and basic site information. This will not send
                 an email to you or anyone else who has already logged-in.
-            </span>
+            </div>
         </div>
 
         <div data-ng-show="$ctrl.siteLaunchedDateUtc !== null" class="note-text">

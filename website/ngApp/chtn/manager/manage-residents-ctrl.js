@@ -70,8 +70,8 @@ var Ally;
             this.emailHistorySinceDate = new Date();
             this.emailHistoryNumMonths = 6;
             this.bulkParseNormalizeNameCase = false;
-            this.showLaunchSite = true;
-            this.showPendingMembers = false;
+            this.shouldShowLaunchSite = true;
+            this.shouldShowPendingMembers = false;
             this.isLoadingPending = false;
             this.selectedResidentDetailsView = "Primary";
             this.showAddHomeLink = false;
@@ -96,14 +96,14 @@ var Ally;
             this.showKansasPtaExport = AppConfig.appShortName === PtaAppConfig.appShortName && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
-            this.showLaunchSite = AppConfig.appShortName !== PtaAppConfig.appShortName;
-            this.showPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
+            this.shouldShowLaunchSite = AppConfig.appShortName !== PtaAppConfig.appShortName;
+            this.shouldShowPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             // Show the add home article link if the site isn't launched and is less than 8 days old
             const twoWeeksAfterCreate = moment(this.siteInfo.privateSiteInfo.creationDate).add(14, "days");
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(twoWeeksAfterCreate);
-            if (this.showPendingMembers) {
+            if (this.shouldShowPendingMembers) {
                 this.pendingMemberSignUpUrl = `https://${HtmlUtil.getSubdomain()}.${AppConfig.baseTld}/#!/MemberSignUp`;
                 // Hook up the address copy link
                 setTimeout(() => {
@@ -293,7 +293,7 @@ var Ally;
                         this.didLoadResidentGridState = true;
                     }
                 }
-                if (this.showPendingMembers)
+                if (this.shouldShowPendingMembers)
                     this.loadPendingMembers();
             });
         }
@@ -923,10 +923,12 @@ var Ally;
             if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
-            this.$http.put("/api/Residents/UserAction?userId&action=launchsite", null).then(() => {
+            this.$http.get("/api/Residents/LaunchSite", null).then((response) => {
                 this.isLoading = false;
                 this.sentWelcomeEmail = true;
-                this.allEmailsSent = true;
+                this.launchSiteResultsString = `${response.data.numEmailsSent} email${response.data.numEmailsSent === 1 ? '' : 's'} successfully sent!`;
+                if (response.data.numEmailsFailed > 0)
+                    this.launchSiteResultsString += ` (${response.data.numEmailsFailed} failed to send)`;
             }, () => {
                 this.isLoading = false;
                 alert("Failed to send welcome email, please contact support if this problem persists.");
@@ -1182,6 +1184,8 @@ var Ally;
     ManageResidentsController.StoreKeyResidentGridState = "AllyResGridState";
     Ally.ManageResidentsController = ManageResidentsController;
     class EmailOpenStats {
+    }
+    class LaunchSiteResults {
     }
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageResidents", {

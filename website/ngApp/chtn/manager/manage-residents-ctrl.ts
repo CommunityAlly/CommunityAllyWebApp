@@ -196,7 +196,7 @@ namespace Ally
         newResident: any;
         editUser: Ally.UpdateResident;
         sentWelcomeEmail: boolean;
-        allEmailsSent: boolean;
+        launchSiteResultsString: string;
         multiselectMulti: string = "single";
         residentsGridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
         pendingMemberGridApi: uiGrid.IGridApiOf<PendingMember>;
@@ -227,8 +227,8 @@ namespace Ally
         emailHistoryNumMonths: number = 6;
         bulkParseNormalizeNameCase: boolean = false;
         memberTypeLabel: string;
-        showLaunchSite: boolean = true;
-        showPendingMembers: boolean = false;
+        shouldShowLaunchSite: boolean = true;
+        shouldShowPendingMembers: boolean = false;
         isLoadingPending: boolean = false;
         pendingMemberSignUpUrl: string;
         selectedResidentDetailsView: string = "Primary";
@@ -270,8 +270,8 @@ namespace Ally
             this.showKansasPtaExport = AppConfig.appShortName === PtaAppConfig.appShortName && this.siteInfo.privateSiteInfo.groupAddress.state === "KS";
             this.showEmailSettings = !this.siteInfo.privateSiteInfo.isEmailSendingRestricted;
             this.memberTypeLabel = AppConfig.memberTypeLabel;
-            this.showLaunchSite = AppConfig.appShortName !== PtaAppConfig.appShortName;
-            this.showPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
+            this.shouldShowLaunchSite = AppConfig.appShortName !== PtaAppConfig.appShortName;
+            this.shouldShowPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
 
@@ -279,7 +279,7 @@ namespace Ally
             const twoWeeksAfterCreate = moment( this.siteInfo.privateSiteInfo.creationDate ).add( 14, "days" );
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore( twoWeeksAfterCreate );
 
-            if( this.showPendingMembers )
+            if( this.shouldShowPendingMembers )
             {
                 this.pendingMemberSignUpUrl = `https://${HtmlUtil.getSubdomain()}.${AppConfig.baseTld}/#!/MemberSignUp`;
 
@@ -528,7 +528,7 @@ namespace Ally
                         }
                     }
 
-                    if( this.showPendingMembers )
+                    if( this.shouldShowPendingMembers )
                         this.loadPendingMembers();
                 } );
         }
@@ -1382,12 +1382,15 @@ namespace Ally
 
             this.isLoading = true;
 
-            this.$http.put( "/api/Residents/UserAction?userId&action=launchsite", null ).then(
-                () =>
+            this.$http.get( "/api/Residents/LaunchSite", null ).then(
+                ( response: ng.IHttpPromiseCallbackArg<LaunchSiteResults> ) =>
                 {
                     this.isLoading = false;
                     this.sentWelcomeEmail = true;
-                    this.allEmailsSent = true;
+                    this.launchSiteResultsString = `${response.data.numEmailsSent} email${response.data.numEmailsSent === 1 ? '' : 's'} successfully sent!`;
+
+                    if( response.data.numEmailsFailed > 0 )
+                        this.launchSiteResultsString += ` (${response.data.numEmailsFailed} failed to send)`;
                 },
                 () =>
                 {
@@ -1765,6 +1768,13 @@ namespace Ally
     class EmailOpenStats
     {
         recipientDetails: EmailOpenStatRow[];
+    }
+
+
+    class LaunchSiteResults
+    {
+        numEmailsSent: number;
+        numEmailsFailed: number;
     }
 }
 
