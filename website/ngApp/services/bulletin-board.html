@@ -258,10 +258,10 @@
 
             <div class="row mb-3 width100 px-3" data-ng-if="$ctrl.isPremiumPlanActive">
                 <div class="col-12">
-                    <label for="send-notice-check-box" class="form-label" style="width: auto;">Send Out Email Notice:</label>
+                    <label for="send-notice-check-box" class="form-label" style="width: auto; margin-bottom: 0;">Send Out Email Notice:</label>
                     <input id="send-notice-check-box" class="checkbox-style" type="checkbox" data-ng-model="$ctrl.shouldSendNoticeForNewThread" />
                     <br />
-                    <span class="note-text ps-0">An email will be sent out to the discussion group telling them about your new thread.</span>
+                    <span class="note-text ps-0">If enabled, an email will be sent out to the discussion group telling them about your new post. If disabled, users that have discusstion/post notifications enabled will still receive a notice.</span>
                     <!--<span data-ng-if="!$ctrl.isPremiumPlanActive" class="text-error">Email notifications cannot be sent out while on the free plan.</span>-->
                 </div>
             </div>
