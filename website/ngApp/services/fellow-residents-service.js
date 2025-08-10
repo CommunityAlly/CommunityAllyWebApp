@@ -55,6 +55,19 @@ var Ally;
             this.httpCache = $cacheFactory("FellowResidentsService");
         }
         /**
+         * Get the names for the board positions. This was a static field, but then we introduce a
+         * title rename for Block Club Ally
+         */
+        static getBoardPositionNames() {
+            // This really only needs to run once, but it's so lightweight it's OK to call each time
+            if (AppConfig.appShortName === BlockClubAppConfig.appShortName) {
+                const directorPos = FellowResidentsService.s_boardPositionNames.find(bn => bn.id === 8);
+                if (directorPos)
+                    directorPos.name = "Director/Block Captain";
+            }
+            return FellowResidentsService.s_boardPositionNames;
+        }
+        /**
          * Get the residents for the current group
          */
         getResidents() {
@@ -262,7 +275,7 @@ var Ally;
     FellowResidentsService.BoardPos_None = 0;
     FellowResidentsService.BoardPos_PropertyManager = 32;
     FellowResidentsService.CustomRecipientType = "CUSTOM";
-    FellowResidentsService.BoardPositionNames = [
+    FellowResidentsService.s_boardPositionNames = [
         { id: FellowResidentsService.BoardPos_None, name: "None" },
         { id: 1, name: "President" },
         { id: 2, name: "Treasurer" },

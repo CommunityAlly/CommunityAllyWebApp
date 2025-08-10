@@ -129,7 +129,7 @@
         public static readonly BoardPos_PropertyManager = 32;
         public static readonly CustomRecipientType = "CUSTOM";
 
-        static BoardPositionNames: { id: number, name: string }[] = [
+        private static s_boardPositionNames: { id: number, name: string }[] = [
             { id: FellowResidentsService.BoardPos_None, name: "None" },
             { id: 1, name: "President" },
             { id: 2, name: "Treasurer" },
@@ -148,6 +148,24 @@
         constructor( private $http: ng.IHttpService, private $q: ng.IQService, private $cacheFactory: ng.ICacheFactoryService )
         {
             this.httpCache = $cacheFactory( "FellowResidentsService" );
+        }
+
+
+        /**
+         * Get the names for the board positions. This was a static field, but then we introduce a
+         * title rename for Block Club Ally
+         */
+        static getBoardPositionNames()
+        {
+            // This really only needs to run once, but it's so lightweight it's OK to call each time
+            if( AppConfig.appShortName === BlockClubAppConfig.appShortName )
+            {
+                const directorPos = FellowResidentsService.s_boardPositionNames.find( bn => bn.id === 8 );
+                if( directorPos )
+                    directorPos.name = "Director/Block Captain";
+            }
+
+            return FellowResidentsService.s_boardPositionNames;
         }
 
 

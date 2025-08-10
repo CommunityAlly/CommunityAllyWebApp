@@ -303,7 +303,7 @@ namespace Ally
                 }, 750 );
             }
 
-            this.boardPositions = FellowResidentsService.BoardPositionNames;
+            this.boardPositions = FellowResidentsService.getBoardPositionNames();
 
             this.newResident = {
                 boardPosition: 0,
@@ -554,7 +554,7 @@ namespace Ally
             if( !boardValue )
                 return "";
 
-            const boardPosition = jQuery.grep( FellowResidentsService.BoardPositionNames, ( pos ) => pos.id === boardValue )[0];
+            const boardPosition = jQuery.grep( FellowResidentsService.getBoardPositionNames(), ( pos ) => pos.id === boardValue )[0];
 
             if( !boardPosition )
                 return "";

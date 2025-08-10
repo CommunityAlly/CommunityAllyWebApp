@@ -118,10 +118,11 @@ namespace Ally
                         this.allResidents = _.filter( this.allResidents, function( r ) { return r.boardPosition === 0; } );
 
                     for( let i = 0; i < this.boardMembers.length; ++i )
-                        this.boardMembers[i].boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === this.boardMembers[i].boardPosition ).name;
+                        this.boardMembers[i].boardPositionName = _.find( FellowResidentsService.getBoardPositionNames(), ( bm ) => bm.id === this.boardMembers[i].boardPosition ).name;
 
-                    this.boardPropMgrs.forEach( bpm => bpm.boardPositionName = _.find( FellowResidentsService.BoardPositionNames, ( bm ) => bm.id === bpm.boardPosition ).name );
+                    this.boardPropMgrs.forEach( bpm => bpm.boardPositionName = _.find( FellowResidentsService.getBoardPositionNames(), ( bm ) => bm.id === bpm.boardPosition ).name );
 
+                    // The order in which board positions will be displayed
                     const boardSortOrder = [
                         1,
                         64,

@@ -117,7 +117,7 @@ var Ally;
                     });
                 }, 750);
             }
-            this.boardPositions = Ally.FellowResidentsService.BoardPositionNames;
+            this.boardPositions = Ally.FellowResidentsService.getBoardPositionNames();
             this.newResident = {
                 boardPosition: 0,
                 isRenter: false
@@ -311,7 +311,7 @@ var Ally;
         getBoardPositionName(boardValue) {
             if (!boardValue)
                 return "";
-            const boardPosition = jQuery.grep(Ally.FellowResidentsService.BoardPositionNames, (pos) => pos.id === boardValue)[0];
+            const boardPosition = jQuery.grep(Ally.FellowResidentsService.getBoardPositionNames(), (pos) => pos.id === boardValue)[0];
             if (!boardPosition)
                 return "";
             return boardPosition.name;
