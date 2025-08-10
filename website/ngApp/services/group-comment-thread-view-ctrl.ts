@@ -503,7 +503,7 @@
                     this.isLoading = false;
 
                     const s3Path = comment.attachedDocPath.substring( "s3:".length );
-                    let fileUri = `Documents/${s3Path}?vid=${encodeURIComponent( response.data.vid )}`;
+                    let fileUri = `Documents/${s3Path}?vid=${encodeURIComponent( response.data.vid )}&dl=${encodeURIComponent( comment.attachedDocDisplayName )}`;
                     fileUri = this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
 
                     viewDocWindow.location.href = fileUri;
