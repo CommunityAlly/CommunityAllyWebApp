@@ -37,13 +37,13 @@
                     <img alt="thread is pinned" title="This thread has been pinned to the top" data-ng-if="curThread.pinnedDateUtc" style="width: 15px; vertical-align: text-top; margin-left: 6px;" src="/assets/images/pin-24-blue.png" />
                 </div>
                 <div class="col-1">
-                    <div class="dropdown">
+                    <div class="dropdown" data-ng-if="$ctrl.isSiteManager || curThread.shouldShowEditButton">
                         <button class="btn btn-sm btn-light" type="button" id="threadMenuButton{{::$ctrl.reply.commentId}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">...</button>
                         <ul class="dropdown-menu" aria-labelledby="threadMenuButton{{curThread.commentThreadId}}">
-                            <li><span class="dropdown-item" role="button" data-ng-click="$ctrl.togglePostPinned(curThread)">{{ curThread.pinnedDateUtc ? 'Unpin' : 'Pin'}} Post</span></li>
-                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.showEditPostModal(curThread)">Edit Post</span></li>
-                            <li data-ng-if="!curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.archiveThread(curThread)">Archive</span></li>
-                            <li data-ng-if="curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.archiveThread(curThread, false)">Unarchive</span></li>
+                            <li data-ng-if="$ctrl.isSiteManager"><span class="dropdown-item" role="button" data-ng-click="$ctrl.togglePostPinned(curThread)">{{ curThread.pinnedDateUtc ? 'Unpin' : 'Pin'}} Post</span></li>
+                            <li data-ng-if="!curThread.archiveDateUtc && curThread.shouldShowEditButton"><span class="dropdown-item" role="button" data-ng-click="$ctrl.showEditPostModal(curThread)">Edit Post</span></li>
+                            <li data-ng-if="$ctrl.isSiteManager && !curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.archiveThread(curThread)">Archive</span></li>
+                            <li data-ng-if="$ctrl.isSiteManager && curThread.archiveDateUtc"><span class="dropdown-item" role="button" data-ng-click="$ctrl.archiveThread(curThread, false)">Unarchive</span></li>
                         </ul>
                     </div>
 

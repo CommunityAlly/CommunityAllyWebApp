@@ -157,21 +157,25 @@ namespace Ally
                 {
                     this.isLoading = false;
 
-                    response.data.forEach( ( ct ) => this.prepThreadForDisplay( ct ) );
+                    // Pinned threads can come down twice so let's remove them
+                    const curThreadIds = ( this.commentThreads && this.commentThreads.length > 0 ) ? this.commentThreads.map( ct => ct.commentThreadId ) : [];
+                    let newThreads = response.data.filter( nt => !curThreadIds.includes( nt.commentThreadId ) );
+                    
+                    newThreads.forEach( nt => this.prepThreadForDisplay( nt ) );
 
                     if( isLoadMore )
                     {
-                        this.commentThreads.push( ...response.data );
+                        this.commentThreads.push( ...newThreads );
                     }
                     // Sort by comment date, put unpinned threads 100 years in the past so pinned always show up on top
                     else
                     {
-                        response.data = _.sortBy( response.data, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct[this.sortPostsByFieldName] ).subtract( 100, "years" ).toDate() ).reverse();
+                        newThreads = _.sortBy( newThreads, ct => ct.pinnedDateUtc ? ct.pinnedDateUtc : moment( ct[this.sortPostsByFieldName] ).subtract( 100, "years" ).toDate() ).reverse();
 
-                        this.commentThreads = response.data;
+                        this.commentThreads = newThreads;
                     }
 
-                    this.couldBeMorePosts = response.data.length > 0;
+                    this.couldBeMorePosts = newThreads.length > 0;
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -189,7 +193,7 @@ namespace Ally
         {
             const commentThread = this.commentThreads.find( ct => ct.commentThreadId === commentThreadId );
 
-            const getUri = "/api/CommentThread/BBoardPostById/" + commentThread.commentThreadId;
+            const getUri = "/api/CommentThread/BBoardPostById/" + commentThreadId;
 
             commentThread.isLoading = true;
 
@@ -617,6 +621,8 @@ namespace Ally
          */
         showCommentsForThread( commentThread: CommentThreadBBoard )
         {
+            //console.log( "In showCommentsForThread", commentThread.commentThreadId, commentThread );
+
             // If we've already loaded the comments, just toggle the visibility
             if( commentThread.comments )
             {
