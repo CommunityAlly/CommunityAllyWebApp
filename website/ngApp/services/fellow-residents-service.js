@@ -63,7 +63,7 @@ var Ally;
             if (AppConfig.appShortName === BlockClubAppConfig.appShortName) {
                 const directorPos = FellowResidentsService.s_boardPositionNames.find(bn => bn.id === 8);
                 if (directorPos)
-                    directorPos.name = "Director/Block Captain";
+                    directorPos.name = "Block Captain/Director";
             }
             return FellowResidentsService.s_boardPositionNames;
         }
