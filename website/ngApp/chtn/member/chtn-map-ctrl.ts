@@ -74,7 +74,7 @@ namespace Ally
             } );
 
             this.shouldListHomes = AppConfig.appShortName === HOAAppConfig.appShortName
-                || ( ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName ) && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
+                || ( ( AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName ) && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi );
 
             this.retrieveHoaHomes();
 

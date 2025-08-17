@@ -46,7 +46,7 @@ var Ally;
                 this.editingTip.address = place.formatted_address;
             });
             this.shouldListHomes = AppConfig.appShortName === HOAAppConfig.appShortName
-                || ((AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName) && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi);
+                || ((AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName) && this.siteInfo.privateSiteInfo.shouldUseFamiliarNeighborUi);
             this.retrieveHoaHomes();
             //this.$timeout( () => this.getWalkScore(), 1000 );
             MapCtrlMapMgr.Init(this.siteInfo, this.$scope, this);
