@@ -23,7 +23,11 @@
         constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $routeParams: IParentPageRouteParams )
         {
             this.selectedView = this.$routeParams.viewName || "SiteSettings";
-            this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
+
+            this.shouldShowPremiumPlanSection = AppConfig.appShortName === CondoAllyAppConfig.appShortName
+                || AppConfig.appShortName === HOAAppConfig.appShortName
+                || AppConfig.appShortName === BlockClubAppConfig.appShortName;
+
             if( !this.shouldShowPremiumPlanSection && this.selectedView === "PremiumPlan" )
                 this.selectedView = "SiteSettings";
         }

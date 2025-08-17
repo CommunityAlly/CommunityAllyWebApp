@@ -16,7 +16,6 @@ namespace Ally
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         isLoading: boolean = false;
         isLoadingUsage: boolean = false;
-        shouldShowPremiumPlanSection: boolean = true;
         homeNamePlural: string;
         isPremiumPlanActive: boolean;
         premiumPlanRenewDate: Date;
@@ -58,7 +57,6 @@ namespace Ally
             private $timeout: ng.ITimeoutService,
             private $scope: ng.IScope )
         {
-            this.shouldShowPremiumPlanSection = AppConfig.appShortName === "condo" || AppConfig.appShortName === "hoa";
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
             this.userIsAdmin = siteInfo.userInfo.isAdmin;
