@@ -8,7 +8,7 @@
 
             <div data-ng-if="!$ctrl.isInEditMode">
                 <!--Discussion style posts allow HTML formatting-->
-                <div style="margin-top: 4px;" data-ng-if="!$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText"></div>
+                <div style="margin-top: 4px; white-space: pre-wrap;" data-ng-if="!$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText"></div>
                 <!--Wall posts are normal text-->
                 <div style="margin-top: 4px; margin-bottom: 6px;" data-ng-if="$ctrl.thread.postType">
                     {{$ctrl.reply.commentText}}
