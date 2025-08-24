@@ -134,6 +134,7 @@ namespace Ally
         stripeConnectAccountId: string;
         nonAdminCanAddVendors: boolean;
         shouldUseFamiliarNeighborUi: boolean;
+        onlinePaymentBlockUserIds: string[];
 
         // Only on PTAs
         ptaUnitId: number;

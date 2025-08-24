@@ -3,7 +3,11 @@
         <div class="title"><i class="fa-solid fa-credit-card ally-portlet-icon me-2"></i> Payment</div>
     </div>
 
-    <div class="portlet-body" style="position: relative;">
+    <div class="portlet-body text-error" style="position: relative;" data-ng-if="$ctrl.isUserPaymentBlocked">
+        Online payments have been disabled for your account. Please contact one of your property managers or board members to learn more.
+    </div>
+
+    <div class="portlet-body" style="position: relative;" data-ng-if="!$ctrl.isUserPaymentBlocked">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading_Payment"></div>
 
         <div data-ng-if="$ctrl.customFinancialInstructions">
@@ -170,6 +174,7 @@
         </div>
 
         <!-- Payment area -->
+
         <form data-ng-if="$ctrl.isDwollaReadyForPayment || ($ctrl.isStripeEnabledOnGroup && $ctrl.usersStripeBankAccountHint)">
             <div class="pay_for mb-3" data-ng-if="!$ctrl.stripePaymentSucceeded">
                 <div class="text-16 font-600">I am paying for</div>

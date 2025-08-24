@@ -1,14 +1,5 @@
 var Ally;
 (function (Ally) {
-    class ElectronicPayment {
-    }
-    Ally.ElectronicPayment = ElectronicPayment;
-    class WePayBalanceDetail {
-    }
-    class PaymentPageInfo {
-    }
-    class UpdateAssessmentInfo {
-    }
     /**
      * The controller for the page to view online payment information
      */
@@ -16,13 +7,13 @@ var Ally;
         /**
         * The constructor for the class
         */
-        constructor($http, siteInfo, appCacheService, uiGridConstants, $scope, $timeout) {
+        constructor($http, siteInfo, appCacheService, uiGridConstants, $timeout, fellowResidents) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.uiGridConstants = uiGridConstants;
-            this.$scope = $scope;
             this.$timeout = $timeout;
+            this.fellowResidents = fellowResidents;
             this.PaymentHistory = [];
             this.errorMessage = "";
             this.showPaymentPage = true; //AppConfig.appShortName === "condo";
@@ -53,6 +44,10 @@ var Ally;
             this.exampleFeeService = "stripe";
             this.isPremiumPlanActive = false;
             this.customInstructionsText = "";
+            this.shouldShowBlockedUsers = false;
+            this.allResidents = [];
+            this.paymentBlockedResidents = [];
+            this.residentsForBlocking = [];
             this.HistoryPageSize = 50;
         }
         /**
@@ -66,6 +61,7 @@ var Ally;
                 this.highlightPaymentsInfoId = parseInt(tempPayId);
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.onlinePaymentBlockUserIds = this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds;
             this.payments = [
                 {
                     Date: "",
@@ -114,6 +110,24 @@ var Ally;
                 };
             // Populate the page
             this.refresh();
+            this.fellowResidents.getByUnitsAndResidents().then((residentData) => {
+                this.allResidents = _.sortBy(residentData.residents, r => (r.fullName || "").toUpperCase());
+                // Populate a helpful drop-down string
+                for (const curResident of this.allResidents) {
+                    curResident.dropDownAdditionalLabel = curResident.fullName;
+                    if (curResident.homes && curResident.homes.length > 0) {
+                        const firstHome = residentData.byUnit.find(u => u.unitId === curResident.homes[0].unitId);
+                        curResident.dropDownAdditionalLabel += " (" + firstHome.name;
+                        if (curResident.homes.length > 1)
+                            curResident.dropDownAdditionalLabel += ` + ${(curResident.homes.length - 1)} more`;
+                        curResident.dropDownAdditionalLabel += ")";
+                    }
+                }
+                this.refreshPaymentBlockedUsers();
+            }, (response) => {
+                this.isLoading = false;
+                console.log("Failed to load residents: " + response.data.exceptionMessage);
+            });
         }
         /**
          * Load all of the data on the page
@@ -735,14 +749,76 @@ var Ally;
                 alert("Failed to start Stripe sign-up: " + response.data.exceptionMessage);
             });
         }
+        /**
+         * Refresh the lists used for managing users that a blocked from online payments
+         */
+        refreshPaymentBlockedUsers() {
+            this.paymentBlockedResidents = [];
+            this.residentsForBlocking = [...this.allResidents];
+            if (!this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds)
+                return;
+            // Exclude any residents already blocked
+            this.residentsForBlocking = this.residentsForBlocking.filter(r => !this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds.includes(r.userId));
+            const removedResidents = [];
+            for (const curBlockedUserId of this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds) {
+                const curResident = this.allResidents.find(r => r.userId === curBlockedUserId);
+                if (curResident)
+                    this.paymentBlockedResidents.push(curResident);
+                // Otherwise this resident is no longer a member of the group, so remove them from this list
+                else
+                    removedResidents.push(curResident);
+            }
+            // Tell the server about the cleaned list
+            if (removedResidents.length > 0) {
+            }
+        }
+        blockPaymentUser() {
+            if (!this.selectedBlockUser)
+                return;
+            const newBlockedUserIds = [...this.onlinePaymentBlockUserIds];
+            newBlockedUserIds.push(this.selectedBlockUser.userId);
+            this.updateServerBlockedUsers(newBlockedUserIds);
+        }
+        unblockPaymentUser(resident) {
+            const newBlockedUserIds = [...this.onlinePaymentBlockUserIds];
+            newBlockedUserIds.splice(newBlockedUserIds.indexOf(resident.userId), 1);
+            this.updateServerBlockedUsers(newBlockedUserIds);
+        }
+        updateServerBlockedUsers(newBlockedUserIds) {
+            this.isLoading = true;
+            const putData = {
+                blockUserIds: newBlockedUserIds
+            };
+            this.$http.put("/api/OnlinePayment/UpdatePaymentBlockUsers", putData).then((response) => {
+                this.isLoading = false;
+                this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds = response.data.blockUserIds;
+                this.onlinePaymentBlockUserIds = response.data.blockUserIds;
+                this.selectedBlockUser = null;
+                this.refreshPaymentBlockedUsers();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to unblock user: " + response.data.exceptionMessage);
+            });
+        }
     }
-    ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope", "$timeout"];
+    ManagePaymentsController.$inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$timeout", "fellowResidents"];
     Ally.ManagePaymentsController = ManagePaymentsController;
+    class UpdatePaymentBlockUsersInfo {
+    }
     class ParagonPaymentDetails {
     }
     class DwollaPaymentDetails {
     }
     class StripePaymentDetails {
+    }
+    class ElectronicPayment {
+    }
+    Ally.ElectronicPayment = ElectronicPayment;
+    class WePayBalanceDetail {
+    }
+    class PaymentPageInfo {
+    }
+    class UpdateAssessmentInfo {
     }
 })(Ally || (Ally = {}));
 CA.angularApp.component("managePayments", {

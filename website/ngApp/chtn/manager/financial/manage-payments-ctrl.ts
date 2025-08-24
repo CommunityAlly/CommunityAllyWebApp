@@ -1,75 +1,11 @@
 namespace Ally
 {
-    export class ElectronicPayment
-    {
-        paymentId: number;
-        submitDateUtc: Date;
-        unitName: string;
-        resident: string;
-        amount: number;
-        status: string;
-        wePayCheckoutId: number;
-        notes: string;
-        fundingSource: string;
-        paragonReferenceNumber: string;
-        dwollaTransferUri: string;
-        sourceFundingSourceName: string;
-        destFundingSourceName: string;
-        stripePaymentIntentId: string;
-        stripeChargeId: string;
-        feeAmount: number;
-    }
-
-
-    class WePayBalanceDetail
-    {
-        pendingBalance: number;
-        availableBalance: number;
-        payoutAccountName: string;
-        wePayAccountEmail: string;
-    }
-
-
-    class PaymentPageInfo
-    {
-        isWePaySetup: boolean;
-        isDwollaSetup: boolean;
-        isStripeSetup: boolean;
-        stripeConnectEnabledDateUtc: Date | null;
-        areOnlinePaymentsAllowed: boolean;
-        wePayLoginUri: string;
-        payerPaysCCFee: boolean;
-        payerPaysAchFee: boolean;
-        balanceDetail: WePayBalanceDetail;
-        needsReLogin: boolean;
-        lateFeeDayOfMonth: number;
-        lateFeeAmount: string;
-        electronicPayments: ElectronicPayment[];
-        unitAssessments: any[];
-        usersWithAutoPay: any[];
-        groupDwollaFundingSourceName: string;
-        dwollaFundingSourceType: string;
-        dwollaFundingIsVerified: boolean;
-        customFinancialInstructions: string;
-        stripeConnectChargesEnabled: boolean;
-        stripeConnectExternalAccountHints: string[];
-    }
-
-
-    class UpdateAssessmentInfo
-    {
-        unitId: number;
-        assessment: number;
-        assessmentNote: string;
-    }
-
-
     /**
      * The controller for the page to view online payment information
      */
     export class ManagePaymentsController implements ng.IController
     {
-        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$scope", "$timeout"];
+        static $inject = ["$http", "SiteInfo", "appCacheService", "uiGridConstants", "$timeout", "fellowResidents"];
 
         PaymentHistory: any[] = [];
         errorMessage = "";
@@ -129,6 +65,12 @@ namespace Ally
         exampleFeeService = "stripe";
         isPremiumPlanActive = false;
         customInstructionsText = "";
+        shouldShowBlockedUsers = false;
+        onlinePaymentBlockUserIds: string[];
+        allResidents: FellowChtnResident[] = [];
+        selectedBlockUser: FellowChtnResident;
+        paymentBlockedResidents: FellowChtnResident[] = [];
+        residentsForBlocking: FellowChtnResident[] = [];
         readonly HistoryPageSize: number = 50;
         
 
@@ -139,8 +81,8 @@ namespace Ally
             private siteInfo: Ally.SiteInfoService,
             private appCacheService: AppCacheService,
             private uiGridConstants: uiGrid.IUiGridConstants,
-            private $scope: ng.IScope,
-            private $timeout: ng.ITimeoutService )
+            private $timeout: ng.ITimeoutService,
+            private fellowResidents: Ally.FellowResidentsService )
         {
         }
 
@@ -158,8 +100,8 @@ namespace Ally
                 this.highlightPaymentsInfoId = parseInt( tempPayId );
 
             this.isAssessmentTrackingEnabled = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled;
-            
             this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.onlinePaymentBlockUserIds = this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds;
 
             this.payments = [
                 {
@@ -215,6 +157,37 @@ namespace Ally
 
             // Populate the page
             this.refresh();
+
+            this.fellowResidents.getByUnitsAndResidents().then(
+                ( residentData ) =>
+                {
+                    this.allResidents = _.sortBy( residentData.residents, r => ( r.fullName || "" ).toUpperCase() );
+
+                    // Populate a helpful drop-down string
+                    for( const curResident of this.allResidents )
+                    {
+                        curResident.dropDownAdditionalLabel = curResident.fullName;
+
+                        if( curResident.homes && curResident.homes.length > 0 )
+                        {
+                            const firstHome = residentData.byUnit.find( u => u.unitId === curResident.homes[0].unitId );
+                            curResident.dropDownAdditionalLabel += " (" + firstHome.name;
+
+                            if( curResident.homes.length > 1 )
+                                curResident.dropDownAdditionalLabel += ` + ${(curResident.homes.length - 1)} more`;
+
+                            curResident.dropDownAdditionalLabel += ")";
+                        }
+                    }                    
+
+                    this.refreshPaymentBlockedUsers();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    console.log( "Failed to load residents: " + response.data.exceptionMessage );
+                }
+            );
         }
 
 
@@ -1198,6 +1171,94 @@ namespace Ally
                 }
             );
         }
+
+
+        /**
+         * Refresh the lists used for managing users that a blocked from online payments
+         */
+        refreshPaymentBlockedUsers()
+        {
+            this.paymentBlockedResidents = [];
+            this.residentsForBlocking = [...this.allResidents];
+
+            if( !this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds )
+                return;
+
+            // Exclude any residents already blocked
+            this.residentsForBlocking = this.residentsForBlocking.filter( r => !this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds.includes( r.userId ) );
+
+            const removedResidents: FellowChtnResident[] = [];
+            for( const curBlockedUserId of this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds )
+            {
+                const curResident = this.allResidents.find( r => r.userId === curBlockedUserId );
+
+                if( curResident )
+                    this.paymentBlockedResidents.push( curResident );
+                // Otherwise this resident is no longer a member of the group, so remove them from this list
+                else
+                    removedResidents.push( curResident );
+            }
+
+            // Tell the server about the cleaned list
+            if( removedResidents.length > 0 )
+            {
+
+            }
+        }
+
+
+        blockPaymentUser()
+        {
+            if( !this.selectedBlockUser )
+                return;
+
+            const newBlockedUserIds = [...this.onlinePaymentBlockUserIds];
+            newBlockedUserIds.push( this.selectedBlockUser.userId );
+
+            this.updateServerBlockedUsers( newBlockedUserIds );
+        }
+
+
+        unblockPaymentUser( resident: FellowChtnResident )
+        {
+            const newBlockedUserIds = [...this.onlinePaymentBlockUserIds];
+            newBlockedUserIds.splice( newBlockedUserIds.indexOf( resident.userId ), 1 );
+
+            this.updateServerBlockedUsers( newBlockedUserIds );
+        }
+
+
+        updateServerBlockedUsers( newBlockedUserIds: string[] )
+        {
+            this.isLoading = true;
+
+            const putData: UpdatePaymentBlockUsersInfo = {
+                blockUserIds: newBlockedUserIds
+            };
+
+            this.$http.put( "/api/OnlinePayment/UpdatePaymentBlockUsers", putData ).then(
+                ( response: ng.IHttpPromiseCallbackArg<UpdatePaymentBlockUsersInfo> ) =>
+                {
+                    this.isLoading = false;
+                    this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds = response.data.blockUserIds;
+                    this.onlinePaymentBlockUserIds = response.data.blockUserIds;
+                    this.selectedBlockUser = null;
+
+                    this.refreshPaymentBlockedUsers();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to unblock user: " + response.data.exceptionMessage );
+                }
+            );
+        }
+    }
+
+
+    class UpdatePaymentBlockUsersInfo
+    {
+        blockUserIds: string[];
     }
 
 
@@ -1209,6 +1270,7 @@ namespace Ally
         payment_reference_number: string;
         result_message: string;
     }
+
 
     class DwollaPaymentDetails
     {
@@ -1226,6 +1288,7 @@ namespace Ally
         payerNotes: string;
     }
 
+
     class StripePaymentDetails
     {
         stripePaymentIntentId: string;
@@ -1239,6 +1302,70 @@ namespace Ally
         
         // Added locally
         payerNotes: string;
+    }
+
+
+    export class ElectronicPayment
+    {
+        paymentId: number;
+        submitDateUtc: Date;
+        unitName: string;
+        resident: string;
+        amount: number;
+        status: string;
+        wePayCheckoutId: number;
+        notes: string;
+        fundingSource: string;
+        paragonReferenceNumber: string;
+        dwollaTransferUri: string;
+        sourceFundingSourceName: string;
+        destFundingSourceName: string;
+        stripePaymentIntentId: string;
+        stripeChargeId: string;
+        feeAmount: number;
+    }
+
+
+    class WePayBalanceDetail
+    {
+        pendingBalance: number;
+        availableBalance: number;
+        payoutAccountName: string;
+        wePayAccountEmail: string;
+    }
+
+
+    class PaymentPageInfo
+    {
+        isWePaySetup: boolean;
+        isDwollaSetup: boolean;
+        isStripeSetup: boolean;
+        stripeConnectEnabledDateUtc: Date | null;
+        areOnlinePaymentsAllowed: boolean;
+        wePayLoginUri: string;
+        payerPaysCCFee: boolean;
+        payerPaysAchFee: boolean;
+        balanceDetail: WePayBalanceDetail;
+        needsReLogin: boolean;
+        lateFeeDayOfMonth: number;
+        lateFeeAmount: string;
+        electronicPayments: ElectronicPayment[];
+        unitAssessments: any[];
+        usersWithAutoPay: any[];
+        groupDwollaFundingSourceName: string;
+        dwollaFundingSourceType: string;
+        dwollaFundingIsVerified: boolean;
+        customFinancialInstructions: string;
+        stripeConnectChargesEnabled: boolean;
+        stripeConnectExternalAccountHints: string[];
+    }
+
+
+    class UpdateAssessmentInfo
+    {
+        unitId: number;
+        assessment: number;
+        assessmentNote: string;
     }
 }
 

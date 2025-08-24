@@ -1,28 +1,5 @@
 var Ally;
 (function (Ally) {
-    let PeriodicPaymentFrequency;
-    (function (PeriodicPaymentFrequency) {
-        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Monthly"] = 50] = "Monthly";
-        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Quarterly"] = 51] = "Quarterly";
-        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Semiannually"] = 52] = "Semiannually";
-        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Annually"] = 53] = "Annually";
-    })(PeriodicPaymentFrequency || (PeriodicPaymentFrequency = {}));
-    class PeriodicPayment {
-        constructor() {
-            /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
-            this.isEmptyEntry = false;
-        }
-    }
-    class AssessmentPayment extends PeriodicPayment {
-    }
-    Ally.AssessmentPayment = AssessmentPayment;
-    class PayerInfo {
-    }
-    class FullPaymentHistory {
-    }
-    class SpecialAssessmentEntry {
-    }
-    Ally.SpecialAssessmentEntry = SpecialAssessmentEntry;
     /**
      * The controller for the page to view resident assessment payment history
      */
@@ -879,6 +856,29 @@ var Ally;
     }
     class PeriodEntry {
     }
+    let PeriodicPaymentFrequency;
+    (function (PeriodicPaymentFrequency) {
+        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Monthly"] = 50] = "Monthly";
+        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Quarterly"] = 51] = "Quarterly";
+        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Semiannually"] = 52] = "Semiannually";
+        PeriodicPaymentFrequency[PeriodicPaymentFrequency["Annually"] = 53] = "Annually";
+    })(PeriodicPaymentFrequency || (PeriodicPaymentFrequency = {}));
+    class PeriodicPayment {
+        constructor() {
+            /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
+            this.isEmptyEntry = false;
+        }
+    }
+    class AssessmentPayment extends PeriodicPayment {
+    }
+    Ally.AssessmentPayment = AssessmentPayment;
+    class PayerInfo {
+    }
+    class FullPaymentHistory {
+    }
+    class SpecialAssessmentEntry {
+    }
+    Ally.SpecialAssessmentEntry = SpecialAssessmentEntry;
 })(Ally || (Ally = {}));
 CA.angularApp.component("assessmentHistory", {
     templateUrl: "/ngApp/chtn/manager/financial/assessment-history.html",

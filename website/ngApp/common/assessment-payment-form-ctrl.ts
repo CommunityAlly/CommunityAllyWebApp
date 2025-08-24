@@ -99,6 +99,7 @@ namespace Ally
         shouldShowStripeAchRefresh = false;
         isUpgradingStripePaymentForAutoPay = false;
         pendingStripeAchClientSecret: string;
+        isUserPaymentBlocked = false;
         activeSpecialAssessments: SpecialAssessmentEntry[] = [];
 
 
@@ -125,6 +126,7 @@ namespace Ally
             this.paragonPaymentParams = `&BillingAddress1=${encodeURIComponent( "900 W Ainslie St" )}&BillingState=Illinois&BillingCity=Chicago&BillingZip=60640&FirstName=${encodeURIComponent( this.siteInfo.userInfo.firstName )}&LastName=${encodeURIComponent( this.siteInfo.userInfo.lastName )}`;
             this.paragonCheckingLast4 = this.siteInfo.userInfo.paragonCheckingLast4;
             this.paragonCardLast4 = this.siteInfo.userInfo.paragonCardLast4;
+            this.isUserPaymentBlocked = this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds && this.siteInfo.privateSiteInfo.onlinePaymentBlockUserIds.includes( this.siteInfo.userInfo.userId );
 
             const shouldShowDwolla = false; //AppConfigInfo.dwollaPreviewShortNames.indexOf( this.siteInfo.publicSiteInfo.shortName ) > -1;
             if( shouldShowDwolla )

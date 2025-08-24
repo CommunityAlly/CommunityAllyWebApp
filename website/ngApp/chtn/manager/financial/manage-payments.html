@@ -82,11 +82,26 @@
             <div data-ng-if="$ctrl.hasAssessments != null">
                 <h3>Online Payment Settings</h3>
 
-                <form data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || ($ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.dwollaFundingIsVerified) || ($ctrl.paymentInfo.isStripeSetup && $ctrl.paymentInfo.stripeConnectChargesEnabled)">
-                    <div class="row mb-3 px-3">
+                <form class="mb-4 px-3 container" data-ng-show="$ctrl.paymentInfo.isWePaySetup || $ctrl.paymentInfo.payPalClientId || ($ctrl.paymentInfo.isDwollaSetup && $ctrl.paymentInfo.dwollaFundingIsVerified) || ($ctrl.paymentInfo.isStripeSetup && $ctrl.paymentInfo.stripeConnectChargesEnabled)">
+                    <div class="row">
                         <label for="allow-payments-checkbox" class="col-6 col-sm-4 form-label">Allow Online Payments:</label>
                         <div class="col-6 col-sm-8">
                             <input id="allow-payments-checkbox" type="checkbox" data-ng-change="$ctrl.saveAllowSetting()" data-ng-model="$ctrl.paymentInfo.areOnlinePaymentsAllowed">
+                        </div>
+                    </div>
+                    <div class="row note-text text-link" data-ng-if="!$ctrl.shouldShowBlockedUsers" data-ng-click="$ctrl.shouldShowBlockedUsers = true">
+                        <span class="p-0" data-ng-if="!$ctrl.onlinePaymentBlockUserIds || $ctrl.onlinePaymentBlockUserIds.length === 0">Block payments for specific users</span>
+                        <span class="p-0" data-ng-if="$ctrl.onlinePaymentBlockUserIds.length > 0">Manage blocked payment users ({{$ctrl.onlinePaymentBlockUserIds.length}} user{{$ctrl.onlinePaymentBlockUserIds.length === 1 ? '' : 's'}} blocked)</span>
+                    </div>
+                    <div class="row mb-5" data-ng-if="$ctrl.shouldShowBlockedUsers">
+                        <h5>Online Payments Blocked for these Users</h5>
+                        <div>If you need to disable online payments for certain users (for example, if they've gone to collections), you can add their name here:</div>
+                        <ol>
+                            <li data-ng-repeat="curResident in $ctrl.paymentBlockedResidents">{{curResident.dropDownAdditionalLabel}} <span class="text-link" data-ng-click="$ctrl.unblockPaymentUser(curResident)">Unblock</span></li>
+                        </ol>
+                        <div>
+                            <select data-ng-options="r as r.dropDownAdditionalLabel for r in $ctrl.residentsForBlocking" data-ng-model="$ctrl.selectedBlockUser"></select>
+                            <button type="button" class="btn btn-primary btn-sm" data-ng-click="$ctrl.blockPaymentUser()">Block Selected User</button>
                         </div>
                     </div>
                 </form>

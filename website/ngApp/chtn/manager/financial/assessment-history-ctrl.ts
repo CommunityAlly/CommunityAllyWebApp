@@ -1,81 +1,5 @@
 ﻿namespace Ally
 {
-    enum PeriodicPaymentFrequency
-    {
-        Monthly = 50, // Start at number that gives room both before and after
-        Quarterly,
-        Semiannually,
-        Annually
-    }
-
-
-    class PeriodicPayment
-    {
-        paymentId: number;
-        year: number;
-        /** The 1-based period index (i.e. 1 = January), PeriodValueSpecial for special assessment entries */
-        period: number;
-        isPaid: boolean;
-        amount: number;
-        paymentDate: Date;
-        payerUserId: string;
-        wePayCheckoutId: number;
-        checkNumber: string;
-        notes: string;
-        payerNotes: string;
-        wePayStatus: string;
-        groupId: number;
-        paymentsInfoId: number | null;
-        specialAssessmentId: number | null;
-
-        /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
-        isEmptyEntry: boolean = false;
-    }
-
-
-    export class AssessmentPayment extends PeriodicPayment
-    {
-        unitId: number;
-    }
-
-
-    class PayerInfo
-    {
-        userId: string;
-        name: string;
-
-        // Not from the server
-        enteredPayments: PeriodicPayment[];
-        displayPayments: PeriodicPayment[];
-    }
-
-
-    class FullPaymentHistory
-    {
-        units: UnitWithOwner[];
-        payments: PeriodicPayment[];
-        specialAssessments: SpecialAssessmentEntry[];
-        payers: PayerInfo[];
-        hasUnitsWithoutOwners: boolean;
-    }
-
-
-    export class SpecialAssessmentEntry
-    {
-        specialAssessmentId: number;
-        groupId: number;
-        createdByUserId: string;
-        createdDateUtc: Date;
-        assessmentDate: Date;
-        dueDate: Date | null;
-        assessmentName: string;
-        description: string;
-        amount: number | null;
-        lateFeeAmount: number | null;
-        amountDueJson: string;
-    }
-
-
     /**
      * The controller for the page to view resident assessment payment history
      */
@@ -1319,6 +1243,82 @@
         year: number;
         isTodaysPeriod: boolean;
         specialAssessmentId?: number;
+    }
+
+
+    enum PeriodicPaymentFrequency
+    {
+        Monthly = 50, // Start at number that gives room both before and after
+        Quarterly,
+        Semiannually,
+        Annually
+    }
+
+
+    class PeriodicPayment
+    {
+        paymentId: number;
+        year: number;
+        /** The 1-based period index (i.e. 1 = January), PeriodValueSpecial for special assessment entries */
+        period: number;
+        isPaid: boolean;
+        amount: number;
+        paymentDate: Date;
+        payerUserId: string;
+        wePayCheckoutId: number;
+        checkNumber: string;
+        notes: string;
+        payerNotes: string;
+        wePayStatus: string;
+        groupId: number;
+        paymentsInfoId: number | null;
+        specialAssessmentId: number | null;
+
+        /// Indicates if this payment is simply a placeholder entry, i.e. doesn't have a backing entry in the DB
+        isEmptyEntry: boolean = false;
+    }
+
+
+    export class AssessmentPayment extends PeriodicPayment
+    {
+        unitId: number;
+    }
+
+
+    class PayerInfo
+    {
+        userId: string;
+        name: string;
+
+        // Not from the server
+        enteredPayments: PeriodicPayment[];
+        displayPayments: PeriodicPayment[];
+    }
+
+
+    class FullPaymentHistory
+    {
+        units: UnitWithOwner[];
+        payments: PeriodicPayment[];
+        specialAssessments: SpecialAssessmentEntry[];
+        payers: PayerInfo[];
+        hasUnitsWithoutOwners: boolean;
+    }
+
+
+    export class SpecialAssessmentEntry
+    {
+        specialAssessmentId: number;
+        groupId: number;
+        createdByUserId: string;
+        createdDateUtc: Date;
+        assessmentDate: Date;
+        dueDate: Date | null;
+        assessmentName: string;
+        description: string;
+        amount: number | null;
+        lateFeeAmount: number | null;
+        amountDueJson: string;
     }
 }
 
