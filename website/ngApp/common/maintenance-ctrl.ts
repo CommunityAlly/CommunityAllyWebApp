@@ -23,7 +23,7 @@
         selectedAssignee: FellowChtnResident[];
         entriesSortField: string;
         entriesSortAscending: boolean = true;
-        allUnits: Ally.Unit[];
+        allUnits: Ally.UnitListing[];
         homeName = "Unit";
         static StorageKey_SortField = "maintenance_entriesSortField";
         static StorageKey_SortDir = "maintenance_entriesSortAscending";
@@ -129,11 +129,11 @@
 
         loadUnits()
         {
-            return this.$http.get( "/api/Unit/AllUnits" ).then(
-                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
+            return this.fellowResidents.getByUnits().then(
+                ( units ) =>
                 {
                     this.isLoading = false;
-                    this.allUnits = httpResponse.data;
+                    this.allUnits = units;
 
                     const shouldSortUnitsNumerically = _.every( this.allUnits, u => HtmlUtil.isNumericString( u.name ) );
 

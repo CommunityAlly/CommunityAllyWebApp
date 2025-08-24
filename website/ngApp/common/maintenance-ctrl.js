@@ -74,9 +74,9 @@ var Ally;
                 .then(() => this.rebuildMaintenanceEntries());
         }
         loadUnits() {
-            return this.$http.get("/api/Unit/AllUnits").then((httpResponse) => {
+            return this.fellowResidents.getByUnits().then((units) => {
                 this.isLoading = false;
-                this.allUnits = httpResponse.data;
+                this.allUnits = units;
                 const shouldSortUnitsNumerically = _.every(this.allUnits, u => HtmlUtil.isNumericString(u.name));
                 if (shouldSortUnitsNumerically)
                     this.allUnits = _.sortBy(this.allUnits, u => parseFloat(u.name));
