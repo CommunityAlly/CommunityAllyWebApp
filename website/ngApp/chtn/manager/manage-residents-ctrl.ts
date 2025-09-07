@@ -1500,11 +1500,17 @@ namespace Ally
                     newRow.firstName = splitFirst[0];
                     spouseRow.firstName = splitFirst[1];
 
-                    if( newRow.email && newRow.email.indexOf( " / " ) !== -1 )
+                    if( newRow.email && newRow.email.indexOf( "/" ) !== -1 )
                     {
-                        const splitEmail = newRow.email.split( " / " );
-                        newRow.email = splitEmail[0];
-                        spouseRow.email = splitEmail[1];
+                        const splitEmail = newRow.email.split( "/" );
+                        newRow.email = splitEmail[0].trim();
+                        spouseRow.email = splitEmail[1].trim();
+                    }
+                    else if( newRow.email && newRow.email.indexOf( ";" ) !== -1 )
+                    {
+                        const splitEmail = newRow.email.split( ";" );
+                        newRow.email = splitEmail[0].trim();
+                        spouseRow.email = splitEmail[1].trim();
                     }
                     else
                         spouseRow.email = "";
