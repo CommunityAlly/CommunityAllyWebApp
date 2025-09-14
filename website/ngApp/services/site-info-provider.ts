@@ -115,7 +115,7 @@ namespace Ally
     export class PrivateSiteInfo
     {
         zipCode: string;
-        /** The "ISO Alpha-2" 2 character country code */
+        /** The "ISO Alpha-2" 2 character country code like US or MX */
         country: string;
         groupAddress: FullAddress;
         gpsPosition: GpsPoint;
@@ -135,6 +135,7 @@ namespace Ally
         nonAdminCanAddVendors: boolean;
         shouldUseFamiliarNeighborUi: boolean;
         onlinePaymentBlockUserIds: string[];
+        groupHasStripeAchPendingMicroDeposits: boolean;
 
         // Only on PTAs
         ptaUnitId: number;

@@ -1112,7 +1112,7 @@ var Ally;
          */
         verifyStripeMicroDeposits() {
             this.isLoading_Payment = true;
-            this.$http.get("/api/StripePayments/MicroDepositsUrl").then((httpResponse) => {
+            this.$http.get("/api/StripePayments/UserMicroDepositsUrl").then((httpResponse) => {
                 this.isLoading_Payment = false;
                 window.open(httpResponse.data, "_blank");
                 this.shouldShowStripeAchRefresh = true;
@@ -1133,7 +1133,7 @@ var Ally;
             //} );
         }
         refreshPageAfterStripeVerify() {
-            this.$http.get("/api/StripePayments/RefreshStripeAchInfo").then(() => window.location.reload(), (httpResponse) => {
+            this.$http.get("/api/StripePayments/RefreshUserStripeAchInfo").then(() => window.location.reload(), (httpResponse) => {
                 this.isLoading_Payment = false;
                 alert("Failed to refresh status: " + httpResponse.data.exceptionMessage);
             });

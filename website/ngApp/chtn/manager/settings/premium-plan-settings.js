@@ -37,6 +37,8 @@ var Ally;
             this.shouldShowHomeSetupNote = false;
             this.shouldShowStripeAchMandate = false;
             this.userIsAdmin = false;
+            this.groupHasStripeAchPendingMicroDeposits = false;
+            this.shouldShowStripeAchRefresh = false;
             this.homeNamePlural = AppConfig.homeName.toLowerCase() + "s";
             this.showInvoiceSection = siteInfo.userInfo.isAdmin;
             this.userIsAdmin = siteInfo.userInfo.isAdmin;
@@ -52,6 +54,7 @@ var Ally;
          */
         $onInit() {
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
+            this.groupHasStripeAchPendingMicroDeposits = this.siteInfo.privateSiteInfo.groupHasStripeAchPendingMicroDeposits;
             this.refreshData();
             // Get a view token to view the premium plan invoice should one be generated
             if (this.showInvoiceSection) // Add a slight delay to let the rest of the page load
@@ -539,6 +542,8 @@ var Ally;
                             // Display a message to consumer with next steps (consumer waits for
                             // microdeposits, then enters a statement descriptor code on a page sent to them via email).
                             //this.isLoading_Payment = false;
+                            this.siteInfo.privateSiteInfo.groupHasStripeAchPendingMicroDeposits = true;
+                            this.groupHasStripeAchPendingMicroDeposits = true;
                             this.shouldShowStripeAchMandate = false;
                             window.location.reload();
                         }
@@ -597,7 +602,7 @@ var Ally;
                 alert("Failed to disconnect bank account: " + errorResponse.data.exceptionMessage);
             });
         }
-        completeStripeMicroDeposits() {
+        completePlaidMicroDeposits() {
             this.isLoading = true;
             this.$http.get("/api/Plaid/PremiumMicroDepositLinkToken").then((httpResponse) => {
                 this.isLoading = false;
@@ -622,6 +627,23 @@ var Ally;
             }, (httpResponse) => {
                 this.isLoading = false;
                 alert("Failed to start verification: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        verifyStripeMicroDeposits() {
+            this.isLoading = true;
+            this.$http.get("/api/StripePayments/GroupMicroDepositsUrl").then((httpResponse) => {
+                this.isLoading = false;
+                window.open(httpResponse.data, "_blank");
+                this.shouldShowStripeAchRefresh = true;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                alert("Failed to get to verification step: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        refreshPageAfterStripeVerify() {
+            this.$http.get("/api/StripePayments/CompleteGroupBankSignUp").then(() => window.location.reload(), (httpResponse) => {
+                this.isLoading = false;
+                alert("Failed to refresh status: " + httpResponse.data.exceptionMessage);
             });
         }
         cancelPendingAch() {

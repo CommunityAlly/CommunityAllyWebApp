@@ -1692,7 +1692,7 @@ namespace Ally
         {
             this.isLoading_Payment = true;
 
-            this.$http.get( "/api/StripePayments/MicroDepositsUrl" ).then(
+            this.$http.get( "/api/StripePayments/UserMicroDepositsUrl" ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading_Payment = false;
@@ -1723,7 +1723,7 @@ namespace Ally
 
         refreshPageAfterStripeVerify()
         {
-            this.$http.get( "/api/StripePayments/RefreshStripeAchInfo" ).then(
+            this.$http.get( "/api/StripePayments/RefreshUserStripeAchInfo" ).then(
                 () => window.location.reload(),
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {

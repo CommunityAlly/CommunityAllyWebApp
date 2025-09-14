@@ -46,6 +46,8 @@ namespace Ally
         pendingStripeAchClientSecret: string;
         shouldShowStripeAchMandate = false;
         userIsAdmin = false;
+        groupHasStripeAchPendingMicroDeposits = false;
+        shouldShowStripeAchRefresh = false;
 
 
         /**
@@ -78,6 +80,7 @@ namespace Ally
         $onInit()
         {
             this.monthlyDisabled = this.siteInfo.privateSiteInfo.numUnits <= 10;
+            this.groupHasStripeAchPendingMicroDeposits = this.siteInfo.privateSiteInfo.groupHasStripeAchPendingMicroDeposits;
             this.refreshData();
 
             // Get a view token to view the premium plan invoice should one be generated
@@ -758,6 +761,8 @@ namespace Ally
                                 // Display a message to consumer with next steps (consumer waits for
                                 // microdeposits, then enters a statement descriptor code on a page sent to them via email).
                                 //this.isLoading_Payment = false;
+                                this.siteInfo.privateSiteInfo.groupHasStripeAchPendingMicroDeposits = true;
+                                this.groupHasStripeAchPendingMicroDeposits = true;
                                 this.shouldShowStripeAchMandate = false;
                                 window.location.reload();
                             }
@@ -847,7 +852,7 @@ namespace Ally
         }
 
 
-        completeStripeMicroDeposits()
+        completePlaidMicroDeposits()
         {
             this.isLoading = true;
 
@@ -883,6 +888,39 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to start verification: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        verifyStripeMicroDeposits()
+        {
+            this.isLoading = true;
+
+            this.$http.get( "/api/StripePayments/GroupMicroDepositsUrl" ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<string> ) =>
+                {
+                    this.isLoading = false;
+                    window.open( httpResponse.data, "_blank" );
+                    this.shouldShowStripeAchRefresh = true;
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to get to verification step: " + httpResponse.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        refreshPageAfterStripeVerify()
+        {
+            this.$http.get( "/api/StripePayments/CompleteGroupBankSignUp" ).then(
+                () => window.location.reload(),
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to refresh status: " + httpResponse.data.exceptionMessage );
                 }
             );
         }

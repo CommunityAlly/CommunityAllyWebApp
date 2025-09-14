@@ -119,7 +119,7 @@
                     <div data-ng-if="$ctrl.paymentType === 'ach'">
                         <h5 class="card-title">Checking Account Payment</h5>
                         <div class="card-text">
-                            <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && !$ctrl.settings.hasStripePremiumPendingAchAccount">
+                            <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && !$ctrl.settings.hasStripePremiumPendingAchAccount && !$ctrl.groupHasStripeAchPendingMicroDeposits">
                                 We use Stripe to connect to bank accounts for security and simplicity.
                                 <div class="text-center">
                                     <!--<button type="button" class="btn btn-primary" data-ng-click="$ctrl.startPlaidAchConnection()">Connect Checking Account (via Plaid)</button>-->
@@ -131,7 +131,28 @@
                             <div data-ng-if="!$ctrl.settings.hasStripeAchAccount && $ctrl.settings.hasStripePremiumPendingAchAccount">
                                 You have a pending account setup with Plaid. Please click the button below to complete the verification process. (<span class="text-link note-text" data-ng-click="$ctrl.cancelPendingAch()">cancel</span>)
                                 <div class="text-center mt-2">
-                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.completeStripeMicroDeposits()">Complete Account Verification</button>
+                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.completePlaidMicroDeposits()">Complete Account Verification</button>
+                                </div>
+                            </div>
+
+                            <div class="mt-5" data-ng-if="$ctrl.groupHasStripeAchPendingMicroDeposits && !$ctrl.shouldShowStripeAchRefresh">
+                                You have a pending account setup with Stripe. Please click the button below to complete the verification process.
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.verifyStripeMicroDeposits()">Verify Stripe Micro-Deposits</button>
+                                    <br />
+                                    <br />
+                                    Or <span class="text-link note-text" data-ng-click="$ctrl.cancelPendingAch()">Cancel Process</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-5" data-ng-if="$ctrl.groupHasStripeAchPendingMicroDeposits && $ctrl.shouldShowStripeAchRefresh">
+                                <div class="text-center mt-2">
+                                    In the new tab that just opened, enter your micro-deposit information. Once successfully completed, click the button to complete sign-up and refresh the page.
+                                    <br />
+                                    <button type="button" class="btn btn-primary" data-ng-click="$ctrl.refreshPageAfterStripeVerify()">Complete Stripe Connection</button>
+                                    <br />
+                                    <br />
+                                    Or <span class="text-link note-text" data-ng-click="$ctrl.cancelStripeAchMicroDeposits()">Cancel Process</span>
                                 </div>
                             </div>
 
