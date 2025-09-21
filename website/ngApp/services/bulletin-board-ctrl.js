@@ -104,6 +104,15 @@ var Ally;
                 getUri += "&committeeId=" + this.committeeId;
             this.$http.get(getUri).then((response) => {
                 this.isLoading = false;
+                for (const curThread of response.data) {
+                    const localDate = moment(curThread.eventDateUtc).local();
+                    //curThread.timeOnly = localDate.format( LogbookController.TimeFormat );
+                    curThread.calLinkStartTimeOnly = localDate.format("HH:mm");
+                    ;
+                    curThread.calLinkEndTimeOnly = localDate.clone().add(1, 'hours').format("HH:mm");
+                    ;
+                    curThread.calLinkDateOnly = localDate.clone().startOf('day').toDate();
+                }
                 // Pinned threads can come down twice so let's remove them
                 const curThreadIds = (this.commentThreads && this.commentThreads.length > 0) ? this.commentThreads.map(ct => ct.commentThreadId) : [];
                 let newThreads = response.data.filter(nt => !curThreadIds.includes(nt.commentThreadId));

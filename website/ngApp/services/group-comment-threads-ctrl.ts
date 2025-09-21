@@ -65,6 +65,9 @@
         shouldShowEditButton: boolean;
         isLoading: boolean;
         editShouldRemoveAttachment: boolean;
+        calLinkDateOnly: Date;
+        calLinkStartTimeOnly: string;
+        calLinkEndTimeOnly: string;
     }
 
 

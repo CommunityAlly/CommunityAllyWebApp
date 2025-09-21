@@ -69,6 +69,22 @@
                     <h6>Event Date: <span class="fw-bold">{{::curThread.eventDateUtc | date:'h:mma EEEE, MMMM d, yyyy' }}</span></h6>
                 </div>
             </div>
+            <div data-ng-if="::curThread.postType === 'event' && curThread.calLinkStartTimeOnly" style="text-align: center;">
+                <add-to-calendar-button name="{{curThread.title}}"
+                                        description="{{curThread.firstComment.commentText}}"
+                                        options="['Apple','Google','iCal','Microsoft365','Outlook.com','Yahoo']"
+                                        location="{{::curThread.eventLocationText }}"
+                                        startDate="{{curThread.calLinkDateOnly | date:'yyyy-MM-dd'}}"
+                                        endDate="{{curThread.calLinkDateOnly | date:'yyyy-MM-dd'}}"
+                                        startTime="{{curThread.calLinkStartTimeOnly}}"
+                                        endTime="{{curThread.calLinkEndTimeOnly}}"
+                                        label="Copy to your Calendar"
+                                        timeZone="currentBrowser"
+                                        forceOverlay="true"
+                                        hideBackground="true"
+                                        inline="true"
+                                        size="2"></add-to-calendar-button>
+            </div>
             <div class="row mt-2 ms-1">
                 <div class="col-12 p-0">
                     <div data-ng-bind-html="curThread.firstComment.commentText" style="white-space: pre-wrap;"></div>
