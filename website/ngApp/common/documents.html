@@ -24,21 +24,21 @@
                         <div data-ng-repeat="curDirectory in $ctrl.documentTree.subdirectories">
                             <div id="directory-name-{{ ::$index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-public':curDirectory.isPublic, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
                                  data-ng-click="$ctrl.onDirectoryClicked(curDirectory);" data-folder-path="{{ ::curDirectory.fullDirectoryPath }}">
-                                <span data-ng-class="{ 'folder-icon': curDirectory.subdirectories.length === 0, 'folder-multi-icon': curDirectory.subdirectories.length > 0 }"></span>
+                                <img id="folder-icon-{{ ::$index }}" style="width: 41px; height: 41px;" data-folder-path="{{curDirectory.fullDirectoryPath}}" class="draggable-folder folder-icon" data-ng-src="{{$ctrl.getFolderIcon(curDirectory)}}" />
                                 <span class="directory-name">{{curDirectory.name}}</span>
                             </div>
 
                             <div data-ng-if="(curDirectory === $ctrl.selectedDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory || curDirectory === $ctrl.selectedDirectory.parentDirectory.parentDirectory) && $ctrl.shouldShowSubdirectories" data-ng-repeat="subDirectory in curDirectory.subdirectories">
-                                <div id="sub-directory-name-{{ ::$parent.$index }}-{{ ::$index }}" style="display: inline-block;" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-public':subDirectory.isPublic, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
+                                <div id="sub-directory-name-{{ ::$parent.$index }}-{{ ::$index }}" style="" data-ng-class="{ 'sub-directory': true, droppable:true, directory: !subDirectory.isPrivate, 'directory-private':subDirectory.isPrivate, 'directory-public':subDirectory.isPublic, 'directory-selected':subDirectory == $ctrl.selectedDirectory }"
                                      data-ng-click="$ctrl.onDirectoryClicked(subDirectory)" data-folder-path="{{ ::subDirectory.fullDirectoryPath }}">
-                                    <span data-ng-class="{ 'folder-icon': true, 'folder-multi-icon': subDirectory.subdirectories && subDirectory.subdirectories.length > 0 }"></span>
+                                    <img id="folder-icon-sub-{{ ::$parent.$index }}-{{ ::$index }}" style="width: 41px; height: 41px;" data-folder-path="{{subDirectory.fullDirectoryPath}}" class="draggable-folder folder-icon" data-ng-src="{{$ctrl.getFolderIcon(subDirectory)}}" />
                                     <span class="directory-name">{{ ::subDirectory.name }}</span>
                                 </div>
 
                                 <div data-ng-if="(subSubDirectory === $ctrl.selectedDirectory || subDirectory === $ctrl.selectedDirectory || subDirectory === $ctrl.selectedDirectory.parentDirectory) && $ctrl.shouldShowSubdirectories" data-ng-repeat="subSubDirectory in subDirectory.subdirectories">
-                                    <div id="sub-sub-directory-name-{{ ::$parent.$index }}-{{ ::$index }}" style="display: inline-block;" data-ng-class="{ 'sub-sub-directory': true, droppable:true, directory: !subSubDirectory.isPrivate, 'directory-private':subSubDirectory.isPrivate, 'directory-public':subSubDirectory.isPublic, 'directory-selected':subSubDirectory == $ctrl.selectedDirectory }"
+                                    <div id="sub-sub-directory-name-{{ ::$parent.$index }}-{{ ::$index }}" style="" data-ng-class="{ 'sub-sub-directory': true, droppable:true, directory: !subSubDirectory.isPrivate, 'directory-private':subSubDirectory.isPrivate, 'directory-public':subSubDirectory.isPublic, 'directory-selected':subSubDirectory == $ctrl.selectedDirectory }"
                                          data-ng-click="$ctrl.onDirectoryClicked(subSubDirectory)" data-folder-path="{{ ::subSubDirectory.fullDirectoryPath }}">
-                                        <span class="folder-icon"></span>
+                                        <img id="folder-icon-sub-sub-{{ ::$parent.$index }}-{{ ::$index }}" style="width: 41px; height: 41px;" data-folder-path="{{subSubDirectory.fullDirectoryPath}}" class="draggable-folder folder-icon" data-ng-src="{{$ctrl.getFolderIcon(subSubDirectory)}}" />
                                         <span class="directory-name">{{ ::subSubDirectory.name }}</span>
                                     </div>
                                 </div>
@@ -85,7 +85,7 @@
                     <div id="FileContainer_{{ ::$index }}" class="file_item p-2" data-ng-class="{'Document_File_Selected': $ctrl.selectedFile === curFile, 'Document_File': $ctrl.selectedFile !== curFile }" data-ng-click="$ctrl.onFileClicked( curFile )" data-ng-repeat="curFile in $ctrl.selectedDirectory.files">
                         <div class="file_info media-item margin-top">
                             <div class="media-thumbnail">
-                                <img id="File_{{ ::$index }}" class="file-thumbnail draggable" ng-dblclick="$ctrl.viewDoc( curFile, false )" ng-src="{{::$ctrl.getFileIcon(curFile.fileName)}}" />
+                                <img id="File_{{ ::$index }}" class="file-thumbnail draggable-file" ng-dblclick="$ctrl.viewDoc( curFile, false )" ng-src="{{::$ctrl.getFileIcon(curFile.fileName)}}" />
                             </div>
 
                             <div class="media-content">
@@ -114,7 +114,7 @@
 
                         <div class="file_info media-item margin-top">
                             <div class="media-thumbnail">
-                                <img id="File_{{ $index }}" class="file-thumbnail draggable" ng-src="{{$ctrl.getFileIcon(curFile.fileName)}}" />
+                                <img id="File_{{ $index }}" class="file-thumbnail draggable-file" ng-src="{{$ctrl.getFileIcon(curFile.fileName)}}" />
                             </div>
                             <div class="media-content">
                                 <label id="file-name-{{ $index }}" class="file-name"><span ng-bind-html="curFile.localFilePath | highlight:$ctrl.fileSearch.all"></span></label>

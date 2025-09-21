@@ -70,6 +70,8 @@
         documentTree: DocumentDirectory;
         selectedDirectory: DocumentDirectory;
         selectedFile: DocumentTreeFile;
+        draggingType: "file" | "folder" | null = null;
+        draggingFolderPath: string;
         isLoading = false;
         fileSortType: string;
         filesSortDescend = false;
@@ -90,6 +92,7 @@
         docsHttpCache: ng.ICacheObject;
         generatingZipStatus: string;
         generatingZipId: string;
+        committeePathPrefix: string = null;
 
 
         /**
@@ -131,7 +134,10 @@
 
             this.apiAuthToken = this.$rootScope.authToken;
 
-            this.Refresh();
+            if( this.committee )
+                this.committeePathPrefix = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/";
+
+            this.RefreshDocuments();
 
             const hookUpFileUpload = () =>
             {
@@ -169,7 +175,7 @@
                             this.docsHttpCache.removeAll();
 
                             $( "#FileUploadProgressContainer" ).hide();
-                            this.Refresh();
+                            this.RefreshDocuments();
                         } );
 
                         xhr.error( ( jqXHR: any ) =>
@@ -365,7 +371,7 @@
             }
 
             if( this.committee )
-                curPath = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + curPath;
+                curPath = this.committeePathPrefix + curPath;
 
             return curPath;
         }
@@ -444,29 +450,85 @@
                     {
                         drop: ( event: any, ui: any ) =>
                         {
-                            const selectedDirectoryPath = this.getSelectedDirectoryPath();
-
                             const uiDraggable: any = $( ui.draggable );
                             uiDraggable.draggable( "option", "revert", "false" );
 
-                            const destFolderName = $( event.target ).attr( "data-folder-path" ).trim();
+                            const destFolderPath = $( event.target ).attr( "data-folder-path" ).trim();
 
                             this.$scope.$apply( () =>
                             {
-                                // Display the loading image
-                                this.isLoading = true;
+                                if( this.draggingType === "folder" )
+                                {
+                                    this.draggingType = null;
+
+                                    if( !this.draggingFolderPath || !destFolderPath || this.draggingFolderPath === destFolderPath )
+                                    {
+                                        this.draggingFolderPath = null;
+                                        return;
+                                    }
+
+                                    let displaySourcePath = this.draggingFolderPath;
+                                    let displayDestPath = destFolderPath;
+                                    if( this.committee )
+                                    {
+                                        displaySourcePath = displaySourcePath.substring( this.committeePathPrefix.length );
+                                        displayDestPath = displayDestPath.substring( this.committeePathPrefix.length );
+                                    }
+
+                                    if( !confirm( `Are you sure you want to move the '${displaySourcePath}' folder into '${displayDestPath}'?` ) )
+                                    {
+                                        this.selectedFile = null;
+                                        this.draggingType = null;
+                                        this.draggingFolderPath = null;
+                                        return;
+                                    }
+
+                                    const moveFolderInfo = {
+                                        sourceFolderPath: this.draggingFolderPath,
+                                        destinationFolderPath: destFolderPath,
+                                        committeeId: this.committee ? this.committee.committeeId : null
+                                    };
+
+                                    this.draggingFolderPath = null;
+
+                                    // Tell the server to move the folder
+                                    this.isLoading = true;
+                                    this.$http.put( "/api/ManageDocuments/MoveFolder", moveFolderInfo ).then(
+                                        () =>
+                                        {
+                                            this.isLoading = false;
+
+                                            // Clear the docs cache so we fully refresh the file list since a file has moved
+                                            this.docsHttpCache.removeAll();
+
+                                            this.RefreshDocuments();
+                                        },
+                                        ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                                        {
+                                            this.isLoading = false;
+                                            alert( "Failed to move folder: " + response.data.exceptionMessage );
+                                        }
+                                    );
+
+                                    return;
+                                }
+
+                                const selectedDirectoryPath = this.getSelectedDirectoryPath();
 
                                 const fileAction = {
                                     relativeS3Path: this.selectedFile.relativeS3Path,
                                     action: "move",
                                     newFileName: "",
                                     sourceFolderPath: selectedDirectoryPath,
-                                    destinationFolderPath: destFolderName
+                                    destinationFolderPath: destFolderPath
                                 };
 
                                 this.selectedFile = null;
+                                this.draggingType = null;
+                                this.draggingFolderPath = null;
 
                                 // Tell the server
+                                this.isLoading = true;
                                 this.$http.put( "/api/ManageDocuments/MoveFile", fileAction ).then(
                                     () =>
                                     {
@@ -475,7 +537,7 @@
                                         // Clear the docs cache so we fully refresh the file list since a file has moved
                                         this.docsHttpCache.removeAll();
 
-                                        this.Refresh();
+                                        this.RefreshDocuments();
                                         //innerThis.documentTree = httpResponse.data;
                                         //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
 
@@ -492,11 +554,10 @@
                                         //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
                                         //innerThis.SortFiles();
                                     },
-                                    ( data: any ) =>
+                                    ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                                     {
                                         this.isLoading = false;
-                                        const message = data.exceptionMessage || data.message || data;
-                                        alert( "Failed to move file: " + message );
+                                        alert( "Failed to move file: " + response.data.exceptionMessage );
                                     }
                                 );
                             } );
@@ -505,8 +566,8 @@
                     } );
 
                 // Allow the files to be dragged
-                const draggables: any = $( ".draggable" );
-                draggables.draggable(
+                const draggableFiles: any = $( ".draggable-file" );
+                draggableFiles.draggable(
                     {
                         distance: 10,
                         revert: true,
@@ -524,6 +585,35 @@
                             {
                                 const fileInfo = this.selectedDirectory.files[fileIndex];
                                 this.selectedFile = fileInfo;
+                                this.draggingType = "file";
+                                this.draggingFolderPath = null;
+                            } );
+                        }
+                    } );
+
+
+                // Allow the folders to be dragged
+                const draggableFolders: any = $( ".draggable-folder" );
+                draggableFolders.draggable(
+                    {
+                        distance: 10,
+                        revert: true,
+                        helper: "clone",
+                        opacity: 1,
+                        containment: "document",
+                        appendTo: "body",
+                        start: ( event: any ) =>
+                        {
+                            // Get the index of the file being dragged (ID is formatted like "File_12")
+                            //const fileIndexString = $( event.target ).attr( "id" ).substring( "File_".length );
+                            //const fileIndex = parseInt( fileIndexString );
+                            const folderPath = $( event.target ).attr( "data-folder-path" )
+
+                            this.$scope.$apply( () =>
+                            {
+                                this.selectedFile = null;
+                                this.draggingType = "folder";
+                                this.draggingFolderPath = folderPath;
                             } );
                         }
                     } );
@@ -552,8 +642,7 @@
 
             if( this.committee )
             {
-                const committeePrefix = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/";
-                this.$location.search( "directory", dir.fullDirectoryPath.substring( committeePrefix.length ) );
+                this.$location.search( "directory", dir.fullDirectoryPath.substring( this.committeePathPrefix.length ) );
             }
             else
                 this.$location.search( "directory", dir.fullDirectoryPath );
@@ -646,7 +735,7 @@
                     this.docsHttpCache.removeAll();
 
                     this.newDirectoryName = "";
-                    this.Refresh();
+                    this.RefreshDocuments();
 
                     this.shouldShowCreateFolderModal = false;
                 },
@@ -711,14 +800,14 @@
                     // Clear the docs cache so we fully refresh the file list since a file was renamed
                     this.docsHttpCache.removeAll();
 
-                    this.Refresh();
+                    this.RefreshDocuments();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     alert( "Failed to rename: " + response.data.exceptionMessage );
 
-                    this.Refresh();
+                    this.RefreshDocuments();
                 }
             );
         }
@@ -740,14 +829,14 @@
                         // Clear the docs cache so we fully refresh the file list since a file was deleted
                         this.docsHttpCache.removeAll();
 
-                        this.Refresh();
+                        this.RefreshDocuments();
                     },
                     ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                     {
                         this.isLoading = false;
                         alert( "Failed to delete file: " + response.data.exceptionMessage );
 
-                        this.Refresh();
+                        this.RefreshDocuments();
                     }
                 );
             }
@@ -785,7 +874,7 @@
                     // Update the selected directory name so we can reselect it
                     this.selectedDirectory.name = newDirectoryName;
 
-                    this.Refresh();
+                    this.RefreshDocuments();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -822,7 +911,7 @@
                         // Clear the docs cache so we fully refresh the file list since a directory was deleted
                         this.docsHttpCache.removeAll();
 
-                        this.Refresh();
+                        this.RefreshDocuments();
                     },
                     ( httpResult: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                     {
@@ -838,6 +927,24 @@
         getFileIcon( fileName: string )
         {
             return HtmlUtil2.getFileIcon( fileName );
+        }
+
+
+        getFolderIcon( directory: DocumentDirectory )
+        {
+            let directoryType = "";
+            if( directory.isPrivate )
+                directoryType = "private-";
+            else if( directory.isPublic )
+                directoryType = "public-";
+
+            if( directory === this.selectedDirectory )
+                return `/assets/images/docs/folder-${directoryType}open.png`;
+
+            if( directory.subdirectories.length > 0 )
+                return `/assets/images/docs/folder-${directoryType}multi.png`;
+
+            return `/assets/images/docs/folder-${directoryType}closed.png`;
         }
 
 
@@ -875,10 +982,40 @@
         }
 
 
+        getDirectoryFromPath( fullPath: string )
+        {
+            if( !fullPath )
+                return null;
+
+            const dfs = ( curDir: DocumentDirectory ): DocumentDirectory|null =>
+            {
+                if( !curDir )
+                    return null;
+
+                if( curDir.fullDirectoryPath === fullPath )
+                    return curDir;
+
+                if( !curDir.subdirectories || curDir.subdirectories.length === 0 )
+                    return null;
+
+                for( let i = 0; i < curDir.subdirectories.length; ++i )
+                {
+                    const foundDir = dfs( curDir );
+                    if( foundDir )
+                        return foundDir;
+                }
+            };
+
+            const dirWithPath = dfs( this.documentTree );
+            console.log( "dirWithPath", dirWithPath );
+            return dirWithPath;
+        }
+
+
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Refresh the file tree
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        Refresh()
+        RefreshDocuments()
         {
             // Store the name of the directory we have selected so we can re-select it after refreshing
             // the data
@@ -888,7 +1025,7 @@
             else if( !HtmlUtil.isNullOrWhitespace( this.$location.search().directory ) )
             {
                 if( this.committee )
-                    selectedDirectoryPath = DocumentsController.DirName_Committees + "/" + this.committee.committeeId + "/" + this.$location.search().directory;
+                    selectedDirectoryPath = this.committeePathPrefix + this.$location.search().directory;
                 else
                     selectedDirectoryPath = this.$location.search().directory;
             }
@@ -897,6 +1034,7 @@
             this.isLoading = true;
             this.selectedDirectory = null;
             this.selectedFile = null;
+            this.draggingType = null;
 
             this.getDocsUri = "/api/ManageDocuments";
 

@@ -1188,10 +1188,10 @@ footer a:hover {
   padding: 0.5em;
 }
 .page-documents div.directory, .page-documents div.directory-private, .page-documents div.directory-public {
-  height: 33px;
+  height: 41px;
   color: #000;
   font-weight: 600;
-  margin: 12px 0 4px 0;
+  margin-top: 8px;
   cursor: pointer;
 }
 .page-documents div.sub-directory {
@@ -1200,36 +1200,13 @@ footer a:hover {
 .page-documents div.sub-sub-directory {
   margin: 4px 0 4px 60px;
 }
-.page-documents .directory > span.folder-icon, .page-documents .directory-private > span.folder-icon, .page-documents .directory-public > span.folder-icon,
-.page-documents .directory > span.folder-multi-icon, .page-documents .directory-private > span.folder-multi-icon, .page-documents .directory-public > span.folder-multi-icon {
-  height: 100%;
-  background: url(/assets/images/folders.png) no-repeat 0 0;
+.page-documents .directory > .folder-icon, .page-documents .directory-private > .folder-icon, .page-documents .directory-public > .folder-icon,
+.page-documents .directory > .folder-multi-icon, .page-documents .directory-private > .folder-multi-icon, .page-documents .directory-public > .folder-multi-icon {
+  height: 41px;
   width: 41px;
-  display: inline-block;
 }
-.page-documents .directory > span.folder-multi-icon {
-  background-position: 0 -92px;
-}
-.page-documents .directory-private > span.folder-icon {
-  background: url(/assets/images/folders-private.png) no-repeat 0 0;
-}
-.page-documents .directory-private > span.folder-multi-icon {
-  background: url(/assets/images/folders-private.png) no-repeat 0 0;
-  background-position: 0 -92px;
-}
-.page-documents .directory-public > span.folder-icon {
-  background: url(/assets/images/folders-public.png) no-repeat 0 0;
-}
-.page-documents .directory-public > span.folder-multi-icon {
-  background: url(/assets/images/folders-public.png) no-repeat 0 0;
-  background-position: 0 -92px;
-}
-.page-documents .directory-selected > span.folder-icon, .page-documents .directory-selected > span.folder-multi-icon {
-  background-position: 0 -54px !important;
-}
-.page-documents .directory > span.directory-name, .page-documents .directory-private > span.directory-name, .page-documents .directory-public > span.directory-name {
-  position: relative;
-  top: -14px;
+.page-documents .directory-selected {
+  border: 1px solid #4583b6;
 }
 .page-documents .directory-selected > span.directory-name {
   color: #4583b6;

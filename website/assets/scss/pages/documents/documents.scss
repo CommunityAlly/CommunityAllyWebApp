@@ -179,10 +179,10 @@
 
     div {
         &.directory, &.directory-private, &.directory-public {
-            height: 33px;
+            height: 41px;
             color: #000;
             font-weight: 600;
-            margin: 12px 0 4px 0;
+            margin-top: 8px;
             cursor: pointer;
         }
 
@@ -195,43 +195,15 @@
         }
     }
 
-    .directory > span.folder-icon, .directory-private > span.folder-icon, .directory-public > span.folder-icon,
-    .directory > span.folder-multi-icon, .directory-private > span.folder-multi-icon, .directory-public > span.folder-multi-icon {
-        height: 100%;
-        background: url(/assets/images/folders.png) no-repeat 0 0;
+    .directory > .folder-icon, .directory-private > .folder-icon, .directory-public > .folder-icon,
+    .directory > .folder-multi-icon, .directory-private > .folder-multi-icon, .directory-public > .folder-multi-icon {
+        height: 41px;
+        //background: url(/assets/images/folders.png) no-repeat 0 0;
         width: 41px;
-        display: inline-block;
     }
 
-    .directory > span.folder-multi-icon {
-        background-position: 0 -92px;
-    }
-
-    .directory-private > span.folder-icon {
-        background: url(/assets/images/folders-private.png) no-repeat 0 0;
-    }
-
-    .directory-private > span.folder-multi-icon {
-        background: url(/assets/images/folders-private.png) no-repeat 0 0;
-        background-position: 0 -92px;
-    }
-
-    .directory-public > span.folder-icon {
-        background: url(/assets/images/folders-public.png) no-repeat 0 0;
-    }
-
-    .directory-public > span.folder-multi-icon {
-        background: url(/assets/images/folders-public.png) no-repeat 0 0;
-        background-position: 0 -92px;
-    }
-
-    .directory-selected > span.folder-icon, .directory-selected > span.folder-multi-icon {
-        background-position: 0 -54px !important;
-    }
-
-    .directory > span.directory-name, .directory-private > span.directory-name, .directory-public > span.directory-name {
-        position: relative;
-        top: -14px;
+    .directory-selected {
+        border: 1px solid #4583b6;
     }
 
     .directory-selected > span.directory-name {
