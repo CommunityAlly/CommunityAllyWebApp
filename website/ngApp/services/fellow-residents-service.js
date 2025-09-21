@@ -194,7 +194,7 @@ var Ally;
             return true;
         }
         static pollReponsesToChart(poll, siteInfo) {
-            const talliedVotes = [];
+            let talliedVotes = [];
             const logVote = function (answerId) {
                 let curAnswerCount = talliedVotes.find(tv => tv.answerId === answerId);
                 if (!curAnswerCount) {
@@ -216,6 +216,7 @@ var Ally;
                 chartData: [],
                 chartLabels: []
             };
+            talliedVotes = _.sortBy(talliedVotes, v => v.answerId);
             // Go through each answer and store the name and count for that answer
             for (const curTalliedVote of talliedVotes) {
                 const pollAnswer = _.find(poll.answers, (a) => a.pollAnswerId === curTalliedVote.answerId);

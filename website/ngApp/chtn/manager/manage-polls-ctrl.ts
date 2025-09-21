@@ -26,6 +26,7 @@
         whoGroupMembersTooltip = "";
         shouldShowMemberCheckbox = false;
         pollMemberLabel = "member";
+        shouldShowHomeCol = false;
 
 
         /**
@@ -275,6 +276,9 @@
             this.chartData = poll.chartData;
 
             this.viewingPollResults = poll;
+
+            // Hide the home column if there's no home value in any response
+            this.shouldShowHomeCol = !this.viewingPollResults.responses.every( r => HtmlUtil.isNullOrWhitespace( r.unitName ) );
         }
 
 

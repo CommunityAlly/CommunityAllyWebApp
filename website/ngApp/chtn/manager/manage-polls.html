@@ -189,16 +189,17 @@
 
 <div class="modal-container" data-ng-if="$ctrl.viewingPollResults">
     <div class="modal-overlay" data-ng-click="$ctrl.onViewResults( null )"></div>
-    <div class="ca-modal-dialog" data-ng-click="$ctrl.onViewResults( null )">
+    <div class="ca-modal-dialog">
+        <span style="float:right" class="close-x" data-ng-click="$ctrl.onViewResults( null )">&times;</span>
         <div>
             <h2>Results for: {{ $ctrl.viewingPollResults.questionText }}</h2>
         </div>
         <br />
         <br />
-        <div style="float: left; width:70%;">
+        <div style="float: left; width:60%;">
             <canvas id="poll-result-chart" width="469" height="234" class="chart chart-doughnut" data-chart-data="$ctrl.viewingPollResults.chartData" data-chart-labels="$ctrl.viewingPollResults.chartLabels" legend="true"></canvas>
         </div>
-        <div style="float: left; width:29%;">
+        <div style="float: left; width:39%;">
             <div data-ng-if="$ctrl.viewingPollResults.unitVoteText">
                 Your unit voted:
                 <span style="font-weight:bold;">{{ $ctrl.viewingPollResults.unitVoteText }}</span>
@@ -207,26 +208,31 @@
                 Your unit did not vote in this poll.
             </div>
             <br />
-            <div data-ng-repeat="answerCount in $ctrl.viewingPollResults.answerCounts">
+            <ul>
+                <li data-ng-repeat="answerCount in $ctrl.viewingPollResults.answerCounts">
+                    <span>{{ answerCount.label }}:</span> <b>{{ answerCount.count }}</b>
+                </li>
+            </ul>
+            <!--<div data-ng-repeat="answerCount in $ctrl.viewingPollResults.answerCounts">
                 <span style="font-weight: bold;">{{ answerCount.label }}:</span> {{ answerCount.count }}
-            </div>
+            </div>-->
         </div>
         <div class="clearfix"></div>
         <div class="mt-3 mb-3 note-text" data-ng-if="$ctrl.viewingPollResults.isAnonymous">This was an anonymous poll so individual responses cannot be viewed.</div>
         <div class="mt-3 mb-3" data-ng-if="!$ctrl.viewingPollResults.isAnonymous && $ctrl.viewingPollResults.responses.length > 0">
             <h2>Responses</h2>
-            <table border="1">
+            <table border="1" class="table">
                 <thead>
                     <tr>
                         <th>Resident</th>
-                        <th>Home</th>
+                        <th data-ng-if="$ctrl.shouldShowHomeCol">Home</th>
                         <th>Vote</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr data-ng-repeat="response in $ctrl.viewingPollResults.responses">
                         <td>{{response.userFullName}}</td>
-                        <td>{{response.unitName}}</td>
+                        <td data-ng-if="$ctrl.shouldShowHomeCol">{{response.unitName}}</td>
                         <td>{{response.answerText}}</td>
                     </tr>
                 </tbody>

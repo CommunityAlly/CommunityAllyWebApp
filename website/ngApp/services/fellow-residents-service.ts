@@ -372,7 +372,7 @@
 
         static pollReponsesToChart( poll: Poll, siteInfo: SiteInfoService )
         {
-            const talliedVotes: PollAnswerCount[] = [];
+            let talliedVotes: PollAnswerCount[] = [];
 
             const logVote = function( answerId: number )
             {
@@ -402,6 +402,8 @@
                 chartData: [] as number[],
                 chartLabels: [] as string[]
             };
+
+            talliedVotes = _.sortBy( talliedVotes, v => v.answerId );
 
             // Go through each answer and store the name and count for that answer
             for( const curTalliedVote of talliedVotes )
