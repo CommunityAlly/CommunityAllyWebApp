@@ -881,8 +881,7 @@ namespace Ally
 
         static isOnMobileDevice()
         {
-            // Mobile devices don't have hover so matches should be false on mobile
-            return !window.matchMedia( '(hover: hover)' ).matches;
+            return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test( navigator.userAgent );
         }
     }
 

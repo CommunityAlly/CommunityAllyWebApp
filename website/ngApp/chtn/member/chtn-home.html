@@ -48,6 +48,10 @@
 
         <!-- left sidebar -->
         <div class="col-lg-6">
+            <bulletin-board data-ng-if="$ctrl.shouldShowBulletinBoard && $ctrl.isOnMobile"></bulletin-board>
+
+            <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads && $ctrl.isOnMobile" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
+
             <div data-ng-if="$ctrl.usersCommittees.length > 0" class="portlet-box white margin-vertical">
                 <div class="portlet-header">
                     <h2 class="title"><i class="fa-solid fa-people-group ally-portlet-icon me-2"></i> Your Committees</h2>
@@ -83,28 +87,28 @@
             </div>
 
             <!--<div class="mt-5" data-ng-if="$ctrl.testPay_ShouldShow">
-                <h2>Test PayPal Payment</h2>
-                Amount: $<input type="number" data-ng-model="$ctrl.testPay_Amt" data-ng-change="$ctrl.onTestPayAmtChange()" />
-                <form data-ng-if="$ctrl.testPay_isValid" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
-                    <input type="hidden" name="cmd" value="_donations">
-                    <input type="hidden" name="business" value="musicpix05-buyer@yahoo.com">
-                    <input type="hidden" name="item_name" value="{{$ctrl.testPay_Description}}">
-                    <input type="hidden" name="amount" value="{{$ctrl.testPay_Amt}}">
-                    <input type="hidden" name="no_shipping" value="1">
-                    <input type="hidden" name="notify_url" value="{{ $ctrl.testPay_IpnUrl }}">
-                    <input type="hidden" name="return" value="{{ $ctrl.testPay_ReturnUrl }}">
-                    <input type="hidden" name="cancel_return" value="{{ $ctrl.testPay_ReturnUrl }}">
-                    <input type="hidden" name="no_note" value="1">
-                    <input type="hidden" name="currency_code" value="USD">
-                    <input type="hidden" name="lc" value="EN">
-                    <input type="hidden" name="first_name" value="{{ $ctrl.testPay_UserFirst }}" />
-                    <input type="hidden" name="last_name" value="{{ $ctrl.testPay_UserLast }}" />
-                    <input type="hidden" name="bn" value="PP-BuyNowBF:btn_paynow_LG.gif:NonHosted">
-                    <input type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-medium.png" border="0" name="submit" alt="PayPal - The safer, easier way to pay online.">
-                    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
-                </form>
-                <div class="text-error" data-ng-if="!$ctrl.testPay_isValid">Please enter a valid amount between 5 and 5000</div>
-            </div>-->
+        <h2>Test PayPal Payment</h2>
+        Amount: $<input type="number" data-ng-model="$ctrl.testPay_Amt" data-ng-change="$ctrl.onTestPayAmtChange()" />
+        <form data-ng-if="$ctrl.testPay_isValid" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+            <input type="hidden" name="cmd" value="_donations">
+            <input type="hidden" name="business" value="musicpix05-buyer@yahoo.com">
+            <input type="hidden" name="item_name" value="{{$ctrl.testPay_Description}}">
+            <input type="hidden" name="amount" value="{{$ctrl.testPay_Amt}}">
+            <input type="hidden" name="no_shipping" value="1">
+            <input type="hidden" name="notify_url" value="{{ $ctrl.testPay_IpnUrl }}">
+            <input type="hidden" name="return" value="{{ $ctrl.testPay_ReturnUrl }}">
+            <input type="hidden" name="cancel_return" value="{{ $ctrl.testPay_ReturnUrl }}">
+            <input type="hidden" name="no_note" value="1">
+            <input type="hidden" name="currency_code" value="USD">
+            <input type="hidden" name="lc" value="EN">
+            <input type="hidden" name="first_name" value="{{ $ctrl.testPay_UserFirst }}" />
+            <input type="hidden" name="last_name" value="{{ $ctrl.testPay_UserLast }}" />
+            <input type="hidden" name="bn" value="PP-BuyNowBF:btn_paynow_LG.gif:NonHosted">
+            <input type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-medium.png" border="0" name="submit" alt="PayPal - The safer, easier way to pay online.">
+            <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+        </form>
+        <div class="text-error" data-ng-if="!$ctrl.testPay_isValid">Please enter a valid amount between 5 and 5000</div>
+    </div>-->
 
             <group-send-email></group-send-email>
         </div><!--end/left side bar-->
@@ -127,8 +131,11 @@
                     </p>
                 </div>
             </div>
-            <bulletin-board data-ng-if="$ctrl.shouldShowBulletinBoard"></bulletin-board>
-            <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
+            
+            <bulletin-board data-ng-if="$ctrl.shouldShowBulletinBoard && !$ctrl.isOnMobile"></bulletin-board>
+            
+            <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads && !$ctrl.isOnMobile" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
+            
             <local-news-feed data-ng-if="$ctrl.showLocalNews"></local-news-feed>
         </div>
     </div>

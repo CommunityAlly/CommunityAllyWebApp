@@ -27,6 +27,7 @@ var Ally;
             this.shouldShowEditWelcomeModal = false;
             this.isLoadingWelcome = false;
             this.shouldShowGoodNeighbor2024 = false;
+            this.isOnMobile = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -47,6 +48,7 @@ var Ally;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
+            this.isOnMobile = Ally.HtmlUtil2.isOnMobileDevice();
             // Maybe reactivate in 2025
             //this.shouldShowGoodNeighbor2024 = this.isSiteManager && moment().isBefore( moment( new Date( 2024, 8, 29 ) ) );
             //if( this.shouldShowGoodNeighbor2024 && window.localStorage && window.localStorage["chtnHome_disableShowGoodNeighbor2024"] )

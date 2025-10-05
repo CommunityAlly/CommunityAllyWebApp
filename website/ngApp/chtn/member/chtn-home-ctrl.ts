@@ -43,6 +43,7 @@
         welcomeTinyMceEditor: ITinyMce;
         isLoadingWelcome = false;
         shouldShowGoodNeighbor2024 = false;
+        isOnMobile = false;
 
 
         /**
@@ -83,6 +84,7 @@
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
+            this.isOnMobile = HtmlUtil2.isOnMobileDevice();
 
             // Maybe reactivate in 2025
             //this.shouldShowGoodNeighbor2024 = this.isSiteManager && moment().isBefore( moment( new Date( 2024, 8, 29 ) ) );
