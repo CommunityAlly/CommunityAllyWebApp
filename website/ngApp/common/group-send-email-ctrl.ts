@@ -28,6 +28,7 @@
         allSendAsOptions: EmailSendAsOption[] = [];
         filteredSendAsOptions: EmailSendAsOption[] = [];
         selectedSendAs: EmailSendAsOption;
+        shouldShowGroupMembers = false;
 
 
         /**

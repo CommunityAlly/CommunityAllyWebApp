@@ -8,7 +8,7 @@
 
         <div data-ng-show="$ctrl.showSendEmail">
             <form id="message-form">
-                <div class="row mb-3 px-3" data-ng-if="!$ctrl.committee">
+                <div class="mb-3" data-ng-if="!$ctrl.committee">
                     <label class="form-label">Recipient Group:</label>
                     <select class="form-control form-select"
                             data-ng-model="$ctrl.selectedRecipient"
@@ -43,6 +43,14 @@
                     <div class="ps-0">
                         <a data-ng-href="mailto:{{ $ctrl.groupEmailAddress }}" class="note-text">{{ $ctrl.groupEmailAddress }}</a><br />
                         <small>For individual {{$ctrl.memberLabel}} messaging or group listings, visit the <a href="#!/BuildingResidents">{{$ctrl.memberPageName}}</a> page </small>
+                    </div>
+
+                    <div class="note-text text-link" data-ng-click="$ctrl.shouldShowGroupMembers = !$ctrl.shouldShowGroupMembers" data-ng-if="$ctrl.selectedRecipient && $ctrl.selectedRecipient.usersFullNames && $ctrl.selectedRecipient.usersFullNames.length > 0">
+                        <span data-ng-if="$ctrl.shouldShowGroupMembers">Hide</span><span data-ng-if="!$ctrl.shouldShowGroupMembers">Show</span> recipient group members
+                    </div>
+
+                    <div class="note-text" data-ng-if="$ctrl.shouldShowGroupMembers && $ctrl.selectedRecipient && $ctrl.selectedRecipient.usersFullNames && $ctrl.selectedRecipient.usersFullNames.length > 0">
+                        {{ $ctrl.selectedRecipient.usersFullNames[0] }}<span data-ng-repeat="personName in $ctrl.selectedRecipient.usersFullNames track by $index" ng-hide="$first">, {{ ::personName }}<span></span></span>
                     </div>
                 </div>
 
