@@ -58,7 +58,7 @@
 
             this.isLoading = true;
 
-            this.$http.post( "/api/EmailAbuse/v3", postData ).then(() =>
+            this.$http.post( "/api/PublicEmail/EmailAbuse/v3", postData ).then(() =>
             {
                 this.isLoading = false;
                 this.showButtons = false;
