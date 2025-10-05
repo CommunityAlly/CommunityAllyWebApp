@@ -5,6 +5,9 @@
 
     <div class="portlet-body spinner-effect min100vh">
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+        <div data-ng-if="!$ctrl.isLoading && $ctrl.localNewStories && $ctrl.localNewStories.length === 0" class="note-text">
+            No news stories were found or there was an error on the news server
+        </div>
         <article data-ng-repeat="news in $ctrl.localNewStories" class="ally-shaded-item">
             <h5><a data-ng-href='{{ ::news.fullStoryUri }}' target="_blank">{{ ::news.title }}</a></h5>
             <p class="date note-text">{{ ::news.date | date:'short' }}</p>
