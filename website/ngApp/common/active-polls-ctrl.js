@@ -36,7 +36,8 @@ var Ally;
             for (let pollIndex = 0; pollIndex < this.polls.length; ++pollIndex) {
                 const curPoll = this.polls[pollIndex];
                 // We only show results to users that have voted (Not sure we still want this in Q1 2025)
-                if (curPoll.hasUsersUnitVoted) {
+                // if( curPoll.hasUsersUnitVoted ) // TWC Commented out Q3 2025 to show results to all
+                {
                     // If the results are ready, populate the chart and result tallies
                     if (curPoll.canViewResults) {
                         const chartInfo = Ally.FellowResidentsService.pollReponsesToChart(curPoll, this.siteInfo);
