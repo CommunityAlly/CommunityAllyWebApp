@@ -416,7 +416,10 @@ namespace Ally
                     this.isLoading = false;
                     this.shouldShowEditPostModal = false;
                     this.removeNewPostAttachment();
-                    this.refreshCommentThreads();
+
+                    // Ensure we refresh everything
+                    this.commentThreads = [];
+                    this.refreshCommentThreads( false );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {

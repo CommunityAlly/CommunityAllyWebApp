@@ -286,7 +286,9 @@ var Ally;
                 this.isLoading = false;
                 this.shouldShowEditPostModal = false;
                 this.removeNewPostAttachment();
-                this.refreshCommentThreads();
+                // Ensure we refresh everything
+                this.commentThreads = [];
+                this.refreshCommentThreads(false);
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to create post: " + response.data.exceptionMessage);
