@@ -269,12 +269,20 @@
             </div>
 
             <div class="row mb-4 px-3">
-                <label class="form-label">
+                <label class="form-label mb-0"">
                     Allow External Incoming Emails:
                     <input type="checkbox" data-ng-model="$ctrl.editGroupEmailInfo.allowPublicIncoming" />
                 </label>
-                <div class="note-text ps-0"><a href="https://help.communityally.org/using-custom-group-email-addresses/#external-emails" target="_blank">Learn more</a></div>
-            </div>            
+                <div class="note-text ps-0">When unchecked, only members of your group can email this address, non-member emails are rejected. <a href="https://help.communityally.org/using-custom-group-email-addresses/#external-emails" target="_blank">Learn more</a></div>
+            </div>
+
+            <div class="row mb-4 px-3">
+                <label class="form-label mb-0">
+                    Show in the Home Screen Email Widget:
+                    <input type="checkbox" data-ng-model="$ctrl.editGroupEmailInfo.shouldShowInHomeWidget" />
+                </label>
+                <div class="note-text ps-0">Sometimes you may prefer email groups for logistical reasons so unchecking this box will exclude this group from the home page email widget recipient options.</div>
+            </div>
 
             <div style="text-align: center;">
                 <div class="text-error" data-ng-if="$ctrl.groupEmailSaveError">{{$ctrl.groupEmailSaveError}}</div>

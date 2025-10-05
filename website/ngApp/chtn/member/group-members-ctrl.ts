@@ -280,6 +280,7 @@ namespace Ally
         {
             this.shouldShowNewCustomEmailModal = true;
             this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.editGroupEmailInfo.shouldShowInHomeWidget = true; // Defaults to true for new entries
             this.editGroupEmailInfoInputShortName = "";
             this.allResidents.forEach( r => r.isAssociated = false );
 
@@ -341,6 +342,7 @@ namespace Ally
         editCustomGroupEmail( groupEmail: CustomEmailGroup )
         {
             this.shouldShowNewCustomEmailModal = true;
+
             this.editGroupEmailInfo = new SaveEmailGroupInfo();
             this.editGroupEmailInfo.existingGroupEmailId = groupEmail.customGroupEmailId;
             this.editGroupEmailInfo.description = groupEmail.description;
@@ -348,6 +350,7 @@ namespace Ally
             this.editGroupEmailInfoInputShortName = this.editGroupEmailInfo.shortName;
             this.editGroupEmailInfo.memberUserIds = groupEmail.members.map( m => m.userId );
             this.editGroupEmailInfo.allowPublicIncoming = groupEmail.allowPublicIncoming;
+            this.editGroupEmailInfo.shouldShowInHomeWidget = groupEmail.shouldShowInHomeWidget;
             this.allResidents.forEach( r => r.isAssociated = this.editGroupEmailInfo.memberUserIds.indexOf( r.userId ) !== -1 );
 
             window.setTimeout( () => document.getElementById( "custom-group-email-short-name-text" ).focus(), 50 );
@@ -434,6 +437,7 @@ namespace Ally
         }
     }
 
+
     class SaveEmailGroupInfo
     {
         existingGroupEmailId: number;
@@ -441,6 +445,7 @@ namespace Ally
         description: string;
         memberUserIds: string[] = [];
         allowPublicIncoming: boolean;
+        shouldShowInHomeWidget: boolean;
     }
 }
 

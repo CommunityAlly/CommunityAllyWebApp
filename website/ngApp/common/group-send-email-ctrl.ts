@@ -96,7 +96,7 @@
             this.fellowResidents.getGroupEmailObject().then( ( emailList: Ally.GroupEmailInfo[] ) =>
             {
                 this.isLoadingEmail = false;
-                this.availableEmailGroups = emailList.filter( e => e.recipientType !== "Treasurer" ); // No need to show treasurer in this list since it's a single person
+                this.availableEmailGroups = emailList.filter( e => e.recipientType !== "Treasurer" && e.shouldShowInHomeWidget ); // No need to show treasurer in this list since it's a single person
 
                 if( this.availableEmailGroups.length > 0 )
                 {

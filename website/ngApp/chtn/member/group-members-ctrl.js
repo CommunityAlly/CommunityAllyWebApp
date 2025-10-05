@@ -184,6 +184,7 @@ var Ally;
         onAddNewCustomEmailGroup() {
             this.shouldShowNewCustomEmailModal = true;
             this.editGroupEmailInfo = new SaveEmailGroupInfo();
+            this.editGroupEmailInfo.shouldShowInHomeWidget = true; // Defaults to true for new entries
             this.editGroupEmailInfoInputShortName = "";
             this.allResidents.forEach(r => r.isAssociated = false);
             window.setTimeout(() => document.getElementById("custom-group-email-short-name-text").focus(), 50);
@@ -235,6 +236,7 @@ var Ally;
             this.editGroupEmailInfoInputShortName = this.editGroupEmailInfo.shortName;
             this.editGroupEmailInfo.memberUserIds = groupEmail.members.map(m => m.userId);
             this.editGroupEmailInfo.allowPublicIncoming = groupEmail.allowPublicIncoming;
+            this.editGroupEmailInfo.shouldShowInHomeWidget = groupEmail.shouldShowInHomeWidget;
             this.allResidents.forEach(r => r.isAssociated = this.editGroupEmailInfo.memberUserIds.indexOf(r.userId) !== -1);
             window.setTimeout(() => document.getElementById("custom-group-email-short-name-text").focus(), 50);
         }

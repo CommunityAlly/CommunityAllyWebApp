@@ -12,6 +12,7 @@
         memberUserIds: string[];
         sortOrder: number;
         isRestrictedGroup: boolean;
+        shouldShowInHomeWidget: boolean;
     }
 
 
@@ -40,6 +41,7 @@
         createdByUserId: string;
         createdOnDateUtc: Date;
         allowPublicIncoming: boolean;
+        shouldShowInHomeWidget: boolean;
         members: CustomEmailGroupMember[];
 
         // Populated locally

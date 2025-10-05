@@ -25,6 +25,7 @@ var Ally;
             this.memberPageName = "Residents";
             this.allSendAsOptions = [];
             this.filteredSendAsOptions = [];
+            this.shouldShowGroupMembers = false;
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
@@ -64,7 +65,7 @@ var Ally;
             this.isLoadingEmail = true;
             this.fellowResidents.getGroupEmailObject().then((emailList) => {
                 this.isLoadingEmail = false;
-                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer"); // No need to show treasurer in this list since it's a single person
+                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer" && e.shouldShowInHomeWidget); // No need to show treasurer in this list since it's a single person
                 if (this.availableEmailGroups.length > 0) {
                     this.defaultMessageRecipient = this.availableEmailGroups[0];
                     this.selectedRecipient = this.availableEmailGroups[0];
