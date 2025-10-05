@@ -96,6 +96,7 @@ namespace Ally
         numAddressesToBulkValidate: number = 0;
         shouldShowAutoUnselect: boolean = false;
         autoUnselectLabel: string;
+        autoUnselectNextLabel: string;
         paymentType: string = "creditCard";
         settings: ChtnSiteSettings = new ChtnSiteSettings();
         stripeApi: any = null;
@@ -260,12 +261,13 @@ namespace Ally
             } );
 
             this.shouldShowAutoUnselect = this.siteInfo.privateSiteInfo.isPeriodicPaymentTrackingEnabled
-                && this.siteInfo.privateSiteInfo.assessmentFrequency >= 50;
+                && this.siteInfo.privateSiteInfo.assessmentFrequency >= AssessmentHistoryController.PeriodicPaymentFrequency_Monthly;
 
             if( this.shouldShowAutoUnselect )
             {
-                this.autoUnselectLabel = MailingInvoiceController.getCurrentPayPeriodLabel( this.siteInfo.privateSiteInfo.assessmentFrequency )
-
+                this.autoUnselectLabel = MailingInvoiceController.getCurrentPayPeriodLabel( this.siteInfo.privateSiteInfo.assessmentFrequency );
+                this.autoUnselectNextLabel = MailingInvoiceController.getNextPayPeriodLabel( this.siteInfo.privateSiteInfo.assessmentFrequency )
+                
                 if( !this.autoUnselectLabel )
                     this.shouldShowAutoUnselect = false;
             }
@@ -294,20 +296,49 @@ namespace Ally
 
             const periodInfo = {
                 year: today.getFullYear(),
-                period: -1,
+                period0based: -1,
                 period1Based: -1
             };
 
             if( payPeriodInfo.intervalName === "month" )
-                periodInfo.period = today.getMonth();
+                periodInfo.period0based = today.getMonth();
             else if( payPeriodInfo.intervalName === "quarter" )
-                periodInfo.period = Math.floor( today.getMonth() / 3 );
+                periodInfo.period0based = Math.floor( today.getMonth() / 3 );
             else if( payPeriodInfo.intervalName === "half-year" )
-                periodInfo.period = Math.floor( today.getMonth() / 6 );
+                periodInfo.period0based = Math.floor( today.getMonth() / 6 );
             else if( payPeriodInfo.intervalName === "year" )
-                periodInfo.period = 0;
+                periodInfo.period0based = 0;
 
-            periodInfo.period1Based = periodInfo.period + 1;
+            periodInfo.period1Based = periodInfo.period0based + 1;
+
+            return periodInfo;
+        }
+
+
+        static getNextPayPeriod( assessmentFrequency: number )
+        {
+            const payPeriodInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
+            if( !payPeriodInfo )
+                return null;
+
+            const periodInfo = MailingInvoiceController.getCurrentPayPeriod( assessmentFrequency );
+            if( !periodInfo )
+                return null;
+
+            periodInfo.period0based = periodInfo.period0based + 1;
+            periodInfo.period1Based = periodInfo.period1Based + 1;
+
+            const showGoToNextYear = ( payPeriodInfo.intervalName === "month" && periodInfo.period1Based > 12 )
+                || ( payPeriodInfo.intervalName === "quarter" && periodInfo.period1Based > 4 )
+                || ( payPeriodInfo.intervalName === "half-year" && periodInfo.period1Based > 2 )
+                || ( payPeriodInfo.intervalName === "year" && periodInfo.period1Based > 1 );
+
+            if( showGoToNextYear )
+            {
+                periodInfo.period0based = 0;
+                periodInfo.period1Based = 1;
+                ++periodInfo.year;
+            }
 
             return periodInfo;
         }
@@ -327,7 +358,25 @@ namespace Ally
 
             const yearString = currentPeriod.year.toString();
 
-            return periodNames[currentPeriod.period] + " " + yearString;
+            return periodNames[currentPeriod.period0based] + " " + yearString;
+        }
+
+
+        static getNextPayPeriodLabel( assessmentFrequency: number ): string
+        {
+            const payPeriodInfo = PaymentFrequencyIdToInfo( assessmentFrequency );
+            if( !payPeriodInfo )
+                return null;
+
+            const periodNames = GetLongPayPeriodNames( payPeriodInfo.intervalName );
+            if( !periodNames )
+                return (new Date().getFullYear() + 1).toString();
+
+            const nextPeriod = MailingInvoiceController.getNextPayPeriod( assessmentFrequency );
+
+            const yearString = nextPeriod.year.toString();
+
+            return periodNames[nextPeriod.period0based] + " " + yearString;
         }
 
 
@@ -663,11 +712,11 @@ namespace Ally
         }
 
 
-        autoUnselectPaidOwners()
+        autoUnselectPaidOwners( shouldUseNextPeriod: boolean )
         {
             this.isLoading = true;
 
-            const currentPeriod = MailingInvoiceController.getCurrentPayPeriod( this.siteInfo.privateSiteInfo.assessmentFrequency );
+            const currentPeriod = shouldUseNextPeriod ? MailingInvoiceController.getCurrentPayPeriod( this.siteInfo.privateSiteInfo.assessmentFrequency ) : MailingInvoiceController.getNextPayPeriod( this.siteInfo.privateSiteInfo.assessmentFrequency );
 
             const getUri = `/api/PaymentHistory/RecentPayPeriod/${currentPeriod.year}/${currentPeriod.period1Based}`;
 

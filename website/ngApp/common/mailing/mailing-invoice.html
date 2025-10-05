@@ -96,7 +96,10 @@
             </div>
             
             <div data-ng-if="$ctrl.shouldShowAutoUnselect">
-                <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.autoUnselectPaidOwners()">Unselect all residents that have already paid for {{$ctrl.autoUnselectLabel}}</button>
+                <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.autoUnselectPaidOwners(false)">Unselect all residents that have already paid for {{$ctrl.autoUnselectLabel}}</button>
+                <br data-ng-if="$ctrl.autoUnselectNextLabel" />
+                <br data-ng-if="$ctrl.autoUnselectNextLabel" />
+                <button type="button" class="btn btn-secondary" data-ng-click="$ctrl.autoUnselectPaidOwners(true)" data-ng-if="$ctrl.autoUnselectNextLabel">Unselect all residents that have already paid for {{$ctrl.autoUnselectNextLabel}}</button>
                 <div class="note-text">This status comes from the <a href="#!/Financials/AssessmentHistory">assessment history</a> page.</div>
             </div>
             <div>
