@@ -46,7 +46,7 @@ namespace Ally
 
     export class AppConfigInfo
     {
-        appShortName: "condo" | "hoa" | "home" | "neighborhood" | "block-club" | "pta" | "watch" | "service" | "rno";
+        appShortName: "condo" | "hoa" | "home" | "neighborhood" | "block-club" | "pta" | "watch" | "service" | "rno" | "homeowner";
 
         /// The full, friendly app name like "Condo Ally" or "HOA Ally"
         appName: string;
@@ -304,6 +304,15 @@ const HomeAppConfig: Ally.AppConfigInfo =
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Homeowner Ally
+///////////////////////////////////////////////////////////////////////////////////////////////////
+const HomeownerAppConfig: Ally.AppConfigInfo = _.clone( HomeAppConfig );
+HomeownerAppConfig.appName = "Homeowner Ally";
+HomeownerAppConfig.baseTld = "homeownerally.org";
+HomeownerAppConfig.baseUrl = "https://homeownerally.org/";
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // HOA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const HOAAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
@@ -451,7 +460,7 @@ if( lowerDomain.indexOf( "condo" ) !== -1 )
 //else if( lowerDomain.indexOf( "serviceally" ) !== -1 )
 //    AppConfig = ServiceAppConfig;
 else if( lowerDomain.indexOf( "homeally" ) !== -1
-    || lowerDomain.indexOf( "helloathome" ) !== -1)
+    || lowerDomain.indexOf( "helloathome" ) !== -1 )
     AppConfig = HomeAppConfig;
 else if( lowerDomain.indexOf( "hoa" ) !== -1 )
     AppConfig = HOAAppConfig;
@@ -465,6 +474,8 @@ else if( lowerDomain.indexOf( "ptaally" ) !== -1 )
     AppConfig = PtaAppConfig;
 else if( lowerDomain.indexOf( "rnoally" ) !== -1 )
     AppConfig = RnoAppConfig;
+else if( lowerDomain.indexOf( "homeownerally" ) !== -1 )
+    AppConfig = HomeownerAppConfig;
 else
 {
     console.log( "Unknown ally app" );
