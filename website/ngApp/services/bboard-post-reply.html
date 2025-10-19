@@ -39,7 +39,7 @@
 
     <div data-ng-if="$ctrl.reply.attachedDocPath && $ctrl.reply.attachedDocDisplayName" data-ng-style="{'margin-left': '{{($ctrl.depth * 36 + 40) + 'px'}}'}">
 
-        <div data-ng-if="!$ctrl.reply.attachedDocPreviewUrl" style="padding: 8px; border: 1px solid black; display: inline-block; border-radius: 5px; cursor: pointer" data-ng-click="$ctrl.onViewAttachedDoc(comment)" title="Open attachment '{{$ctrl.reply.attachedDocDisplayName}}'">
+        <div data-ng-if="!$ctrl.reply.attachedDocPreviewUrl" style="padding: 8px; border: 1px solid black; display: inline-block; border-radius: 5px; cursor: pointer" data-ng-click="$ctrl.onViewAttachedDoc($ctrl.reply)" title="Open attachment '{{$ctrl.reply.attachedDocDisplayName}}'">
             <img id="File_{{::$ctrl.reply.commentId}}" class="file-thumbnail" ng-src="{{::$ctrl.getFileIcon($ctrl.reply.attachedDocDisplayName)}}" />
             {{::$ctrl.reply.attachedDocDisplayName}}
         </div>
