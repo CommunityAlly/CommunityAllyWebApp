@@ -8,9 +8,9 @@
 
             <div data-ng-if="!$ctrl.isInEditMode">
                 <!--Discussion style posts allow HTML formatting-->
-                <div style="margin-top: 4px; white-space: pre-wrap;" data-ng-if="!$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></div>
+                <div style="margin-top: 4px; white-space: pre-wrap; overflow-wrap: break-word;" data-ng-if="!$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}"></div>
                 <!--Wall posts are normal text-->
-                <div style="margin-top: 4px; margin-bottom: 6px; white-space: pre-wrap;" data-ng-if="$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}">
+                <div style="margin-top: 4px; margin-bottom: 6px; white-space: pre-wrap; overflow-wrap: break-word;" data-ng-if="$ctrl.thread.postType" data-ng-bind-html="$ctrl.reply.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}">
                 </div>
             </div>
 

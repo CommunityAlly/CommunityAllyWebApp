@@ -87,7 +87,7 @@
             </div>
             <div class="row mt-2 ms-1">
                 <div class="col-12 p-0">
-                    <div data-ng-bind-html="curThread.firstComment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}" style="white-space: pre-wrap;"></div>
+                    <div data-ng-bind-html="curThread.firstComment.commentText | linky:'_blank':{rel: 'nofollow noopener noreferrer'}" style="white-space: pre-wrap; overflow-wrap: break-word;"></div>
                 </div>
             </div>
             <div class="row mt-2" data-ng-if="::curThread.postType === 'sellItem' && curThread.isLoggedInUserAuthor && !curThread.archiveDateUtc">
