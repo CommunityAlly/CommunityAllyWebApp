@@ -193,7 +193,11 @@ a {
     }
 
     &.white {
-        background: white;
+        background-color: white;
+    }
+
+    &.gray {
+        background-color: lightgray;
     }
 }
 

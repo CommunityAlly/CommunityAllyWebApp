@@ -135,6 +135,13 @@ const CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
+        // Temp E-form Pages under Admin
+        new Ally.RoutePath_v3({ path: "Admin/EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: "E-Form Templates", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "Admin/EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: "E-Form Templates", role: Role_Admin }),
+        //new Ally.RoutePath_v3( { path: "Admin/ListEformInstances", templateHtml: "<list-eform-instances></list-eform-instances>", menuTitle: "E-Forms", role: Role_Admin } ),
+        new Ally.RoutePath_v3({ path: "Admin/CreateEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "Admin/ViewEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "Admin/EformInstanceListing", templateHtml: "<eform-instance-listing></eform-instance-listing>", menuTitle: "E-Forms", role: Role_Admin }),
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////

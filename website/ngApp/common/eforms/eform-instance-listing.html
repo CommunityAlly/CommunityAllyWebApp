@@ -1,0 +1,62 @@
+<div class="page">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <h3>E-Forms</h3>
+    <div class="note-text" data-ng-if="$ctrl.isSiteManager">
+        Here you can view all active E-form instances, including forms assigned to you and your groups.
+    </div>
+    <div class="note-text" data-ng-if="!$ctrl.isSiteManager">
+        Here you can view all of your active E-form instances.
+    </div>
+    <div data-ng-if="$ctrl.isSiteManager" class="text-end">
+        <a href="#!/Admin/EformTemplateListing">Manage E-form Templates</a>
+    </div>
+    <div data-ng-if="$ctrl.isSiteManager" class="mb-3 mt-2">
+        <span>Filter on form status:</span>
+        <div class="form-check form-check-inline ms-2">
+            <input class="form-check-input" type="radio" name="formStatusFilter" id="formStatusFilterAll" data-ng-value="null" data-ng-model="$ctrl.formStatusFilter" data-ng-change="$ctrl.refreshFormStatusFilter()">
+            <label class="form-check-label" for="formStatusFilterAll">All</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="formStatusFilter" id="formStatusFilterActive" value="active" data-ng-model="$ctrl.formStatusFilter" data-ng-change="$ctrl.refreshFormStatusFilter()">
+            <label class="form-check-label" for="formStatusFilterActive">Active</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="formStatusFilter" id="formStatusFilterComplete" value="complete" data-ng-model="$ctrl.formStatusFilter" data-ng-change="$ctrl.refreshFormStatusFilter()">
+            <label class="form-check-label" for="formStatusFilterComplete">Complete</label>
+        </div>
+        <div class="note-text">
+            {{$ctrl.filteredInstances.length}} form{{$ctrl.filteredInstances.length === 1 ? '' : 's'}}
+            <span data-ng-if="$ctrl.filteredInstances.length !== $ctrl.pageInfo.instances.length"> filtered ({{$ctrl.pageInfo.instances.length}} total)</span>
+        </div>
+    </div>
+    <div data-ng-if="$ctrl.isLoadingResidents">
+        <img src="/assets/images/spinner-large.gif" /> Loading residents...
+    </div>
+    <table class="table" style="width: 100%;">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Assigned To</th>
+                <th data-ng-if="$ctrl.shouldShowSubmitted">Submitted By</th>
+                <th>Status</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr data-ng-repeat="curInstance in $ctrl.filteredInstances">
+                <td>
+                    <a href="#!/Admin/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a>
+                </td>
+                <td>
+                    {{curInstance.assignedToLabel}}
+                </td>
+                <td data-ng-if="$ctrl.shouldShowSubmitted">
+                    {{curInstance.submitterLabel}}
+                </td>
+                <td>{{curInstance.formStatus}}</td>
+                <td>{{curInstance.submitDateUtc | date:'medium'}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

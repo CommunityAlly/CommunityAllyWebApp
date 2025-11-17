@@ -438,7 +438,10 @@ a {
   min-height: 100px;
 }
 .portlet-box.white {
-  background: white;
+  background-color: white;
+}
+.portlet-box.gray {
+  background-color: lightgray;
 }
 
 /** fieldset **/

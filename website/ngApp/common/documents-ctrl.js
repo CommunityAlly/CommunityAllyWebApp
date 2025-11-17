@@ -67,7 +67,7 @@ var Ally;
                 const uploader = $('#JQDocsFileUploader');
                 uploader.fileupload({
                     autoUpload: true,
-                    pasteZone: null,
+                    pasteZone: null, // Disable paste causing upload
                     add: (e, data) => {
                         //var scopeElement = document.getElementById( 'documents-area' );
                         //var scope = angular.element( scopeElement ).scope();

@@ -275,6 +275,9 @@
                         <input type="text" data-ui-date data-ng-model="$ctrl.premiumNewExpiration" />
                         <button class="btn btn-primary" type="button" data-ng-click="$ctrl.updatePremiumExpiration()">Update Expiration Date</button>
                         <span class="note-text">Current Expiration: {{$ctrl.premiumPlanExpiration |  date:'shortDate'}}</span>
+                        <div class="note-text">
+                            Don't forget, if you're updating the expiration because you received a physical payment, add that payment info below.
+                        </div>
                     </td>
                 </tr>
             </table>

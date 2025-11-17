@@ -435,7 +435,7 @@ var Ally;
                     unit: 'mm',
                     format: "letter",
                     putOnlyUsedFonts: true,
-                    floatPrecision: 16,
+                    floatPrecision: 16, // or "smart", default is 16
                     title: "care-team-dashboard"
                 };
                 const pdfDoc = new jsPDF.jsPDF(pdfOpts);

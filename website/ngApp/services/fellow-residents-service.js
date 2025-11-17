@@ -175,10 +175,10 @@ var Ally;
          */
         static isOfficerBoardPosition(boardPosition) {
             const OfficerPositions = [
-                1,
-                2,
-                4,
-                16,
+                1, // President
+                2, // Treasurer
+                4, // Secretary
+                16, // Vice President
                 64, // Secretary + Treasurer
             ];
             return OfficerPositions.indexOf(boardPosition) !== -1;

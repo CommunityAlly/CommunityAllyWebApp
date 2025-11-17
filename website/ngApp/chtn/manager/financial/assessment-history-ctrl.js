@@ -657,7 +657,7 @@ var Ally;
                 periodName = this.periodNames[periodPayment.period - 1];
             this.editPayment = {
                 unit: unit,
-                payment: _.clone(periodPayment),
+                payment: _.clone(periodPayment), // Make a copy of the object so we can edit it without editing the grid
                 periodName,
                 filteredPayers: _.filter(this.payers, (payer) => {
                     return !_.some(unit.owners, (owner) => owner.userId === payer.userId);
@@ -672,7 +672,7 @@ var Ally;
             periodPayment.payerUserId = payer.userId;
             this.editPayment = {
                 unit: null,
-                payment: _.clone(periodPayment),
+                payment: _.clone(periodPayment), // Make a copy of the object so we can edit it without editing the grid
                 periodName: this.periodNames[periodPayment.period - 1],
                 filteredPayers: null
             };

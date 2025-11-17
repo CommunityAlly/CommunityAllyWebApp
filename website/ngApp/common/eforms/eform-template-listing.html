@@ -1,0 +1,45 @@
+<div class="page">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <h3>E-Form Templates</h3>
+    <div class="note-text">
+        Here you can manage and create E-form templates. These are templates used for users to submit forms. You cannot edit templates that are in-use.
+    </div>
+    <table class="table" style="width: 100%;">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Is Enabled</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr data-ng-repeat="curTemplate in $ctrl.allTemplates">
+                <td><a href="#!/Admin/EditEformTemplate/{{curTemplate.eformTemplateId}}">{{curTemplate.templateName}}</a></td>
+                <td>
+                    <input type="checkbox" data-ng-model="curTemplate.isEnabled" data-ng-change="$ctrl.onTemplateEnabledToggle(curTemplate)" />
+                </td>
+                <td>
+                    <span data-ng-if="curTemplate.numInstances === 0">Not in use</span>
+                    <span data-ng-if="curTemplate.numInstances > 0">In use by {{curTemplate.numInstances}} form{{curTemplate.numInstances===1?'':'s'}}</span>
+                </td>
+                <td>{{curTemplate.createDateUtc | date:'short'}}</td>
+                <td>
+                    <span class="text-link">Clone</span>
+                    <span class="text-link">Delete</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 class="mt-5">Editable E-Form Templates</h3>
+    <div>
+        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createNewTemplate()">Create New Template</button>
+    </div>
+    <div class="note-text">
+        These templates are not yet in-use and can still be edited.
+    </div>
+    
+</div>

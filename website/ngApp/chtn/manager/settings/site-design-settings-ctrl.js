@@ -142,8 +142,8 @@ var Ally;
         hookUpLoginImageUpload() {
             $(() => {
                 $('#JQLoginImageFileUploader').fileupload({
-                    dropZone: null,
-                    pasteZone: null,
+                    dropZone: null, // Disable dropping of files
+                    pasteZone: null, // Disable paste of data causing a file upload
                     autoUpload: true,
                     add: (e, data) => {
                         this.$scope.$apply(() => {

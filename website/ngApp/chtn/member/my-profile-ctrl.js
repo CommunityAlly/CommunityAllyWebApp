@@ -48,8 +48,8 @@ var Ally;
             const hookUpPhotoFileUpload = () => {
                 const uploader = $('#JQFileUploader');
                 uploader.fileupload({
-                    dropZone: null,
-                    pasteZone: null,
+                    dropZone: null, // Disable dropping of files
+                    pasteZone: null, // Disable paste of data causing a file upload
                     add: (e, data) => {
                         data.url = "api/DocumentUpload/ProfileImage?ApiAuthToken=" + this.siteInfo.authToken;
                         if (this.siteInfo.publicSiteInfo.baseApiUrl)

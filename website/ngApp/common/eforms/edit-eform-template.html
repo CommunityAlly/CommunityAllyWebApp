@@ -1,0 +1,156 @@
+<div class="page">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+
+    <h3>Edit E-form Template</h3>
+
+    <div data-ng-if="$ctrl.template">
+        <div class="text-end">
+            <button type="button" class="btn btn-primary btn-lg" data-ng-click="$ctrl.saveTemplate()">Save Template</button>
+        </div>
+
+        <div class="mb-5">
+            <div class="mb-3">
+                <label for="templateName" class="form-label">Template Name</label>
+                <input type="text" class="form-control" id="templateName" aria-describedby="emailHelp" data-ng-model="$ctrl.template.templateName" autocomplete="off" data-lpignore="true" data-form-type="other">
+            </div>
+            <div class="mb-3">
+                <label for="whoCanCreateSelect" class="form-label">Who can create this form?</label>
+                <select id="whoCanCreateSelect" class="form-select form-select" data-ng-model="$ctrl.template.whoCanCreate">
+                    <option value="anyone">Anyone</option>
+                    <option value="owners">Owners (i.e. non-renters)</option>
+                    <option value="anyBoard">Board Members</option>
+                    <option value="anyBoardOrAdmin">Board Members or Site Admin</option>
+                </select>
+            </div>
+            <!--<div class="mb-3">
+                <label for="defaultAssigneeeSelect" class="form-label">Who gets assigned this form when it gets created?</label>
+                <select id="defaultAssigneeeSelect" class="form-select form-select" data-ng-model="$ctrl.template.defaultAssigneee">
+                    <option value="anyBoard">Any Board Member</option>
+                    <option value="anyBoardOrAdmin">Any Board Member or Site Admin</option>
+                    <option value="president">Board President</option>
+                    <option value="secretary">Board Secretary</option>
+                    <option value="treasurer">Board Treasurer</option>
+                    <option value="committee:{{curCommittee.committeeId}}" data-ng-repeat="curCommittee in $ctrl.committeeOptions">Committee: {{curCommittee.name}}</option>
+                </select>
+                <small class="form-text text-muted">When a form is created or updated, this assignee will be notified.</small>
+            </div>-->
+            <div class="mb-3 form-check">
+                <label for="isAnonymousCheckbox" class="form-label">Form submits anonymously</label>
+                <input type="checkbox" class="form-check-input" id="isAnonymousCheckbox" aria-describedby="emailHelp" data-ng-model="$ctrl.template.isAnonymous">
+                <br />
+                <small class="form-text text-muted">The submitter of the form is hidden.</small>
+            </div>
+            <div>
+                <label for="formInstructionsText" class="form-label">Instructions</label>
+                <div class="form-control" id="formInstructionsText" data-ng-model="$ctrl.template.formInstructions" rows="5"></div>
+            </div>
+            
+        </div>
+
+        <h4 class="mt-4">Form Steps/Sections</h4>
+        <div class="note-text">
+            Each step can be assigned to a different person to complete, making it easy to organize the back-and-forth of common community forms.
+        </div>
+
+        <div data-ng-repeat="curSection in $ctrl.template.sections" class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Step {{$index + 1}}</h5>
+                <div class="mb-3">
+                    <label for="sectionName{{$index}}" class="form-label">Step Name/Title</label>
+                    <input type="text" class="form-control" id="sectionName{{$index}}" aria-describedby="emailHelp" data-ng-model="curSection.sectionName" autocomplete="off" data-lpignore="true" data-form-type="other">
+                </div>
+
+                <div class="mb-4">
+                    <label for="whoCanFillOutSelect{{$index}}" class="form-label">Who fills out this step?</label>
+                    <select id="whoCanFillOutSelect{{$index}}" class="form-select form-select" data-ng-model="curSection.whoFillsOut" data-ng-readonly="$index === 0" data-ng-disabled="$index === 0">
+                        <option value="reporter">Reporter (Person that submitted the form)</option>
+                        <option value="president">Board President</option>
+                        <option value="secretary">Board Secretary</option>
+                        <option value="treasurer">Board Treasurer</option>
+                        <option value="anyBoard">Any Board Member</option>
+                        <option value="anyBoardOrAdmin">Any Board Member or Site Admin</option>
+                    </select>
+                    <small data-ng-if="$index === 0">The first step must always be filled out by the reporter</small>
+                </div>
+
+                <h5>Fields</h5>
+
+                <div data-ng-repeat="curField in curSection.parsedFields" class="border rounded p-4 mb-4">
+                    <h6>Field {{$index + 1}}</h6>
+
+                    <div class="mb-3">
+                        <label for="fieldLabel" class="form-label">Field Label</label>
+                        <input type="text" class="form-control" id="fieldLabel" data-ng-model="curField.label" data-ng-blur="$ctrl.autoSetFieldSlug(curField)" autocomplete="off" data-lpignore="true" data-form-type="other">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fieldSlug" class="form-label">Field Slug</label>
+                        <input type="text" class="form-control" id="fieldSlug" data-ng-model="curField.slug" data-ng-change="$ctrl.checkFieldSlugUnique(curField)" autocomplete="off" data-lpignore="true" data-form-type="other">
+                        <div data-ng-if="curField.duplicateSlugMessage" class="alert alert-danger" role="alert">{{curField.duplicateSlugMessage}}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fieldNoteText" class="form-label">Field Note Text</label>
+                        <textarea class="form-control" id="fieldNoteText" data-ng-model="curField.noteText"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fieldType" class="form-label">Field Type</label>
+                        <select id="fieldType" class="form-select" data-ng-model="curField.type">
+                            <!--<option value="allHomePicker">All Home Picker</option>-->
+                            <!--<option value="assignee">Assignee</option>-->
+                            <option value="checkboxList">Checkbox List</option>
+                            <option value="dateOnly">Date Only</option>
+                            <!--<option value="dateTime">Date Time</option>-->
+                            <option value="fileAttachment">File Attachment</option>
+                            <option value="longText">Long Text</option>
+                            <option value="number">Number</option>
+                            <!--<option value="ownerHomePicker">Owner's Home Picker</option>-->
+                            <option value="radio">Radio</option>
+                            <!--<option value="richTextLabel">Rich Text Label</option>-->
+                            <option value="shortText">Short Text</option>
+                            <option value="timeOnly">Time Only</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" data-ng-if="false">
+                        <label for="fieldTypeParam" class="form-label">Field Type Parameter</label>
+                        <input type="text" class="form-control" id="fieldTypeParam" data-ng-model="curField.typeParam" autocomplete="off" data-lpignore="true" data-form-type="other">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fieldDefaultValue" class="form-label">Default Value</label>
+                        <input type="text" class="form-control" id="fieldDefaultValue" data-ng-model="curField.defaultValue" autocomplete="off" data-lpignore="true" data-form-type="other">
+                    </div>
+                    <div class="mb-3" data-ng-if="curField.type === 'checkboxList' || curField.type === 'radio'">
+                        <label for="fieldMultiValueOptions" class="form-label">
+                            <span data-ng-if="curField.type === 'checkboxList'">Checkbox</span>
+                            <span data-ng-if="curField.type === 'radio'">Radio</span>
+                            Options (comma-separated)
+                        </label>
+                        <input type="text" class="form-control" id="fieldMultiValueOptions" data-ng-model="curField.multiValueOptionsString" data-ng-change="$ctrl.onMultiValueOptionsChange(curField)" autocomplete="off" data-lpignore="true" data-form-type="other">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="fieldIsRequired" data-ng-model="curField.isRequired">
+                        <label class="form-check-label" for="fieldIsRequired">Is Required</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fieldVisibleConditionJs" class="form-label">Visible Condition (JavaScript)</label>
+                        <textarea class="form-control" id="fieldVisibleConditionJs" data-ng-model="curField.visibleConditionJs"></textarea>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="button" class="btn btn-danger btn-sm" data-ng-click="$ctrl.removeField(curSection,curField)">Remove Field {{$index + 1}}</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary" data-ng-click="$ctrl.addField(curSection)">Add Field</button>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-danger btn-sm" data-ng-click="$ctrl.removeSection(curSection)">Remove Step {{$index + 1}}</button>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" data-ng-click="$ctrl.addSection()">Add New Step</button>
+
+        <div class="text-end">
+            <button type="button" class="btn btn-primary btn-lg" data-ng-click="$ctrl.saveTemplate()">Save Template</button>
+        </div>
+    </div>
+</div>

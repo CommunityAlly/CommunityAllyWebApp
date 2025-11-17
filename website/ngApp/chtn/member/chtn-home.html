@@ -131,11 +131,13 @@
                     </p>
                 </div>
             </div>
-            
+
             <bulletin-board data-ng-if="$ctrl.shouldShowBulletinBoard && !$ctrl.isOnMobile"></bulletin-board>
-            
+
             <group-comment-threads data-ng-if="$ctrl.showDiscussionThreads && !$ctrl.isOnMobile" data-auto-open-thread-id="$ctrl.autoOpenDiscussionThreadId"></group-comment-threads>
-            
+
+            <eform-widget></eform-widget>
+
             <local-news-feed data-ng-if="$ctrl.showLocalNews"></local-news-feed>
         </div>
     </div>

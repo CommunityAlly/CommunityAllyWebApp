@@ -71,13 +71,13 @@ var Ally;
             paypal.Button.render({
                 //env: "production",
                 env: "sandbox",
-                commit: true,
+                commit: true, // Show a 'Pay Now' button
                 style: {
                     color: 'gold',
                     size: 'medium'
                 },
                 client: {
-                    sandbox: null,
+                    sandbox: null, //this.siteInfo.privateSiteInfo.payPalClientId,
                     production: "AW51-dH9dRrczrhVVf1kZyavtifN8z23Q0BTJwpWcTJQL6YoqGCTwOb0JfbCHTJIA_usIXAgrxwQ7osQ"
                 },
                 payment: (data, actions) => {

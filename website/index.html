@@ -28,7 +28,7 @@
     <meta name="theme-color" content="" />
 
     <!-- Css styles, compiled.min.css gets built via the Grunt script -->
-    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=64" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/assets/compiled.min.css?cssVer=65" crossorigin="anonymous" />
 
     <!-- AllyLibTop.min.js gets built via the Grunt script -->
     <script type="text/javascript" src="/js/AllyLibTop.min.js?libVer=44"></script>
@@ -53,7 +53,7 @@
             "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=1005;
+        var appVer=1037;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -61,17 +61,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=1005" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=1037" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=1005" );
+                    localStorage.setItem( Key_JSVersion, "appVer=1037" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=1005"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=1005"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=1037"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=1037"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -274,7 +274,7 @@
 
 <body data-ng-app="CondoAlly" ng-strict-di data-ng-style="{'font-family': siteDesignSettings.fontFamily, 'color': siteDesignSettings.bodyFontColor, 'background': siteDesignSettings.background}">
     <header id="app-header">
-        <div data-ng-if="$root.allUsersGroups.length > 1" data-ng-cloak style="float: right; margin: 7px;">
+        <div data-ng-if="$root.allUsersGroups.length > 1" data-ng-cloak style="float: right; margin-top: 5px; margin-right: 9px;">
             <span data-ng-if="!$root.shouldExpandSwitchGroups" data-ng-click="expandSwitchGroup(true)" class="text-link" style="text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);">Switch Groups</span>
             <select data-ng-if="$root.shouldExpandSwitchGroups && !$root.isSwitchingGroups" data-ng-options="g.groupId as g.dropDownLabel for g in $root.allUsersGroups" data-ng-model="$root.selectedSwitchGroupId" data-ng-change="$root.onSwitchGroupSelected(g.groupId)"></select>
             <span data-ng-if="$root.shouldExpandSwitchGroups && !$root.isSwitchingGroups" class="close-x" style="margin: 0;" data-ng-click="$root.expandSwitchGroup(false)">&times;</span>
@@ -485,6 +485,10 @@
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" defer></script>
     <!--<script src="https://cdn.tiny.cloud/1/9zacv8cnbzzsp7wl1vlv8f3a0rk735bvkn3aemat479m4s9m/tinymce/7/tinymce.min.js" referrerpolicy="origin" defer></script>-->
     <script src="/js/lib/other/acctoolbar.min.js" async defer></script>
+    
+    <link href="/js/lib/quill/quill.snow.203.css" rel="stylesheet" />
+    <script src="/js/lib/quill/quill.203.js" async defer></script>
+    
     <script>
         // Setup the accessibility widget
         window.setTimeout( () =>

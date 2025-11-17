@@ -49,8 +49,8 @@ var Ally;
 CA.condoAllyControllers.
     directive('contenteditable', ['$sce', function ($sce) {
         return {
-            restrict: 'A',
-            require: '?ngModel',
+            restrict: 'A', // only activate on element attribute
+            require: '?ngModel', // get a hold of NgModelController
             link: function (scope, element, attrs, ngModel) {
                 if (!ngModel)
                     return; // do nothing if no ng-model
