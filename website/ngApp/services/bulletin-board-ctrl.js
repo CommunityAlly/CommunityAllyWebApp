@@ -273,7 +273,7 @@ var Ally;
             if (this.editPostAttachmentFile)
                 newThreadFormData.append("attachedFile", this.editPostAttachmentFile);
             const postHeaders = {
-                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server which blocks file upload
             };
             let postUri = "/api/CommentThread/CreateThreadFromForm";
             if (this.editPostItem.commentThreadId) {

@@ -9,7 +9,7 @@ namespace Ally
         static $inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
         isLoading: boolean = false;
         widgetInfo: EformWidgetInfo;
-        shouldShow = false;
+        shouldShowWidget = false;
         isSiteManager = false;
 
 
@@ -21,7 +21,6 @@ namespace Ally
             private $location: ng.ILocationService,
             private siteInfo: Ally.SiteInfoService )
         {
-            this.shouldShow = AppConfig.isChtnSite;
         }
 
 
@@ -31,8 +30,10 @@ namespace Ally
         $onInit()
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+            this.shouldShowWidget = AppConfig.isChtnSite && ["kevinformtest", "qa"].includes( this.siteInfo.publicSiteInfo.shortName );
 
-            this.loadData();
+            if( this.shouldShowWidget )
+                this.loadData();
         }
 
 
@@ -76,7 +77,7 @@ namespace Ally
                     this.filterTemplatesOnWhosAllowed( this.widgetInfo.enabledTemplates );
 
                     // Only show the widget if there's something to show
-                    this.shouldShow = this.widgetInfo.activeInstances.length > 0
+                    this.shouldShowWidget = this.widgetInfo.activeInstances.length > 0
                         || this.widgetInfo.assignedToUserInstances.length > 0
                         || this.widgetInfo.enabledTemplates.length > 0;
                 },

@@ -15,6 +15,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isCreate = false;
             this.isLoading = false;
+            this.savingMessage = "";
             this.isSiteManager = false;
         }
         /**
@@ -27,6 +28,24 @@ var Ally;
             else
                 this.loadInstance();
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+        }
+        findFieldEntryBySlug(slug) {
+            for (const curSection of this.sectionEntries) {
+                for (const curFieldPair of curSection.fieldPairs) {
+                    if (curFieldPair.template.slug === slug)
+                        return curFieldPair;
+                }
+            }
+            return null;
+        }
+        loadAttachmentUrlForDisplay(fileAttachmentInfo) {
+            const getUri = `/api/EformInstance/AttachmentViewUrl/${this.instance.eformInstanceId}/${fileAttachmentInfo.fieldSlug}`;
+            this.$http.get(getUri).then((response) => {
+                const viewUrl = `<a target='_blank' href='${response.data}'>${fileAttachmentInfo.originalFileName}</a>`;
+                const fieldEntry = this.findFieldEntryBySlug(fileAttachmentInfo.fieldSlug);
+                if (fieldEntry)
+                    fieldEntry.displayValueHtml = viewUrl;
+            });
         }
         prepareSectionsAndFields() {
             if (!this.instance && !this.instance.template) {
@@ -62,9 +81,20 @@ var Ally;
                         curInstanceField.valuesJson = curTemplateField.defaultValue;
                         curInstanceSection.parsedFieldValues.push(curInstanceField);
                     }
+                    let displayValue = curInstanceField.valuesJson || "";
+                    if (curTemplateField.type === "fileAttachment") {
+                        if (curInstanceField.valuesJson) {
+                            const fileAttachmentInfo = JSON.parse(curInstanceField.valuesJson);
+                            this.loadAttachmentUrlForDisplay(fileAttachmentInfo);
+                            displayValue = fileAttachmentInfo.originalFileName;
+                        }
+                        else
+                            displayValue = "No file provided";
+                    }
                     const newFieldEntry = {
                         template: curTemplateField,
-                        instance: curInstanceField
+                        instance: curInstanceField,
+                        displayValueHtml: displayValue
                     };
                     newSectionEntry.fieldPairs.push(newFieldEntry);
                 }
@@ -84,7 +114,7 @@ var Ally;
                 this.instance = response.data;
                 EformInstanceDto.parseSectionFields(this.instance);
                 this.prepareSectionsAndFields();
-                this.fellowResidents.getResidents().then(r => Ally.EformInstanceListingController.populateUserNameLabels(r, this.instance));
+                this.fellowResidents.getByUnitsAndResidents().then(fr => Ally.EformInstanceListingController.populateUserNameLabels(fr, this.instance));
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
@@ -134,7 +164,7 @@ var Ally;
             }
             curSection.instance.sectionStatus = isComplete ? "complete" : "draft";
             curSection.instance.fieldValuesJson = JSON.stringify(curSection.instance.parsedFieldValues);
-            const postUri = "/api/EformInstance/" + (this.isCreate ? ("CreateInstance/" + this.instance.eformTemplateId) : ("UpdateInstance/" + this.instance.eformInstanceId));
+            const saveFormPostUri = "/api/EformInstance/" + (this.isCreate ? ("CreateInstance/" + this.instance.eformTemplateId) : ("UpdateInstance/" + this.instance.eformInstanceId));
             let postData;
             if (this.isCreate) {
                 postData = {
@@ -142,7 +172,9 @@ var Ally;
                     eformInstanceId: "00000000-0000-0000-0000-000000000000",
                     eformTemplateSectionId: curSection.instance.eformTemplateSectionId,
                     sectionStatus: curSection.instance.sectionStatus,
-                    fieldValuesJson: curSection.instance.fieldValuesJson
+                    fieldValuesJson: curSection.instance.fieldValuesJson,
+                    newAttachments: this.instance.newAttachments,
+                    attachmentSlugsToDelete: this.instance.attachmentSlugsToDelete
                 };
             }
             else {
@@ -151,14 +183,71 @@ var Ally;
                     eformInstanceId: this.instance.eformInstanceId,
                     eformTemplateSectionId: curSection.instance.eformTemplateSectionId,
                     sectionStatus: curSection.instance.sectionStatus,
-                    fieldValuesJson: curSection.instance.fieldValuesJson
+                    fieldValuesJson: curSection.instance.fieldValuesJson,
+                    newAttachments: this.instance.newAttachments,
+                    attachmentSlugsToDelete: this.instance.attachmentSlugsToDelete
                 };
             }
+            const postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server which blocks file upload
+            };
+            // Convert out JSON object to FormData for file upload
+            const saveSectionFormData = new FormData();
+            saveSectionFormData.append("eformInstanceSectionId", postData.eformInstanceSectionId.toString());
+            saveSectionFormData.append("eformInstanceId", postData.eformInstanceId);
+            saveSectionFormData.append("eformTemplateSectionId", postData.eformTemplateSectionId.toString());
+            saveSectionFormData.append("sectionStatus", postData.sectionStatus);
+            saveSectionFormData.append("fieldValuesJson", postData.fieldValuesJson);
+            if (postData.newAttachments && postData.newAttachments.length > 0) {
+                for (let i = 0; i < postData.newAttachments.length; i++) {
+                    saveSectionFormData.append(`newAttachments[${i}].fieldSlug`, postData.newAttachments[i].fieldSlug);
+                    saveSectionFormData.append(`newAttachments[${i}].localSelectedFile`, postData.newAttachments[i].localSelectedFile, postData.newAttachments[i].localSelectedFile.name);
+                }
+            }
+            if (postData.attachmentSlugsToDelete && postData.attachmentSlugsToDelete.length > 0) {
+                for (let i = 0; i < postData.attachmentSlugsToDelete.length; i++)
+                    saveSectionFormData.append(`attachmentSlugsToDelete[${i}]`, postData.attachmentSlugsToDelete[i]);
+            }
             this.isLoading = true;
-            this.$http.post(postUri, postData).then(() => {
-                this.isLoading = false;
-                this.$location.path("/Home");
+            this.savingMessage = "Saving form data...";
+            this.$http.post(saveFormPostUri, saveSectionFormData, postHeaders).then(() => {
+                // Set the local instnce ID if this is a create so attachments have an ID to use
+                //if( this.isCreate )
+                //    this.instance.eformInstanceId = saveFormResponse.data.eformInstanceId;
+                const onDoneUploading = () => {
+                    this.savingMessage = "";
+                    this.isLoading = false;
+                    this.$location.path("/Home");
+                };
+                //let uploadCount = 0;
+                //const uploadNextAttachment = () =>
+                //{
+                //    this.savingMessage = `Uploaded attachment ${uploadCount + 1} of ${this.instance.newAttachmentsForUpload.length + 1}...`;
+                //    const curAttachment = this.instance.newAttachmentsForUpload[0];
+                //    this.instance.newAttachmentsForUpload.splice( 0, 1 );
+                //    const uploadAttachmentPostUri = `/api/EformInstance/UploadAttachment/${this.instance.eformInstanceId}/${curSection.instance.eformTemplateSectionId}/${curAttachment.fileInfo.fieldSlug}`;
+                //    this.$http.post( uploadAttachmentPostUri, curAttachment.localSelectedFile ).then(
+                //        () =>
+                //        {
+                //            ++uploadCount;
+                //            if( this.instance.newAttachmentsForUpload.length > 0 )
+                //                uploadNextAttachment();
+                //            else
+                //                onDoneUploading();
+                //        },
+                //        ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                //        {
+                //            this.isLoading = false;
+                //            alert( "Failed to save form: " + response.data.exceptionMessage );
+                //        }
+                //    );
+                //};
+                //if( this.instance.newAttachmentsForUpload && this.instance.newAttachmentsForUpload.length > 0 )
+                //    uploadNextAttachment();
+                //else
+                onDoneUploading();
             }, (response) => {
+                this.savingMessage = "";
                 this.isLoading = false;
                 alert("Failed to save form: " + response.data.exceptionMessage);
             });
@@ -178,6 +267,8 @@ var Ally;
     }
     ViewEformInstanceController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo"];
     Ally.ViewEformInstanceController = ViewEformInstanceController;
+    class SaveSectionData {
+    }
     class EformFieldInstance {
     }
     Ally.EformFieldInstance = EformFieldInstance;

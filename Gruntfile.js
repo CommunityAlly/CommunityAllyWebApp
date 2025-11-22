@@ -269,6 +269,8 @@ grunt.initConfig({
                         "js/lib/tinymce/skins/ui/oxide/content.min.css",
                         "js/lib/tinymce/skins/ui/default/content.min.css",
                         "js/lib/tinymce/skins/content/default/content.min.css",
+                        "js/lib/quill/quill.203.js",
+                        "js/lib/quill/quill.snow.203.css",
                     ],
                     dest: 'dist/'
                 },

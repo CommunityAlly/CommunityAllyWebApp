@@ -1,7 +1,12 @@
 <div class="page">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-    <h3>E-Forms</h3>
+    <div>
+        <h3 style="display: inline;">E-Forms</h3>
+        <span class="ms-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
+        <a class="ms-4" href="https://help.communityally.org/e-forms/" target="_blank">Help</a>
+    </div>
+
     <div class="note-text" data-ng-if="$ctrl.isSiteManager">
         Here you can view all active E-form instances, including forms assigned to you and your groups.
     </div>
@@ -44,7 +49,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr data-ng-repeat="curInstance in $ctrl.filteredInstances">
+            <tr data-ng-repeat="curInstance in $ctrl.filteredInstances" data-ng-class="{'table-info':curInstance.isActiveAndAssignedToUser}">
                 <td>
                     <a href="#!/Admin/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a>
                 </td>

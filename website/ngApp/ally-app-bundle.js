@@ -1094,8 +1094,6 @@ CA.angularApp.component("viewResearch", {
 var OverrideBaseApiPath = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 // eslint-disable-next-line no-var
 var OverrideOriginalUrl = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
-OverrideBaseApiPath = "https://28.webappapi.mycommunityally.org/api/";
-OverrideOriginalUrl = "https://qa.condoally.com/";
 //const StripeApiKey = "pk_test_FqHruhswHdrYCl4t0zLrUHXK";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const StripeApiKey = "pk_live_fV2yERkfAyzoO9oWSfORh5iH";
@@ -1625,8 +1623,8 @@ const CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
         // Temp E-form Pages under Admin
-        new Ally.RoutePath_v3({ path: "Admin/EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: "E-Form Templates", role: Role_Admin }),
-        new Ally.RoutePath_v3({ path: "Admin/EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: "E-Form Templates", role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "Admin/EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: null, role: Role_Admin }),
+        new Ally.RoutePath_v3({ path: "Admin/EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: null, role: Role_Admin }),
         //new Ally.RoutePath_v3( { path: "Admin/ListEformInstances", templateHtml: "<list-eform-instances></list-eform-instances>", menuTitle: "E-Forms", role: Role_Admin } ),
         new Ally.RoutePath_v3({ path: "Admin/CreateEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin }),
@@ -14630,19 +14628,23 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, $routeParams, $timeout) {
+        constructor($http, fellowResidents, $location, $routeParams, $timeout, siteInfo) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.$routeParams = $routeParams;
             this.$timeout = $timeout;
+            this.siteInfo = siteInfo;
             this.isLoading = false;
             this.committeeOptions = [];
+            this.isSuperAdmin = false;
+            this.shouldShowAdvancedProperties = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.loadTemplate();
         }
         addSection() {
@@ -14650,8 +14652,14 @@ var Ally;
             // The first section always needs whoFillsOut set to reporter
             if (this.template.sections.length === 0)
                 newSection.whoFillsOut = "reporter";
-            else
-                newSection.whoFillsOut = "anyBoardOrAdmin";
+            else {
+                const previousSection = this.template.sections[this.template.sections.length - 1];
+                // Auto-bounce back and forth between reporter and board for new sections
+                if (previousSection.whoFillsOut === "anyBoardOrAdmin")
+                    newSection.whoFillsOut = "reporter";
+                else
+                    newSection.whoFillsOut = "anyBoardOrAdmin";
+            }
             this.template.sections.push(newSection);
         }
         loadCommitteeOptions() {
@@ -14671,14 +14679,9 @@ var Ally;
                     }
                 }
                 this.$timeout(() => {
-                    //const quill = new Quill( '#formInstructionsText', {
-                    this.instructionsQuill = new Quill('#formInstructionsText', {
-                        theme: 'snow'
-                    });
-                    if (this.template.formInstructions) {
-                        const instructionsDelta = this.instructionsQuill.clipboard.convert({ html: this.template.formInstructions });
-                        this.instructionsQuill.setContents(instructionsDelta, "silent");
-                    }
+                    this.instructionsQuill = this.hookUpQuillEditor("formInstructionsText", this.template.formInstructions);
+                    if (this.isSuperAdmin && this.template.isCatalogTemplate)
+                        this.catalogDescriptionQuill = this.hookUpQuillEditor("catalogDescriptionHtml", this.template.catalogDescriptionHtml);
                 }, 10);
             }, (response) => {
                 this.isLoading = false;
@@ -14686,11 +14689,38 @@ var Ally;
                 this.$location.path("/Admin/EformTemplateListing");
             });
         }
+        hookUpQuillEditor(elementId, prepopulateHtml) {
+            const newQuill = new Quill("#" + elementId, {
+                theme: 'snow'
+            });
+            if (prepopulateHtml) {
+                const prepopulateDelta = newQuill.clipboard.convert({ html: prepopulateHtml });
+                newQuill.setContents(prepopulateDelta, "silent");
+            }
+            return newQuill;
+        }
+        onIsCatalogChange() {
+            if (!this.template.isCatalogTemplate)
+                this.catalogDescriptionQuill = null;
+            else {
+                this.$timeout(() => {
+                    if (this.isSuperAdmin && this.template.isCatalogTemplate)
+                        this.catalogDescriptionQuill = this.hookUpQuillEditor("catalogDescriptionHtml", this.template.catalogDescriptionHtml);
+                }, 10);
+            }
+        }
         saveTemplate() {
             this.template.formInstructions = this.instructionsQuill.getSemanticHTML();
+            if (this.isSuperAdmin && this.catalogDescriptionQuill)
+                this.template.catalogDescriptionHtml = this.catalogDescriptionQuill.getSemanticHTML();
             this.isLoading = true;
             // Serialize fields to JSON for saving
-            for (const curSection of this.template.sections) {
+            for (let i = 0; i < this.template.sections.length; ++i) {
+                const curSection = this.template.sections[i];
+                if (!curSection.whoFillsOut) {
+                    alert(`Failed to save: Step ${i + 1} is missing the 'Who fills out this step' value`);
+                    return;
+                }
                 curSection.fieldsJson = JSON.stringify(curSection.parsedFields);
                 delete curSection.parsedFields;
             }
@@ -14711,30 +14741,30 @@ var Ally;
         /**
         * Convert a string to a camel case identifer
         */
-        static makeSlug(source, maxLength) {
+        static labelToSlug(source, maxLength) {
             if (HtmlUtil.isNullOrWhitespace(source))
                 return "";
-            let adjustedLabel = source.trim().toLowerCase();
+            let newSlug = source.trim().toLowerCase();
             // Remove non-alpha characters
-            adjustedLabel = adjustedLabel.replace(/[^a-z ]/gi, "");
+            newSlug = newSlug.replace(/[^a-z ]/gi, "");
             // Remove common words
             const commonWords = ["a", "for", "and", "but", "of", "to", "is", "the", "there", "have", "are", "at", "in", "be"];
             for (let i = 0; i < commonWords.length; ++i)
-                adjustedLabel = adjustedLabel.replace(" " + commonWords[i] + " ", " ");
+                newSlug = newSlug.replace(" " + commonWords[i] + " ", " ");
             // Make letters after spaces upper case
-            for (let i = 1; i < adjustedLabel.length; ++i) {
-                if (adjustedLabel[i] === " " && i < adjustedLabel.length - 1)
-                    adjustedLabel = EditEformTemplateController.stringReplaceAt(adjustedLabel, i + 1, adjustedLabel[i + 1].toUpperCase());
+            for (let i = 1; i < newSlug.length; ++i) {
+                if (newSlug[i] === " " && i < newSlug.length - 1)
+                    newSlug = EditEformTemplateController.stringReplaceAt(newSlug, i + 1, newSlug[i + 1].toUpperCase());
             }
             // Remove spaces
-            adjustedLabel = adjustedLabel.replace(/[ ]/gi, "");
+            newSlug = newSlug.replace(/[ ]/gi, "");
             // Make the first character lower case
-            if (!HtmlUtil.isNullOrWhitespace(adjustedLabel)) {
-                adjustedLabel = adjustedLabel[0].toLowerCase() + adjustedLabel.substring(1);
-                if (maxLength > 0 && adjustedLabel.length > maxLength)
-                    adjustedLabel = adjustedLabel.substring(0, maxLength);
+            if (!HtmlUtil.isNullOrWhitespace(newSlug)) {
+                newSlug = newSlug[0].toLowerCase() + newSlug.substring(1);
+                if (maxLength > 0 && newSlug.length > maxLength)
+                    newSlug = newSlug.substring(0, maxLength);
             }
-            return adjustedLabel;
+            return newSlug;
         }
         getAllFields() {
             if (!this.template || !this.template.sections || this.template.sections.length === 0)
@@ -14752,7 +14782,7 @@ var Ally;
             if (HtmlUtil.isNullOrWhitespace(field.label) || !HtmlUtil.isNullOrWhitespace(field.slug))
                 return;
             const maxFieldValueNameLength = 128;
-            field.slug = EditEformTemplateController.makeSlug(field.label, maxFieldValueNameLength);
+            field.slug = EditEformTemplateController.labelToSlug(field.label, maxFieldValueNameLength);
             // Try to keep it a manageable length
             if (field.slug && field.slug.length > 32) {
                 const isUppercase = (aCharacter) => (aCharacter >= 'A') && (aCharacter <= 'Z');
@@ -14764,15 +14794,22 @@ var Ally;
                 }
                 if (charIndex < field.slug.length) {
                     field.slug = field.slug.substring(0, charIndex - 1);
-                    const allSlugsExceptThis = this.getAllFields().filter(f => f.slug && f.slug.length > 0 && f !== field).map(f => f.slug);
-                    if (allSlugsExceptThis.indexOf(field.slug) > -1) {
-                        // This field name is in use so make a unique name with a numeric suffix
-                        let numericSuffix = 1;
-                        while (allSlugsExceptThis.indexOf(field.slug + numericSuffix) > -1)
-                            ++numericSuffix;
-                        field.slug = field.slug + numericSuffix;
-                    }
                 }
+            }
+            const allSlugsExceptThis = this.getAllFields().filter(f => f.slug && f.slug.length > 0 && f !== field).map(f => f.slug);
+            if (allSlugsExceptThis.includes(field.slug)) {
+                // This field name is in use so make a unique name with a numeric suffix
+                let numericSuffix = 1;
+                while (allSlugsExceptThis.includes(field.slug + numericSuffix))
+                    ++numericSuffix;
+                field.slug = field.slug + numericSuffix;
+            }
+            this.checkFieldSlugUnique(field);
+        }
+        checkAllFieldSlugs() {
+            for (const curSection of this.template.sections) {
+                for (const curField of curSection.parsedFields)
+                    this.checkFieldSlugUnique(curField);
             }
         }
         checkFieldSlugUnique(curField) {
@@ -14815,8 +14852,27 @@ var Ally;
             else
                 curField.multiValueOptions = curField.multiValueOptionsString.split(",");
         }
+        onFieldTypeChange(curSection, curField) {
+            const typesAllowingDefault = ["longText", "shortText"];
+            // Don't save the default value if the field type doesn't support it
+            if (!typesAllowingDefault.includes(curField.type))
+                curField.defaultValue = null;
+        }
+        moveField(curSection, curField, moveDirection) {
+            const fieldIndex = curSection.parsedFields.indexOf(curField);
+            if (fieldIndex < 0) {
+                alert("Invalid field");
+                return;
+            }
+            const newIndex = fieldIndex + moveDirection;
+            if (newIndex < 0 || newIndex >= curSection.parsedFields.length) {
+                return;
+            }
+            curSection.parsedFields.splice(fieldIndex, 1);
+            curSection.parsedFields.splice(newIndex, 0, curField);
+        }
     }
-    EditEformTemplateController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "$timeout"];
+    EditEformTemplateController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "$timeout", "SiteInfo"];
     /** Replace a character with another string */
     EditEformTemplateController.stringReplaceAt = function (str, index, replacement) {
         return str.substring(0, index) + replacement + str.substring(index + replacement.length);
@@ -14838,23 +14894,120 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor() {
+        constructor($http, siteInfo, $timeout) {
+            this.$http = $http;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
+            this.fileAttachmentInfo = null;
+            this.newlySelectedFile = null;
+            this.hasNewFileAttachment = false;
+            this.oldAttachmentWillBeRemoved = false;
+            this.checkboxListItems = [];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            const dateTypes = ["dateOnly", "dateTime", "timeOnly"];
-            if (dateTypes.includes(this.fieldEntry.template.type) && this.fieldEntry.instance.valuesJson)
-                this.fieldEntry.instance.valuesJson = moment(this.fieldEntry.instance.valuesJson).toDate();
+            if (this.fieldEntry.template.type === "timeOnly")
+                this.$timeout(() => $(`#field-input-${this.fieldEntry.template.slug}`).timepicker({ 'scrollDefault': '10:00am' }));
+            if (this.fieldEntry.instance.valuesJson) {
+                if (this.fieldEntry.template.type === "dateOnly")
+                    this.dateValue = moment(this.fieldEntry.instance.valuesJson, "dddd MMMM D, YYYY").toDate();
+                if (this.fieldEntry.template.type === "fileAttachment")
+                    this.fileAttachmentInfo = JSON.parse(this.fieldEntry.instance.valuesJson);
+            }
+            if (this.fieldEntry.template.type === "checkboxList" && this.fieldEntry.template.multiValueOptions) {
+                const selectedOptions = this.fieldEntry.instance.valuesJson ? this.fieldEntry.instance.valuesJson.split(',') : [];
+                this.checkboxListItems = this.fieldEntry.template.multiValueOptions.map((o) => { return { label: o, isChecked: selectedOptions.includes(o) }; });
+            }
         }
         onFieldChange() {
             this.fieldEntry.instance.lastEditDateUtc = moment.utc().toDate();
-            //console.log( "New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson );
+            console.log("New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson);
+        }
+        openAttachmentPicker() {
+            const attacherId = `field-input-${this.fieldEntry.template.slug}`;
+            document.getElementById(attacherId).click();
+        }
+        onFileSelected(event) {
+            console.log("In onFileSelected", event);
+            if (!event || !event.target || !event.target.files || event.target.files === 0) {
+                if (this.parentEform.newAttachments) {
+                    const removeIndex = this.parentEform.newAttachments.findIndex(e => e.localSelectedFile === this.newlySelectedFile);
+                    if (removeIndex >= 0)
+                        this.parentEform.newAttachments.splice(removeIndex, 1);
+                }
+                this.newlySelectedFile = null;
+                this.hasNewFileAttachment = false;
+                this.fileAttachmentInfo = null;
+                document.getElementById(`field-input-${this.fieldEntry.template.slug}`).value = null;
+            }
+            else {
+                this.newlySelectedFile = event.target.files[0];
+                this.hasNewFileAttachment = true;
+                if (!this.parentEform.newAttachments)
+                    this.parentEform.newAttachments = [];
+                this.fileAttachmentInfo = {
+                    originalFileName: this.newlySelectedFile.name,
+                    fieldSlug: this.fieldEntry.template.slug,
+                    fileSize: this.newlySelectedFile.size,
+                    mimeType: this.newlySelectedFile.type,
+                    uploadedDateUtc: moment.utc().toDate(),
+                    uploadedByUserId: this.siteInfo.userInfo.userId
+                };
+                this.fieldEntry.instance.valuesJson = JSON.stringify(this.fileAttachmentInfo);
+                const newEntry = {
+                    fieldSlug: this.fieldEntry.template.slug,
+                    localSelectedFile: this.newlySelectedFile
+                };
+                this.parentEform.newAttachments.push(newEntry);
+            }
+        }
+        /**
+         * Occurs when the user clicks the button to view the attached file
+         */
+        viewAttachment() {
+            const getUri = `/api/EformInstance/AttachmentViewUrl/${this.parentEform.eformInstanceId}/${this.fieldEntry.template.slug}`;
+            this.$http.get(getUri).then((response) => {
+                window.open(response.data, "_blank");
+            });
+            //this.$http.get( "/api/DocumentLink/0" ).then( ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
+            //{
+            //    const getUri = `PublicEformInstance/ViewAttachment/${this.parentEform.eformInstanceId}/${1}/${this.fieldEntry.template.slug}?vid=${response.data.vid}`;
+            //    window.open( this.siteInfo.publicSiteInfo.baseApiUrl + getUri, "_blank" );
+            //} );
+        }
+        removeExistingAttachment() {
+            if (!this.parentEform.attachmentSlugsToDelete)
+                this.parentEform.attachmentSlugsToDelete = [];
+            this.parentEform.attachmentSlugsToDelete.push(this.fieldEntry.template.slug);
+            this.fieldEntry.instance.valuesJson = "";
+            this.fileAttachmentInfo = null;
+            this.oldAttachmentWillBeRemoved = true;
+        }
+        onDateValueChange() {
+            // Store the date as a string to avoid time zone logic with user-entered data
+            if (this.dateValue)
+                this.fieldEntry.instance.valuesJson = moment(this.dateValue).format("dddd MMMM D, YYYY");
+            else
+                this.fieldEntry.instance.valuesJson = null;
+            this.onFieldChange();
+        }
+        onCheckboxListChange() {
+            this.fieldEntry.instance.valuesJson = this.checkboxListItems.filter(o => o.isChecked).map(o => o.label).join(',');
+            this.onFieldChange();
         }
     }
-    EformFieldController.$inject = [];
+    EformFieldController.$inject = ["$http", "SiteInfo", "$timeout"];
     Ally.EformFieldController = EformFieldController;
+    class CheckboxListItem {
+    }
+    class EformFieldFileInfo {
+    }
+    Ally.EformFieldFileInfo = EformFieldFileInfo;
+    class EformFieldFileForUpload {
+    }
+    Ally.EformFieldFileForUpload = EformFieldFileForUpload;
 })(Ally || (Ally = {}));
 CA.angularApp.component("eformField", {
     bindings: {
@@ -14894,7 +15047,9 @@ var Ally;
             this.shouldShowSubmitted = this.isSiteManager;
             this.loadInstances();
         }
-        static populateUserNameLabels(allResidents, curInstance) {
+        static populateUserNameLabels(fellowResidents, curInstance) {
+            const allResidents = fellowResidents.residents;
+            // If this form is assigned to a specific user, find their name
             if (curInstance.currentAssignedUserOrGroup && curInstance.currentAssignedUserOrGroup.startsWith(EformInstanceListingController.AssignToUserPrefix)) {
                 const userId = curInstance.currentAssignedUserOrGroup.substring(EformInstanceListingController.AssignToUserPrefix.length);
                 if (userId === EformInstanceListingController.AnonymousUserId)
@@ -14902,15 +15057,26 @@ var Ally;
                 else
                     curInstance.assignedToLabel = allResidents.find(r => r.userId === userId)?.fullName;
             }
+            // Otherwise just use the group name
             else
                 curInstance.assignedToLabel = curInstance.currentAssignedUserOrGroup;
+            // If this form was submitted as anonymous, then show that
             if (curInstance.submitterUserId === EformInstanceListingController.AnonymousUserId)
                 curInstance.submitterLabel = "Anonymous";
             else {
+                const submitterResident = allResidents.find(r => r.userId === curInstance.submitterUserId);
+                if (submitterResident) {
+                    curInstance.submitterLabel = submitterResident.fullName;
+                    const submittersUnitIds = submitterResident.homes ? submitterResident.homes.map(h => h.unitId) : [];
+                    curInstance.submittersHomes = fellowResidents.byUnit.filter(u => submittersUnitIds.includes(u.unitId));
+                    curInstance.submittersEmail = submitterResident.email;
+                    curInstance.submittersPhone = submitterResident.phoneNumber;
+                }
                 curInstance.submitterLabel = allResidents.find(r => r.userId === curInstance.submitterUserId)?.fullName;
                 if (!curInstance.submitterLabel)
                     curInstance.submitterLabel = "N/A";
             }
+            // Hook up the last edit user names
             for (const curSection of curInstance.sections) {
                 if (curSection.lastEditUserId === EformInstanceListingController.AnonymousUserId)
                     curSection.lastEditUserLabel = "Anonymous";
@@ -14918,9 +15084,9 @@ var Ally;
                     curSection.lastEditUserLabel = allResidents.find(r => r.userId === curInstance.submitterUserId)?.fullName;
             }
         }
-        static populateUserNameLabelsForList(allResidents, instances) {
+        static populateUserNameLabelsForList(fellowResidents, instances) {
             for (const curInstance of instances)
-                EformInstanceListingController.populateUserNameLabels(allResidents, curInstance);
+                EformInstanceListingController.populateUserNameLabels(fellowResidents, curInstance);
         }
         loadInstances() {
             this.isLoading = true;
@@ -14929,9 +15095,9 @@ var Ally;
                 this.pageInfo = response.data;
                 this.filteredInstances = this.pageInfo.instances;
                 this.isLoadingResidents = true;
-                this.fellowResidents.getResidents().then(r => {
+                this.fellowResidents.getByUnitsAndResidents().then(fr => {
                     this.isLoadingResidents = false;
-                    EformInstanceListingController.populateUserNameLabelsForList(r, this.pageInfo.instances);
+                    EformInstanceListingController.populateUserNameLabelsForList(fr, this.pageInfo.instances);
                 });
             }, (response) => {
                 this.isLoading = false;
@@ -14967,27 +15133,71 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location) {
+        constructor($http, fellowResidents, $location, siteInfo, $timeout) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
+            this.siteInfo = siteInfo;
+            this.$timeout = $timeout;
             this.isLoading = false;
             this.allTemplates = [];
+            this.shouldShowImportTemplates = false;
+            this.catalogTemplates = [];
+            this.selectedCatalogTemplate = null;
+            this.isSuperAdmin = false;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
-            this.loadTemplates();
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+            //this.catalogTemplates = [
+            //    {
+            //        eformTemplateId: 1,
+            //        templateName: "Maintenance Request 0",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    },
+            //    {
+            //        eformTemplateId: 2,
+            //        templateName: "Maintenance Request 1",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    },
+            //    {
+            //        eformTemplateId: 3,
+            //        templateName: "Maintenance Request 2",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues."
+            //    },
+            //    {
+            //        eformTemplateId: 1,
+            //        templateName: "Maintenance Request 3",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    },
+            //    {
+            //        eformTemplateId: 1,
+            //        templateName: "Maintenance Request 4",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    }
+            //];
+            this.loadGroupTemplates();
         }
-        loadTemplates() {
+        loadGroupTemplates() {
             this.isLoading = true;
             this.$http.get("/api/EformTemplate/FullTemplateList").then((response) => {
                 this.isLoading = false;
                 this.allTemplates = response.data;
+                // Delay a bit to let the UI setup
+                this.$timeout(() => this.loadCatalogTemplates(), 50);
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
+            });
+        }
+        loadCatalogTemplates() {
+            this.$http.get("/api/EformTemplate/CatalogTemplateList").then((response) => {
+                this.catalogTemplates = response.data;
+            }, (response) => {
+                this.isLoading = false;
+                console.log("Failed to load catalog templates: " + response.data.exceptionMessage);
             });
         }
         createNewTemplate() {
@@ -15008,7 +15218,7 @@ var Ally;
             this.isLoading = true;
             this.$http.put(`/api/EformTemplate/SetTemplateEnabled/${template.eformTemplateId}/${template.isEnabled}`, null).then(() => {
                 this.isLoading = false;
-                this.loadTemplates();
+                this.loadGroupTemplates();
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to create template: " + response.data.exceptionMessage);
@@ -15017,9 +15227,40 @@ var Ally;
         deleteTemplate(template) {
             if (!confirm(`Are you sure you want to remove the '${template.templateName}' template?`))
                 return;
+            const deleteUri = `/api/EformTemplate/DeleteTemplate/${template.eformTemplateId}`;
+            this.$http.delete(deleteUri).then(() => {
+                this.isLoading = false;
+                this.loadGroupTemplates();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to delete template: " + response.data.exceptionMessage);
+            });
+        }
+        importSelectedTemplate(eformTemplateId, overrideTemplateName = null) {
+            this.isLoading = true;
+            const getUri = `/api/EformTemplate/CloneTemplate/${eformTemplateId}` + (overrideTemplateName ? `?overrideTemplateName=${encodeURIComponent(overrideTemplateName)}` : "");
+            this.$http.get(getUri).then(() => {
+                this.shouldShowImportTemplates = false;
+                this.selectedCatalogTemplate = null;
+                this.isLoading = false;
+                this.loadGroupTemplates();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to clone template: " + response.data.exceptionMessage);
+            });
+        }
+        cloneCatalogTemplate() {
+            this.importSelectedTemplate(this.selectedCatalogTemplate.eformTemplateId);
+        }
+        cloneGroupTemplate(curTemplate) {
+            let overrideTemplateName = "Clone of " + curTemplate.templateName;
+            overrideTemplateName = prompt("Enter a name for the cloned template:", overrideTemplateName);
+            if (!overrideTemplateName)
+                return;
+            this.importSelectedTemplate(curTemplate.eformTemplateId, overrideTemplateName);
         }
     }
-    EformTemplateListingController.$inject = ["$http", "fellowResidents", "$location"];
+    EformTemplateListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "$timeout"];
     Ally.EformTemplateListingController = EformTemplateListingController;
     class EformFieldTemplate {
     }
@@ -15041,6 +15282,8 @@ var Ally;
         }
     }
     Ally.EformTemplateDto = EformTemplateDto;
+    class EformTemplateCatalogItem {
+    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("eformTemplateListing", {
     bindings: {},
@@ -15064,16 +15307,17 @@ var Ally;
             this.$location = $location;
             this.siteInfo = siteInfo;
             this.isLoading = false;
-            this.shouldShow = false;
+            this.shouldShowWidget = false;
             this.isSiteManager = false;
-            this.shouldShow = AppConfig.isChtnSite;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.loadData();
+            this.shouldShowWidget = AppConfig.isChtnSite && ["kevinformtest", "qa"].includes(this.siteInfo.publicSiteInfo.shortName);
+            if (this.shouldShowWidget)
+                this.loadData();
         }
         filterTemplatesOnWhosAllowed(enabledTemplates) {
             const templateIdsToHide = [];
@@ -15100,7 +15344,7 @@ var Ally;
                 this.widgetInfo = response.data;
                 this.filterTemplatesOnWhosAllowed(this.widgetInfo.enabledTemplates);
                 // Only show the widget if there's something to show
-                this.shouldShow = this.widgetInfo.activeInstances.length > 0
+                this.shouldShowWidget = this.widgetInfo.activeInstances.length > 0
                     || this.widgetInfo.assignedToUserInstances.length > 0
                     || this.widgetInfo.enabledTemplates.length > 0;
             }, (response) => {
@@ -15138,6 +15382,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isCreate = false;
             this.isLoading = false;
+            this.savingMessage = "";
             this.isSiteManager = false;
         }
         /**
@@ -15150,6 +15395,24 @@ var Ally;
             else
                 this.loadInstance();
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+        }
+        findFieldEntryBySlug(slug) {
+            for (const curSection of this.sectionEntries) {
+                for (const curFieldPair of curSection.fieldPairs) {
+                    if (curFieldPair.template.slug === slug)
+                        return curFieldPair;
+                }
+            }
+            return null;
+        }
+        loadAttachmentUrlForDisplay(fileAttachmentInfo) {
+            const getUri = `/api/EformInstance/AttachmentViewUrl/${this.instance.eformInstanceId}/${fileAttachmentInfo.fieldSlug}`;
+            this.$http.get(getUri).then((response) => {
+                const viewUrl = `<a target='_blank' href='${response.data}'>${fileAttachmentInfo.originalFileName}</a>`;
+                const fieldEntry = this.findFieldEntryBySlug(fileAttachmentInfo.fieldSlug);
+                if (fieldEntry)
+                    fieldEntry.displayValueHtml = viewUrl;
+            });
         }
         prepareSectionsAndFields() {
             if (!this.instance && !this.instance.template) {
@@ -15185,9 +15448,20 @@ var Ally;
                         curInstanceField.valuesJson = curTemplateField.defaultValue;
                         curInstanceSection.parsedFieldValues.push(curInstanceField);
                     }
+                    let displayValue = curInstanceField.valuesJson || "";
+                    if (curTemplateField.type === "fileAttachment") {
+                        if (curInstanceField.valuesJson) {
+                            const fileAttachmentInfo = JSON.parse(curInstanceField.valuesJson);
+                            this.loadAttachmentUrlForDisplay(fileAttachmentInfo);
+                            displayValue = fileAttachmentInfo.originalFileName;
+                        }
+                        else
+                            displayValue = "No file provided";
+                    }
                     const newFieldEntry = {
                         template: curTemplateField,
-                        instance: curInstanceField
+                        instance: curInstanceField,
+                        displayValueHtml: displayValue
                     };
                     newSectionEntry.fieldPairs.push(newFieldEntry);
                 }
@@ -15207,7 +15481,7 @@ var Ally;
                 this.instance = response.data;
                 EformInstanceDto.parseSectionFields(this.instance);
                 this.prepareSectionsAndFields();
-                this.fellowResidents.getResidents().then(r => Ally.EformInstanceListingController.populateUserNameLabels(r, this.instance));
+                this.fellowResidents.getByUnitsAndResidents().then(fr => Ally.EformInstanceListingController.populateUserNameLabels(fr, this.instance));
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
@@ -15257,7 +15531,7 @@ var Ally;
             }
             curSection.instance.sectionStatus = isComplete ? "complete" : "draft";
             curSection.instance.fieldValuesJson = JSON.stringify(curSection.instance.parsedFieldValues);
-            const postUri = "/api/EformInstance/" + (this.isCreate ? ("CreateInstance/" + this.instance.eformTemplateId) : ("UpdateInstance/" + this.instance.eformInstanceId));
+            const saveFormPostUri = "/api/EformInstance/" + (this.isCreate ? ("CreateInstance/" + this.instance.eformTemplateId) : ("UpdateInstance/" + this.instance.eformInstanceId));
             let postData;
             if (this.isCreate) {
                 postData = {
@@ -15265,7 +15539,9 @@ var Ally;
                     eformInstanceId: "00000000-0000-0000-0000-000000000000",
                     eformTemplateSectionId: curSection.instance.eformTemplateSectionId,
                     sectionStatus: curSection.instance.sectionStatus,
-                    fieldValuesJson: curSection.instance.fieldValuesJson
+                    fieldValuesJson: curSection.instance.fieldValuesJson,
+                    newAttachments: this.instance.newAttachments,
+                    attachmentSlugsToDelete: this.instance.attachmentSlugsToDelete
                 };
             }
             else {
@@ -15274,14 +15550,71 @@ var Ally;
                     eformInstanceId: this.instance.eformInstanceId,
                     eformTemplateSectionId: curSection.instance.eformTemplateSectionId,
                     sectionStatus: curSection.instance.sectionStatus,
-                    fieldValuesJson: curSection.instance.fieldValuesJson
+                    fieldValuesJson: curSection.instance.fieldValuesJson,
+                    newAttachments: this.instance.newAttachments,
+                    attachmentSlugsToDelete: this.instance.attachmentSlugsToDelete
                 };
             }
+            const postHeaders = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server which blocks file upload
+            };
+            // Convert out JSON object to FormData for file upload
+            const saveSectionFormData = new FormData();
+            saveSectionFormData.append("eformInstanceSectionId", postData.eformInstanceSectionId.toString());
+            saveSectionFormData.append("eformInstanceId", postData.eformInstanceId);
+            saveSectionFormData.append("eformTemplateSectionId", postData.eformTemplateSectionId.toString());
+            saveSectionFormData.append("sectionStatus", postData.sectionStatus);
+            saveSectionFormData.append("fieldValuesJson", postData.fieldValuesJson);
+            if (postData.newAttachments && postData.newAttachments.length > 0) {
+                for (let i = 0; i < postData.newAttachments.length; i++) {
+                    saveSectionFormData.append(`newAttachments[${i}].fieldSlug`, postData.newAttachments[i].fieldSlug);
+                    saveSectionFormData.append(`newAttachments[${i}].localSelectedFile`, postData.newAttachments[i].localSelectedFile, postData.newAttachments[i].localSelectedFile.name);
+                }
+            }
+            if (postData.attachmentSlugsToDelete && postData.attachmentSlugsToDelete.length > 0) {
+                for (let i = 0; i < postData.attachmentSlugsToDelete.length; i++)
+                    saveSectionFormData.append(`attachmentSlugsToDelete[${i}]`, postData.attachmentSlugsToDelete[i]);
+            }
             this.isLoading = true;
-            this.$http.post(postUri, postData).then(() => {
-                this.isLoading = false;
-                this.$location.path("/Home");
+            this.savingMessage = "Saving form data...";
+            this.$http.post(saveFormPostUri, saveSectionFormData, postHeaders).then(() => {
+                // Set the local instnce ID if this is a create so attachments have an ID to use
+                //if( this.isCreate )
+                //    this.instance.eformInstanceId = saveFormResponse.data.eformInstanceId;
+                const onDoneUploading = () => {
+                    this.savingMessage = "";
+                    this.isLoading = false;
+                    this.$location.path("/Home");
+                };
+                //let uploadCount = 0;
+                //const uploadNextAttachment = () =>
+                //{
+                //    this.savingMessage = `Uploaded attachment ${uploadCount + 1} of ${this.instance.newAttachmentsForUpload.length + 1}...`;
+                //    const curAttachment = this.instance.newAttachmentsForUpload[0];
+                //    this.instance.newAttachmentsForUpload.splice( 0, 1 );
+                //    const uploadAttachmentPostUri = `/api/EformInstance/UploadAttachment/${this.instance.eformInstanceId}/${curSection.instance.eformTemplateSectionId}/${curAttachment.fileInfo.fieldSlug}`;
+                //    this.$http.post( uploadAttachmentPostUri, curAttachment.localSelectedFile ).then(
+                //        () =>
+                //        {
+                //            ++uploadCount;
+                //            if( this.instance.newAttachmentsForUpload.length > 0 )
+                //                uploadNextAttachment();
+                //            else
+                //                onDoneUploading();
+                //        },
+                //        ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                //        {
+                //            this.isLoading = false;
+                //            alert( "Failed to save form: " + response.data.exceptionMessage );
+                //        }
+                //    );
+                //};
+                //if( this.instance.newAttachmentsForUpload && this.instance.newAttachmentsForUpload.length > 0 )
+                //    uploadNextAttachment();
+                //else
+                onDoneUploading();
             }, (response) => {
+                this.savingMessage = "";
                 this.isLoading = false;
                 alert("Failed to save form: " + response.data.exceptionMessage);
             });
@@ -15301,6 +15634,8 @@ var Ally;
     }
     ViewEformInstanceController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo"];
     Ally.ViewEformInstanceController = ViewEformInstanceController;
+    class SaveSectionData {
+    }
     class EformFieldInstance {
     }
     Ally.EformFieldInstance = EformFieldInstance;
@@ -19125,7 +19460,7 @@ var Ally;
             if (this.editPostAttachmentFile)
                 newThreadFormData.append("attachedFile", this.editPostAttachmentFile);
             const postHeaders = {
-                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server which blocks file upload
             };
             let postUri = "/api/CommentThread/CreateThreadFromForm";
             if (this.editPostItem.commentThreadId) {

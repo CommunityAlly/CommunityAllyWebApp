@@ -27,7 +27,9 @@ var Ally;
             this.shouldShowSubmitted = this.isSiteManager;
             this.loadInstances();
         }
-        static populateUserNameLabels(allResidents, curInstance) {
+        static populateUserNameLabels(fellowResidents, curInstance) {
+            const allResidents = fellowResidents.residents;
+            // If this form is assigned to a specific user, find their name
             if (curInstance.currentAssignedUserOrGroup && curInstance.currentAssignedUserOrGroup.startsWith(EformInstanceListingController.AssignToUserPrefix)) {
                 const userId = curInstance.currentAssignedUserOrGroup.substring(EformInstanceListingController.AssignToUserPrefix.length);
                 if (userId === EformInstanceListingController.AnonymousUserId)
@@ -35,15 +37,26 @@ var Ally;
                 else
                     curInstance.assignedToLabel = allResidents.find(r => r.userId === userId)?.fullName;
             }
+            // Otherwise just use the group name
             else
                 curInstance.assignedToLabel = curInstance.currentAssignedUserOrGroup;
+            // If this form was submitted as anonymous, then show that
             if (curInstance.submitterUserId === EformInstanceListingController.AnonymousUserId)
                 curInstance.submitterLabel = "Anonymous";
             else {
+                const submitterResident = allResidents.find(r => r.userId === curInstance.submitterUserId);
+                if (submitterResident) {
+                    curInstance.submitterLabel = submitterResident.fullName;
+                    const submittersUnitIds = submitterResident.homes ? submitterResident.homes.map(h => h.unitId) : [];
+                    curInstance.submittersHomes = fellowResidents.byUnit.filter(u => submittersUnitIds.includes(u.unitId));
+                    curInstance.submittersEmail = submitterResident.email;
+                    curInstance.submittersPhone = submitterResident.phoneNumber;
+                }
                 curInstance.submitterLabel = allResidents.find(r => r.userId === curInstance.submitterUserId)?.fullName;
                 if (!curInstance.submitterLabel)
                     curInstance.submitterLabel = "N/A";
             }
+            // Hook up the last edit user names
             for (const curSection of curInstance.sections) {
                 if (curSection.lastEditUserId === EformInstanceListingController.AnonymousUserId)
                     curSection.lastEditUserLabel = "Anonymous";
@@ -51,9 +64,9 @@ var Ally;
                     curSection.lastEditUserLabel = allResidents.find(r => r.userId === curInstance.submitterUserId)?.fullName;
             }
         }
-        static populateUserNameLabelsForList(allResidents, instances) {
+        static populateUserNameLabelsForList(fellowResidents, instances) {
             for (const curInstance of instances)
-                EformInstanceListingController.populateUserNameLabels(allResidents, curInstance);
+                EformInstanceListingController.populateUserNameLabels(fellowResidents, curInstance);
         }
         loadInstances() {
             this.isLoading = true;
@@ -62,9 +75,9 @@ var Ally;
                 this.pageInfo = response.data;
                 this.filteredInstances = this.pageInfo.instances;
                 this.isLoadingResidents = true;
-                this.fellowResidents.getResidents().then(r => {
+                this.fellowResidents.getByUnitsAndResidents().then(fr => {
                     this.isLoadingResidents = false;
-                    EformInstanceListingController.populateUserNameLabelsForList(r, this.pageInfo.instances);
+                    EformInstanceListingController.populateUserNameLabelsForList(fr, this.pageInfo.instances);
                 });
             }, (response) => {
                 this.isLoading = false;

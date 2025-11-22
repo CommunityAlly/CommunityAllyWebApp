@@ -1,8 +1,13 @@
 <div class="page">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
-    <h3>E-Form Templates</h3>
-    <div class="note-text">
+    <div>
+        <h3 style="display: inline;">E-Form Templates</h3>
+        <span class="ms-4" style="color: blue; font-size: large; font-weight: bold;" title="We're looking for helpful feedback!">Beta</span>
+        <a class="ms-4" href="https://help.communityally.org/e-forms/" target="_blank">Help</a>
+    </div>
+
+    <div class="note-text mb-2">
         Here you can manage and create E-form templates. These are templates used for users to submit forms. You cannot edit templates that are in-use.
     </div>
     <table class="table" style="width: 100%;">
@@ -13,6 +18,7 @@
                 <th>Status</th>
                 <th>Created</th>
                 <th>Action</th>
+                <th data-ng-if="$ctrl.isSuperAdmin">Catalog</th>
             </tr>
         </thead>
         <tbody>
@@ -27,19 +33,43 @@
                 </td>
                 <td>{{curTemplate.createDateUtc | date:'short'}}</td>
                 <td>
-                    <span class="text-link">Clone</span>
-                    <span class="text-link">Delete</span>
+                    <span class="text-link" data-ng-click="$ctrl.cloneGroupTemplate(curTemplate)">Clone</span> - 
+                    <span class="text-link" data-ng-click="$ctrl.deleteTemplate(curTemplate)">Delete</span>
+                </td>
+                <td data-ng-if="$ctrl.isSuperAdmin">
+                    <span data-ng-if="curTemplate.isCatalogTemplate">X</span>
                 </td>
             </tr>
         </tbody>
     </table>
 
-    <h3 class="mt-5">Editable E-Form Templates</h3>
-    <div>
+    <div style="max-width: 500px; margin: 0 auto; text-align: center;">
         <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createNewTemplate()">Create New Template</button>
+        <button type="button" class="btn btn-primary ms-4" data-ng-click="$ctrl.shouldShowImportTemplates = true">Import Template from Catalog</button>
     </div>
-    <div class="note-text">
-        These templates are not yet in-use and can still be edited.
+
+    <div data-ng-if="$ctrl.shouldShowImportTemplates" class="modal-container">
+        <div class="modal-overlay" data-ng-click="$ctrl.shouldShowImportTemplates = false; $ctrl.selectedCatalogTemplate = null"></div>
+        <div class="ca-modal-dialog modal-lg">
+            <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
+            <span style="float:right" class="close-x" data-ng-click="$ctrl.shouldShowImportTemplates = false; $ctrl.selectedCatalogTemplate = null">&times;</span>
+            <h5>E-form Template Catalog</h5>
+            <div class="note-text mb-4">
+                Select the template you wish to import from the catalog below.
+            </div>
+
+            <div class="list-group mb-4 border" style="height: 500px; overflow-y: scroll;">
+                <div class="list-group-item list-group-item-action" data-ng-class="{'active':$ctrl.selectedCatalogTemplate === curTemplate}" data-ng-click="$ctrl.selectedCatalogTemplate = curTemplate" data-ng-repeat="curTemplate in $ctrl.catalogTemplates">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-3">{{curTemplate.templateName}}</h5>
+                    </div>
+                    <p class="mb-1" data-ng-bind-html="curTemplate.catalogDescriptionHtml" style="white-space: pre-wrap; overflow-wrap: break-word;"></p>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="button" data-ng-class="{'btn-primary':!!$ctrl.selectedCatalogTemplate, 'btn-secondary':!$ctrl.selectedCatalogTemplate}" data-ng-disabled="!$ctrl.selectedCatalogTemplate" class="btn btn-primary" data-ng-click="$ctrl.cloneCatalogTemplate()">Import Selected Template</button>
+            </div>
+        </div>
     </div>
-    
 </div>

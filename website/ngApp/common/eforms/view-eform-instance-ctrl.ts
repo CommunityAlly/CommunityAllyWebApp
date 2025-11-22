@@ -8,6 +8,7 @@ namespace Ally
         static $inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo"];
         isCreate = false;
         isLoading: boolean = false;
+        savingMessage = "";
         instance: EformInstanceDto;
         sectionEntries: EformSectionEntry[];
         isSiteManager = false;
@@ -38,6 +39,35 @@ namespace Ally
                 this.loadInstance();
 
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
+        }
+
+
+        findFieldEntryBySlug( slug: string )
+        {
+            for( const curSection of this.sectionEntries )
+            {
+                for( const curFieldPair of curSection.fieldPairs )
+                {
+                    if( curFieldPair.template.slug === slug )
+                        return curFieldPair;
+                }
+            }
+
+            return null;
+        }
+
+
+        loadAttachmentUrlForDisplay( fileAttachmentInfo: EformFieldFileInfo )
+        {
+            const getUri = `/api/EformInstance/AttachmentViewUrl/${this.instance.eformInstanceId}/${fileAttachmentInfo.fieldSlug}`;
+            this.$http.get( getUri ).then( ( response: ng.IHttpPromiseCallbackArg<string> ) =>
+            {
+                const viewUrl = `<a target='_blank' href='${response.data}'>${fileAttachmentInfo.originalFileName}</a>`;
+
+                const fieldEntry = this.findFieldEntryBySlug( fileAttachmentInfo.fieldSlug );
+                if( fieldEntry )
+                    fieldEntry.displayValueHtml = viewUrl;
+            } );
         }
 
 
@@ -86,9 +116,24 @@ namespace Ally
                         curInstanceSection.parsedFieldValues.push( curInstanceField );
                     }
 
+                    let displayValue = curInstanceField.valuesJson || "";
+
+                    if( curTemplateField.type === "fileAttachment" )
+                    {
+                        if( curInstanceField.valuesJson )
+                        {
+                            const fileAttachmentInfo = JSON.parse( curInstanceField.valuesJson ) as EformFieldFileInfo;
+                            this.loadAttachmentUrlForDisplay( fileAttachmentInfo );
+                            displayValue = fileAttachmentInfo.originalFileName;
+                        }
+                        else
+                            displayValue = "No file provided";
+                    }
+
                     const newFieldEntry: EformFieldEntry = {
                         template: curTemplateField,
-                        instance: curInstanceField
+                        instance: curInstanceField,
+                        displayValueHtml: displayValue
                     };
 
                     newSectionEntry.fieldPairs.push( newFieldEntry );
@@ -105,7 +150,7 @@ namespace Ally
                 return false;
 
             if( currentAssignedUserOrGroup.startsWith( "userId:" ) )
-            return false;
+                return false;
         }
 
 
@@ -122,7 +167,7 @@ namespace Ally
 
                     this.prepareSectionsAndFields();
 
-                    this.fellowResidents.getResidents().then( r => EformInstanceListingController.populateUserNameLabels( r, this.instance ) );
+                    this.fellowResidents.getByUnitsAndResidents().then( fr => EformInstanceListingController.populateUserNameLabels( fr, this.instance ) );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -142,7 +187,7 @@ namespace Ally
                 ( response: ng.IHttpPromiseCallbackArg<EformTemplateDto> ) =>
                 {
                     this.isLoading = false;
-                    
+
                     this.instance = new EformInstanceDto();
                     this.instance.template = response.data;
                     this.instance.currentAssignedUserOrGroup = EformInstanceListingController.AssignToUserPrefix + this.siteInfo.userInfo.userId;
@@ -200,9 +245,9 @@ namespace Ally
             curSection.instance.sectionStatus = isComplete ? "complete" : "draft"
             curSection.instance.fieldValuesJson = JSON.stringify( curSection.instance.parsedFieldValues );
 
-            const postUri = "/api/EformInstance/" + (this.isCreate ? ("CreateInstance/" + this.instance.eformTemplateId) : ("UpdateInstance/" + this.instance.eformInstanceId));
+            const saveFormPostUri = "/api/EformInstance/" + ( this.isCreate ? ( "CreateInstance/" + this.instance.eformTemplateId ) : ( "UpdateInstance/" + this.instance.eformInstanceId ) );
 
-            let postData: any;
+            let postData: SaveSectionData;
             if( this.isCreate )
             {
                 postData = {
@@ -210,7 +255,9 @@ namespace Ally
                     eformInstanceId: "00000000-0000-0000-0000-000000000000",
                     eformTemplateSectionId: curSection.instance.eformTemplateSectionId,
                     sectionStatus: curSection.instance.sectionStatus,
-                    fieldValuesJson: curSection.instance.fieldValuesJson
+                    fieldValuesJson: curSection.instance.fieldValuesJson,
+                    newAttachments: this.instance.newAttachments,
+                    attachmentSlugsToDelete: this.instance.attachmentSlugsToDelete
                 };
             }
             else
@@ -220,19 +267,89 @@ namespace Ally
                     eformInstanceId: this.instance.eformInstanceId,
                     eformTemplateSectionId: curSection.instance.eformTemplateSectionId,
                     sectionStatus: curSection.instance.sectionStatus,
-                    fieldValuesJson: curSection.instance.fieldValuesJson
+                    fieldValuesJson: curSection.instance.fieldValuesJson,
+                    newAttachments: this.instance.newAttachments,
+                    attachmentSlugsToDelete: this.instance.attachmentSlugsToDelete
                 };
             }
 
+            const postHeaders: ng.IRequestShortcutConfig = {
+                headers: { "Content-Type": undefined } // Need to remove this to avoid the JSON body assumption by the server which blocks file upload
+            };
+
+            // Convert out JSON object to FormData for file upload
+            const saveSectionFormData = new FormData();
+            saveSectionFormData.append( "eformInstanceSectionId", postData.eformInstanceSectionId.toString() );
+            saveSectionFormData.append( "eformInstanceId", postData.eformInstanceId );
+            saveSectionFormData.append( "eformTemplateSectionId", postData.eformTemplateSectionId.toString() );
+            saveSectionFormData.append( "sectionStatus", postData.sectionStatus );
+            saveSectionFormData.append( "fieldValuesJson", postData.fieldValuesJson );
+            if( postData.newAttachments && postData.newAttachments.length > 0 )
+            {
+                for( let i = 0; i < postData.newAttachments.length; i++ )
+                {
+                    saveSectionFormData.append( `newAttachments[${i}].fieldSlug`, postData.newAttachments[i].fieldSlug );
+                    saveSectionFormData.append( `newAttachments[${i}].localSelectedFile`, postData.newAttachments[i].localSelectedFile, postData.newAttachments[i].localSelectedFile.name );
+                }
+            }
+            if( postData.attachmentSlugsToDelete && postData.attachmentSlugsToDelete.length > 0 )
+            {
+                for( let i = 0; i < postData.attachmentSlugsToDelete.length; i++ )
+                    saveSectionFormData.append( `attachmentSlugsToDelete[${i}]`, postData.attachmentSlugsToDelete[i] );
+            }
+
             this.isLoading = true;
-            this.$http.post( postUri, postData ).then(
+            this.savingMessage = "Saving form data...";
+            this.$http.post( saveFormPostUri, saveSectionFormData, postHeaders ).then(
                 () =>
                 {
-                    this.isLoading = false;
-                    this.$location.path( "/Home" );
+                    // Set the local instnce ID if this is a create so attachments have an ID to use
+                    //if( this.isCreate )
+                    //    this.instance.eformInstanceId = saveFormResponse.data.eformInstanceId;
+
+                    const onDoneUploading = () =>
+                    {
+                        this.savingMessage = "";
+                        this.isLoading = false;
+
+                        this.$location.path( "/Home" );
+                    };
+
+                    //let uploadCount = 0;
+                    //const uploadNextAttachment = () =>
+                    //{
+                    //    this.savingMessage = `Uploaded attachment ${uploadCount + 1} of ${this.instance.newAttachmentsForUpload.length + 1}...`;
+
+                    //    const curAttachment = this.instance.newAttachmentsForUpload[0];
+                    //    this.instance.newAttachmentsForUpload.splice( 0, 1 );
+                    //    const uploadAttachmentPostUri = `/api/EformInstance/UploadAttachment/${this.instance.eformInstanceId}/${curSection.instance.eformTemplateSectionId}/${curAttachment.fileInfo.fieldSlug}`;
+
+                    //    this.$http.post( uploadAttachmentPostUri, curAttachment.localSelectedFile ).then(
+                    //        () =>
+                    //        {
+                    //            ++uploadCount;
+
+                    //            if( this.instance.newAttachmentsForUpload.length > 0 )
+                    //                uploadNextAttachment();
+                    //            else
+                    //                onDoneUploading();
+                    //        },
+                    //        ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                    //        {
+                    //            this.isLoading = false;
+                    //            alert( "Failed to save form: " + response.data.exceptionMessage );
+                    //        }
+                    //    );
+                    //};
+
+                    //if( this.instance.newAttachmentsForUpload && this.instance.newAttachmentsForUpload.length > 0 )
+                    //    uploadNextAttachment();
+                    //else
+                    onDoneUploading();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
+                    this.savingMessage = "";
                     this.isLoading = false;
                     alert( "Failed to save form: " + response.data.exceptionMessage );
                 }
@@ -259,6 +376,18 @@ namespace Ally
                 }
             );
         }
+    }
+
+
+    class SaveSectionData
+    {
+        eformInstanceSectionId: number;
+        eformInstanceId: string;
+        eformTemplateSectionId: number;
+        sectionStatus: string;
+        fieldValuesJson: string;
+        newAttachments: EformFieldFileForUpload[];
+        attachmentSlugsToDelete: string[];
     }
 
 
@@ -298,7 +427,7 @@ namespace Ally
         static readonly StatusDraft = "draft";
         static readonly StatusActive = "active";
         static readonly StatusComplete = "complete";
-        
+
         eformInstanceId: string;
         eformTemplateId: number;
         groupId: number;
@@ -312,10 +441,16 @@ namespace Ally
         lastUpdateDateUtc: string | null;
         template: EformTemplateDto;
         sections: EformInstanceSection[] = [];
+        newAttachments: EformFieldFileForUpload[];
+        attachmentSlugsToDelete: string[];
+        isActiveAndAssignedToUser: boolean; // Only populated for site manager form listing
 
         // Populated locally, not from the server
         submitterLabel: string;
         assignedToLabel: string;
+        submittersHomes: UnitListing[];
+        submittersEmail: string;
+        submittersPhone: string;
 
         /// Parse the JSON field data for all sections in the instance and its template
         static parseSectionFields( instance: EformInstanceDto )
@@ -338,6 +473,7 @@ namespace Ally
     {
         template: EformFieldTemplate;
         instance: EformFieldInstance;
+        displayValueHtml: string;
     }
 
 

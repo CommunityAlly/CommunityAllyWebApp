@@ -212,8 +212,8 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
         new Ally.RoutePath_v3( { path: "Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin } ),
 
         // Temp E-form Pages under Admin
-        new Ally.RoutePath_v3( { path: "Admin/EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: "E-Form Templates", role: Role_Admin } ),
-        new Ally.RoutePath_v3( { path: "Admin/EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: "E-Form Templates", role: Role_Admin } ),
+        new Ally.RoutePath_v3( { path: "Admin/EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: null, role: Role_Admin } ),
+        new Ally.RoutePath_v3( { path: "Admin/EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: null, role: Role_Admin } ),
         //new Ally.RoutePath_v3( { path: "Admin/ListEformInstances", templateHtml: "<list-eform-instances></list-eform-instances>", menuTitle: "E-Forms", role: Role_Admin } ),
         new Ally.RoutePath_v3( { path: "Admin/CreateEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin } ),
         new Ally.RoutePath_v3( { path: "Admin/ViewEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin } ),

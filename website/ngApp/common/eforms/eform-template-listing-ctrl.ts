@@ -5,9 +5,13 @@ namespace Ally
      */
     export class EformTemplateListingController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents", "$location"];
+        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo", "$timeout"];
         isLoading: boolean = false;
         allTemplates: EformTemplateDto[] = [];
+        shouldShowImportTemplates: boolean = false;
+        catalogTemplates: EformTemplateCatalogItem[] = [];
+        selectedCatalogTemplate: EformTemplateCatalogItem | null = null;
+        isSuperAdmin = false;
 
 
         /**
@@ -15,7 +19,9 @@ namespace Ally
          */
         constructor( private $http: ng.IHttpService,
             private fellowResidents: Ally.FellowResidentsService,
-            private $location: ng.ILocationService )
+            private $location: ng.ILocationService,
+            private siteInfo: Ally.SiteInfoService,
+            private $timeout: ng.ITimeoutService )
         {
         }
         
@@ -25,11 +31,40 @@ namespace Ally
         */
         $onInit()
         {
-            this.loadTemplates();
+            this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+
+            //this.catalogTemplates = [
+            //    {
+            //        eformTemplateId: 1,
+            //        templateName: "Maintenance Request 0",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    },
+            //    {
+            //        eformTemplateId: 2,
+            //        templateName: "Maintenance Request 1",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    },
+            //    {
+            //        eformTemplateId: 3,
+            //        templateName: "Maintenance Request 2",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues."
+            //    },
+            //    {
+            //        eformTemplateId: 1,
+            //        templateName: "Maintenance Request 3",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    },
+            //    {
+            //        eformTemplateId: 1,
+            //        templateName: "Maintenance Request 4",
+            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
+            //    }
+            //];
+            this.loadGroupTemplates();
         }
 
 
-        loadTemplates()
+        loadGroupTemplates()
         {
             this.isLoading = true;
 
@@ -38,11 +73,30 @@ namespace Ally
                 {
                     this.isLoading = false;
                     this.allTemplates = response.data;
+
+                    // Delay a bit to let the UI setup
+                    this.$timeout( () => this.loadCatalogTemplates(), 50 );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     alert( "Failed to load template: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        loadCatalogTemplates()
+        {
+            this.$http.get( "/api/EformTemplate/CatalogTemplateList" ).then(
+                ( response: ng.IHttpPromiseCallbackArg<EformTemplateCatalogItem[]> ) =>
+                {
+                    this.catalogTemplates = response.data;
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    console.log( "Failed to load catalog templates: " + response.data.exceptionMessage );
                 }
             );
         }
@@ -81,7 +135,7 @@ namespace Ally
                 () =>
                 {
                     this.isLoading = false;
-                    this.loadTemplates();
+                    this.loadGroupTemplates();
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -96,6 +150,62 @@ namespace Ally
         {
             if( !confirm( `Are you sure you want to remove the '${template.templateName}' template?` ) )
                 return;
+
+            const deleteUri = `/api/EformTemplate/DeleteTemplate/${template.eformTemplateId}`;
+
+            this.$http.delete( deleteUri ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    this.loadGroupTemplates();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to delete template: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        importSelectedTemplate( eformTemplateId: number, overrideTemplateName: string = null )
+        {
+            this.isLoading = true;
+
+            const getUri = `/api/EformTemplate/CloneTemplate/${eformTemplateId}` + ( overrideTemplateName ? `?overrideTemplateName=${encodeURIComponent( overrideTemplateName )}` : "" );
+
+            this.$http.get( getUri ).then(
+                () =>
+                {
+                    this.shouldShowImportTemplates = false;
+                    this.selectedCatalogTemplate = null;
+
+                    this.isLoading = false;
+                    this.loadGroupTemplates();
+                },
+                ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to clone template: " + response.data.exceptionMessage );
+                }
+            );
+        }
+
+
+        cloneCatalogTemplate()
+        {
+            this.importSelectedTemplate( this.selectedCatalogTemplate.eformTemplateId );
+        }
+
+
+        cloneGroupTemplate( curTemplate: EformTemplateDto )
+        {
+            let overrideTemplateName = "Clone of " + curTemplate.templateName;
+            overrideTemplateName = prompt( "Enter a name for the cloned template:", overrideTemplateName );
+            if( !overrideTemplateName )
+                return;
+
+            this.importSelectedTemplate( curTemplate.eformTemplateId, overrideTemplateName );
         }
     }
 
@@ -105,7 +215,7 @@ namespace Ally
         slug: string;
         label: string;
         noteText: string;
-        type: "shortText" | "longText" | "assignee" | "dateOnly" | "dateTime" | "timeOnly" | "number" | "radio" | "checkboxList" | "fileAttachment" | "richTextLabel" | "ownerHomePicker" | "allHomePicker";
+        type: "shortText" | "longText" | "assignee" | "dateOnly" | "timeOnly" | "number" | "radio" | "checkboxList" | "fileAttachment" | "richTextLabel" | "ownerHomePicker" | "allHomePicker";
         typeParam: string;
         defaultValue: string;
         multiValueOptions: string[];
@@ -154,6 +264,8 @@ namespace Ally
         isChatEnabled: boolean;
         numInstances: number;
         isAnonymous: boolean;
+        isCatalogTemplate: boolean;
+        catalogDescriptionHtml: string;
         sections: EformTemplateSection[];
 
 
@@ -162,6 +274,14 @@ namespace Ally
             for( const curSection of template.sections )
                 EformTemplateSection.parseFields( curSection );
         }
+    }
+
+
+    class EformTemplateCatalogItem
+    {
+        eformTemplateId: number;
+        templateName: string;
+        catalogDescriptionHtml: string;
     }
 }
 

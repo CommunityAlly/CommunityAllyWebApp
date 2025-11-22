@@ -969,4 +969,5 @@ class MeteredFeaturesUsage
     numGroupEmailsProcessedThisMonth: number;
     totalNumDocuments: number;
     totalDocumentsBytesUsed: number;
+    totalEformAttachmentsBytesUsed: number;
 }

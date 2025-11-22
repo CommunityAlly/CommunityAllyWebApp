@@ -1,5 +1,5 @@
 <div class="p-3" style="position: relative;">
-    <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
+    <div class="loading-overlay" data-ng-if="$ctrl.isLoading">{{$ctrl.savingMessage}}</div>
 
     <div class="portlet-box white box-shadow margin-vertical">
         <div class="portlet-header">
@@ -7,13 +7,38 @@
             <div class="title">{{$ctrl.instance.template.templateName}}</div>
         </div>
         <div class="portlet-body">
-            <div data-ng-if="$ctrl.instance.template.formInstructions" data-ng-bind-html="$ctrl.instance.template.formInstructions"></div>
+            <div data-ng-if="$ctrl.instance.template.formInstructions" data-ng-bind-html="$ctrl.instance.template.formInstructions" style="white-space: pre-wrap; overflow-wrap: break-word;"></div>
             <div data-ng-if="$ctrl.instance.template.isAnonymous" class="mt-3 fw-bold">
                 This form will be submitted anonymously and your identity will not be shown with your responses.
             </div>
             <div data-ng-if="$ctrl.instance.formStatus === 'complete'" style="color: blue; font-size: large;">
                 This form was completed on {{$ctrl.instance.lastUpdateDateUtc | date:'short'}}.
             </div>
+            <hr />
+            <table class="mt-3 table table-borderless" style="width: inherit;">
+                <tbody>
+                    <tr>
+                        <td class="text-end">Form Submission Date:</td>
+                        <td><b>{{$ctrl.instance.submitDateUtc | date:'short'}}</b></td>
+                    </tr>
+                    <tr data-ng-if="$ctrl.instance.submitterLabel">
+                        <td class="text-end">Form Submitted by:</td>
+                        <td><b>{{$ctrl.instance.submitterLabel}}</b></td>
+                    </tr>
+                    <tr data-ng-if="$ctrl.instance.submittersHomes.length > 0">
+                        <td class="text-end">Submitter's Assigned Homes:</td>
+                        <td><b><span data-ng-repeat="curHome in $ctrl.instance.submittersHomes"><span data-ng-if="$index > 0">, </span>{{curHome.name}}</span></b></td>
+                    </tr>
+                    <tr data-ng-if="$ctrl.instance.submittersEmail">
+                        <td class="text-end">Submitter's Email:</td>
+                        <td><b>{{$ctrl.instance.submittersEmail}}</b></td>
+                    </tr>
+                    <tr data-ng-if="$ctrl.instance.submittersPhone" style="border-bottom: none;">
+                        <td class="text-end">Submitter's Phone:</td>
+                        <td><b>{{$ctrl.instance.submittersPhone}}</b></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -32,8 +57,14 @@
     </div>
 
     <div data-ng-repeat="curSection in $ctrl.sectionEntries" class="portlet-box box-shadow margin-vertical" data-ng-class="{'white': curSection.isActiveSection, 'gray': !curSection.isActiveSection}">
-        <div class="portlet-header">
+        <div class="portlet-header" data-ng-style="{'border-bottom': curSection.isActiveSection ? '1px solid #ddd' : '1px solid #999'}">
             <div class="title">Step {{$index + 1}}. {{curSection.template.sectionName}}</div>
+            <h5 style="font-size: 1rem;" data-ng-if="curSection.instance.sectionStatus === 'complete'">
+                Step completed <span data-ng-if="curSection.instance.lastEditUserLabel">by {{curSection.instance.lastEditUserLabel}}</span> on {{curSection.instance.lastEditDateUtc | date:'short'}}
+            </h5>
+            <h5 class="mb-4" data-ng-if="curSection.isActiveSection && !curSection.instance.canLoggedInUserEdit" style="color: blue;">
+                This is the active step, but it has to be completed by another user so you cannot edit it.
+            </h5>
         </div>
         <div class="portlet-body">
             <form data-ng-if="curSection.isActiveSection && curSection.instance.canLoggedInUserEdit">
@@ -49,15 +80,11 @@
                 </div>
             </form>
             <div data-ng-if="!curSection.isActiveSection || !curSection.instance.canLoggedInUserEdit">
-                <h5 class="mb-4" data-ng-if="curSection.instance.sectionStatus === 'complete'">
-                    Completed by {{curSection.instance.lastEditUserLabel}} on {{curSection.instance.lastEditDateUtc | date:'short'}}
-                </h5>
-                <h5 class="mb-4" data-ng-if="curSection.isActiveSection && !curSection.instance.canLoggedInUserEdit" style="color: blue;">
-                    This is the active step, but it has to be completed by another user so you cannot edit it.
-                </h5>
-                <hr />
                 <ol>
-                    <li data-ng-repeat="curField in curSection.fieldPairs"><b>{{curField.template.label}}</b><span data-ng-if="curField.instance.valuesJson">:</span> {{curField.instance.valuesJson}}</li>
+                    <li data-ng-repeat="curField in curSection.fieldPairs" class="mb-2">
+                        <b>{{curField.template.label}}</b><span data-ng-if="curField.displayValueHtml">:</span>
+                        <span data-ng-bind-html="curField.displayValueHtml"></span>
+                    </li>
                 </ol>
             </div>
         </div>

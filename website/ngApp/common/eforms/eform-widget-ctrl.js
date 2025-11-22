@@ -14,16 +14,17 @@ var Ally;
             this.$location = $location;
             this.siteInfo = siteInfo;
             this.isLoading = false;
-            this.shouldShow = false;
+            this.shouldShowWidget = false;
             this.isSiteManager = false;
-            this.shouldShow = AppConfig.isChtnSite;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
         */
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.loadData();
+            this.shouldShowWidget = AppConfig.isChtnSite && ["kevinformtest", "qa"].includes(this.siteInfo.publicSiteInfo.shortName);
+            if (this.shouldShowWidget)
+                this.loadData();
         }
         filterTemplatesOnWhosAllowed(enabledTemplates) {
             const templateIdsToHide = [];
@@ -50,7 +51,7 @@ var Ally;
                 this.widgetInfo = response.data;
                 this.filterTemplatesOnWhosAllowed(this.widgetInfo.enabledTemplates);
                 // Only show the widget if there's something to show
-                this.shouldShow = this.widgetInfo.activeInstances.length > 0
+                this.shouldShowWidget = this.widgetInfo.activeInstances.length > 0
                     || this.widgetInfo.assignedToUserInstances.length > 0
                     || this.widgetInfo.enabledTemplates.length > 0;
             }, (response) => {
