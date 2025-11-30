@@ -5,7 +5,7 @@ namespace Ally
      */
     export class EformFieldController implements ng.IController
     {
-        static $inject: string[] = ["$http", "SiteInfo", "$timeout"];
+        static $inject: string[] = ["$http", "SiteInfo", "$timeout", "fellowResidents", "$scope"];
         fieldEntry: EformFieldEntry;
         parentEform: EformInstanceDto;
         fileAttachmentInfo: EformFieldFileInfo | null = null;
@@ -14,12 +14,17 @@ namespace Ally
         oldAttachmentWillBeRemoved = false;
         checkboxListItems: CheckboxListItem[] = [];
         dateValue: Date;
+        groupMembers: FellowChtnResident[] =[];
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $http: ng.IHttpService, private siteInfo: Ally.SiteInfoService, private $timeout: ng.ITimeoutService )
+        constructor( private $http: ng.IHttpService,
+            private siteInfo: Ally.SiteInfoService,
+            private $timeout: ng.ITimeoutService,
+            private fellowResidents: Ally.FellowResidentsService,
+            private $scope: ng.IScope )
         {
         }
 
@@ -47,6 +52,14 @@ namespace Ally
 
                 this.checkboxListItems = this.fieldEntry.template.multiValueOptions.map( ( o ) => { return { label: o, isChecked: selectedOptions.includes( o ) }; } );
             }
+
+            if( this.fieldEntry.template.type === "memberPicker" )
+            {
+                this.fellowResidents.getResidents().then( (r) =>
+                {
+                    this.groupMembers = _.sortBy( r, res => res.fullName.toUpperCase() );
+                });
+            }
         }
 
 
@@ -54,7 +67,7 @@ namespace Ally
         {
             this.fieldEntry.instance.lastEditDateUtc = moment.utc().toDate();
 
-            console.log( "New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson );
+            //console.log( "New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson );
         }
 
 

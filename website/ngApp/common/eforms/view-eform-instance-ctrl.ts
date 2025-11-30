@@ -71,7 +71,7 @@ namespace Ally
         }
 
 
-        prepareSectionsAndFields()
+        prepareSectionsAndFields( fellowResidents: FellowResidents )
         {
             if( !this.instance && !this.instance.template )
             {
@@ -129,6 +129,22 @@ namespace Ally
                         else
                             displayValue = "No file provided";
                     }
+                    else if( curTemplateField.type === "memberPicker" )
+                    {
+                        if( curInstanceField.valuesJson )
+                        {
+                            let resident: FellowChtnResident | null = null;
+                            if( fellowResidents )
+                                resident = fellowResidents.residents.find( r => r.userId === curInstanceField.valuesJson );
+
+                            if( resident )
+                                displayValue = resident.fullName;
+                            else
+                                displayValue = `Resident data unavailable (${curInstanceField.valuesJson})`;
+                        }
+                        else
+                            displayValue = "None selected";
+                    }
 
                     const newFieldEntry: EformFieldEntry = {
                         template: curTemplateField,
@@ -165,15 +181,18 @@ namespace Ally
                     this.instance = response.data;
                     EformInstanceDto.parseSectionFields( this.instance );
 
-                    this.prepareSectionsAndFields();
+                    this.fellowResidents.getByUnitsAndResidents().then( fr =>
+                    {
+                        this.prepareSectionsAndFields( fr );
 
-                    this.fellowResidents.getByUnitsAndResidents().then( fr => EformInstanceListingController.populateUserNameLabels( fr, this.instance ) );
+                        EformInstanceListingController.populateUserNameLabels( fr, this.instance );
+                    } );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     alert( "Failed to load template: " + response.data.exceptionMessage );
-                    this.$location.path( "/Admin/EformTemplateListing" );
+                    this.$location.path( "/EformTemplateListing" );
                 }
             );
         }
@@ -196,18 +215,18 @@ namespace Ally
                     this.instance.formStatus = EformInstanceDto.StatusDraft;
                     this.instance.groupId = this.siteInfo.publicSiteInfo.groupId;
                     this.instance.submitterUserId = this.siteInfo.userInfo.userId;
-                    this.instance.submitterLabel = this.siteInfo.userInfo.fullName;
+                    this.instance.submitterLabel = response.data.isAnonymous ? "Anonymous" : this.siteInfo.userInfo.fullName;
                     this.instance.eformTemplateId = this.instance.template.eformTemplateId;
                     this.instance.sections = [];
                     EformInstanceDto.parseSectionFields( this.instance );
 
-                    this.prepareSectionsAndFields();
+                    this.prepareSectionsAndFields( null );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     alert( "Failed to load template: " + response.data.exceptionMessage );
-                    this.$location.path( "/Admin/EformTemplateListing" );
+                    this.$location.path( "/EformTemplateListing" );
                 }
             );
         }
@@ -436,6 +455,7 @@ namespace Ally
         submitDateUtc: string;
         associatedUnitId: number | null;
         currentAssignedUserOrGroup: string | null;
+        CurrentAssignedUserId: string | null;
         formResult: string;
         activeSectionIndex: number | null;
         lastUpdateDateUtc: string | null;

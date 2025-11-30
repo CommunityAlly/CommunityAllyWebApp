@@ -33,33 +33,6 @@ namespace Ally
         {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
 
-            //this.catalogTemplates = [
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 0",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 2,
-            //        templateName: "Maintenance Request 1",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 3,
-            //        templateName: "Maintenance Request 2",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues."
-            //    },
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 3",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 4",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    }
-            //];
             this.loadGroupTemplates();
         }
 
@@ -72,7 +45,7 @@ namespace Ally
                 ( response: ng.IHttpPromiseCallbackArg<EformTemplateDto[]> ) =>
                 {
                     this.isLoading = false;
-                    this.allTemplates = response.data;
+                    this.allTemplates = _.sortBy( response.data, t => t.templateName.toUpperCase() );
 
                     // Delay a bit to let the UI setup
                     this.$timeout( () => this.loadCatalogTemplates(), 50 );
@@ -91,7 +64,7 @@ namespace Ally
             this.$http.get( "/api/EformTemplate/CatalogTemplateList" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<EformTemplateCatalogItem[]> ) =>
                 {
-                    this.catalogTemplates = response.data;
+                    this.catalogTemplates = _.sortBy( response.data, t => t.templateName.toUpperCase() );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -114,7 +87,7 @@ namespace Ally
                 ( response: ng.IHttpPromiseCallbackArg<EformTemplateDto>) =>
                 {
                     this.isLoading = false;
-                    this.$location.path( "/Admin/EditEformTemplate/" + response.data.eformTemplateId );
+                    this.$location.path( "/EditEformTemplate/" + response.data.eformTemplateId );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -215,7 +188,7 @@ namespace Ally
         slug: string;
         label: string;
         noteText: string;
-        type: "shortText" | "longText" | "assignee" | "dateOnly" | "timeOnly" | "number" | "radio" | "checkboxList" | "fileAttachment" | "richTextLabel" | "ownerHomePicker" | "allHomePicker";
+        type: "shortText" | "longText" | "assignee" | "dateOnly" | "timeOnly" | "number" | "radio" | "checkboxList" | "fileAttachment" | "richTextLabel" | "ownerHomePicker" | "allHomePicker" | "memberPicker";
         typeParam: string;
         defaultValue: string;
         multiValueOptions: string[];
@@ -233,18 +206,25 @@ namespace Ally
         eformTemplateSectionId: number;
         eformTemplateId: number;
         sectionName: string;
-        whoFillsOut: "reporter" | "president" | "secretary" | "treasurer" | "anyBoard" | "anyBoardOrAdmin" | "userId:{USERID}";
+        whoFillsOut: "reporter" | "president" | "secretary" | "treasurer" | "anyBoard" | "anyBoardOrAdmin" | "userId:{USERID}" | "memberPicker:{slug}";
         fieldsJson: string;
         sectionOrder: number;
 
-        // Not from the server
+        // Not from the server, used byt the editor
         parsedFields: EformFieldTemplate[] = [];
-
+        whoFillsOutOptions: LabelValuePair[];
 
         static parseFields( section: EformTemplateSection )
         {
             section.parsedFields = JSON.parse( section.fieldsJson );
         }
+    }
+
+
+    export class LabelValuePair
+    {
+        displayLabel: string;
+        value: string;
     }
 
 

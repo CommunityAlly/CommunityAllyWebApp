@@ -7,15 +7,18 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo, $timeout) {
+        constructor($http, siteInfo, $timeout, fellowResidents, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
+            this.fellowResidents = fellowResidents;
+            this.$scope = $scope;
             this.fileAttachmentInfo = null;
             this.newlySelectedFile = null;
             this.hasNewFileAttachment = false;
             this.oldAttachmentWillBeRemoved = false;
             this.checkboxListItems = [];
+            this.groupMembers = [];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -33,10 +36,15 @@ var Ally;
                 const selectedOptions = this.fieldEntry.instance.valuesJson ? this.fieldEntry.instance.valuesJson.split(',') : [];
                 this.checkboxListItems = this.fieldEntry.template.multiValueOptions.map((o) => { return { label: o, isChecked: selectedOptions.includes(o) }; });
             }
+            if (this.fieldEntry.template.type === "memberPicker") {
+                this.fellowResidents.getResidents().then((r) => {
+                    this.groupMembers = _.sortBy(r, res => res.fullName.toUpperCase());
+                });
+            }
         }
         onFieldChange() {
             this.fieldEntry.instance.lastEditDateUtc = moment.utc().toDate();
-            console.log("New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson);
+            //console.log( "New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson );
         }
         openAttachmentPicker() {
             const attacherId = `field-input-${this.fieldEntry.template.slug}`;
@@ -111,7 +119,7 @@ var Ally;
             this.onFieldChange();
         }
     }
-    EformFieldController.$inject = ["$http", "SiteInfo", "$timeout"];
+    EformFieldController.$inject = ["$http", "SiteInfo", "$timeout", "fellowResidents", "$scope"];
     Ally.EformFieldController = EformFieldController;
     class CheckboxListItem {
     }

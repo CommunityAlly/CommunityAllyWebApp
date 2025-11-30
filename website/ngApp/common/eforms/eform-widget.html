@@ -12,7 +12,7 @@
                 <h6>Your Active E-forms</h6>
                 <ul data-ng-if="$ctrl.widgetInfo.activeInstances.length > 0">
                     <li data-ng-repeat="curInstance in $ctrl.widgetInfo.activeInstances">
-                        <span data-ng-if="curInstance.formStatus === 'draft'">(Draft) </span><a href="#!/Admin/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a> ({{curInstance.submitDateUtc | date:'short'}})
+                        <span data-ng-if="curInstance.formStatus === 'draft'">(Draft) </span><a href="#!/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a> ({{curInstance.submitDateUtc | date:'short'}})
                     </li>
                 </ul>
                 <div data-ng-if="$ctrl.widgetInfo.activeInstances.length === 0" class="note-text">
@@ -24,7 +24,7 @@
                 <h6>E-forms Assigned to You</h6>
                 <ul>
                     <li data-ng-repeat="curInstance in $ctrl.widgetInfo.assignedToUserInstances">
-                        <a href="#!/Admin/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a> ({{curInstance.submitDateUtc | date:'short'}})
+                        <a href="#!/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a> ({{curInstance.submitDateUtc | date:'short'}})
                     </li>
                 </ul>
             </div>
@@ -32,11 +32,11 @@
             <h6>Submit a new E-form</h6>
             <ul>
                 <li data-ng-repeat="curTemplate in $ctrl.widgetInfo.enabledTemplates">
-                    <a href="#!/Admin/CreateEform/{{curTemplate.eformTemplateId}}">{{curTemplate.templateName}}</a>
+                    <a href="#!/CreateEform/{{curTemplate.eformTemplateId}}">{{curTemplate.templateName}}</a>
                 </li>
             </ul>
             <div class="text-end">
-                <a data-ng-href="#!/Admin/EformInstanceListing">{{$ctrl.isSiteManager ? 'View All Forms' : 'View Form History'}}</a>
+                <a data-ng-href="#!/EformInstanceListing">{{$ctrl.isSiteManager ? 'View All Forms' : 'View Form History'}}</a>
             </div>
         </div>
     </div>

@@ -25,40 +25,13 @@ var Ally;
         */
         $onInit() {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
-            //this.catalogTemplates = [
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 0",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 2,
-            //        templateName: "Maintenance Request 1",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 3,
-            //        templateName: "Maintenance Request 2",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues."
-            //    },
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 3",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 4",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    }
-            //];
             this.loadGroupTemplates();
         }
         loadGroupTemplates() {
             this.isLoading = true;
             this.$http.get("/api/EformTemplate/FullTemplateList").then((response) => {
                 this.isLoading = false;
-                this.allTemplates = response.data;
+                this.allTemplates = _.sortBy(response.data, t => t.templateName.toUpperCase());
                 // Delay a bit to let the UI setup
                 this.$timeout(() => this.loadCatalogTemplates(), 50);
             }, (response) => {
@@ -68,7 +41,7 @@ var Ally;
         }
         loadCatalogTemplates() {
             this.$http.get("/api/EformTemplate/CatalogTemplateList").then((response) => {
-                this.catalogTemplates = response.data;
+                this.catalogTemplates = _.sortBy(response.data, t => t.templateName.toUpperCase());
             }, (response) => {
                 this.isLoading = false;
                 console.log("Failed to load catalog templates: " + response.data.exceptionMessage);
@@ -81,7 +54,7 @@ var Ally;
             this.isLoading = true;
             this.$http.post("/api/EformTemplate/CreateNewTemplate?name=" + encodeURIComponent(newTemplateName), null).then((response) => {
                 this.isLoading = false;
-                this.$location.path("/Admin/EditEformTemplate/" + response.data.eformTemplateId);
+                this.$location.path("/EditEformTemplate/" + response.data.eformTemplateId);
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to create template: " + response.data.exceptionMessage);
@@ -141,7 +114,7 @@ var Ally;
     Ally.EformFieldTemplate = EformFieldTemplate;
     class EformTemplateSection {
         constructor() {
-            // Not from the server
+            // Not from the server, used byt the editor
             this.parsedFields = [];
         }
         static parseFields(section) {
@@ -149,6 +122,9 @@ var Ally;
         }
     }
     Ally.EformTemplateSection = EformTemplateSection;
+    class LabelValuePair {
+    }
+    Ally.LabelValuePair = LabelValuePair;
     class EformTemplateDto {
         static parseSectionFields(template) {
             for (const curSection of template.sections)

@@ -1,7 +1,7 @@
 <div class="form-group mb-5">
     <label for="field-input-{{$ctrl.fieldEntry.template.slug}}">{{$ctrl.fieldEntry.template.label}}</label>
     <span data-ng-if="$ctrl.fieldEntry.template.isRequired" data-ng-style="{'color':!$ctrl.fieldEntry.instance.valuesJson?'red':'black', 'font-weight':!$ctrl.fieldEntry.instance.valuesJson?'bold':'default'}"> (required)</span>
-    
+
     <div data-ng-if="$ctrl.fieldEntry.template.type==='shortText'">
         <input id="field-input-{{$ctrl.fieldEntry.template.slug}}" type="text" class="form-control" data-ng-change="$ctrl.onFieldChange()" data-ng-model="$ctrl.fieldEntry.instance.valuesJson" />
     </div>
@@ -37,6 +37,11 @@
     </div>
     <div data-ng-if="$ctrl.fieldEntry.template.type==='longText'">
         <textarea class="form-control" rows="4" data-ng-model="$ctrl.fieldEntry.instance.valuesJson"></textarea>
+    </div>
+    <div data-ng-if="$ctrl.fieldEntry.template.type==='memberPicker'">
+        <select class="form-select" data-ng-options="r.userId as r.fullName for r in $ctrl.groupMembers" data-ng-model="$ctrl.fieldEntry.instance.valuesJson" data-ng-change="$ctrl.onFieldChange()">
+            <option data-ng-if="!$ctrl.fieldEntry.template.isRequired"></option>
+        </select>
     </div>
     <div data-ng-if="$ctrl.fieldEntry.template.type==='number'">
         <input id="field-input-{{$ctrl.fieldEntry.template.slug}}" type="number" class="form-control" data-ng-change="$ctrl.onFieldChange()" data-ng-model="$ctrl.fieldEntry.instance.valuesJson" />

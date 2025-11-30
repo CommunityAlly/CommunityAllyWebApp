@@ -23,7 +23,7 @@
         </thead>
         <tbody>
             <tr data-ng-repeat="curTemplate in $ctrl.allTemplates">
-                <td><a href="#!/Admin/EditEformTemplate/{{curTemplate.eformTemplateId}}">{{curTemplate.templateName}}</a></td>
+                <td><a href="#!/EditEformTemplate/{{curTemplate.eformTemplateId}}">{{curTemplate.templateName}}</a></td>
                 <td>
                     <input type="checkbox" data-ng-model="curTemplate.isEnabled" data-ng-change="$ctrl.onTemplateEnabledToggle(curTemplate)" />
                 </td>

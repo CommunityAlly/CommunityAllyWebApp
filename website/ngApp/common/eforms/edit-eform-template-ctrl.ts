@@ -17,6 +17,7 @@ namespace Ally
         committeeOptions: Committee[] = [];
         isSuperAdmin = false;
         shouldShowAdvancedProperties = false;
+        memberTypeLabel: string;
 
 
         /**
@@ -38,6 +39,7 @@ namespace Ally
         $onInit()
         {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+            this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.loadTemplate();
         }
 
@@ -61,12 +63,42 @@ namespace Ally
             }
 
             this.template.sections.push( newSection );
+
+            this.populateSectionWhoFillsOutOptions();
         }
 
 
         loadCommitteeOptions()
         {
             this.committeeOptions = [];
+        }
+
+
+        populateSectionWhoFillsOutOptions()
+        {
+            // Populate multiValueOptionsString
+            const foundMemberPickerSlugs: string[] = [];
+            for( const curSection of this.template.sections )
+            {
+                curSection.whoFillsOutOptions = [
+                    { displayLabel: "Reporter (Person that submitted the form)", value: "reporter" },
+                    { displayLabel: "Board President", value: "president" },
+                    { displayLabel: "Board Secretary", value: "secretary" },
+                    { displayLabel: "Treasurer", value: "treasurer" },
+                    { displayLabel: "Any Board Member", value: "anyBoard" },
+                    { displayLabel: "Any Board Member or Site Admin", value: "anyBoardOrAdmin" }
+                ];
+
+                foundMemberPickerSlugs.forEach( s => curSection.whoFillsOutOptions.push( { displayLabel: `Member Picker: ${s}`, value: `memberPicker:${s}` } ) );
+
+                for( const curField of curSection.parsedFields )
+                {
+                    if( curField.type === "memberPicker" && curField.slug && !foundMemberPickerSlugs.includes( curField.slug ) )
+                        foundMemberPickerSlugs.push( curField.slug );
+                }
+            }
+
+            console.log( "populateSectionWhoFillsOutOptions", foundMemberPickerSlugs );
         }
 
 
@@ -91,10 +123,12 @@ namespace Ally
                         }
                     }
 
+                    this.populateSectionWhoFillsOutOptions();
+
                     this.$timeout( () =>
                     {
                         this.instructionsQuill = this.hookUpQuillEditor( "formInstructionsText", this.template.formInstructions );
-                        
+
                         if( this.isSuperAdmin && this.template.isCatalogTemplate )
                             this.catalogDescriptionQuill = this.hookUpQuillEditor( "catalogDescriptionHtml", this.template.catalogDescriptionHtml );
                     }, 10 );
@@ -103,13 +137,13 @@ namespace Ally
                 {
                     this.isLoading = false;
                     alert( "Failed to load template: " + response.data.exceptionMessage );
-                    this.$location.path( "/Admin/EformTemplateListing" );
+                    this.$location.path( "/EformTemplateListing" );
                 }
             );
         }
 
 
-        hookUpQuillEditor(elementId: string, prepopulateHtml: string)
+        hookUpQuillEditor( elementId: string, prepopulateHtml: string )
         {
             const newQuill = new Quill( "#" + elementId, {
                 theme: 'snow'
@@ -140,14 +174,32 @@ namespace Ally
         }
 
 
+        // Get clean semantic HTML from a Quill editor. There's currently a known issue where all
+        // spaces become nonbreaking spaces (nbsp;)
+        // https://github.com/slab/quill/issues/4535
+        static getSemanticHTML( quillEditor: any ): string
+        {
+            if( !quillEditor )
+                return null;
+
+            let html = quillEditor.getSemanticHTML();
+            if( !html )
+                return null;
+
+            // Replace &nbsp; with regular spaces
+            html = html.replace( /&nbsp;/gi, " " );
+            return html;
+        }
+
+
         saveTemplate()
         {
-            this.template.formInstructions = this.instructionsQuill.getSemanticHTML();
+            this.template.formInstructions = EditEformTemplateController.getSemanticHTML( this.instructionsQuill );
             if( this.isSuperAdmin && this.catalogDescriptionQuill )
-                this.template.catalogDescriptionHtml = this.catalogDescriptionQuill.getSemanticHTML();
+                this.template.catalogDescriptionHtml = EditEformTemplateController.getSemanticHTML( this.catalogDescriptionQuill );
 
             this.isLoading = true;
-             
+
             // Serialize fields to JSON for saving
             for( let i = 0; i < this.template.sections.length; ++i )
             {
@@ -166,7 +218,7 @@ namespace Ally
                 () =>
                 {
                     this.isLoading = false;
-                    this.$location.path( "/Admin/EformTemplateListing" );
+                    this.$location.path( "/EformTemplateListing" );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
@@ -294,6 +346,15 @@ namespace Ally
         }
 
 
+        onSlugChange( curSection:EformTemplateSection, curField: EformFieldTemplate )
+        {
+            this.checkAllFieldSlugs();
+
+            if( curField.type === "memberPicker" )
+                this.populateSectionWhoFillsOutOptions();
+        }
+
+
         checkAllFieldSlugs()
         {
             for( const curSection of this.template.sections )
@@ -320,7 +381,7 @@ namespace Ally
 
             if( fieldsWithSlug.length > 1 )
             {
-                curField.duplicateSlugMessage = `This slug (${curField.slug}) is in use by multiple fields: '${fieldsWithSlug.map(f=>f.label).join("', '")}'`;
+                curField.duplicateSlugMessage = `This slug (${curField.slug}) is in use by multiple fields: '${fieldsWithSlug.map( f => f.label ).join( "', '" )}'`;
             }
             else
                 curField.duplicateSlugMessage = null;
@@ -375,6 +436,9 @@ namespace Ally
             // Don't save the default value if the field type doesn't support it
             if( !typesAllowingDefault.includes( curField.type ) )
                 curField.defaultValue = null;
+
+            if( curField.type === "memberPicker" )
+                this.populateSectionWhoFillsOutOptions();
         }
 
 

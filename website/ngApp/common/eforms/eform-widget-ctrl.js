@@ -22,9 +22,7 @@ var Ally;
         */
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.shouldShowWidget = AppConfig.isChtnSite && ["kevinformtest", "qa"].includes(this.siteInfo.publicSiteInfo.shortName);
-            if (this.shouldShowWidget)
-                this.loadData();
+            this.loadData();
         }
         filterTemplatesOnWhosAllowed(enabledTemplates) {
             const templateIdsToHide = [];
@@ -42,7 +40,7 @@ var Ally;
                         templateIdsToHide.push(curTemplate.eformTemplateId);
                 }
             }
-            this.widgetInfo.enabledTemplates = this.widgetInfo.enabledTemplates.filter(t => !templateIdsToHide.includes(t.eformTemplateId));
+            this.widgetInfo.enabledTemplates = _.sortBy(this.widgetInfo.enabledTemplates.filter(t => !templateIdsToHide.includes(t.eformTemplateId)), t => t.templateName.toUpperCase());
         }
         loadData() {
             this.isLoading = true;
@@ -57,7 +55,7 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 console.log("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
     }

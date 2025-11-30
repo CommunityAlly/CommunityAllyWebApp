@@ -14,7 +14,7 @@
         Here you can view all of your active E-form instances.
     </div>
     <div data-ng-if="$ctrl.isSiteManager" class="text-end">
-        <a href="#!/Admin/EformTemplateListing">Manage E-form Templates</a>
+        <a href="#!/EformTemplateListing">Manage E-form Templates</a>
     </div>
     <div data-ng-if="$ctrl.isSiteManager" class="mb-3 mt-2">
         <span>Filter on form status:</span>
@@ -51,7 +51,7 @@
         <tbody>
             <tr data-ng-repeat="curInstance in $ctrl.filteredInstances" data-ng-class="{'table-info':curInstance.isActiveAndAssignedToUser}">
                 <td>
-                    <a href="#!/Admin/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a>
+                    <a href="#!/ViewEform/{{curInstance.eformInstanceId}}">{{curInstance.template.templateName}}</a>
                 </td>
                 <td>
                     {{curInstance.assignedToLabel}}
@@ -64,4 +64,8 @@
             </tr>
         </tbody>
     </table>
+
+    <div data-ng-if="$ctrl.pageInfo.instances.length === 0" class="note-text">
+        There are no E-forms to display.
+    </div>
 </div>

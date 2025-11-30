@@ -88,13 +88,9 @@
 
                 <div class="mb-4">
                     <label for="whoCanFillOutSelect{{$index}}" class="form-label">Who fills out this step?</label>
-                    <select id="whoCanFillOutSelect{{$index}}" class="form-select form-select" data-ng-model="curSection.whoFillsOut" data-ng-readonly="$index === 0" data-ng-disabled="$index === 0">
-                        <option value="reporter">Reporter (Person that submitted the form)</option>
-                        <option value="president">Board President</option>
-                        <option value="secretary">Board Secretary</option>
-                        <option value="treasurer">Board Treasurer</option>
-                        <option value="anyBoard">Any Board Member</option>
-                        <option value="anyBoardOrAdmin">Any Board Member or Site Admin</option>
+                    <select id="whoCanFillOutSelect{{$index}}" class="form-select form-select" data-ng-model="curSection.whoFillsOut"
+                            data-ng-readonly="$index === 0" data-ng-disabled="$index === 0"
+                            data-ng-options="o.value as o.displayLabel for o in curSection.whoFillsOutOptions">
                     </select>
                     <small data-ng-if="$index === 0">The first step must always be filled out by the reporter</small>
                 </div>
@@ -110,7 +106,7 @@
                     </div>
                     <div class="mb-3" data-ng-if="$ctrl.shouldShowAdvancedProperties">
                         <label for="fieldSlug-{{curSection.sectionOrder}}-{{$index + 1}}" class="form-label">Field Slug</label>
-                        <input type="text" class="form-control" id="fieldSlug-{{curSection.sectionOrder}}-{{$index + 1}}" data-ng-model="curField.slug" data-ng-change="$ctrl.checkAllFieldSlugs(curField)" maxlength="200" autocomplete="off" data-lpignore="true" data-form-type="other">
+                        <input type="text" class="form-control" id="fieldSlug-{{curSection.sectionOrder}}-{{$index + 1}}" data-ng-model="curField.slug" data-ng-change="$ctrl.onSlugChange(curSection, curField)" maxlength="200" autocomplete="off" data-lpignore="true" data-form-type="other">
                         <small class="form-text text-muted">This is used to identify the field in logic like conditional display.</small>
                         <div data-ng-if="curField.duplicateSlugMessage" class="alert alert-danger" role="alert">{{curField.duplicateSlugMessage}}</div>
                     </div>
@@ -131,6 +127,7 @@
                             <option value="number">Number - A numeric input field</option>
                             <!--<option value="ownerHomePicker">Owner's Home Picker</option>-->
                             <option value="radio">Radio - Single-select from multiple options</option>
+                            <option value="memberPicker">{{$ctrl.memberTypeLabel}} Picker - Choose a member of this group</option>
                             <option value="shortText">Short Text - A single-line text box</option>
                             <option value="timeOnly">Time Only - A time picker</option>
                         </select>

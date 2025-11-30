@@ -47,7 +47,7 @@ var Ally;
                     fieldEntry.displayValueHtml = viewUrl;
             });
         }
-        prepareSectionsAndFields() {
+        prepareSectionsAndFields(fellowResidents) {
             if (!this.instance && !this.instance.template) {
                 alert("Form data is unavailable, please refresh the page and contact support if the error persists");
                 return;
@@ -91,6 +91,19 @@ var Ally;
                         else
                             displayValue = "No file provided";
                     }
+                    else if (curTemplateField.type === "memberPicker") {
+                        if (curInstanceField.valuesJson) {
+                            let resident = null;
+                            if (fellowResidents)
+                                resident = fellowResidents.residents.find(r => r.userId === curInstanceField.valuesJson);
+                            if (resident)
+                                displayValue = resident.fullName;
+                            else
+                                displayValue = `Resident data unavailable (${curInstanceField.valuesJson})`;
+                        }
+                        else
+                            displayValue = "None selected";
+                    }
                     const newFieldEntry = {
                         template: curTemplateField,
                         instance: curInstanceField,
@@ -113,12 +126,14 @@ var Ally;
                 this.isLoading = false;
                 this.instance = response.data;
                 EformInstanceDto.parseSectionFields(this.instance);
-                this.prepareSectionsAndFields();
-                this.fellowResidents.getByUnitsAndResidents().then(fr => Ally.EformInstanceListingController.populateUserNameLabels(fr, this.instance));
+                this.fellowResidents.getByUnitsAndResidents().then(fr => {
+                    this.prepareSectionsAndFields(fr);
+                    Ally.EformInstanceListingController.populateUserNameLabels(fr, this.instance);
+                });
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
         loadTemplate() {
@@ -133,15 +148,15 @@ var Ally;
                 this.instance.formStatus = EformInstanceDto.StatusDraft;
                 this.instance.groupId = this.siteInfo.publicSiteInfo.groupId;
                 this.instance.submitterUserId = this.siteInfo.userInfo.userId;
-                this.instance.submitterLabel = this.siteInfo.userInfo.fullName;
+                this.instance.submitterLabel = response.data.isAnonymous ? "Anonymous" : this.siteInfo.userInfo.fullName;
                 this.instance.eformTemplateId = this.instance.template.eformTemplateId;
                 this.instance.sections = [];
                 EformInstanceDto.parseSectionFields(this.instance);
-                this.prepareSectionsAndFields();
+                this.prepareSectionsAndFields(null);
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
         getEmptyRequiredFields(curSection) {

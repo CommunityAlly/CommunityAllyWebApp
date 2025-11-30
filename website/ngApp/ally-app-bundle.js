@@ -1612,23 +1612,21 @@ const CondoAllyAppConfig = {
         new Ally.RoutePath_v3({ path: "Mailing/Invoice", templateHtml: "<mailing-parent></mailing-parent>", menuTitle: "Mailing/Invoices", role: Role_Manager, pageTitle: "Send Invoice" }),
         new Ally.RoutePath_v3({ path: "ManageCustomPages", templateHtml: "<manage-custom-pages></manage-custom-pages>", menuTitle: "Custom Pages", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Mailing/:viewName", templateHtml: "<mailing-parent></mailing-parent>", role: Role_Manager, pageTitle: "Mailing" }),
-        new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Settings/:viewName", templateHtml: "<settings-parent></settings-parent>", role: Role_Manager, pageTitle: "Settings" }),
         new Ally.RoutePath_v3({ path: "Financials/:viewName", templateHtml: "<financial-parent></financial-parent>", role: Role_Manager, pageTitle: "Financials" }),
         new Ally.RoutePath_v3({ path: "GroupAmenities", templateHtml: "<group-amenities></group-amenities>", role: Role_Manager, pageTitle: "Survey" }),
+        new Ally.RoutePath_v3({ path: "EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: null, role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: null, role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "CreateEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "ViewEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "EformInstanceListing", templateHtml: "<eform-instance-listing></eform-instance-listing>", menuTitle: "E-Forms", role: Role_Manager }),
+        new Ally.RoutePath_v3({ path: "Settings/SiteSettings", templateHtml: "<settings-parent></settings-parent>", menuTitle: "Settings", role: Role_Manager }),
         new Ally.RoutePath_v3({ path: "Admin/ManageGroups", templateHtml: "<manage-groups></manage-groups>", menuTitle: "All Groups", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ManageHomes", templateHtml: "<manage-homes></manage-homes>", menuTitle: "Homes", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewActivityLog", templateHtml: "<view-activity-log></view-activity-log>", menuTitle: "Activity Log", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ManageAddressPolys", templateHtml: "<manage-address-polys></manage-address-polys>", menuTitle: "View Groups on Map", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewPolys", templateHtml: "<view-polys></view-polys>", menuTitle: "View Polygons", role: Role_Admin }),
         new Ally.RoutePath_v3({ path: "Admin/ViewResearch", templateHtml: "<view-research></view-research>", menuTitle: "View Research", role: Role_Admin }),
-        // Temp E-form Pages under Admin
-        new Ally.RoutePath_v3({ path: "Admin/EformTemplateListing", templateHtml: "<eform-template-listing></eform-template-listing>", menuTitle: null, role: Role_Admin }),
-        new Ally.RoutePath_v3({ path: "Admin/EditEformTemplate/:templateId", templateHtml: "<edit-eform-template></edit-eform-template>", menuTitle: null, role: Role_Admin }),
-        //new Ally.RoutePath_v3( { path: "Admin/ListEformInstances", templateHtml: "<list-eform-instances></list-eform-instances>", menuTitle: "E-Forms", role: Role_Admin } ),
-        new Ally.RoutePath_v3({ path: "Admin/CreateEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin }),
-        new Ally.RoutePath_v3({ path: "Admin/ViewEform/:templateOrInstanceId", templateHtml: "<view-eform-instance></view-eform-instance>", menuTitle: null, role: Role_Admin }),
-        new Ally.RoutePath_v3({ path: "Admin/EformInstanceListing", templateHtml: "<eform-instance-listing></eform-instance-listing>", menuTitle: "E-Forms", role: Role_Admin }),
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14645,6 +14643,7 @@ var Ally;
         */
         $onInit() {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
+            this.memberTypeLabel = AppConfig.memberTypeLabel;
             this.loadTemplate();
         }
         addSection() {
@@ -14661,9 +14660,30 @@ var Ally;
                     newSection.whoFillsOut = "anyBoardOrAdmin";
             }
             this.template.sections.push(newSection);
+            this.populateSectionWhoFillsOutOptions();
         }
         loadCommitteeOptions() {
             this.committeeOptions = [];
+        }
+        populateSectionWhoFillsOutOptions() {
+            // Populate multiValueOptionsString
+            const foundMemberPickerSlugs = [];
+            for (const curSection of this.template.sections) {
+                curSection.whoFillsOutOptions = [
+                    { displayLabel: "Reporter (Person that submitted the form)", value: "reporter" },
+                    { displayLabel: "Board President", value: "president" },
+                    { displayLabel: "Board Secretary", value: "secretary" },
+                    { displayLabel: "Treasurer", value: "treasurer" },
+                    { displayLabel: "Any Board Member", value: "anyBoard" },
+                    { displayLabel: "Any Board Member or Site Admin", value: "anyBoardOrAdmin" }
+                ];
+                foundMemberPickerSlugs.forEach(s => curSection.whoFillsOutOptions.push({ displayLabel: `Member Picker: ${s}`, value: `memberPicker:${s}` }));
+                for (const curField of curSection.parsedFields) {
+                    if (curField.type === "memberPicker" && curField.slug && !foundMemberPickerSlugs.includes(curField.slug))
+                        foundMemberPickerSlugs.push(curField.slug);
+                }
+            }
+            console.log("populateSectionWhoFillsOutOptions", foundMemberPickerSlugs);
         }
         loadTemplate() {
             this.isLoading = true;
@@ -14678,6 +14698,7 @@ var Ally;
                             curField.multiValueOptionsString = curField.multiValueOptions.join(",");
                     }
                 }
+                this.populateSectionWhoFillsOutOptions();
                 this.$timeout(() => {
                     this.instructionsQuill = this.hookUpQuillEditor("formInstructionsText", this.template.formInstructions);
                     if (this.isSuperAdmin && this.template.isCatalogTemplate)
@@ -14686,7 +14707,7 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
         hookUpQuillEditor(elementId, prepopulateHtml) {
@@ -14709,10 +14730,23 @@ var Ally;
                 }, 10);
             }
         }
+        // Get clean semantic HTML from a Quill editor. There's currently a known issue where all
+        // spaces become nonbreaking spaces (nbsp;)
+        // https://github.com/slab/quill/issues/4535
+        static getSemanticHTML(quillEditor) {
+            if (!quillEditor)
+                return null;
+            let html = quillEditor.getSemanticHTML();
+            if (!html)
+                return null;
+            // Replace &nbsp; with regular spaces
+            html = html.replace(/&nbsp;/gi, " ");
+            return html;
+        }
         saveTemplate() {
-            this.template.formInstructions = this.instructionsQuill.getSemanticHTML();
+            this.template.formInstructions = EditEformTemplateController.getSemanticHTML(this.instructionsQuill);
             if (this.isSuperAdmin && this.catalogDescriptionQuill)
-                this.template.catalogDescriptionHtml = this.catalogDescriptionQuill.getSemanticHTML();
+                this.template.catalogDescriptionHtml = EditEformTemplateController.getSemanticHTML(this.catalogDescriptionQuill);
             this.isLoading = true;
             // Serialize fields to JSON for saving
             for (let i = 0; i < this.template.sections.length; ++i) {
@@ -14726,7 +14760,7 @@ var Ally;
             }
             this.$http.put("/api/EformTemplate/UpdateTemplate", this.template).then(() => {
                 this.isLoading = false;
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             }, (response) => {
                 Ally.EformTemplateDto.parseSectionFields(this.template);
                 this.isLoading = false;
@@ -14806,6 +14840,11 @@ var Ally;
             }
             this.checkFieldSlugUnique(field);
         }
+        onSlugChange(curSection, curField) {
+            this.checkAllFieldSlugs();
+            if (curField.type === "memberPicker")
+                this.populateSectionWhoFillsOutOptions();
+        }
         checkAllFieldSlugs() {
             for (const curSection of this.template.sections) {
                 for (const curField of curSection.parsedFields)
@@ -14857,6 +14896,8 @@ var Ally;
             // Don't save the default value if the field type doesn't support it
             if (!typesAllowingDefault.includes(curField.type))
                 curField.defaultValue = null;
+            if (curField.type === "memberPicker")
+                this.populateSectionWhoFillsOutOptions();
         }
         moveField(curSection, curField, moveDirection) {
             const fieldIndex = curSection.parsedFields.indexOf(curField);
@@ -14894,15 +14935,18 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, siteInfo, $timeout) {
+        constructor($http, siteInfo, $timeout, fellowResidents, $scope) {
             this.$http = $http;
             this.siteInfo = siteInfo;
             this.$timeout = $timeout;
+            this.fellowResidents = fellowResidents;
+            this.$scope = $scope;
             this.fileAttachmentInfo = null;
             this.newlySelectedFile = null;
             this.hasNewFileAttachment = false;
             this.oldAttachmentWillBeRemoved = false;
             this.checkboxListItems = [];
+            this.groupMembers = [];
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -14920,10 +14964,15 @@ var Ally;
                 const selectedOptions = this.fieldEntry.instance.valuesJson ? this.fieldEntry.instance.valuesJson.split(',') : [];
                 this.checkboxListItems = this.fieldEntry.template.multiValueOptions.map((o) => { return { label: o, isChecked: selectedOptions.includes(o) }; });
             }
+            if (this.fieldEntry.template.type === "memberPicker") {
+                this.fellowResidents.getResidents().then((r) => {
+                    this.groupMembers = _.sortBy(r, res => res.fullName.toUpperCase());
+                });
+            }
         }
         onFieldChange() {
             this.fieldEntry.instance.lastEditDateUtc = moment.utc().toDate();
-            console.log("New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson);
+            //console.log( "New value", this.fieldEntry.template.slug, this.fieldEntry.instance.valuesJson );
         }
         openAttachmentPicker() {
             const attacherId = `field-input-${this.fieldEntry.template.slug}`;
@@ -14998,7 +15047,7 @@ var Ally;
             this.onFieldChange();
         }
     }
-    EformFieldController.$inject = ["$http", "SiteInfo", "$timeout"];
+    EformFieldController.$inject = ["$http", "SiteInfo", "$timeout", "fellowResidents", "$scope"];
     Ally.EformFieldController = EformFieldController;
     class CheckboxListItem {
     }
@@ -15151,40 +15200,13 @@ var Ally;
         */
         $onInit() {
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
-            //this.catalogTemplates = [
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 0",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 2,
-            //        templateName: "Maintenance Request 1",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 3,
-            //        templateName: "Maintenance Request 2",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues."
-            //    },
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 3",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    },
-            //    {
-            //        eformTemplateId: 1,
-            //        templateName: "Maintenance Request 4",
-            //        catalogDescriptionHtml: "A basic incident report form for reporting issues. Test <b>bold</b> nice. Test <b>bold</b> nice. Test <b>bold</b> nice."
-            //    }
-            //];
             this.loadGroupTemplates();
         }
         loadGroupTemplates() {
             this.isLoading = true;
             this.$http.get("/api/EformTemplate/FullTemplateList").then((response) => {
                 this.isLoading = false;
-                this.allTemplates = response.data;
+                this.allTemplates = _.sortBy(response.data, t => t.templateName.toUpperCase());
                 // Delay a bit to let the UI setup
                 this.$timeout(() => this.loadCatalogTemplates(), 50);
             }, (response) => {
@@ -15194,7 +15216,7 @@ var Ally;
         }
         loadCatalogTemplates() {
             this.$http.get("/api/EformTemplate/CatalogTemplateList").then((response) => {
-                this.catalogTemplates = response.data;
+                this.catalogTemplates = _.sortBy(response.data, t => t.templateName.toUpperCase());
             }, (response) => {
                 this.isLoading = false;
                 console.log("Failed to load catalog templates: " + response.data.exceptionMessage);
@@ -15207,7 +15229,7 @@ var Ally;
             this.isLoading = true;
             this.$http.post("/api/EformTemplate/CreateNewTemplate?name=" + encodeURIComponent(newTemplateName), null).then((response) => {
                 this.isLoading = false;
-                this.$location.path("/Admin/EditEformTemplate/" + response.data.eformTemplateId);
+                this.$location.path("/EditEformTemplate/" + response.data.eformTemplateId);
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to create template: " + response.data.exceptionMessage);
@@ -15267,7 +15289,7 @@ var Ally;
     Ally.EformFieldTemplate = EformFieldTemplate;
     class EformTemplateSection {
         constructor() {
-            // Not from the server
+            // Not from the server, used byt the editor
             this.parsedFields = [];
         }
         static parseFields(section) {
@@ -15275,6 +15297,9 @@ var Ally;
         }
     }
     Ally.EformTemplateSection = EformTemplateSection;
+    class LabelValuePair {
+    }
+    Ally.LabelValuePair = LabelValuePair;
     class EformTemplateDto {
         static parseSectionFields(template) {
             for (const curSection of template.sections)
@@ -15315,9 +15340,7 @@ var Ally;
         */
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.shouldShowWidget = AppConfig.isChtnSite && ["kevinformtest", "qa"].includes(this.siteInfo.publicSiteInfo.shortName);
-            if (this.shouldShowWidget)
-                this.loadData();
+            this.loadData();
         }
         filterTemplatesOnWhosAllowed(enabledTemplates) {
             const templateIdsToHide = [];
@@ -15335,7 +15358,7 @@ var Ally;
                         templateIdsToHide.push(curTemplate.eformTemplateId);
                 }
             }
-            this.widgetInfo.enabledTemplates = this.widgetInfo.enabledTemplates.filter(t => !templateIdsToHide.includes(t.eformTemplateId));
+            this.widgetInfo.enabledTemplates = _.sortBy(this.widgetInfo.enabledTemplates.filter(t => !templateIdsToHide.includes(t.eformTemplateId)), t => t.templateName.toUpperCase());
         }
         loadData() {
             this.isLoading = true;
@@ -15350,7 +15373,7 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 console.log("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
     }
@@ -15414,7 +15437,7 @@ var Ally;
                     fieldEntry.displayValueHtml = viewUrl;
             });
         }
-        prepareSectionsAndFields() {
+        prepareSectionsAndFields(fellowResidents) {
             if (!this.instance && !this.instance.template) {
                 alert("Form data is unavailable, please refresh the page and contact support if the error persists");
                 return;
@@ -15458,6 +15481,19 @@ var Ally;
                         else
                             displayValue = "No file provided";
                     }
+                    else if (curTemplateField.type === "memberPicker") {
+                        if (curInstanceField.valuesJson) {
+                            let resident = null;
+                            if (fellowResidents)
+                                resident = fellowResidents.residents.find(r => r.userId === curInstanceField.valuesJson);
+                            if (resident)
+                                displayValue = resident.fullName;
+                            else
+                                displayValue = `Resident data unavailable (${curInstanceField.valuesJson})`;
+                        }
+                        else
+                            displayValue = "None selected";
+                    }
                     const newFieldEntry = {
                         template: curTemplateField,
                         instance: curInstanceField,
@@ -15480,12 +15516,14 @@ var Ally;
                 this.isLoading = false;
                 this.instance = response.data;
                 EformInstanceDto.parseSectionFields(this.instance);
-                this.prepareSectionsAndFields();
-                this.fellowResidents.getByUnitsAndResidents().then(fr => Ally.EformInstanceListingController.populateUserNameLabels(fr, this.instance));
+                this.fellowResidents.getByUnitsAndResidents().then(fr => {
+                    this.prepareSectionsAndFields(fr);
+                    Ally.EformInstanceListingController.populateUserNameLabels(fr, this.instance);
+                });
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
         loadTemplate() {
@@ -15500,15 +15538,15 @@ var Ally;
                 this.instance.formStatus = EformInstanceDto.StatusDraft;
                 this.instance.groupId = this.siteInfo.publicSiteInfo.groupId;
                 this.instance.submitterUserId = this.siteInfo.userInfo.userId;
-                this.instance.submitterLabel = this.siteInfo.userInfo.fullName;
+                this.instance.submitterLabel = response.data.isAnonymous ? "Anonymous" : this.siteInfo.userInfo.fullName;
                 this.instance.eformTemplateId = this.instance.template.eformTemplateId;
                 this.instance.sections = [];
                 EformInstanceDto.parseSectionFields(this.instance);
-                this.prepareSectionsAndFields();
+                this.prepareSectionsAndFields(null);
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to load template: " + response.data.exceptionMessage);
-                this.$location.path("/Admin/EformTemplateListing");
+                this.$location.path("/EformTemplateListing");
             });
         }
         getEmptyRequiredFields(curSection) {

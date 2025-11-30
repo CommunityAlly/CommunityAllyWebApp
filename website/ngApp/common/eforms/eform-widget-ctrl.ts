@@ -30,10 +30,7 @@ namespace Ally
         $onInit()
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
-            this.shouldShowWidget = AppConfig.isChtnSite && ["kevinformtest", "qa"].includes( this.siteInfo.publicSiteInfo.shortName );
-
-            if( this.shouldShowWidget )
-                this.loadData();
+            this.loadData();
         }
 
 
@@ -60,7 +57,7 @@ namespace Ally
                 }
             }
 
-            this.widgetInfo.enabledTemplates = this.widgetInfo.enabledTemplates.filter( t => !templateIdsToHide.includes( t.eformTemplateId ) );
+            this.widgetInfo.enabledTemplates = _.sortBy( this.widgetInfo.enabledTemplates.filter( t => !templateIdsToHide.includes( t.eformTemplateId ) ), t => t.templateName.toUpperCase() );
         }
 
 
@@ -85,7 +82,7 @@ namespace Ally
                 {
                     this.isLoading = false;
                     console.log( "Failed to load template: " + response.data.exceptionMessage );
-                    this.$location.path( "/Admin/EformTemplateListing" );
+                    this.$location.path( "/EformTemplateListing" );
                 }
             );
         }
