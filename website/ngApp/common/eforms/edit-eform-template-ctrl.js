@@ -111,23 +111,10 @@ var Ally;
                 }, 10);
             }
         }
-        // Get clean semantic HTML from a Quill editor. There's currently a known issue where all
-        // spaces become nonbreaking spaces (nbsp;)
-        // https://github.com/slab/quill/issues/4535
-        static getSemanticHTML(quillEditor) {
-            if (!quillEditor)
-                return null;
-            let html = quillEditor.getSemanticHTML();
-            if (!html)
-                return null;
-            // Replace &nbsp; with regular spaces
-            html = html.replace(/&nbsp;/gi, " ");
-            return html;
-        }
         saveTemplate() {
-            this.template.formInstructions = EditEformTemplateController.getSemanticHTML(this.instructionsQuill);
+            this.template.formInstructions = Ally.HtmlUtil2.getSemanticHTML(this.instructionsQuill);
             if (this.isSuperAdmin && this.catalogDescriptionQuill)
-                this.template.catalogDescriptionHtml = EditEformTemplateController.getSemanticHTML(this.catalogDescriptionQuill);
+                this.template.catalogDescriptionHtml = Ally.HtmlUtil2.getSemanticHTML(this.catalogDescriptionQuill);
             this.isLoading = true;
             // Serialize fields to JSON for saving
             for (let i = 0; i < this.template.sections.length; ++i) {

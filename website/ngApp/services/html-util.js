@@ -599,6 +599,19 @@ var Ally;
         static isOnMobileDevice() {
             return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
+        // Get clean semantic HTML from a Quill editor. There's currently a known issue where all
+        // spaces become nonbreaking spaces (nbsp;)
+        // https://github.com/slab/quill/issues/4535
+        static getSemanticHTML(quillEditor) {
+            if (!quillEditor)
+                return null;
+            let html = quillEditor.getSemanticHTML();
+            if (!html)
+                return null;
+            // Replace &nbsp; with regular spaces
+            html = html.replace(/&nbsp;/gi, " ");
+            return html;
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"
