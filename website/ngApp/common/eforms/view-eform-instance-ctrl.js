@@ -73,6 +73,9 @@ var Ally;
                     instance: curInstanceSection,
                     fieldPairs: []
                 };
+                if (!this.isCreate && (this.instance.formStatus === "complete" || this.instance.formStatus === "incomplete")) {
+                    newSectionEntry.isActiveSection = false;
+                }
                 for (const curTemplateField of curTemplateSection.parsedFields) {
                     let curInstanceField = curInstanceSection.parsedFieldValues.find(f => f.slug === curTemplateField.slug);
                     if (!curInstanceField) {
@@ -277,6 +280,18 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to delete form: " + response.data.exceptionMessage);
+            });
+        }
+        closeIncompleteForm() {
+            if (!confirm("Are you sure you want to close this form and mark it incomplete? This will remove it from the active lists, but you will still be able to view its content."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/EformInstance/MarkIncomplete/" + this.$routeParams.templateOrInstanceId).then(() => {
+                this.isLoading = false;
+                this.$location.path("/Home");
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to close form as incomplete: " + response.data.exceptionMessage);
             });
         }
     }
