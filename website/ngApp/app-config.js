@@ -217,12 +217,12 @@ const HomeAppConfig = {
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Homeowner Ally
+// Neighbor Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-const HomeownerAppConfig = _.clone(HomeAppConfig);
-HomeownerAppConfig.appName = "Homeowner Ally";
-HomeownerAppConfig.baseTld = "homeownerally.org";
-HomeownerAppConfig.baseUrl = "https://homeownerally.org/";
+const NeighborAppConfig = _.clone(HomeAppConfig);
+NeighborAppConfig.appName = "Neighbor Ally";
+NeighborAppConfig.baseTld = "neighborally.org";
+NeighborAppConfig.baseUrl = "https://neighborally.org/";
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // HOA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,8 +355,8 @@ else if (lowerDomain.indexOf("ptaally") !== -1)
     AppConfig = PtaAppConfig;
 else if (lowerDomain.indexOf("rnoally") !== -1)
     AppConfig = RnoAppConfig;
-else if (lowerDomain.indexOf("homeownerally") !== -1)
-    AppConfig = HomeownerAppConfig;
+else if (lowerDomain.indexOf("neighborally") !== -1)
+    AppConfig = NeighborAppConfig;
 else {
     console.log("Unknown ally app");
     AppConfig = CondoAllyAppConfig;

@@ -1704,12 +1704,12 @@ const HomeAppConfig = {
     ]
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// Homeowner Ally
+// Neighbor Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-const HomeownerAppConfig = _.clone(HomeAppConfig);
-HomeownerAppConfig.appName = "Homeowner Ally";
-HomeownerAppConfig.baseTld = "homeownerally.org";
-HomeownerAppConfig.baseUrl = "https://homeownerally.org/";
+const NeighborAppConfig = _.clone(HomeAppConfig);
+NeighborAppConfig.appName = "Neighbor Ally";
+NeighborAppConfig.baseTld = "neighborally.org";
+NeighborAppConfig.baseUrl = "https://neighborally.org/";
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // HOA Ally
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1842,8 +1842,8 @@ else if (lowerDomain.indexOf("ptaally") !== -1)
     AppConfig = PtaAppConfig;
 else if (lowerDomain.indexOf("rnoally") !== -1)
     AppConfig = RnoAppConfig;
-else if (lowerDomain.indexOf("homeownerally") !== -1)
-    AppConfig = HomeownerAppConfig;
+else if (lowerDomain.indexOf("neighborally") !== -1)
+    AppConfig = NeighborAppConfig;
 else {
     console.log("Unknown ally app");
     AppConfig = CondoAllyAppConfig;
@@ -14730,23 +14730,10 @@ var Ally;
                 }, 10);
             }
         }
-        // Get clean semantic HTML from a Quill editor. There's currently a known issue where all
-        // spaces become nonbreaking spaces (nbsp;)
-        // https://github.com/slab/quill/issues/4535
-        static getSemanticHTML(quillEditor) {
-            if (!quillEditor)
-                return null;
-            let html = quillEditor.getSemanticHTML();
-            if (!html)
-                return null;
-            // Replace &nbsp; with regular spaces
-            html = html.replace(/&nbsp;/gi, " ");
-            return html;
-        }
         saveTemplate() {
-            this.template.formInstructions = EditEformTemplateController.getSemanticHTML(this.instructionsQuill);
+            this.template.formInstructions = Ally.HtmlUtil2.getSemanticHTML(this.instructionsQuill);
             if (this.isSuperAdmin && this.catalogDescriptionQuill)
-                this.template.catalogDescriptionHtml = EditEformTemplateController.getSemanticHTML(this.catalogDescriptionQuill);
+                this.template.catalogDescriptionHtml = Ally.HtmlUtil2.getSemanticHTML(this.catalogDescriptionQuill);
             this.isLoading = true;
             // Serialize fields to JSON for saving
             for (let i = 0; i < this.template.sections.length; ++i) {
@@ -15463,6 +15450,9 @@ var Ally;
                     instance: curInstanceSection,
                     fieldPairs: []
                 };
+                if (!this.isCreate && (this.instance.formStatus === "complete" || this.instance.formStatus === "incomplete")) {
+                    newSectionEntry.isActiveSection = false;
+                }
                 for (const curTemplateField of curTemplateSection.parsedFields) {
                     let curInstanceField = curInstanceSection.parsedFieldValues.find(f => f.slug === curTemplateField.slug);
                     if (!curInstanceField) {
@@ -15667,6 +15657,18 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to delete form: " + response.data.exceptionMessage);
+            });
+        }
+        closeIncompleteForm() {
+            if (!confirm("Are you sure you want to close this form and mark it incomplete? This will remove it from the active lists, but you will still be able to view its content."))
+                return;
+            this.isLoading = true;
+            this.$http.delete("/api/EformInstance/MarkIncomplete/" + this.$routeParams.templateOrInstanceId).then(() => {
+                this.isLoading = false;
+                this.$location.path("/Home");
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to close form as incomplete: " + response.data.exceptionMessage);
             });
         }
     }
@@ -21773,6 +21775,19 @@ var Ally;
         }
         static isOnMobileDevice() {
             return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        // Get clean semantic HTML from a Quill editor. There's currently a known issue where all
+        // spaces become nonbreaking spaces (nbsp;)
+        // https://github.com/slab/quill/issues/4535
+        static getSemanticHTML(quillEditor) {
+            if (!quillEditor)
+                return null;
+            let html = quillEditor.getSemanticHTML();
+            if (!html)
+                return null;
+            // Replace &nbsp; with regular spaces
+            html = html.replace(/&nbsp;/gi, " ");
+            return html;
         }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
