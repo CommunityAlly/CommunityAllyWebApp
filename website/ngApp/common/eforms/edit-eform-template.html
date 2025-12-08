@@ -42,9 +42,9 @@
         </select>
         <small class="form-text text-muted">When a form is created or updated, this assignee will be notified.</small>
     </div>-->
-            <div class="mb-3 form-check">
-                <label for="isAnonymousCheckbox" class="form-label">Form submits anonymously</label>
-                <input type="checkbox" class="form-check-input" id="isAnonymousCheckbox" aria-describedby="emailHelp" data-ng-model="$ctrl.template.isAnonymous">
+            <div class="mb-3">
+                <label class="form-label"><input type="checkbox" data-ng-model="$ctrl.template.isAnonymous" class="me-1" />Form submits anonymously</label>
+
                 <br />
                 <small class="form-text text-muted">The submitter of the form is hidden.</small>
             </div>
@@ -74,7 +74,7 @@
         <div class="text-end">
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="checkbox" id="shouldShowAdvancedPropertiesCheckbox" data-ng-model="$ctrl.shouldShowAdvancedProperties">
-                <label class="form-check-label" for="shouldShowAdvancedPropertiesCheckbox">Show advanced field propertoes</label>
+                <label class="form-check-label" for="shouldShowAdvancedPropertiesCheckbox">Show advanced field properties</label>
             </div>
         </div>
 
