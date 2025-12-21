@@ -466,7 +466,7 @@ var Ally;
         }
         autoUnselectPaidOwners(shouldUseNextPeriod) {
             this.isLoading = true;
-            const currentPeriod = shouldUseNextPeriod ? MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency) : MailingInvoiceController.getNextPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
+            const currentPeriod = shouldUseNextPeriod ? MailingInvoiceController.getNextPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency) : MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
             const getUri = `/api/PaymentHistory/RecentPayPeriod/${currentPeriod.year}/${currentPeriod.period1Based}`;
             this.$http.get(getUri).then((response) => {
                 this.isLoading = false;
