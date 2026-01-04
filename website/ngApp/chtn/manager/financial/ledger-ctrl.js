@@ -713,6 +713,9 @@ var Ally;
                 this.editingTransaction.splitEntries = [];
             this.editingTransaction.splitEntries.push(new LedgerEntry());
             this.editingTransaction.isSplit = true;
+            // Clear the assignment for the parent entry
+            this.editingTransaction.associatedUnitId = null;
+            this.editingTransaction.financialCategoryId = null;
         }
         onSplitAmountChange() {
             this.splitAmountTotal = this.editingTransaction.splitEntries.reduce((sum, e) => sum + e.amount, 0);

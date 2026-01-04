@@ -1052,6 +1052,10 @@ namespace Ally
 
             this.editingTransaction.splitEntries.push( new LedgerEntry() );
             this.editingTransaction.isSplit = true;
+
+            // Clear the assignment for the parent entry
+            this.editingTransaction.associatedUnitId = null;
+            this.editingTransaction.financialCategoryId = null;
         }
 
 
