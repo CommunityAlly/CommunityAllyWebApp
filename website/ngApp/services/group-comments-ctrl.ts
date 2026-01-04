@@ -53,7 +53,6 @@
 
         hideDiscussModal(): void
         {
-            //TODO put in a delay before we allow close to avoid the mobile tap-open-close issue
             this.showDiscussModal = false;
         }
 

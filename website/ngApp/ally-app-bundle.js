@@ -4315,6 +4315,9 @@ var Ally;
                 this.editingTransaction.splitEntries = [];
             this.editingTransaction.splitEntries.push(new LedgerEntry());
             this.editingTransaction.isSplit = true;
+            // Clear the assignment for the parent entry
+            this.editingTransaction.associatedUnitId = null;
+            this.editingTransaction.financialCategoryId = null;
         }
         onSplitAmountChange() {
             this.splitAmountTotal = this.editingTransaction.splitEntries.reduce((sum, e) => sum + e.amount, 0);
@@ -12718,7 +12721,7 @@ var Ally;
             }
             this.isWePayAutoPayActive = false;
             this.nextAutoPayText = this.siteInfo.userInfo.nextAutoPayText;
-            // Grab the assessment from the user's unit (TODO handle multiple units)
+            // Grab the assessment from the user's unit
             if (this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0) {
                 this.assessmentAmount = this.siteInfo.userInfo.usersUnits
                     .filter(uu => !uu.isRenter)
@@ -13392,7 +13395,7 @@ var Ally;
                         console.log(result.error.message);
                     }
                     else {
-                        //TODO Success
+                        // Successfully submitted the Stripe payment
                         // Handle next step based on PaymentIntent's status.
                         console.log("PaymentIntent ID: " + result.paymentIntent.id);
                         console.log("PaymentIntent status: " + result.paymentIntent.status);
@@ -17091,7 +17094,7 @@ var Ally;
         }
         autoUnselectPaidOwners(shouldUseNextPeriod) {
             this.isLoading = true;
-            const currentPeriod = shouldUseNextPeriod ? MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency) : MailingInvoiceController.getNextPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
+            const currentPeriod = shouldUseNextPeriod ? MailingInvoiceController.getNextPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency) : MailingInvoiceController.getCurrentPayPeriod(this.siteInfo.privateSiteInfo.assessmentFrequency);
             const getUri = `/api/PaymentHistory/RecentPayPeriod/${currentPeriod.year}/${currentPeriod.period1Based}`;
             this.$http.get(getUri).then((response) => {
                 this.isLoading = false;
@@ -17878,7 +17881,7 @@ var Ally;
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
-            // Grab the assessment from the user's unit (TODO handle multiple units)
+            // Grab the assessment from the user's unit
             if (this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0)
                 this.assessmentAmount = this.siteInfo.userInfo.usersUnits[0].assessment;
             else
@@ -21060,7 +21063,6 @@ var Ally;
             this.showDiscussModal = true;
         }
         hideDiscussModal() {
-            //TODO put in a delay before we allow close to avoid the mobile tap-open-close issue
             this.showDiscussModal = false;
         }
         /**

@@ -44,7 +44,7 @@ namespace Ally
          */
         $onInit()
         {
-            // Grab the assessment from the user's unit (TODO handle multiple units)
+            // Grab the assessment from the user's unit
             if( this.siteInfo.userInfo.usersUnits != null && this.siteInfo.userInfo.usersUnits.length > 0 )
                 this.assessmentAmount = this.siteInfo.userInfo.usersUnits[0].assessment;
             else

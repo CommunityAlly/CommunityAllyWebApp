@@ -514,7 +514,7 @@
                                 }
 
                                 const selectedDirectoryPath = this.getSelectedDirectoryPath();
-
+                                
                                 const fileAction = {
                                     relativeS3Path: this.selectedFile.relativeS3Path,
                                     action: "move",
