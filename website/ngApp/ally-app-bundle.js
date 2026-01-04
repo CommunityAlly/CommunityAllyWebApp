@@ -13922,6 +13922,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
+            this.selectedFiles = [];
             this.draggingType = null;
             this.isLoading = false;
             this.filesSortDescend = false;
@@ -14186,7 +14187,7 @@ var Ally;
                                     displayDestPath = displayDestPath.substring(this.committeePathPrefix.length);
                                 }
                                 if (!confirm(`Are you sure you want to move the '${displaySourcePath}' folder into '${displayDestPath}'?`)) {
-                                    this.selectedFile = null;
+                                    this.selectedFiles = [];
                                     this.draggingType = null;
                                     this.draggingFolderPath = null;
                                     return;
@@ -14211,14 +14212,47 @@ var Ally;
                                 return;
                             }
                             const selectedDirectoryPath = this.getSelectedDirectoryPath();
+                            // Handle multiple file move
+                            if (this.selectedFiles.length > 1) {
+                                const fileCount = this.selectedFiles.length;
+                                if (!confirm(`Are you sure you want to move ${fileCount} files to this folder?`)) {
+                                    this.draggingType = null;
+                                    return;
+                                }
+                                this.isLoading = true;
+                                // Move each selected file
+                                const movePromises = this.selectedFiles.map(file => {
+                                    const fileAction = {
+                                        relativeS3Path: file.relativeS3Path,
+                                        action: "move",
+                                        newFileName: "",
+                                        sourceFolderPath: selectedDirectoryPath,
+                                        destinationFolderPath: destFolderPath
+                                    };
+                                    return this.$http.put("/api/ManageDocuments/MoveFile", fileAction);
+                                });
+                                Promise.all(movePromises).then(() => {
+                                    this.isLoading = false;
+                                    this.selectedFiles = [];
+                                    this.draggingType = null;
+                                    // Clear the docs cache so we fully refresh the file list since files have moved
+                                    this.docsHttpCache.removeAll();
+                                    this.RefreshDocuments();
+                                }, (response) => {
+                                    this.isLoading = false;
+                                    alert("Failed to move one or more files: " + (response.data?.exceptionMessage || "Unknown error"));
+                                });
+                                return;
+                            }
+                            // Single file move
                             const fileAction = {
-                                relativeS3Path: this.selectedFile.relativeS3Path,
+                                relativeS3Path: this.selectedFiles[0].relativeS3Path,
                                 action: "move",
                                 newFileName: "",
                                 sourceFolderPath: selectedDirectoryPath,
                                 destinationFolderPath: destFolderPath
                             };
-                            this.selectedFile = null;
+                            this.selectedFiles = [];
                             this.draggingType = null;
                             this.draggingFolderPath = null;
                             // Tell the server
@@ -14228,17 +14262,6 @@ var Ally;
                                 // Clear the docs cache so we fully refresh the file list since a file has moved
                                 this.docsHttpCache.removeAll();
                                 this.RefreshDocuments();
-                                //innerThis.documentTree = httpResponse.data;
-                                //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
-                                //// Hook up parent directories
-                                //innerThis.documentTree.subdirectories.forEach(( dir ) =>
-                                //{
-                                //    innerThis.hookupParentDirs( dir );
-                                //} );
-                                //innerThis.hookUpFileDragging();
-                                //// Find the directory we had selected
-                                //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
-                                //innerThis.SortFiles();
                             }, (response) => {
                                 this.isLoading = false;
                                 alert("Failed to move file: " + response.data.exceptionMessage);
@@ -14247,13 +14270,41 @@ var Ally;
                     },
                     hoverClass: "Document_Folder_DropHover"
                 });
-                // Allow the files to be dragged
+                // We need to hook into the mousedown event to set the selected files before
+                // dragging starts to initialize selectedFiles
                 const draggableFiles = $(".draggable-file");
+                draggableFiles.on("mousedown", (event) => {
+                    const fileIndexString = $(event.target).attr("id").substring("File_".length);
+                    const fileIndex = parseInt(fileIndexString);
+                    const fileInfo = this.selectedDirectory.files[fileIndex];
+                    // If not holding Ctrl and file isn't already selected, select it now
+                    if (!event.ctrlKey && !event.metaKey && !this.selectedFiles.includes(fileInfo)) {
+                        this.$scope.$apply(() => {
+                            this.selectedFiles = [fileInfo];
+                        });
+                    }
+                });
                 draggableFiles.draggable({
                     distance: 10,
                     revert: true,
-                    helper: "clone",
-                    opacity: 1,
+                    helper: () => {
+                        // Now this.selectedFiles will have the correct value
+                        const fileIconPath = this.selectedFiles.length === 1 ? Ally.HtmlUtil2.getFileIcon(this.selectedFiles[0].fileName) : DocumentsController.GenericIconPath;
+                        const dragLabel = "<span>" + (this.selectedFiles.length === 1 ? this.selectedFiles[0].fileName : (this.selectedFiles.length + ' files')) + "</span>";
+                        const helper = $('<div class="drag-helper">' +
+                            `<img src="${fileIconPath}" style="width:32px;height:32px;vertical-align:middle;margin-right:5px;" />` +
+                            dragLabel +
+                            '</div>');
+                        helper.css({
+                            'background': 'white',
+                            'border': '1px solid #ccc',
+                            'padding': '5px 10px',
+                            'border-radius': '3px',
+                            'box-shadow': '2px 2px 5px rgba(0,0,0,0.2)'
+                        });
+                        return helper;
+                    },
+                    opacity: 0.8,
                     containment: "document",
                     appendTo: "body",
                     start: (event) => {
@@ -14262,7 +14313,11 @@ var Ally;
                         const fileIndex = parseInt(fileIndexString);
                         this.$scope.$apply(() => {
                             const fileInfo = this.selectedDirectory.files[fileIndex];
-                            this.selectedFile = fileInfo;
+                            // If dragging a non-selected file, select only that file
+                            if (!this.selectedFiles.includes(fileInfo)) {
+                                this.selectedFiles = [fileInfo];
+                            }
+                            //console.log( "drag start", this.selectedFiles );
                             this.draggingType = "file";
                             this.draggingFolderPath = null;
                         });
@@ -14283,7 +14338,7 @@ var Ally;
                         //const fileIndex = parseInt( fileIndexString );
                         const folderPath = $(event.target).attr("data-folder-path");
                         this.$scope.$apply(() => {
-                            this.selectedFile = null;
+                            this.selectedFiles = [];
                             this.draggingType = "folder";
                             this.draggingFolderPath = folderPath;
                         });
@@ -14302,7 +14357,7 @@ var Ally;
             else
                 this.shouldShowSubdirectories = true;
             this.selectedDirectory = dir;
-            this.selectedFile = null;
+            this.selectedFiles = [];
             this.fileSearch.all = null;
             this.hookUpFileDragging();
             this.SortFiles();
@@ -14388,8 +14443,23 @@ var Ally;
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when a file gets clicked
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onFileClicked(file) {
-            this.selectedFile = file;
+        onFileClicked(file, $event) {
+            console.log("In onFileClicked", $event && ($event.ctrlKey || $event.metaKey));
+            // Handle Ctrl+click for multi-select
+            if ($event && ($event.ctrlKey || $event.metaKey)) {
+                $event.preventDefault();
+                if (this.selectedFiles.includes(file)) {
+                    const fileIdex = this.selectedFiles.indexOf(file);
+                    if (fileIdex > -1)
+                        this.selectedFiles.splice(fileIdex, 1);
+                }
+                else
+                    this.selectedFiles.push(file);
+            }
+            else {
+                // Normal click - select only this file
+                this.selectedFiles = [file];
+            }
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to rename a document
@@ -14506,8 +14576,7 @@ var Ally;
         }
         isGenericIcon(file) {
             const iconFilePath = Ally.HtmlUtil2.getFileIcon(file.fileName);
-            const GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
-            return iconFilePath === GenericIconPath;
+            return iconFilePath === DocumentsController.GenericIconPath;
         }
         getDisplayExtension(file) {
             const extension = file.fileName.split('.').pop().toLowerCase();
@@ -14562,7 +14631,7 @@ var Ally;
             // Display the loading image
             this.isLoading = true;
             this.selectedDirectory = null;
-            this.selectedFile = null;
+            this.selectedFiles = [];
             this.draggingType = null;
             this.getDocsUri = "/api/ManageDocuments";
             if (this.committee)
@@ -14608,6 +14677,7 @@ var Ally;
     DocumentsController.LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
     DocumentsController.DirName_Committees = "Committees_Root";
     DocumentsController.ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
+    DocumentsController.GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
     Ally.DocumentsController = DocumentsController;
     class FullZipGenStatus {
     }

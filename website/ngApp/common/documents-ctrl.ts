@@ -62,14 +62,15 @@
     {
         static $inject = ["$http", "$rootScope", "$cacheFactory", "$scope", "SiteInfo", "fellowResidents", "$location"];
 
-        static LocalStorageKey_SortType = "DocsInfo_FileSortType";
-        static LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
-        static DirName_Committees = "Committees_Root";
-        static ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
+        static readonly LocalStorageKey_SortType = "DocsInfo_FileSortType";
+        static readonly LocalStorageKey_SortDirection = "DocsInfo_FileSortDirection";
+        static readonly DirName_Committees = "Committees_Root";
+        static readonly ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
+        static readonly GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
 
         documentTree: DocumentDirectory;
         selectedDirectory: DocumentDirectory;
-        selectedFile: DocumentTreeFile;
+        selectedFiles: DocumentTreeFile[] = [];
         draggingType: "file" | "folder" | null = null;
         draggingFolderPath: string;
         isLoading = false;
@@ -477,7 +478,7 @@
 
                                     if( !confirm( `Are you sure you want to move the '${displaySourcePath}' folder into '${displayDestPath}'?` ) )
                                     {
-                                        this.selectedFile = null;
+                                        this.selectedFiles = [];
                                         this.draggingType = null;
                                         this.draggingFolderPath = null;
                                         return;
@@ -514,16 +515,63 @@
                                 }
 
                                 const selectedDirectoryPath = this.getSelectedDirectoryPath();
-                                
+
+                                // Handle multiple file move
+                                if( this.selectedFiles.length > 1 )
+                                {
+                                    const fileCount = this.selectedFiles.length;
+                                    if( !confirm( `Are you sure you want to move ${fileCount} files to this folder?` ) )
+                                    {
+                                        this.draggingType = null;
+                                        return;
+                                    }
+
+                                    this.isLoading = true;
+
+                                    // Move each selected file
+                                    const movePromises = this.selectedFiles.map( file =>
+                                    {
+                                        const fileAction = {
+                                            relativeS3Path: file.relativeS3Path,
+                                            action: "move",
+                                            newFileName: "",
+                                            sourceFolderPath: selectedDirectoryPath,
+                                            destinationFolderPath: destFolderPath
+                                        };
+                                        return this.$http.put( "/api/ManageDocuments/MoveFile", fileAction );
+                                    } );
+
+                                    Promise.all( movePromises ).then(
+                                        () =>
+                                        {
+                                            this.isLoading = false;
+                                            this.selectedFiles = [];
+                                            this.draggingType = null;
+
+                                            // Clear the docs cache so we fully refresh the file list since files have moved
+                                            this.docsHttpCache.removeAll();
+                                            this.RefreshDocuments();
+                                        },
+                                        ( response: any ) =>
+                                        {
+                                            this.isLoading = false;
+                                            alert( "Failed to move one or more files: " + ( response.data?.exceptionMessage || "Unknown error" ) );
+                                        }
+                                    );
+
+                                    return;
+                                }
+
+                                // Single file move
                                 const fileAction = {
-                                    relativeS3Path: this.selectedFile.relativeS3Path,
+                                    relativeS3Path: this.selectedFiles[0].relativeS3Path,
                                     action: "move",
                                     newFileName: "",
                                     sourceFolderPath: selectedDirectoryPath,
                                     destinationFolderPath: destFolderPath
                                 };
 
-                                this.selectedFile = null;
+                                this.selectedFiles = [];
                                 this.draggingType = null;
                                 this.draggingFolderPath = null;
 
@@ -538,21 +586,6 @@
                                         this.docsHttpCache.removeAll();
 
                                         this.RefreshDocuments();
-                                        //innerThis.documentTree = httpResponse.data;
-                                        //innerThis.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
-
-                                        //// Hook up parent directories
-                                        //innerThis.documentTree.subdirectories.forEach(( dir ) =>
-                                        //{
-                                        //    innerThis.hookupParentDirs( dir );
-                                        //} );
-
-
-                                        //innerThis.hookUpFileDragging();
-
-                                        //// Find the directory we had selected
-                                        //innerThis.selectedDirectory = innerThis.FindDirectoryByPath( selectedDirectoryPath );
-                                        //innerThis.SortFiles();
                                     },
                                     ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                                     {
@@ -563,16 +596,53 @@
                             } );
                         },
                         hoverClass: "Document_Folder_DropHover"
-                    } );
+                    }
+                );
 
-                // Allow the files to be dragged
+                // We need to hook into the mousedown event to set the selected files before
+                // dragging starts to initialize selectedFiles
                 const draggableFiles: any = $( ".draggable-file" );
+                draggableFiles.on( "mousedown", ( event: any ) =>
+                {
+                    const fileIndexString = $( event.target ).attr( "id" ).substring( "File_".length );
+                    const fileIndex = parseInt( fileIndexString );
+                    const fileInfo = this.selectedDirectory.files[fileIndex];
+                    
+                    // If not holding Ctrl and file isn't already selected, select it now
+                    if( !event.ctrlKey && !event.metaKey && !this.selectedFiles.includes(fileInfo) )
+                    {
+                        this.$scope.$apply( () =>
+                        {
+                            this.selectedFiles = [fileInfo];
+                        } );
+                    }
+                } );
+
                 draggableFiles.draggable(
                     {
                         distance: 10,
                         revert: true,
-                        helper: "clone",
-                        opacity: 1,
+                        helper: () =>
+                        {
+                            // Now this.selectedFiles will have the correct value
+                            const fileIconPath = this.selectedFiles.length === 1 ? HtmlUtil2.getFileIcon( this.selectedFiles[0].fileName ) : DocumentsController.GenericIconPath;
+                            const dragLabel = "<span>" + ( this.selectedFiles.length === 1 ? this.selectedFiles[0].fileName : (this.selectedFiles.length + ' files')) + "</span>";
+
+                            const helper = $( '<div class="drag-helper">' +
+                                `<img src="${fileIconPath}" style="width:32px;height:32px;vertical-align:middle;margin-right:5px;" />` +
+                                dragLabel +
+                                '</div>' );
+
+                            helper.css( {
+                                'background': 'white',
+                                'border': '1px solid #ccc',
+                                'padding': '5px 10px',
+                                'border-radius': '3px',
+                                'box-shadow': '2px 2px 5px rgba(0,0,0,0.2)'
+                            } );
+                            return helper;
+                        },
+                        opacity: 0.8,
                         containment: "document",
                         appendTo: "body",
                         start: ( event: any ) =>
@@ -584,7 +654,15 @@
                             this.$scope.$apply( () =>
                             {
                                 const fileInfo = this.selectedDirectory.files[fileIndex];
-                                this.selectedFile = fileInfo;
+                                
+                                // If dragging a non-selected file, select only that file
+                                if( !this.selectedFiles.includes(fileInfo) )
+                                {
+                                    this.selectedFiles = [fileInfo];
+                                }
+
+                                //console.log( "drag start", this.selectedFiles );
+
                                 this.draggingType = "file";
                                 this.draggingFolderPath = null;
                             } );
@@ -611,7 +689,7 @@
 
                             this.$scope.$apply( () =>
                             {
-                                this.selectedFile = null;
+                                this.selectedFiles = [];
                                 this.draggingType = "folder";
                                 this.draggingFolderPath = folderPath;
                             } );
@@ -634,7 +712,7 @@
                 this.shouldShowSubdirectories = true;
 
             this.selectedDirectory = dir;
-            this.selectedFile = null;
+            this.selectedFiles = [];
             this.fileSearch.all = null;
             this.hookUpFileDragging();
 
@@ -761,9 +839,29 @@
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when a file gets clicked
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        onFileClicked( file: DocumentTreeFile )
+        onFileClicked( file: DocumentTreeFile, $event?: MouseEvent )
         {
-            this.selectedFile = file;
+            console.log( "In onFileClicked", $event && ( $event.ctrlKey || $event.metaKey ) );
+
+            // Handle Ctrl+click for multi-select
+            if( $event && ( $event.ctrlKey || $event.metaKey ) )
+            {
+                $event.preventDefault();
+
+                if( this.selectedFiles.includes( file ) )
+                {
+                    const fileIdex = this.selectedFiles.indexOf( file );
+                    if( fileIdex > -1 )
+                        this.selectedFiles.splice( fileIdex, 1 );
+                }
+                else
+                    this.selectedFiles.push( file );
+            }
+            else
+            {
+                // Normal click - select only this file
+                this.selectedFiles = [file];
+            }
         }
 
 
@@ -951,8 +1049,8 @@
         isGenericIcon( file: DocumentTreeFile )
         {
             const iconFilePath = HtmlUtil2.getFileIcon( file.fileName );
-            const GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
-            return iconFilePath === GenericIconPath;
+            
+            return iconFilePath === DocumentsController.GenericIconPath;
         }
 
 
@@ -1033,7 +1131,7 @@
             // Display the loading image
             this.isLoading = true;
             this.selectedDirectory = null;
-            this.selectedFile = null;
+            this.selectedFiles = [];
             this.draggingType = null;
 
             this.getDocsUri = "/api/ManageDocuments";
@@ -1047,7 +1145,7 @@
                     this.isLoading = false;
                     this.documentTree = httpResponse.data;
                     this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
-
+                    
                     // Hook up parent directories
                     this.documentTree.subdirectories.forEach( ( dir ) =>
                     {
