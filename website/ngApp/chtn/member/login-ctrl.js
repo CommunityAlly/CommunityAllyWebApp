@@ -45,9 +45,6 @@ var Ally;
             // Allow admin to login if needed
             if (HtmlUtil.GetQueryStringParameter("s") === "1")
                 this.isDemoSite = false;
-            //const welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
-            //welcomeImageElem.addEventListener( "load", () => this.onWelcomeImageLoaded() );
-            //welcomeImageElem.addEventListener( "error", () => this.onWelcomeImageError() );
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.sectionStyle = {
                 position: "relative"
