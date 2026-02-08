@@ -453,7 +453,7 @@ namespace Ally
             const updateInfo: UpdateAssessmentInfo =
             {
                 unitId: unit.unitId,
-                assessment: unit.assessment,
+                assessment: unit.assessment || 0,
                 assessmentNote: unit.adjustedAssessmentReason
             };
 

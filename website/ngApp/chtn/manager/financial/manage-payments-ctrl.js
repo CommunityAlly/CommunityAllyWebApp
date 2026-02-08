@@ -307,7 +307,7 @@ var Ally;
                 unit.assessment = parseFloat(unit.assessment);
             const updateInfo = {
                 unitId: unit.unitId,
-                assessment: unit.assessment,
+                assessment: unit.assessment || 0,
                 assessmentNote: unit.adjustedAssessmentReason
             };
             this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(() => {
