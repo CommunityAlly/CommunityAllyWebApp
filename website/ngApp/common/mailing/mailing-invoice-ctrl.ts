@@ -32,6 +32,7 @@ namespace Ally
         mailingEntries: InvoiceMailingEntry[];
         //fromAddress: string;
         fromStreetAddress: FullAddress;
+        fromEmailOverride: string;
         notes: string;
         stripeToken: string;
         sendingReason: string;

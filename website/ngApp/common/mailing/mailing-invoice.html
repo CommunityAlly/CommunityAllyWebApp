@@ -45,6 +45,19 @@
 
                 <div class="mb-3 row px-3">
                     <label for="invoice-title-textbox" class="col-2 col-form-label form-label">
+                        From Email:
+                    </label>
+                    <div class="col-5">
+                        <select class="form-select" data-ng-model="$ctrl.fullMailingInfo.fromEmailOverride">
+                            <option data-ng-value="null">You ({{$ctrl.siteInfo.userInfo.fullName}})</option>
+                            <option value="board">Board</option>
+                            <option value="treasurer">Treasurer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3 row px-3">
+                    <label for="invoice-title-textbox" class="col-2 col-form-label form-label">
                         Invoice Title:
                     </label>
                     <div class="col-5">
