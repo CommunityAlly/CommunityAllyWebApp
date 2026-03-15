@@ -367,9 +367,12 @@
                         <label for="edit-user-first-text-box" class="col-sm-4 col-12 form-label">Last Sync:</label>
                         <div class="col-sm-8 col-12 px-0">{{$ctrl.editAccount.syncLastUpdatedUtc | date:'medium'}}</div>
                     </div>
-                    <div class="mb-3 row" data-ng-if="$ctrl.editAccount.syncBalance">
-                        <label for="edit-user-first-text-box" class="col-sm-4 col-12 form-label">Sync Balance:</label>
-                        <div class="col-sm-8 col-12 px-0">{{$ctrl.editAccount.syncBalance | currency}}</div>
+                    <div class="mb-3 row" data-ng-if="$ctrl.editAccount.syncBalance || $ctrl.editAccount.syncType !== 'plaid'">
+                        <label for="edit-user-first-text-box" class="col-sm-4 col-12 form-label">{{$ctrl.editAccount.syncType === 'plaid' ? 'Sync' : ''}} Balance:</label>
+                        <div class="col-sm-8 col-12 px-0">
+                            <input type="number" class="form-control form-control-sm" data-ng-if="$ctrl.editAccount.syncType !== 'plaid'" data-ng-model="$ctrl.editAccount.syncBalance" />
+                            <div data-ng-if="$ctrl.editAccount.syncType === 'plaid'">{{$ctrl.editAccount.syncBalance | currency}}</div>
+                        </div>
                     </div>
                     <div class="mb-3 row" data-ng-if="$ctrl.editAccount.syncType === 'plaid' && $ctrl.isSuperAdmin">
                         <label for="edit-user-first-text-box" class="col-sm-4 col-12 form-label">Plaid Item ID:</label>

@@ -659,7 +659,7 @@ var Ally;
             this.fullRefresh();
         }
         onEditAccount() {
-            const putUri = `/api/Ledger/UpdateAccount/${this.editAccount.ledgerAccountId}?newName=${encodeURIComponent(this.editAccount.accountName)}&newType=${encodeURIComponent(this.editAccount.accountType)}`;
+            const putUri = `/api/Ledger/UpdateAccount/${this.editAccount.ledgerAccountId}?newName=${encodeURIComponent(this.editAccount.accountName)}&newType=${encodeURIComponent(this.editAccount.accountType)}&newBalance=${this.editAccount.syncBalance ? encodeURIComponent(this.editAccount.syncBalance) : ''}`;
             this.isLoading = true;
             this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
