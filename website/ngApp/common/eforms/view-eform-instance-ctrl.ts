@@ -245,6 +245,17 @@ namespace Ally
             {
                 if( curFieldPair.template.isRequired )
                 {
+                    // Fast fail for clearly empty values
+                    if( curFieldPair.instance.valuesJson === null || curFieldPair.instance.valuesJson === undefined || curFieldPair.instance.valuesJson === "" )
+                    {
+                        emptyFields.push( curFieldPair );
+                        continue;
+                    }
+
+                    // Non-null number would always be valid
+                    if( typeof curFieldPair.instance.valuesJson === "number" )
+                        continue;
+
                     if( HtmlUtil.isNullOrWhitespace( curFieldPair.instance.valuesJson ) )
                         emptyFields.push( curFieldPair );
                 }
