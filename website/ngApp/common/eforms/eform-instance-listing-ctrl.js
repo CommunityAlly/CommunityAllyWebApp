@@ -61,7 +61,7 @@ var Ally;
                 if (curSection.lastEditUserId === EformInstanceListingController.AnonymousUserId)
                     curSection.lastEditUserLabel = "Anonymous";
                 else
-                    curSection.lastEditUserLabel = allResidents.find(r => r.userId === curInstance.submitterUserId)?.fullName;
+                    curSection.lastEditUserLabel = allResidents.find(r => r.userId === curSection.lastEditUserId)?.fullName;
             }
         }
         static populateUserNameLabelsForList(fellowResidents, instances) {
