@@ -7,11 +7,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, siteInfo) {
+        constructor($http, fellowResidents, $location, siteInfo, uiGridConstants) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.siteInfo = siteInfo;
+            this.uiGridConstants = uiGridConstants;
             this.isLoading = false;
             this.isLoadingResidents = false;
             this.filteredInstances = [];
@@ -25,8 +26,31 @@ var Ally;
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.shouldShowSubmitted = this.isSiteManager;
+            this.eformGridOptions =
+                {
+                    data: [],
+                    enableFiltering: false,
+                    columnDefs: [
+                        { field: 'template.templateName', displayName: 'Name', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><a ng-cell-text href="#!/ViewEform/{{row.entity.eformInstanceId}}">{{row.entity.template.templateName}}</a></div>' },
+                        { field: 'assignedToLabel', displayName: 'Assigned To' },
+                        { field: 'submitterLabel', displayName: 'Submitted By', visible: this.shouldShowSubmitted },
+                        { field: 'formStatus', displayName: 'Status' },
+                        { field: 'submitDateUtc', displayName: 'Created', type: 'date', cellFilter: "date:'short'", sort: { direction: 'desc', priority: 0 } }
+                    ],
+                    multiSelect: false,
+                    enableSorting: true,
+                    //enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    //enableFullRowSelection: true,
+                    enableColumnMenus: false,
+                    //enableGridMenu: true,
+                    //enableRowHeaderSelection: false,
+                };
             this.loadInstances();
         }
+        /**
+         * Populate the assigned to and submitter labels for a form instance
+         */
         static populateUserNameLabels(fellowResidents, curInstance) {
             const allResidents = fellowResidents.residents;
             // If this form is assigned to a specific user, find their name
@@ -64,16 +88,23 @@ var Ally;
                     curSection.lastEditUserLabel = allResidents.find(r => r.userId === curSection.lastEditUserId)?.fullName;
             }
         }
+        /**
+         * Populate the assigned to and submitter labels for all form instances
+         */
         static populateUserNameLabelsForList(fellowResidents, instances) {
             for (const curInstance of instances)
                 EformInstanceListingController.populateUserNameLabels(fellowResidents, curInstance);
         }
+        /**
+         * Loads the E-form instances for the user
+         */
         loadInstances() {
             this.isLoading = true;
             this.$http.get("/api/EformInstance/ForListPage").then((response) => {
                 this.isLoading = false;
                 this.pageInfo = response.data;
                 this.filteredInstances = this.pageInfo.instances;
+                this.eformGridOptions.data = this.filteredInstances;
                 this.isLoadingResidents = true;
                 this.fellowResidents.getByUnitsAndResidents().then(fr => {
                     this.isLoadingResidents = false;
@@ -84,17 +115,22 @@ var Ally;
                 alert("Failed to load E-forms: " + response.data.exceptionMessage);
             });
         }
+        /**
+         * Refresh the visible form list based on the current status filter selection
+         */
         refreshFormStatusFilter() {
             if (this.formStatusFilter === "active" || this.formStatusFilter === "complete")
                 this.filteredInstances = this.pageInfo.instances.filter(i => i.formStatus === this.formStatusFilter);
             else
                 this.filteredInstances = this.pageInfo.instances;
+            this.eformGridOptions.data = this.filteredInstances;
         }
     }
-    EformInstanceListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
+    EformInstanceListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants"];
     EformInstanceListingController.AssignToUserPrefix = "user:";
     EformInstanceListingController.AnonymousUserId = "00000000-0000-0000-0000-000000000000";
     Ally.EformInstanceListingController = EformInstanceListingController;
+    // Represents the API result for populating the E-form listing page
     class EformListPageInfo {
     }
 })(Ally || (Ally = {}));

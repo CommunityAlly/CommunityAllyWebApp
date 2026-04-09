@@ -5,7 +5,7 @@ namespace Ally
      */
     export class EformInstanceListingController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
+        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants"];
         isLoading: boolean = false;
         isLoadingResidents: boolean = false;
         pageInfo: EformListPageInfo;
@@ -13,6 +13,7 @@ namespace Ally
         isSiteManager = false;
         shouldShowSubmitted = false;
         formStatusFilter: "active" | "complete" | null = null;
+        eformGridOptions: uiGrid.IGridOptionsOf<EformInstanceDto>;
         public static readonly AssignToUserPrefix = "user:";
         static readonly AnonymousUserId = "00000000-0000-0000-0000-000000000000";
 
@@ -23,7 +24,8 @@ namespace Ally
         constructor( private $http: ng.IHttpService,
             private fellowResidents: Ally.FellowResidentsService,
             private $location: ng.ILocationService,
-            private siteInfo: Ally.SiteInfoService )
+            private siteInfo: Ally.SiteInfoService,
+            private uiGridConstants: uiGrid.IUiGridConstants )
         {
         }
 
@@ -36,10 +38,35 @@ namespace Ally
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.shouldShowSubmitted = this.isSiteManager;
 
+            this.eformGridOptions =
+            {
+                data: [],
+                enableFiltering: false,
+                columnDefs:
+                    [
+                        { field: 'template.templateName', displayName: 'Name', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><a ng-cell-text href="#!/ViewEform/{{row.entity.eformInstanceId}}">{{row.entity.template.templateName}}</a></div>' },
+                        { field: 'assignedToLabel', displayName: 'Assigned To' },
+                        { field: 'submitterLabel', displayName: 'Submitted By', visible: this.shouldShowSubmitted },
+                        { field: 'formStatus', displayName: 'Status' },
+                        { field: 'submitDateUtc', displayName: 'Created', type: 'date', cellFilter: "date:'short'", sort: { direction: 'desc', priority: 0 } }
+                    ],
+                multiSelect: false,
+                enableSorting: true,
+                //enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                //enableFullRowSelection: true,
+                enableColumnMenus: false,
+                //enableGridMenu: true,
+                //enableRowHeaderSelection: false,
+            };
+
             this.loadInstances();
         }
 
 
+        /**
+         * Populate the assigned to and submitter labels for a form instance
+         */
         public static populateUserNameLabels( fellowResidents: FellowResidents, curInstance: EformInstanceDto )
         {
             const allResidents = fellowResidents.residents;
@@ -88,6 +115,9 @@ namespace Ally
         }
 
 
+        /**
+         * Populate the assigned to and submitter labels for all form instances
+         */
         public static populateUserNameLabelsForList( fellowResidents: FellowResidents, instances: EformInstanceDto[] )
         {
             for( const curInstance of instances )
@@ -95,6 +125,9 @@ namespace Ally
         }
 
 
+        /**
+         * Loads the E-form instances for the user
+         */
         loadInstances()
         {
             this.isLoading = true;
@@ -105,6 +138,7 @@ namespace Ally
                     this.isLoading = false;
                     this.pageInfo = response.data;
                     this.filteredInstances = this.pageInfo.instances;
+                    this.eformGridOptions.data = this.filteredInstances;
 
                     this.isLoadingResidents = true;
                     this.fellowResidents.getByUnitsAndResidents().then( fr =>
@@ -122,16 +156,22 @@ namespace Ally
         }
 
 
+        /**
+         * Refresh the visible form list based on the current status filter selection
+         */
         refreshFormStatusFilter()
         {
             if( this.formStatusFilter === "active" || this.formStatusFilter === "complete" )
                 this.filteredInstances = this.pageInfo.instances.filter( i => i.formStatus === this.formStatusFilter );
             else
                 this.filteredInstances = this.pageInfo.instances;
+
+            this.eformGridOptions.data = this.filteredInstances;
         }
     }
 
 
+    // Represents the API result for populating the E-form listing page
     class EformListPageInfo
     {
         instances: EformInstanceDto[];

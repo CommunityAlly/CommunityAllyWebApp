@@ -38,14 +38,17 @@
     <div data-ng-if="$ctrl.isLoadingResidents">
         <img src="/assets/images/spinner-large.gif" /> Loading residents...
     </div>
-    <table class="table" style="width: 100%;">
+
+    <div data-ui-grid="$ctrl.eformGridOptions" ui-grid-save-state ui-grid-resize-columns ui-grid-auto-resize class="gridStyle margin-top-20"></div>
+
+    <!--<table class="table" style="width: 100%;" data-toggle="table">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Assigned To</th>
-                <th data-ng-if="$ctrl.shouldShowSubmitted">Submitted By</th>
-                <th>Status</th>
-                <th>Created</th>
+                <th data-sortable="true">Name</th>
+                <th data-sortable="true">Assigned To</th>
+                <th data-sortable="true" data-ng-if="$ctrl.shouldShowSubmitted">Submitted By</th>
+                <th data-sortable="true">Status</th>
+                <th data-sortable="true">Created</th>
             </tr>
         </thead>
         <tbody>
@@ -63,7 +66,7 @@
                 <td>{{curInstance.submitDateUtc | date:'medium'}}</td>
             </tr>
         </tbody>
-    </table>
+    </table>-->
 
     <div data-ng-if="$ctrl.pageInfo.instances.length === 0" class="note-text">
         There are no E-forms to display.
