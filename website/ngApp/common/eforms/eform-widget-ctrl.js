@@ -8,11 +8,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, siteInfo) {
+        constructor($http, fellowResidents, $location, siteInfo, appCacheService) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isLoading = false;
             this.shouldShowWidget = false;
             this.isSiteManager = false;
@@ -23,6 +24,8 @@ var Ally;
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.loadData();
+            // Tell the E-form logic to return to home on save
+            this.appCacheService.set(Ally.EformTemplateDto.AppCacheKeyReturnUrl, "/Home");
         }
         filterTemplatesOnWhosAllowed(enabledTemplates) {
             const templateIdsToHide = [];
@@ -59,7 +62,7 @@ var Ally;
             });
         }
     }
-    EformWidgetController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
+    EformWidgetController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "appCacheService"];
     Ally.EformWidgetController = EformWidgetController;
     class EformWidgetInfo {
     }

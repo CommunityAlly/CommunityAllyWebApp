@@ -230,6 +230,8 @@ namespace Ally
 
     export class EformTemplateDto
     {
+        static readonly AppCacheKeyReturnUrl = "eformLastPage";
+
         eformTemplateId: number;
         groupId: number;
         templateName: string;

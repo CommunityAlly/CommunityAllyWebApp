@@ -5,7 +5,7 @@ namespace Ally
      */
     export class EformInstanceListingController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants"];
+        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants", "appCacheService"];
         isLoading: boolean = false;
         isLoadingResidents: boolean = false;
         pageInfo: EformListPageInfo;
@@ -25,7 +25,8 @@ namespace Ally
             private fellowResidents: Ally.FellowResidentsService,
             private $location: ng.ILocationService,
             private siteInfo: Ally.SiteInfoService,
-            private uiGridConstants: uiGrid.IUiGridConstants )
+            private uiGridConstants: uiGrid.IUiGridConstants,
+            private appCacheService: AppCacheService )
         {
         }
 
@@ -52,13 +53,16 @@ namespace Ally
                     ],
                 multiSelect: false,
                 enableSorting: true,
-                //enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
+                enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
                 enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                 //enableFullRowSelection: true,
                 enableColumnMenus: false,
                 //enableGridMenu: true,
                 //enableRowHeaderSelection: false,
             };
+
+            // Tell the E-form logic to return to this listing on save
+            this.appCacheService.set(EformTemplateDto.AppCacheKeyReturnUrl, "/EformInstanceListing" );
 
             this.loadInstances();
         }

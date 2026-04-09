@@ -6,7 +6,7 @@ namespace Ally
      */
     export class EformWidgetController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
+        static $inject = ["$http", "fellowResidents", "$location", "SiteInfo", "appCacheService"];
         isLoading: boolean = false;
         widgetInfo: EformWidgetInfo;
         shouldShowWidget = false;
@@ -19,7 +19,8 @@ namespace Ally
         constructor( private $http: ng.IHttpService,
             private fellowResidents: Ally.FellowResidentsService,
             private $location: ng.ILocationService,
-            private siteInfo: Ally.SiteInfoService )
+            private siteInfo: Ally.SiteInfoService,
+            private appCacheService: AppCacheService )
         {
         }
 
@@ -31,6 +32,9 @@ namespace Ally
         {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.loadData();
+
+            // Tell the E-form logic to return to home on save
+            this.appCacheService.set(EformTemplateDto.AppCacheKeyReturnUrl, "/Home" );
         }
 
 

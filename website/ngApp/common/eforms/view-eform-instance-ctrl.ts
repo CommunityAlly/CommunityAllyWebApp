@@ -5,7 +5,7 @@ namespace Ally
      */
     export class ViewEformInstanceController implements ng.IController
     {
-        static $inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo"];
+        static $inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo", "appCacheService"];
         isCreate = false;
         isLoading: boolean = false;
         savingMessage = "";
@@ -21,7 +21,8 @@ namespace Ally
             private fellowResidents: Ally.FellowResidentsService,
             private $location: ng.ILocationService,
             private $routeParams: IViewEformTemplateRouteParams,
-            private siteInfo: Ally.SiteInfoService )
+            private siteInfo: Ally.SiteInfoService,
+            private appCacheService: AppCacheService )
         {
         }
 
@@ -347,7 +348,9 @@ namespace Ally
                         this.savingMessage = "";
                         this.isLoading = false;
 
-                        this.$location.path( "/Home" );
+                        // Tell the E-form logic to return to this listing on save
+                        const returnUrl = this.appCacheService.getAndClear(EformTemplateDto.AppCacheKeyReturnUrl) || "/Home";
+                        this.$location.path( returnUrl );
                     };
 
                     //let uploadCount = 0;

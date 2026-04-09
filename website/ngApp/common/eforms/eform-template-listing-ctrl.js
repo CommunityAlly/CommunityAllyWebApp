@@ -131,6 +131,7 @@ var Ally;
                 EformTemplateSection.parseFields(curSection);
         }
     }
+    EformTemplateDto.AppCacheKeyReturnUrl = "eformLastPage";
     Ally.EformTemplateDto = EformTemplateDto;
     class EformTemplateCatalogItem {
     }

@@ -7,12 +7,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, siteInfo, uiGridConstants) {
+        constructor($http, fellowResidents, $location, siteInfo, uiGridConstants, appCacheService) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.siteInfo = siteInfo;
             this.uiGridConstants = uiGridConstants;
+            this.appCacheService = appCacheService;
             this.isLoading = false;
             this.isLoadingResidents = false;
             this.filteredInstances = [];
@@ -39,13 +40,15 @@ var Ally;
                     ],
                     multiSelect: false,
                     enableSorting: true,
-                    //enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
+                    enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
                     enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
                     //enableFullRowSelection: true,
                     enableColumnMenus: false,
                     //enableGridMenu: true,
                     //enableRowHeaderSelection: false,
                 };
+            // Tell the E-form logic to return to this listing on save
+            this.appCacheService.set(Ally.EformTemplateDto.AppCacheKeyReturnUrl, "/EformInstanceListing");
             this.loadInstances();
         }
         /**
@@ -126,7 +129,7 @@ var Ally;
             this.eformGridOptions.data = this.filteredInstances;
         }
     }
-    EformInstanceListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants"];
+    EformInstanceListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants", "appCacheService"];
     EformInstanceListingController.AssignToUserPrefix = "user:";
     EformInstanceListingController.AnonymousUserId = "00000000-0000-0000-0000-000000000000";
     Ally.EformInstanceListingController = EformInstanceListingController;

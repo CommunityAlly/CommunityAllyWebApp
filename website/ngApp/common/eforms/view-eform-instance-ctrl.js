@@ -7,12 +7,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, $routeParams, siteInfo) {
+        constructor($http, fellowResidents, $location, $routeParams, siteInfo, appCacheService) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.$routeParams = $routeParams;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isCreate = false;
             this.isLoading = false;
             this.savingMessage = "";
@@ -243,7 +244,9 @@ var Ally;
                 const onDoneUploading = () => {
                     this.savingMessage = "";
                     this.isLoading = false;
-                    this.$location.path("/Home");
+                    // Tell the E-form logic to return to this listing on save
+                    const returnUrl = this.appCacheService.getAndClear(Ally.EformTemplateDto.AppCacheKeyReturnUrl) || "/Home";
+                    this.$location.path(returnUrl);
                 };
                 //let uploadCount = 0;
                 //const uploadNextAttachment = () =>
@@ -303,7 +306,7 @@ var Ally;
             });
         }
     }
-    ViewEformInstanceController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo"];
+    ViewEformInstanceController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo", "appCacheService"];
     Ally.ViewEformInstanceController = ViewEformInstanceController;
     class SaveSectionData {
     }
