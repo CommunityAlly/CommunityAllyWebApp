@@ -1004,14 +1004,29 @@ var Ally;
                     newRow.firstName = newRow.firstName.replace(" & ", " and "); // Normalize "&" to "and"
                 if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
                     spouseRow = _.clone(newRow);
-                    const splitFirst = newRow.firstName.split(" and ");
-                    newRow.firstName = splitFirst[0];
-                    spouseRow.firstName = splitFirst[1];
+                    const splitNames = newRow.firstName.split(" and ");
+                    newRow.firstName = splitNames[0].trim();
+                    spouseRow.firstName = splitNames[1].trim();
+                    // If the last names differ
+                    if (newRow.firstName.includes(' ') && spouseRow.firstName.includes(' ')) {
+                        const firstSplit = newRow.firstName.split(' ');
+                        if (firstSplit.length === 2) {
+                            newRow.firstName = firstSplit[0];
+                            newRow.lastName = firstSplit[1];
+                        }
+                        const spouseSplit = spouseRow.firstName.split(' ');
+                        if (spouseSplit.length === 2) {
+                            spouseRow.firstName = spouseSplit[0];
+                            spouseRow.lastName = spouseSplit[1];
+                        }
+                    }
+                    // If the name includes an email address after a slash
                     if (newRow.email && newRow.email.indexOf("/") !== -1) {
                         const splitEmail = newRow.email.split("/");
                         newRow.email = splitEmail[0].trim();
                         spouseRow.email = splitEmail[1].trim();
                     }
+                    // Or if the name includes an email address after a semicolon
                     else if (newRow.email && newRow.email.indexOf(";") !== -1) {
                         const splitEmail = newRow.email.split(";");
                         newRow.email = splitEmail[0].trim();
