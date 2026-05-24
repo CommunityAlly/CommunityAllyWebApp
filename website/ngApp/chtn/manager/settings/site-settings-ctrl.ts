@@ -15,6 +15,7 @@ namespace Ally
         premiumPlanExpirationDate: Date;
         premiumPlanIsAutoRenewed: boolean;
         premiumPlanCostDollars: number;
+        hasStripeCustomerId: boolean;
     }
 
 

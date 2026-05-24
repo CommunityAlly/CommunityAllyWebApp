@@ -540,7 +540,7 @@ namespace Ally
                 this.premiumPlanRenewDate = new Date();
                 this.premiumPlanRenewDate = moment( this.settings.premiumPlanExpirationDate ).add( 1, "days" ).toDate();
 
-                if( this.settings.premiumPlanIsAutoRenewed )
+                if( this.settings.premiumPlanIsAutoRenewed || this.settings.hasStripeCustomerId )
                 {
                     this.planExpirationColor = "green";
                     this.$http.get( "/api/Settings/StripeBillingPortal" ).then( ( response: ng.IHttpPromiseCallbackArg<any> ) => this.stripePortalUrl = response.data.portalUrl );
