@@ -4261,7 +4261,7 @@ var Ally;
             this.fullRefresh();
         }
         onEditAccount() {
-            const putUri = `/api/Ledger/UpdateAccount/${this.editAccount.ledgerAccountId}?newName=${encodeURIComponent(this.editAccount.accountName)}&newType=${encodeURIComponent(this.editAccount.accountType)}`;
+            const putUri = `/api/Ledger/UpdateAccount/${this.editAccount.ledgerAccountId}?newName=${encodeURIComponent(this.editAccount.accountName)}&newType=${encodeURIComponent(this.editAccount.accountType)}&newBalance=${this.editAccount.syncBalance ? encodeURIComponent(this.editAccount.syncBalance) : ''}`;
             this.isLoading = true;
             this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
@@ -4871,7 +4871,7 @@ var Ally;
                 unit.assessment = parseFloat(unit.assessment);
             const updateInfo = {
                 unitId: unit.unitId,
-                assessment: unit.assessment,
+                assessment: unit.assessment || 0,
                 assessmentNote: unit.adjustedAssessmentReason
             };
             this.$http.put("/api/Unit/UpdateAssessment", updateInfo).then(() => {
@@ -7053,14 +7053,29 @@ var Ally;
                     newRow.firstName = newRow.firstName.replace(" & ", " and "); // Normalize "&" to "and"
                 if (newRow.firstName && newRow.firstName.toLowerCase().indexOf(" and ") !== -1) {
                     spouseRow = _.clone(newRow);
-                    const splitFirst = newRow.firstName.split(" and ");
-                    newRow.firstName = splitFirst[0];
-                    spouseRow.firstName = splitFirst[1];
+                    const splitNames = newRow.firstName.split(" and ");
+                    newRow.firstName = splitNames[0].trim();
+                    spouseRow.firstName = splitNames[1].trim();
+                    // If the last names differ
+                    if (newRow.firstName.includes(' ') && spouseRow.firstName.includes(' ')) {
+                        const firstSplit = newRow.firstName.split(' ');
+                        if (firstSplit.length === 2) {
+                            newRow.firstName = firstSplit[0];
+                            newRow.lastName = firstSplit[1];
+                        }
+                        const spouseSplit = spouseRow.firstName.split(' ');
+                        if (spouseSplit.length === 2) {
+                            spouseRow.firstName = spouseSplit[0];
+                            spouseRow.lastName = spouseSplit[1];
+                        }
+                    }
+                    // If the name includes an email address after a slash
                     if (newRow.email && newRow.email.indexOf("/") !== -1) {
                         const splitEmail = newRow.email.split("/");
                         newRow.email = splitEmail[0].trim();
                         spouseRow.email = splitEmail[1].trim();
                     }
+                    // Or if the name includes an email address after a semicolon
                     else if (newRow.email && newRow.email.indexOf(";") !== -1) {
                         const splitEmail = newRow.email.split(";");
                         newRow.email = splitEmail[0].trim();
@@ -7688,7 +7703,7 @@ var Ally;
                 this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
                 this.premiumPlanRenewDate = new Date();
                 this.premiumPlanRenewDate = moment(this.settings.premiumPlanExpirationDate).add(1, "days").toDate();
-                if (this.settings.premiumPlanIsAutoRenewed) {
+                if (this.settings.premiumPlanIsAutoRenewed || this.settings.hasStripeCustomerId) {
                     this.planExpirationColor = "green";
                     this.$http.get("/api/Settings/StripeBillingPortal").then((response) => this.stripePortalUrl = response.data.portalUrl);
                 }
@@ -10513,9 +10528,6 @@ var Ally;
             // Allow admin to login if needed
             if (HtmlUtil.GetQueryStringParameter("s") === "1")
                 this.isDemoSite = false;
-            //const welcomeImageElem = document.getElementById( "welcome-image" ) as HTMLImageElement;
-            //welcomeImageElem.addEventListener( "load", () => this.onWelcomeImageLoaded() );
-            //welcomeImageElem.addEventListener( "error", () => this.onWelcomeImageError() );
             this.loginImageUrl = this.siteInfo.publicSiteInfo.loginImageUrl;
             this.sectionStyle = {
                 position: "relative"
@@ -15136,11 +15148,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, siteInfo) {
+        constructor($http, fellowResidents, $location, siteInfo, uiGridConstants, appCacheService) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.siteInfo = siteInfo;
+            this.uiGridConstants = uiGridConstants;
+            this.appCacheService = appCacheService;
             this.isLoading = false;
             this.isLoadingResidents = false;
             this.filteredInstances = [];
@@ -15154,8 +15168,33 @@ var Ally;
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.shouldShowSubmitted = this.isSiteManager;
+            this.eformGridOptions =
+                {
+                    data: [],
+                    enableFiltering: false,
+                    columnDefs: [
+                        { field: 'template.templateName', displayName: 'Name', cellTemplate: '<div class="ui-grid-cell-contents" ng-class="col.colIndex()"><a ng-cell-text href="#!/ViewEform/{{row.entity.eformInstanceId}}">{{row.entity.template.templateName}}</a></div>' },
+                        { field: 'assignedToLabel', displayName: 'Assigned To' },
+                        { field: 'submitterLabel', displayName: 'Submitted By', visible: this.shouldShowSubmitted },
+                        { field: 'formStatus', displayName: 'Status' },
+                        { field: 'submitDateUtc', displayName: 'Created', type: 'date', cellFilter: "date:'short'", sort: { direction: 'desc', priority: 0 } }
+                    ],
+                    multiSelect: false,
+                    enableSorting: true,
+                    enableHorizontalScrollbar: window.innerWidth < 996 ? this.uiGridConstants.scrollbars.ALWAYS : this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    //enableFullRowSelection: true,
+                    enableColumnMenus: false,
+                    //enableGridMenu: true,
+                    //enableRowHeaderSelection: false,
+                };
+            // Tell the E-form logic to return to this listing on save
+            this.appCacheService.set(Ally.EformTemplateDto.AppCacheKeyReturnUrl, "/EformInstanceListing");
             this.loadInstances();
         }
+        /**
+         * Populate the assigned to and submitter labels for a form instance
+         */
         static populateUserNameLabels(fellowResidents, curInstance) {
             const allResidents = fellowResidents.residents;
             // If this form is assigned to a specific user, find their name
@@ -15190,19 +15229,26 @@ var Ally;
                 if (curSection.lastEditUserId === EformInstanceListingController.AnonymousUserId)
                     curSection.lastEditUserLabel = "Anonymous";
                 else
-                    curSection.lastEditUserLabel = allResidents.find(r => r.userId === curInstance.submitterUserId)?.fullName;
+                    curSection.lastEditUserLabel = allResidents.find(r => r.userId === curSection.lastEditUserId)?.fullName;
             }
         }
+        /**
+         * Populate the assigned to and submitter labels for all form instances
+         */
         static populateUserNameLabelsForList(fellowResidents, instances) {
             for (const curInstance of instances)
                 EformInstanceListingController.populateUserNameLabels(fellowResidents, curInstance);
         }
+        /**
+         * Loads the E-form instances for the user
+         */
         loadInstances() {
             this.isLoading = true;
             this.$http.get("/api/EformInstance/ForListPage").then((response) => {
                 this.isLoading = false;
                 this.pageInfo = response.data;
                 this.filteredInstances = this.pageInfo.instances;
+                this.eformGridOptions.data = this.filteredInstances;
                 this.isLoadingResidents = true;
                 this.fellowResidents.getByUnitsAndResidents().then(fr => {
                     this.isLoadingResidents = false;
@@ -15213,17 +15259,22 @@ var Ally;
                 alert("Failed to load E-forms: " + response.data.exceptionMessage);
             });
         }
+        /**
+         * Refresh the visible form list based on the current status filter selection
+         */
         refreshFormStatusFilter() {
             if (this.formStatusFilter === "active" || this.formStatusFilter === "complete")
                 this.filteredInstances = this.pageInfo.instances.filter(i => i.formStatus === this.formStatusFilter);
             else
                 this.filteredInstances = this.pageInfo.instances;
+            this.eformGridOptions.data = this.filteredInstances;
         }
     }
-    EformInstanceListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
+    EformInstanceListingController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "uiGridConstants", "appCacheService"];
     EformInstanceListingController.AssignToUserPrefix = "user:";
     EformInstanceListingController.AnonymousUserId = "00000000-0000-0000-0000-000000000000";
     Ally.EformInstanceListingController = EformInstanceListingController;
+    // Represents the API result for populating the E-form listing page
     class EformListPageInfo {
     }
 })(Ally || (Ally = {}));
@@ -15366,6 +15417,7 @@ var Ally;
                 EformTemplateSection.parseFields(curSection);
         }
     }
+    EformTemplateDto.AppCacheKeyReturnUrl = "eformLastPage";
     Ally.EformTemplateDto = EformTemplateDto;
     class EformTemplateCatalogItem {
     }
@@ -15386,11 +15438,12 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, siteInfo) {
+        constructor($http, fellowResidents, $location, siteInfo, appCacheService) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isLoading = false;
             this.shouldShowWidget = false;
             this.isSiteManager = false;
@@ -15401,6 +15454,8 @@ var Ally;
         $onInit() {
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.loadData();
+            // Tell the E-form logic to return to home on save
+            this.appCacheService.set(Ally.EformTemplateDto.AppCacheKeyReturnUrl, "/Home");
         }
         filterTemplatesOnWhosAllowed(enabledTemplates) {
             const templateIdsToHide = [];
@@ -15437,7 +15492,7 @@ var Ally;
             });
         }
     }
-    EformWidgetController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo"];
+    EformWidgetController.$inject = ["$http", "fellowResidents", "$location", "SiteInfo", "appCacheService"];
     Ally.EformWidgetController = EformWidgetController;
     class EformWidgetInfo {
     }
@@ -15457,12 +15512,13 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($http, fellowResidents, $location, $routeParams, siteInfo) {
+        constructor($http, fellowResidents, $location, $routeParams, siteInfo, appCacheService) {
             this.$http = $http;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
             this.$routeParams = $routeParams;
             this.siteInfo = siteInfo;
+            this.appCacheService = appCacheService;
             this.isCreate = false;
             this.isLoading = false;
             this.savingMessage = "";
@@ -15616,6 +15672,14 @@ var Ally;
             const emptyFields = [];
             for (const curFieldPair of curSection.fieldPairs) {
                 if (curFieldPair.template.isRequired) {
+                    // Fast fail for clearly empty values
+                    if (curFieldPair.instance.valuesJson === null || curFieldPair.instance.valuesJson === undefined || curFieldPair.instance.valuesJson === "") {
+                        emptyFields.push(curFieldPair);
+                        continue;
+                    }
+                    // Non-null number would always be valid
+                    if (typeof curFieldPair.instance.valuesJson === "number")
+                        continue;
                     if (HtmlUtil.isNullOrWhitespace(curFieldPair.instance.valuesJson))
                         emptyFields.push(curFieldPair);
                 }
@@ -15685,7 +15749,9 @@ var Ally;
                 const onDoneUploading = () => {
                     this.savingMessage = "";
                     this.isLoading = false;
-                    this.$location.path("/Home");
+                    // Tell the E-form logic to return to this listing on save
+                    const returnUrl = this.appCacheService.getAndClear(Ally.EformTemplateDto.AppCacheKeyReturnUrl) || "/Home";
+                    this.$location.path(returnUrl);
                 };
                 //let uploadCount = 0;
                 //const uploadNextAttachment = () =>
@@ -15745,7 +15811,7 @@ var Ally;
             });
         }
     }
-    ViewEformInstanceController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo"];
+    ViewEformInstanceController.$inject = ["$http", "fellowResidents", "$location", "$routeParams", "SiteInfo", "appCacheService"];
     Ally.ViewEformInstanceController = ViewEformInstanceController;
     class SaveSectionData {
     }

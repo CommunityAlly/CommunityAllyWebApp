@@ -1,4 +1,4 @@
-﻿<div class="page">
+<div class="page">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <h2>Premium Plan</h2>
 
@@ -55,7 +55,15 @@
             </div>
             <br />
 
-            <button data-ng-if="!$ctrl.shouldShowHomeSetupNote && !$ctrl.shouldShowPaymentForm" class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()">View Premium Plan Renewal Options</button>
+            <div class="p-2" style="display: inline-block; text-align: center; vertical-align: top;" data-ng-if="!$ctrl.shouldShowHomeSetupNote && !$ctrl.shouldShowPaymentForm">
+                <button class="btn btn-primary" type="button" data-ng-click="$ctrl.activatePremiumRenewal()">View Premium Plan Renewal Options</button>
+            </div>
+            <div class="p-2 ms-3" style="display: inline-block; text-align: center;" data-ng-if="$ctrl.stripePortalUrl">
+                <a class="btn btn-primary" data-ng-href="{{$ctrl.stripePortalUrl}}">View Stripe Billing Portal</a>
+                <br />
+                <span class="note-text">Here you can view payment history<br />and adjust payment methods.</span>
+            </div>
+
             <div data-ng-if="$ctrl.shouldShowHomeSetupNote" class="mt-2 mb-2 alert alert-warning">
                 It looks like you have not yet setup your homes. Our pricing is based on number of homes so we need that information before you can sign-up for our premium plan.
                 <br />
