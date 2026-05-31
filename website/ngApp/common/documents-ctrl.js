@@ -606,19 +606,44 @@ var Ally;
         // Occurs when the user wants to delete a document
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DeleteDocument(document) {
-            if (confirm("Are you sure you want to delete this file?")) {
-                // Display the loading image
-                this.isLoading = true;
-                this.$http.delete("/api/ManageDocuments?docPath=" + document.relativeS3Path).then(() => {
-                    // Clear the docs cache so we fully refresh the file list since a file was deleted
-                    this.docsHttpCache.removeAll();
-                    this.RefreshDocuments();
-                }, (response) => {
-                    this.isLoading = false;
-                    alert("Failed to delete file: " + response.data.exceptionMessage);
-                    this.RefreshDocuments();
-                });
+            if (!confirm("Are you sure you want to delete this file? This action cannot be undone."))
+                return;
+            // Display the loading image
+            this.isLoading = true;
+            this.$http.delete("/api/ManageDocuments/DeleteFile?docPath=" + document.relativeS3Path).then(() => {
+                // Clear the docs cache so we fully refresh the file list since a file was deleted
+                this.docsHttpCache.removeAll();
+                this.RefreshDocuments();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to delete file: " + response.data.exceptionMessage);
+                this.RefreshDocuments();
+            });
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks the button to delete multiple selected documents
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        DeleteSelectedDocuments() {
+            if (!this.selectedFiles || this.selectedFiles.length < 2) {
+                alert("Please select multiple documents first");
+                return;
             }
+            if (!confirm(`Are you sure you want to delete these ${this.selectedFiles.length} files? This action cannot be undone.`))
+                return;
+            const postData = {
+                cloudFilePaths: this.selectedFiles.map(f => f.relativeS3Path)
+            };
+            this.isLoading = true;
+            this.$http.post("/api/ManageDocuments/DeleteMultipleFiles", postData).then(() => {
+                this.isLoading = false;
+                // Clear the docs cache so we fully refresh the file list since a file was deleted
+                this.docsHttpCache.removeAll();
+                this.RefreshDocuments();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to delete files: " + response.data.exceptionMessage);
+                this.RefreshDocuments();
+            });
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to edit a directory name

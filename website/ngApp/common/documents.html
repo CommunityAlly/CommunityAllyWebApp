@@ -1,4 +1,4 @@
-﻿<section class="docs">
+<section class="docs">
     <h1>{{ $ctrl.title }}</h1>
     <div class="mt-2 mb-2">
         Here you can explore your group's documents. You can search for files quickly using the search box in the upper left of the documents area. <span data-ng-if="$ctrl.canManage">You can drag-and-drop files to move them by dragging the file's icon.</span>
@@ -63,18 +63,19 @@
                     <div id="public-folder-note" data-ng-show="$ctrl.selectedDirectory.isPublic">
                         This is a public folder. You can share links to these documents with non-residents.
                     </div>
-                    <div data-ng-show="$ctrl.selectedDirectory != null" class="row mb-3" style="margin-top:15px; border-bottom: 1px solid #CCC;">
-                        <div class="col-12 col-lg-9">
+                    <div data-ng-show="$ctrl.selectedDirectory != null" class="mb-3 pb-3" style="margin-top:15px; border-bottom: 1px solid #CCC;">
+                        <div style="float: right;">
+                            <div class="margin-right-10">
+                                Sort By:<br /><span class="text-link" data-ng-class="{'bold-underline': $ctrl.fileSortType === 'title'}" data-ng-click="$ctrl.SetFileSortType('title')">Name</span> - <span data-ng-class="{'bold-underline': $ctrl.fileSortType === 'uploadDate'}" data-ng-click="$ctrl.SetFileSortType('uploadDate')" class="text-link">Upload Date</span>
+                            </div>
+                        </div>
+                        <div>
                             <div class="btn-group" role="group" aria-label="Basic outlined example">
                                 <button type="button" class="btn btn-outline-primary" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" onclick="$('#JQDocsFileUploader').click();">Upload File</button>
                                 <button type="button" class="btn btn-outline-primary" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.RenameSelectedDirectory()">Rename Folder</button>
                                 <button type="button" class="btn btn-outline-danger" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</button>
+                                <button type="button" class="btn btn-outline-danger" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage && $ctrl.selectedFiles.length > 1" data-ng-click="$ctrl.DeleteSelectedDocuments()">Delete {{$ctrl.selectedFiles.length}} Files</button>
                                 <button type="button" class="btn btn-outline-primary" data-ng-if="$ctrl.selectedDirectory != null && $ctrl.selectedDirectory.directoryDepth < 2 && $ctrl.canManage" data-ng-click="$ctrl.createSubDirectory()">Create Sub-Folder</button>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-3">
-                            <div class="margin-right-10">
-                                Sort By:<br /><span class="text-link" data-ng-class="{'bold-underline': $ctrl.fileSortType === 'title'}" data-ng-click="$ctrl.SetFileSortType('title')">Name</span> - <span data-ng-class="{'bold-underline': $ctrl.fileSortType === 'uploadDate'}" data-ng-click="$ctrl.SetFileSortType('uploadDate')" class="text-link">Upload Date</span>
                             </div>
                         </div>
                     </div>
@@ -97,8 +98,8 @@
                                     <div class="col-md-5 text-md-end padding-right">
                                         <span ng-click="$ctrl.viewDoc( curFile, false )" class="text-button">View</span>
                                         - <span ng-click="$ctrl.viewDoc( curFile, true )" class="text-button">Download</span>
-                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ ::$index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile);">Rename</a></span>
-                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="delete-document-button-{{ ::$index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile);">Delete</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="rename-document-button-{{ ::$index }}" class="text-button" data-ng-click="$ctrl.RenameDocument(curFile)">Rename</a></span>
+                                        <span data-ng-if="$ctrl.canManage"> - <a href="javascript:void(0)" id="delete-document-button-{{ ::$index }}" class="text-button" data-ng-click="$ctrl.DeleteDocument(curFile)">Delete</a></span>
                                     </div>
                                 </div>
                             </div>
