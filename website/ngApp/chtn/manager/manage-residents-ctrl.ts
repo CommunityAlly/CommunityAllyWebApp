@@ -235,7 +235,6 @@ namespace Ally
         showAddHomeLink: boolean = false;
         hasMemberNotOwnerRenter: boolean = false;
         didLoadResidentGridState = false;
-        shouldSaveResidentGridState = true;
         isNeighborhoodSite = false;
         static readonly StoreKeyResidentGridState = "AllyResGridState";
 
@@ -517,35 +516,25 @@ namespace Ally
                         this.toggleEmailHistoryVisible();
                     }
 
-                    if( this.residentsGridApi && window.localStorage[ManageResidentsController.StoreKeyResidentGridState] )
+                    if( this.residentsGridApi )
                     {
-                        const gridState = JSON.parse( window.localStorage[ManageResidentsController.StoreKeyResidentGridState] );
-                        if( gridState && typeof ( gridState ) === "object" )
+                        if( window.localStorage[ManageResidentsController.StoreKeyResidentGridState] )
                         {
-                            this.residentsGridApi.saveState.restore( this as any, gridState );
-                            this.residentsGridApi.grid.clearAllFilters( true, true, false );
-                            this.didLoadResidentGridState = true;
+                            const gridState = JSON.parse( window.localStorage[ManageResidentsController.StoreKeyResidentGridState] );
+                            if( gridState && typeof ( gridState ) === "object" )
+                            {
+                                this.residentsGridApi.saveState.restore( this as any, gridState );
+                                this.residentsGridApi.grid.clearAllFilters( true, true, false );
+                                this.didLoadResidentGridState = true;
+                            }
                         }
+
+                        HtmlUtil2.hookupGridStateSaving( this.residentsGridApi, ManageResidentsController.StoreKeyResidentGridState );
                     }
 
                     if( this.shouldShowPendingMembers )
                         this.loadPendingMembers();
                 } );
-        }
-
-
-        /**
-         * Called on a controller when its containing scope is destroyed. Use this hook for releasing external resources,
-         * watches and event handlers.
-         */
-        $onDestroy()
-        {
-            // Save the grid state (column order, widths, visible, etc.)
-            if( this.shouldSaveResidentGridState )
-            {
-                const gridState = this.residentsGridApi.saveState.save();
-                window.localStorage[ManageResidentsController.StoreKeyResidentGridState] = JSON.stringify( gridState );
-            }
         }
 
 
@@ -1704,8 +1693,6 @@ namespace Ally
             // Remove the saved grid state
             window.localStorage.removeItem( ManageResidentsController.StoreKeyResidentGridState );
 
-            // Refresh the page, but don't save the grid state on exit
-            this.shouldSaveResidentGridState = false;
             window.location.reload();
         }
 

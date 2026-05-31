@@ -612,6 +612,44 @@ var Ally;
             html = html.replace(/&nbsp;/gi, " ");
             return html;
         }
+        static hookupGridStateSaving(gridApi, storageKey) {
+            if (!gridApi || !storageKey)
+                return;
+            // Wait a bit to hook up until the page finishes loading
+            window.setTimeout(() => HtmlUtil2.hookupGridStateSaving_internal(gridApi, storageKey), 50);
+        }
+        static hookupGridStateSaving_internal(gridApi, storageKey) {
+            //console.log( "In hookupGridStateSaving_internal for key:", storageKey );
+            // The method to store the grid state to localStorage
+            const saveState = () => {
+                //console.log( "hookupGridStateSaving_internal saving state" );
+                const gridState = gridApi.saveState.save();
+                if (gridState)
+                    window.localStorage[storageKey] = JSON.stringify(gridState);
+            };
+            const $scope = null;
+            const gridStateJson = window.localStorage[storageKey];
+            if (HtmlUtil.isValidString(gridStateJson)) {
+                const gridState = JSON.parse(gridStateJson);
+                if (typeof (gridState) === "object")
+                    gridApi.saveState.restore($scope, gridState);
+            }
+            // Don't save the filter state, just the grid state
+            gridApi.grid.clearAllFilters(true, true, false);
+            // Hook up the event handlers to save the state when it changes
+            // http://stackoverflow.com/questions/32346341/angular-ui-grid-save-and-restore-state
+            if (gridApi.colMovable)
+                gridApi.colMovable.on.columnPositionChanged($scope, saveState);
+            if (gridApi.colResizable)
+                gridApi.colResizable.on.columnSizeChanged($scope, saveState);
+            if (gridApi.grouping) {
+                gridApi.grouping.on.aggregationChanged($scope, saveState);
+                gridApi.grouping.on.groupingChanged($scope, saveState);
+            }
+            gridApi.core.on.columnVisibilityChanged($scope, saveState);
+            gridApi.core.on.filterChanged($scope, saveState);
+            gridApi.core.on.sortChanged($scope, saveState);
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"
