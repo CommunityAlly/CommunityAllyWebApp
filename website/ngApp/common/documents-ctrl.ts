@@ -38,6 +38,7 @@ namespace Ally
 
         // Calculated on the client
         directoryDepth: number;
+        isExpanded = false;
 
         getSubDirectoryByName( dirName: string ): DocumentDirectory
         {
@@ -67,8 +68,10 @@ namespace Ally
         static readonly DirName_Committees = "Committees_Root";
         static readonly ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
         static readonly GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
+        static readonly MaxDirectoryDepth = 7;
 
         documentTree: DocumentDirectory;
+        directoryFlatList: DocumentDirectory[] = [];
         selectedDirectory: DocumentDirectory;
         selectedFiles: DocumentTreeFile[] = [];
         draggingType: "file" | "folder" | null = null;
@@ -94,6 +97,7 @@ namespace Ally
         generatingZipStatus: string;
         generatingZipId: string;
         committeePathPrefix: string = null;
+        maxDirectoryDepth = DocumentsController.MaxDirectoryDepth;
 
 
         /**
@@ -277,7 +281,7 @@ namespace Ally
                         // Create a link and click it
                         const link = document.createElement( 'a' );
                         link.setAttribute( "type", "hidden" ); // make it hidden if needed
-                        link.href = fileUri + "&dl=" + encodeURIComponent(curFile.fileName);
+                        link.href = fileUri + "&dl=" + encodeURIComponent( curFile.fileName );
                         link.download = curFile.fileName;
                         document.body.appendChild( link );
                         link.click();
@@ -607,9 +611,9 @@ namespace Ally
                     const fileIndexString = $( event.target ).attr( "id" ).substring( "File_".length );
                     const fileIndex = parseInt( fileIndexString );
                     const fileInfo = this.selectedDirectory.files[fileIndex];
-                    
+
                     // If not holding Ctrl and file isn't already selected, select it now
-                    if( !event.ctrlKey && !event.metaKey && !this.selectedFiles.includes(fileInfo) )
+                    if( !event.ctrlKey && !event.metaKey && !this.selectedFiles.includes( fileInfo ) )
                     {
                         this.$scope.$apply( () =>
                         {
@@ -626,7 +630,7 @@ namespace Ally
                         {
                             // Now this.selectedFiles will have the correct value
                             const fileIconPath = this.selectedFiles.length === 1 ? HtmlUtil2.getFileIcon( this.selectedFiles[0].fileName ) : DocumentsController.GenericIconPath;
-                            const dragLabel = "<span>" + ( this.selectedFiles.length === 1 ? this.selectedFiles[0].fileName : (this.selectedFiles.length + ' files')) + "</span>";
+                            const dragLabel = "<span>" + ( this.selectedFiles.length === 1 ? this.selectedFiles[0].fileName : ( this.selectedFiles.length + ' files' ) ) + "</span>";
 
                             const helper = $( '<div class="drag-helper">' +
                                 `<img src="${fileIconPath}" style="width:32px;height:32px;vertical-align:middle;margin-right:5px;" />` +
@@ -654,9 +658,9 @@ namespace Ally
                             this.$scope.$apply( () =>
                             {
                                 const fileInfo = this.selectedDirectory.files[fileIndex];
-                                
+
                                 // If dragging a non-selected file, select only that file
-                                if( !this.selectedFiles.includes(fileInfo) )
+                                if( !this.selectedFiles.includes( fileInfo ) )
                                 {
                                     this.selectedFiles = [fileInfo];
                                 }
@@ -705,11 +709,18 @@ namespace Ally
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onDirectoryClicked( dir: DocumentDirectory )
         {
+            console.log( "onDirectoryClicked", this.selectedDirectory === dir, dir.isExpanded );
+
             // If the user clicked on the currently-selected directory, then toggle the subdirectories
             if( this.selectedDirectory === dir )
                 this.shouldShowSubdirectories = !this.shouldShowSubdirectories;
             else
                 this.shouldShowSubdirectories = true;
+
+            if( this.selectedDirectory === dir )
+                dir.isExpanded = !dir.isExpanded;
+            else
+                dir.isExpanded = true;
 
             this.selectedDirectory = dir;
             this.selectedFiles = [];
@@ -750,7 +761,7 @@ namespace Ally
             //console.log( "In createSubDirectory", this.selectedDirectory.fullDirectoryPath );
 
             this.createUnderParentDirName = this.selectedDirectory.fullDirectoryPath;
-            
+
             this.shouldShowCreateFolderModal = true;
             setTimeout( () => $( '#CreateDirectoryNameTextBox' ).focus(), 50 );
         }
@@ -918,7 +929,7 @@ namespace Ally
         {
             if( !confirm( "Are you sure you want to delete this file? This action cannot be undone." ) )
                 return;
-            
+
             // Display the loading image
             this.isLoading = true;
 
@@ -1077,7 +1088,7 @@ namespace Ally
             else if( directory.isPublic )
                 directoryType = "public-";
 
-            if( directory === this.selectedDirectory )
+            if( directory === this.selectedDirectory || directory.isExpanded )
                 return `/assets/images/docs/folder-${directoryType}open.png`;
 
             if( directory.subdirectories.length > 0 )
@@ -1090,7 +1101,7 @@ namespace Ally
         isGenericIcon( file: DocumentTreeFile )
         {
             const iconFilePath = HtmlUtil2.getFileIcon( file.fileName );
-            
+
             return iconFilePath === DocumentsController.GenericIconPath;
         }
 
@@ -1126,7 +1137,7 @@ namespace Ally
             if( !fullPath )
                 return null;
 
-            const dfs = ( curDir: DocumentDirectory ): DocumentDirectory|null =>
+            const dfs = ( curDir: DocumentDirectory ): DocumentDirectory | null =>
             {
                 if( !curDir )
                     return null;
@@ -1186,7 +1197,8 @@ namespace Ally
                     this.isLoading = false;
                     this.documentTree = httpResponse.data;
                     this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
-                    
+                    this.documentTree.isExpanded = true; // Tell the root node to always be open
+
                     // Hook up parent directories
                     this.documentTree.subdirectories.forEach( ( dir ) =>
                     {
@@ -1194,7 +1206,7 @@ namespace Ally
                         this.hookupParentDirs( dir );
                     } );
 
-                    // Build an array of all local files
+                    // Build an array of all local files that's used for searching
                     const allFiles: DocumentTreeFile[] = [];
                     const processDir = ( subdir: DocumentDirectory ) =>
                     {
@@ -1211,6 +1223,24 @@ namespace Ally
                     processDir( this.documentTree );
 
                     this.fullSearchFileList = allFiles;
+
+                    // Build a flat list of directories so it's easier to display in a list box
+                    this.directoryFlatList = [];
+                    const buildFlatListDfs = ( dir: DocumentDirectory ) =>
+                    {
+                        if( !dir )
+                            return;
+
+                        // Don't add the unnamed root
+                        if( dir.name )
+                            this.directoryFlatList.push( dir );
+
+                        for( const curSubDir of dir.subdirectories )
+                            buildFlatListDfs( curSubDir );
+
+                    };
+                    buildFlatListDfs( this.documentTree )
+
 
                     // Find the directory we had selected before the refresh
                     if( selectedDirectoryPath )

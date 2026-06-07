@@ -455,6 +455,10 @@ fieldset legend {
 }
 
 /** form controls */
+.form-group label {
+  font-size: 16px;
+  font-weight: 600;
+}
 .form-group {
   /** Not sure why this rule is here */
   /*@media screen and (min-width: 620px) {
@@ -462,10 +466,6 @@ fieldset legend {
           text-align: right;
       }
   }*/
-}
-.form-group label {
-  font-size: 16px;
-  font-weight: 600;
 }
 
 label.form-check-label {
@@ -801,12 +801,6 @@ header {
   box-shadow: 0 10px 10px #eaeaeb;
   position: relative;
   z-index: 620;
-  /*.navbar-brand
-  {
-      visibility: hidden;
-      padding: 0;
-      font-size: 14px;
-  }*/
 }
 header .logo-container {
   background: #60a2c8 url(/assets/images/header-img-condo.jpg) no-repeat center center;
@@ -825,13 +819,18 @@ header .logo-container h3 {
 header .logo-container h4 {
   font-size: 46px;
 }
+header {
+  /*.navbar-brand
+  {
+      visibility: hidden;
+      padding: 0;
+      font-size: 14px;
+  }*/
+}
 header nav {
   /*padding: 14px 0px !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;*/
-  /*.navbar-collapse.collapse.show
-  {
-  }*/
 }
 header nav .justify-content-between {
   flex: 1;
@@ -854,6 +853,14 @@ header nav .navbar-toggler {
       height: 13px;
   }*/
 }
+header nav {
+  /*.navbar-collapse.collapse.show
+  {
+  }*/
+}
+header nav .nav-item:not(:last-child) {
+  margin-right: 20px;
+}
 header nav .nav-item {
   /*&.dropdown:hover
   {
@@ -862,9 +869,6 @@ header nav .nav-item {
           display: block;
       }
   }*/
-}
-header nav .nav-item:not(:last-child) {
-  margin-right: 20px;
 }
 header nav .nav-item .nav-link {
   transition: all 0.3s ease-out;
@@ -884,6 +888,18 @@ header nav .nav-item .dropdown-menu {
   top: 90%;
 }
 @media (max-width: 991px) {
+  header nav .nav-link {
+    font-size: 16px !important;
+    padding: 0px !important;
+  }
+  header nav .navbar-collapse {
+    position: absolute;
+    width: calc(100% + 60px);
+    padding: 10px 30px;
+    left: -30px;
+    background: #f8f8f8;
+    top: 100%;
+  }
   header nav {
     /*.dropdown-menu
     {
@@ -897,18 +913,6 @@ header nav .nav-item .dropdown-menu {
             line-height: 1em;
         }
     }*/
-  }
-  header nav .nav-link {
-    font-size: 16px !important;
-    padding: 0px !important;
-  }
-  header nav .navbar-collapse {
-    position: absolute;
-    width: calc(100% + 60px);
-    padding: 10px 30px;
-    left: -30px;
-    background: #f8f8f8;
-    top: 100%;
   }
 }
 header .settings {
@@ -932,23 +936,17 @@ header .settings a, header .settings .text-button {
   text-decoration: none;
 }
 
-.can-edit-inline-no-pencil {
-  border-bottom-style: none !important;
-  cursor: pointer;
-  display: inline;
-}
 .can-edit-inline-no-pencil :hover {
   padding: 0px;
   /*border: 1px dashed #000;*/
   border-bottom: dashed 1px white !important;
 }
-
-.can-edit-inline {
-  /*padding: 1px;*/
+.can-edit-inline-no-pencil {
   border-bottom-style: none !important;
   cursor: pointer;
   display: inline;
 }
+
 .can-edit-inline:before {
   content: "";
   display: inline-block;
@@ -960,11 +958,6 @@ header .settings a, header .settings .text-button {
   left: -4px;
   background-position: left top;
   top: -13px;
-}
-.can-edit-inline:hover {
-  padding: 0px;
-  /*border: 1px dashed #000;*/
-  border-bottom: dashed 1px white !important;
 }
 .can-edit-inline:hover:before {
   content: "";
@@ -978,6 +971,17 @@ header .settings a, header .settings .text-button {
   background-position: left top;
   top: -13px;
   background-image: url(/assets/images/pencil-active.png);
+}
+.can-edit-inline:hover {
+  padding: 0px;
+  /*border: 1px dashed #000;*/
+  border-bottom: dashed 1px white !important;
+}
+.can-edit-inline {
+  /*padding: 1px;*/
+  border-bottom-style: none !important;
+  cursor: pointer;
+  display: inline;
 }
 
 .main-container {
@@ -1045,10 +1049,6 @@ footer a:hover {
   margin-top: 5px;
 }
 
-.page-documents {
-  /* Docs page start */
-  /* Docs page end */
-}
 .page-documents .info-welcome {
   display: flex;
   justify-content: center;
@@ -1065,6 +1065,9 @@ footer a:hover {
 .page-documents .info-welcome .nav-pills li a.selected {
   border: 1px solid #007CBC;
   border-radius: 10px;
+}
+.page-documents {
+  /* Docs page start */
 }
 .page-documents .info li {
   list-style-position: inside;
@@ -1236,6 +1239,9 @@ footer a:hover {
   .page-documents .media-item .file_settings {
     text-align: left;
   }
+}
+.page-documents {
+  /* Docs page end */
 }
 
 .page-document-info {

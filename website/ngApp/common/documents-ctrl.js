@@ -7,6 +7,9 @@ var Ally;
     }
     Ally.DocLinkInfo = DocLinkInfo;
     class DocumentDirectory {
+        constructor() {
+            this.isExpanded = false;
+        }
         getSubDirectoryByName(dirName) {
             if (!this.subdirectories)
                 return null;
@@ -33,6 +36,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
+            this.directoryFlatList = [];
             this.selectedFiles = [];
             this.draggingType = null;
             this.isLoading = false;
@@ -42,6 +46,7 @@ var Ally;
             this.showPopUpWarning = false;
             this.shouldShowSubdirectories = true;
             this.committeePathPrefix = null;
+            this.maxDirectoryDepth = DocumentsController.MaxDirectoryDepth;
             // Get or create the docs data cache
             this.docsHttpCache = this.$cacheFactory.get("docs-http-cache") || this.$cacheFactory("docs-http-cache");
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
@@ -462,11 +467,16 @@ var Ally;
         // not refresh
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onDirectoryClicked(dir) {
+            console.log("onDirectoryClicked", this.selectedDirectory === dir, dir.isExpanded);
             // If the user clicked on the currently-selected directory, then toggle the subdirectories
             if (this.selectedDirectory === dir)
                 this.shouldShowSubdirectories = !this.shouldShowSubdirectories;
             else
                 this.shouldShowSubdirectories = true;
+            if (this.selectedDirectory === dir)
+                dir.isExpanded = !dir.isExpanded;
+            else
+                dir.isExpanded = true;
             this.selectedDirectory = dir;
             this.selectedFiles = [];
             this.fileSearch.all = null;
@@ -704,7 +714,7 @@ var Ally;
                 directoryType = "private-";
             else if (directory.isPublic)
                 directoryType = "public-";
-            if (directory === this.selectedDirectory)
+            if (directory === this.selectedDirectory || directory.isExpanded)
                 return `/assets/images/docs/folder-${directoryType}open.png`;
             if (directory.subdirectories.length > 0)
                 return `/assets/images/docs/folder-${directoryType}multi.png`;
@@ -776,12 +786,13 @@ var Ally;
                 this.isLoading = false;
                 this.documentTree = httpResponse.data;
                 this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
+                this.documentTree.isExpanded = true; // Tell the root node to always be open
                 // Hook up parent directories
                 this.documentTree.subdirectories.forEach((dir) => {
                     dir.directoryDepth = 0;
                     this.hookupParentDirs(dir);
                 });
-                // Build an array of all local files
+                // Build an array of all local files that's used for searching
                 const allFiles = [];
                 const processDir = (subdir) => {
                     _.each(subdir.files, (f) => {
@@ -793,6 +804,18 @@ var Ally;
                 };
                 processDir(this.documentTree);
                 this.fullSearchFileList = allFiles;
+                // Build a flat list of directories so it's easier to display in a list box
+                this.directoryFlatList = [];
+                const buildFlatListDfs = (dir) => {
+                    if (!dir)
+                        return;
+                    // Don't add the unnamed root
+                    if (dir.name)
+                        this.directoryFlatList.push(dir);
+                    for (const curSubDir of dir.subdirectories)
+                        buildFlatListDfs(curSubDir);
+                };
+                buildFlatListDfs(this.documentTree);
                 // Find the directory we had selected before the refresh
                 if (selectedDirectoryPath) {
                     this.selectedDirectory = this.FindDirectoryByPath(selectedDirectoryPath);
@@ -814,6 +837,7 @@ var Ally;
     DocumentsController.DirName_Committees = "Committees_Root";
     DocumentsController.ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
     DocumentsController.GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
+    DocumentsController.MaxDirectoryDepth = 7;
     Ally.DocumentsController = DocumentsController;
     class FullZipGenStatus {
     }

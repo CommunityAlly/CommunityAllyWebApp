@@ -19,7 +19,7 @@
                         <input type="text" class="form-control search-box" data-ng-change="$ctrl.updateFileFilter()" data-ng-model="$ctrl.fileSearch.all" data-ng-model-options="{ debounce: 1 }" placeholder="Search files" aria-describedby="basic-addon2" />
                     </div>
 
-                    <div data-ng-class="{'directory-list-panel':$ctrl.canManage, 'directory-list-panel-full': !$ctrl.canManage}">
+                    <div data-ng-class="{'directory-list-panel':$ctrl.canManage, 'directory-list-panel-full': !$ctrl.canManage}" data-ng-if="false">
 
                         <div data-ng-repeat="curDirectory in $ctrl.documentTree.subdirectories">
                             <div id="directory-name-{{ ::$index }}" data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-public':curDirectory.isPublic, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
@@ -49,6 +49,22 @@
                             Your association has not yet uploaded any files.
                         </div>
                     </div>
+
+                    <div data-ng-class="{'directory-list-panel':$ctrl.canManage, 'directory-list-panel-full': !$ctrl.canManage}">
+                        <div data-ng-repeat="curDirectory in $ctrl.directoryFlatList">
+                            <div id="directory-name-{{ ::$index }}" data-ng-if="!curDirectory.parentDirectory || curDirectory.parentDirectory.isExpanded" data-ng-style="{'margin-left': (30 * curDirectory.directoryDepth).toString() + 'px'}"
+                                 data-ng-class="{ droppable:true, directory: !curDirectory.isPrivate, 'directory-private':curDirectory.isPrivate, 'directory-public':curDirectory.isPublic, 'directory-selected':curDirectory === $ctrl.selectedDirectory }"
+                                 data-ng-click="$ctrl.onDirectoryClicked(curDirectory);" data-folder-path="{{ ::curDirectory.fullDirectoryPath }}">
+                                <img id="folder-icon-{{ ::$index }}" style="width: 41px; height: 41px;" data-folder-path="{{curDirectory.fullDirectoryPath}}" class="draggable-folder folder-icon" data-ng-src="{{$ctrl.getFolderIcon(curDirectory)}}" />
+                                <span class="directory-name">{{curDirectory.name}}</span>
+                            </div>
+                        </div>
+
+                        <div data-ng-hide="$ctrl.directoryFlatList.length > 0" style="text-align: center; padding-top: 2em;">
+                            Your association has not yet uploaded any files.
+                        </div>
+                    </div>
+
                     <div class="text-center pt-3 pb-4 mb-3" data-ng-show="$ctrl.canManage">
                         <button type="button" class="btn btn-primary" data-ng-click="$ctrl.createDirectory()">+ Create New Folder</button>
                     </div>
@@ -75,7 +91,7 @@
                                 <button type="button" class="btn btn-outline-primary" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.RenameSelectedDirectory()">Rename Folder</button>
                                 <button type="button" class="btn btn-outline-danger" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage" data-ng-click="$ctrl.DeleteSelectedDirectory()">Delete Folder</button>
                                 <button type="button" class="btn btn-outline-danger" data-ng-show="$ctrl.selectedDirectory != null && $ctrl.canManage && $ctrl.selectedFiles.length > 1" data-ng-click="$ctrl.DeleteSelectedDocuments()">Delete {{$ctrl.selectedFiles.length}} Files</button>
-                                <button type="button" class="btn btn-outline-primary" data-ng-if="$ctrl.selectedDirectory != null && $ctrl.selectedDirectory.directoryDepth < 2 && $ctrl.canManage" data-ng-click="$ctrl.createSubDirectory()">Create Sub-Folder</button>
+                                <button type="button" class="btn btn-outline-primary" data-ng-if="$ctrl.selectedDirectory != null && $ctrl.selectedDirectory.directoryDepth < $ctrl.maxDirectoryDepth && $ctrl.canManage" data-ng-click="$ctrl.createSubDirectory()">Create Sub-Folder</button>
                             </div>
                         </div>
                     </div>
