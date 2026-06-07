@@ -1570,6 +1570,7 @@ function GetShortPayPeriodNames(intervalName) {
 const CondoAllyAppConfig = {
     appShortName: "condo",
     appName: "Condo Ally",
+    appNameLegal: "Condo Ally®",
     baseTld: "condoally.com",
     baseUrl: "https://condoally.com/",
     isChtnSite: true,
@@ -1678,7 +1679,8 @@ const CondoAllyAppConfig = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const HomeAppConfig = {
     appShortName: "home",
-    appName: "Home Ally",
+    appName: "Neighbor Ally",
+    appNameLegal: "Neighbor Ally™",
     baseTld: "homeally.org",
     baseUrl: "https://homeally.org/",
     isChtnSite: false,
@@ -1708,6 +1710,7 @@ const HomeAppConfig = {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const NeighborAppConfig = _.clone(HomeAppConfig);
 NeighborAppConfig.appName = "Neighbor Ally";
+NeighborAppConfig.appNameLegal = "Neighbor Ally™";
 NeighborAppConfig.baseTld = "neighborally.org";
 NeighborAppConfig.baseUrl = "https://neighborally.org/";
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1716,6 +1719,7 @@ NeighborAppConfig.baseUrl = "https://neighborally.org/";
 const HOAAppConfig = _.clone(CondoAllyAppConfig);
 HOAAppConfig.appShortName = "hoa";
 HOAAppConfig.appName = "HOA Ally";
+HOAAppConfig.appNameLegal = "HOA Ally®";
 HOAAppConfig.baseTld = "hoaally.org";
 HOAAppConfig.baseUrl = "https://hoaally.org/";
 HOAAppConfig.homeName = "Home";
@@ -1726,6 +1730,7 @@ HOAAppConfig.menu.push(new Ally.RoutePath_v3({ path: "HoaSignUp", templateHtml: 
 const NeighborhoodAppConfig = _.clone(CondoAllyAppConfig);
 NeighborhoodAppConfig.appShortName = "neighborhood";
 NeighborhoodAppConfig.appName = "Neighborhood Ally";
+NeighborhoodAppConfig.appNameLegal = "Neighborhood Ally™";
 NeighborhoodAppConfig.baseTld = "neighborhoodally.org";
 NeighborhoodAppConfig.baseUrl = "https://neighborhoodally.org/";
 NeighborhoodAppConfig.homeName = "Home";
@@ -1745,6 +1750,7 @@ NeighborhoodAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignU
 const BlockClubAppConfig = _.clone(CondoAllyAppConfig);
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
+BlockClubAppConfig.appNameLegal = "Block Club Ally™";
 BlockClubAppConfig.baseTld = "blockclubally.org";
 BlockClubAppConfig.baseUrl = "https://blockclubally.org/";
 BlockClubAppConfig.homeName = "Home";
@@ -1765,6 +1771,7 @@ BlockClubAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp",
 const RnoAppConfig = _.clone(CondoAllyAppConfig);
 RnoAppConfig.appShortName = "rno";
 RnoAppConfig.appName = "RNO Ally";
+RnoAppConfig.appNameLegal = "RNO Ally™";
 RnoAppConfig.baseTld = "rnoally.org";
 RnoAppConfig.baseUrl = "https://rnoally.org/";
 RnoAppConfig.homeName = "Home";
@@ -1784,6 +1791,7 @@ RnoAppConfig.menu.push(new Ally.RoutePath_v3({ path: "NeighborhoodSignUp", templ
 const PtaAppConfig = _.clone(CondoAllyAppConfig);
 PtaAppConfig.appShortName = "pta";
 PtaAppConfig.appName = "PTA Ally";
+PtaAppConfig.appNameLegal = "PTA Ally™";
 PtaAppConfig.baseTld = "ptaally.org";
 PtaAppConfig.baseUrl = "https://ptaally.org/";
 PtaAppConfig.isChtnSite = false;
@@ -6126,7 +6134,6 @@ var Ally;
             this.showAddHomeLink = false;
             this.hasMemberNotOwnerRenter = false;
             this.didLoadResidentGridState = false;
-            this.shouldSaveResidentGridState = true;
             this.isNeighborhoodSite = false;
         }
         /**
@@ -6334,28 +6341,20 @@ var Ally;
                     document.getElementById("toggle-email-history-link").scrollIntoView();
                     this.toggleEmailHistoryVisible();
                 }
-                if (this.residentsGridApi && window.localStorage[ManageResidentsController.StoreKeyResidentGridState]) {
-                    const gridState = JSON.parse(window.localStorage[ManageResidentsController.StoreKeyResidentGridState]);
-                    if (gridState && typeof (gridState) === "object") {
-                        this.residentsGridApi.saveState.restore(this, gridState);
-                        this.residentsGridApi.grid.clearAllFilters(true, true, false);
-                        this.didLoadResidentGridState = true;
+                if (this.residentsGridApi) {
+                    if (window.localStorage[ManageResidentsController.StoreKeyResidentGridState]) {
+                        const gridState = JSON.parse(window.localStorage[ManageResidentsController.StoreKeyResidentGridState]);
+                        if (gridState && typeof (gridState) === "object") {
+                            this.residentsGridApi.saveState.restore(this, gridState);
+                            this.residentsGridApi.grid.clearAllFilters(true, true, false);
+                            this.didLoadResidentGridState = true;
+                        }
                     }
+                    Ally.HtmlUtil2.hookupGridStateSaving(this.residentsGridApi, ManageResidentsController.StoreKeyResidentGridState);
                 }
                 if (this.shouldShowPendingMembers)
                     this.loadPendingMembers();
             });
-        }
-        /**
-         * Called on a controller when its containing scope is destroyed. Use this hook for releasing external resources,
-         * watches and event handlers.
-         */
-        $onDestroy() {
-            // Save the grid state (column order, widths, visible, etc.)
-            if (this.shouldSaveResidentGridState) {
-                const gridState = this.residentsGridApi.saveState.save();
-                window.localStorage[ManageResidentsController.StoreKeyResidentGridState] = JSON.stringify(gridState);
-            }
         }
         getBoardPositionName(boardValue) {
             if (!boardValue)
@@ -7195,8 +7194,6 @@ var Ally;
         resetResidentGridState() {
             // Remove the saved grid state
             window.localStorage.removeItem(ManageResidentsController.StoreKeyResidentGridState);
-            // Refresh the page, but don't save the grid state on exit
-            this.shouldSaveResidentGridState = false;
             window.location.reload();
         }
         onAddNewMember() {
@@ -8585,7 +8582,7 @@ var Ally;
             //}
             //if( window.localStorage )
             //    window.localStorage.removeItem( "chtnHome_disableShowGoodNeighbor2024" );
-            this.allyAppName = AppConfig.appName;
+            this.allyAppName = AppConfig.appNameLegal;
             const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
             //if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )
             //    homeRightColumnType = "localnews";
@@ -10762,13 +10759,15 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($rootScope, $http, $location, appCacheService, siteInfo, $scope) {
+        constructor($rootScope, $http, $location, appCacheService, siteInfo, $scope, $timeout) {
             this.$rootScope = $rootScope;
             this.$http = $http;
             this.$location = $location;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.$timeout = $timeout;
+            this.isLoadingEmailInfo = false;
             this.isResultMessageGood = false;
             this.showPassword = false;
             this.shouldShowPassword = false;
@@ -10780,6 +10779,7 @@ var Ally;
             this.phoneVerifyCodeWasSent = false;
             this.phoneVerifyCode = "";
             this.originalPhoneNumber = "";
+            this.testEmailStatus = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -10971,7 +10971,7 @@ var Ally;
             });
         }
         /**
-         * Occurs when the user presses the button to submit the code to verify ownership of their phone number
+         * Occurs when the user clicks the button to submit the code to verify ownership of their phone number
          */
         verifyPhoneCode() {
             this.isLoading = true;
@@ -10990,8 +10990,27 @@ var Ally;
                 alert("Failed to verify code: " + httpResponse.data.exceptionMessage);
             });
         }
+        /**
+         * Occurs when the user clicks the button to send themselves a test email
+         */
+        sendTestEmail() {
+            this.isLoadingEmailInfo = true;
+            this.testEmailStatus = "Sending email...";
+            this.$http.get("/api/MyProfile/SendTestEmail").then(() => {
+                this.isLoadingEmailInfo = false;
+                this.testEmailStatus = "Email sent, waiting a few seconds for delivery...";
+                this.$timeout(() => this.testEmailStatus = "Email successfully sent, go check your inbox and spam folders.", 4000);
+            }, (httpResponse) => {
+                this.isLoadingEmailInfo = false;
+                alert("Failed to send email: " + httpResponse.data.exceptionMessage);
+                this.testEmailStatus = "Unable to send email: " + httpResponse.data.exceptionMessage;
+            });
+            // Track Condo Ally sign-up with Fathom
+            if (typeof window.fathom === "object")
+                window.fathom.trackEvent("send-test-email");
+        }
     }
-    MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
+    MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope", "$timeout"];
     Ally.MyProfileController = MyProfileController;
     class MyProfileSaveResult {
     }
@@ -13908,6 +13927,9 @@ var Ally;
     }
     Ally.DocLinkInfo = DocLinkInfo;
     class DocumentDirectory {
+        constructor() {
+            this.isExpanded = false;
+        }
         getSubDirectoryByName(dirName) {
             if (!this.subdirectories)
                 return null;
@@ -13934,6 +13956,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
+            this.directoryFlatList = [];
             this.selectedFiles = [];
             this.draggingType = null;
             this.isLoading = false;
@@ -13943,6 +13966,7 @@ var Ally;
             this.showPopUpWarning = false;
             this.shouldShowSubdirectories = true;
             this.committeePathPrefix = null;
+            this.maxDirectoryDepth = DocumentsController.MaxDirectoryDepth;
             // Get or create the docs data cache
             this.docsHttpCache = this.$cacheFactory.get("docs-http-cache") || this.$cacheFactory("docs-http-cache");
             this.fileSortType = window.localStorage[DocumentsController.LocalStorageKey_SortType];
@@ -14363,11 +14387,16 @@ var Ally;
         // not refresh
         ///////////////////////////////////////////////////////////////////////////////////////////////
         onDirectoryClicked(dir) {
+            console.log("onDirectoryClicked", this.selectedDirectory === dir, dir.isExpanded);
             // If the user clicked on the currently-selected directory, then toggle the subdirectories
             if (this.selectedDirectory === dir)
                 this.shouldShowSubdirectories = !this.shouldShowSubdirectories;
             else
                 this.shouldShowSubdirectories = true;
+            if (this.selectedDirectory === dir)
+                dir.isExpanded = !dir.isExpanded;
+            else
+                dir.isExpanded = true;
             this.selectedDirectory = dir;
             this.selectedFiles = [];
             this.fileSearch.all = null;
@@ -14507,19 +14536,44 @@ var Ally;
         // Occurs when the user wants to delete a document
         ///////////////////////////////////////////////////////////////////////////////////////////////
         DeleteDocument(document) {
-            if (confirm("Are you sure you want to delete this file?")) {
-                // Display the loading image
-                this.isLoading = true;
-                this.$http.delete("/api/ManageDocuments?docPath=" + document.relativeS3Path).then(() => {
-                    // Clear the docs cache so we fully refresh the file list since a file was deleted
-                    this.docsHttpCache.removeAll();
-                    this.RefreshDocuments();
-                }, (response) => {
-                    this.isLoading = false;
-                    alert("Failed to delete file: " + response.data.exceptionMessage);
-                    this.RefreshDocuments();
-                });
+            if (!confirm("Are you sure you want to delete this file? This action cannot be undone."))
+                return;
+            // Display the loading image
+            this.isLoading = true;
+            this.$http.delete("/api/ManageDocuments/DeleteFile?docPath=" + document.relativeS3Path).then(() => {
+                // Clear the docs cache so we fully refresh the file list since a file was deleted
+                this.docsHttpCache.removeAll();
+                this.RefreshDocuments();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to delete file: " + response.data.exceptionMessage);
+                this.RefreshDocuments();
+            });
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        // Occurs when the user clicks the button to delete multiple selected documents
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        DeleteSelectedDocuments() {
+            if (!this.selectedFiles || this.selectedFiles.length < 2) {
+                alert("Please select multiple documents first");
+                return;
             }
+            if (!confirm(`Are you sure you want to delete these ${this.selectedFiles.length} files? This action cannot be undone.`))
+                return;
+            const postData = {
+                cloudFilePaths: this.selectedFiles.map(f => f.relativeS3Path)
+            };
+            this.isLoading = true;
+            this.$http.post("/api/ManageDocuments/DeleteMultipleFiles", postData).then(() => {
+                this.isLoading = false;
+                // Clear the docs cache so we fully refresh the file list since a file was deleted
+                this.docsHttpCache.removeAll();
+                this.RefreshDocuments();
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to delete files: " + response.data.exceptionMessage);
+                this.RefreshDocuments();
+            });
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
         // Occurs when the user wants to edit a directory name
@@ -14580,7 +14634,7 @@ var Ally;
                 directoryType = "private-";
             else if (directory.isPublic)
                 directoryType = "public-";
-            if (directory === this.selectedDirectory)
+            if (directory === this.selectedDirectory || directory.isExpanded)
                 return `/assets/images/docs/folder-${directoryType}open.png`;
             if (directory.subdirectories.length > 0)
                 return `/assets/images/docs/folder-${directoryType}multi.png`;
@@ -14652,12 +14706,13 @@ var Ally;
                 this.isLoading = false;
                 this.documentTree = httpResponse.data;
                 this.documentTree.getSubDirectoryByName = DocumentDirectory.prototype.getSubDirectoryByName;
+                this.documentTree.isExpanded = true; // Tell the root node to always be open
                 // Hook up parent directories
                 this.documentTree.subdirectories.forEach((dir) => {
                     dir.directoryDepth = 0;
                     this.hookupParentDirs(dir);
                 });
-                // Build an array of all local files
+                // Build an array of all local files that's used for searching
                 const allFiles = [];
                 const processDir = (subdir) => {
                     _.each(subdir.files, (f) => {
@@ -14669,6 +14724,18 @@ var Ally;
                 };
                 processDir(this.documentTree);
                 this.fullSearchFileList = allFiles;
+                // Build a flat list of directories so it's easier to display in a list box
+                this.directoryFlatList = [];
+                const buildFlatListDfs = (dir) => {
+                    if (!dir)
+                        return;
+                    // Don't add the unnamed root
+                    if (dir.name)
+                        this.directoryFlatList.push(dir);
+                    for (const curSubDir of dir.subdirectories)
+                        buildFlatListDfs(curSubDir);
+                };
+                buildFlatListDfs(this.documentTree);
                 // Find the directory we had selected before the refresh
                 if (selectedDirectoryPath) {
                     this.selectedDirectory = this.FindDirectoryByPath(selectedDirectoryPath);
@@ -14690,6 +14757,7 @@ var Ally;
     DocumentsController.DirName_Committees = "Committees_Root";
     DocumentsController.ViewableExtensions = ["jpg", "jpeg", "png", "pdf", "txt"];
     DocumentsController.GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
+    DocumentsController.MaxDirectoryDepth = 7;
     Ally.DocumentsController = DocumentsController;
     class FullZipGenStatus {
     }
@@ -21927,6 +21995,44 @@ var Ally;
             html = html.replace(/&nbsp;/gi, " ");
             return html;
         }
+        static hookupGridStateSaving(gridApi, storageKey) {
+            if (!gridApi || !storageKey)
+                return;
+            // Wait a bit to hook up until the page finishes loading
+            window.setTimeout(() => HtmlUtil2.hookupGridStateSaving_internal(gridApi, storageKey), 50);
+        }
+        static hookupGridStateSaving_internal(gridApi, storageKey) {
+            //console.log( "In hookupGridStateSaving_internal for key:", storageKey );
+            // The method to store the grid state to localStorage
+            const saveState = () => {
+                //console.log( "hookupGridStateSaving_internal saving state" );
+                const gridState = gridApi.saveState.save();
+                if (gridState)
+                    window.localStorage[storageKey] = JSON.stringify(gridState);
+            };
+            const $scope = null;
+            const gridStateJson = window.localStorage[storageKey];
+            if (HtmlUtil.isValidString(gridStateJson)) {
+                const gridState = JSON.parse(gridStateJson);
+                if (typeof (gridState) === "object")
+                    gridApi.saveState.restore($scope, gridState);
+            }
+            // Don't save the filter state, just the grid state
+            gridApi.grid.clearAllFilters(true, true, false);
+            // Hook up the event handlers to save the state when it changes
+            // http://stackoverflow.com/questions/32346341/angular-ui-grid-save-and-restore-state
+            if (gridApi.colMovable)
+                gridApi.colMovable.on.columnPositionChanged($scope, saveState);
+            if (gridApi.colResizable)
+                gridApi.colResizable.on.columnSizeChanged($scope, saveState);
+            if (gridApi.grouping) {
+                gridApi.grouping.on.aggregationChanged($scope, saveState);
+                gridApi.grouping.on.groupingChanged($scope, saveState);
+            }
+            gridApi.core.on.columnVisibilityChanged($scope, saveState);
+            gridApi.core.on.filterChanged($scope, saveState);
+            gridApi.core.on.sortChanged($scope, saveState);
+        }
     }
     // Matches YYYY-MM-ddThh:mm:ss.sssZ where .sss is optional
     //"2018-03-12T22:00:33"
@@ -22606,7 +22712,7 @@ var Ally;
                     siteInfo = new AllySiteInfo();
                     siteInfo.publicSiteInfo = new PublicSiteInfo();
                     siteInfo.publicSiteInfo.fullName = AppConfig.appName;
-                    siteInfo.publicSiteInfo.siteLogo = "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "™</span>";
+                    siteInfo.publicSiteInfo.siteLogo = "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appNameLegal + "</span>";
                     siteInfo.publicSiteInfo.baseApiUrl = "https://0.webappapi.communityally.org/api/";
                 }
                 // Otherwise we are at an unknown, non-neutral subdomain so get back to safety!

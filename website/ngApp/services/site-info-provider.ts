@@ -1,4 +1,4 @@
-﻿// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-var
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-var
 declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 //declare var $zopim: any;
 // eslint-disable-next-line no-var
@@ -316,7 +316,7 @@ namespace Ally
                     siteInfo = new AllySiteInfo();
                     siteInfo.publicSiteInfo = new PublicSiteInfo();
                     siteInfo.publicSiteInfo.fullName = AppConfig.appName;
-                    siteInfo.publicSiteInfo.siteLogo = "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appName + "™</span>";
+                    siteInfo.publicSiteInfo.siteLogo = "<span style='font-size: 22pt; color: #FFF;'>Welcome to " + AppConfig.appNameLegal + "</span>";
                     siteInfo.publicSiteInfo.baseApiUrl = "https://0.webappapi.communityally.org/api/";
                 }
                 // Otherwise we are at an unknown, non-neutral subdomain so get back to safety!

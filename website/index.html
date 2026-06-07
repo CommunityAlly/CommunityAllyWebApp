@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
@@ -50,10 +50,10 @@
         // Create the main app object for the Ally site
         CA.angularApp = angular.module( "CondoAlly", ["ngRoute", "ngResource", "condoAllyControllers", "ui.date", "ngSanitize", "xeditable", "ngGrid", "chart.js",
             "uiGmapgoogle-maps", "ui.grid", "ui.grid.selection", "ui.grid.resizeColumns", "ui.grid.pagination", "ui.grid.treeView", "ui.grid.autoResize",
-            "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
+            "ui.grid.edit", "ui.grid.cellNav", "ui.grid.saveState", "ui.grid.moveColumns", "isteven-multi-select", "ngTagsInput", "xdLocalStorage", "mgo-angular-wizard"] );
 
         // Clear the template cache based on the JS file version
-        var appVer=1055;
+        var appVer=1061;
         CA.clearTemplateCacheIfNeeded = function( templateCacheService )
         {
             var Key_JSVersion = "AppJSVersion";
@@ -61,17 +61,17 @@
             if( HtmlUtil.isLocalStorageAllowed() )
             {
                 var cachedTemplateCacheVersion = localStorage.getItem( Key_JSVersion );
-                if( cachedTemplateCacheVersion !== "appVer=1055" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
+                if( cachedTemplateCacheVersion !== "appVer=1061" ) // Must match the JS version used on the script tags, user CTRL+H, then ALT+A to replace all
                 {
                     //templateCacheService.removeAll();
-                    localStorage.setItem( Key_JSVersion, "appVer=1055" );
+                    localStorage.setItem( Key_JSVersion, "appVer=1061" );
                 }
             }
         };
     </script>
 
-    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=1055"></script>
-    <script type="text/javascript" src="/ngTemplates.min.js?appVer=1055"></script>
+    <script type="text/javascript" src="/ngApp/ally-app-bundle.js?appVer=1061"></script>
+    <script type="text/javascript" src="/ngTemplates.min.js?appVer=1061"></script>
 
     <!--Start of Zopim Live Chat Script-->
     <script type="text/javascript">
@@ -298,9 +298,9 @@
                 </span>
 
                 <div data-ng-cloak>
-                    <h1 data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
-                    <h1 data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText()" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
-                    <h1 data-ng-if="siteTitle.logoHtml" style="color:white !important;" data-ng-bind-html="siteTitle.logoHtml"></h1>
+                    <h1 id="title-logo-text" data-ng-if="!siteTitle.logoHtml && !isSiteManager" style="color:white !important;">{{ siteTitle.text }}</h1>
+                    <h1 id="title-edit-text" data-ng-if="!siteTitle.logoHtml && isSiteManager" class="can-edit-inline" data-onaftersave="onUpdateSiteTitleText()" data-editable-text="siteTitle.text" style="color:white !important;">{{ siteTitle.text }}</h1>
+                    <h1 id="title-logo-html" data-ng-if="siteTitle.logoHtml" style="color:white !important;" data-ng-bind-html="siteTitle.logoHtml"></h1>
 
                     <div data-ng-if="isSiteManager && isEndOfLifeEnabled && isEndOfLifeEnabled2 && endOfLifeMessageHtml" class="end-of-life-banner">
                         <span style="float: right;" class="close-x" data-ng-click="closeEndOfLife()">&times;</span>
@@ -378,14 +378,14 @@
             <div id="google_translate_element"></div>
         </div>
         <div class="container">
-            <div class="pull-left">
+            <div class="pull-left mb-3">
                 Part of the <a href="http://www.communityally.org/">Community Ally</a><sup>&reg;</sup> suite of tools.
             </div>
 
             <ul class="nav pull-right">
                 <li class="nav-item">
                     <a class="nav-link" data-ng-cloak data-ng-href="{{ appConfig.baseUrl }}">
-                        {{ appConfig.appName }} Home
+                        {{ appConfig.appNameLegal }} Home
                     </a>
                 </li>
                 <li class="nav-item">
@@ -448,8 +448,8 @@
             } );
         } )( jQuery );
 
-        $( 'meta[name=application-name]' ).attr( "content", AppConfig.appName );
-        $( 'meta[name=apple-mobile-web-app-title]' ).attr( "content", AppConfig.appName );
+        $( 'meta[name=application-name]' ).attr( "content", AppConfig.appNameLegal );
+        $( 'meta[name=apple-mobile-web-app-title]' ).attr( "content", AppConfig.appNameLegal );
     </script>
     <script type="text/javascript">
         function googleTranslateElementInit()

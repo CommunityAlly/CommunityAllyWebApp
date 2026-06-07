@@ -1,4 +1,4 @@
-﻿// eslint-disable-next-line no-var
+// eslint-disable-next-line no-var
 declare var OverrideOriginalUrl: string;
 
 
@@ -50,6 +50,10 @@ namespace Ally
 
         /// The full, friendly app name like "Condo Ally" or "HOA Ally"
         appName: string;
+
+        /// The full, friendly app name like appName, but with ® or ™
+        appNameLegal: string;
+
         baseTld: string;
         baseUrl: string;
         segmentWriteKey?: string;
@@ -155,6 +159,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
 {
     appShortName: "condo",
     appName: "Condo Ally",
+    appNameLegal: "Condo Ally®",
     baseTld: "condoally.com",
     baseUrl: "https://condoally.com/",
     isChtnSite: true,
@@ -278,7 +283,8 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
 const HomeAppConfig: Ally.AppConfigInfo =
 {
     appShortName: "home",
-    appName: "Home Ally",
+    appName: "Neighbor Ally",
+    appNameLegal: "Neighbor Ally™",
     baseTld: "homeally.org",
     baseUrl: "https://homeally.org/",
     isChtnSite: false,
@@ -313,6 +319,7 @@ const HomeAppConfig: Ally.AppConfigInfo =
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const NeighborAppConfig: Ally.AppConfigInfo = _.clone( HomeAppConfig );
 NeighborAppConfig.appName = "Neighbor Ally";
+NeighborAppConfig.appNameLegal = "Neighbor Ally™";
 NeighborAppConfig.baseTld = "neighborally.org";
 NeighborAppConfig.baseUrl = "https://neighborally.org/";
 
@@ -323,6 +330,7 @@ NeighborAppConfig.baseUrl = "https://neighborally.org/";
 const HOAAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 HOAAppConfig.appShortName = "hoa";
 HOAAppConfig.appName = "HOA Ally";
+HOAAppConfig.appNameLegal = "HOA Ally®";
 HOAAppConfig.baseTld = "hoaally.org";
 HOAAppConfig.baseUrl = "https://hoaally.org/";
 HOAAppConfig.homeName = "Home";
@@ -336,6 +344,7 @@ HOAAppConfig.menu.push( new Ally.RoutePath_v3( { path: "HoaSignUp", templateHtml
 const NeighborhoodAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 NeighborhoodAppConfig.appShortName = "neighborhood";
 NeighborhoodAppConfig.appName = "Neighborhood Ally";
+NeighborhoodAppConfig.appNameLegal = "Neighborhood Ally™";
 NeighborhoodAppConfig.baseTld = "neighborhoodally.org";
 NeighborhoodAppConfig.baseUrl = "https://neighborhoodally.org/";
 NeighborhoodAppConfig.homeName = "Home";
@@ -361,6 +370,7 @@ NeighborhoodAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSig
 const BlockClubAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 BlockClubAppConfig.appShortName = "block-club";
 BlockClubAppConfig.appName = "Block Club Ally";
+BlockClubAppConfig.appNameLegal = "Block Club Ally™";
 BlockClubAppConfig.baseTld = "blockclubally.org";
 BlockClubAppConfig.baseUrl = "https://blockclubally.org/";
 BlockClubAppConfig.homeName = "Home";
@@ -387,6 +397,7 @@ BlockClubAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp
 const RnoAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 RnoAppConfig.appShortName = "rno";
 RnoAppConfig.appName = "RNO Ally";
+RnoAppConfig.appNameLegal = "RNO Ally™";
 RnoAppConfig.baseTld = "rnoally.org";
 RnoAppConfig.baseUrl = "https://rnoally.org/";
 RnoAppConfig.homeName = "Home";
@@ -412,6 +423,7 @@ RnoAppConfig.menu.push( new Ally.RoutePath_v3( { path: "NeighborhoodSignUp", tem
 const PtaAppConfig: Ally.AppConfigInfo = _.clone( CondoAllyAppConfig );
 PtaAppConfig.appShortName = "pta";
 PtaAppConfig.appName = "PTA Ally";
+PtaAppConfig.appNameLegal = "PTA Ally™";
 PtaAppConfig.baseTld = "ptaally.org";
 PtaAppConfig.baseUrl = "https://ptaally.org/";
 PtaAppConfig.isChtnSite = false;

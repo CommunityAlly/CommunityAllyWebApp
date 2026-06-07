@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     interface IHomeRouteParams extends ng.route.IRouteParamsService
     {
@@ -96,7 +96,7 @@
             //if( window.localStorage )
             //    window.localStorage.removeItem( "chtnHome_disableShowGoodNeighbor2024" );
 
-            this.allyAppName = AppConfig.appName;
+            this.allyAppName = AppConfig.appNameLegal;
 
             const homeRightColumnType = this.siteInfo.privateSiteInfo.homeRightColumnType || "";
             //if( HtmlUtil.isNullOrWhitespace( homeRightColumnType ) )

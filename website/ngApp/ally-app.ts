@@ -1,4 +1,4 @@
-﻿// DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
+// DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally.
 // eslint-disable-next-line no-var
 var OverrideBaseApiPath: string = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
