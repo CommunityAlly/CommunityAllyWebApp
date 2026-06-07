@@ -18,13 +18,15 @@ var Ally;
         /**
          * The constructor for the class
          */
-        constructor($rootScope, $http, $location, appCacheService, siteInfo, $scope) {
+        constructor($rootScope, $http, $location, appCacheService, siteInfo, $scope, $timeout) {
             this.$rootScope = $rootScope;
             this.$http = $http;
             this.$location = $location;
             this.appCacheService = appCacheService;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
+            this.$timeout = $timeout;
+            this.isLoadingEmailInfo = false;
             this.isResultMessageGood = false;
             this.showPassword = false;
             this.shouldShowPassword = false;
@@ -36,6 +38,7 @@ var Ally;
             this.phoneVerifyCodeWasSent = false;
             this.phoneVerifyCode = "";
             this.originalPhoneNumber = "";
+            this.testEmailStatus = "";
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -227,7 +230,7 @@ var Ally;
             });
         }
         /**
-         * Occurs when the user presses the button to submit the code to verify ownership of their phone number
+         * Occurs when the user clicks the button to submit the code to verify ownership of their phone number
          */
         verifyPhoneCode() {
             this.isLoading = true;
@@ -246,8 +249,27 @@ var Ally;
                 alert("Failed to verify code: " + httpResponse.data.exceptionMessage);
             });
         }
+        /**
+         * Occurs when the user clicks the button to send themselves a test email
+         */
+        sendTestEmail() {
+            this.isLoadingEmailInfo = true;
+            this.testEmailStatus = "Sending email...";
+            this.$http.get("/api/MyProfile/SendTestEmail").then(() => {
+                this.isLoadingEmailInfo = false;
+                this.testEmailStatus = "Email sent, waiting a few seconds for delivery...";
+                this.$timeout(() => this.testEmailStatus = "Email successfully sent, go check your inbox and spam folders.", 4000);
+            }, (httpResponse) => {
+                this.isLoadingEmailInfo = false;
+                alert("Failed to send email: " + httpResponse.data.exceptionMessage);
+                this.testEmailStatus = "Unable to send email: " + httpResponse.data.exceptionMessage;
+            });
+            // Track Condo Ally sign-up with Fathom
+            if (typeof window.fathom === "object")
+                window.fathom.trackEvent("send-test-email");
+        }
     }
-    MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
+    MyProfileController.$inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope", "$timeout"];
     Ally.MyProfileController = MyProfileController;
     class MyProfileSaveResult {
     }

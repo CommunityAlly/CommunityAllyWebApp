@@ -1,4 +1,4 @@
-﻿declare function md5( input: string ): string;
+declare function md5( input: string ): string;
 
 namespace Ally
 {
@@ -34,6 +34,7 @@ namespace Ally
         enabledEmailsFlags: number;
         mfaMethodsCsv: string;
         phoneVerificationDateUtc: Date;
+        postmarkReportedBadEmailReason: string;
     }
 
     export class PtaMember extends SimpleUserEntry
@@ -47,10 +48,11 @@ namespace Ally
      */
     export class MyProfileController implements ng.IController
     {
-        static $inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope"];
+        static $inject = ["$rootScope", "$http", "$location", "appCacheService", "SiteInfo", "$scope", "$timeout"];
 
         isDemoSite: boolean;
         isLoading: boolean;
+        isLoadingEmailInfo = false;
         canHideContactInfo: boolean;
         profileInfo: ProfileUserInfo;
         needsToAcceptTerms: boolean;
@@ -70,12 +72,19 @@ namespace Ally
         phoneVerifyCodeWasSent = false;
         phoneVerifyCode = "";
         originalPhoneNumber = "";
+        testEmailStatus = "";
 
 
         /**
          * The constructor for the class
          */
-        constructor( private $rootScope: ng.IRootScopeService, private $http: ng.IHttpService, private $location: ng.ILocationService, private appCacheService: AppCacheService, private siteInfo: Ally.SiteInfoService, private $scope: ng.IScope )
+        constructor( private $rootScope: ng.IRootScopeService,
+            private $http: ng.IHttpService,
+            private $location: ng.ILocationService,
+            private appCacheService: AppCacheService,
+            private siteInfo: Ally.SiteInfoService,
+            private $scope: ng.IScope,
+            private $timeout: ng.ITimeoutService )
         {
         }
 
@@ -358,7 +367,7 @@ namespace Ally
 
 
         /**
-         * Occurs when the user presses the button to submit the code to verify ownership of their phone number
+         * Occurs when the user clicks the button to submit the code to verify ownership of their phone number
          */
         verifyPhoneCode()
         {
@@ -385,6 +394,36 @@ namespace Ally
                     alert( "Failed to verify code: " + httpResponse.data.exceptionMessage );
                 }
             );
+        }
+
+
+        /**
+         * Occurs when the user clicks the button to send themselves a test email
+         */
+        sendTestEmail()
+        {
+            this.isLoadingEmailInfo = true;
+            this.testEmailStatus = "Sending email...";
+
+            this.$http.get( "/api/MyProfile/SendTestEmail" ).then(
+                () =>
+                {
+                    this.isLoadingEmailInfo = false;
+                    this.testEmailStatus = "Email sent, waiting a few seconds for delivery..."
+
+                    this.$timeout( () => this.testEmailStatus = "Email successfully sent, go check your inbox and spam folders.", 4000 );                    
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
+                {
+                    this.isLoadingEmailInfo = false;
+                    alert( "Failed to send email: " + httpResponse.data.exceptionMessage );
+                    this.testEmailStatus = "Unable to send email: " + httpResponse.data.exceptionMessage;
+                }
+            );
+
+            // Track Condo Ally sign-up with Fathom
+            if( typeof ( window as any ).fathom === "object" )
+                ( window as any ).fathom.trackEvent( "send-test-email" );
         }
     }
 

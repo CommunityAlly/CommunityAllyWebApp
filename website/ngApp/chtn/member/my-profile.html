@@ -1,4 +1,4 @@
-﻿<div class="page page-my-profile margin-vertical padding white-bg spinner-effect">
+<div class="page margin-vertical padding white-bg spinner-effect">
     
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <div data-ng-show="$ctrl.needsToAcceptTerms" class="alert" style="margin-bottom:1em;">
@@ -229,7 +229,7 @@
     </script>
 </div>
 
-<div class="page page-my-profile margin-vertical padding white-bg spinner-effect">
+<div class="page margin-vertical padding white-bg spinner-effect">
     <div id="my-profile" style="position:relative;">
         <div class="loading-overlay" style="background-image:none;" data-ng-show="$ctrl.needsToAcceptTerms && !$ctrl.hasAcceptedTerms"></div>
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
@@ -256,6 +256,32 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="page margin-vertical padding white-bg spinner-effect" data-ng-if="!$ctrl.needsToAcceptTerms">
+    <div class="loading-overlay" data-ng-show="$ctrl.isLoadingEmailInfo"></div>
+    <h2>Email Troubleshooting</h2>
+    <div class="mb-3">
+        Are our emails going to your spam folder or maybe they're not showing up at all? Use the button and information below to help avoid missed emails.
+    </div>
+    <div>
+        <div>
+            Your Email Status:
+            <span style="font-weight: bold; color: green;" data-ng-if="!$ctrl.profileInfo.postmarkReportedBadEmailReason">Good</span>
+            <span style="font-weight: bold; color: red;" data-ng-if="$ctrl.profileInfo.postmarkReportedBadEmailReason">{{$ctrl.profileInfo.postmarkReportedBadEmailReason}}</span>
+            <div data-ng-if="$ctrl.profileInfo.postmarkReportedBadEmailReason" style="font-weight: bold; color: red;">
+                It looks like we received an error report for your email address on {{$ctrl.profileInfo.postmarkReportedBadEmailUtc | date:'medium'}}. Please contact
+                support (chat in the lower right or help link in the footer) to clear this issue.
+            </div>
+        </div>
+        <br />
+        <button type="button" class="btn btn-primary mb-3" data-ng-click="$ctrl.sendTestEmail()" data-ng-if="!$ctrl.testEmailStatus">Send Yourself a Test Email</button>
+        <div data-ng-if="$ctrl.testEmailStatus">
+            {{$ctrl.testEmailStatus}}
+        </div>
+        <br />
+        <a href="https://help.communityally.org/how-to-whitelist-us-as-an-email-sender/" target="_blank">How to whitelist us</a>
     </div>
 </div>
 
