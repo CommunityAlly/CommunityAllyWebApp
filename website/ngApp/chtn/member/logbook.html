@@ -65,21 +65,21 @@
 
                 <div>
                     <div class="row mb-4">
-                        <label class="col-sm-2 col-12 text-end  form-label-popup">What:</label>
+                        <label class="col-sm-2 col-12 text-sm-end form-label-popup">What:</label>
                         <div class="col-sm-10 col-12">
                             <input id="calendar-event-title" class="form-control form-control-sm" required type="text" data-ng-model="$ctrl.editEvent.title" data-ng-enter="$ctrl.saveCalendarEvent()" autocomplete="off" data-lpignore="true" data-form-type="other">
                         </div>
                     </div>
 
                     <div class="row mb-4">
-                        <label class="col-sm-2 col-12 text-end form-label-popup" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
+                        <label class="col-sm-2 col-12 text-sm-end form-label-popup" title="Event ID: {{$ctrl.editEvent.eventId}}">Date:</label>
                         <div class="col-sm-10 col-12">
                             <input id="calendar-event-when" type="text" class="form-control form-control-sm" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" data-ng-model="$ctrl.editEvent.dateOnly" />
                         </div>
                     </div>
 
                     <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel" data-ng-style="{ 'margin-bottom': $ctrl.localTimeZoneDiffersFromGroup ? '0' : null }">
-                        <label class="col-sm-2 col-12 text-end form-label-popup">Time:</label>
+                        <label class="col-sm-2 col-12 text-sm-end form-label-popup">Time:</label>
                         <div class="col-sm-3 col-12">
                             <input id="calendar-event-time" type="text" class="form-control form-control-sm" data-ng-model="$ctrl.editEvent.timeOnly">
                         </div>
@@ -94,7 +94,7 @@
                     </div>
 
                     <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel">
-                        <label class="col-sm-2 col-12 text-end form-label-popup">Repeats:</label>
+                        <label class="col-sm-2 col-12 text-sm-end form-label-popup">Repeats:</label>
                         <div class="col-sm-10 col-12 note-text" data-ng-if="!$ctrl.editEvent.timeOnly">Select a time to enable repeating</div>
                         <div class="col-sm-10 col-12" data-ng-if="$ctrl.editEvent.timeOnly">
                             <div>
@@ -136,7 +136,7 @@
                     </div>
 
                     <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.reservableAmenities.length > 0">
-                        <label class="col-sm-2 col-12 text-end form-label-popup">Reserve:</label>
+                        <label class="col-sm-2 col-12 text-sm-end form-label-popup">Reserve:</label>
                         <div class="col-sm-10 col-12">
                             <div class="note-text" data-ng-if="!$ctrl.editEvent.timeOnly && !$ctrl.editEvent.repeatType">
                                 Select a time to select an amenity
@@ -154,7 +154,7 @@
                     </div>
 
                     <div class="row mb-4" data-ng-show="$ctrl.showExpandedCalendarEventModel && $ctrl.editEvent.reservableAmenityId">
-                        <label for="reserve-for-select" class="col-sm-2 col-12 text-end form-label-popup">Reserve For:</label>
+                        <label for="reserve-for-select" class="col-sm-2 col-12 text-sm-end form-label-popup">Reserve For:</label>
                         <div class="col-sm-10 col-12">
                             <select id="reserve-for-select" class="form-control form-select" data-ng-model="$ctrl.editEvent.amenityReservedForUserId" data-ng-options="r.userId as (r.fullName + r.dropDownAdditionalLabel) for r in $ctrl.residents">
                                 <option></option>
@@ -164,7 +164,7 @@
                     </div>
 
                     <div class="row mb-4" data-ng-if="$ctrl.showExpandedCalendarEventModel">
-                        <label class="col-sm-2 col-12 pt-5 text-end form-label-popup">Description:</label>
+                        <label class="col-sm-2 col-12 pt-5 text-sm-end form-label-popup">Description:</label>
                         <div class="col-sm-10 col-12">
                             <textarea id="tiny-mce-editor" data-ng-model="$ctrl.editEvent.description" style="width: 100%; height: 120px;" data-ng-ctrl-enter="$ctrl.saveCalendarEvent()"></textarea>
                         </div>
@@ -376,7 +376,7 @@
                     <div class="row mb-3" data-ng-if="$ctrl.viewEvent.description">
                         <label for="view-event-desc" class="col-sm-4 col-12 form-label-popup mb-0 text-sm-end">Description:</label>
                         <div class="col-sm-8 col-12">
-                            <div id="view-event-desc" data-ng-bind-html="$ctrl.viewEvent.description"></div>
+                            <div id="view-event-desc" style="white-space: pre-wrap; overflow-wrap: break-word;" data-ng-bind-html="$ctrl.viewEvent.description"></div>
                         </div>
                     </div>
                 </form>
@@ -413,14 +413,14 @@
                 <h4>{{$ctrl.editReservableAmenity.reservableAmenityId ? 'Edit' : 'Add'}} Reservable Amenity</h4>
                 <form>
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Name:</label>
+                        <label class="col-sm-4 col-12 form-label-popup text-sm-end">Name:</label>
                         <div class="col-sm-8 col-12">
                             <input id="edit-amenity-name-input" type="text" data-ng-model="$ctrl.editReservableAmenity.amenityName" maxlength="256" class="form-control form-control-sm" required data-ng-enter="$ctrl.saveReservableAmenity()" autocomplete="off" data-lpignore="true" data-form-type="other" />
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <label class="col-sm-4 col-12 form-label-popup text-end">Description:</label>
+                        <label class="col-sm-4 col-12 form-label-popup text-sm-end">Description:</label>
                         <div class="col-sm-8 col-12">
                             <textarea type="text" data-ng-model="$ctrl.editReservableAmenity.amenityDescription" class="form-control form-control-sm" rows="6" maxlength="1000"></textarea>
                         </div>
