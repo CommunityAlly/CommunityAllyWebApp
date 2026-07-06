@@ -1,4 +1,4 @@
-﻿<div class="page">
+<div class="page">
     <h2>Report Email Abuse</h2>
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
@@ -25,7 +25,7 @@
         <div class="vertical-stack-button">
             Is there another reason you're reporting this email? If so, let us know here:<br />
             <textarea rows="2" style="width: 50%;" data-ng-model="$ctrl.otherReasonText"></textarea><br />
-            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse($ctrl.otherReasonText)">Other</button>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.reportAbuse('other')">Other</button>
         </div>
     </div>
 

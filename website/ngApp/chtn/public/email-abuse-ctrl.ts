@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     interface IEmailAbuseRouteParams extends ng.route.IRouteParamsService
     {
