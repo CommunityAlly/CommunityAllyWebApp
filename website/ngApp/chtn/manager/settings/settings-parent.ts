@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     interface IParentPageRouteParams extends ng.route.IRouteParamsService
     {
@@ -26,7 +26,8 @@
 
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === CondoAllyAppConfig.appShortName
                 || AppConfig.appShortName === HOAAppConfig.appShortName
-                || AppConfig.appShortName === BlockClubAppConfig.appShortName;
+                || AppConfig.appShortName === BlockClubAppConfig.appShortName
+                || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
 
             if( !this.shouldShowPremiumPlanSection && this.selectedView === "PremiumPlan" )
                 this.selectedView = "SiteSettings";
