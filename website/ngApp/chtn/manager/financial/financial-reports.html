@@ -1,4 +1,4 @@
-﻿<div class="page page-manage-payments" style="min-height: 100px;">
+<div class="page page-manage-payments" style="min-height: 100px;">
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
     <h1 style="display: inline;">Financial Reports</h1>
     <p>
@@ -36,16 +36,15 @@
         </div>
         <div class="row mt-5">
             <div class="col-12">
-                <h4>Account Balances Over Time</h4>
+                <h4>Current Account Balances</h4>
                 <div class="container">
                     <div class="row">
                         <div class="col-6">
-                            You need at least 2 months of balance data to view this chart.
-                        </div>
-                        <div class="col-6">
-                            <h5>Current Balances</h5>
                             <div data-ng-repeat="curBalance in $ctrl.reportData.currentAccountBalances">
                                 {{curBalance.ledgerAccountName}} {{curBalance.amount | currency}}
+                            </div>
+                            <div data-ng-if="!$ctrl.reportData.currentAccountBalances || $ctrl.reportData.currentAccountBalances.length === 0" class="note-text">
+                                You don't have any accounts to show balances for. You can add accounts on the <a href="#!/Financials/BankTransactions">Financial Accounts</a> page.
                             </div>
                         </div>
                     </div>
