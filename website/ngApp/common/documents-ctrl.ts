@@ -70,9 +70,9 @@ namespace Ally
         static readonly GenericIconPath = "/assets/images/FileIcons/GenericFileIcon.png";
         static readonly MaxDirectoryDepth = 7;
 
-        documentTree: DocumentDirectory;
+        documentTree: DocumentDirectory | null = null;;
         directoryFlatList: DocumentDirectory[] = [];
-        selectedDirectory: DocumentDirectory;
+        selectedDirectory: DocumentDirectory|null = null;
         selectedFiles: DocumentTreeFile[] = [];
         draggingType: "file" | "folder" | null = null;
         draggingFolderPath: string;
@@ -240,11 +240,12 @@ namespace Ally
             this.isLoading = true;
             this.showPopUpWarning = false;
 
-            let viewDocWindow: Window;
+            let viewDocWindow: Window|null = null;
 
             // Force download of RTFs. Eventually we'll make this a allow-list of extensions that
             // browsers can display directly
-            if( this.getDisplayExtension( curFile ) === ".rtf" )
+            const fileExt = this.getDisplayExtension( curFile );
+            if( fileExt === ".rtf" )
                 isForDownload = true;
 
             // Increment the local view count for fast feedback
@@ -260,20 +261,21 @@ namespace Ally
                 {
                     alert( `Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.` );
                     this.showPopUpWarning = true;
+                    return;
                 }
                 else
                     viewDocWindow.document.write( 'Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)' );
             }
 
             const viewUri = "/api/DocumentLink/" + curFile.docId;
-            this.$http.get( viewUri ).then(
+            this.$http.get<DocLinkInfo>( viewUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<DocLinkInfo> ) =>
                 {
                     this.isLoading = false;
 
                     let fileUri = `${curFile.url}?vid=${encodeURIComponent( response.data.vid )}`;
                     if( HtmlUtil.startsWith( fileUri, "/api/" ) )
-                        fileUri = fileUri.substr( "/api/".length );
+                        fileUri = fileUri.substring( "/api/".length );
                     fileUri = this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
 
                     if( isForDownload )
@@ -290,7 +292,7 @@ namespace Ally
                     else
                     {
                         // Android doesn't open PDFs in the browser, so let Google Docs do it
-                        if( HtmlUtil2.isAndroid() )
+                        if( HtmlUtil2.isAndroid() && fileExt === ".pdf" )
                             viewDocWindow.location.href = "http://docs.google.com/gview?embedded=true&url=" + encodeURIComponent( fileUri );
                         else
                             viewDocWindow.location.href = fileUri;
@@ -299,7 +301,7 @@ namespace Ally
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to open document: " + response.data.exceptionMessage );
+                    alert( "Failed to open document: " + response.data!.exceptionMessage );
                 }
             );
         }
@@ -307,12 +309,12 @@ namespace Ally
 
         startZipGenDownload()
         {
-            let refreshGenStatus: () => void = null;
+            let refreshGenStatus: ( () => void ) | null = null;
             //let numRefreshes = 0;
 
             refreshGenStatus = () =>
             {
-                this.$http.get( "/api/DocumentUpload/GetZipGenStatus?vid=" + this.generatingZipId ).then(
+                this.$http.get<FullZipGenStatus>( "/api/DocumentUpload/GetZipGenStatus?vid=" + this.generatingZipId ).then(
                     ( response: ng.IHttpPromiseCallbackArg<FullZipGenStatus> ) =>
                     {
                         //++numRefreshes;
@@ -343,7 +345,7 @@ namespace Ally
             if( this.committee )
                 getUri += "?committeeId=" + this.committee.committeeId;
 
-            this.$http.get( getUri ).then(
+            this.$http.get<FullZipGenStatus>( getUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<FullZipGenStatus> ) =>
                 {
                     this.generatingZipId = response.data.statusId;
@@ -1108,7 +1110,10 @@ namespace Ally
 
         getDisplayExtension( file: DocumentTreeFile )
         {
-            const extension = file.fileName.split( '.' ).pop().toLowerCase();
+            if( !file || !file.fileName || !file.fileName.includes('.') )
+                return null;
+
+            const extension = file.fileName.split( '.' ).pop()!.toLowerCase();
 
             return "." + extension;
         }
@@ -1191,7 +1196,7 @@ namespace Ally
             if( this.committee )
                 this.getDocsUri += "/Committee/" + this.committee.committeeId;
 
-            this.$http.get( this.getDocsUri, { cache: this.docsHttpCache } ).then(
+            this.$http.get<DocumentDirectory>( this.getDocsUri, { cache: this.docsHttpCache } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<DocumentDirectory> ) =>
                 {
                     this.isLoading = false;

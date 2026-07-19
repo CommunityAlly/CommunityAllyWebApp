@@ -25,6 +25,7 @@ var Ally;
      * The controller for the documents widget that lets group view, upload, and modify documents
      */
     class DocumentsController {
+        ;
         /**
          * The constructor for the class
          */
@@ -36,7 +37,9 @@ var Ally;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
+            this.documentTree = null;
             this.directoryFlatList = [];
+            this.selectedDirectory = null;
             this.selectedFiles = [];
             this.draggingType = null;
             this.isLoading = false;
@@ -139,10 +142,11 @@ var Ally;
         viewDoc(curFile, isForDownload) {
             this.isLoading = true;
             this.showPopUpWarning = false;
-            let viewDocWindow;
+            let viewDocWindow = null;
             // Force download of RTFs. Eventually we'll make this a allow-list of extensions that
             // browsers can display directly
-            if (this.getDisplayExtension(curFile) === ".rtf")
+            const fileExt = this.getDisplayExtension(curFile);
+            if (fileExt === ".rtf")
                 isForDownload = true;
             // Increment the local view count for fast feedback
             ++curFile.numViews;
@@ -153,6 +157,7 @@ var Ally;
                 if (wasPopUpBlocked) {
                     alert(`Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.`);
                     this.showPopUpWarning = true;
+                    return;
                 }
                 else
                     viewDocWindow.document.write('Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)');
@@ -162,7 +167,7 @@ var Ally;
                 this.isLoading = false;
                 let fileUri = `${curFile.url}?vid=${encodeURIComponent(response.data.vid)}`;
                 if (HtmlUtil.startsWith(fileUri, "/api/"))
-                    fileUri = fileUri.substr("/api/".length);
+                    fileUri = fileUri.substring("/api/".length);
                 fileUri = this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
                 if (isForDownload) {
                     // Create a link and click it
@@ -176,7 +181,7 @@ var Ally;
                 }
                 else {
                     // Android doesn't open PDFs in the browser, so let Google Docs do it
-                    if (Ally.HtmlUtil2.isAndroid())
+                    if (Ally.HtmlUtil2.isAndroid() && fileExt === ".pdf")
                         viewDocWindow.location.href = "http://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(fileUri);
                     else
                         viewDocWindow.location.href = fileUri;
@@ -725,6 +730,8 @@ var Ally;
             return iconFilePath === DocumentsController.GenericIconPath;
         }
         getDisplayExtension(file) {
+            if (!file || !file.fileName || !file.fileName.includes('.'))
+                return null;
             const extension = file.fileName.split('.').pop().toLowerCase();
             return "." + extension;
         }
