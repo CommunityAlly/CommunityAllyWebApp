@@ -14,25 +14,32 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.isLoadingEmail = false;
+            this.messageObject = new HomeEmailMessage();
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = false;
             this.showSendConfirmation = false;
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
+            this.showSendEmail = true;
+            this.groupEmailAddress = "";
             this.defaultSubject = "A message from your neighbor";
             this.memberLabel = "resident";
             this.memberPageName = "Residents";
             this.allSendAsOptions = [];
             this.filteredSendAsOptions = [];
             this.shouldShowGroupMembers = false;
+            this.isPremiumPlanActive = false;
+            this.isSiteManager = false;
+            this.selectedSmsRecipients = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
-            this.messageObject = new HomeEmailMessage();
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showSendEmail = true;
             if (this.committee) {
                 this.messageObject.committeeId = this.committee.committeeId;
@@ -98,6 +105,15 @@ var Ally;
             $("#message-form").validate();
             if (!$("#message-form").valid())
                 return;
+            if (this.messageObject.sendMessageType === "text" && this.selectedSmsRecipients.length === 0) {
+                alert("There are no recipients so the message cannot be sent. Please select a different group or change the message type to email.");
+                return;
+            }
+            // Confirm for SMS to be safe
+            if (this.messageObject.sendMessageType === "text" && this.selectedSmsRecipients.length > 1) {
+                if (!confirm("You are about to send a text message to " + this.selectedSmsRecipients.length + " recipients. Are you sure you want to do this?"))
+                    return;
+            }
             this.isLoadingEmail = true;
             // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
@@ -122,6 +138,7 @@ var Ally;
                 this.isLoadingEmail = false;
                 this.$rootScope.dontHandle403 = false;
                 if (httpResponse.status === 403) {
+                    alert("There was an error");
                     this.showEmailForbidden = true;
                 }
                 else
@@ -160,13 +177,43 @@ var Ally;
                 this.filteredSendAsOptions = [this.allSendAsOptions[0]];
                 this.selectedSendAs = this.filteredSendAsOptions[0];
             }
+            // Filter the list of SMS recipients based on the selected email group
+            this.fellowResidents.getResidents().then((residents) => {
+                const hasCorrectNotificationLevel = (r) => {
+                    if (this.messageObject.smsPriority === "emergency")
+                        return r.smsReceiveLevel === "emergency";
+                    else if (this.messageObject.smsPriority === "notification")
+                        return r.smsReceiveLevel === "emergency" || r.smsReceiveLevel === "notification";
+                    return false;
+                };
+                this.selectedSmsRecipients = residents.filter(r => this.selectedRecipient.memberUserIds.includes(r.userId) && r.hasSmsConsent && hasCorrectNotificationLevel(r));
+            });
+        }
+        onSendTypeChange() {
+            console.log("onSendTypeChange", this.messageObject.sendMessageType);
+            if (this.messageObject.sendMessageType === "text" && !this.messageObject.message) {
+                if (AppConfig.appShortName === "condo")
+                    this.messageObject.message = "Message from your condo association:\n";
+                else if (AppConfig.appShortName === "hoa")
+                    this.messageObject.message = "Message from your HOA:\n";
+                else if (AppConfig.appShortName === "neighborhood")
+                    this.messageObject.message = "Message from your neighborhood group:\n";
+            }
         }
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
     Ally.GroupSendEmailController = GroupSendEmailController;
     class HomeEmailMessage {
         constructor() {
+            this.sendMessageType = "email";
+            this.subject = "";
+            this.message = "";
             this.recipientType = "board";
+            this.customRecipientShortName = "";
+            this.committeeId = null;
+            this.shouldSendAsBoard = false;
+            this.shouldSendAsCommitteeId = null;
+            this.smsPriority = "notification";
         }
     }
 })(Ally || (Ally = {}));

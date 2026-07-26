@@ -121,9 +121,9 @@ var Ally;
          * Get the object describing the available group email addresses
          */
         getGroupEmailObject() {
-            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then((httpResponse) => {
+                return httpResponse.data || [];
+            }, (httpResponse) => {
                 return this.$q.reject(httpResponse);
             });
             //var innerThis = this;

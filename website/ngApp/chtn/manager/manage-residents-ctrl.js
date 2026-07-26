@@ -34,6 +34,8 @@ var Ally;
     class UpdateResident extends Resident {
     }
     Ally.UpdateResident = UpdateResident;
+    class EmailSmsHistoryResponse {
+    }
     class RecentEmail {
     }
     class ResidentCsvRow {
@@ -277,6 +279,33 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            //sendResultsObject: SmsSendResults;
+            this.smsHistoryGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'senderName', displayName: 'Sender', width: 150 },
+                        { field: 'recipientGroup', displayName: 'Sent To', width: 100 },
+                        { field: 'sendDateUtc', displayName: 'Send Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'numTextsSent', displayName: '#Texts Sent.', width: 80 },
+                        { field: 'messageText', displayName: 'Message' }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: 20,
+                    paginationPageSizes: [20],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: (gridApi) => {
+                        this.textMessageHistoryGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(this.$rootScope, (row) => {
+                            this.viewingRecentTextMessage = row.entity;
+                        });
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             this.refreshResidents()
                 .then(() => this.loadResidentSettings())
                 .then(() => {
@@ -329,6 +358,10 @@ var Ally;
             this.viewingRecentEmailOpenStats = null;
             this.viewingRecentEmailShouldShowStats = false;
             this.emailHistoryGridApi.selection.clearSelectedRows();
+        }
+        closeViewingTextMessage() {
+            this.viewingRecentTextMessage = null;
+            this.textMessageHistoryGridApi.selection.clearSelectedRows();
         }
         /**
         * Edit a resident's information
@@ -1109,9 +1142,10 @@ var Ally;
             this.viewingRecentEmailShouldShowStats = false;
             if (this.showEmailHistory && !this.emailHistoryGridOptions.data) {
                 this.isLoadingSettings = true;
-                this.$http.get("/api/Email/RecentGroupEmails").then((response) => {
+                this.$http.get("/api/Email/RecentGroupEmailsAndSms").then((response) => {
                     this.isLoadingSettings = false;
-                    this.emailHistoryGridOptions.data = response.data;
+                    this.emailHistoryGridOptions.data = response.data?.recentEmails;
+                    this.smsHistoryGridOptions.data = response.data?.recentSms;
                 }, (response) => {
                     this.isLoadingSettings = false;
                     alert("Failed to load emails: " + response.data.exceptionMessage);
@@ -1126,9 +1160,10 @@ var Ally;
             const NumMonthsStep = 6;
             this.emailHistoryNumMonths += NumMonthsStep;
             this.emailHistorySinceDate = moment(this.emailHistorySinceDate).subtract(NumMonthsStep, "months").toDate();
-            this.$http.get("/api/Email/RecentGroupEmails?sinceDateUtc=" + this.emailHistorySinceDate.toISOString()).then((response) => {
+            this.$http.get("/api/Email/RecentGroupEmailsAndSms?sinceDateUtc=" + this.emailHistorySinceDate.toISOString()).then((response) => {
                 this.isLoadingSettings = false;
-                this.emailHistoryGridOptions.data = this.emailHistoryGridOptions.data.concat(response.data);
+                this.emailHistoryGridOptions.data = this.emailHistoryGridOptions.data.concat(response.data.recentEmails);
+                this.smsHistoryGridOptions.data = this.smsHistoryGridOptions.data.concat(response.data.recentSms);
             }, (response) => {
                 this.isLoadingSettings = false;
                 alert("Failed to load emails: " + response.data.exceptionMessage);
@@ -1187,6 +1222,37 @@ var Ally;
             ];
             const csvDataString = Ally.createCsvString(this.emailHistoryGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-EmailHistory.csv");
+        }
+        exportTextMessageCsv() {
+            const csvColumns = [
+                {
+                    headerText: "Sender",
+                    fieldName: "senderName"
+                },
+                {
+                    headerText: "Recipient Group",
+                    fieldName: "recipientGroup"
+                },
+                {
+                    headerText: "Send Date (Local)",
+                    fieldName: "sendDateUtc",
+                    dataMapper: (value) => {
+                        if (!value)
+                            return "";
+                        return moment(value).format("ddd MMM D, YYYY h:mm a");
+                    }
+                },
+                {
+                    headerText: "# Texts Sent",
+                    fieldName: "numTextsSent"
+                },
+                {
+                    headerText: "Message",
+                    fieldName: "messageText"
+                }
+            ];
+            const csvDataString = Ally.createCsvString(this.emailHistoryGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-TextMessageHistory.csv");
         }
     }
     ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];

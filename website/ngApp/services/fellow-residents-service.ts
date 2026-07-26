@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     /**
      * Represents a group email address to which emails sent get forwarded to the whole group
@@ -176,10 +176,10 @@
          */
         getResidents()
         {
-            return this.$http.get( "/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache } ).then(
+            return this.$http.get<FellowResidents>( "/api/BuildingResidents/ResidentsInGroup", { cache: this.httpCache } ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<FellowResidents> ) =>
                 {
-                    return httpResponse.data.residents;
+                    return httpResponse.data!.residents;
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
@@ -267,14 +267,16 @@
          */
         getGroupEmailObject(): ng.IPromise<GroupEmailInfo[]>
         {
-            return this.$http.get( "/api/BuildingResidents/EmailGroups", { cache: this.httpCache } ).then( function( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailInfo[]> )
-            {
-                return httpResponse.data;
-
-            }, function( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> )
-            {
-                return this.$q.reject( httpResponse );
-            } );
+            return this.$http.get<GroupEmailInfo[]|undefined>( "/api/BuildingResidents/EmailGroups", { cache: this.httpCache } ).then(
+                ( httpResponse: ng.IHttpPromiseCallbackArg<GroupEmailInfo[]|undefined> ) =>
+                {
+                    return httpResponse.data || [];
+                },
+                ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    return this.$q.reject( httpResponse );
+                }
+            );
 
             //var innerThis = this;
             //return this.getByUnitsAndResidents().then( function( unitsAndResidents )

@@ -127,6 +127,34 @@ namespace Ally
     }
 
 
+    export interface SmsSendResults
+    {
+        sentToUserIds: string[];
+        sentToPhoneNumbers: string[];
+    }
+
+
+    export interface SmsLogEntry
+    {
+        smsLogEntryId: number;
+        groupId: number;
+        sendDateUtc: string;
+        senderUserId: string;
+        recipientGroup: string;
+        messageText: string;
+        numTextsSent: number;
+        sendResultsObject: SmsSendResults;
+        senderName: string;
+    }
+
+
+    class EmailSmsHistoryResponse
+    {
+        recentEmails: RecentEmail[];
+        recentSms: SmsLogEntry[];
+    }
+
+
     class RecentEmail
     {
         groupEmailId: string;
@@ -201,15 +229,18 @@ namespace Ally
         residentsGridApi: uiGrid.IGridApiOf<Ally.UpdateResident>;
         pendingMemberGridApi: uiGrid.IGridApiOf<PendingMember>;
         emailHistoryGridApi: uiGrid.IGridApiOf<RecentEmail>;
+        textMessageHistoryGridApi: uiGrid.IGridApiOf<SmsLogEntry>;
         isSavingUser: boolean = false;
         residentGridOptions: uiGrid.IGridOptionsOf<Ally.UpdateResident>;
         pendingMemberGridOptions: uiGrid.IGridOptionsOf<PendingMember>;
         emailHistoryGridOptions: uiGrid.IGridOptionsOf<RecentEmail>;
+        smsHistoryGridOptions: uiGrid.IGridOptionsOf<SmsLogEntry>;
         viewingRecentEmail: RecentEmail;
         viewingRecentEmailOpenStats: EmailOpenStats;
         viewingRecentEmailShouldShowStats = false;
         viewingRecentEmailNumDelivered: number;
         viewingRecentEmailNumOpened: number;
+        viewingRecentTextMessage: SmsLogEntry;
         isLoadingEmailOpenStats = false;
         editUserForm: ng.IFormController;
         isLoading: boolean = false;
@@ -503,8 +534,42 @@ namespace Ally
                         // Fix dumb scrolling
                         HtmlUtil.uiGridFixScroll();
                     }
-                };
+            };
+
+            //sendResultsObject: SmsSendResults;
             
+            this.smsHistoryGridOptions =
+            {
+                columnDefs:
+                    [
+                        { field: 'senderName', displayName: 'Sender', width: 150 },
+                        { field: 'recipientGroup', displayName: 'Sent To', width: 100 },
+                        { field: 'sendDateUtc', displayName: 'Send Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'numTextsSent', displayName: '#Texts Sent.', width: 80 },
+                        { field: 'messageText', displayName: 'Message' }
+                    ],
+                enableSorting: true,
+                enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                enableColumnMenus: false,
+                enablePaginationControls: true,
+                paginationPageSize: 20,
+                paginationPageSizes: [20],
+                enableRowHeaderSelection: false,
+                    onRegisterApi: ( gridApi ) =>
+                    {
+                        this.textMessageHistoryGridApi = gridApi;
+
+                        gridApi.selection.on.rowSelectionChanged( this.$rootScope, ( row: uiGrid.IGridRowOf<SmsLogEntry> ) =>
+                        {
+                            this.viewingRecentTextMessage = row.entity;
+                        } );
+
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+            };
+
 
             this.refreshResidents()
                 .then( () => this.loadResidentSettings() )
@@ -580,6 +645,13 @@ namespace Ally
             this.viewingRecentEmailOpenStats = null;
             this.viewingRecentEmailShouldShowStats = false;
             this.emailHistoryGridApi.selection.clearSelectedRows();
+        }
+
+
+        closeViewingTextMessage()
+        {
+            this.viewingRecentTextMessage = null;
+            this.textMessageHistoryGridApi.selection.clearSelectedRows();
         }
 
 
@@ -1646,11 +1718,12 @@ namespace Ally
             {
                 this.isLoadingSettings = true;
 
-                this.$http.get( "/api/Email/RecentGroupEmails" ).then(
-                    ( response: ng.IHttpPromiseCallbackArg<RecentEmail[]> ) =>
+                this.$http.get( "/api/Email/RecentGroupEmailsAndSms" ).then(
+                    ( response: ng.IHttpPromiseCallbackArg<EmailSmsHistoryResponse> ) =>
                     {
                         this.isLoadingSettings = false;
-                        this.emailHistoryGridOptions.data = response.data;
+                        this.emailHistoryGridOptions.data = response.data?.recentEmails;
+                        this.smsHistoryGridOptions.data = response.data?.recentSms;
                     },
                     ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                     {
@@ -1673,16 +1746,17 @@ namespace Ally
             this.emailHistoryNumMonths += NumMonthsStep;
             this.emailHistorySinceDate = moment( this.emailHistorySinceDate ).subtract( NumMonthsStep, "months" ).toDate();
             
-            this.$http.get( "/api/Email/RecentGroupEmails?sinceDateUtc=" + this.emailHistorySinceDate.toISOString() ).then(
-                ( response: ng.IHttpPromiseCallbackArg<RecentEmail[]> ) =>
+            this.$http.get<EmailSmsHistoryResponse>( "/api/Email/RecentGroupEmailsAndSms?sinceDateUtc=" + this.emailHistorySinceDate.toISOString() ).then(
+                ( response: ng.IHttpPromiseCallbackArg<EmailSmsHistoryResponse> ) =>
                 {
                     this.isLoadingSettings = false;
-                    this.emailHistoryGridOptions.data = ( this.emailHistoryGridOptions.data as RecentEmail[] ).concat( response.data );
+                    this.emailHistoryGridOptions.data = ( this.emailHistoryGridOptions.data as RecentEmail[] ).concat( response.data!.recentEmails );
+                    this.smsHistoryGridOptions.data = ( this.smsHistoryGridOptions.data as SmsLogEntry[] ).concat( response.data!.recentSms );
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoadingSettings = false;
-                    alert( "Failed to load emails: " + response.data.exceptionMessage );
+                    alert( "Failed to load emails: " + response.data!.exceptionMessage );
                 }
             );
         }
@@ -1754,6 +1828,44 @@ namespace Ally
             const csvDataString = Ally.createCsvString( <any[]>this.emailHistoryGridOptions.data, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, this.siteInfo.publicSiteInfo.shortName + "-EmailHistory.csv" );
+        }
+
+
+        exportTextMessageCsv()
+        {
+            const csvColumns = [
+                {
+                    headerText: "Sender",
+                    fieldName: "senderName"
+                },
+                {
+                    headerText: "Recipient Group",
+                    fieldName: "recipientGroup"
+                },
+                {
+                    headerText: "Send Date (Local)",
+                    fieldName: "sendDateUtc",
+                    dataMapper: ( value: Date ) =>
+                    {
+                        if( !value )
+                            return "";
+
+                        return moment( value ).format( "ddd MMM D, YYYY h:mm a" );
+                    }
+                },
+                {
+                    headerText: "# Texts Sent",
+                    fieldName: "numTextsSent"
+                },
+                {
+                    headerText: "Message",
+                    fieldName: "messageText"
+                }
+            ];
+
+            const csvDataString = Ally.createCsvString( <any[]>this.emailHistoryGridOptions.data, csvColumns );
+
+            HtmlUtil2.downloadCsv( csvDataString, this.siteInfo.publicSiteInfo.shortName + "-TextMessageHistory.csv" );
         }
     }
 

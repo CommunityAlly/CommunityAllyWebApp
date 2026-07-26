@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     /**
      * The controller for the widget that lets members send emails to the group
@@ -10,7 +10,7 @@
         isLoadingEmail: boolean = false;
         availableEmailGroups: GroupEmailInfo[];
         selectedRecipient: GroupEmailInfo;
-        messageObject: HomeEmailMessage;
+        messageObject = new HomeEmailMessage();
         defaultMessageRecipient: GroupEmailInfo;
         showDiscussionEveryoneWarning: boolean = false;
         showDiscussionLargeWarning: boolean = false;
@@ -18,8 +18,8 @@
         showSendConfirmation: boolean = false;
         showEmailForbidden: boolean = false;
         showRestrictedGroupWarning: boolean = false;
-        showSendEmail: boolean;
-        groupEmailAddress: string;
+        showSendEmail = true;
+        groupEmailAddress = "";
         committee: Ally.Committee;
         defaultSubject: string = "A message from your neighbor";
         memberLabel: string = "resident";
@@ -29,6 +29,9 @@
         filteredSendAsOptions: EmailSendAsOption[] = [];
         selectedSendAs: EmailSendAsOption;
         shouldShowGroupMembers = false;
+        isPremiumPlanActive = false;
+        isSiteManager = false;
+        selectedSmsRecipients: FellowChtnResident[] = [];
 
 
         /**
@@ -49,8 +52,8 @@
         $onInit()
         {
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
-            this.messageObject = new HomeEmailMessage();
-
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showSendEmail = true;
 
             if( this.committee )
@@ -131,7 +134,7 @@
             else
                 this.messageObject.message = "Hello Boardmembers,\n\nOur association's home page says my assessment payment is $" + assessmentAmount + ", but I believe that is incorrect. My records indicate my assessment payments should be $INSERT_PROPER_AMOUNT_HERE. What do you need from me to resolve the issue?\n\n- " + this.siteInfo.userInfo.firstName;
 
-            document.getElementById( "send-email-panel" ).scrollIntoView();
+            document.getElementById( "send-email-panel" )!.scrollIntoView();
         }
 
 
@@ -143,6 +146,19 @@
             $( "#message-form" ).validate();
             if( !$( "#message-form" ).valid() )
                 return;
+
+            if( this.messageObject.sendMessageType === "text" && this.selectedSmsRecipients.length === 0 )
+            {
+                alert( "There are no recipients so the message cannot be sent. Please select a different group or change the message type to email." );
+                return;
+            }
+
+            // Confirm for SMS to be safe
+            if( this.messageObject.sendMessageType === "text" && this.selectedSmsRecipients.length > 1 )
+            {
+                if( !confirm( "You are about to send a text message to " + this.selectedSmsRecipients.length + " recipients. Are you sure you want to do this?" ) )
+                    return;
+            }
 
             this.isLoadingEmail = true;
 
@@ -183,10 +199,11 @@
 
                     if( httpResponse.status === 403 )
                     {
+                        alert( "There was an error" );
                         this.showEmailForbidden = true;
                     }
                     else
-                        alert( "Unable to send email: " + httpResponse.data.exceptionMessage );
+                        alert( "Unable to send email: " + httpResponse.data!.exceptionMessage );
                 }
             );
         }
@@ -235,19 +252,52 @@
                 this.filteredSendAsOptions = [this.allSendAsOptions[0]];
                 this.selectedSendAs = this.filteredSendAsOptions[0];
             }
+
+            // Filter the list of SMS recipients based on the selected email group
+            this.fellowResidents.getResidents().then( ( residents ) =>
+            {
+                const hasCorrectNotificationLevel = ( r: FellowChtnResident ) =>
+                {
+                    if( this.messageObject.smsPriority === "emergency" )
+                        return r.smsReceiveLevel === "emergency";
+                    else if( this.messageObject.smsPriority === "notification" )
+                        return r.smsReceiveLevel === "emergency" || r.smsReceiveLevel === "notification";
+                    return false;
+                };
+
+                this.selectedSmsRecipients = residents.filter( r => this.selectedRecipient.memberUserIds.includes( r.userId ) && r.hasSmsConsent && hasCorrectNotificationLevel( r ) );
+            } );
+        }
+
+
+        onSendTypeChange()
+        {
+            console.log( "onSendTypeChange", this.messageObject.sendMessageType );
+
+            if( this.messageObject.sendMessageType === "text" && !this.messageObject.message )
+            {
+                if( AppConfig.appShortName === "condo" )
+                    this.messageObject.message = "Message from your condo association:\n";
+                else if( AppConfig.appShortName === "hoa" )
+                    this.messageObject.message = "Message from your HOA:\n";
+                else if( AppConfig.appShortName === "neighborhood" )
+                    this.messageObject.message = "Message from your neighborhood group:\n";
+            }
         }
     }
 
 
     class HomeEmailMessage
     {
-        subject: string;
-        message: string;
+        sendMessageType: "email" | "text" = "email";
+        subject: string = "";
+        message: string = "";
         recipientType: string = "board";
-        customRecipientShortName: string;
-        committeeId: number;
-        shouldSendAsBoard: boolean;
-        shouldSendAsCommitteeId: number;
+        customRecipientShortName: string = "";
+        committeeId: number | null = null;
+        shouldSendAsBoard: boolean = false;
+        shouldSendAsCommitteeId: number | null = null;
+        smsPriority: "notification" | "emergency" = "notification";
     }
 }
 

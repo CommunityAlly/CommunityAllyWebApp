@@ -1,6 +1,6 @@
-﻿<div class="send-email portlet-box white margin-vertical-lg box-shadow" id="send-email-panel" data-ng-if="$ctrl.availableEmailGroups.length > 0 || $ctrl.committee">
+<div class="send-email portlet-box white margin-vertical-lg box-shadow" id="send-email-panel" data-ng-if="$ctrl.availableEmailGroups.length > 0 || $ctrl.committee">
     <div class="portlet-header">
-        <h2 class="title"><i class="fa-solid fa-envelope ally-portlet-icon me-2"></i> Send Email</h2>        
+        <h2 class="title"><i class="fa-solid fa-envelope ally-portlet-icon me-2"></i> Send Email<span data-ng-if="!$ctrl.committee && $ctrl.isSiteManager">/Text Message</span></h2>        
     </div>
 
     <div class="portlet-body" style="position: relative;">
@@ -8,7 +8,33 @@
 
         <div data-ng-show="$ctrl.showSendEmail">
             <form id="message-form">
-                <div class="mb-3" data-ng-if="!$ctrl.committee">
+                <div class="mb-4" data-ng-if="!$ctrl.committee">
+                    <div class="mb-4" data-ng-if="$ctrl.isSiteManager">
+                        <label class="form-label">Message Type</label>
+                        <div>
+                            <label>
+                                <input type="radio" name="send-widget-type" data-ng-model="$ctrl.messageObject.sendMessageType" data-ng-change="$ctrl.onSendTypeChange()" data-ng-disabled="!$ctrl.isPremiumPlanActive" data-ng-readonly="!$ctrl.isPremiumPlanActive" value="email" />Email
+                            </label>
+                            <label class="ms-4">
+                                <input type="radio" name="send-widget-type" data-ng-model="$ctrl.messageObject.sendMessageType" data-ng-change="$ctrl.onSendTypeChange()" data-ng-disabled="!$ctrl.isPremiumPlanActive" data-ng-readonly="!$ctrl.isPremiumPlanActive" value="text" />Text Message
+                            </label>
+                        </div>
+                        <div data-ng-if="!$ctrl.isPremiumPlanActive" class="note-text">
+                            Text messaging is available only on our premium plan.
+                        </div>
+                    </div>
+
+                    <div class="mb-4" data-ng-if="$ctrl.messageObject.sendMessageType==='text'">
+                        <label class="form-label">Text Message Priority</label>
+                        <div class="note-text">Users can control the priority of text messages they receive. Reserve emergency messages for actual emergencies.</div>
+                        <label>
+                            <input type="radio" name="text-message-priority" data-ng-model="$ctrl.messageObject.smsPriority" value="notification" />Notification
+                        </label>
+                        <label class="ms-4">
+                            <input type="radio" name="text-message-priority" data-ng-model="$ctrl.messageObject.smsPriority" value="emergency" />Emergency
+                        </label>
+                    </div>
+
                     <label class="form-label">Recipient Group:</label>
                     <select class="form-control form-select"
                             data-ng-model="$ctrl.selectedRecipient"
@@ -24,54 +50,65 @@
                         </span>
                     </div>
 
-                    <div data-ng-if="$ctrl.showRestrictedGroupWarning" style="color: blue; font-weight: bold;" class="ps-0">
+                    <div data-ng-if="$ctrl.showRestrictedGroupWarning && $ctrl.messageObject.sendMessageType==='email'" style="color: blue; font-weight: bold;" class="ps-0">
                         This group email address is restricted meaning replies will be sent only to you and not the entire
                         group.
                     </div>
 
-                    <div data-ng-if="$ctrl.showDiscussionEveryoneWarning" style="color: red; font-weight: bold;" class="ps-0">
+                    <div data-ng-if="$ctrl.showDiscussionEveryoneWarning && $ctrl.messageObject.sendMessageType==='email'" style="color: red; font-weight: bold;" class="ps-0">
                         In general, sending an email to the "Everyone" group should be reserved for urgent notices. Instead, most "everyone" emails should be
                         sent to the "discussion" group. The discussion group allows residents to unsubscribe from
                         individual threads, thus residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
-                    <div data-ng-if="$ctrl.showDiscussionLargeWarning" style="color: red; font-weight: bold;" class="ps-0">
+                    <div data-ng-if="$ctrl.showDiscussionLargeWarning && $ctrl.messageObject.sendMessageType==='email'" style="color: red; font-weight: bold;" class="ps-0">
                         Sending an email to this recipient group will send to a lot of people. Please consider the "discussion" group which allows residents to unsubscribe from
                         individual threads. This way, residents are more engaged in the threads in which they participate and complain less about email.
                     </div>
 
-                    <div class="ps-0">
+                    <div class="ps-0" data-ng-if="$ctrl.messageObject.sendMessageType==='email'">
                         <a data-ng-href="mailto:{{ $ctrl.groupEmailAddress }}" class="note-text">{{ $ctrl.groupEmailAddress }}</a><br />
                         <small>For individual {{$ctrl.memberLabel}} messaging or group listings, visit the <a href="#!/BuildingResidents">{{$ctrl.memberPageName}}</a> page </small>
                     </div>
 
-                    <div class="note-text text-link" data-ng-click="$ctrl.shouldShowGroupMembers = !$ctrl.shouldShowGroupMembers" data-ng-if="$ctrl.selectedRecipient && $ctrl.selectedRecipient.usersFullNames && $ctrl.selectedRecipient.usersFullNames.length > 0">
+                    <div class="note-text text-link" data-ng-click="$ctrl.shouldShowGroupMembers = !$ctrl.shouldShowGroupMembers" data-ng-if="$ctrl.selectedRecipient && $ctrl.selectedRecipient.usersFullNames && $ctrl.selectedRecipient.usersFullNames.length > 0 && $ctrl.messageObject.sendMessageType==='email'">
                         <span data-ng-if="$ctrl.shouldShowGroupMembers">Hide</span><span data-ng-if="!$ctrl.shouldShowGroupMembers">Show</span> recipient group members
                     </div>
 
-                    <div class="note-text" data-ng-if="$ctrl.shouldShowGroupMembers && $ctrl.selectedRecipient && $ctrl.selectedRecipient.usersFullNames && $ctrl.selectedRecipient.usersFullNames.length > 0">
+                    <div class="note-text" data-ng-if="$ctrl.shouldShowGroupMembers && $ctrl.selectedRecipient && $ctrl.messageObject.sendMessageType==='email' && $ctrl.selectedRecipient.usersFullNames && $ctrl.selectedRecipient.usersFullNames.length > 0">
                         {{ $ctrl.selectedRecipient.usersFullNames[0] }}<span data-ng-repeat="personName in $ctrl.selectedRecipient.usersFullNames track by $index" ng-hide="$first">, {{ ::personName }}<span></span></span>
+                    </div>
+
+                    <div class="note-text" data-ng-if="$ctrl.selectedRecipient && $ctrl.messageObject.sendMessageType==='text' && $ctrl.selectedSmsRecipients">
+                        <div data-ng-if="$ctrl.selectedSmsRecipients.length > 0">
+                            <div class="note-text">These users have opted in to receive {{$ctrl.messageObject.smsPriority}} text messages:</div>
+                            <div>{{ $ctrl.selectedSmsRecipients[0].fullName }}<span data-ng-repeat="person in $ctrl.selectedSmsRecipients track by $index" ng-hide="$first">, {{ ::person.fullName }}<span></span></span></div>
+                        </div>
+                        <div data-ng-if="$ctrl.selectedSmsRecipients.length === 0" class="note-text" style="color: red;">No users in the selected group have opted in to receive text messages.</div>
                     </div>
                 </div>
 
-                <div class="row mb-3 px-3" data-ng-if="$ctrl.committee">
+                <div class="row mb-4 px-3" data-ng-if="$ctrl.committee">
                     This will send an email to the members of this committee. If you'd prefer to send a message from your own email client, send
                     to this address:<br />
                     <a href="mailto:committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@{{ $ctrl.groupEmailDomain }}">committee-{{ $ctrl.committee.committeeId }}.{{ $ctrl.siteInfo.publicSiteInfo.shortName }}@{{ $ctrl.groupEmailDomain }}</a>
                 </div>
 
-                <div class="row mb-3 px-3">
+                <div class="row mb-4 px-3" data-ng-if="$ctrl.messageObject.sendMessageType==='email'">
                     <label for="message-subject-text" class="form-label">Subject:</label>
                     <input id="message-subject-text" type="text" class="form-control" data-ng-model="$ctrl.messageObject.subject" />
+                    <div class="note-text" data-ng-if="$ctrl.messageObject.sendMessageType==='text'">
+                        Message must be less than 319 characters.
+                    </div>
                 </div>
 
-                <div class="row mb-3 px-3">
-                    <label for="message-body-text" class="form-label">Email Contents:</label>
+                <div class="row mb-4 px-3">
+                    <label for="message-body-text" class="form-label">Message Body:</label>
                     <textarea id="message-body-text" class="form-control" data-ng-model="$ctrl.messageObject.message" data-rule-required="true" rows="10"></textarea>
                 </div>
 
-                <div class="row mb-3 px-3" data-ng-if="$ctrl.filteredSendAsOptions.length > 1">
-                    <label for="message-subject-text" class="form-label">Send As:</label>
+                <div class="row mb-3 px-3" data-ng-if="$ctrl.filteredSendAsOptions.length > 1 && $ctrl.messageObject.sendMessageType==='email'">
+                    <label class="form-label">Send As:</label>
                     <div>
                         <div data-ng-repeat="curSendAs in $ctrl.filteredSendAsOptions">
                             <label>
@@ -85,15 +122,15 @@
 
                 <a class="note-text" target="_blank" href="https://help.communityally.org/how-to-send-an-e-mail-with-an-attachment/">Want to add an attachment or use advanced formatting?</a>
                 <p class="text-end">
-                    <input class="btn btn-primary" value="Send Email" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmailClicked()" data-ng-if="!$ctrl.isLoadingEmail" />
+                    <button class="btn btn-primary" id="send-email-button" type="button" data-ng-click="$ctrl.onSendEmailClicked()" data-ng-if="!$ctrl.isLoadingEmail">Send {{$ctrl.messageObject.sendMessageType==='email'?'Email':'Text Message'}}</button>
                 </p>
             </form>
         </div>
-        <div data-ng-show="$ctrl.showSendConfirmation">
+        <div data-ng-show="$ctrl.showSendConfirmation" style="font-size: large; color: blue;">
             Your message has been sent successfully.<br>
             <span class="text-button" data-ng-click="$ctrl.showSendEmail = true; $ctrl.showSendConfirmation = false;">Send Another</span>
         </div>
-        <div data-ng-show="$ctrl.showEmailForbidden">
+        <div data-ng-if="$ctrl.showEmailForbidden">
             You do not have permission to send email.
         </div>
     </div>

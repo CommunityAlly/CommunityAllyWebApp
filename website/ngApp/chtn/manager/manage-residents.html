@@ -386,13 +386,24 @@
             </span>
         </div>
 
-        <p id="toggle-email-history-link" class="text-link mt-5 mb-0" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} Email History</p>
+        <p id="toggle-email-history-link" class="text-link mt-5 mb-0" data-ng-click="$ctrl.toggleEmailHistoryVisible()">{{ $ctrl.showEmailHistory ? "Hide" : "Show" }} Email/Text Message History</p>
         <div data-ng-if="$ctrl.showEmailHistory">
-            <h4>Group Email History</h4>
-            <span class="note-text">Here you can view group emails sent in the last {{$ctrl.emailHistoryNumMonths}} months.</span> <span class="text-link note-text" data-ng-click="$ctrl.loadMoreRecentEmails()">Load 6 more months</span>
-            <div data-ui-grid="$ctrl.emailHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
-            <div class="text-end">
-                <span class="text-link" data-ng-if="$ctrl.emailHistoryGridOptions.data.length > 0" data-ng-click="$ctrl.exportEmailCsv()">Export To CSV</span>
+            <div class="mb-4">
+                <h4>Email History</h4>
+                <span class="note-text">Here you can view group, not individual, emails sent in the last {{$ctrl.emailHistoryNumMonths}} months.</span> <span class="text-link note-text" data-ng-click="$ctrl.loadMoreRecentEmails()">Load 6 more months</span>
+                <div data-ui-grid="$ctrl.emailHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
+                <div class="text-end">
+                    <span class="text-link" data-ng-if="$ctrl.emailHistoryGridOptions.data.length > 0" data-ng-click="$ctrl.exportEmailCsv()">Export To CSV</span>
+                </div>
+            </div>
+
+            <div>
+                <h4>Text Message History</h4>
+                <span class="note-text">Here you can view text messages sent in the last {{$ctrl.emailHistoryNumMonths}} months.</span> <span class="text-link note-text" data-ng-click="$ctrl.loadMoreRecentEmails()">Load 6 more months</span>
+                <div data-ui-grid="$ctrl.smsHistoryGridOptions" data-ui-grid-selection ui-grid-resize-columns ui-grid-pagination class="gridStyle margin-top-20"></div>
+                <div class="text-end">
+                    <span class="text-link" data-ng-if="$ctrl.emailHistoryGridOptions.data.length > 0" data-ng-click="$ctrl.exportEmailCsv()">Export To CSV</span>
+                </div>
             </div>
         </div>
 
@@ -469,6 +480,47 @@
                 </p>
                 <p data-ng-if="!$ctrl.viewingRecentEmail.messageBody">
                     <i>Email body was empty</i>
+                </p>
+            </div>
+        </div>
+
+        <div id="view-text-message-container" class="modal-container" data-ng-if="$ctrl.viewingRecentTextMessage" data-ng-escape="$ctrl.closeViewingTextMessage()">
+            <div class="modal-overlay" data-ng-click="$ctrl.closeViewingTextMessage()"></div>
+            <div class="ca-modal-dialog modal-lg">
+                <span style="float: right;" class="close-x" data-ng-click="$ctrl.closeViewingTextMessage()">&times;</span>
+                <h3>Text Message</h3>
+                <table style="width: 100%;">
+                    <tbody>
+                        <tr>
+                            <td class="text-end" style="width: 120px;"><span style="font-weight: bold;">Sent On:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentTextMessage.sendDateUtc | date:'medium'}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Sent By:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentTextMessage.senderName}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Group Sent To:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentTextMessage.recipientGroup}} ({{$ctrl.viewingRecentTextMessage.numRecipients}} recipient{{$ctrl.viewingRecentTextMessage.numRecipients === 1 ? '' : 's'}})</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;"># Texts Sent:</span></td>
+                            <td class="ps-1">{{$ctrl.viewingRecentTextMessage.numTextsSent}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><span style="font-weight: bold;">Sent To:</span></td>
+                            <td class="ps-1"><span data-ng-repeat="curSentTo in $ctrl.viewingRecentTextMessage.sendResultsObject.sentToPhoneNumbers" class="mr-3">{{curSentTo}}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br />
+                <span style="font-weight: bold;">Message Body</span>
+                <br />
+                <p style="white-space: pre-wrap;" data-ng-if="$ctrl.viewingRecentTextMessage.messageText">
+                    {{ $ctrl.viewingRecentTextMessage.messageText }}
+                </p>
+                <p data-ng-if="!$ctrl.viewingRecentTextMessage.messageText">
+                    <i>Message body was empty</i>
                 </p>
             </div>
         </div>
