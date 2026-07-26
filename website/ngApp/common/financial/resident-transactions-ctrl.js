@@ -124,6 +124,7 @@ var Ally;
                 }, 100);
             }, () => {
                 this.isLoading = false;
+                alert("Failed to load transactions, please log out and back in and try again. If the problem persists, please contact technical support.");
             });
         }
         exportTransactionsCsv() {

@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     /**
      * The controller for display a resident's financial transaction history
@@ -178,6 +178,7 @@
                 () =>
                 {
                     this.isLoading = false;
+                    alert("Failed to load transactions, please log out and back in and try again. If the problem persists, please contact technical support.");
                 }
             );
         }
