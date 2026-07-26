@@ -14,6 +14,7 @@ namespace Ally
         showPhoneInMeetNeighbors: boolean;
         postmarkReportedBadEmailUtc: Date;
         hasSmsConsent: boolean | null;
+        smsReceiveLevel: "emergency" | "notification" | null;
         hasEmail: boolean;
     }
 
@@ -35,6 +36,7 @@ namespace Ally
         mfaMethodsCsv: string;
         phoneVerificationDateUtc: Date;
         postmarkReportedBadEmailReason: string;
+        smsReceiveLevel: "emergency" | "notification" | null;
     }
 
     export class PtaMember extends SimpleUserEntry

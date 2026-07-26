@@ -114,7 +114,7 @@
                     <input id="phoneNumberTextBox" class="form-control form-control-sm" data-ng-model="$ctrl.profileInfo.phoneNumber" type="text" />
                     <span class="form-text">Enter the phone number at which you can most frequently be contacted. This may be used by your neighbors in case of an emergency in your association. You can add an alternate phone number in the secondary tab.</span>
                     <div>
-                        Verification Status:
+                        Phone Number Verification Status:
                         <span data-ng-if="$ctrl.originalPhoneNumber === $ctrl.profileInfo.phoneNumber">
                             <span data-ng-if="$ctrl.originalPhoneNumber.length >= 10">
                                 <span data-ng-if="$ctrl.profileInfo.phoneVerificationDateUtc" style="color: green; font-weight: bold;">Verified</span>
@@ -125,6 +125,9 @@
                         </span>
                         <span data-ng-if="$ctrl.originalPhoneNumber !== $ctrl.profileInfo.phoneNumber" style="color: darkgray; font-weight: bold;">Please save your changes then you can verify</span>
                     </div>
+                    <div class="note-text">
+                        By verifying your phone number, you consent to receive messages from Community Ally at the phone number provided. Message and data rates may apply. Choose the text message 'None' setting below to cancel.
+                    </div>
                     <div data-ng-if="$ctrl.canHideContactInfo" class="mt-2">
                         <label><input type="checkbox" id="showMyPhoneNumber" data-ng-model="$ctrl.profileInfo.showPhoneInMeetNeighbors" /> Show my phone number and email address on the <a href="#!/BuildingResidents">Residents</a> page.</label>
                         <div class="note-text">With this unchecked, your neighbors can still contact you, but we keep your email address private. If you check this box, you consent to sharing your actual email address and phone number.</div>
@@ -133,18 +136,18 @@
             </div>
 
             <!--<div class="row mt-5">
-                <div class="col-12">
-                    <label class="form-label">
-                        SMS Consent
-                    </label>
-                    <div>
-                        I consent to accept SMS from my association and Community Ally:
-                        <label><input type="radio" name="sms-consent" data-ng-model="$ctrl.profileInfo.hasSmsConsent" data-ng-value="true" />Yes</label>
-                        <label class="ms-3"><input type="radio" name="sms-consent" data-ng-model="$ctrl.profileInfo.hasSmsConsent" data-ng-value="false" />No</label>
-                    </div>
-                    <div class="note-text">Answer yes to enable emergency notifications/announcements from your association and MFA login codes from Community Ally. <a href="https://login.condoally.com/PrivacyPolicy.html#neversell" target="_blank">We will never sell your information</a>. Carrier message and data fees may apply. Return here to disable SMS sending at any time.</div>
-                </div>
-            </div>-->
+        <div class="col-12">
+            <label class="form-label">
+                SMS Consent
+            </label>
+            <div>
+                I consent to accept SMS from my association and Community Ally:
+                <label><input type="radio" name="sms-consent" data-ng-model="$ctrl.profileInfo.hasSmsConsent" data-ng-value="true" />Yes</label>
+                <label class="ms-3"><input type="radio" name="sms-consent" data-ng-model="$ctrl.profileInfo.hasSmsConsent" data-ng-value="false" />No</label>
+            </div>
+            <div class="note-text">Answer yes to enable emergency notifications/announcements from your association and MFA login codes from Community Ally. <a href="https://login.condoally.com/PrivacyPolicy.html#neversell" target="_blank">We will never sell your information</a>. Carrier message and data fees may apply. Return here to disable SMS sending at any time.</div>
+        </div>
+    </div>-->
 
             <div class="row mt-5">
                 <div class="col-12">
@@ -170,6 +173,38 @@
                                 <input class="form-check-input" data-ng-model="$ctrl.emailFlagsDiscussion" data-ng-change="$ctrl.onEmailFlagsChanged()" type="checkbox" />
                             </label>
                             <div class="form-text">Indicates if you want to receive emails sent to the discussion group email address.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div data-ng-if="!$ctrl.profileInfo.phoneVerificationDateUtc" style="color: red;">
+                        You can only receive SMS messages after you verify your phone number above.
+                    </div>
+                    <label class="form-label">What text messages would you like to receive from your association?</label>
+                    <ul style="margin-left: 20px;">
+                        <li>
+                            <label style="font-weight: normal; margin-bottom: 0;">
+                                <input class="form-check-input" name="sms-preference" data-ng-model="$ctrl.profileInfo.smsReceiveLevel" data-ng-readonly="!$ctrl.profileInfo.phoneVerificationDateUtc" type="radio" data-ng-value="null" />
+                                None
+                            </label>
+                            <div class="form-text">You won't receive any text message announcements from your association, just two-factor login codes if enabled.</div>
+                        </li>
+                        <li style="margin-bottom: 14px;">
+                            <label style="font-weight: normal; margin-bottom: 0;">
+                                <input class="form-check-input" name="sms-preference" data-ng-model="$ctrl.profileInfo.smsReceiveLevel" data-ng-readonly="!$ctrl.profileInfo.phoneVerificationDateUtc" type="radio" value="emergency" />
+                                Emergency Only                                
+                            </label>
+                            <div class="form-text">You'll only receive emergency announcements from your association.</div>
+                        </li>
+                        <li style="margin-bottom: 14px;">
+                            <label style="font-weight: normal; margin-bottom: 0;">
+                                <input class="form-check-input" name="sms-preference" data-ng-model="$ctrl.profileInfo.smsReceiveLevel" data-ng-readonly="!$ctrl.profileInfo.phoneVerificationDateUtc" type="radio" value="notification" />
+                                Emergency and Notification
+                            </label>
+                            <div class="form-text">You'll receive emergency and non-emergency announcements from your association.</div>
                         </li>
                     </ul>
                 </div>
@@ -235,8 +270,8 @@
         <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
         <h2>Profile Photo</h2>
         <div class="mb-3">
-            If using a profile photo, you must use a photo of yourself (you can include family) and it cannot contain any nudity or profanity. Photos that don't meet these
-            guidelines will be automatically cleared out. Ideally, use a head shot that will help your neighbors recognize you. The only exception is that property managers
+            If using a profile photo, you must use a photo of yourself (you can include family) and it cannot contain any nudity or profanity. <b>Photos that don't meet these
+            guidelines will be automatically cleared out.</b> Ideally, use a head shot that will help your neighbors recognize you. The only exception is that property managers
             may use their company logo.
         </div>
         <div class="col-12">
