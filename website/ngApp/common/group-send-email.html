@@ -43,7 +43,7 @@
                             data-ng-options="e as e.displayName for e in $ctrl.availableEmailGroups">
                     </select>
 
-                    <div data-ng-if="$ctrl.showUseDiscussSuggestion" style="color: blue; font-size: large;" class="ps-0">
+                    <div data-ng-if="$ctrl.showUseDiscussSuggestion && $ctrl.messageObject.sendMessageType==='email'" style="color: blue; font-size: large;" class="ps-0">
                         Primary use of this group is for announcements, questions, and requests for vendor recommendations. <span style="font-weight: bold;">
                             For matters of discussion
                             and opinions, please use the discussion group.
@@ -85,6 +85,10 @@
                             <div>{{ $ctrl.selectedSmsRecipients[0].fullName }}<span data-ng-repeat="person in $ctrl.selectedSmsRecipients track by $index" ng-hide="$first">, {{ ::person.fullName }}<span></span></span></div>
                         </div>
                         <div data-ng-if="$ctrl.selectedSmsRecipients.length === 0" class="note-text" style="color: red;">No users in the selected group have opted in to receive text messages.</div>
+                    </div>
+
+                    <div data-ng-if="$ctrl.messageObject.sendMessageType==='text' && $ctrl.missingPhoneGroup && $ctrl.missingPhoneGroup.memberUserIds.length > 2" class="mt-2 note-text">
+                        Expecting more text message recipients? {{$ctrl.missingPhoneGroup.memberUserIds.length}} residents have not verified their phone numbers. <span data-ng-click="$ctrl.prepopulateMessageForUnverifiedPhone()" class="text-link">Click here</span> to prepopulate a message to those residents to verify their phone number in order to receive text messages.
                     </div>
                 </div>
 

@@ -130,6 +130,7 @@ namespace Ally
         public static readonly BoardPos_None: number = 0;
         public static readonly BoardPos_PropertyManager = 32;
         public static readonly CustomRecipientType = "CUSTOM";
+        public static readonly RecipientTypeUnverifiedPhone = "UnverifiedPhone";
 
         private static s_boardPositionNames: { id: number, name: string }[] = [
             { id: FellowResidentsService.BoardPos_None, name: "None" },
@@ -469,7 +470,7 @@ namespace Ally
             if( isBoard )
                 sendAsOptions.push( { displayLabel: `The Board`, noteText: "This will set the 'from' address to the board's group email address", isBoardOption: true, committee: null } );
 
-            return this.$http.get( "/api/Committee/MyCommittees", { cache: true } ).then(
+            return this.$http.get<Committee[]>( "/api/Committee/MyCommittees", { cache: true } ).then(
                 ( response: ng.IHttpPromiseCallbackArg<Committee[]> ) =>
                 {
                     if( response.data && response.data.length > 0 )
@@ -492,7 +493,7 @@ namespace Ally
 
     class PollAnswerCount
     {
-        constructor( answerId: number, writeInAnswer: string = null )
+        constructor( answerId: number, writeInAnswer: string | null = null )
         {
             this.answerId = answerId;
             this.writeInAnswer = writeInAnswer;
@@ -500,7 +501,7 @@ namespace Ally
 
         answerId: number;
         numVotes: number = 0;
-        writeInAnswer: string;
+        writeInAnswer: string | null;
     }
 
 

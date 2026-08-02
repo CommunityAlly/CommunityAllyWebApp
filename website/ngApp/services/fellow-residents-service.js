@@ -276,6 +276,7 @@ var Ally;
     FellowResidentsService.BoardPos_None = 0;
     FellowResidentsService.BoardPos_PropertyManager = 32;
     FellowResidentsService.CustomRecipientType = "CUSTOM";
+    FellowResidentsService.RecipientTypeUnverifiedPhone = "UnverifiedPhone";
     FellowResidentsService.s_boardPositionNames = [
         { id: FellowResidentsService.BoardPos_None, name: "None" },
         { id: 1, name: "President" },

@@ -86,6 +86,8 @@ namespace Ally
         bgImagePath: string;
         fullName: string;
         shortName: string;
+
+        /// Looks like https://qa.condoally.com
         baseUrl: string;
         siteLogo: string;
         siteTitleText: string;

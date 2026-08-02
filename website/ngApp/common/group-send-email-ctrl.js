@@ -72,7 +72,10 @@ var Ally;
             this.isLoadingEmail = true;
             this.fellowResidents.getGroupEmailObject().then((emailList) => {
                 this.isLoadingEmail = false;
-                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer" && e.shouldShowInHomeWidget); // No need to show treasurer in this list since it's a single person
+                this.allEmailGroups = emailList;
+                this.missingPhoneGroup = this.allEmailGroups.find(g => g.recipientType === Ally.FellowResidentsService.RecipientTypeUnverifiedPhone);
+                // No need to show treasurer in this list since it's a single person
+                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer" && e.shouldShowInHomeWidget);
                 if (this.availableEmailGroups.length > 0) {
                     this.defaultMessageRecipient = this.availableEmailGroups[0];
                     this.selectedRecipient = this.availableEmailGroups[0];
@@ -167,9 +170,10 @@ var Ally;
             const isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf("discussion") !== -1;
             const isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
             const isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
+            const isSendingToUnverifiedPhone = this.messageObject.recipientType === Ally.FellowResidentsService.RecipientTypeUnverifiedPhone;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup && !isSendingToUnverifiedPhone;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
             this.filteredSendAsOptions = this.allSendAsOptions;
             if (isSendingToBoard) {
@@ -193,12 +197,29 @@ var Ally;
             console.log("onSendTypeChange", this.messageObject.sendMessageType);
             if (this.messageObject.sendMessageType === "text" && !this.messageObject.message) {
                 if (AppConfig.appShortName === "condo")
-                    this.messageObject.message = "Message from your condo association:\n";
+                    this.messageObject.message = "Message from your condo association:\n[ENTER YOUR MESSAGE HERE]\n*Replies are not monitored*";
                 else if (AppConfig.appShortName === "hoa")
-                    this.messageObject.message = "Message from your HOA:\n";
+                    this.messageObject.message = "Message from your HOA:\n[ENTER YOUR MESSAGE HERE]\n*Replies are not monitored*";
                 else if (AppConfig.appShortName === "neighborhood")
-                    this.messageObject.message = "Message from your neighborhood group:\n";
+                    this.messageObject.message = "Message from your neighborhood group:\n[ENTER YOUR MESSAGE HERE]\n*Replies are not monitored*";
             }
+        }
+        prepopulateMessageForUnverifiedPhone() {
+            if (!this.missingPhoneGroup) {
+                alert("Unable to find the group for unverified phone numbers. Please contact support.");
+                return;
+            }
+            if (!this.missingPhoneGroup.shouldShowInHomeWidget) {
+                this.missingPhoneGroup.shouldShowInHomeWidget = true;
+                this.availableEmailGroups.push(this.missingPhoneGroup);
+            }
+            this.selectedRecipient = this.missingPhoneGroup;
+            this.onSelectEmailGroup();
+            this.messageObject.sendMessageType = "email";
+            this.messageObject.subject = "A message from your board - Consider verifying your phone number";
+            this.messageObject.message = `Hello,\n\nYour phone number is not verified in the system so it is not eligible to receive important text messages. Please visit your profile page to verify your phone number: ${this.siteInfo.publicSiteInfo.baseUrl}/#!/MyProfile`;
+            this.messageObject.shouldSendAsBoard = true;
+            this.selectedSendAs = this.filteredSendAsOptions.find(o => o.isBoardOption);
         }
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
