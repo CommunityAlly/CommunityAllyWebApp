@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     export class MaintenanceController implements ng.IController
     {
@@ -18,39 +18,42 @@
         equipmentTypeOptions: string[];
         equipmentLocationOptions: string[];
         maintenanceTodoListId: number;
-        maintenanceEntries: MaintenanceEntry[] = [];
+        allMaintenanceEntries: MaintenanceEntry[] = [];
+        filteredMaintenanceEntries: MaintenanceEntry[] = [];
         assigneeOptions: FellowChtnResident[] = [];
         selectedAssignee: FellowChtnResident[];
         entriesSortField: string;
         entriesSortAscending: boolean = true;
-        allUnits: Ally.UnitListing[];
+        allUnits: Ally.UnitListing[] = [];
         homeName = "Unit";
+        filterableUnits: Ally.UnitListing[] = [];
+        filterByUnitId: number | null = null;
         static StorageKey_SortField = "maintenance_entriesSortField";
         static StorageKey_SortDir = "maintenance_entriesSortAscending";
 
         static EquipmentId_AddNew: number = -5;
 
         static AutocompleteLocationOptions = [{ text: "Attic" },
-                                                { text: "Back Yard" },
-                                                { text: "Basement" },
-                                                { text: "Front Yard" },
-                                                { text: "Garage" },
-                                                { text: "Interior" },
-                                                { text: "Kitchen" },
-                                                { text: "Exterior" },
-                                                { text: "Side of Building" },
-                                                { text: "Structural" }];
+        { text: "Back Yard" },
+        { text: "Basement" },
+        { text: "Front Yard" },
+        { text: "Garage" },
+        { text: "Interior" },
+        { text: "Kitchen" },
+        { text: "Exterior" },
+        { text: "Side of Building" },
+        { text: "Structural" }];
 
         static AutocompleteEquipmentTypeOptions = [{ text: "Appliance" },
-                                                    { text: "Deck" },
-                                                    { text: "Driveway" },
-                                                    { text: "HVAC" },
-                                                    { text: "Patio" },
-                                                    { text: "Plumbing" },
-                                                    { text: "Roof" },
-                                                    { text: "Siding" },
-                                                    { text: "Structural" }];
-        
+        { text: "Deck" },
+        { text: "Driveway" },
+        { text: "HVAC" },
+        { text: "Patio" },
+        { text: "Plumbing" },
+        { text: "Roof" },
+        { text: "Siding" },
+        { text: "Structural" }];
+
         /**
          * The constructor for the class
          */
@@ -70,33 +73,33 @@
             this.homeName = AppConfig.homeName || "Unit";
 
             this.equipmentGridOptions =
+            {
+                data: [],
+                columnDefs:
+                    [
+                        {
+                            field: 'name',
+                            displayName: 'Name',
+                            cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="grid.appScope.$ctrl.isSiteManager" data-ng-click="grid.appScope.$ctrl.editEquipment( row.entity )">{{ row.entity.name }}</span><span data-ng-if="!grid.appScope.$ctrl.isSiteManager">{{ row.entity.name }}</span></div>'
+                        },
+                        { field: 'type', displayName: 'Type', width: 150 },
+                        { field: 'installDate', displayName: "Installed", width: 90, cellFilter: "date:'shortDate'", type: "date" },
+                        { field: 'initialCost', displayName: 'Cost', width: 90, cellFilter: "currency", type: "number" },
+                        { field: 'addedDateUtc', displayName: 'Added', width: 90, cellFilter: "date:'shortDate'", type: "date" }
+                    ],
+                multiSelect: false,
+                enableSorting: true,
+                enableHorizontalScrollbar: 0,
+                enableVerticalScrollbar: 1,
+                enableFullRowSelection: false,
+                enableColumnMenus: false,
+                enableRowHeaderSelection: false,
+                onRegisterApi: function()
                 {
-                    data: [],
-                    columnDefs:
-                        [
-                            {
-                                field: 'name',
-                                displayName: 'Name',
-                                cellTemplate: '<div class="ui-grid-cell-contents"><span class="text-link" data-ng-if="grid.appScope.$ctrl.isSiteManager" data-ng-click="grid.appScope.$ctrl.editEquipment( row.entity )">{{ row.entity.name }}</span><span data-ng-if="!grid.appScope.$ctrl.isSiteManager">{{ row.entity.name }}</span></div>'
-                            },
-                            { field: 'type', displayName: 'Type', width: 150 },
-                            { field: 'installDate', displayName: "Installed", width: 90, cellFilter: "date:'shortDate'", type: "date" },
-                            { field: 'initialCost', displayName: 'Cost', width: 90, cellFilter: "currency", type: "number" },
-                            { field: 'addedDateUtc', displayName: 'Added', width: 90, cellFilter: "date:'shortDate'", type: "date" }
-                        ],
-                    multiSelect: false,
-                    enableSorting: true,
-                    enableHorizontalScrollbar: 0,
-                    enableVerticalScrollbar: 1,
-                    enableFullRowSelection: false,
-                    enableColumnMenus: false,
-                    enableRowHeaderSelection: false,
-                    onRegisterApi: function()
-                    {
-                        // Fix dumb scrolling
-                        HtmlUtil.uiGridFixScroll();
-                    }
-                };
+                    // Fix dumb scrolling
+                    HtmlUtil.uiGridFixScroll();
+                }
+            };
 
             // Show less columns on mobile view
             if( window.innerWidth < 769 )
@@ -153,11 +156,11 @@
 
 
         /**
-        * Rebuild the arrow of projects and to-do's
+        * Rebuild the array of projects and to-do's
         */
         rebuildMaintenanceEntries()
         {
-            this.maintenanceEntries = [];
+            this.allMaintenanceEntries = [];
 
             _.forEach( this.projects, p =>
             {
@@ -179,17 +182,21 @@
                     }
                 }
 
-                this.maintenanceEntries.push( newEntry );
+                this.allMaintenanceEntries.push( newEntry );
             } );
 
             _.forEach( this.maintenanceTodos.todoItems, t =>
             {
                 const newEntry = new MaintenanceEntry();
                 newEntry.todo = t;
-                this.maintenanceEntries.push( newEntry );
+                this.allMaintenanceEntries.push( newEntry );
             } );
 
-            this.sortEntries();
+            this.sortAndFilterEntries();
+
+            const filterableUnitIds = Array.from( new Set( this.projects.filter( p => !!p.relatedUnitId ).map( p => p.relatedUnitId! ) ) );
+
+            this.filterableUnits = this.allUnits.filter( u => filterableUnitIds.indexOf( u.unitId ) !== -1 );
         }
 
 
@@ -480,7 +487,7 @@
                 this.isLoading = false;
                 this.shouldShowEditEquipmentModal = false;
                 this.loadEquipment();
-                
+
             }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;
@@ -516,7 +523,7 @@
         /**
          * Open the equipment edit modal for the selected project
          */
-        editEquipment( equipment:Equipment )
+        editEquipment( equipment: Equipment )
         {
             this.shouldShowEditEquipmentModal = true;
             this.editingEquipment = _.clone( equipment );
@@ -537,7 +544,7 @@
 
                 // Needed for the searchable drop-down
                 for( let i = 0; i < this.assigneeOptions.length; ++i )
-                    (<any>(this.assigneeOptions[i])).isSelectedAssignee = false;
+                    ( <any>( this.assigneeOptions[i] ) ).isSelectedAssignee = false;
 
                 const foundAssignee = _.find( this.assigneeOptions, u => u.userId === this.editingTodo.assignedToUserId );
                 if( foundAssignee )
@@ -574,7 +581,7 @@
                     this.isLoading = false;
                     this.loadMaintenanceTodos().then( () => this.rebuildMaintenanceEntries() );
 
-                }, (response:ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+                }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
                     alert( "Failed to delete to-do: " + response.data.exceptionMessage );
@@ -676,8 +683,8 @@
                 }
             ];
 
-            const projects = _.map( _.filter( this.maintenanceEntries, e => !!e.project ), e => e.project );
-            
+            const projects = _.map( _.filter( this.allMaintenanceEntries, e => !!e.project ), e => e.project );
+
             const csvDataString = Ally.createCsvString( projects, csvColumns );
 
             HtmlUtil2.downloadCsv( csvDataString, "Maintenance.csv" );
@@ -687,24 +694,29 @@
         /**
          * Sort the entries by a certain field
          */
-        sortEntries()
+        sortAndFilterEntries()
         {
             const sortEntry = ( e: MaintenanceEntry ) =>
             {
                 if( this.entriesSortField === "status" )
                     return e.project ? e.project.status : "ZZZZZ";
                 else if( this.entriesSortField === "startDate" )
-                    return e.project ? e.project.startDate : new Date(1001,12,30);
+                    return e.project ? e.project.startDate : new Date( 1001, 12, 30 );
                 else
                     return e.getCreatedDate();
             };
 
             //console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
-            this.maintenanceEntries = _.sortBy( this.maintenanceEntries, sortEntry );
+            if( this.filterByUnitId && this.filterByUnitId > 0 )
+                this.filteredMaintenanceEntries = this.allMaintenanceEntries.filter( e => e.project && e.project.relatedUnitId === this.filterByUnitId );
+            else
+                this.filteredMaintenanceEntries = this.allMaintenanceEntries
+
+            this.filteredMaintenanceEntries = _.sortBy( this.filteredMaintenanceEntries, sortEntry );
 
             const shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
             if( shouldReverse )
-                this.maintenanceEntries.reverse();
+                this.filteredMaintenanceEntries.reverse();
         }
 
 
@@ -727,7 +739,16 @@
             window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
             window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
 
-            this.sortEntries();
+            this.sortAndFilterEntries();
+        }
+
+
+        /**
+         * Called when the user changes the unit filter
+         */
+        onUnitFilterChange()
+        {
+            this.sortAndFilterEntries();
         }
     }
 

@@ -1,4 +1,4 @@
-﻿<div class="page-subpage page-document-info info spinner-effect" data-ng-cloak>
+<div class="page-subpage page-document-info info spinner-effect" data-ng-cloak>
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <div class="row">
@@ -26,15 +26,21 @@
     </div>
 
     <div class="row">
-        <div class="col-12">
+        <div class="col-6">
             Sort By:
             <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'entryDate'}" data-ng-click="$ctrl.updateEntriesSort('entryDate')">Entry Date</span>
             - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'status'}" data-ng-click="$ctrl.updateEntriesSort('status')">Status</span>
             - <span class="text-link" data-ng-class="{'bold-underline': $ctrl.entriesSortField === 'startDate'}" data-ng-click="$ctrl.updateEntriesSort('startDate')">Start Date</span>
         </div>
+        <div class="col-6" data-ng-if="$ctrl.filterableUnits.length > 0">
+            Filter by {{$ctrl.homeName}}:
+            <select data-ng-model="$ctrl.filterByUnitId" data-ng-options="u.unitId as u.name for u in $ctrl.filterableUnits" data-ng-change="$ctrl.onUnitFilterChange()">
+                <option value="">All {{$ctrl.homeName}}s</option>
+            </select>
+        </div>
     </div>
 
-    <div class="row" data-ng-repeat="entry in $ctrl.maintenanceEntries">
+    <div class="row" data-ng-repeat="entry in $ctrl.filteredMaintenanceEntries">
 
         <div class="col-12">
             <div class="card ally-shaded-item">

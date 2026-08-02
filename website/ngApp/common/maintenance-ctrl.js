@@ -13,10 +13,14 @@ var Ally;
             this.isSiteManager = false;
             this.shouldShowEditEquipmentModal = false;
             this.shouldShowManageEquipmentModal = false;
-            this.maintenanceEntries = [];
+            this.allMaintenanceEntries = [];
+            this.filteredMaintenanceEntries = [];
             this.assigneeOptions = [];
             this.entriesSortAscending = true;
+            this.allUnits = [];
             this.homeName = "Unit";
+            this.filterableUnits = [];
+            this.filterByUnitId = null;
             this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, o => o.text);
             this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, o => o.text);
             this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
@@ -88,10 +92,10 @@ var Ally;
             });
         }
         /**
-        * Rebuild the arrow of projects and to-do's
+        * Rebuild the array of projects and to-do's
         */
         rebuildMaintenanceEntries() {
-            this.maintenanceEntries = [];
+            this.allMaintenanceEntries = [];
             _.forEach(this.projects, p => {
                 const newEntry = new Ally.MaintenanceEntry();
                 newEntry.project = p;
@@ -106,14 +110,16 @@ var Ally;
                         p.vendorEmail = vendorInfo.contactEmail;
                     }
                 }
-                this.maintenanceEntries.push(newEntry);
+                this.allMaintenanceEntries.push(newEntry);
             });
             _.forEach(this.maintenanceTodos.todoItems, t => {
                 const newEntry = new Ally.MaintenanceEntry();
                 newEntry.todo = t;
-                this.maintenanceEntries.push(newEntry);
+                this.allMaintenanceEntries.push(newEntry);
             });
-            this.sortEntries();
+            this.sortAndFilterEntries();
+            const filterableUnitIds = Array.from(new Set(this.projects.filter(p => !!p.relatedUnitId).map(p => p.relatedUnitId)));
+            this.filterableUnits = this.allUnits.filter(u => filterableUnitIds.indexOf(u.unitId) !== -1);
         }
         /**
         * Retrieve the equipment available for this group
@@ -460,14 +466,14 @@ var Ally;
                     fieldName: "assignedTo"
                 }
             ];
-            const projects = _.map(_.filter(this.maintenanceEntries, e => !!e.project), e => e.project);
+            const projects = _.map(_.filter(this.allMaintenanceEntries, e => !!e.project), e => e.project);
             const csvDataString = Ally.createCsvString(projects, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Maintenance.csv");
         }
         /**
          * Sort the entries by a certain field
          */
-        sortEntries() {
+        sortAndFilterEntries() {
             const sortEntry = (e) => {
                 if (this.entriesSortField === "status")
                     return e.project ? e.project.status : "ZZZZZ";
@@ -477,10 +483,14 @@ var Ally;
                     return e.getCreatedDate();
             };
             //console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
-            this.maintenanceEntries = _.sortBy(this.maintenanceEntries, sortEntry);
+            if (this.filterByUnitId && this.filterByUnitId > 0)
+                this.filteredMaintenanceEntries = this.allMaintenanceEntries.filter(e => e.project && e.project.relatedUnitId === this.filterByUnitId);
+            else
+                this.filteredMaintenanceEntries = this.allMaintenanceEntries;
+            this.filteredMaintenanceEntries = _.sortBy(this.filteredMaintenanceEntries, sortEntry);
             const shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
             if (shouldReverse)
-                this.maintenanceEntries.reverse();
+                this.filteredMaintenanceEntries.reverse();
         }
         /**
          * Sort the entries by a certain field
@@ -496,7 +506,13 @@ var Ally;
             }
             window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
             window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
-            this.sortEntries();
+            this.sortAndFilterEntries();
+        }
+        /**
+         * Called when the user changes the unit filter
+         */
+        onUnitFilterChange() {
+            this.sortAndFilterEntries();
         }
     }
     MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
