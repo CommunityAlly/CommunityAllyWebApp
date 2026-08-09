@@ -19,6 +19,7 @@ var Ally;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = false;
             this.showSendConfirmation = false;
+            this.sendConfirmationMessage = "";
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
             this.showSendEmail = true;
@@ -125,9 +126,10 @@ var Ally;
             analytics.track("sendEmail", {
                 recipientId: this.messageObject.recipientType
             });
-            this.$http.post("/api/Email/v2", this.messageObject).then(() => {
+            this.$http.post("/api/Email/v2", this.messageObject).then((response) => {
                 this.$rootScope.dontHandle403 = false;
                 this.isLoadingEmail = false;
+                alert(response.data);
                 this.messageObject = new HomeEmailMessage();
                 this.selectedRecipient = this.defaultMessageRecipient;
                 this.messageObject.recipientType = this.defaultMessageRecipient.recipientType;
@@ -135,6 +137,7 @@ var Ally;
                 this.onSelectEmailGroup();
                 if (this.committee)
                     this.messageObject.committeeId = this.committee.committeeId;
+                this.sendConfirmationMessage = response.data || "";
                 this.showSendConfirmation = true;
                 this.showSendEmail = false;
             }, (httpResponse) => {

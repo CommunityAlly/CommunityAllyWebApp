@@ -1,9 +1,19 @@
 var Ally;
 (function (Ally) {
     class SimpleUserEntry {
+        constructor() {
+            this.hasSmsConsent = null;
+            this.smsReceiveLevel = null;
+            this.hasEmail = false;
+        }
     }
     Ally.SimpleUserEntry = SimpleUserEntry;
     class SimpleUserEntryWithTerms extends SimpleUserEntry {
+        constructor() {
+            super(...arguments);
+            this.acceptedTermsDate = null;
+            this.smsConsentDate = null;
+        }
     }
     Ally.SimpleUserEntryWithTerms = SimpleUserEntryWithTerms;
     class ProfileUserInfo extends SimpleUserEntryWithTerms {

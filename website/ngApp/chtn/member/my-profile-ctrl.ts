@@ -13,15 +13,15 @@ namespace Ally
         avatarUrl: string;
         showPhoneInMeetNeighbors: boolean;
         postmarkReportedBadEmailUtc: Date;
-        hasSmsConsent: boolean | null;
-        smsReceiveLevel: "emergency" | "notification" | null;
-        hasEmail: boolean;
+        hasSmsConsent: boolean | null = null;
+        smsReceiveLevel: "emergency" | "notification" | null = null;
+        hasEmail: boolean = false;
     }
 
     export class SimpleUserEntryWithTerms extends SimpleUserEntry
     {
-        acceptedTermsDate: Date | null;
-        smsConsentDate: Date | null;
+        acceptedTermsDate: Date | null = null;
+        smsConsentDate: Date | null = null;
     }
 
     class ProfileUserInfo extends SimpleUserEntryWithTerms
@@ -357,12 +357,12 @@ namespace Ally
                     this.phoneVerifyCode = "";
 
                     // Focus on the code field
-                    window.setTimeout( () => document.getElementById( "phone-code-input" ).focus(), 100 );
+                    window.setTimeout( () => document.getElementById( "phone-code-input" )!.focus(), 100 );
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to send code: " + httpResponse.data.exceptionMessage );
+                    alert( "Failed to send code: " + httpResponse.data!.exceptionMessage );
                 }
             );
         }
@@ -393,7 +393,7 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to verify code: " + httpResponse.data.exceptionMessage );
+                    alert( "Failed to verify code: " + httpResponse.data!.exceptionMessage );
                 }
             );
         }
@@ -418,8 +418,8 @@ namespace Ally
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoadingEmailInfo = false;
-                    alert( "Failed to send email: " + httpResponse.data.exceptionMessage );
-                    this.testEmailStatus = "Unable to send email: " + httpResponse.data.exceptionMessage;
+                    alert( "Failed to send email: " + httpResponse.data!.exceptionMessage );
+                    this.testEmailStatus = "Unable to send email: " + httpResponse.data!.exceptionMessage;
                 }
             );
 
@@ -432,10 +432,10 @@ namespace Ally
 
     class MyProfileSaveResult
     {
-        failureDetails: string;
-        failedToUpdateEmail: boolean;
-        emailUpdatedWasInitiated: boolean;
-        updatedUserInfo: ProfileUserInfo;
+        failureDetails?: string;
+        failedToUpdateEmail?: boolean;
+        emailUpdatedWasInitiated?: boolean;
+        updatedUserInfo?: ProfileUserInfo;
     }
 }
 

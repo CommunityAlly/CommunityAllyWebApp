@@ -131,8 +131,12 @@
             </form>
         </div>
         <div data-ng-show="$ctrl.showSendConfirmation" style="font-size: large; color: blue;">
-            Your message has been sent successfully.<br>
-            <span class="text-button" data-ng-click="$ctrl.showSendEmail = true; $ctrl.showSendConfirmation = false;">Send Another</span>
+            Your message has been sent successfully.
+            <br>
+            <div style="white-space: pre-wrap;" class="mb-3">
+                {{$ctrl.sendConfirmationMessage}}
+            </div>
+            <span class="text-button" data-ng-click="$ctrl.showSendEmail = true; $ctrl.sendConfirmationMessage = null; $ctrl.showSendConfirmation = false;">Send Another</span>
         </div>
         <div data-ng-if="$ctrl.showEmailForbidden">
             You do not have permission to send email.

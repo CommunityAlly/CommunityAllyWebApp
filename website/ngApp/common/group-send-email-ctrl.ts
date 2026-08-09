@@ -18,6 +18,7 @@ namespace Ally
         showDiscussionLargeWarning: boolean = false;
         showUseDiscussSuggestion: boolean = false;
         showSendConfirmation: boolean = false;
+        sendConfirmationMessage: string = "";
         showEmailForbidden: boolean = false;
         showRestrictedGroupWarning: boolean = false;
         showSendEmail = true;
@@ -179,11 +180,13 @@ namespace Ally
                 recipientId: this.messageObject.recipientType
             } );
 
-            this.$http.post( "/api/Email/v2", this.messageObject ).then(
-                () =>
+            this.$http.post<string>( "/api/Email/v2", this.messageObject ).then(
+                (response) =>
                 {
                     this.$rootScope.dontHandle403 = false;
                     this.isLoadingEmail = false;
+
+                    alert( response.data );
 
                     this.messageObject = new HomeEmailMessage();
                     this.selectedRecipient = this.defaultMessageRecipient;
@@ -195,9 +198,9 @@ namespace Ally
                     if( this.committee )
                         this.messageObject.committeeId = this.committee.committeeId;
 
+                    this.sendConfirmationMessage = response.data || "";
                     this.showSendConfirmation = true;
                     this.showSendEmail = false;
-
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
