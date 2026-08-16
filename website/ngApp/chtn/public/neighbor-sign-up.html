@@ -1,4 +1,4 @@
-﻿<div class="page">
+<div class="page">
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
     <h2>{{$ctrl.productName}} Ally™ Sign-up Request</h2>
 
@@ -29,9 +29,15 @@
                             <input type="text" class="form-control" data-ng-model="$ctrl.signUpInfo.lastName" />
                         </div>
 
-                        <div class="form-group row">
+                        <div class="form-group row mb-1">
                             <label>Street Address:</label>
                             <input type="text" id="address-text-box" class="form-control" data-ng-model="$ctrl.signUpInfo.streetAddress" />
+                        </div>
+
+                        <div class="form-group row mb-3">
+                            <div class="col-12 text-center">
+                                <div id="recaptcha-check-elem" class="g-recaptcha" style="display: inline-block; margin: 0 auto;" data-sitekey="6LfNM3UUAAAAAENjycvvELqQ7PzRQ1y0PtxGFMvF"></div>
+                            </div>
                         </div>
 
                         <input type="submit" value="Submit" id="submit-info-button" class="btn btn-primary"><br />

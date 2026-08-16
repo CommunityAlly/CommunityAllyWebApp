@@ -1,12 +1,13 @@
-﻿namespace Ally
+namespace Ally
 {
     class NewUserSignUpInfo
     {
-        emailAddress: string;
-        firstName: string;
-        lastName: string;
-        streetAddress: string;
-        requestFromUrl: string;
+        emailAddress?: string;
+        firstName?: string;
+        lastName?: string;
+        streetAddress?: string;
+        requestFromUrl?: string;
+        recaptchaKey?: string;
     }
 
 
@@ -19,7 +20,7 @@
 
         isLoading: boolean = false;
         signUpInfo: NewUserSignUpInfo = new NewUserSignUpInfo();
-        resultMessage: string;
+        resultMessage = "";
         resultIsError: boolean = false;
         productName = "Neighborhood";
 
@@ -45,7 +46,7 @@
             // Hook up address auto-complete, after the page has loaded
             setTimeout(() =>
             {
-                const autocompleteOptions: google.maps.places.AutocompleteOptions = undefined;
+                const autocompleteOptions: google.maps.places.AutocompleteOptions | undefined = undefined;
 
                 //if( this.siteInfo.publicSiteInfo.googleGpsPosition )
                 //{
@@ -65,6 +66,8 @@
                 new google.maps.places.Autocomplete( addressInput, autocompleteOptions );
 
             }, 750 );
+
+            window.setTimeout( () => grecaptcha.render( "recaptcha-check-elem" ), 50 );
         }
 
 
@@ -76,6 +79,13 @@
             if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.emailAddress ) )
             {
                 alert( "Please enter an email address" );
+                return;
+            }
+
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if( HtmlUtil.isNullOrWhitespace( this.signUpInfo.recaptchaKey ) )
+            {
+                alert( "Please complete the reCAPTCHA field" );
                 return;
             }
 
@@ -105,7 +115,7 @@
          */
         goBack()
         {
-            this.resultMessage = null;
+            this.resultMessage = "";
         }
     }
 }

@@ -14,6 +14,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isLoading = false;
             this.signUpInfo = new NewUserSignUpInfo();
+            this.resultMessage = "";
             this.resultIsError = false;
             this.productName = "Neighborhood";
         }
@@ -42,6 +43,7 @@ var Ally;
                 const addressInput = document.getElementById("address-text-box");
                 new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
             }, 750);
+            window.setTimeout(() => grecaptcha.render("recaptcha-check-elem"), 50);
         }
         /**
          * Occurs when the user clicks the button to submit their email address
@@ -49,6 +51,11 @@ var Ally;
         onSubmitInfo() {
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.emailAddress)) {
                 alert("Please enter an email address");
+                return;
+            }
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
                 return;
             }
             this.signUpInfo.requestFromUrl = window.location.href;
@@ -67,7 +74,7 @@ var Ally;
          * Occurs when the user wants to retry submission of their info
          */
         goBack() {
-            this.resultMessage = null;
+            this.resultMessage = "";
         }
     }
     NeighborSignUpController.$inject = ["$http"];
