@@ -509,7 +509,12 @@
                         </tr>
                         <tr>
                             <td class="text-end"><span style="font-weight: bold;">Sent To:</span></td>
-                            <td class="ps-1"><span data-ng-repeat="curSentTo in $ctrl.viewingRecentTextMessage.sendResultsObject.sentToPhoneNumbers" class="mr-3">{{curSentTo}}</span></td>
+                            <td class="ps-1">
+                                <span data-ng-repeat="curSentTo in $ctrl.viewingRecentTextMessage.sendResultsObject.sentToPhoneNumbers" class="mr-3">
+                                    <span data-ng-if="$index > 0">, </span>
+                                    {{curSentTo}}
+                                </span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
