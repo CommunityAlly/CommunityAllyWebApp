@@ -8,7 +8,7 @@ namespace Ally
     {
         path?: string;
         templateHtml?: string;
-        menuTitle?: string;
+        menuTitle?: string | null;
         role?: string;
         reloadOnSearch?: boolean;
         pageTitle?: string;
@@ -17,26 +17,26 @@ namespace Ally
     // For use with the newer Angular component objects
     export class RoutePath_v3
     {
-        path: string;
-        templateHtml: string;
-        menuTitle: string;
+        path: string | null;
+        templateHtml: string | null;
+        menuTitle: string | null;
         role: string;
         reloadOnSearch: boolean = true;
         pageTitle?: string;
 
         // Old, unused members
         controller?: any;
-        templateUrl: string;
-        controllerAs: string;
+        templateUrl?: string;
+        controllerAs?: string;
         
         constructor( routeOptions: RouteOptions_v3 )
         {
-            if( routeOptions.path[0] !== '/' )
+            if( routeOptions.path && routeOptions.path[0] !== '/' )
                 routeOptions.path = "/" + routeOptions.path;
 
-            this.path = routeOptions.path;
-            this.templateHtml = routeOptions.templateHtml;
-            this.menuTitle = routeOptions.menuTitle;
+            this.path = routeOptions.path || null;
+            this.templateHtml = routeOptions.templateHtml || null;
+            this.menuTitle = routeOptions.menuTitle || null;
             this.role = routeOptions.role || Role_Authorized;
             this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
             this.pageTitle = routeOptions.pageTitle;
@@ -44,26 +44,61 @@ namespace Ally
     }
 
 
+    export function globalIsPublicRoute( path: string )
+    {
+        // Default to the current hash
+        if( !path )
+            path = window.location.hash;
+
+        // Remove the leading hashbang
+        if( HtmlUtil.startsWith( path, "#!" ) )
+            path = path.substring( 2 );
+
+        // If the path has a parameter, only test the first word
+        const hasParameter = path.indexOf( "/", 1 ) !== -1;
+        if( hasParameter )
+            path = path.substring( 0, path.indexOf( "/", 1 ) );
+
+        const route = _.find( AppConfig.menu, function( m )
+        {
+            let testPath = m.path;
+            if( !testPath )
+                return false;
+
+            // Only test the first part of paths with parameters
+            if( hasParameter && testPath.indexOf( "/", 1 ) !== -1 )
+                testPath = testPath.substring( 0, testPath.indexOf( "/", 1 ) );
+
+            return testPath === path;
+        } );
+
+        if( !route )
+            return false;
+
+        return route.role === Role_All;
+    }
+
+
     export class AppConfigInfo
     {
-        appShortName: "condo" | "hoa" | "home" | "neighborhood" | "block-club" | "pta" | "watch" | "service" | "rno" | "homeowner";
+        appShortName: "condo" | "hoa" | "home" | "neighborhood" | "block-club" | "pta" | "watch" | "service" | "rno" | "homeowner" = "condo";
 
         /// The full, friendly app name like "Condo Ally" or "HOA Ally"
-        appName: string;
+        appName: string = "";
 
         /// The full, friendly app name like appName, but with ® or ™
-        appNameLegal: string;
+        appNameLegal: string = "";
 
-        baseTld: string;
-        baseUrl: string;
+        baseTld: string = "";
+        baseUrl: string = "";
         segmentWriteKey?: string;
-        isChtnSite: boolean;
+        isChtnSite: boolean = false;
         homeName?: string;
 
         /// The label for a user in this group, starting with an upper-case letter
-        memberTypeLabel: string;
-        menu: Ally.RoutePath_v3[];
-        isPublicRoute?: ( path: string ) => boolean;
+        memberTypeLabel: string = "";
+        menu: Ally.RoutePath_v3[] = [];
+        isPublicRoute: ( path: string ) => boolean = globalIsPublicRoute;
 
         static readonly dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
         static readonly dwollaEnvironmentName = "prod";
@@ -73,10 +108,18 @@ namespace Ally
 
     export class PeriodicPaymentFrequency
     {
-        name: string;
+        name: "Monthly" | "Quarterly" | "Semiannually" | "Annually";
         intervalName: "month" | "quarter" | "half-year" | "year";
         id: number;
         signUpNote: string;
+
+        constructor( name: "Monthly" | "Quarterly" | "Semiannually" | "Annually", intervalName: "month" | "quarter" | "half-year" | "year", id: number, signUpNote: string )
+        {
+            this.name = name;
+            this.intervalName = intervalName;
+            this.id = id;
+            this.signUpNote = signUpNote;
+        }
     }
 }
 
@@ -94,10 +137,10 @@ var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
 // eslint-disable-next-line no-var
 var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[] = [
-    { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
-    { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
-    { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
-    { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
+    new Ally.PeriodicPaymentFrequency( "Monthly", "month", 50, "Billed on the 1st of each month" ),
+    new Ally.PeriodicPaymentFrequency( "Quarterly", "quarter", 51, "Billed on January 1, April 1, July 1, October 1" ),
+    new Ally.PeriodicPaymentFrequency( "Semiannually", "half-year", 52, "Billed on January 1 and July 1" ),
+    new Ally.PeriodicPaymentFrequency( "Annually", "year", 53, "Billed on January 1" )
 ];
 
 
@@ -165,6 +208,7 @@ const CondoAllyAppConfig: Ally.AppConfigInfo =
     isChtnSite: true,
     homeName: "Unit",
     memberTypeLabel: "Resident",
+    isPublicRoute: Ally.globalIsPublicRoute,
     menu: [
         // Member-only pages
         new Ally.RoutePath_v3( { path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" } ),
@@ -290,6 +334,7 @@ const HomeAppConfig: Ally.AppConfigInfo =
     isChtnSite: false,
     homeName: "Home",
     memberTypeLabel: "User",
+    isPublicRoute: Ally.globalIsPublicRoute,
     menu: [
         //new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
         new Ally.RoutePath_v3( { path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All } ),
@@ -460,12 +505,12 @@ PtaAppConfig.menu = [
 
 
 // eslint-disable-next-line no-var
-var AppConfig:Ally.AppConfigInfo = null;
+var AppConfig: Ally.AppConfigInfo = CondoAllyAppConfig; // 
 
 let lowerDomain = document.domain.toLowerCase();
 
 if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) || lowerDomain === "localhost" )
-    lowerDomain = OverrideOriginalUrl;
+    lowerDomain = OverrideOriginalUrl!;
 
 if( !lowerDomain )
     console.log( "Unable to find domain, make sure to set OverrideBaseApiPath and OverrideOriginalUrl at the top of ally-app.ts" );
@@ -508,40 +553,6 @@ else
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 (<any>window).AppConfig = AppConfig;
 
-
-AppConfig.isPublicRoute = function( path: string )
-{
-    // Default to the current hash
-    if( !path )
-        path = window.location.hash;
-
-    // Remove the leading hashbang
-    if( HtmlUtil.startsWith( path, "#!" ) )
-        path = path.substr( 2 );
-
-    // If the path has a parameter, only test the first word
-    const hasParameter = path.indexOf( "/", 1 ) !== -1;
-    if( hasParameter )
-        path = path.substr( 0, path.indexOf( "/", 1 ) );
-
-    const route = _.find( AppConfig.menu, function( m )
-    {
-        let testPath = m.path;
-        if( !testPath )
-            return false;
-
-        // Only test the first part of paths with parameters
-        if( hasParameter && testPath.indexOf( "/", 1 ) !== -1 )
-            testPath = testPath.substr( 0, testPath.indexOf( "/", 1 ) );
-
-        return testPath === path;
-    } );
-
-    if( !route )
-        return false;
-
-    return route.role === Role_All;
-};
 
 
 // Set the browser title

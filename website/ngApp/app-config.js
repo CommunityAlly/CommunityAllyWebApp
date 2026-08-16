@@ -7,24 +7,69 @@ var Ally;
     class RoutePath_v3 {
         constructor(routeOptions) {
             this.reloadOnSearch = true;
-            if (routeOptions.path[0] !== '/')
+            if (routeOptions.path && routeOptions.path[0] !== '/')
                 routeOptions.path = "/" + routeOptions.path;
-            this.path = routeOptions.path;
-            this.templateHtml = routeOptions.templateHtml;
-            this.menuTitle = routeOptions.menuTitle;
+            this.path = routeOptions.path || null;
+            this.templateHtml = routeOptions.templateHtml || null;
+            this.menuTitle = routeOptions.menuTitle || null;
             this.role = routeOptions.role || Role_Authorized;
             this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
             this.pageTitle = routeOptions.pageTitle;
         }
     }
     Ally.RoutePath_v3 = RoutePath_v3;
+    function globalIsPublicRoute(path) {
+        // Default to the current hash
+        if (!path)
+            path = window.location.hash;
+        // Remove the leading hashbang
+        if (HtmlUtil.startsWith(path, "#!"))
+            path = path.substring(2);
+        // If the path has a parameter, only test the first word
+        const hasParameter = path.indexOf("/", 1) !== -1;
+        if (hasParameter)
+            path = path.substring(0, path.indexOf("/", 1));
+        const route = _.find(AppConfig.menu, function (m) {
+            let testPath = m.path;
+            if (!testPath)
+                return false;
+            // Only test the first part of paths with parameters
+            if (hasParameter && testPath.indexOf("/", 1) !== -1)
+                testPath = testPath.substring(0, testPath.indexOf("/", 1));
+            return testPath === path;
+        });
+        if (!route)
+            return false;
+        return route.role === Role_All;
+    }
+    Ally.globalIsPublicRoute = globalIsPublicRoute;
     class AppConfigInfo {
+        constructor() {
+            this.appShortName = "condo";
+            /// The full, friendly app name like "Condo Ally" or "HOA Ally"
+            this.appName = "";
+            /// The full, friendly app name like appName, but with ® or ™
+            this.appNameLegal = "";
+            this.baseTld = "";
+            this.baseUrl = "";
+            this.isChtnSite = false;
+            /// The label for a user in this group, starting with an upper-case letter
+            this.memberTypeLabel = "";
+            this.menu = [];
+            this.isPublicRoute = globalIsPublicRoute;
+        }
     }
     AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
     AppConfigInfo.dwollaEnvironmentName = "prod";
     AppConfigInfo.localNewsAllyDomain = "https://localnewsally2-h7fccdagf6cmdub8.northcentralus-01.azurewebsites.net/";
     Ally.AppConfigInfo = AppConfigInfo;
     class PeriodicPaymentFrequency {
+        constructor(name, intervalName, id, signUpNote) {
+            this.name = name;
+            this.intervalName = intervalName;
+            this.id = id;
+            this.signUpNote = signUpNote;
+        }
     }
     Ally.PeriodicPaymentFrequency = PeriodicPaymentFrequency;
 })(Ally || (Ally = {}));
@@ -39,10 +84,10 @@ var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
 // eslint-disable-next-line no-var
 var PeriodicPaymentFrequencies = [
-    { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
-    { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
-    { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
-    { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
+    new Ally.PeriodicPaymentFrequency("Monthly", "month", 50, "Billed on the 1st of each month"),
+    new Ally.PeriodicPaymentFrequency("Quarterly", "quarter", 51, "Billed on January 1, April 1, July 1, October 1"),
+    new Ally.PeriodicPaymentFrequency("Semiannually", "half-year", 52, "Billed on January 1 and July 1"),
+    new Ally.PeriodicPaymentFrequency("Annually", "year", 53, "Billed on January 1")
 ];
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PaymentFrequencyIdToInfo(frequencyId) {
@@ -89,6 +134,7 @@ const CondoAllyAppConfig = {
     isChtnSite: true,
     homeName: "Unit",
     memberTypeLabel: "Resident",
+    isPublicRoute: Ally.globalIsPublicRoute,
     menu: [
         // Member-only pages
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
@@ -199,6 +245,7 @@ const HomeAppConfig = {
     isChtnSite: false,
     homeName: "Home",
     memberTypeLabel: "User",
+    isPublicRoute: Ally.globalIsPublicRoute,
     menu: [
         //new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
         new Ally.RoutePath_v3({ path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All }),
@@ -336,7 +383,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "PtaSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All })
 ];
 // eslint-disable-next-line no-var
-var AppConfig = null;
+var AppConfig = CondoAllyAppConfig; // 
 let lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")
     lowerDomain = OverrideOriginalUrl;
@@ -376,29 +423,5 @@ else {
 // Object.freeze( AppConfig );
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 window.AppConfig = AppConfig;
-AppConfig.isPublicRoute = function (path) {
-    // Default to the current hash
-    if (!path)
-        path = window.location.hash;
-    // Remove the leading hashbang
-    if (HtmlUtil.startsWith(path, "#!"))
-        path = path.substr(2);
-    // If the path has a parameter, only test the first word
-    const hasParameter = path.indexOf("/", 1) !== -1;
-    if (hasParameter)
-        path = path.substr(0, path.indexOf("/", 1));
-    const route = _.find(AppConfig.menu, function (m) {
-        let testPath = m.path;
-        if (!testPath)
-            return false;
-        // Only test the first part of paths with parameters
-        if (hasParameter && testPath.indexOf("/", 1) !== -1)
-            testPath = testPath.substr(0, testPath.indexOf("/", 1));
-        return testPath === path;
-    });
-    if (!route)
-        return false;
-    return route.role === Role_All;
-};
 // Set the browser title
 document.title = AppConfig.appName;

@@ -105,6 +105,8 @@ var Ally;
          * Apply the site design settings from cached/server settings JSON
          */
         static ApplySiteDesignSettingsFromJson(rootScope, siteDesignSettingsJson) {
+            if (!siteDesignSettingsJson)
+                return;
             try {
                 const parsedSettings = JSON.parse(siteDesignSettingsJson);
                 // Ensure the most recent setting exists on this object to be used properly

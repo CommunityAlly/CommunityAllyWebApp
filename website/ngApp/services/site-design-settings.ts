@@ -139,8 +139,11 @@ namespace Ally
         /**
          * Apply the site design settings from cached/server settings JSON
          */
-        static ApplySiteDesignSettingsFromJson( rootScope: ng.IRootScopeService, siteDesignSettingsJson: string )
+        static ApplySiteDesignSettingsFromJson( rootScope: ng.IRootScopeService, siteDesignSettingsJson: string | null )
         {
+            if( !siteDesignSettingsJson )
+                return;
+
             try
             {
                 const parsedSettings = JSON.parse( siteDesignSettingsJson ) as Ally.SiteDesignSettings;

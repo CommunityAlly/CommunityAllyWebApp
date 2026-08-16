@@ -252,7 +252,8 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         // If we have the association's public info cached then use it to load faster
         if (HtmlUtil.isLocalStorageAllowed()) {
             if (window.localStorage) {
-                $rootScope.publicSiteInfo = angular.fromJson(window.localStorage.getItem("siteInfo"));
+                if (window.localStorage.getItem("siteInfo"))
+                    $rootScope.publicSiteInfo = angular.fromJson(window.localStorage.getItem("siteInfo"));
                 $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 if ($rootScope.publicSiteInfo === null || $rootScope.publicSiteInfo === undefined)
                     $rootScope.publicSiteInfo = {};
@@ -388,9 +389,3 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
 //            analytics.track( "AngularJS Error", { error: exception.message, stack: exception.stack } );
 //    }
 //}] );
-var Ally;
-(function (Ally) {
-    class MenuItem_v3 {
-    }
-    Ally.MenuItem_v3 = MenuItem_v3;
-})(Ally || (Ally = {}));

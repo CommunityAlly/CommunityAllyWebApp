@@ -117,7 +117,7 @@
                 </div>
             </div>
 
-            <div class="row text-end mt-2" data-ng-if="true || curThread.comments === null">
+            <div class="row text-end mt-2" data-ng-if="!curThread.archiveDateUtc">
                 <div class="col-12" data-ng-if="curThread.numComments === 0">
                     <span class="text-link" data-ng-click="$ctrl.showCommentsForThread(curThread)"><i class="fa-solid fa-comment ally-portlet-icon me-2 fa-lg"></i> Be the first to comment</span>
                 </div>

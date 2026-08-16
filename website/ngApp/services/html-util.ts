@@ -1,7 +1,7 @@
 declare class HtmlUtil
 {
     //TODO Move all of these to HtmlUtil2 then rename HtmlUtil2 to HtmlUtil
-    static isNullOrWhitespace( str: string ): boolean;
+    static isNullOrWhitespace( str: string | null | undefined ): boolean;
     static GetQueryStringParameter( parameterName: string ): string;
     // Get a substring up to the occurance of a character
     static getStringUpToFirst( str: string, endChar: string ): string;

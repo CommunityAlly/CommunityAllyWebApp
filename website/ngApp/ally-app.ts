@@ -1,9 +1,9 @@
 // DEVLOCAL - Specify your group's API path to make all API requests to the live server, regardless
 // of the local URL. This is useful when developing locally.
 // eslint-disable-next-line no-var
-var OverrideBaseApiPath: string = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
+var OverrideBaseApiPath: string | null = null; // Should be something like "https://1234.webappapi.communityally.org/api/"
 // eslint-disable-next-line no-var
-var OverrideOriginalUrl: string = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
+var OverrideOriginalUrl: string | null = null; // Should be something like "https://example.condoally.com/" or "https://example.hoaally.org/"
 
 //OverrideBaseApiPath = "https://28.webappapi.communityally.org/api/";
 //OverrideOriginalUrl = "https://qa.condoally.com/";
@@ -315,12 +315,12 @@ CA.angularApp.config(
                             }
 
                             // Add the auth token
-                            reqConfig.headers["Authorization"] = "Bearer " + $rootScope.authToken;
+                            reqConfig.headers!["Authorization"] = "Bearer " + $rootScope.authToken;
 
                             // Certain folks with ad-blockers or using private browsing mode will not send
                             // the referrer up so we need to send it ourselves
                             //if( !HtmlUtil.isNullOrWhitespace( OverrideOriginalUrl ) )
-                            reqConfig.headers["ReferrerOverride"] = OverrideOriginalUrl || window.location.href;
+                            reqConfig.headers!["ReferrerOverride"] = OverrideOriginalUrl || window.location.href;
                         }
 
                         return reqConfig;
@@ -346,11 +346,11 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
         $rootScope.isAdmin = false;
         $rootScope.isSiteManager = false;
 
-        $rootScope.menuItems = _.where( AppConfig.menu, function( menuItem: Ally.MenuItem_v3 ) { return !HtmlUtil.isNullOrWhitespace( menuItem.menuTitle ); } );
+        $rootScope.menuItems = _.where( AppConfig.menu, function( menuItem: Ally.RoutePath_v3 ) { return !HtmlUtil.isNullOrWhitespace( menuItem.menuTitle ); } );
 
-        $rootScope.mainMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.MenuItem_v3 ) { return menuItem.role === Role_Authorized; } );
-        $rootScope.manageMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.MenuItem_v3 ) { return menuItem.role === Role_Manager; } );
-        $rootScope.adminMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.MenuItem_v3 ) { return menuItem.role === Role_Admin; } );
+        $rootScope.mainMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.RoutePath_v3 ) { return menuItem.role === Role_Authorized; } );
+        $rootScope.manageMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.RoutePath_v3 ) { return menuItem.role === Role_Manager; } );
+        $rootScope.adminMenuItems = _.where( $rootScope.menuItems, function( menuItem: Ally.RoutePath_v3 ) { return menuItem.role === Role_Admin; } );
         $rootScope.publicMenuItems = null;
 
 
@@ -388,7 +388,9 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
         {
             if( window.localStorage )
             {
-                $rootScope.publicSiteInfo = angular.fromJson( window.localStorage.getItem( "siteInfo" ) );
+                if( window.localStorage.getItem( "siteInfo" ) )
+                    $rootScope.publicSiteInfo = angular.fromJson( window.localStorage.getItem( "siteInfo" )! );
+
                 $rootScope.authToken = window.localStorage.getItem( "ApiAuthToken" );
 
                 if( $rootScope.publicSiteInfo === null || $rootScope.publicSiteInfo === undefined )
@@ -581,18 +583,3 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
 //            analytics.track( "AngularJS Error", { error: exception.message, stack: exception.stack } );
 //    }
 //}] );
-
-
-namespace Ally
-{
-    export class MenuItem_v3
-    {
-        path: string;
-        templateHtml: string;
-        menuTitle: string;
-        role: string;
-    }
-
-
-    
-}
