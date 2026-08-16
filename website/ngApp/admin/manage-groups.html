@@ -1,4 +1,4 @@
-﻿<div class="page margin-vertical padding white-bg spinner-effect">
+<div class="page margin-vertical padding white-bg spinner-effect">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
 
     <div style="border:1px solid #000;">
@@ -49,7 +49,7 @@
     <h2>{{ $ctrl.groups.length }} Groups</h2>
 
     <span class="text-button" data-ng-click="$ctrl.retrieveGroups()">Load Associations</span>
-    <table border="1" class="table">
+    <table border="1" class="table table-hover">
         <thead class="table-light">
             <tr>
                 <th>ID</th>
@@ -66,7 +66,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr data-ng-repeat="curAssociation in $ctrl.groups">
+            <tr data-ng-repeat="curAssociation in $ctrl.groups" data-ng-class="{'table-info': curAssociation.groupId === $ctrl.premiumUpdateGroupId}">
                 <td>{{ ::curAssociation.groupId }}</td>
                 <td>{{ ::curAssociation.appNameString }}</td>
                 <td>{{ ::curAssociation.shortName }}</td>
