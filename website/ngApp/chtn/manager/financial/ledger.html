@@ -1,4 +1,4 @@
-﻿<div class="page" style="min-height: 100px;">
+<div class="page" style="min-height: 100px;">
     <div data-ng-if="$ctrl.isLoading" class="loading-overlay"></div>
     <h1 style="display: inline;">Bank Transactions</h1>
     <p>
@@ -90,7 +90,7 @@
         <div data-ui-grid="$ctrl.ledgerGridOptions" ui-grid-resize-columns ui-grid-pagination ui-grid-selection ui-grid-edit ui-grid-cellNav></div>
     </div>
 
-    <div class="mb-2" style="height: 20px;">
+    <div class="mb-2 text-end" style="height: 20px;">
         <span class="note-text text-link pull-right" data-ng-click="$ctrl.exportTransactionsCsv()">Export To CSV</span>
     </div>
 
