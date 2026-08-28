@@ -171,8 +171,8 @@ namespace Ally
 
     class ResidentCsvRow
     {
-        unitName: string;
-        unitId: number;
+        unitName: string|null;
+        unitId?: number;
         email: string;
         firstName: string;
         lastName: string;
@@ -222,7 +222,7 @@ namespace Ally
         showKansasPtaExport: boolean = false;
         boardPositions: any[];
         newResident: any;
-        editUser: Ally.UpdateResident;
+        editUser: Ally.UpdateResident | null = null;
         sentWelcomeEmail: boolean;
         launchSiteResultsString: string;
         multiselectMulti: string = "single";
@@ -235,8 +235,8 @@ namespace Ally
         pendingMemberGridOptions: uiGrid.IGridOptionsOf<PendingMember>;
         emailHistoryGridOptions: uiGrid.IGridOptionsOf<RecentEmail>;
         smsHistoryGridOptions: uiGrid.IGridOptionsOf<SmsLogEntry>;
-        viewingRecentEmail: RecentEmail;
-        viewingRecentEmailOpenStats: EmailOpenStats;
+        viewingRecentEmail: RecentEmail | null = null;
+        viewingRecentEmailOpenStats: EmailOpenStats | null = null;
         viewingRecentEmailShouldShowStats = false;
         viewingRecentEmailNumDelivered: number;
         viewingRecentEmailNumOpened: number;
@@ -253,6 +253,7 @@ namespace Ally
         bulkImportCsv: string;
         hasOneAdmin: boolean;
         shouldSortUnitsNumerically: boolean = false;
+        shouldSortLotsNumerically: boolean = false;
         showEmailHistory: boolean = false;
         emailHistorySinceDate: Date = new Date();
         emailHistoryNumMonths: number = 6;
@@ -377,10 +378,7 @@ namespace Ally
                             sortingAlgorithm: ( a: string, b: string ) =>
                             {
                                 if( this.shouldSortUnitsNumerically )
-                                {
                                     return parseInt( a ) - parseInt( b );
-                                }
-
                                 return a.toString().localeCompare( b.toString() );
                             },
                             enableFiltering: true
@@ -399,7 +397,19 @@ namespace Ally
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                         { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'lotNumberLabel', displayName: 'Lot#', width: 140, enableFiltering: true, visible: false },
+                        {
+                            field: 'lotNumberLabel',
+                            displayName: 'Lot#',
+                            width: 140,
+                            enableFiltering: true,
+                            visible: false,
+                            sortingAlgorithm: ( a: string, b: string ) =>
+                            {
+                                if( this.shouldSortLotsNumerically )
+                                    return parseInt( a ) - parseInt( b );
+                                return a.toString().localeCompare( b.toString() );
+                            }
+                        },
                     ],
                 multiSelect: false,
                 enableSorting: true,
@@ -423,7 +433,7 @@ namespace Ally
                             return;
 
                         // Remember the sort
-                        this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort.direction };
+                        this.residentSortInfo = { field: sortColumns[0].field, direction: sortColumns[0].sort!.direction };
                         window.localStorage.setItem( LocalKey_ResidentSort, JSON.stringify( this.residentSortInfo ) );
                     } );
 
@@ -674,8 +684,12 @@ namespace Ally
             const copiedUser = jQuery.extend( {}, resident );
             this.editUser = copiedUser;
 
+            // This should never occur, but helps TypeScript understand that editUser is not null
+            if( !this.editUser )
+                return;
+
             // Initialize the home picker state
-            this.editUser.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
+            this.editUser!.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
             this.multiselectMulti = "single";
 
             if( typeof ( this.editUser.units ) === "object" )
@@ -706,7 +720,7 @@ namespace Ally
             // Set the selected units
             _.each( this.allUnits, ( allUnit ) =>
             {
-                const isSelected = _.find( this.editUser.units, ( userUnit: any ) => userUnit.unitId === allUnit.unitId ) !== undefined;
+                const isSelected = _.find( this.editUser!.units, ( userUnit: any ) => userUnit.unitId === allUnit.unitId ) !== undefined;
                 allUnit.isSelectedForEditUser = isSelected;
             } );
 
@@ -741,7 +755,7 @@ namespace Ally
         {
             this.isSavingUser = true;
 
-            this.$http.put( "/api/Residents/" + this.editUser.userId + "/SendWelcome", null ).then(
+            this.$http.put( "/api/Residents/" + this.editUser!.userId + "/SendWelcome", null ).then(
                 () =>
                 {
                     this.isSavingUser = false;
@@ -796,11 +810,11 @@ namespace Ally
         {
             this.isLoading = true;
 
-            return this.$http.get( "/api/Residents" ).then(
+            return this.$http.get<Ally.UpdateResident[]>( "/api/Residents" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<Ally.UpdateResident[]> ) =>
                 {
                     this.isLoading = false;
-                    const residentArray = response.data;
+                    const residentArray = response.data!;
 
                     // The addedDateUtc property was added after we had associations setup so some
                     // dates come down as DateTime.Min. Replace those with the add date.
@@ -848,16 +862,18 @@ namespace Ally
                     {
                         this.isLoading = true;
 
-                        this.$http.get( "/api/Unit/AllUnits" ).then(
+                        this.$http.get<Ally.Unit[]>( "/api/Unit/AllUnits" ).then(
                             ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.Unit[]> ) =>
                             {
                                 this.isLoading = false;
-                                this.allUnits = httpResponse.data;
+                                this.allUnits = httpResponse.data!;
 
                                 this.shouldSortUnitsNumerically = _.every( this.allUnits, u => HtmlUtil.isNumericString( u.name ) );
 
                                 if( this.shouldSortUnitsNumerically )
                                     this.allUnits = _.sortBy( this.allUnits, u => parseFloat( u.name ) );
+
+                                this.shouldSortLotsNumerically = _.every( this.allUnits, u => !u.lotNumber || HtmlUtil.isNumericString( u.lotNumber ) );
 
                                 // If we have a lot of units then allow searching
                                 this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
@@ -886,20 +902,20 @@ namespace Ally
         {
             this.isLoadingPending = true;
             
-            this.$http.get( "/api/Member/Pending" ).then(
+            this.$http.get<PendingMember[]>( "/api/Member/Pending" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<PendingMember[]> ) =>
                 {
                     this.isLoadingPending = false;
 
-                    this.pendingMemberGridOptions.data = response.data;
-                    this.pendingMemberGridOptions.minRowsToShow = response.data.length;
-                    this.pendingMemberGridOptions.virtualizationThreshold = response.data.length;
+                    this.pendingMemberGridOptions.data = response.data!;
+                    this.pendingMemberGridOptions.minRowsToShow = response.data!.length;
+                    this.pendingMemberGridOptions.virtualizationThreshold = response.data!.length;
 
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoadingPending = false;
-                    console.log( "Failed to load pending members: " + response.data.exceptionMessage );
+                    console.log( "Failed to load pending members: " + response.data!.exceptionMessage );
                 }
             );
         }
@@ -1082,14 +1098,14 @@ namespace Ally
                     password: this.adminSetPass_Password
                 };
 
-            this.$http.post( "/api/AdminHelper/SetPassword", setPass ).then(
+            this.$http.post<string>( "/api/AdminHelper/SetPassword", setPass ).then(
                 ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
-                    this.adminSetPass_ResultMessage = response.data;
+                    this.adminSetPass_ResultMessage = response.data!;
                 },
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
-                    alert( "Failed to set password: " + response.data.exceptionMessage );
+                    alert( "Failed to set password: " + response.data!.exceptionMessage );
                 }
             );
         }
@@ -1343,11 +1359,11 @@ namespace Ally
         {
             this.isLoadingSettings = true;
 
-            this.$http.get( "/api/Settings/GetSiteSettings" ).then(
+            this.$http.get<ChtnSiteSettings>( "/api/Settings/GetSiteSettings" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
                 {
                     this.isLoadingSettings = false;
-                    this.residentSettings = response.data;
+                    this.residentSettings = response.data!;
 
                     // Update the SiteInfoService so the privateSiteInfo properties reflects changes
                     this.siteInfo.privateSiteInfo.rentersCanViewDocs = this.residentSettings.rentersCanViewDocs;
@@ -1358,7 +1374,7 @@ namespace Ally
                 ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoadingSettings = false;
-                    console.log( "Failed to retrieve settings: " + response.data.exceptionMessage );
+                    console.log( "Failed to retrieve settings: " + response.data!.exceptionMessage );
                 }
             );
         }
@@ -1404,7 +1420,7 @@ namespace Ally
             if( !confirm( "Are you sure you want to remove this person from your site?" ) )
                 return;
 
-            if( this.siteInfo.userInfo.userId === this.editUser.userId )
+            if( this.siteInfo.userInfo.userId === this.editUser!.userId )
             {
                 if( !confirm( "If you remove your own account you won't be able to login anymore. Are you still sure?" ) )
                     return;
@@ -1412,7 +1428,7 @@ namespace Ally
 
             this.isSavingUser = true;
 
-            this.$http.delete( "/api/Residents?userId=" + this.editUser.userId ).then(
+            this.$http.delete( "/api/Residents?userId=" + this.editUser!.userId ).then(
                 () =>
                 {
                     this.isSavingUser = false;
@@ -1443,15 +1459,15 @@ namespace Ally
 
             this.isLoading = true;
 
-            this.$http.get( "/api/Residents/LaunchSite", null ).then(
+            this.$http.get<LaunchSiteResults>( "/api/Residents/LaunchSite" ).then(
                 ( response: ng.IHttpPromiseCallbackArg<LaunchSiteResults> ) =>
                 {
                     this.isLoading = false;
                     this.sentWelcomeEmail = true;
-                    this.launchSiteResultsString = `${response.data.numEmailsSent} email${response.data.numEmailsSent === 1 ? '' : 's'} successfully sent!`;
+                    this.launchSiteResultsString = `${response.data!.numEmailsSent} email${response.data!.numEmailsSent === 1 ? '' : 's'} successfully sent!`;
 
-                    if( response.data.numEmailsFailed > 0 )
-                        this.launchSiteResultsString += ` (${response.data.numEmailsFailed} failed to send)`;
+                    if( response.data!.numEmailsFailed > 0 )
+                        this.launchSiteResultsString += ` (${response.data!.numEmailsFailed} failed to send)`;
                 },
                 () =>
                 {
@@ -1501,7 +1517,7 @@ namespace Ally
 
             for( let i = 0; i < bulkRows.length; ++i )
             {
-                const curRow = <string[]>bulkRows[i];
+                const curRow: (string|null)[] = <string[]>bulkRows[i];
 
                 while( curRow.length < 10 )
                     curRow.push( "" );
@@ -1516,13 +1532,13 @@ namespace Ally
                     if( HtmlUtil.isNullOrWhitespace( curRow[j] ) )
                         curRow[j] = null;
                     else
-                        curRow[j] = curRow[j].trim();
+                        curRow[j] = curRow[j]!.trim();
                 }
 
                 const newRow: ResidentCsvRow = {
                     unitName: curRow[0] || null,
-                    unitId: <number>undefined,
-                    email: curRow[1],
+                    unitId: undefined,
+                    email: curRow[1]!,
                     firstName: curRow[2],
                     lastName: curRow[3],
                     phoneNumber: curRow[4],
@@ -1536,7 +1552,7 @@ namespace Ally
                 };
 
                 if( HtmlUtil.isNullOrWhitespace( newRow.unitName ) )
-                    newRow.unitId = null;
+                    newRow.unitId = undefined;
                 else
                 {
                     newRow.csvTestName = simplifyStreetName( newRow.unitName );
@@ -1632,7 +1648,7 @@ namespace Ally
 
             // Find any duplicate email addresses
             for( const curRow of this.bulkImportRows )
-                curRow.emailHasDupe = curRow.email && this.bulkImportRows.filter( r => r.email === curRow.email ).length > 1;
+                curRow.emailHasDupe = !!curRow.email && this.bulkImportRows.filter( r => r.email === curRow.email ).length > 1;
         }
 
 
@@ -1668,7 +1684,7 @@ namespace Ally
         {
             const newRow: ResidentCsvRow = {
                 unitName: "",
-                unitId: <number>null,
+                unitId: undefined,
                 email: "",
                 firstName: "",
                 lastName: "",
@@ -1718,7 +1734,7 @@ namespace Ally
             {
                 this.isLoadingSettings = true;
 
-                this.$http.get( "/api/Email/RecentGroupEmailsAndSms" ).then(
+                this.$http.get<EmailSmsHistoryResponse>( "/api/Email/RecentGroupEmailsAndSms" ).then(
                     ( response: ng.IHttpPromiseCallbackArg<EmailSmsHistoryResponse> ) =>
                     {
                         this.isLoadingSettings = false;
@@ -1728,7 +1744,7 @@ namespace Ally
                     ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                     {
                         this.isLoadingSettings = false;
-                        alert( "Failed to load emails: " + response.data.exceptionMessage );
+                        alert( "Failed to load emails: " + response.data!.exceptionMessage );
                     }
                 );
             }

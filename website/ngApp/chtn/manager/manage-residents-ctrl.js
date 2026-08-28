@@ -61,13 +61,17 @@ var Ally;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
             this.showKansasPtaExport = false;
+            this.editUser = null;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
+            this.viewingRecentEmail = null;
+            this.viewingRecentEmailOpenStats = null;
             this.viewingRecentEmailShouldShowStats = false;
             this.isLoadingEmailOpenStats = false;
             this.isLoading = false;
             this.isLoadingSettings = false;
             this.shouldSortUnitsNumerically = false;
+            this.shouldSortLotsNumerically = false;
             this.showEmailHistory = false;
             this.emailHistorySinceDate = new Date();
             this.emailHistoryNumMonths = 6;
@@ -151,9 +155,8 @@ var Ally;
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
                             sortingAlgorithm: (a, b) => {
-                                if (this.shouldSortUnitsNumerically) {
+                                if (this.shouldSortUnitsNumerically)
                                     return parseInt(a) - parseInt(b);
-                                }
                                 return a.toString().localeCompare(b.toString());
                             },
                             enableFiltering: true
@@ -172,7 +175,18 @@ var Ally;
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                         { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'lotNumberLabel', displayName: 'Lot#', width: 140, enableFiltering: true, visible: false },
+                        {
+                            field: 'lotNumberLabel',
+                            displayName: 'Lot#',
+                            width: 140,
+                            enableFiltering: true,
+                            visible: false,
+                            sortingAlgorithm: (a, b) => {
+                                if (this.shouldSortLotsNumerically)
+                                    return parseInt(a) - parseInt(b);
+                                return a.toString().localeCompare(b.toString());
+                            }
+                        },
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -376,6 +390,9 @@ var Ally;
             this.editUserForm.$setPristine();
             const copiedUser = jQuery.extend({}, resident);
             this.editUser = copiedUser;
+            // This should never occur, but helps TypeScript understand that editUser is not null
+            if (!this.editUser)
+                return;
             // Initialize the home picker state
             this.editUser.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
             this.multiselectMulti = "single";
@@ -502,6 +519,7 @@ var Ally;
                         this.shouldSortUnitsNumerically = _.every(this.allUnits, u => HtmlUtil.isNumericString(u.name));
                         if (this.shouldSortUnitsNumerically)
                             this.allUnits = _.sortBy(this.allUnits, u => parseFloat(u.name));
+                        this.shouldSortLotsNumerically = _.every(this.allUnits, u => !u.lotNumber || HtmlUtil.isNumericString(u.lotNumber));
                         // If we have a lot of units then allow searching
                         this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
                         // Show the note on how to add homes if there's only one home
@@ -947,7 +965,7 @@ var Ally;
             if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Residents/LaunchSite", null).then((response) => {
+            this.$http.get("/api/Residents/LaunchSite").then((response) => {
                 this.isLoading = false;
                 this.sentWelcomeEmail = true;
                 this.launchSiteResultsString = `${response.data.numEmailsSent} email${response.data.numEmailsSent === 1 ? '' : 's'} successfully sent!`;
@@ -1013,7 +1031,7 @@ var Ally;
                     emailHasDupe: false
                 };
                 if (HtmlUtil.isNullOrWhitespace(newRow.unitName))
-                    newRow.unitId = null;
+                    newRow.unitId = undefined;
                 else {
                     newRow.csvTestName = simplifyStreetName(newRow.unitName);
                     const unit = _.find(this.allUnits, (u) => u.csvTestName === newRow.csvTestName);
@@ -1081,7 +1099,7 @@ var Ally;
             }
             // Find any duplicate email addresses
             for (const curRow of this.bulkImportRows)
-                curRow.emailHasDupe = curRow.email && this.bulkImportRows.filter(r => r.email === curRow.email).length > 1;
+                curRow.emailHasDupe = !!curRow.email && this.bulkImportRows.filter(r => r.email === curRow.email).length > 1;
         }
         /**
          * Submit the bulk creation rows to the server
@@ -1105,7 +1123,7 @@ var Ally;
         addBulkRow() {
             const newRow = {
                 unitName: "",
-                unitId: null,
+                unitId: undefined,
                 email: "",
                 firstName: "",
                 lastName: "",
