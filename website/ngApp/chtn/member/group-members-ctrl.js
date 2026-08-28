@@ -126,6 +126,8 @@ var Ally;
                 }
                 // Populate the email name lists, delayed to help the page render faster
                 setTimeout(() => this.loadGroupEmails(), 500);
+                // Make it so clicking a profile photo makes it large
+                setTimeout(() => this.hookUpProfileLightbox(), 1000);
             }, (httpErrorResponse) => {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
                 console.log("Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage);
@@ -292,9 +294,51 @@ var Ally;
         updateEditGroupEmailShortName() {
             this.editGroupEmailInfo.shortName = Ally.HtmlUtil2.stripNonAlphanumeric((this.editGroupEmailInfoInputShortName || "").toLocaleLowerCase());
         }
+        hookUpProfileLightbox() {
+            // Open full-size photo
+            $(document).off("click.profilePhotoLightboxOpen");
+            $(document).on("click.profilePhotoLightboxOpen", "img[id^='profile-photo-']", (e) => {
+                e.preventDefault();
+                // Remove any existing overlay first
+                $("#" + GroupMembersController.ProfilePhotoLightboxOverlayId).remove();
+                const clickedImg = e.target;
+                const fullSizeSrc = clickedImg.getAttribute("data-fullsize-src") || clickedImg.src;
+                const overlay = $("<div></div>")
+                    .attr("id", GroupMembersController.ProfilePhotoLightboxOverlayId)
+                    .css({
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0, 0, 0, 0.85)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 99999,
+                    cursor: "zoom-out"
+                });
+                const fullImg = $("<img />")
+                    .attr("src", fullSizeSrc)
+                    .css({
+                    maxWidth: "95vw",
+                    maxHeight: "95vh",
+                    objectFit: "contain",
+                    boxShadow: "0 6px 30px rgba(0,0,0,0.5)"
+                });
+                overlay.append(fullImg);
+                $("body").append(overlay);
+            });
+            // Click anywhere to close
+            $(document).off("click.profilePhotoLightboxClose");
+            $(document).on("click.profilePhotoLightboxClose", "#" + GroupMembersController.ProfilePhotoLightboxOverlayId, () => {
+                $("#" + GroupMembersController.ProfilePhotoLightboxOverlayId).remove();
+            });
+        }
     }
     GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
     GroupMembersController.AllBoardUserId = "af615460-d92f-4878-9dfa-d5e4a9b1f488";
+    GroupMembersController.ProfilePhotoLightboxOverlayId = "profile-photo-lightbox-overlay";
     Ally.GroupMembersController = GroupMembersController;
     class SaveEmailGroupInfo {
         constructor() {
