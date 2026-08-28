@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     class GroupEntry
     {
@@ -70,7 +70,7 @@
         premiumUpdateGroupId: number;
         premiumNewCost: number;
         premiumNewExpiration: Date;
-        deactivateGroupIdsCsv: string;
+        deactivateGroupIdsCsv: string | null = null;
         reactivateGroupId: number;
         allAllyAppSettings: AllyAppSetting[];
         editAllyAppSetting: AllyAppSetting;
@@ -94,11 +94,11 @@
         $onInit()
         {
             this.curGroupApiUri = this.siteInfo.publicSiteInfo.baseApiUrl;
-            this.curGroupId = this.curGroupApiUri.substring( "https://".length, this.curGroupApiUri.indexOf(".") );
+            this.curGroupId = this.curGroupApiUri.substring( "https://".length, this.curGroupApiUri.indexOf( "." ) );
             this.curGroupCreationDate = this.siteInfo.privateSiteInfo.creationDate;
             this.stripeConnectAccountId = this.siteInfo.privateSiteInfo.stripeConnectAccountId;
-            this.premiumUpdateGroupId = parseInt(this.curGroupId);
-            
+            this.premiumUpdateGroupId = parseInt( this.curGroupId );
+
             // A little shortcut for updating
             if( AppConfig.appShortName === "hoa" )
                 this.changeShortNameData.appName = "Hoa";
@@ -410,13 +410,13 @@
         onSendNoReplyEmail()
         {
             this.isLoading = true;
-            
+
             this.$http.post( "/api/AdminHelper/SendNoReplyPostmarkEmail", this.noReplyEmailInfo ).then( () =>
             {
                 this.isLoading = false;
                 alert( "Successfully sent email" );
 
-            }, (response: ng.IHttpPromiseCallbackArg<ExceptionResult>) =>
+            }, ( response: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
             {
                 this.isLoading = false;
                 alert( "Failed to send email: " + response.data.exceptionMessage );
@@ -597,7 +597,7 @@
 
             this.isLoading = true;
 
-            const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent(this.premiumNewExpiration.toISOString())}`;
+            const postUri = `/api/AdminHelper/SetPremiumExpiration/${this.premiumUpdateGroupId}?expirationDate=${encodeURIComponent( this.premiumNewExpiration.toISOString() )}`;
             this.$http.put( postUri, null ).then(
                 () => // response: ng.IHttpPromiseCallbackArg<any> ) =>
                 {
@@ -619,7 +619,7 @@
             this.isLoading = true;
 
             const getUri = `/api/AdminHelper/DeactivateGroups?groupIdsCsv=${this.deactivateGroupIdsCsv}`;
-            this.$http.get( getUri ).then(
+            this.$http.get<string>( getUri ).then(
                 ( response: ng.IHttpPromiseCallbackArg<string> ) =>
                 {
                     this.isLoading = false;
@@ -804,16 +804,35 @@
         {
             this.isLoading = true;
 
-            this.$http.get( `/api/AdminHelper/AlliesOfAlly` ).then(
-                (response:ng.IHttpPromiseCallbackArg<AllyOfAllyUser[]>) =>
+            this.$http.get<AllyOfAllyUser[]>( `/api/AdminHelper/AlliesOfAlly` ).then(
+                ( response: ng.IHttpPromiseCallbackArg<AllyOfAllyUser[]> ) =>
                 {
                     this.isLoading = false;
-                    this.alliesOfAllyUsers = response.data;
+                    this.alliesOfAllyUsers = response.data!;
                 },
                 ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
-                    alert( "Failed to retreive allies: " + response.data.exceptionMessage );
+                    alert( "Failed to retreive allies: " + response.data!.exceptionMessage );
+                }
+            );
+        }
+
+
+        setSecurityIsRestricted( isRestricted: boolean )
+        {
+            this.isLoading = true;
+            
+            this.$http.put( `/api/AdminHelper/SetSecurityIsRestricted?isRestricted=${isRestricted}`, null ).then(
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Successfully updated security restriction status to " + isRestricted );
+                },
+                ( response: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to update status: " + response.data!.exceptionMessage );
                 }
             );
         }

@@ -246,7 +246,10 @@
         <input type="text" data-ng-model="$ctrl.logInAsEmail" /><button value="Clear App Group Cache" data-ng-click="$ctrl.logInAs()">Log-in As</button><br />
         <input type="button" value="Populate Empty Document Usage" data-ng-click="$ctrl.populateEmptyDocumentUsage()">
         Force Group ID: <input type="number" data-ng-model="$ctrl.populateDocUsageGroupId" style="width: 70px;" /><br />
-        <input type="button" value="Refresh Current Group Document Usage" data-ng-click="$ctrl.refreshCurGroupDocumentUsage()">
+        <input type="button" value="Refresh Current Group Document Usage" data-ng-click="$ctrl.refreshCurGroupDocumentUsage()"><br />
+        SecurityIsRestrictedGroup:
+        <button type="button" data-ng-click="$ctrl.setSecurityIsRestricted(true)">Set Restricted</button>
+        <button type="button" data-ng-click="$ctrl.setSecurityIsRestricted(false)">Clear Restricted</button>
         <br />
         <br />
         <textarea data-ng-model="$ctrl.inactiveShortNames" rows="10"></textarea><br />

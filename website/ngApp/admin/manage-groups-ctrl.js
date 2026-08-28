@@ -27,6 +27,7 @@ var Ally;
                 subject: "",
                 body: ""
             };
+            this.deactivateGroupIdsCsv = null;
             this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
             /**
              * Retrieve the active group list
@@ -473,6 +474,16 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to retreive allies: " + response.data.exceptionMessage);
+            });
+        }
+        setSecurityIsRestricted(isRestricted) {
+            this.isLoading = true;
+            this.$http.put(`/api/AdminHelper/SetSecurityIsRestricted?isRestricted=${isRestricted}`, null).then(() => {
+                this.isLoading = false;
+                alert("Successfully updated security restriction status to " + isRestricted);
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to update status: " + response.data.exceptionMessage);
             });
         }
     }
