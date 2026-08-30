@@ -182,8 +182,13 @@ var Ally;
                             enableFiltering: true,
                             visible: false,
                             sortingAlgorithm: (a, b) => {
-                                if (this.shouldSortLotsNumerically)
+                                if (this.shouldSortLotsNumerically) {
+                                    if (!a)
+                                        a = "0";
+                                    if (!b)
+                                        b = "0";
                                     return parseInt(a) - parseInt(b);
+                                }
                                 return a.toString().localeCompare(b.toString());
                             }
                         },

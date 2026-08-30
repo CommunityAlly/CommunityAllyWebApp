@@ -406,7 +406,13 @@ namespace Ally
                             sortingAlgorithm: ( a: string, b: string ) =>
                             {
                                 if( this.shouldSortLotsNumerically )
+                                {
+                                    if( !a )
+                                        a = "0";
+                                    if( !b )
+                                        b = "0";
                                     return parseInt( a ) - parseInt( b );
+                                }
                                 return a.toString().localeCompare( b.toString() );
                             }
                         },
