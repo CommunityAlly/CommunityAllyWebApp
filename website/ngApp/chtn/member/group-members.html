@@ -183,32 +183,34 @@
                 <br />
             </div>
 
-            <h5 class="mb-0" style="text-decoration: underline;">Custom Group Email Addresses</h5>
-            <div class="note-text mb-1">Here you can define your own group email addresses with your own collection of residents. <a href="https://help.communityally.org/using-custom-group-email-addresses/" target="_blank">Learn more</a></div>
-            <div class="mt-2 mb-2" data-ng-if="$ctrl.customEmailList.length === 0">You do not have any custom group email addresses defined.</div>
-            <div data-ng-repeat="g in $ctrl.customEmailList track by $index">
-                <div>
-                    &bull; Send an email to&nbsp;<h5 id="custom-group-email-address-{{ ::$index }}" style="display: inline;">{{ ::g.shortName }}.{{ ::$ctrl.groupShortName }}@{{ ::$ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="custom-group-email-address-copy-button-{{ ::$index }}" data-clipboard-target="#custom-group-email-address-{{ ::$index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+            <div data-ng-if="::$ctrl.isSiteManager || $ctrl.customEmailList.length > 0">
+                <h5 class="mb-0" style="text-decoration: underline;">Custom Group Email Addresses</h5>
+                <div class="note-text mb-1">Here you can define your own group email addresses with your own collection of residents. <a href="https://help.communityally.org/using-custom-group-email-addresses/" target="_blank">Learn more</a></div>
+                <div class="mt-2 mb-2" data-ng-if="$ctrl.customEmailList.length === 0">You do not have any custom group email addresses defined.</div>
+                <div data-ng-repeat="g in $ctrl.customEmailList track by $index">
+                    <div>
+                        &bull; Send an email to&nbsp;<h5 id="custom-group-email-address-{{ ::$index }}" style="display: inline;">{{ ::g.shortName }}.{{ ::$ctrl.groupShortName }}@{{ ::$ctrl.groupEmailDomain }}</h5>&nbsp;(<span class="text-link clipboard-button" id="custom-group-email-address-copy-button-{{ ::$index }}" data-clipboard-target="#custom-group-email-address-{{ ::$index }}" data-clipboard-action="copy">copy to clipboard</span>) and it will send to:
+                    </div>
+                    <div class="note-text">
+                        <span data-ng-repeat="u in g.usersFullNames track by $index"><span data-ng-if="::$index > 0">, </span>{{ ::u }}</span>
+                    </div>
+                    <div class="note-text text-danger" data-ng-if="!g.usersFullNames || g.usersFullNames.length === 0">
+                        This group has no members so it will not be shown elsewhere on the site.
+                    </div>
+                    <div class="note-text mt-1" data-ng-if="g.description">
+                        Description: {{::g.description}}
+                    </div>
+                    <div data-ng-if="::g.allowPublicIncoming" class="note-text" style="color: blue; font-weight: bold;">
+                        Allows public incoming emails
+                    </div>
+                    <div data-ng-if="$ctrl.isSiteManager">
+                        <span class="text-link note-text" data-ng-click="$ctrl.editCustomGroupEmail( g )">Edit</span>
+                        <span class="text-link note-text ms-2" style="color: red;" data-ng-click="$ctrl.deleteGroupEmail( g )">Delete</span>
+                    </div>
+                    <br />
                 </div>
-                <div class="note-text">
-                    <span data-ng-repeat="u in g.usersFullNames track by $index"><span data-ng-if="::$index > 0">, </span>{{ ::u }}</span>
-                </div>
-                <div class="note-text text-danger" data-ng-if="!g.usersFullNames || g.usersFullNames.length === 0">
-                    This group has no members so it will not be shown elsewhere on the site.
-                </div>
-                <div class="note-text mt-1" data-ng-if="g.description">
-                    Description: {{::g.description}}
-                </div>
-                <div data-ng-if="::g.allowPublicIncoming" class="note-text" style="color: blue; font-weight: bold;">
-                    Allows public incoming emails
-                </div>
-                <div data-ng-if="$ctrl.isSiteManager">
-                    <span class="text-link note-text" data-ng-click="$ctrl.editCustomGroupEmail( g )">Edit</span>
-                    <span class="text-link note-text ms-2" style="color: red;" data-ng-click="$ctrl.deleteGroupEmail( g )">Delete</span>
-                </div>
-                <br />
+                <button data-ng-if="::$ctrl.isSiteManager" type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
             </div>
-            <button data-ng-if="::$ctrl.isSiteManager" type="button" class="btn btn-primary" data-ng-click="$ctrl.onAddNewCustomEmailGroup()">Add New Custom Group Email</button>
 
             <div class="text-bold mt-5">
                 <u>How to Use Group Emails</u>
