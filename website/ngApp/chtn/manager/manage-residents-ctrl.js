@@ -58,6 +58,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.isAdmin = false;
+            this.allUnits = null;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
             this.showKansasPtaExport = false;
@@ -82,6 +83,7 @@ var Ally;
             this.selectedResidentDetailsView = "Primary";
             this.showAddHomeLink = false;
             this.hasMemberNotOwnerRenter = false;
+            this.groupId = 0;
             this.didLoadResidentGridState = false;
             this.isNeighborhoodSite = false;
         }
@@ -105,6 +107,7 @@ var Ally;
             this.shouldShowPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
+            this.groupId = this.siteInfo.publicSiteInfo.groupId;
             // Show the add home article link if the site isn't launched and is less than 8 days old
             const twoWeeksAfterCreate = moment(this.siteInfo.privateSiteInfo.creationDate).add(14, "days");
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(twoWeeksAfterCreate);

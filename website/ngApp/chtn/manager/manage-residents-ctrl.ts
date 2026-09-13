@@ -213,7 +213,7 @@ namespace Ally
         siteLaunchedDateUtc: Date;
         bulkImportRows: ResidentCsvRow[];
         multiselectOptions: string;
-        allUnits: Ally.Unit[];
+        allUnits: Ally.Unit[] | null = null;
         homeName: string;
         showIsRenter: boolean;
         shouldShowResidentPermissions: boolean;
@@ -266,6 +266,7 @@ namespace Ally
         selectedResidentDetailsView: string = "Primary";
         showAddHomeLink: boolean = false;
         hasMemberNotOwnerRenter: boolean = false;
+        groupId = 0;
         didLoadResidentGridState = false;
         isNeighborhoodSite = false;
         static readonly StoreKeyResidentGridState = "AllyResGridState";
@@ -305,6 +306,7 @@ namespace Ally
             this.shouldShowPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
+            this.groupId = this.siteInfo.publicSiteInfo.groupId;
 
             // Show the add home article link if the site isn't launched and is less than 8 days old
             const twoWeeksAfterCreate = moment( this.siteInfo.privateSiteInfo.creationDate ).add( 14, "days" );

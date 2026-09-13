@@ -347,7 +347,7 @@
             <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.rentersCanViewDocs" data-ng-change="$ctrl.saveResidentSettings()" />Renters can view documents</label>
         </div>
 
-        <div class="mt-4" data-ng-if="!$ctrl.hasMemberNotOwnerRenter">
+        <div class="mt-4" data-ng-if="!$ctrl.hasMemberNotOwnerRenter && $ctrl.groupId < 8463"> <!-- 8462 is the last group that disabled this -->
             <label><input type="checkbox" data-ng-model="$ctrl.residentSettings.canHideContactInfo" data-ng-change="$ctrl.saveResidentSettings()" />Allow residents to hide their contact info onthe <a href="#!/BuildingResidents">Directory</a> page.</label><br />
             <span class="note-text">
                 Residents' phone and email address can be shown on the Residents page. If you check this box, residents have the option on <a href="#!/MyProfile">their profile page</a> to hide/show
