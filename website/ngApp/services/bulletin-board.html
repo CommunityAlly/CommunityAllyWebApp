@@ -214,10 +214,11 @@
 
             <div class="row mb-3 mt-4 width100 px-3" data-ng-if="$ctrl.editPostItem.postType === 'event'">
                 <div class="col-12">
-                    <label class="form-label">Event Date:</label>
-                    <input id="new-post-event-date" type="text" class="form-control" style="width:40%; display: inline;" data-ui-date="{ dateFormat: 'MM d, yy' }" data-ng-model="$ctrl.editPostDateOnly" autocomplete="off" data-lpignore="true" data-form-type="other" />
-
-                    <input id="new-post-event-time" type="text" class="form-control" style="width: 20%; display: inline; margin-left: 15px;" data-ng-model="$ctrl.editPostTimeOnly" autocomplete="off" data-lpignore="true" data-form-type="other">
+                    <label class="form-label">Event Date and Time:</label>
+                    <br />
+                    <input id="new-post-event-date" type="text" class="form-control" style="display: inline;" data-ui-date="{ dateFormat: 'DD, MM d, yy' }" data-ng-model="$ctrl.editPostDateOnly" autocomplete="off" data-lpignore="true" data-form-type="other" />
+                    <br />
+                    <input id="new-post-event-time" type="text" class="form-control" style="display: inline;" data-ng-model="$ctrl.editPostTimeOnly" autocomplete="off" data-lpignore="true" data-form-type="other">
 
                     <!--<span class="note-text">This should be a street address. Enter local information like "at the south lawn" or "inside club house room 2" in the details area.</span>-->
                 </div>
