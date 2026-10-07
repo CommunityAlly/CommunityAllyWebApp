@@ -76,6 +76,7 @@ namespace Ally
         dwollaMicroDepositAmount1String: string = "0.01";
         dwollaMicroDepositAmount2String: string = "0.01";
         shouldShowOwnerFinanceTxn: boolean = false;
+        shouldShowOwnerBankTxn: boolean = false;
         shouldShowDwollaAutoPayArea: boolean = true;
         shouldShowStripeAutoPayArea: boolean = false;
         currentDwollaAutoPayAmount: number | null = null;
@@ -140,6 +141,7 @@ namespace Ally
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaStripeMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if( this.siteInfo.privateSiteInfo.customFinancialInstructions )
                 this.customFinancialInstructions = this.$sce.trustAsHtml( this.siteInfo.privateSiteInfo.customFinancialInstructions );

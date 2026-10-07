@@ -44,6 +44,7 @@ var Ally;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowOwnerBankTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
             this.shouldShowStripeAutoPayArea = false;
             this.currentDwollaAutoPayAmount = null;
@@ -78,6 +79,7 @@ var Ally;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaStripeMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
                 this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);

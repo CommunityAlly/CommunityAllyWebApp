@@ -3676,6 +3676,7 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowOwnerBankTxn = false;
             this.hasActiveTxGridColFilter = false;
             this.uiGridCategoryDropDown = [];
             this.shouldShowFullCatPathInGrid = false;
@@ -3690,6 +3691,7 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             const addAmountOverAllRows = () => {
                 const allGridRows = this.ledgerGridApi.grid.rows;
@@ -4490,6 +4492,20 @@ var Ally;
                 this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = this.shouldShowOwnerFinanceTxn;
             }, (httpResponse) => {
                 this.isLoading = false;
+                alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /** Occurs when the user changes the setting to share the association's bank transactions with owners */
+        onShowOwnerBankTxnsChange() {
+            this.isLoading = true;
+            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShowOwnerBankTxn;
+            this.$http.put(putUri, null).then(() => {
+                this.isLoading = false;
+                this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn = this.shouldShowOwnerBankTxn;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                // Revert the checkbox since the setting wasn't saved
+                this.shouldShowOwnerBankTxn = !this.shouldShowOwnerBankTxn;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
             });
         }
@@ -8667,6 +8683,7 @@ var Ally;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowOwnerBankTxn = false;
             this.userFirstName = "";
             this.shouldShowAppChangeModal = false;
             this.appChanges = null;
@@ -8691,6 +8708,7 @@ var Ally;
             this.handleWelcomeMessage();
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
+            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
@@ -12802,6 +12820,7 @@ var Ally;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowOwnerBankTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
             this.shouldShowStripeAutoPayArea = false;
             this.currentDwollaAutoPayAmount = null;
@@ -12836,6 +12855,7 @@ var Ally;
             this.dwollaFeePercent = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 0.5 : 1;
             this.dwollaStripeMaxFee = this.siteInfo.privateSiteInfo.isPremiumPlanActive ? 5 : 10;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
                 this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);

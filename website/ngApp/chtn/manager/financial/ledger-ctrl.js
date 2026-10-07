@@ -37,6 +37,7 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
+            this.shouldShowOwnerBankTxn = false;
             this.hasActiveTxGridColFilter = false;
             this.uiGridCategoryDropDown = [];
             this.shouldShowFullCatPathInGrid = false;
@@ -51,6 +52,7 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
+            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             const addAmountOverAllRows = () => {
                 const allGridRows = this.ledgerGridApi.grid.rows;
@@ -851,6 +853,20 @@ var Ally;
                 this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn = this.shouldShowOwnerFinanceTxn;
             }, (httpResponse) => {
                 this.isLoading = false;
+                alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
+            });
+        }
+        /** Occurs when the user changes the setting to share the association's bank transactions with owners */
+        onShowOwnerBankTxnsChange() {
+            this.isLoading = true;
+            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShowOwnerBankTxn;
+            this.$http.put(putUri, null).then(() => {
+                this.isLoading = false;
+                this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn = this.shouldShowOwnerBankTxn;
+            }, (httpResponse) => {
+                this.isLoading = false;
+                // Revert the checkbox since the setting wasn't saved
+                this.shouldShowOwnerBankTxn = !this.shouldShowOwnerBankTxn;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
             });
         }
