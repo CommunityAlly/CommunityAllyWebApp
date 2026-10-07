@@ -348,6 +348,7 @@ var Ally;
                         promotion: false,
                         branding: true,
                         image_description: false,
+                        sandbox_iframes: false,
                         file_picker_callback: function (cb) {
                             const input = document.createElement('input');
                             input.setAttribute('type', 'file');
