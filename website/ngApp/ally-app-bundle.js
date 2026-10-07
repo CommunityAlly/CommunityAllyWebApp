@@ -146,6 +146,7 @@ var Ally;
                 subject: "",
                 body: ""
             };
+            this.deactivateGroupIdsCsv = null;
             this.newAllyAppChangeLogEntry = new AllyAppChangeLogEntry();
             /**
              * Retrieve the active group list
@@ -592,6 +593,16 @@ var Ally;
             }, (response) => {
                 this.isLoading = false;
                 alert("Failed to retreive allies: " + response.data.exceptionMessage);
+            });
+        }
+        setSecurityIsRestricted(isRestricted) {
+            this.isLoading = true;
+            this.$http.put(`/api/AdminHelper/SetSecurityIsRestricted?isRestricted=${isRestricted}`, null).then(() => {
+                this.isLoading = false;
+                alert("Successfully updated security restriction status to " + isRestricted);
+            }, (response) => {
+                this.isLoading = false;
+                alert("Failed to update status: " + response.data.exceptionMessage);
             });
         }
     }
@@ -1342,7 +1353,8 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         // If we have the association's public info cached then use it to load faster
         if (HtmlUtil.isLocalStorageAllowed()) {
             if (window.localStorage) {
-                $rootScope.publicSiteInfo = angular.fromJson(window.localStorage.getItem("siteInfo"));
+                if (window.localStorage.getItem("siteInfo"))
+                    $rootScope.publicSiteInfo = angular.fromJson(window.localStorage.getItem("siteInfo"));
                 $rootScope.authToken = window.localStorage.getItem("ApiAuthToken");
                 if ($rootScope.publicSiteInfo === null || $rootScope.publicSiteInfo === undefined)
                     $rootScope.publicSiteInfo = {};
@@ -1478,12 +1490,6 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
 //            analytics.track( "AngularJS Error", { error: exception.message, stack: exception.stack } );
 //    }
 //}] );
-var Ally;
-(function (Ally) {
-    class MenuItem_v3 {
-    }
-    Ally.MenuItem_v3 = MenuItem_v3;
-})(Ally || (Ally = {}));
 
 var Ally;
 (function (Ally) {
@@ -1494,24 +1500,69 @@ var Ally;
     class RoutePath_v3 {
         constructor(routeOptions) {
             this.reloadOnSearch = true;
-            if (routeOptions.path[0] !== '/')
+            if (routeOptions.path && routeOptions.path[0] !== '/')
                 routeOptions.path = "/" + routeOptions.path;
-            this.path = routeOptions.path;
-            this.templateHtml = routeOptions.templateHtml;
-            this.menuTitle = routeOptions.menuTitle;
+            this.path = routeOptions.path || null;
+            this.templateHtml = routeOptions.templateHtml || null;
+            this.menuTitle = routeOptions.menuTitle || null;
             this.role = routeOptions.role || Role_Authorized;
             this.reloadOnSearch = routeOptions.reloadOnSearch === undefined ? false : routeOptions.reloadOnSearch;
             this.pageTitle = routeOptions.pageTitle;
         }
     }
     Ally.RoutePath_v3 = RoutePath_v3;
+    function globalIsPublicRoute(path) {
+        // Default to the current hash
+        if (!path)
+            path = window.location.hash;
+        // Remove the leading hashbang
+        if (HtmlUtil.startsWith(path, "#!"))
+            path = path.substring(2);
+        // If the path has a parameter, only test the first word
+        const hasParameter = path.indexOf("/", 1) !== -1;
+        if (hasParameter)
+            path = path.substring(0, path.indexOf("/", 1));
+        const route = _.find(AppConfig.menu, function (m) {
+            let testPath = m.path;
+            if (!testPath)
+                return false;
+            // Only test the first part of paths with parameters
+            if (hasParameter && testPath.indexOf("/", 1) !== -1)
+                testPath = testPath.substring(0, testPath.indexOf("/", 1));
+            return testPath === path;
+        });
+        if (!route)
+            return false;
+        return route.role === Role_All;
+    }
+    Ally.globalIsPublicRoute = globalIsPublicRoute;
     class AppConfigInfo {
+        constructor() {
+            this.appShortName = "condo";
+            /// The full, friendly app name like "Condo Ally" or "HOA Ally"
+            this.appName = "";
+            /// The full, friendly app name like appName, but with ® or ™
+            this.appNameLegal = "";
+            this.baseTld = "";
+            this.baseUrl = "";
+            this.isChtnSite = false;
+            /// The label for a user in this group, starting with an upper-case letter
+            this.memberTypeLabel = "";
+            this.menu = [];
+            this.isPublicRoute = globalIsPublicRoute;
+        }
     }
     AppConfigInfo.dwollaPreviewShortNames = ["qa", "dwollademo", "dwollademo1", "900wainslie", "elingtonvillagepoa"];
     AppConfigInfo.dwollaEnvironmentName = "prod";
     AppConfigInfo.localNewsAllyDomain = "https://localnewsally2-h7fccdagf6cmdub8.northcentralus-01.azurewebsites.net/";
     Ally.AppConfigInfo = AppConfigInfo;
     class PeriodicPaymentFrequency {
+        constructor(name, intervalName, id, signUpNote) {
+            this.name = name;
+            this.intervalName = intervalName;
+            this.id = id;
+            this.signUpNote = signUpNote;
+        }
     }
     Ally.PeriodicPaymentFrequency = PeriodicPaymentFrequency;
 })(Ally || (Ally = {}));
@@ -1526,10 +1577,10 @@ var Role_Admin = "admin";
 // The names need to match the PeriodicPaymentFrequency enum
 // eslint-disable-next-line no-var
 var PeriodicPaymentFrequencies = [
-    { name: "Monthly", intervalName: "month", id: 50, signUpNote: "Billed on the 1st of each month" },
-    { name: "Quarterly", intervalName: "quarter", id: 51, signUpNote: "Billed on January 1, April 1, July 1, October 1" },
-    { name: "Semiannually", intervalName: "half-year", id: 52, signUpNote: "Billed on January 1 and July 1" },
-    { name: "Annually", intervalName: "year", id: 53, signUpNote: "Billed on January 1" }
+    new Ally.PeriodicPaymentFrequency("Monthly", "month", 50, "Billed on the 1st of each month"),
+    new Ally.PeriodicPaymentFrequency("Quarterly", "quarter", 51, "Billed on January 1, April 1, July 1, October 1"),
+    new Ally.PeriodicPaymentFrequency("Semiannually", "half-year", 52, "Billed on January 1 and July 1"),
+    new Ally.PeriodicPaymentFrequency("Annually", "year", 53, "Billed on January 1")
 ];
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PaymentFrequencyIdToInfo(frequencyId) {
@@ -1576,6 +1627,7 @@ const CondoAllyAppConfig = {
     isChtnSite: true,
     homeName: "Unit",
     memberTypeLabel: "Resident",
+    isPublicRoute: Ally.globalIsPublicRoute,
     menu: [
         // Member-only pages
         new Ally.RoutePath_v3({ path: "Home", templateHtml: "<chtn-home></chtn-home>", menuTitle: "Home" }),
@@ -1686,6 +1738,7 @@ const HomeAppConfig = {
     isChtnSite: false,
     homeName: "Home",
     memberTypeLabel: "User",
+    isPublicRoute: Ally.globalIsPublicRoute,
     menu: [
         //new RoutePath_v2( { path: "ToDo", templateUrl: "/ngApp/home/ToDos.html", controller: ServiceJobsCtrl, menuTitle: "Jobs" } ),
         new Ally.RoutePath_v3({ path: "SignUp", templateHtml: "<home-sign-up></home-sign-up>", role: Role_All }),
@@ -1823,7 +1876,7 @@ PtaAppConfig.menu = [
     new Ally.RoutePath_v3({ path: "PtaSignUp", templateHtml: "<neighbor-sign-up></neighbor-sign-up>", role: Role_All })
 ];
 // eslint-disable-next-line no-var
-var AppConfig = null;
+var AppConfig = CondoAllyAppConfig; // 
 let lowerDomain = document.domain.toLowerCase();
 if (!HtmlUtil.isNullOrWhitespace(OverrideOriginalUrl) || lowerDomain === "localhost")
     lowerDomain = OverrideOriginalUrl;
@@ -1863,30 +1916,6 @@ else {
 // Object.freeze( AppConfig );
 // This is redundant due to how JS works, but we have it anyway to prevent confusion
 window.AppConfig = AppConfig;
-AppConfig.isPublicRoute = function (path) {
-    // Default to the current hash
-    if (!path)
-        path = window.location.hash;
-    // Remove the leading hashbang
-    if (HtmlUtil.startsWith(path, "#!"))
-        path = path.substr(2);
-    // If the path has a parameter, only test the first word
-    const hasParameter = path.indexOf("/", 1) !== -1;
-    if (hasParameter)
-        path = path.substr(0, path.indexOf("/", 1));
-    const route = _.find(AppConfig.menu, function (m) {
-        let testPath = m.path;
-        if (!testPath)
-            return false;
-        // Only test the first part of paths with parameters
-        if (hasParameter && testPath.indexOf("/", 1) !== -1)
-            testPath = testPath.substr(0, testPath.indexOf("/", 1));
-        return testPath === path;
-    });
-    if (!route)
-        return false;
-    return route.role === Role_All;
-};
 // Set the browser title
 document.title = AppConfig.appName;
 
@@ -6091,6 +6120,8 @@ var Ally;
     class UpdateResident extends Resident {
     }
     Ally.UpdateResident = UpdateResident;
+    class EmailSmsHistoryResponse {
+    }
     class RecentEmail {
     }
     class ResidentCsvRow {
@@ -6113,16 +6144,21 @@ var Ally;
             this.siteInfo = siteInfo;
             this.appCacheService = appCacheService;
             this.isAdmin = false;
+            this.allUnits = null;
             this.showEmailSettings = true;
             this.shouldShowHomePicker = true;
             this.showKansasPtaExport = false;
+            this.editUser = null;
             this.multiselectMulti = "single";
             this.isSavingUser = false;
+            this.viewingRecentEmail = null;
+            this.viewingRecentEmailOpenStats = null;
             this.viewingRecentEmailShouldShowStats = false;
             this.isLoadingEmailOpenStats = false;
             this.isLoading = false;
             this.isLoadingSettings = false;
             this.shouldSortUnitsNumerically = false;
+            this.shouldSortLotsNumerically = false;
             this.showEmailHistory = false;
             this.emailHistorySinceDate = new Date();
             this.emailHistoryNumMonths = 6;
@@ -6133,6 +6169,7 @@ var Ally;
             this.selectedResidentDetailsView = "Primary";
             this.showAddHomeLink = false;
             this.hasMemberNotOwnerRenter = false;
+            this.groupId = 0;
             this.didLoadResidentGridState = false;
             this.isNeighborhoodSite = false;
         }
@@ -6156,6 +6193,7 @@ var Ally;
             this.shouldShowPendingMembers = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.hasMemberNotOwnerRenter = AppConfig.appShortName === PtaAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
             this.isNeighborhoodSite = AppConfig.appShortName === NeighborhoodAppConfig.appShortName || AppConfig.appShortName === BlockClubAppConfig.appShortName || AppConfig.appShortName === RnoAppConfig.appShortName;
+            this.groupId = this.siteInfo.publicSiteInfo.groupId;
             // Show the add home article link if the site isn't launched and is less than 8 days old
             const twoWeeksAfterCreate = moment(this.siteInfo.privateSiteInfo.creationDate).add(14, "days");
             this.showAddHomeLink = !this.siteInfo.privateSiteInfo.siteLaunchedDateUtc && moment().isBefore(twoWeeksAfterCreate);
@@ -6206,9 +6244,8 @@ var Ally;
                             width: homeColumnWidth,
                             visible: AppConfig.isChtnSite,
                             sortingAlgorithm: (a, b) => {
-                                if (this.shouldSortUnitsNumerically) {
+                                if (this.shouldSortUnitsNumerically)
                                     return parseInt(a) - parseInt(b);
-                                }
                                 return a.toString().localeCompare(b.toString());
                             },
                             enableFiltering: true
@@ -6227,7 +6264,23 @@ var Ally;
                         { field: 'lastLoginDateUtc', displayName: 'Last Login', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
                         { field: 'alternatePhoneNumber', displayName: 'Alt Phone', width: 140, enableFiltering: false, visible: false },
                         { field: 'addedDateUtc', displayName: 'Added Date', width: 140, enableFiltering: false, visible: false, type: 'date', cellFilter: "date:'short'" },
-                        { field: 'lotNumberLabel', displayName: 'Lot#', width: 140, enableFiltering: true, visible: false },
+                        {
+                            field: 'lotNumberLabel',
+                            displayName: 'Lot#',
+                            width: 140,
+                            enableFiltering: true,
+                            visible: false,
+                            sortingAlgorithm: (a, b) => {
+                                if (this.shouldSortLotsNumerically) {
+                                    if (!a)
+                                        a = "0";
+                                    if (!b)
+                                        b = "0";
+                                    return parseInt(a) - parseInt(b);
+                                }
+                                return a.toString().localeCompare(b.toString());
+                            }
+                        },
                     ],
                     multiSelect: false,
                     enableSorting: true,
@@ -6334,6 +6387,33 @@ var Ally;
                         HtmlUtil.uiGridFixScroll();
                     }
                 };
+            //sendResultsObject: SmsSendResults;
+            this.smsHistoryGridOptions =
+                {
+                    columnDefs: [
+                        { field: 'senderName', displayName: 'Sender', width: 150 },
+                        { field: 'recipientGroup', displayName: 'Sent To', width: 100 },
+                        { field: 'sendDateUtc', displayName: 'Send Date', width: 140, type: 'date', cellFilter: "date:'short'" },
+                        { field: 'numTextsSent', displayName: '#Texts Sent.', width: 80 },
+                        { field: 'messageText', displayName: 'Message' }
+                    ],
+                    enableSorting: true,
+                    enableHorizontalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableVerticalScrollbar: this.uiGridConstants.scrollbars.NEVER,
+                    enableColumnMenus: false,
+                    enablePaginationControls: true,
+                    paginationPageSize: 20,
+                    paginationPageSizes: [20],
+                    enableRowHeaderSelection: false,
+                    onRegisterApi: (gridApi) => {
+                        this.textMessageHistoryGridApi = gridApi;
+                        gridApi.selection.on.rowSelectionChanged(this.$rootScope, (row) => {
+                            this.viewingRecentTextMessage = row.entity;
+                        });
+                        // Fix dumb scrolling
+                        HtmlUtil.uiGridFixScroll();
+                    }
+                };
             this.refreshResidents()
                 .then(() => this.loadResidentSettings())
                 .then(() => {
@@ -6387,6 +6467,10 @@ var Ally;
             this.viewingRecentEmailShouldShowStats = false;
             this.emailHistoryGridApi.selection.clearSelectedRows();
         }
+        closeViewingTextMessage() {
+            this.viewingRecentTextMessage = null;
+            this.textMessageHistoryGridApi.selection.clearSelectedRows();
+        }
         /**
         * Edit a resident's information
         */
@@ -6400,6 +6484,9 @@ var Ally;
             this.editUserForm.$setPristine();
             const copiedUser = jQuery.extend({}, resident);
             this.editUser = copiedUser;
+            // This should never occur, but helps TypeScript understand that editUser is not null
+            if (!this.editUser)
+                return;
             // Initialize the home picker state
             this.editUser.showAdvancedHomePicker = this.allUnits ? this.allUnits.length > 20 : false;
             this.multiselectMulti = "single";
@@ -6526,6 +6613,7 @@ var Ally;
                         this.shouldSortUnitsNumerically = _.every(this.allUnits, u => HtmlUtil.isNumericString(u.name));
                         if (this.shouldSortUnitsNumerically)
                             this.allUnits = _.sortBy(this.allUnits, u => parseFloat(u.name));
+                        this.shouldSortLotsNumerically = _.every(this.allUnits, u => !u.lotNumber || HtmlUtil.isNumericString(u.lotNumber));
                         // If we have a lot of units then allow searching
                         this.multiselectOptions = this.allUnits.length > 20 ? "filter" : "";
                         // Show the note on how to add homes if there's only one home
@@ -6971,7 +7059,7 @@ var Ally;
             if (!confirm("This will email all of the residents in your association. Do you want to proceed?"))
                 return;
             this.isLoading = true;
-            this.$http.get("/api/Residents/LaunchSite", null).then((response) => {
+            this.$http.get("/api/Residents/LaunchSite").then((response) => {
                 this.isLoading = false;
                 this.sentWelcomeEmail = true;
                 this.launchSiteResultsString = `${response.data.numEmailsSent} email${response.data.numEmailsSent === 1 ? '' : 's'} successfully sent!`;
@@ -7037,7 +7125,7 @@ var Ally;
                     emailHasDupe: false
                 };
                 if (HtmlUtil.isNullOrWhitespace(newRow.unitName))
-                    newRow.unitId = null;
+                    newRow.unitId = undefined;
                 else {
                     newRow.csvTestName = simplifyStreetName(newRow.unitName);
                     const unit = _.find(this.allUnits, (u) => u.csvTestName === newRow.csvTestName);
@@ -7105,7 +7193,7 @@ var Ally;
             }
             // Find any duplicate email addresses
             for (const curRow of this.bulkImportRows)
-                curRow.emailHasDupe = curRow.email && this.bulkImportRows.filter(r => r.email === curRow.email).length > 1;
+                curRow.emailHasDupe = !!curRow.email && this.bulkImportRows.filter(r => r.email === curRow.email).length > 1;
         }
         /**
          * Submit the bulk creation rows to the server
@@ -7129,7 +7217,7 @@ var Ally;
         addBulkRow() {
             const newRow = {
                 unitName: "",
-                unitId: null,
+                unitId: undefined,
                 email: "",
                 firstName: "",
                 lastName: "",
@@ -7166,9 +7254,10 @@ var Ally;
             this.viewingRecentEmailShouldShowStats = false;
             if (this.showEmailHistory && !this.emailHistoryGridOptions.data) {
                 this.isLoadingSettings = true;
-                this.$http.get("/api/Email/RecentGroupEmails").then((response) => {
+                this.$http.get("/api/Email/RecentGroupEmailsAndSms").then((response) => {
                     this.isLoadingSettings = false;
-                    this.emailHistoryGridOptions.data = response.data;
+                    this.emailHistoryGridOptions.data = response.data?.recentEmails;
+                    this.smsHistoryGridOptions.data = response.data?.recentSms;
                 }, (response) => {
                     this.isLoadingSettings = false;
                     alert("Failed to load emails: " + response.data.exceptionMessage);
@@ -7183,9 +7272,10 @@ var Ally;
             const NumMonthsStep = 6;
             this.emailHistoryNumMonths += NumMonthsStep;
             this.emailHistorySinceDate = moment(this.emailHistorySinceDate).subtract(NumMonthsStep, "months").toDate();
-            this.$http.get("/api/Email/RecentGroupEmails?sinceDateUtc=" + this.emailHistorySinceDate.toISOString()).then((response) => {
+            this.$http.get("/api/Email/RecentGroupEmailsAndSms?sinceDateUtc=" + this.emailHistorySinceDate.toISOString()).then((response) => {
                 this.isLoadingSettings = false;
-                this.emailHistoryGridOptions.data = this.emailHistoryGridOptions.data.concat(response.data);
+                this.emailHistoryGridOptions.data = this.emailHistoryGridOptions.data.concat(response.data.recentEmails);
+                this.smsHistoryGridOptions.data = this.smsHistoryGridOptions.data.concat(response.data.recentSms);
             }, (response) => {
                 this.isLoadingSettings = false;
                 alert("Failed to load emails: " + response.data.exceptionMessage);
@@ -7244,6 +7334,37 @@ var Ally;
             ];
             const csvDataString = Ally.createCsvString(this.emailHistoryGridOptions.data, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-EmailHistory.csv");
+        }
+        exportTextMessageCsv() {
+            const csvColumns = [
+                {
+                    headerText: "Sender",
+                    fieldName: "senderName"
+                },
+                {
+                    headerText: "Recipient Group",
+                    fieldName: "recipientGroup"
+                },
+                {
+                    headerText: "Send Date (Local)",
+                    fieldName: "sendDateUtc",
+                    dataMapper: (value) => {
+                        if (!value)
+                            return "";
+                        return moment(value).format("ddd MMM D, YYYY h:mm a");
+                    }
+                },
+                {
+                    headerText: "# Texts Sent",
+                    fieldName: "numTextsSent"
+                },
+                {
+                    headerText: "Message",
+                    fieldName: "messageText"
+                }
+            ];
+            const csvDataString = Ally.createCsvString(this.emailHistoryGridOptions.data, csvColumns);
+            Ally.HtmlUtil2.downloadCsv(csvDataString, this.siteInfo.publicSiteInfo.shortName + "-TextMessageHistory.csv");
         }
     }
     ManageResidentsController.$inject = ["$http", "$rootScope", "fellowResidents", "uiGridConstants", "SiteInfo", "appCacheService"];
@@ -8000,7 +8121,8 @@ var Ally;
             this.selectedView = this.$routeParams.viewName || "SiteSettings";
             this.shouldShowPremiumPlanSection = AppConfig.appShortName === CondoAllyAppConfig.appShortName
                 || AppConfig.appShortName === HOAAppConfig.appShortName
-                || AppConfig.appShortName === BlockClubAppConfig.appShortName;
+                || AppConfig.appShortName === BlockClubAppConfig.appShortName
+                || AppConfig.appShortName === NeighborhoodAppConfig.appShortName;
             if (!this.shouldShowPremiumPlanSection && this.selectedView === "PremiumPlan")
                 this.selectedView = "SiteSettings";
         }
@@ -9399,6 +9521,8 @@ var Ally;
                 }
                 // Populate the email name lists, delayed to help the page render faster
                 setTimeout(() => this.loadGroupEmails(), 500);
+                // Make it so clicking a profile photo makes it large
+                setTimeout(() => this.hookUpProfileLightbox(), 1000);
             }, (httpErrorResponse) => {
                 alert("Failed to retrieve group members. Please let tech support know via the contact form in the bottom right.");
                 console.log("Failed to retrieve group members: " + httpErrorResponse.data.exceptionMessage);
@@ -9565,9 +9689,51 @@ var Ally;
         updateEditGroupEmailShortName() {
             this.editGroupEmailInfo.shortName = Ally.HtmlUtil2.stripNonAlphanumeric((this.editGroupEmailInfoInputShortName || "").toLocaleLowerCase());
         }
+        hookUpProfileLightbox() {
+            // Open full-size photo
+            $(document).off("click.profilePhotoLightboxOpen");
+            $(document).on("click.profilePhotoLightboxOpen", "img[id^='profile-photo-']", (e) => {
+                e.preventDefault();
+                // Remove any existing overlay first
+                $("#" + GroupMembersController.ProfilePhotoLightboxOverlayId).remove();
+                const clickedImg = e.target;
+                const fullSizeSrc = clickedImg.getAttribute("data-fullsize-src") || clickedImg.src;
+                const overlay = $("<div></div>")
+                    .attr("id", GroupMembersController.ProfilePhotoLightboxOverlayId)
+                    .css({
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0, 0, 0, 0.85)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 99999,
+                    cursor: "zoom-out"
+                });
+                const fullImg = $("<img />")
+                    .attr("src", fullSizeSrc)
+                    .css({
+                    maxWidth: "95vw",
+                    maxHeight: "95vh",
+                    objectFit: "contain",
+                    boxShadow: "0 6px 30px rgba(0,0,0,0.5)"
+                });
+                overlay.append(fullImg);
+                $("body").append(overlay);
+            });
+            // Click anywhere to close
+            $(document).off("click.profilePhotoLightboxClose");
+            $(document).on("click.profilePhotoLightboxClose", "#" + GroupMembersController.ProfilePhotoLightboxOverlayId, () => {
+                $("#" + GroupMembersController.ProfilePhotoLightboxOverlayId).remove();
+            });
+        }
     }
     GroupMembersController.$inject = ["fellowResidents", "SiteInfo", "appCacheService", "$http"];
     GroupMembersController.AllBoardUserId = "af615460-d92f-4878-9dfa-d5e4a9b1f488";
+    GroupMembersController.ProfilePhotoLightboxOverlayId = "profile-photo-lightbox-overlay";
     Ally.GroupMembersController = GroupMembersController;
     class SaveEmailGroupInfo {
         constructor() {
@@ -10742,9 +10908,19 @@ CA.angularApp.component("loginPage", {
 var Ally;
 (function (Ally) {
     class SimpleUserEntry {
+        constructor() {
+            this.hasSmsConsent = null;
+            this.smsReceiveLevel = null;
+            this.hasEmail = false;
+        }
     }
     Ally.SimpleUserEntry = SimpleUserEntry;
     class SimpleUserEntryWithTerms extends SimpleUserEntry {
+        constructor() {
+            super(...arguments);
+            this.acceptedTermsDate = null;
+            this.smsConsentDate = null;
+        }
     }
     Ally.SimpleUserEntryWithTerms = SimpleUserEntryWithTerms;
     class ProfileUserInfo extends SimpleUserEntryWithTerms {
@@ -11812,6 +11988,7 @@ var Ally;
             this.siteInfo = siteInfo;
             this.isLoading = false;
             this.signUpInfo = new NewUserSignUpInfo();
+            this.resultMessage = "";
             this.resultIsError = false;
             this.productName = "Neighborhood";
         }
@@ -11840,6 +12017,7 @@ var Ally;
                 const addressInput = document.getElementById("address-text-box");
                 new google.maps.places.Autocomplete(addressInput, autocompleteOptions);
             }, 750);
+            window.setTimeout(() => grecaptcha.render("recaptcha-check-elem"), 50);
         }
         /**
          * Occurs when the user clicks the button to submit their email address
@@ -11847,6 +12025,11 @@ var Ally;
         onSubmitInfo() {
             if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.emailAddress)) {
                 alert("Please enter an email address");
+                return;
+            }
+            this.signUpInfo.recaptchaKey = grecaptcha.getResponse();
+            if (HtmlUtil.isNullOrWhitespace(this.signUpInfo.recaptchaKey)) {
+                alert("Please complete the reCAPTCHA field");
                 return;
             }
             this.signUpInfo.requestFromUrl = window.location.href;
@@ -11865,7 +12048,7 @@ var Ally;
          * Occurs when the user wants to retry submission of their info
          */
         goBack() {
-            this.resultMessage = null;
+            this.resultMessage = "";
         }
     }
     NeighborSignUpController.$inject = ["$http"];
@@ -13945,6 +14128,7 @@ var Ally;
      * The controller for the documents widget that lets group view, upload, and modify documents
      */
     class DocumentsController {
+        ;
         /**
          * The constructor for the class
          */
@@ -13956,7 +14140,9 @@ var Ally;
             this.siteInfo = siteInfo;
             this.fellowResidents = fellowResidents;
             this.$location = $location;
+            this.documentTree = null;
             this.directoryFlatList = [];
+            this.selectedDirectory = null;
             this.selectedFiles = [];
             this.draggingType = null;
             this.isLoading = false;
@@ -14059,10 +14245,11 @@ var Ally;
         viewDoc(curFile, isForDownload) {
             this.isLoading = true;
             this.showPopUpWarning = false;
-            let viewDocWindow;
+            let viewDocWindow = null;
             // Force download of RTFs. Eventually we'll make this a allow-list of extensions that
             // browsers can display directly
-            if (this.getDisplayExtension(curFile) === ".rtf")
+            const fileExt = this.getDisplayExtension(curFile);
+            if (fileExt === ".rtf")
                 isForDownload = true;
             // Increment the local view count for fast feedback
             ++curFile.numViews;
@@ -14073,6 +14260,7 @@ var Ally;
                 if (wasPopUpBlocked) {
                     alert(`Looks like your browser may be blocking pop-ups which are required to view documents. Please see the right of the address bar or your browser settings to enable pop-ups for ${AppConfig.appName}.`);
                     this.showPopUpWarning = true;
+                    return;
                 }
                 else
                     viewDocWindow.document.write('Loading document... (If the document cannot be viewed directly in your browser, it will be downloaded automatically)');
@@ -14082,7 +14270,7 @@ var Ally;
                 this.isLoading = false;
                 let fileUri = `${curFile.url}?vid=${encodeURIComponent(response.data.vid)}`;
                 if (HtmlUtil.startsWith(fileUri, "/api/"))
-                    fileUri = fileUri.substr("/api/".length);
+                    fileUri = fileUri.substring("/api/".length);
                 fileUri = this.siteInfo.publicSiteInfo.baseApiUrl + fileUri;
                 if (isForDownload) {
                     // Create a link and click it
@@ -14096,7 +14284,7 @@ var Ally;
                 }
                 else {
                     // Android doesn't open PDFs in the browser, so let Google Docs do it
-                    if (Ally.HtmlUtil2.isAndroid())
+                    if (Ally.HtmlUtil2.isAndroid() && fileExt === ".pdf")
                         viewDocWindow.location.href = "http://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(fileUri);
                     else
                         viewDocWindow.location.href = fileUri;
@@ -14645,6 +14833,8 @@ var Ally;
             return iconFilePath === DocumentsController.GenericIconPath;
         }
         getDisplayExtension(file) {
+            if (!file || !file.fileName || !file.fileName.includes('.'))
+                return null;
             const extension = file.fileName.split('.').pop().toLowerCase();
             return "." + extension;
         }
@@ -16166,6 +16356,71 @@ CA.angularApp.component("faqs", {
 var Ally;
 (function (Ally) {
     /**
+     * The controller for a read-only modal that shows residents the association's bank transactions
+     */
+    class ResidentBankTransactionsController {
+        /**
+         * The constructor for the class
+         */
+        constructor($http) {
+            this.$http = $http;
+            /** How many days back of bank transactions to display */
+            this.NumDaysToShow = 90;
+            this.shouldShowModal = false;
+            this.isLoading = false;
+            this.entries = [];
+            this.loadErrorMessage = null;
+            this.hasLoaded = false;
+        }
+        /**
+         * Called on each controller after all the controllers on an element have been constructed
+         */
+        $onInit() {
+            this.endDate = moment().toDate();
+            this.startDate = moment().subtract(this.NumDaysToShow, "days").toDate();
+        }
+        showModal() {
+            this.shouldShowModal = true;
+            // Only hit the server the first time the modal is opened, the data is read-only so there's
+            // no reason to reload it on every open
+            if (!this.hasLoaded)
+                this.refreshEntries();
+        }
+        closeModal() {
+            this.shouldShowModal = false;
+        }
+        refreshEntries() {
+            this.isLoading = true;
+            this.loadErrorMessage = null;
+            const getUri = `/api/OwnerLedger/BankTransactions?startDate=${encodeURIComponent(this.startDate.toISOString())}&endDate=${encodeURIComponent(this.endDate.toISOString())}`;
+            this.$http.get(getUri).then((httpResponse) => {
+                this.isLoading = false;
+                this.hasLoaded = true;
+                // Show the newest transactions first
+                this.entries = (httpResponse.data.entries || []).sort((a, b) => b.transactionDate.valueOf() - a.transactionDate.valueOf());
+            }, (httpResponse) => {
+                this.isLoading = false;
+                this.entries = [];
+                this.loadErrorMessage = "Failed to load bank transactions"
+                    + (httpResponse.data && httpResponse.data.exceptionMessage ? `: ${httpResponse.data.exceptionMessage}` : ".")
+                    + " Please try again and contact technical support if the problem persists.";
+            });
+        }
+    }
+    ResidentBankTransactionsController.$inject = ["$http"];
+    Ally.ResidentBankTransactionsController = ResidentBankTransactionsController;
+    /** The subset of the server's LedgerPageInfo response that this read-only view needs */
+    class LedgerPageInfo {
+    }
+})(Ally || (Ally = {}));
+CA.angularApp.component("residentBankTransactions", {
+    templateUrl: "/ngApp/common/financial/resident-bank-transactions.html",
+    controller: Ally.ResidentBankTransactionsController
+});
+
+var Ally;
+(function (Ally) {
+    /**
      * The controller for display a resident's financial transaction history
      */
     class ResidentTransactionsController {
@@ -16289,6 +16544,7 @@ var Ally;
                 }, 100);
             }, () => {
                 this.isLoading = false;
+                alert("Failed to load transactions, please log out and back in and try again. If the problem persists, please contact technical support.");
             });
         }
         exportTransactionsCsv() {
@@ -16402,25 +16658,33 @@ var Ally;
             this.siteInfo = siteInfo;
             this.$scope = $scope;
             this.isLoadingEmail = false;
+            this.messageObject = new HomeEmailMessage();
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
             this.showUseDiscussSuggestion = false;
             this.showSendConfirmation = false;
+            this.sendConfirmationMessage = "";
             this.showEmailForbidden = false;
             this.showRestrictedGroupWarning = false;
+            this.showSendEmail = true;
+            this.groupEmailAddress = "";
             this.defaultSubject = "A message from your neighbor";
             this.memberLabel = "resident";
             this.memberPageName = "Residents";
             this.allSendAsOptions = [];
             this.filteredSendAsOptions = [];
             this.shouldShowGroupMembers = false;
+            this.isPremiumPlanActive = false;
+            this.isSiteManager = false;
+            this.selectedSmsRecipients = [];
         }
         /**
          * Called on each controller after all the controllers on an element have been constructed
          */
         $onInit() {
             this.groupEmailDomain = "inmail." + AppConfig.baseTld;
-            this.messageObject = new HomeEmailMessage();
+            this.isPremiumPlanActive = this.siteInfo.privateSiteInfo.isPremiumPlanActive;
+            this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showSendEmail = true;
             if (this.committee) {
                 this.messageObject.committeeId = this.committee.committeeId;
@@ -16453,7 +16717,10 @@ var Ally;
             this.isLoadingEmail = true;
             this.fellowResidents.getGroupEmailObject().then((emailList) => {
                 this.isLoadingEmail = false;
-                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer" && e.shouldShowInHomeWidget); // No need to show treasurer in this list since it's a single person
+                this.allEmailGroups = emailList;
+                this.missingPhoneGroup = this.allEmailGroups.find(g => g.recipientType === Ally.FellowResidentsService.RecipientTypeUnverifiedPhone);
+                // No need to show treasurer in this list since it's a single person
+                this.availableEmailGroups = emailList.filter(e => e.recipientType !== "Treasurer" && e.shouldShowInHomeWidget);
                 if (this.availableEmailGroups.length > 0) {
                     this.defaultMessageRecipient = this.availableEmailGroups[0];
                     this.selectedRecipient = this.availableEmailGroups[0];
@@ -16486,6 +16753,15 @@ var Ally;
             $("#message-form").validate();
             if (!$("#message-form").valid())
                 return;
+            if (this.messageObject.sendMessageType === "text" && this.selectedSmsRecipients.length === 0) {
+                alert("There are no recipients so the message cannot be sent. Please select a different group or change the message type to email.");
+                return;
+            }
+            // Confirm for SMS to be safe
+            if (this.messageObject.sendMessageType === "text" && this.selectedSmsRecipients.length > 1) {
+                if (!confirm("You are about to send a text message to " + this.selectedSmsRecipients.length + " recipients. Are you sure you want to do this?"))
+                    return;
+            }
             this.isLoadingEmail = true;
             // Set this flag so we don't redirect if sending results in a 403
             this.$rootScope.dontHandle403 = true;
@@ -16494,9 +16770,10 @@ var Ally;
             analytics.track("sendEmail", {
                 recipientId: this.messageObject.recipientType
             });
-            this.$http.post("/api/Email/v2", this.messageObject).then(() => {
+            this.$http.post("/api/Email/v2", this.messageObject).then((response) => {
                 this.$rootScope.dontHandle403 = false;
                 this.isLoadingEmail = false;
+                alert(response.data);
                 this.messageObject = new HomeEmailMessage();
                 this.selectedRecipient = this.defaultMessageRecipient;
                 this.messageObject.recipientType = this.defaultMessageRecipient.recipientType;
@@ -16504,12 +16781,14 @@ var Ally;
                 this.onSelectEmailGroup();
                 if (this.committee)
                     this.messageObject.committeeId = this.committee.committeeId;
+                this.sendConfirmationMessage = response.data || "";
                 this.showSendConfirmation = true;
                 this.showSendEmail = false;
             }, (httpResponse) => {
                 this.isLoadingEmail = false;
                 this.$rootScope.dontHandle403 = false;
                 if (httpResponse.status === 403) {
+                    alert("There was an error");
                     this.showEmailForbidden = true;
                 }
                 else
@@ -16538,9 +16817,10 @@ var Ally;
             const isSendingToDiscussion = this.messageObject.recipientType.toLowerCase().indexOf("discussion") !== -1;
             const isSendingToBoard = this.messageObject.recipientType.toLowerCase().indexOf("board") !== -1;
             const isSendingToPropMgr = this.messageObject.recipientType.toLowerCase().indexOf("propertymanagers") !== -1;
+            const isSendingToUnverifiedPhone = this.messageObject.recipientType === Ally.FellowResidentsService.RecipientTypeUnverifiedPhone;
             this.showDiscussionEveryoneWarning = false;
             this.showDiscussionLargeWarning = false;
-            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup;
+            this.showUseDiscussSuggestion = !isSendingToDiscussion && !isSendingToBoard && !isSendingToPropMgr && AppConfig.isChtnSite && !isCustomRecipientGroup && !isSendingToUnverifiedPhone;
             this.showRestrictedGroupWarning = this.selectedRecipient.isRestrictedGroup;
             this.filteredSendAsOptions = this.allSendAsOptions;
             if (isSendingToBoard) {
@@ -16548,13 +16828,60 @@ var Ally;
                 this.filteredSendAsOptions = [this.allSendAsOptions[0]];
                 this.selectedSendAs = this.filteredSendAsOptions[0];
             }
+            // Filter the list of SMS recipients based on the selected email group
+            this.fellowResidents.getResidents().then((residents) => {
+                const hasCorrectNotificationLevel = (r) => {
+                    if (this.messageObject.smsPriority === "emergency")
+                        return r.smsReceiveLevel === "emergency";
+                    else if (this.messageObject.smsPriority === "notification")
+                        return r.smsReceiveLevel === "emergency" || r.smsReceiveLevel === "notification";
+                    return false;
+                };
+                this.selectedSmsRecipients = residents.filter(r => this.selectedRecipient.memberUserIds.includes(r.userId) && r.hasSmsConsent && hasCorrectNotificationLevel(r));
+            });
+        }
+        onSendTypeChange() {
+            console.log("onSendTypeChange", this.messageObject.sendMessageType);
+            if (this.messageObject.sendMessageType === "text" && !this.messageObject.message) {
+                if (AppConfig.appShortName === "condo")
+                    this.messageObject.message = "Message from your condo association:\n[ENTER YOUR MESSAGE HERE]\n*Replies are not monitored*";
+                else if (AppConfig.appShortName === "hoa")
+                    this.messageObject.message = "Message from your HOA:\n[ENTER YOUR MESSAGE HERE]\n*Replies are not monitored*";
+                else if (AppConfig.appShortName === "neighborhood")
+                    this.messageObject.message = "Message from your neighborhood group:\n[ENTER YOUR MESSAGE HERE]\n*Replies are not monitored*";
+            }
+        }
+        prepopulateMessageForUnverifiedPhone() {
+            if (!this.missingPhoneGroup) {
+                alert("Unable to find the group for unverified phone numbers. Please contact support.");
+                return;
+            }
+            if (!this.missingPhoneGroup.shouldShowInHomeWidget) {
+                this.missingPhoneGroup.shouldShowInHomeWidget = true;
+                this.availableEmailGroups.push(this.missingPhoneGroup);
+            }
+            this.selectedRecipient = this.missingPhoneGroup;
+            this.onSelectEmailGroup();
+            this.messageObject.sendMessageType = "email";
+            this.messageObject.subject = "A message from your board - Consider verifying your phone number";
+            this.messageObject.message = `Hello,\n\nYour phone number is not verified in the system so it is not eligible to receive important text messages. Please visit your profile page to verify your phone number: ${this.siteInfo.publicSiteInfo.baseUrl}/#!/MyProfile`;
+            this.messageObject.shouldSendAsBoard = true;
+            this.selectedSendAs = this.filteredSendAsOptions.find(o => o.isBoardOption);
         }
     }
     GroupSendEmailController.$inject = ["$http", "fellowResidents", "$rootScope", "SiteInfo", "$scope"];
     Ally.GroupSendEmailController = GroupSendEmailController;
     class HomeEmailMessage {
         constructor() {
+            this.sendMessageType = "email";
+            this.subject = "";
+            this.message = "";
             this.recipientType = "board";
+            this.customRecipientShortName = "";
+            this.committeeId = null;
+            this.shouldSendAsBoard = false;
+            this.shouldSendAsCommitteeId = null;
+            this.smsPriority = "notification";
         }
     }
 })(Ally || (Ally = {}));
@@ -17420,10 +17747,14 @@ var Ally;
             this.isSiteManager = false;
             this.shouldShowEditEquipmentModal = false;
             this.shouldShowManageEquipmentModal = false;
-            this.maintenanceEntries = [];
+            this.allMaintenanceEntries = [];
+            this.filteredMaintenanceEntries = [];
             this.assigneeOptions = [];
             this.entriesSortAscending = true;
+            this.allUnits = [];
             this.homeName = "Unit";
+            this.filterableUnits = [];
+            this.filterByUnitId = null;
             this.equipmentTypeOptions = _.map(MaintenanceController.AutocompleteEquipmentTypeOptions, o => o.text);
             this.equipmentLocationOptions = _.map(MaintenanceController.AutocompleteLocationOptions, o => o.text);
             this.maintenanceTodoListId = siteInfo.privateSiteInfo.maintenanceTodoListId;
@@ -17495,10 +17826,10 @@ var Ally;
             });
         }
         /**
-        * Rebuild the arrow of projects and to-do's
+        * Rebuild the array of projects and to-do's
         */
         rebuildMaintenanceEntries() {
-            this.maintenanceEntries = [];
+            this.allMaintenanceEntries = [];
             _.forEach(this.projects, p => {
                 const newEntry = new Ally.MaintenanceEntry();
                 newEntry.project = p;
@@ -17513,14 +17844,16 @@ var Ally;
                         p.vendorEmail = vendorInfo.contactEmail;
                     }
                 }
-                this.maintenanceEntries.push(newEntry);
+                this.allMaintenanceEntries.push(newEntry);
             });
             _.forEach(this.maintenanceTodos.todoItems, t => {
                 const newEntry = new Ally.MaintenanceEntry();
                 newEntry.todo = t;
-                this.maintenanceEntries.push(newEntry);
+                this.allMaintenanceEntries.push(newEntry);
             });
-            this.sortEntries();
+            this.sortAndFilterEntries();
+            const filterableUnitIds = Array.from(new Set(this.projects.filter(p => !!p.relatedUnitId).map(p => p.relatedUnitId)));
+            this.filterableUnits = this.allUnits.filter(u => filterableUnitIds.indexOf(u.unitId) !== -1);
         }
         /**
         * Retrieve the equipment available for this group
@@ -17867,14 +18200,14 @@ var Ally;
                     fieldName: "assignedTo"
                 }
             ];
-            const projects = _.map(_.filter(this.maintenanceEntries, e => !!e.project), e => e.project);
+            const projects = _.map(_.filter(this.allMaintenanceEntries, e => !!e.project), e => e.project);
             const csvDataString = Ally.createCsvString(projects, csvColumns);
             Ally.HtmlUtil2.downloadCsv(csvDataString, "Maintenance.csv");
         }
         /**
          * Sort the entries by a certain field
          */
-        sortEntries() {
+        sortAndFilterEntries() {
             const sortEntry = (e) => {
                 if (this.entriesSortField === "status")
                     return e.project ? e.project.status : "ZZZZZ";
@@ -17884,10 +18217,14 @@ var Ally;
                     return e.getCreatedDate();
             };
             //console.log( `Sort by ${this.entriesSortField}, dir ${this.entriesSortAscending}` );
-            this.maintenanceEntries = _.sortBy(this.maintenanceEntries, sortEntry);
+            if (this.filterByUnitId && this.filterByUnitId > 0)
+                this.filteredMaintenanceEntries = this.allMaintenanceEntries.filter(e => e.project && e.project.relatedUnitId === this.filterByUnitId);
+            else
+                this.filteredMaintenanceEntries = this.allMaintenanceEntries;
+            this.filteredMaintenanceEntries = _.sortBy(this.filteredMaintenanceEntries, sortEntry);
             const shouldReverse = this.entriesSortField === "status" ? this.entriesSortAscending : !this.entriesSortAscending;
             if (shouldReverse)
-                this.maintenanceEntries.reverse();
+                this.filteredMaintenanceEntries.reverse();
         }
         /**
          * Sort the entries by a certain field
@@ -17903,7 +18240,13 @@ var Ally;
             }
             window.localStorage[MaintenanceController.StorageKey_SortField] = this.entriesSortField;
             window.localStorage[MaintenanceController.StorageKey_SortDir] = this.entriesSortAscending;
-            this.sortEntries();
+            this.sortAndFilterEntries();
+        }
+        /**
+         * Called when the user changes the unit filter
+         */
+        onUnitFilterChange() {
+            this.sortAndFilterEntries();
         }
     }
     MaintenanceController.$inject = ["$http", "$rootScope", "SiteInfo", "maintenance", "fellowResidents"];
@@ -20088,9 +20431,9 @@ var Ally;
          * Get the object describing the available group email addresses
          */
         getGroupEmailObject() {
-            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then(function (httpResponse) {
-                return httpResponse.data;
-            }, function (httpResponse) {
+            return this.$http.get("/api/BuildingResidents/EmailGroups", { cache: this.httpCache }).then((httpResponse) => {
+                return httpResponse.data || [];
+            }, (httpResponse) => {
                 return this.$q.reject(httpResponse);
             });
             //var innerThis = this;
@@ -20243,6 +20586,7 @@ var Ally;
     FellowResidentsService.BoardPos_None = 0;
     FellowResidentsService.BoardPos_PropertyManager = 32;
     FellowResidentsService.CustomRecipientType = "CUSTOM";
+    FellowResidentsService.RecipientTypeUnverifiedPhone = "UnverifiedPhone";
     FellowResidentsService.s_boardPositionNames = [
         { id: FellowResidentsService.BoardPos_None, name: "None" },
         { id: 1, name: "President" },
@@ -21731,6 +22075,7 @@ var Ally;
                         promotion: false,
                         branding: true,
                         image_description: false,
+                        sandbox_iframes: false,
                         file_picker_callback: function (cb) {
                             const input = document.createElement('input');
                             input.setAttribute('type', 'file');
@@ -22459,6 +22804,8 @@ var Ally;
          * Apply the site design settings from cached/server settings JSON
          */
         static ApplySiteDesignSettingsFromJson(rootScope, siteDesignSettingsJson) {
+            if (!siteDesignSettingsJson)
+                return;
             try {
                 const parsedSettings = JSON.parse(siteDesignSettingsJson);
                 // Ensure the most recent setting exists on this object to be used properly

@@ -1,0 +1,43 @@
+<span class="text-link" data-ng-click="$ctrl.showModal()">Bank Transactions</span>
+<div class="modal-container text-start" data-ng-if="$ctrl.shouldShowModal">
+    <div class="modal-overlay" data-ng-click="$ctrl.closeModal()"></div>
+    <div class="ca-modal-dialog modal-lg">
+        <div class="loading-overlay" data-ng-if="$ctrl.isLoading"></div>
+        <span style="float:right" class="close-x" data-ng-click="$ctrl.closeModal()">&times;</span>
+        <h2>Association Bank Transactions</h2>
+        <div class="note-text mb-3">
+            Transactions from {{$ctrl.startDate | date:'shortDate'}} to {{$ctrl.endDate | date:'shortDate'}}
+        </div>
+
+        <div data-ng-if="$ctrl.loadErrorMessage" class="mb-2">
+            {{$ctrl.loadErrorMessage}}
+        </div>
+
+        <div data-ng-if="!$ctrl.loadErrorMessage && $ctrl.hasLoaded && $ctrl.entries.length === 0">
+            No bank transactions found for this date range.
+        </div>
+
+        <div data-ng-if="$ctrl.entries.length > 0" style="max-height: 60vh; overflow-y: auto;">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Account</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-ng-repeat="entry in $ctrl.entries">
+                        <td class="text-nowrap">{{entry.transactionDate | date:'shortDate'}}</td>
+                        <td>{{entry.description}}</td>
+                        <td>{{entry.categoryDisplayName}}</td>
+                        <td>{{entry.accountName}}</td>
+                        <td class="text-nowrap text-end">{{entry.amount | currency}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
