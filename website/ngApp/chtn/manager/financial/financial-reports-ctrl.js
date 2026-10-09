@@ -68,11 +68,12 @@ var Ally;
             this.$http.get(`/api/FinancialReports/ChartData?startDate=${encodeURIComponent(this.startDate.toISOString())}&endDate=${encodeURIComponent(this.endDate.toISOString())}`).then((httpResponse) => {
                 this.isLoading = false;
                 this.reportData = httpResponse.data;
-                this.reportData.incomeByCategory = _.sortBy(this.reportData.incomeByCategory, e => e.amount);
+                this.reportData.incomeByCategory = _.sortBy(this.reportData.incomeByCategory, e => e.amount).reverse();
                 this.incomeByCategoryData = _.map(this.reportData.incomeByCategory, e => Math.abs(e.amount));
                 this.incomeByCategoryLabels = _.map(this.reportData.incomeByCategory, e => e.parentFinancialCategoryName);
+                this.incomeByCategoryLabels = _.map(this.reportData.incomeByCategory, e => e.parentFinancialCategoryName);
                 this.incomeByCategoryCatIds = _.map(this.reportData.incomeByCategory, e => e.parentFinancialCategoryId);
-                this.reportData.expenseByCategory = _.sortBy(this.reportData.expenseByCategory, e => e.amount);
+                this.reportData.expenseByCategory = _.sortBy(this.reportData.expenseByCategory, e => e.amount).reverse();
                 this.expenseByCategoryData = _.map(this.reportData.expenseByCategory, e => Math.abs(e.amount));
                 this.expenseByCategoryLabels = _.map(this.reportData.expenseByCategory, e => e.parentFinancialCategoryName);
                 this.expenseByCategoryCatIds = _.map(this.reportData.expenseByCategory, e => e.parentFinancialCategoryId);
