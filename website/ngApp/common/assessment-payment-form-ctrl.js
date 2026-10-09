@@ -44,7 +44,7 @@ var Ally;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
-            this.shouldShowOwnerBankTxn = false;
+            this.shouldShareGroupBankTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
             this.shouldShowStripeAutoPayArea = false;
             this.currentDwollaAutoPayAmount = null;
@@ -81,7 +81,7 @@ var Ally;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             // Renters are not party to the association's finances, and the API denies them, so
             // don't offer a link that can only fail
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn && !this.siteInfo.userInfo.isRenter;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn && !this.siteInfo.userInfo.isRenter;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
                 this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);

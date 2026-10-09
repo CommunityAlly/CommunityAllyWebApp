@@ -94,13 +94,17 @@
         <span class="note-text text-link pull-right" data-ng-click="$ctrl.exportTransactionsCsv()">Export To CSV</span>
     </div>
 
-    <div>
+    <div class="mb-2">
         <label><input type="checkbox" data-ng-change="$ctrl.onShowOwnerTxnsChange()" data-ng-model="$ctrl.shouldShowOwnerFinanceTxn" /> Allow owners to view their transaction history</label>
         <a class="note-text" href="https://help.communityally.org/sharing-owner-financial-transactions/" target="_blank">Learn More</a>
     </div>
 
-    <div>
-        <label><input type="checkbox" data-ng-change="$ctrl.onShowOwnerBankTxnsChange()" data-ng-model="$ctrl.shouldShowOwnerBankTxn" /> Allow owners to view the association's bank transactions</label>
+    <div class="mb-4">
+        <label>
+            <input type="checkbox" data-ng-change="$ctrl.onShowOwnerBankTxnsChange()" data-ng-model="$ctrl.shouldShareGroupBankTxn" />
+            Allow owners to view the association's bank transactions
+        </label>
+        <div class="note-text">This will add a link to the homepage payment widget that will show these bank transactions in a read-only view.</div>
     </div>
 
     <div data-ng-if="$ctrl.shouldShowOwnerFinanceTxn" class="mb-2">

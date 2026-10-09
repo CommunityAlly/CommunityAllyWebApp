@@ -132,7 +132,7 @@ namespace Ally
         isDiscussionEmailGroupEnabled: boolean;
         isPremiumPlanActive: boolean;
         shouldShowOwnerFinanceTxn: boolean;
-        shouldShowOwnerBankTxn: boolean;
+        shouldShareGroupBankTxn: boolean;
         numMembers: number;
         stripeConnectAccountId: string;
         nonAdminCanAddVendors: boolean;

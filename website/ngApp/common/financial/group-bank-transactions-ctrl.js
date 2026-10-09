@@ -3,7 +3,7 @@ var Ally;
     /**
      * The controller for a read-only modal that shows residents the association's bank transactions
      */
-    class ResidentBankTransactionsController {
+    class GroupBankTransactionsController {
         /**
          * The constructor for the class
          */
@@ -52,13 +52,10 @@ var Ally;
             });
         }
     }
-    ResidentBankTransactionsController.$inject = ["$http"];
-    Ally.ResidentBankTransactionsController = ResidentBankTransactionsController;
-    /** The subset of the server's LedgerPageInfo response that this read-only view needs */
-    class LedgerPageInfo {
-    }
+    GroupBankTransactionsController.$inject = ["$http"];
+    Ally.GroupBankTransactionsController = GroupBankTransactionsController;
 })(Ally || (Ally = {}));
-CA.angularApp.component("residentBankTransactions", {
-    templateUrl: "/ngApp/common/financial/resident-bank-transactions.html",
-    controller: Ally.ResidentBankTransactionsController
+CA.angularApp.component("groupBankTransactions", {
+    templateUrl: "/ngApp/common/financial/group-bank-transactions.html",
+    controller: Ally.GroupBankTransactionsController
 });

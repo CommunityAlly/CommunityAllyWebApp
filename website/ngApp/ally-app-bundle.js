@@ -3676,7 +3676,7 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
-            this.shouldShowOwnerBankTxn = false;
+            this.shouldShareGroupBankTxn = false;
             this.hasActiveTxGridColFilter = false;
             this.uiGridCategoryDropDown = [];
             this.shouldShowFullCatPathInGrid = false;
@@ -3691,7 +3691,7 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn;
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             const addAmountOverAllRows = () => {
                 const allGridRows = this.ledgerGridApi.grid.rows;
@@ -4498,14 +4498,14 @@ var Ally;
         /** Occurs when the user changes the setting to share the association's bank transactions with owners */
         onShowOwnerBankTxnsChange() {
             this.isLoading = true;
-            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShowOwnerBankTxn;
+            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShareGroupBankTxn;
             this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
-                this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn = this.shouldShowOwnerBankTxn;
+                this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn = this.shouldShareGroupBankTxn;
             }, (httpResponse) => {
                 this.isLoading = false;
                 // Revert the checkbox since the setting wasn't saved
-                this.shouldShowOwnerBankTxn = !this.shouldShowOwnerBankTxn;
+                this.shouldShareGroupBankTxn = !this.shouldShareGroupBankTxn;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
             });
         }
@@ -4594,6 +4594,7 @@ var Ally;
     Ally.LedgerEntry = LedgerEntry;
     class LedgerPageInfo {
     }
+    Ally.LedgerPageInfo = LedgerPageInfo;
     class BasicUnitListEntry {
     }
     class FilterCriteria {
@@ -8683,7 +8684,7 @@ var Ally;
             this.testPay_ShouldShow = false;
             this.testPay_isValid = false;
             this.shouldShowOwnerFinanceTxn = false;
-            this.shouldShowOwnerBankTxn = false;
+            this.shouldShareGroupBankTxn = false;
             this.userFirstName = "";
             this.shouldShowAppChangeModal = false;
             this.appChanges = null;
@@ -8708,7 +8709,7 @@ var Ally;
             this.handleWelcomeMessage();
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn && !this.siteInfo.userInfo.isRenter;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn && !this.siteInfo.userInfo.isRenter;
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;
             this.showFirstVisitModal = this.isFirstVisit && !this.$rootScope.hasClosedFirstVisitModal && this.siteInfo.privateSiteInfo.siteLaunchedDateUtc === null;
@@ -12820,7 +12821,7 @@ var Ally;
             this.dwollaMicroDepositAmount1String = "0.01";
             this.dwollaMicroDepositAmount2String = "0.01";
             this.shouldShowOwnerFinanceTxn = false;
-            this.shouldShowOwnerBankTxn = false;
+            this.shouldShareGroupBankTxn = false;
             this.shouldShowDwollaAutoPayArea = true;
             this.shouldShowStripeAutoPayArea = false;
             this.currentDwollaAutoPayAmount = null;
@@ -12857,7 +12858,7 @@ var Ally;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             // Renters are not party to the association's finances, and the API denies them, so
             // don't offer a link that can only fail
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn && !this.siteInfo.userInfo.isRenter;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn && !this.siteInfo.userInfo.isRenter;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if (this.siteInfo.privateSiteInfo.customFinancialInstructions)
                 this.customFinancialInstructions = this.$sce.trustAsHtml(this.siteInfo.privateSiteInfo.customFinancialInstructions);
@@ -16380,7 +16381,7 @@ var Ally;
     /**
      * The controller for a read-only modal that shows residents the association's bank transactions
      */
-    class ResidentBankTransactionsController {
+    class GroupBankTransactionsController {
         /**
          * The constructor for the class
          */
@@ -16429,15 +16430,12 @@ var Ally;
             });
         }
     }
-    ResidentBankTransactionsController.$inject = ["$http"];
-    Ally.ResidentBankTransactionsController = ResidentBankTransactionsController;
-    /** The subset of the server's LedgerPageInfo response that this read-only view needs */
-    class LedgerPageInfo {
-    }
+    GroupBankTransactionsController.$inject = ["$http"];
+    Ally.GroupBankTransactionsController = GroupBankTransactionsController;
 })(Ally || (Ally = {}));
-CA.angularApp.component("residentBankTransactions", {
-    templateUrl: "/ngApp/common/financial/resident-bank-transactions.html",
-    controller: Ally.ResidentBankTransactionsController
+CA.angularApp.component("groupBankTransactions", {
+    templateUrl: "/ngApp/common/financial/group-bank-transactions.html",
+    controller: Ally.GroupBankTransactionsController
 });
 
 var Ally;

@@ -1,4 +1,4 @@
-﻿// eslint-disable-next-line no-var
+// eslint-disable-next-line no-var
 declare var dwolla: any;
 //declare var PeriodicPaymentFrequencies: Ally.PeriodicPaymentFrequency[];
 
@@ -76,7 +76,7 @@ namespace Ally
         dwollaMicroDepositAmount1String: string = "0.01";
         dwollaMicroDepositAmount2String: string = "0.01";
         shouldShowOwnerFinanceTxn: boolean = false;
-        shouldShowOwnerBankTxn: boolean = false;
+        shouldShareGroupBankTxn: boolean = false;
         shouldShowDwollaAutoPayArea: boolean = true;
         shouldShowStripeAutoPayArea: boolean = false;
         currentDwollaAutoPayAmount: number | null = null;
@@ -143,7 +143,7 @@ namespace Ally
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
             // Renters are not party to the association's finances, and the API denies them, so
             // don't offer a link that can only fail
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn && !this.siteInfo.userInfo.isRenter;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn && !this.siteInfo.userInfo.isRenter;
             this.currentDwollaAutoPayAmount = this.siteInfo.userInfo.dwollaAutoPayAmount;
             if( this.siteInfo.privateSiteInfo.customFinancialInstructions )
                 this.customFinancialInstructions = this.$sce.trustAsHtml( this.siteInfo.privateSiteInfo.customFinancialInstructions );

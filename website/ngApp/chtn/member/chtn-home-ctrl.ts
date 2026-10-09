@@ -36,7 +36,7 @@ namespace Ally
         testPay_Description: string;
         allySurvey: AllySurveyInfo;
         shouldShowOwnerFinanceTxn: boolean = false;
-        shouldShowOwnerBankTxn: boolean = false;
+        shouldShareGroupBankTxn: boolean = false;
         userFirstName = "";
         shouldShowAppChangeModal = false;
         appChanges: AllyAppChangeLogEntry[] = null;
@@ -81,7 +81,7 @@ namespace Ally
 
             this.canMakePayment = this.siteInfo.privateSiteInfo.isPaymentEnabled && !this.siteInfo.userInfo.isRenter;
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn && !this.siteInfo.userInfo.isRenter;
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn && !this.siteInfo.userInfo.isRenter;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn && !this.siteInfo.userInfo.isRenter;
             
             this.isFirstVisit = this.siteInfo.userInfo.lastLoginDateUtc === null;
             this.isSiteManager = this.siteInfo.userInfo.isSiteManager;

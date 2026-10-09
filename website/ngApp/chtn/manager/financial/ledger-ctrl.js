@@ -37,7 +37,7 @@ var Ally;
             this.isSuperAdmin = false;
             this.shouldShowImportModal = false;
             this.shouldShowOwnerFinanceTxn = false;
-            this.shouldShowOwnerBankTxn = false;
+            this.shouldShareGroupBankTxn = false;
             this.hasActiveTxGridColFilter = false;
             this.uiGridCategoryDropDown = [];
             this.shouldShowFullCatPathInGrid = false;
@@ -52,7 +52,7 @@ var Ally;
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn;
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             const addAmountOverAllRows = () => {
                 const allGridRows = this.ledgerGridApi.grid.rows;
@@ -859,14 +859,14 @@ var Ally;
         /** Occurs when the user changes the setting to share the association's bank transactions with owners */
         onShowOwnerBankTxnsChange() {
             this.isLoading = true;
-            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShowOwnerBankTxn;
+            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShareGroupBankTxn;
             this.$http.put(putUri, null).then(() => {
                 this.isLoading = false;
-                this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn = this.shouldShowOwnerBankTxn;
+                this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn = this.shouldShareGroupBankTxn;
             }, (httpResponse) => {
                 this.isLoading = false;
                 // Revert the checkbox since the setting wasn't saved
-                this.shouldShowOwnerBankTxn = !this.shouldShowOwnerBankTxn;
+                this.shouldShareGroupBankTxn = !this.shouldShareGroupBankTxn;
                 alert("Failed to change setting: " + httpResponse.data.exceptionMessage);
             });
         }
@@ -955,6 +955,7 @@ var Ally;
     Ally.LedgerEntry = LedgerEntry;
     class LedgerPageInfo {
     }
+    Ally.LedgerPageInfo = LedgerPageInfo;
     class BasicUnitListEntry {
     }
     class FilterCriteria {

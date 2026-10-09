@@ -3,7 +3,7 @@ namespace Ally
     /**
      * The controller for a read-only modal that shows residents the association's bank transactions
      */
-    export class ResidentBankTransactionsController implements ng.IController
+    export class GroupBankTransactionsController implements ng.IController
     {
         static $inject = ["$http"];
 
@@ -13,7 +13,7 @@ namespace Ally
         shouldShowModal: boolean = false;
         isLoading: boolean = false;
         entries: LedgerEntry[] = [];
-        loadErrorMessage: string = null;
+        loadErrorMessage: string | null = null;
         hasLoaded: boolean = false;
         startDate: Date;
         endDate: Date;
@@ -61,7 +61,7 @@ namespace Ally
 
             const getUri = `/api/OwnerLedger/BankTransactions?startDate=${encodeURIComponent( this.startDate.toISOString() )}&endDate=${encodeURIComponent( this.endDate.toISOString() )}`;
 
-            this.$http.get( getUri ).then(
+            this.$http.get<LedgerPageInfo>( getUri ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<LedgerPageInfo> ) =>
                 {
                     this.isLoading = false;
@@ -81,17 +81,10 @@ namespace Ally
             );
         }
     }
-
-
-    /** The subset of the server's LedgerPageInfo response that this read-only view needs */
-    class LedgerPageInfo
-    {
-        entries: LedgerEntry[];
-    }
 }
 
 
-CA.angularApp.component( "residentBankTransactions", {
-    templateUrl: "/ngApp/common/financial/resident-bank-transactions.html",
-    controller: Ally.ResidentBankTransactionsController
+CA.angularApp.component( "groupBankTransactions", {
+    templateUrl: "/ngApp/common/financial/group-bank-transactions.html",
+    controller: Ally.GroupBankTransactionsController
 } );

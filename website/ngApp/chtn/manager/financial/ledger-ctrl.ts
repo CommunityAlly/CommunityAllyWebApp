@@ -50,7 +50,7 @@ namespace Ally
         bulkImportAccountId: number;
         shouldShowImportModal: boolean = false;
         shouldShowOwnerFinanceTxn: boolean = false;
-        shouldShowOwnerBankTxn: boolean = false;
+        shouldShareGroupBankTxn: boolean = false;
         unitListEntries: BasicUnitListEntry[];
         importHistoryEntries: FinancialTxImportHistoryEntry[];
         importTxNotes: string;
@@ -86,7 +86,7 @@ namespace Ally
             this.isSuperAdmin = this.siteInfo.userInfo.isAdmin;
             this.homeName = AppConfig.homeName || "Unit";
             this.shouldShowOwnerFinanceTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerFinanceTxn;
-            this.shouldShowOwnerBankTxn = this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn;
+            this.shouldShareGroupBankTxn = this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn;
 
             // A callback to calculate the sum for a column across all ui-grid pages, not just the visible page
             const addAmountOverAllRows = () =>
@@ -1276,20 +1276,20 @@ namespace Ally
         {
             this.isLoading = true;
 
-            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShowOwnerBankTxn;
+            const putUri = "/api/Ledger/SetOwnerBankTxnViewing?shouldAllow=" + this.shouldShareGroupBankTxn;
             this.$http.put( putUri, null ).then(
                 () =>
                 {
                     this.isLoading = false;
-                    this.siteInfo.privateSiteInfo.shouldShowOwnerBankTxn = this.shouldShowOwnerBankTxn;
+                    this.siteInfo.privateSiteInfo.shouldShareGroupBankTxn = this.shouldShareGroupBankTxn;
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<ExceptionResult> ) =>
                 {
                     this.isLoading = false;
 
                     // Revert the checkbox since the setting wasn't saved
-                    this.shouldShowOwnerBankTxn = !this.shouldShowOwnerBankTxn;
-                    alert( "Failed to change setting: " + httpResponse.data.exceptionMessage );
+                    this.shouldShareGroupBankTxn = !this.shouldShareGroupBankTxn;
+                    alert( "Failed to change setting: " + httpResponse.data!.exceptionMessage );
                 }
             );
         }
@@ -1483,7 +1483,7 @@ namespace Ally
     }
 
 
-    class LedgerPageInfo
+    export class LedgerPageInfo
     {
         accounts: LedgerAccount[];
         entries: LedgerEntry[];
