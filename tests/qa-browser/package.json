@@ -1,0 +1,13 @@
+{
+    "name": "qa-browser",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Playwright scripts that let the QA agent log in to qa.condoally.com and capture screenshots",
+    "type": "module",
+    "scripts": {
+        "shot": "node qa-shot.mjs"
+    },
+    "dependencies": {
+        "playwright": "^1.55.0"
+    }
+}
