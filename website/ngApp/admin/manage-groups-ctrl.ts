@@ -117,10 +117,12 @@ namespace Ally
                 status: "Complete"
             };
 
-            this.$http.get( "/api/Settings/GetSiteSettings" ).then( ( response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings> ) =>
-            {
-                this.premiumPlanExpiration = response.data.premiumPlanExpirationDate;
-            } );
+            this.$http.get<ChtnSiteSettings>("/api/Settings/GetSiteSettings").then(
+                (response: ng.IHttpPromiseCallbackArg<ChtnSiteSettings>) =>
+                {
+                    this.premiumPlanExpiration = response.data!.premiumPlanExpirationDate;
+                }
+            );
 
             this.$timeout( () => this.loadAllyAppSettings(), 100 );
         }
@@ -244,31 +246,34 @@ namespace Ally
         {
             this.isLoading = true;
 
-            this.$http.get( "/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail ).then( ( response: ng.IHttpPromiseCallbackArg<FoundGroupResults> ) =>
-            {
-                this.isLoading = false;
-                this.foundUserAssociations = response.data.groups;
-
-                _.forEach( this.foundUserAssociations, g =>
+            this.$http.get<FoundGroupResults>( "/api/AdminHelper/FindAssociationsForUser?email=" + this.findUserAssociationsEmail ).then(
+                ( response: ng.IHttpPromiseCallbackArg<FoundGroupResults> ) =>
                 {
-                    g.viewUrl = `https://${g.shortName}.condoally.com/`;
-                    if( g.appName === 2 )
-                        g.viewUrl = `https://${g.shortName}.homeally.org/`;
-                    else if( g.appName === 3 )
-                        g.viewUrl = `https://${g.shortName}.hoaally.org/`;
-                    else if( g.appName === 4 )
-                        g.viewUrl = `https://${g.shortName}.NeighborhoodAlly.org/`;
-                    else if( g.appName === 6 )
-                        g.viewUrl = `https://${g.shortName}.BlockClubAlly.org/`;
-                    else
-                        console.log( "Unknown appName value: " + g.appName );
-                } );
+                    this.isLoading = false;
+                    this.foundUserAssociations = response.data!.groups;
 
-            }, () =>
-            {
-                this.isLoading = false;
-                alert( "Failed to find associations for user" );
-            } );
+                    _.forEach( this.foundUserAssociations, g =>
+                    {
+                        g.viewUrl = `https://${g.shortName}.condoally.com/`;
+                        if( g.appName === 2 )
+                            g.viewUrl = `https://${g.shortName}.homeally.org/`;
+                        else if( g.appName === 3 )
+                            g.viewUrl = `https://${g.shortName}.hoaally.org/`;
+                        else if( g.appName === 4 )
+                            g.viewUrl = `https://${g.shortName}.NeighborhoodAlly.org/`;
+                        else if( g.appName === 6 )
+                            g.viewUrl = `https://${g.shortName}.BlockClubAlly.org/`;
+                        else
+                            console.log( "Unknown appName value: " + g.appName );
+                    } );
+
+                },
+                () =>
+                {
+                    this.isLoading = false;
+                    alert( "Failed to find associations for user" );
+                }
+            );
         }
 
 

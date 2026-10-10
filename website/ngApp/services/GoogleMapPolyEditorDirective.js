@@ -1,4 +1,4 @@
-﻿CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
+CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
 {
     var linkFunction = function ( scope, elem, attrs )
     {
@@ -225,6 +225,8 @@
         // Occurs when the GpsBounds to the non-editable polys change
         scope.onVisiblePointsChange = function ( newPoints )
         {
+            console.log(`onVisiblePointsChange: Clearing ${scope.currentVisiblePoints.length} existing markers, adding ${newPoints.length} markers`);
+
             // Clear our current array
             _.each( scope.currentVisiblePoints, function ( p )
             {
@@ -258,9 +260,9 @@
             if( scope.enableClustering )
             {
                 if( scope.markerClusterer )
-                    markerCluster.setMap( null );
+                    scope.markerClusterer.setMap( null );
 
-                scope.markerCluster = new markerClusterer.MarkerClusterer( {
+                scope.markerClusterer = new markerClusterer.MarkerClusterer( {
                     markers: scope.currentVisiblePoints,
                     map: scope.mapInstance
                 } );
@@ -389,6 +391,33 @@
             //    } );
             //} );
         } );
+
+        google.maps.event.addListener( scope.mapInstance, 'zoom_changed', ( mouseEvent ) =>
+        {
+            // Retrieve the new zoom level
+            console.log('Zoom level changed to: ' + scope.mapInstance.getZoom(), `${scope.currentVisiblePoints.length} markers` );
+
+            if( scope.onZoomChange )
+            {
+                scope.$evalAsync( () =>
+                {
+                    scope.onMapViewChange( { mapInstance: scope.mapInstance } );
+                } );
+            }
+        });
+
+        google.maps.event.addListener(scope.mapInstance, 'center_changed', (mouseEvent) => {
+            // Retrieve the new zoom level
+            //const currentZoom = scope.mapInstance.getZoom();
+            //console.log( 'Map center changed' );
+
+            if (scope.onMapViewChange)
+            {
+                scope.$evalAsync(() => {
+                    scope.onMapViewChange({ mapInstance: scope.mapInstance });
+                });
+            }
+        });
     };
 
     return {
@@ -400,7 +429,8 @@
             mapCenter: "=",
             onMapEditorReady: "&",
             enableMapControls: "=",
-            enableClustering: "="
+            enableClustering: "=",
+            onMapViewChange: "&",
         },
         restrict: 'E',
         replace: 'true',

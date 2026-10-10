@@ -1,4 +1,4 @@
-﻿namespace Ally
+namespace Ally
 {
     /**
      * The controller for the admin-only page to edit group boundary polygons
@@ -7,12 +7,18 @@
     {
         static $inject = ["$http", "$q"];
         isLoading: boolean = false;
-        filterAddresses: string;
-        addresses: GroupBoundInfo[];
-        addressPoints: any[];
-        selectedAddress: GroupBoundInfo;
-        selectedGpsPoly: GpsPolygon;
+        appTypeFilter = "";
+        allAddresses: GroupBoundInfo[] = [];
+        filteredAddresses: GroupBoundInfo[] = [];
+        addressPoints: any[] = [];
+        selectedAddress: GroupBoundInfo | null = null;
+        selectedGpsPoly: GpsPolygon | null = null;
+        zoomedAddresses: GroupBoundInfo[] = [];
         includeAddresses: boolean = false;
+        shouldExcludeGroups = false;
+        excludeMonthsOld = 6;
+        excludeLoginMonthsOld = 2;
+        shouldExcludeFreePlan = true;
 
 
         /**
@@ -33,18 +39,38 @@
         }
 
 
-        getPolyInfo( url: string, polyType: any )
+        static AppTypeToUrl( appType: string, shortName: string )
         {
-            const deferred = this.$q.defer();
+            switch( appType )
+            {
+                case "Condo":
+                    return `https://${shortName}.condoally.com/`;
+                case "Hoa":
+                    return `https://${shortName}.hoaally.org/`;
+                case "Home":
+                    return `https://${shortName}.homeally.org/`;
+                case "Neighborhood":
+                    return `https://${shortName}.NeighborhoodAlly.org/`;
+                case "BlockClub":
+                    return `https://${shortName}.BlockClubAlly.org/`;
+            }
+
+            return null;
+        }
+
+
+        getPolyInfo( url: string, polyType: string )
+        {
+            const deferred = this.$q.defer<GroupBoundInfo[]>();
 
             this.isLoading = true;
 
-            this.$http.get( url ).then(
+            this.$http.get<GroupBoundInfo[]>( url ).then(
                 ( httpResponse: ng.IHttpPromiseCallbackArg<GroupBoundInfo[]> ) =>
                 {
                     this.isLoading = false;
 
-                    const addresses = httpResponse.data;
+                    const addresses = httpResponse.data!;
 
                     // Mark address as opposed to group bounds
                     _.each( addresses, ( a: GroupBoundInfo ) =>
@@ -55,23 +81,25 @@
                         {
                             a.oneLiner = `${a.shortName}, ${a.appName} (ID: ${a.groupId})`;
 
-                            if( a.appName === "Condo" )
-                                a.visitUrl = `https://${a.shortName}.condoally.com/`;
-                            else if( a.appName === "Hoa" )
-                                a.visitUrl = `https://${a.shortName}.hoaally.org/`;
+                            a.visitUrl = ManageAddressPolysController.AppTypeToUrl( a.appName, a.shortName );
                         }
                     } );
 
-                    $.merge( this.addresses, addresses );
+                    if(this.includeAddresses)
+                        $.merge(this.allAddresses, addresses);
+                    else
+                        this.allAddresses = addresses;
+                    console.log("this.allAddresses.length=" + this.allAddresses.length);
 
-                    deferred.resolve( this.addresses );
+                    this.updateFilteredGroups();
+                    deferred.resolve( this.allAddresses );
 
                 },
                 ( httpResponse: ng.IHttpPromiseCallbackArg<Ally.ExceptionResult> ) =>
                 {
                     this.isLoading = false;
 
-                    const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
+                    const errorMessage = httpResponse.data!.exceptionMessage ? httpResponse.data!.exceptionMessage : httpResponse.data;
                     alert( "Failed to retrieve addresses: " + errorMessage );
 
                     deferred.reject();
@@ -84,13 +112,33 @@
 
         getGroupBoundPolys()
         {
-            return this.getPolyInfo( "/api/AdminMap/GetGroupBounds?filter=" + this.filterAddresses, "Group" );
+            return this.getPolyInfo( "/api/AdminMap/GetGroupBounds?filter=" + this.appTypeFilter, "Group" );
         }
 
 
         getAddressPolys()
         {
-            return this.getPolyInfo( "/api/AdminMap/GetAll?filter=" + this.filterAddresses, "Address" );
+            return this.getPolyInfo( "/api/AdminMap/GetAll?filter=" + this.appTypeFilter, "Address" );
+        }
+
+
+        updateMapMarkers( addresses: GroupBoundInfo[] )
+        {
+            this.addressPoints = [];
+            _.each( addresses, ( a ) =>
+            {
+                if( a.gpsPos )
+                {
+                    // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
+                    (a.gpsPos as any).fullAddress = a.oneLiner;
+
+                    (a.gpsPos as any).onClick = () => {
+                        console.log( "Clicked marker for " + a.oneLiner );
+                    };
+
+                    this.addressPoints.push( a.gpsPos );
+                }
+            } );
         }
 
 
@@ -99,31 +147,20 @@
         {
             this.isLoading = true;
 
-            this.addresses = [];
-
-            const handleAddrs = ( addresses: any[] ) =>
-            {
-                this.addressPoints = [];
-                _.each( addresses, ( a ) =>
-                {
-                    if( a.gpsPos )
-                    {
-                        // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
-                        a.gpsPos.fullAddress = a.oneLiner;
-                        this.addressPoints.push( a.gpsPos );
-                    }
-                } );
-            };
+            this.allAddresses = [];
 
             if( this.includeAddresses )
-                this.getAddressPolys().then( () => this.getGroupBoundPolys() ).then( handleAddrs );
+                this.getAddressPolys().then( () => this.getGroupBoundPolys() ).then( addrs => this.updateMapMarkers( addrs ) );
             else
-                this.getGroupBoundPolys().then( handleAddrs );
+                this.getGroupBoundPolys().then( addrs => this.updateMapMarkers( addrs ) );
         }
 
 
         onSavePoly()
         {
+            if( !this.selectedAddress || !this.selectedGpsPoly )
+                return;
+
             this.isLoading = true;
 
             const serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
@@ -170,7 +207,7 @@
                     { lat: address.gpsPos.lat, lon: address.gpsPos.lon + 0.001 }
                 ];
             }
-
+            
             this.selectedGpsPoly = address.gpsBounds;
             //createPolygon( this.mapInstance, address.gpsBounds.vertices );
         }
@@ -194,10 +231,61 @@
 
         //    newShape.myName = "Name" + ( Math.floor( Math.random() * 10000 ) );
         //} );
+
+
+        updateFilteredGroups()
+        {
+            this.filteredAddresses = this.allAddresses;
+
+            if( this.shouldExcludeGroups && this.excludeLoginMonthsOld > 0 && this.excludeMonthsOld > 0 )
+            {
+                this.filteredAddresses = this.filteredAddresses.filter( ( a ) =>
+                {
+                    if( moment().diff( moment( a.creationDate ), "month" ) < this.excludeMonthsOld )
+                        return false;
+
+                    if( !a.lastLoginDateUtc || moment().diff( moment( a.lastLoginDateUtc ), "month" ) > this.excludeLoginMonthsOld )
+                        return false;
+
+                    if( this.shouldExcludeFreePlan && !a.isOnPaidPremium )
+                        return false;
+
+                    return true;
+                } );
+            }
+
+            this.updateMapMarkers( this.filteredAddresses );
+        }
+
+
+        onMapViewChange( mapInstance: google.maps.Map )
+        {
+            const zoomLevel = mapInstance.getZoom();
+            //console.log( 'Zoom level changed to: ' + zoomLevel );
+
+            // Find all addresses within the map bounds
+            this.zoomedAddresses = [];
+            if( zoomLevel > 7 )
+            {
+                const mapBounds = mapInstance.getBounds();
+                this.zoomedAddresses = this.filteredAddresses.filter( ( a ) =>
+                {
+                    if (!a.gpsPos)
+                        return false;
+
+                    const addressLatLng = new google.maps.LatLng( a.gpsPos.lat, a.gpsPos.lon );
+                    if( mapBounds.contains( addressLatLng ) )
+                        return true;
+
+                    return false;
+                } );
+            }
+                
+        }
     }
 
 
-    class GroupBoundInfo
+    interface GroupBoundInfo
     {
         groupId: number;
         shortName: string;
@@ -205,11 +293,15 @@
         appName: string;
         gpsPos: GpsPoint;
         gpsBounds: GpsPolygon;
+        creationDate: Date;
+        lastLoginDateUtc: Date | null;
+        premiumPlanExpirationDate: Date;
+        isOnPaidPremium: boolean;
 
         // Not from server, used in the UI
         polyType: string;
         oneLiner: string;
-        visitUrl: string;
+        visitUrl: string|null;
         addressId: number;
     }
 }

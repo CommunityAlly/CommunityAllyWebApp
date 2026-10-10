@@ -483,6 +483,7 @@ CA.angularApp.run( ["$rootScope", "$http", "$sce", "$location", "$templateCache"
         {
             //console.log( "In $routeChangeSuccess", event, toState );
 
+            // Is a path that looks like /Login
             $rootScope.curPath = $location.path();
 
             // If there is a query string, track it

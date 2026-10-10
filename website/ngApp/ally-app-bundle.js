@@ -11,7 +11,18 @@ var Ally;
             this.$http = $http;
             this.$q = $q;
             this.isLoading = false;
+            this.appTypeFilter = "";
+            this.allAddresses = [];
+            this.filteredAddresses = [];
+            this.addressPoints = [];
+            this.selectedAddress = null;
+            this.selectedGpsPoly = null;
+            this.zoomedAddresses = [];
             this.includeAddresses = false;
+            this.shouldExcludeGroups = false;
+            this.excludeMonthsOld = 6;
+            this.excludeLoginMonthsOld = 2;
+            this.shouldExcludeFreePlan = true;
         }
         /**
         * Called on each controller after all the controllers on an element have been constructed
@@ -19,6 +30,21 @@ var Ally;
         $onInit() {
             // Initialize the UI
             this.refreshAddresses();
+        }
+        static AppTypeToUrl(appType, shortName) {
+            switch (appType) {
+                case "Condo":
+                    return `https://${shortName}.condoally.com/`;
+                case "Hoa":
+                    return `https://${shortName}.hoaally.org/`;
+                case "Home":
+                    return `https://${shortName}.homeally.org/`;
+                case "Neighborhood":
+                    return `https://${shortName}.NeighborhoodAlly.org/`;
+                case "BlockClub":
+                    return `https://${shortName}.BlockClubAlly.org/`;
+            }
+            return null;
         }
         getPolyInfo(url, polyType) {
             const deferred = this.$q.defer();
@@ -31,14 +57,16 @@ var Ally;
                     a.polyType = polyType;
                     if (polyType === "Group") {
                         a.oneLiner = `${a.shortName}, ${a.appName} (ID: ${a.groupId})`;
-                        if (a.appName === "Condo")
-                            a.visitUrl = `https://${a.shortName}.condoally.com/`;
-                        else if (a.appName === "Hoa")
-                            a.visitUrl = `https://${a.shortName}.hoaally.org/`;
+                        a.visitUrl = ManageAddressPolysController.AppTypeToUrl(a.appName, a.shortName);
                     }
                 });
-                $.merge(this.addresses, addresses);
-                deferred.resolve(this.addresses);
+                if (this.includeAddresses)
+                    $.merge(this.allAddresses, addresses);
+                else
+                    this.allAddresses = addresses;
+                console.log("this.allAddresses.length=" + this.allAddresses.length);
+                this.updateFilteredGroups();
+                deferred.resolve(this.allAddresses);
             }, (httpResponse) => {
                 this.isLoading = false;
                 const errorMessage = httpResponse.data.exceptionMessage ? httpResponse.data.exceptionMessage : httpResponse.data;
@@ -48,31 +76,36 @@ var Ally;
             return deferred.promise;
         }
         getGroupBoundPolys() {
-            return this.getPolyInfo("/api/AdminMap/GetGroupBounds?filter=" + this.filterAddresses, "Group");
+            return this.getPolyInfo("/api/AdminMap/GetGroupBounds?filter=" + this.appTypeFilter, "Group");
         }
         getAddressPolys() {
-            return this.getPolyInfo("/api/AdminMap/GetAll?filter=" + this.filterAddresses, "Address");
+            return this.getPolyInfo("/api/AdminMap/GetAll?filter=" + this.appTypeFilter, "Address");
+        }
+        updateMapMarkers(addresses) {
+            this.addressPoints = [];
+            _.each(addresses, (a) => {
+                if (a.gpsPos) {
+                    // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
+                    a.gpsPos.fullAddress = a.oneLiner;
+                    a.gpsPos.onClick = () => {
+                        console.log("Clicked marker for " + a.oneLiner);
+                    };
+                    this.addressPoints.push(a.gpsPos);
+                }
+            });
         }
         // Get the addresses that are missing bounding polys
         refreshAddresses() {
             this.isLoading = true;
-            this.addresses = [];
-            const handleAddrs = (addresses) => {
-                this.addressPoints = [];
-                _.each(addresses, (a) => {
-                    if (a.gpsPos) {
-                        // The GoogleMapPoly directive uses the fullAddress for the marker tooltip
-                        a.gpsPos.fullAddress = a.oneLiner;
-                        this.addressPoints.push(a.gpsPos);
-                    }
-                });
-            };
+            this.allAddresses = [];
             if (this.includeAddresses)
-                this.getAddressPolys().then(() => this.getGroupBoundPolys()).then(handleAddrs);
+                this.getAddressPolys().then(() => this.getGroupBoundPolys()).then(addrs => this.updateMapMarkers(addrs));
             else
-                this.getGroupBoundPolys().then(handleAddrs);
+                this.getGroupBoundPolys().then(addrs => this.updateMapMarkers(addrs));
         }
         onSavePoly() {
+            if (!this.selectedAddress || !this.selectedGpsPoly)
+                return;
             this.isLoading = true;
             const serverVerts = { vertices: this.selectedAddress.gpsBounds.vertices };
             const url = this.selectedAddress.polyType === "Address" ? ("/api/AdminMap/UpdateAddress/" + this.selectedAddress.addressId) : ("/api/AdminMap/UpdateGroup/" + this.selectedAddress.groupId);
@@ -106,11 +139,56 @@ var Ally;
             this.selectedGpsPoly = address.gpsBounds;
             //createPolygon( this.mapInstance, address.gpsBounds.vertices );
         }
+        //google.maps.event.addDomListener( window, 'load', initialize );
+        //google.maps.event.addListener( this.mapInstance, 'click', function (mouseEvent)
+        //{
+        //    console.log( "Creating shape" );
+        //    var southWest = new google.maps.LatLng( mouseEvent.latLng.lat(), mouseEvent.latLng.lng() );
+        //    var northEast = new google.maps.LatLng( mouseEvent.latLng.lat() + 0.41, mouseEvent.latLng.lng() + 0.41 );
+        //    var vertices = [
+        //        southWest,
+        //        new google.maps.LatLng( northEast.lat(), southWest.lng() ),
+        //        northEast,
+        //        new google.maps.LatLng( southWest.lat(), northEast.lng() )
+        //    ];
+        //    var newShape = createPolygon( this.mapInstance, vertices );
+        //    newShape.myName = "Name" + ( Math.floor( Math.random() * 10000 ) );
+        //} );
+        updateFilteredGroups() {
+            this.filteredAddresses = this.allAddresses;
+            if (this.shouldExcludeGroups && this.excludeLoginMonthsOld > 0 && this.excludeMonthsOld > 0) {
+                this.filteredAddresses = this.filteredAddresses.filter((a) => {
+                    if (moment().diff(moment(a.creationDate), "month") < this.excludeMonthsOld)
+                        return false;
+                    if (!a.lastLoginDateUtc || moment().diff(moment(a.lastLoginDateUtc), "month") > this.excludeLoginMonthsOld)
+                        return false;
+                    if (this.shouldExcludeFreePlan && !a.isOnPaidPremium)
+                        return false;
+                    return true;
+                });
+            }
+            this.updateMapMarkers(this.filteredAddresses);
+        }
+        onMapViewChange(mapInstance) {
+            const zoomLevel = mapInstance.getZoom();
+            //console.log( 'Zoom level changed to: ' + zoomLevel );
+            // Find all addresses within the map bounds
+            this.zoomedAddresses = [];
+            if (zoomLevel > 7) {
+                const mapBounds = mapInstance.getBounds();
+                this.zoomedAddresses = this.filteredAddresses.filter((a) => {
+                    if (!a.gpsPos)
+                        return false;
+                    const addressLatLng = new google.maps.LatLng(a.gpsPos.lat, a.gpsPos.lon);
+                    if (mapBounds.contains(addressLatLng))
+                        return true;
+                    return false;
+                });
+            }
+        }
     }
     ManageAddressPolysController.$inject = ["$http", "$q"];
     Ally.ManageAddressPolysController = ManageAddressPolysController;
-    class GroupBoundInfo {
-    }
 })(Ally || (Ally = {}));
 CA.angularApp.component("manageAddressPolys", {
     templateUrl: "/ngApp/admin/manage-address-polys.html",
@@ -1416,6 +1494,7 @@ CA.angularApp.run(["$rootScope", "$http", "$sce", "$location", "$templateCache",
         // Keep track of our current page
         $rootScope.$on("$routeChangeSuccess", function (event, toState, toParams, fromState) {
             //console.log( "In $routeChangeSuccess", event, toState );
+            // Is a path that looks like /Login
             $rootScope.curPath = $location.path();
             // If there is a query string, track it
             let queryString = "";
@@ -20859,6 +20938,8 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
         // Occurs when the GpsBounds to the non-editable polys change
         scope.onVisiblePointsChange = function ( newPoints )
         {
+            console.log(`onVisiblePointsChange: Clearing ${scope.currentVisiblePoints.length} existing markers, adding ${newPoints.length} markers`);
+
             // Clear our current array
             _.each( scope.currentVisiblePoints, function ( p )
             {
@@ -20892,9 +20973,9 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
             if( scope.enableClustering )
             {
                 if( scope.markerClusterer )
-                    markerCluster.setMap( null );
+                    scope.markerClusterer.setMap( null );
 
-                scope.markerCluster = new markerClusterer.MarkerClusterer( {
+                scope.markerClusterer = new markerClusterer.MarkerClusterer( {
                     markers: scope.currentVisiblePoints,
                     map: scope.mapInstance
                 } );
@@ -21023,6 +21104,33 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
             //    } );
             //} );
         } );
+
+        google.maps.event.addListener( scope.mapInstance, 'zoom_changed', ( mouseEvent ) =>
+        {
+            // Retrieve the new zoom level
+            console.log('Zoom level changed to: ' + scope.mapInstance.getZoom(), `${scope.currentVisiblePoints.length} markers` );
+
+            if( scope.onZoomChange )
+            {
+                scope.$evalAsync( () =>
+                {
+                    scope.onMapViewChange( { mapInstance: scope.mapInstance } );
+                } );
+            }
+        });
+
+        google.maps.event.addListener(scope.mapInstance, 'center_changed', (mouseEvent) => {
+            // Retrieve the new zoom level
+            //const currentZoom = scope.mapInstance.getZoom();
+            //console.log( 'Map center changed' );
+
+            if (scope.onMapViewChange)
+            {
+                scope.$evalAsync(() => {
+                    scope.onMapViewChange({ mapInstance: scope.mapInstance });
+                });
+            }
+        });
     };
 
     return {
@@ -21034,7 +21142,8 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
             mapCenter: "=",
             onMapEditorReady: "&",
             enableMapControls: "=",
-            enableClustering: "="
+            enableClustering: "=",
+            onMapViewChange: "&",
         },
         restrict: 'E',
         replace: 'true',
@@ -21042,6 +21151,7 @@ CA.angularApp.directive( "googleMapPolyEditor", ["$http", function ( $http )
         link: linkFunction
     };
 }] );
+
 var Ally;
 (function (Ally) {
     /**

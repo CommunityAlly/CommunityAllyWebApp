@@ -1,16 +1,16 @@
-﻿<div class="page margin-vertical padding white-bg">
+<div class="page margin-vertical padding white-bg">
     <div class="loading-overlay" data-ng-show="$ctrl.isLoading"></div>
     <!--<ui-gmap-google-map center="$ctrl.mapInfo.center" draggable="true" options="$ctrl.mapInfo.options" events="$ctrl.mapInfo.events" zoom="$ctrl.mapInfo.zoom">
     </ui-gmap-google-map>-->
     <!--<div id="map-canvas" style="width:100%; height:400px;"></div>-->
-    <google-map-poly-editor visible-points="$ctrl.addressPoints" edit-poly-verts="$ctrl.selectedGpsPoly" enable-clustering="true"></google-map-poly-editor>
+    <google-map-poly-editor visible-points="$ctrl.addressPoints" edit-poly-verts="$ctrl.selectedGpsPoly" enable-clustering="true" data-on-map-view-change="$ctrl.onMapViewChange(mapInstance)"></google-map-poly-editor>
     <button data-ng-click="$ctrl.onSavePoly()">Save Polygon for Address</button>
     <div>
         <h2>Selected Address</h2>
         <p>{{ $ctrl.selectedAddress.oneLiner }}</p>
         <p>
             Filter:
-            <select data-ng-model="$ctrl.filterAddresses" data-ng-change="$ctrl.refreshAddresses()">
+            <select data-ng-model="$ctrl.appTypeFilter" data-ng-change="$ctrl.refreshAddresses()">
                 <option value="unset">Unset Bounds</option>
                 <option value="watch">Watch Ally</option>
                 <option value="condo">Condo Ally</option>
@@ -18,14 +18,47 @@
                 <option value="currentSite">Current Site</option>
                 <option value="">All</option>
             </select>
+            <div data-ng-style="{'color': $ctrl.shouldExcludeGroups ? 'default' : 'lightgray'}">
+                <label>
+                    <input type="checkbox" data-ng-model="$ctrl.shouldExcludeGroups" data-ng-change="$ctrl.updateFilteredGroups()" />
+                    Exclude groups that were created less than
+                </label>
+                <input type="number" data-ng-model="$ctrl.excludeMonthsOld" style="width: 40px;" data-ng-change="$ctrl.updateFilteredGroups()" />
+                months ago, have a login older than
+                <input type="number" data-ng-model="$ctrl.excludeLoginMonthsOld" style="width: 40px;" data-ng-change="$ctrl.updateFilteredGroups()" />
+                months ago, and
+                <label>
+                    <input type="checkbox" data-ng-model="$ctrl.shouldExcludeFreePlan" data-ng-change="$ctrl.updateFilteredGroups()" />
+                    is not
+                </label>
+                on the free plan.
+            </div>
 
             <label><input type="checkbox" data-ng-model="$ctrl.includeAddresses" data-ng-change="$ctrl.refreshAddresses()" />Include Address Markers</label>
         </p>
-        <h2>Addresses</h2>
-        <div>
-            <p class="text-link" data-ng-repeat="address in $ctrl.addresses" data-ng-click="$ctrl.onAddressSelected( address )">
-                ({{ address.polyType }}) {{ address.oneLiner }} <a data-ng-if="address.visitUrl" data-ng-href="{{address.visitUrl}}" target="_blank" class="ms-3">Visit Site</a>
-            </p>
+        <div data-ng-if="$ctrl.zoomedAddresses.length > 0" class="mt-2 mb-5">
+            <div class="mb-1">
+                {{ $ctrl.zoomedAddresses.length }} addresses in viewport
+            </div>
+            <h2>Viewport Addresses</h2>
+            <ol>
+                <li class="text-link" data-ng-repeat="address in $ctrl.zoomedAddresses" data-ng-click="$ctrl.onAddressSelected( address )">
+                    ({{ address.polyType }}) {{ address.oneLiner }} <a data-ng-if="address.visitUrl" data-ng-href="{{address.visitUrl}}" target="_blank" class="ms-3">Visit Site</a>
+                    <span class="ms-3 note-text">Created: {{address.creationDate | date:'short'}}</span>
+                    <span class="ms-3 note-text">Last Login: {{address.lastLoginDateUtc | date:'short'}}</span>
+                </li>
+            </ol>
         </div>
+        <h2 class="mt-2">{{$ctrl.shouldExcludeGroups ? 'Filtered' : 'All'}} Addresses</h2>
+        <div class="mb-1">
+            {{ $ctrl.filteredAddresses.length }} addresses found. <span data-ng-if="$ctrl.filteredAddresses.length !== $ctrl.allAddresses.length">({{$ctrl.allAddresses.length}} unfiltered)</span>
+        </div>
+        <ol>
+            <li class="text-link" data-ng-repeat="address in $ctrl.filteredAddresses" data-ng-click="$ctrl.onAddressSelected( address )">
+                ({{ address.polyType }}) {{ address.oneLiner }} <a data-ng-if="address.visitUrl" data-ng-href="{{address.visitUrl}}" target="_blank" class="ms-3">Visit Site</a>
+                <span class="ms-3 note-text">Created: {{address.creationDate | date:'short'}}</span>
+                <span class="ms-3 note-text">Last Login: {{address.lastLoginDateUtc | date:'short'}}</span>
+            </li>
+        </ol>
     </div>
 </div>
