@@ -304,7 +304,7 @@
         <div data-ng-show="!$ctrl.siteLaunchedDateUtc">
             Is your site new and are you ready to share it with your fellow residents?
             <br />
-            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-if="!$ctrl.launchSiteResultsString">Launch Site</button>
+            <button type="button" class="btn btn-primary" data-ng-click="$ctrl.onSendAllWelcome();" data-ng-if="!$ctrl.launchSiteResultsString">Invite All Residents</button>
             <span style="font-weight:bold; color:#22F;" data-ng-if="$ctrl.launchSiteResultsString">{{$ctrl.launchSiteResultsString}}</span>
             <div data-ng-if="!$ctrl.launchSiteResultsString">
                 This will send all of the residents an email with log-in instructions and basic site information. This will not send
@@ -313,9 +313,9 @@
         </div>
 
         <div data-ng-show="$ctrl.siteLaunchedDateUtc !== null" class="note-text">
-            Looking for the "Launch Site" button?<br />
-            This site has already been successfully launched. If you need to send login instructions to users, click on their name above, then click
-            the "Send Welcome Email" button. If needed, you can <span class="text-link" data-ng-click="$ctrl.siteLaunchedDateUtc = null">show the launch site button</span> again.
+            Looking for the "Invite All Residents" button?<br />
+            Invites have already been sent out. If you need to send login instructions to users, click on their name above, then click
+            the "Send Welcome Email" button. If needed, you can <span class="text-link" data-ng-click="$ctrl.siteLaunchedDateUtc = null">show the "Invite All Residents" button</span> again.
         </div>
     </div>
 </div>
